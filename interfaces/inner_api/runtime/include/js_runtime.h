@@ -45,7 +45,9 @@ class FileMapper;
 namespace JsEnv {
 class JsEnvironment;
 class SourceMapOperator;
+struct ErrorObject;
 struct UncaughtExceptionInfo;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
 } // namespace JsEnv
 
 using AppLibPathMap = std::map<std::string, std::vector<std::string>>;
@@ -101,6 +103,8 @@ public:
         const std::string& hapPath,  bool isEsMode, const std::string& srcEntrance) override;
     void PreloadModule(const std::string& moduleName, const std::string& srcPath,
         const std::string& hapPath, bool isEsMode, bool useCommonTrunk) override;
+    void PreloadModule(const std::string &moduleName, const std::string &hapPath,
+        bool isEsMode, bool useCommonTrunk) override {}
     bool PopPreloadObj(const std::string& key, std::unique_ptr<NativeReference>& obj);
     void StartDebugMode(const DebugOption debugOption) override;
     void SetDebugOption(const DebugOption debugOption) override;
@@ -111,6 +115,7 @@ public:
     bool UnLoadRepairPatch(const std::string& hqfFile) override;
     bool NotifyHotReloadPage() override;
     void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
+    void RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask);
     bool LoadScript(const std::string& path, std::vector<uint8_t>* buffer = nullptr, bool isBundle = false);
     bool LoadScript(const std::string& path, uint8_t* buffer, size_t len, bool isBundle,
         const std::string& srcEntrance = "");
@@ -143,11 +148,17 @@ public:
         const std::string& srcEntrance = "");
     std::unique_ptr<NativeReference> LoadSystemModule(
         const std::string& moduleName, const napi_value* argv = nullptr, size_t argc = 0);
+
+    bool ExecuteSecureWithOhmUrl(const std::string &moduleName, const std::string &hapPath,
+        const std::string &srcEntrance);
+    napi_value GetExportObjectFromOhmUrl(const std::string &srcEntrance, const std::string &key);
+
     void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override;
     void SetStopPreloadSoCallback(const std::function<void()> &callback) override;
     void SetPkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName);
     void UpdatePkgContextInfoJson(const std::string& moduleName, const std::string& hapPath,
         const std::string& packageName);
+    void RegisterUncaughtExceptionHandler(void *uncaughtExceptionInfo) override;
 
 private:
     void FinishPreload() override;

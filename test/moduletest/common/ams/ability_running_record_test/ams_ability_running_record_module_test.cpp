@@ -178,7 +178,7 @@ public:
         return 0;
     }
 
-    int32_t ScheduleChangeAppGcState(int32_t state) override
+    int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid) override
     {
         return 0;
     }
@@ -190,6 +190,9 @@ public:
     {}
 
     void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override
+    {}
+
+    void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override
     {}
 
     int32_t ScheduleDumpIpcStart(std::string& result) override

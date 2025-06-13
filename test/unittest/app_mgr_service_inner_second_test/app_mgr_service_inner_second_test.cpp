@@ -53,6 +53,7 @@ constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 constexpr int32_t USER_SCALE = 200000;
 constexpr int32_t TEST_PID_100 = 100;
 constexpr int32_t PID_1000 = 1000;
+constexpr int32_t FOUNDATION_UID = 5523;
 const std::string PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 const std::string TEST_FLAG = "testFlag";
 const std::string TEST_PROCESS_NAME = "testProcessName";
@@ -1085,7 +1086,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0100, TestSize.L
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     time_t exitTime = 0;
     int32_t count = 2;
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    auto pid = 1;
+    std::string processName = "com.example";
+    auto extensionType = 1;
+    auto exitReason = 1;
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_EQ(appRecord, nullptr); //appRecord null
 
     BundleInfo bundleInfo;
@@ -1096,7 +1101,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0100, TestSize.L
     appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_, TEST_PROCESS_NAME,
         bundleInfo, hapModuleInfo, want_, false);
     appRecord->priorityObject_ = nullptr;
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    pid = appRecord->GetPid();
+    processName = appRecord->GetProcessName();
+    extensionType = static_cast<int32_t>(appRecord->GetExtensionType());
+    exitReason = appRecord->GetExitReason();
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_NE(appRecord, nullptr);
     EXPECT_EQ(appRecord->priorityObject_, nullptr); //priorityObject null
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SendProcessExitEventTask_0100 end");
@@ -1122,12 +1131,16 @@ HWTEST_F(AppMgrServiceInnerSecondTest, SendProcessExitEventTask_0200, TestSize.L
     appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_, TEST_PROCESS_NAME,
         bundleInfo, hapModuleInfo, want_, false);
     appRecord->GetPriorityObject()->SetPid(INT_MAX);
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    auto pid = appRecord->GetPid();
+    auto processName = appRecord->GetProcessName();
+    auto extensionType = static_cast<int32_t>(appRecord->GetExtensionType());
+    auto exitReason = appRecord->GetExitReason();
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_NE(appRecord->priorityObject_, nullptr); //exitResult = true
     EXPECT_FALSE(--count <= 0);
     count = 1;
     appRecord->GetPriorityObject()->SetPid(1);
-    appMgrServiceInner->SendProcessExitEventTask(appRecord, exitTime, count);
+    appMgrServiceInner->SendProcessExitEventTask(pid, processName, extensionType, exitReason, exitTime, count);
     EXPECT_TRUE(--count <= 0); //--count <= 0
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SendProcessExitEventTask_0200 end");
 }
@@ -2330,6 +2343,135 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_LaunchAbilit
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     GTEST_LOG_(INFO) << "LaunchAbility_0100 end";
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_SetKeepAliveEnableState_0100
+ * @tc.desc: Test SetKeepAliveEnableState
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAliveEnableState_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveEnableState_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    const BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.isStageBasedModel = true;
+    hapModuleInfo.process = TEST_PROCESS_NAME;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    ASSERT_NE(appRecord, nullptr);
+
+    // case 1, bundleName is empty.
+    appMgrServiceInner->SetKeepAliveEnableState("", true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveRdb_);
+
+    // case 2, appRunningManager_ is nullptr.
+    std::shared_ptr<AppRunningManager> appRunningManagerBack = appMgrServiceInner->appRunningManager_;
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->SetKeepAliveEnableState(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveRdb_);
+    appMgrServiceInner->appRunningManager_ = appRunningManagerBack;
+
+    // case 3, not foundation call.
+    appMgrServiceInner->SetKeepAliveEnableState(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveRdb_);
+
+    // case 4, caller bundleName and appRecord bundleName are not equal.
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    appMgrServiceInner->SetKeepAliveEnableState("InvalidBundleName", true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveRdb_);
+
+    // case 5, set success.
+    appMgrServiceInner->SetKeepAliveEnableState(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_TRUE(appRecord->isKeepAliveRdb_);
+
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveEnableState_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_SetKeepAliveDkv_0100
+ * @tc.desc: Test SetKeepAliveDkv
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAliveDkv_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveDkv_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    const BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.isStageBasedModel = true;
+    hapModuleInfo.process = TEST_PROCESS_NAME;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    ASSERT_NE(appRecord, nullptr);
+
+    // case 1, bundleName is empty.
+    appMgrServiceInner->SetKeepAliveDkv("", true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveDkv_);
+
+    // case 2, appRunningManager_ is nullptr.
+    std::shared_ptr<AppRunningManager> appRunningManagerBack = appMgrServiceInner->appRunningManager_;
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    appMgrServiceInner->SetKeepAliveDkv(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveDkv_);
+    appMgrServiceInner->appRunningManager_ = appRunningManagerBack;
+
+    // case 3, not foundation call.
+    appMgrServiceInner->SetKeepAliveDkv(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveDkv_);
+
+    // case 4, caller bundleName and appRecord bundleName are not equal.
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    appMgrServiceInner->SetKeepAliveDkv("InvalidBundleName", true, 0);
+    EXPECT_FALSE(appRecord->isKeepAliveDkv_);
+
+    // case 5, set success.
+    appRecord->extensionType_ = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
+    appMgrServiceInner->SetKeepAliveDkv(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_TRUE(appRecord->isKeepAliveDkv_);
+
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveDkv_0100 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_GetKeepAliveState_0100
+ * @tc.desc: Test GetKeepAliveState
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_GetKeepAliveState_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetKeepAliveState_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    const BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.isStageBasedModel = true;
+    hapModuleInfo.process = TEST_PROCESS_NAME;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    ASSERT_NE(appRecord, nullptr);
+
+    // case 1, appRecord is nullptr.
+    auto resultState = appMgrServiceInner->GetKeepAliveState(nullptr);
+    EXPECT_FALSE(resultState);
+
+    // case 2, get success.
+    appRecord->isKeepAliveDkv_ = true;
+    resultState = appMgrServiceInner->GetKeepAliveState(appRecord);
+    EXPECT_TRUE(resultState);
+
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_GetKeepAliveState_0100 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

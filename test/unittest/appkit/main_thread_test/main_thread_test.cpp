@@ -248,7 +248,7 @@ class MockAppMgrStub : public AppMgrStub {
         return 0;
     }
 
-    int32_t ChangeAppGcState(pid_t pid, int32_t state) override
+    int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid) override
     {
         return 0;
     }
@@ -1915,7 +1915,7 @@ HWTEST_F(MainThreadTest, HandleLaunchAbility_0200, TestSize.Level1)
     abilityRecord3->abilityInfo_ = nullptr;
     AbilityRuntime::Runtime::Options options;
     auto runtime = AbilityRuntime::Runtime::Create(options);
-    mainThread_->application_->SetRuntime(std::move(runtime));
+    mainThread_->application_->AddRuntime(std::move(runtime));
     auto contextDeal = std::make_shared<ContextDeal>();
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->debug = true;

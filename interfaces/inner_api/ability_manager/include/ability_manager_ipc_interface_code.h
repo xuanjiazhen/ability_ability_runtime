@@ -468,6 +468,11 @@ enum class AbilityManagerInterfaceCode {
     // ipc for open link
     OPEN_LINK = 1140,
 
+    //ipc for suspend extionsion ability
+    SUSPEND_EXTENSION_ABILITY = 1141,
+    // ipc for resume extionsion ability
+    RESUME_EXTENSION_ABILITY = 1142,
+
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
     DUMP_STATE = 2001,
@@ -508,6 +513,7 @@ enum class AbilityManagerInterfaceCode {
     // ipc id for collborator
     REGISTER_COLLABORATOR = 4050,
     UNREGISTER_COLLABORATOR = 4051,
+    GET_ABILITY_MANAGER_COLLABORATOR = 4052,
 
     IS_ABILITY_CONTROLLER_START = 4054,
     OPEN_FILE = 4055,
@@ -584,6 +590,12 @@ enum class AbilityManagerInterfaceCode {
 
     GET_INTENT_EXEMPTION_INFO = 6125,
 
+    // set app service extension keep alive
+    SET_APP_SERVICE_EXTENSION_KEEP_ALIVE = 6126,
+
+    // get keep-alive app service extensions
+    GET_APP_SERVICE_EXTENSIONS_KEEP_ALIVE = 6127,
+
     // add query ERMS observer
     ADD_QUERY_ERMS_OBSERVER = 6130,
 
@@ -613,6 +625,39 @@ enum class AbilityManagerInterfaceCode {
 
     // revoke delegator
     REVOKE_DELEGATOR = 6139,
+
+    // get all insight intent info
+    GET_ALL_INSIGHT_INTENT_INFO = 6140,
+
+    // get all insight intent info by bundle name
+    GET_INSIGHT_INTENT_INFO_BY_BUNDLE_NAME = 6141,
+
+    // get all insight intent info by intent name
+    GET_INSIGHT_INTENT_INFO_BY_INTENT_NAME = 6142,
+
+    // start ability with wait
+    START_ABILITY_WITH_WAIT = 6143,
+
+    // restart atomic service
+    RESTART_SELF_ATOMIC_SERVICE = 6144,
+
+    // update the list of applications allowed in kiosk mode
+    UPDATE_KIOSK_APP_LIST = 6145,
+
+    // enter kiosk mode
+    ENTER_KIOSK_MODE = 6146,
+
+    // exit kiosk mode
+    EXIT_KIOSK_MODE = 6147,
+
+    // get current kiosk mode information
+    GET_KIOSK_INFO = 6148,
+
+    // register sa interceptor
+    REGISTER_SA_INTERCEPTOR = 6149,
+
+    // ipc id for start UIExtension ability pre view embedded
+    START_UI_EXTENSION_PRE_VIEW_EMBEDDED = 6150,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

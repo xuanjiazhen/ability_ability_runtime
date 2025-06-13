@@ -61,6 +61,7 @@ public:
     MOCK_METHOD1(ScheduleDumpIpcStat, int32_t(std::string &result));
     MOCK_METHOD0(IsMemorySizeSufficent, bool());
     MOCK_METHOD1(ScheduleJsHeapMemory, void(OHOS::AppExecFwk::JsHeapDumpInfo &info));
+    MOCK_METHOD1(ScheduleCjHeapMemory, void(OHOS::AppExecFwk::CjHeapDumpInfo &info));
     MOCK_METHOD1(ScheduleDumpFfrt, int32_t(std::string& result));
     MOCK_METHOD1(SetWatchdogBackgroundStatus, void(bool status));
     MOCK_METHOD0(ScheduleClearPageStack, void());
@@ -129,7 +130,7 @@ public:
         return (profile.GetName() == profile_.GetName());
     }
 
-    int32_t ScheduleChangeAppGcState(int32_t state) override
+    int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid = 0) override
     {
         return 0;
     }

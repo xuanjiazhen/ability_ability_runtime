@@ -22,6 +22,7 @@
 
 #include "ability_record_mgr.h"
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
 #include "app_scheduler_host.h"
@@ -39,6 +40,7 @@
 #include "resource_manager.h"
 #include "runtime.h"
 #include "watchdog.h"
+#include "ets_exception_callback.h"
 
 #ifdef CJ_FRONTEND
 #include "cj_envsetup.h"
@@ -52,6 +54,10 @@
 
 class Runtime;
 namespace OHOS {
+namespace JsEnv {
+struct ErrorObject;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
+}  // namespace JsEnv
 namespace AppExecFwk {
 using namespace OHOS::Global;
 using OHOS::AbilityRuntime::Runtime;
@@ -60,6 +66,13 @@ using HspList = std::vector<BaseSharedBundleInfo>;
 enum class MainThreadState { INIT, ATTACH, READY, RUNNING };
 struct BundleInfo;
 struct PluginBundleInfo;
+struct UncatchableTaskInfo {
+    std::string bundleName;
+    uint32_t versionCode;
+    std::string appRunningId;
+    int32_t pid;
+    std::string processName;
+};
 class ContextDeal;
 // class Global::Resource::ResourceManager;
 class AppMgrDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -192,6 +205,14 @@ public:
 
     /**
      *
+     * @brief triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid, needGc, needSnapshot.
+     */
+    void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
+
+    /**
+     *
      * @brief Low the memory which used by application.
      *
      */
@@ -303,6 +324,8 @@ public:
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath);
 #endif
+    EtsEnv::ETSUncaughtExceptionInfo CreateEtsExceptionInfo(const std::string &bundleName, uint32_t versionCode,
+        const std::string &hapPath, std::string &appRunningId, int32_t pid, std::string &processName);
     /**
      * @brief Notify NativeEngine GC of status change.
      *
@@ -310,7 +333,7 @@ public:
      *
      * @return Is the status change completed.
      */
-    int32_t ScheduleChangeAppGcState(int32_t state) override;
+    int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid = 0) override;
 
     void AttachAppDebug(bool isDebugFromLocal) override;
     void DetachAppDebug() override;
@@ -381,6 +404,8 @@ private:
 
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
+    void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
     void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
     void PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
@@ -412,6 +437,17 @@ private:
      *
      */
     void HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config);
+
+    /**
+     *
+     * @brief Init the uncatchable task.
+     *
+     * @param uncatchableTaskInfo The info of the uncatchable task.
+     * @param isUncatchable Weather task is uncatcheable.
+     *
+     */
+    void InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, const UncatchableTaskInfo &uncatchableTaskInfo,
+        bool isUncatchable = false);
 
     /**
      *
@@ -589,7 +625,8 @@ private:
      *
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion,
+		const std::string &applicationCodeLanguage);
 
     /**
      * @brief Set current process extension type
@@ -636,7 +673,7 @@ private:
 
     std::vector<std::string> GetRemoveOverlayPaths(const std::vector<OverlayModuleInfo> &overlayModuleInfos);
 
-    int32_t ChangeAppGcState(int32_t state);
+    int32_t ChangeAppGcState(int32_t state, uint64_t tid = 0);
 
     void HandleCacheProcess();
 
@@ -653,6 +690,8 @@ private:
     void ParseAppConfigurationParams(const std::string configuration, Configuration &config);
 
     int32_t OnAttachLocalDebug(bool isDebugFromLocal);
+
+    void HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo);
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
@@ -762,6 +801,12 @@ private:
     void SetAppDebug(uint32_t modeFlag, bool isDebug);
     void GetPluginNativeLibPath(std::vector<AppExecFwk::PluginBundleInfo> &pluginBundleInfos,
         AppLibPathMap &appLibPaths);
+    void AddRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
+    bool IsNeedEtsInit(const ApplicationInfo &appInfo);
+    const std::unique_ptr<AbilityRuntime::Runtime> &GetVerOneRuntime(
+        const ApplicationInfo &appInfo, const std::vector<std::unique_ptr<Runtime>> &runtimes);
+    void SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpApplication,
+        const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;

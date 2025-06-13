@@ -16,9 +16,11 @@ group("unittest") {
   deps = []
 
   deps += [
+    "appfreeze_cpu_freq_manager_test:unittest",
     "appfreeze_inner_test:unittest",
     "appfreeze_manager_test:unittest",
     "appfreeze_state_test:unittest",
+    "dump_proc_helper_test:unittest",
     "watchdog_test:unittest",
   ]
 }

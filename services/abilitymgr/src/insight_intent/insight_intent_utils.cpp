@@ -96,5 +96,94 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     TAG_LOGE(AAFwkTag::INTENT, "get srcEntry failed");
     return AAFwk::ERR_INSIGHT_INTENT_START_INVALID_COMPONENT;
 }
+uint32_t InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(
+    ExtractInsightIntentGenericInfo &genericInfo, InsightIntentInfoForQuery &queryInfo)
+{
+    queryInfo.bundleName = genericInfo.bundleName;
+    queryInfo.moduleName = genericInfo.moduleName;
+    queryInfo.intentName = genericInfo.intentName;
+    queryInfo.displayName = genericInfo.displayName;
+    queryInfo.intentType = genericInfo.decoratorType;
+    if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_LINK) {
+        auto linkInfo = genericInfo.get<InsightIntentLinkInfo>();
+        queryInfo.linkInfo.uri = linkInfo.uri;
+        queryInfo.parameters = linkInfo.parameters;
+    } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) {
+        auto pageInfo = genericInfo.get<InsightIntentPageInfo>();
+        queryInfo.pageInfo.uiAbility = pageInfo.uiAbility;
+        queryInfo.pageInfo.pagePath = pageInfo.pagePath;
+        queryInfo.pageInfo.navigationId = pageInfo.navigationId;
+        queryInfo.pageInfo.navDestinationName = pageInfo.navDestinationName;
+        queryInfo.parameters = pageInfo.parameters;
+    } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
+        auto entryInfo = genericInfo.get<InsightIntentEntryInfo>();
+        queryInfo.entryInfo.abilityName = entryInfo.abilityName;
+        for (auto mode : entryInfo.executeMode) {
+            queryInfo.entryInfo.executeMode.emplace_back(mode);
+        }
+        queryInfo.parameters = entryInfo.parameters;
+    } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION) {
+        auto functionInfo = genericInfo.get<InsightIntentFunctionInfo>();
+        queryInfo.parameters = functionInfo.parameters;
+    } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_FORM) {
+        auto formInfo = genericInfo.get<InsightIntentFormInfo>();
+        queryInfo.formInfo.abilityName = formInfo.abilityName;
+        queryInfo.formInfo.formName = formInfo.formName;
+        queryInfo.parameters = formInfo.parameters;
+    } else {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid decoratorType:%{public}s", genericInfo.decoratorType.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
+    ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity)
+{
+    ConvertExtractInsightIntentGenericInfo(intentInfo.genericInfo, queryInfo);
+    queryInfo.domain = intentInfo.domain;
+    queryInfo.intentVersion = intentInfo.intentVersion;
+    queryInfo.displayDescription = intentInfo.displayDescription;
+    queryInfo.schema = intentInfo.schema;
+    queryInfo.icon = intentInfo.icon;
+    queryInfo.llmDescription = intentInfo.llmDescription;
+    queryInfo.result = intentInfo.result;
+
+    for (auto &keyword : intentInfo.keywords) {
+        queryInfo.keywords.emplace_back(keyword);
+    }
+
+    if (getEntity) {
+        for (auto &entityInfo : intentInfo.entities) {
+            EntityInfoForQuery insightInfo;
+            insightInfo.className = entityInfo.className;
+            insightInfo.entityCategory = entityInfo.entityCategory;
+            insightInfo.entityId = entityInfo.entityId;
+            insightInfo.parameters = entityInfo.parameters;
+            insightInfo.parentClassName = entityInfo.parentClassName;
+            queryInfo.entities.emplace_back(insightInfo);
+        }
+    }
+
+    return ERR_OK;
+}
+
+uint32_t InsightIntentUtils::ConvertExtractInsightIntentEntityInfo(
+    ExtractInsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo)
+{
+    ConvertExtractInsightIntentGenericInfo(intentInfo.genericInfo, queryInfo);
+
+    for (auto &entityInfo : intentInfo.entities) {
+        EntityInfoForQuery insightInfo;
+        insightInfo.className = entityInfo.className;
+        insightInfo.entityCategory = entityInfo.entityCategory;
+        insightInfo.entityId = entityInfo.entityId;
+        insightInfo.parameters = entityInfo.parameters;
+        insightInfo.parentClassName = entityInfo.parentClassName;
+        queryInfo.entities.emplace_back(insightInfo);
+    }
+
+    return ERR_OK;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

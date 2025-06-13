@@ -52,6 +52,7 @@ void AppForegroundStateObserverStubTest::TearDown()
 {}
 
 /**
+>>>>>>> b96ec629b5c2d38d1627158fefda13ec3a1183c9
  * @tc.number: OnRemoteRequest_0100
  * @tc.desc: Test when descriptor and remoteDescriptor is different and
  *      itFunc is not end memberFunc is not nullptr.

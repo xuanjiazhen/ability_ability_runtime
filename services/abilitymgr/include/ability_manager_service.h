@@ -35,6 +35,7 @@
 #include "ability_manager_event_subscriber.h"
 #include "ability_manager_stub.h"
 #include "ability_keep_alive_service.h"
+#include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
 #include "app_debug_listener_interface.h"
 #include "app_exit_reason_helper.h"
@@ -70,10 +71,14 @@
 #include "implicit_start_processor.h"
 #include "system_dialog_scheduler.h"
 #endif
+#include "insight_intent_event_mgr.h"
+#include "kiosk_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class IStatusBarDelegate;
+struct ExtractInsightIntentGenericInfo;
+struct LinkIntentParamMapping;
 }
 namespace Rosen {
 class FocusChangeInfo;
@@ -742,6 +747,10 @@ public:
 
     virtual int DisconnectAbility(sptr<IAbilityConnection> connect) override;
 
+    virtual int32_t SuspendExtensionAbility(sptr<IAbilityConnection> connect) override;
+
+    virtual int32_t ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
+
     /**
      * AcquireDataAbility, acquire a data ability by its authority, if it not existed,
      * AMS loads it synchronously.
@@ -839,10 +848,6 @@ public:
         return taskHandler_;
     }
 
-    std::shared_ptr<TaskHandlerWrap> GetDelayClearReasonHandler() const
-    {
-        return delayClearReasonHandler_;
-    }
     /**
      * GetEventHandler, get the ability manager service's handler.
      *
@@ -921,7 +926,7 @@ public:
     virtual sptr<IWantSender> GetWantSender(
         const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
 
-    virtual int SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo) override;
+    virtual int SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo) override;
 
     virtual void CancelWantSender(const sptr<IWantSender> &sender) override;
 
@@ -1567,6 +1572,12 @@ public:
     virtual int32_t UnregisterIAbilityManagerCollaborator(int32_t type) override;
 
     /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
+
+    /**
      * @brief Get collaborator.
      * @param type collaborator type.
      * @return nullptr or IAbilityManagerCollaborator stpr.
@@ -1913,7 +1924,8 @@ public:
      * @param flag Keep-alive flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId, bool flag) override;
+    virtual int32_t SetApplicationKeepAliveByEDM(const std::string &bundleName, int32_t userId,
+        bool flag, bool isAllowUserToCancel = false) override;
 
     /**
      * Get keep-alive applications by EDM.
@@ -1946,6 +1958,14 @@ public:
      */
     virtual int32_t QueryAtomicServiceStartupRule(sptr<IRemoteObject> callerToken,
         const std::string &appId, const std::string &startTime, AtomicServiceStartupRule &rule) override;
+
+    /**
+     * Restart atomic service.
+     *
+     * @param callerToken, The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartSelfAtomicService(sptr<IRemoteObject> callerToken) override;
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
@@ -2020,6 +2040,78 @@ public:
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+
+    /**
+     * Get all insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllInsightIntentInfo(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified bundleName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByBundleName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        std::vector<InsightIntentInfoForQuery> &infos) override;
+
+    /**
+     * Get specified intentName insight intent infos.
+     * @param flag, the get type.
+     * @param infos, the insight intent infos.
+     * @param bundleName, The get insightIntent bundleName.
+     * @param moduleName, The get insightIntent moduleName.
+     * @param intentName, The get intent name.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetInsightIntentInfoByIntentName(
+        AbilityRuntime::GetInsightIntentFlag flag,
+        const std::string &bundleName,
+        const std::string &moduleName,
+        const std::string &intentName,
+        InsightIntentInfoForQuery &info) override;
+
+    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+
+    std::shared_ptr<AbilityInterceptorExecuter> GetAbilityInterceptorExecuter();
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+
+     /**
+     * Set keep-alive flag for app service extension under u1 user.
+     * @param bundleName Bundle name.
+     * @param flag Keep-alive flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag) override;
+
+    /**
+     * Get keep-alive app service extensions.
+     * @param list List of Keep-alive information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2072,10 +2164,23 @@ protected:
 
     void OnStartProcessFailed(sptr<IRemoteObject> token) override;
 
-    void OnCacheExitInfo(uint32_t accessTokenId, const AAFwk::LastExitDetailInfo &exitInfo,
+    void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    int32_t GetCollaboratorType(const std::string &codePath) const;
+    int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
+    
+    /**
+     * Check if Caller is allowed to start AppServiceExtension(Stage).
+     *
+     * @param abilityRequest, abilityRequest.
+     * @param isVerifyAppIdentifierAllowList, isVerifyAppIdentifierAllowList
+     * @param isFromConnect, isFromConnect
+     * @return Returns whether the caller is allowed to start AppServiceExtension.
+     */
+    int32_t CheckCallAppServiceExtensionPermission(const AbilityRequest &abilityRequest,
+        std::shared_ptr<AbilityRecord> targetService, bool isFromConnect);
 private:
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
@@ -2090,11 +2195,13 @@ private:
      */
     void InitU0User();
     void InitStartAbilityChain();
+#ifndef DISABLE_LAUNCHER
     /**
      * start highest priority ability.
      *
      */
     int StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery = false);
+#endif
     /**
      * connect bms.
      *
@@ -2216,6 +2323,8 @@ private:
     std::shared_ptr<DataAbilityManager> GetDataAbilityManager(const sptr<IAbilityScheduler> &scheduler);
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<DataAbilityManager> GetDataAbilityManagerByToken(const sptr<IRemoteObject> &token);
+    int32_t HandleExtensionAbility(sptr<IAbilityConnection> connect,
+        std::function<int32_t(std::shared_ptr<AbilityConnectManager>, sptr<IAbilityConnection>)>);
     std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> GetConnectManagers();
     std::shared_ptr<AbilityConnectManager> GetCurrentConnectManager();
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByUserId(int32_t userId);
@@ -2251,7 +2360,7 @@ private:
     void RetrySubscribeScreenUnlockedEvent(int32_t retryCount);
     void RemoveScreenUnlockInterceptor();
     void RemoveUnauthorizedLaunchReasonMessage(const Want &want, AbilityRequest &abilityRequest,
-        const sptr<IRemoteObject> &callerToken);
+        uint32_t callerTokenId);
 
     int VerifyAccountPermission(int32_t userId);
 
@@ -2413,10 +2522,7 @@ private:
 
     void InitStartupFlag();
 
-    inline bool IsCrossUserCall(int32_t userId)
-    {
-        return (userId != INVALID_USER_ID && userId != U0_USER_ID && userId != GetUserId());
-    }
+    bool IsCrossUserCall(int32_t userId) const;
 
     int32_t RequestDialogServiceInner(const Want &want, const sptr<IRemoteObject> &callerToken,
         int requestCode, int32_t userId);
@@ -2495,11 +2601,19 @@ private:
 
     void WaitBootAnimationStart();
 
-    int32_t SignRestartAppFlag(int32_t userId, int32_t uid, const std::string &instanceKey,
-        AppExecFwk::MultiAppModeType type, bool isAppRecovery = false);
+    struct SignRestartAppFlagParam {
+        int32_t userId;
+        int32_t uid;
+        std::string instanceKey;
+        AppExecFwk::MultiAppModeType type;
+        bool isAppRecovery = false;
+        bool isAtomicService = false;
+    };
+    int32_t SignRestartAppFlag(const SignRestartAppFlagParam &param);
     int32_t CheckRestartAppWant(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
     int32_t CheckDebugAssertPermission();
+    bool VerifySameAppOrAppIdentifierAllowListPermission(const AbilityRequest &abilityRequest);
     std::shared_ptr<AbilityDebugDeal> ConnectInitAbilityDebugDeal();
 
     int32_t SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,
@@ -2574,6 +2688,9 @@ private:
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 
+    bool HandleExecuteSAInterceptor(const Want &want, sptr<IRemoteObject> callerToken,
+        AbilityRequest &abilityRequest, int32_t &result);
+
     bool controllerIsAStabilityTest_ = false;
     bool isParamStartAbilityEnable_ = false;
     // Component StartUp rule switch
@@ -2600,7 +2717,6 @@ private:
 
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
-    std::shared_ptr<TaskHandlerWrap> delayClearReasonHandler_;
     std::shared_ptr<AbilityEventHandler> eventHandler_;
     ServiceRunningState state_;
 
@@ -2627,6 +2743,8 @@ private:
     std::map<std::string, std::list<std::string>> whiteListMap_;
 
     std::list<std::string> exportWhiteList_;
+
+    std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
 
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
@@ -2657,6 +2775,19 @@ private:
 
     std::string InsightIntentGetcallerBundleName();
 
+    ErrCode IntentOpenLinkInner(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
+        AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
+ 
+    AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentGenericInfo(const InsightIntentExecuteParam &param);
+ 
+    void CombinLinkInfo(
+        const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);
+
+    int StartAbilityWithRemoveIntentFlag(const Want &want, const sptr<IRemoteObject> &callerToken,
+        int32_t userId, int requestCode, bool removeInsightIntentFlag);
+
+    int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
+        bool removeInsightIntentFlag);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
@@ -2696,6 +2827,7 @@ private:
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
+    std::shared_ptr<AbilityEventUtil> abilityEventHelper_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

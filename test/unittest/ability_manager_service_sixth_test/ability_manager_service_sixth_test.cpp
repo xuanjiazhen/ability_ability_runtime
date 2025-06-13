@@ -30,6 +30,8 @@
 #include "ability_scheduler_mock.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_manager.h"
+#include "insight_intent_db_cache.h"
+#include "insight_intent_utils.h"
 #include "mock_ability_token.h"
 #include "mock_bundle_manager_proxy.h"
 #include "mock_my_flag.h"
@@ -1350,32 +1352,6 @@ HWTEST_F(AbilityManagerServiceSixthTest, AbilityWindowConfigTransitionDone_001, 
 
 /*
  * Feature: AbilityManagerService
- * Function: OnAbilityRequestDone
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService OnAbilityRequestDone
- */
-HWTEST_F(AbilityManagerServiceSixthTest, OnAbilityRequestDone_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest OnAbilityRequestDone_001 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs, nullptr);
-    Want want;
-    AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ApplicationInfo applicationInfo;
-    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
-    abilityRecord->Init();
-    auto token = abilityRecord->token_;
-    const_cast<AbilityInfo&>(abilityRecord->GetAbilityInfo()).type = AppExecFwk::AbilityType::DATA;
-    abilityMs->OnAbilityRequestDone(token, 0);
-    const_cast<AbilityInfo&>(abilityRecord->GetAbilityInfo()).type = AppExecFwk::AbilityType::SERVICE;
-    abilityMs->OnAbilityRequestDone(token, 0);
-    const_cast<AbilityInfo&>(abilityRecord->GetAbilityInfo()).type = AppExecFwk::AbilityType::UNKNOWN;
-    abilityMs->OnAbilityRequestDone(token, 0);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest OnAbilityRequestDone_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: HandleLoadTimeOut
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService HandleLoadTimeOut
@@ -2052,6 +2028,245 @@ HWTEST_F(AbilityManagerServiceSixthTest, SendIntentReport_001, TestSize.Level1)
     EventInfo eventInfo;
     abilityMs->SendIntentReport(eventInfo, ERR_OK, intentName);
     EXPECT_EQ(eventInfo.intentName, intentName);
+}
+
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetAllInsightIntentInfo_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: flag is GET_FULL_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetAllInsightIntentInfo_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: flag is GET_SUMMARY_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetAllInsightIntentInfo_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: invalid flag
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetAllInsightIntentInfo_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_004 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO;
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetAllInsightIntentInfo_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByBundleName_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: flag is GET_FULL_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByBundleName_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: flag is GET_SUMMARY_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByBundleName_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: invalid flag
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByBundleName_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_004 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO;
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByBundleName_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByIntentName_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: flag is GET_FULL_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByIntentName_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: flag is GET_SUMMARY_INSIGHT_INTENT or GET_ENTITY_INFO
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByIntentName_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT |
+                AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: invalid flag
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetInsightIntentInfoByIntentName_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_004 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetInsightIntentInfoByIntentName_004 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

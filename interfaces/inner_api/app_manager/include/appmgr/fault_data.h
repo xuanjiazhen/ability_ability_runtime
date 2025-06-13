@@ -42,7 +42,9 @@ enum class FaultDataType {
 class AppFreezeType {
 public:
     static constexpr char LIFECYCLE_HALF_TIMEOUT[] = "LIFECYCLE_HALF_TIMEOUT";
+    static constexpr char LIFECYCLE_HALF_TIMEOUT_WARNING[] = "LIFECYCLE_HALF_TIMEOUT_WARNING";
     static constexpr char LIFECYCLE_TIMEOUT[] = "LIFECYCLE_TIMEOUT";
+    static constexpr char LIFECYCLE_TIMEOUT_WARNING[] = "LIFECYCLE_TIMEOUT_WARNING";
     static constexpr char APP_LIFECYCLE_TIMEOUT[] = "APP_LIFECYCLE_TIMEOUT";
     static constexpr char THREAD_BLOCK_3S[] = "THREAD_BLOCK_3S";
     static constexpr char THREAD_BLOCK_6S[] = "THREAD_BLOCK_6S";
@@ -72,6 +74,7 @@ struct FaultData : public Parcelable {
     int32_t tid = -1;
     uint32_t stuckTimeout = 0;
     sptr<IRemoteObject> token = nullptr;
+    std::string appfreezeInfo;
 };
 
 /**
@@ -80,6 +83,7 @@ struct FaultData : public Parcelable {
  */
 struct AppFaultDataBySA : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
+    bool WriteContent(Parcel &parcel) const;
     bool waitSaveState = false;
     bool notifyApp = false;
     bool forceExit = false;
@@ -95,6 +99,7 @@ struct AppFaultDataBySA : public Parcelable {
     int32_t eventId = -1;
     sptr<IRemoteObject> token = nullptr;
     std::string timeoutMarkers;
+    std::string appfreezeInfo;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

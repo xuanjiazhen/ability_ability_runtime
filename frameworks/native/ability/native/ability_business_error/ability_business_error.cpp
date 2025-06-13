@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,7 +74,7 @@ constexpr const char* ERROR_MSG_WUKONG_MODE_CANT_MOVE_STATE =
 constexpr const char* ERROR_MSG_START_OPTIONS_CHECK_FAILED = "The StartOptions check failed.";
 constexpr const char* ERROR_MSG_ABILITY_ALREADY_RUNNING = "The ability is already running.";
 constexpr const char* ERROR_MSG_NOT_SUPPORT_CROSS_APP_START =
-    "Redirection to a third-party application is not allowed in API version 11 or later.";
+    "Redirection to a third-party application is not allowed in API version greater than 11.";
 constexpr const char* ERROR_MSG_CANNOT_MATCH_ANY_COMPONENT = "No matching ability is found.";
 constexpr const char* ERROR_MSG_TARGET_BUNDLE_NOT_EXIST = "The bundle does not exist or no patch has been applied.";
 constexpr const char* ERROR_MSG_NO_MAIN_ABILITY = "The target bundle has no main ability.";
@@ -105,6 +105,24 @@ constexpr const char* ERROR_MSG_EXTENSION_START_ABILITY_CONTROLLED =
 constexpr const char* ERROR_MSG_NOT_HOOK = "Only allow DelegatorAbility to call the method once.";
 constexpr const char* ERROR_MSG_FROM_WINDOW =
     "The interaction process between Ability and Window encountered an error.";
+constexpr const char* ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST = "The target not in app identifier allow list.";
+constexpr const char* ERROR_TARGET_NOT_STARTED = "The target has not been started yet.";
+constexpr const char* ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE =
+    "The caller is not an atomic service.";
+constexpr const char* ERROR_MSG_NOT_UI_ABILITY_CONTEXT =
+    "The context is not UIAbilityContext.";
+constexpr const char* ERR_MSG_GET_FILE_URIS_BY_KEY_FAILED = "Failed to get the file URI from the key.";
+constexpr const char* ERR_MSG_NO_PERMISSION_GRANT_URI = "No permission to authorize the URI.";
+constexpr const char* ERR_MSG_INVALID_CALLER_TOKENID = "The caller token ID is invalid.";
+constexpr const char* ERR_MSG_INVALID_TARGET_TOKENID = "The target token ID is invalid.";
+constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type";
+constexpr const char* ERROR_MSG_CHANGE_KEEP_ALIVE = "Can not change keep alive status";
+constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1";
+constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST = "The current application is not in the kiosk whitelist.";
+constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE = "The system is already in the kiosk mode.";
+constexpr const char* ERROR_MSG_NOT_IN_KIOSK_MODE =
+    "The current application is not in the kiosk mode. Exit is not allowed.";
+constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "The current ability is not foreground.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -180,6 +198,22 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_EXTENSION_START_ABILITY_CONTROLLED, ERROR_MSG_EXTENSION_START_ABILITY_CONTROLLED },
     { AbilityErrorCode::ERROR_CODE_NOT_HOOK, ERROR_MSG_NOT_HOOK},
     { AbilityErrorCode::ERROR_CODE_FROM_WINDOW, ERROR_MSG_FROM_WINDOW},
+    { AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST,
+        ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
+    { AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED, ERROR_TARGET_NOT_STARTED},
+    { AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE, ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE},
+    { AbilityErrorCode::ERROR_CODE_NOT_UI_ABILITY_CONTEXT, ERROR_MSG_NOT_UI_ABILITY_CONTEXT},
+    { AbilityErrorCode::ERR_CODE_GET_FILE_URIS_BY_KEY_FAILED, ERR_MSG_GET_FILE_URIS_BY_KEY_FAILED},
+    { AbilityErrorCode::ERR_CODE_NO_PERMISSION_GRANT_URI, ERR_MSG_NO_PERMISSION_GRANT_URI},
+    { AbilityErrorCode::ERR_CODE_INVALID_CALLER_TOKENID, ERR_MSG_INVALID_CALLER_TOKENID},
+    { AbilityErrorCode::ERR_CODE_INVALID_TARGET_TOKENID, ERR_MSG_INVALID_TARGET_TOKENID},
+    { AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE, ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE},
+    { AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE, ERROR_MSG_CHANGE_KEEP_ALIVE},
+    { AbilityErrorCode::ERROR_CODE_NO_U1, ERROR_MSG_NO_U1},
+    { AbilityErrorCode::ERROR_CODE_KIOSK_MODE_NOT_IN_WHITELIST, ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST},
+    { AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE, ERROR_MSG_ALREADY_IN_KIOSK_MODE},
+    { AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE, ERROR_MSG_NOT_IN_KIOSK_MODE},
+    { AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS, ERROR_MSG_APP_NOT_IN_FOCUS},
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -259,6 +293,20 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_NOT_HOOK, AbilityErrorCode::ERROR_CODE_NOT_HOOK},
     {ERR_FROM_WINDOW, AbilityErrorCode::ERROR_CODE_FROM_WINDOW},
     {ERR_INVALID_CONTEXT, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT},
+    {ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST, AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
+    {ERR_TARGET_NOT_STARTED, AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED},
+    {ERR_CALLER_NOT_ATOMIC_SERVICE, AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE},
+    {ERR_UPMS_GET_FILE_URIS_BY_KEY_FAILED, AbilityErrorCode::ERR_CODE_GET_FILE_URIS_BY_KEY_FAILED},
+    {ERR_UPMS_NO_PERMISSION_GRANT_URI, AbilityErrorCode::ERR_CODE_NO_PERMISSION_GRANT_URI},
+    {ERR_UPMS_INVALID_CALLER_TOKENID, AbilityErrorCode::ERR_CODE_INVALID_CALLER_TOKENID},
+    {ERR_UPMS_INVALID_TARGET_TOKENID, AbilityErrorCode::ERR_CODE_INVALID_TARGET_TOKENID},
+    {ERR_INVALID_MAIN_ELEMENT_TYPE, AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE},
+    {ERR_CHANGE_KEEP_ALIVE, AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE},
+    {ERR_NO_U1, AbilityErrorCode::ERROR_CODE_NO_U1},
+    {ERR_KIOSK_MODE_NOT_IN_WHITELIST, AbilityErrorCode::ERROR_CODE_KIOSK_MODE_NOT_IN_WHITELIST},
+    {ERR_ALREADY_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE},
+    {ERR_NOT_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE},
+    {ERR_APP_NOT_IN_FOCUS, AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS},
 };
 }
 

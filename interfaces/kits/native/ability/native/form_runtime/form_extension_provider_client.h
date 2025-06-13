@@ -97,6 +97,17 @@ public:
         const sptr<IRemoteObject> &callerToken) override;
 
     /**
+     * @brief Notify provider when the system config changed.
+     *
+     * @param configuration system Configuration.
+     * @param want Indicates the structure containing form info.
+     * @param callerToken Caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int NotifyConfigurationUpdate(const AppExecFwk::Configuration &configuration,
+        const Want &want, const sptr<IRemoteObject> &callerToken) override;
+
+    /**
      * @brief Fire message event to form provider.
      * @param formId The Id of the from.
      * @param message Event message.
@@ -155,6 +166,17 @@ public:
     virtual int32_t AcquireShareFormData(int64_t formId, const std::string &remoteDeviceId,
         const sptr<IRemoteObject> &formSupplyCallback, int64_t requestCode) override;
 
+    /**
+     * @brief Notify provider when the form location need update.
+     *
+     * @param formId The Id of the form.
+     * @param location Indicates the current card position.
+     * @param callerToken Caller form extension token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int NotifyFormLocationUpdate(const int64_t formId, const Want &want,
+        const sptr<IRemoteObject> &callerToken) override;
+
 private:
     std::shared_ptr<FormExtension> GetOwner();
     std::pair<int, int> CheckParam(const Want &want,
@@ -168,6 +190,8 @@ private:
         const sptr<IRemoteObject> &callerToken);
     void NotifyFormExtensionUpdate(const int64_t formId, const Want &want,
         const sptr<IRemoteObject> &callerToken);
+    void NotifyExtensionConfigurationUpdate(const AppExecFwk::Configuration &configuration,
+        const Want &want, const sptr<IRemoteObject> &callerToken);
     void EventNotifyExtension(const std::vector<int64_t> &formIds, const int32_t formVisibleType,
         const Want &want, const sptr<IRemoteObject> &callerToken);
     void NotifyFormExtensionCastTempForm(const int64_t formId, const Want &want,
@@ -179,6 +203,9 @@ private:
     bool AcquireFormExtensionProviderShareFormInfo(int64_t formId, AAFwk::WantParams &wantParams);
 
     bool FormExtensionProviderAcquireFormData(int64_t formId, AAFwk::WantParams &wantParams);
+
+    void NotifyFormExtensionUpdateLocation(const int64_t formId, const Want &want,
+        const sptr<IRemoteObject> &callerToken);
 
 private:
     mutable std::mutex formExtensionMutex_;

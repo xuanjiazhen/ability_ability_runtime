@@ -20,6 +20,7 @@
 #include "configuration_convertor.h"
 #include "display_util.h"
 #include "display_info.h"
+#include "ets_ui_ability.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -71,6 +72,8 @@ UIAbility *UIAbility::Create(const std::unique_ptr<Runtime> &runtime)
         case Runtime::Language::CJ:
             return CJUIAbility::Create(runtime);
 #endif
+        case Runtime::Language::ETS:
+            return EtsUIAbility::Create(runtime);
         default:
             return new (std::nothrow) UIAbility();
     }
@@ -413,26 +416,29 @@ void UIAbility::InitConfigurationProperties(const AppExecFwk::Configuration &cha
             std::atoi(setting_->GetProperty(AppExecFwk::AbilityStartSetting::WINDOW_DISPLAY_ID_KEY).c_str());
         resourceConfig.SetLanguage(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+        resourceConfig.SetLocale(changeConfiguration.GetItem(displayId,
+            AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
         resourceConfig.SetColormode(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
         resourceConfig.SetHasPointerDevice(changeConfiguration.GetItem(displayId,
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE));
-        TAG_LOGD(AAFwkTag::UIABILITY, "displayId: [%{public}d], language: [%{public}s], colormode: [%{public}s], "
-            "hasPointerDevice: [%{public}s] mcc: [%{public}s], mnc: [%{public}s]", displayId,
-            resourceConfig.GetLanguage().c_str(), resourceConfig.GetColormode().c_str(),
-            resourceConfig.GetHasPointerDevice().c_str(), resourceConfig.GetMcc().c_str(),
-            resourceConfig.GetMnc().c_str());
+        TAG_LOGD(AAFwkTag::UIABILITY, "displayId: [%{public}d], language: [%{public}s], locale: [%{public}s], "
+            "colormode: [%{public}s], hasPointerDevice: [%{public}s] mcc: [%{public}s], mnc: [%{public}s]", displayId,
+            resourceConfig.GetLanguage().c_str(), resourceConfig.GetLocale().c_str(),
+            resourceConfig.GetColormode().c_str(), resourceConfig.GetHasPointerDevice().c_str(),
+            resourceConfig.GetMcc().c_str(), resourceConfig.GetMnc().c_str());
     } else {
         resourceConfig.SetLanguage(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+        resourceConfig.SetLocale(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
         resourceConfig.SetColormode(changeConfiguration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
         resourceConfig.SetHasPointerDevice(changeConfiguration.GetItem(
             AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE));
         TAG_LOGD(AAFwkTag::UIABILITY,
-            "language: [%{public}s], colormode: [%{public}s], hasPointerDevice: [%{public}s] "
+            "language: [%{public}s], locale: [%{public}s], colormode: [%{public}s], hasPointerDevice: [%{public}s], "
             "mcc: [%{public}s], mnc: [%{public}s]",
-            resourceConfig.GetLanguage().c_str(), resourceConfig.GetColormode().c_str(),
-            resourceConfig.GetHasPointerDevice().c_str(), resourceConfig.GetMcc().c_str(),
-            resourceConfig.GetMnc().c_str());
+            resourceConfig.GetLanguage().c_str(), resourceConfig.GetLocale().c_str(),
+            resourceConfig.GetColormode().c_str(), resourceConfig.GetHasPointerDevice().c_str(),
+            resourceConfig.GetMcc().c_str(), resourceConfig.GetMnc().c_str());
     }
 }
 
@@ -557,6 +563,13 @@ bool UIAbility::OnRestoreData(AAFwk::WantParams &restoreData)
 }
 
 int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams)
+{
+    return ERR_OK;
+}
+
+int32_t UIAbility::OnSaveState(int32_t reason, AAFwk::WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo,
+    bool &isAsync, AppExecFwk::StateReason stateReason)
 {
     return ERR_OK;
 }
@@ -1268,6 +1281,13 @@ void UIAbility::ExecuteInsightIntentMoveToForeground(const AAFwk::Want &want,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::ExecuteInsightIntentPage(const AAFwk::Want &want,
+    const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "execute insight intent page");
 }
 
 void UIAbility::ExecuteInsightIntentBackground(const AAFwk::Want &want,

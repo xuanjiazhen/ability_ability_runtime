@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -24,8 +24,8 @@ abilityms_files = [
   "src/ability_manager_stub.cpp",
   "src/ability_record.cpp",
   "src/ability_manager_collaborator_proxy.cpp",
-  "src/ability_manager_xcollie.cpp",
   "src/ability_scheduler_proxy.cpp",
+  "src/ability_start_with_wait_observer_manager/ability_start_with_wait_observer_manager.cpp",
   "src/ability_token_stub.cpp",
   "src/app_scheduler.cpp",
   "src/app_exit_reason_helper.cpp",
@@ -66,6 +66,7 @@ abilityms_files = [
   "src/interceptor/extension_control_interceptor.cpp",
   "src/interceptor/screen_unlock_interceptor.cpp",
   "src/interceptor/start_other_app_interceptor.cpp",
+  "src/interceptor/kiosk_interceptor.cpp",
   "src/window_focus_changed_listener.cpp",
   "src/window_visibility_changed_listener.cpp",
 
@@ -126,10 +127,19 @@ abilityms_files = [
   "src/ability_auto_startup_data_manager.cpp",
   "src/ability_auto_startup_service.cpp",
   "src/auto_startup_info.cpp",
+  "src/insight_intent/insight_intent_db_cache.cpp",
   "src/insight_intent/insight_intent_execute_manager.cpp",
   "src/insight_intent/insight_intent_execute_result.cpp",
   "src/insight_intent/insight_intent_profile.cpp",
+  "src/insight_intent/insight_intent_rdb_data_mgr.cpp",
+  "src/insight_intent/insight_intent_rdb_storage_mgr.cpp",
   "src/insight_intent/insight_intent_utils.cpp",
+  "src/insight_intent/extract_insight_intent_profile.cpp",
+  "src/insight_intent/insight_intent_event_mgr.cpp",
+  "src/insight_intent/insight_intent_sys_event_receiver.cpp",
+
+  #sa interceptor
+  "src/sa_interceptor_manager.cpp",
 
   # keep alive
   "src/keep_alive/ability_keep_alive_data_manager.cpp",
@@ -148,6 +158,7 @@ abilityms_files = [
   "src/utils/dms_util.cpp",
   "src/utils/dump_utils.cpp",
   "src/utils/extension_permissions_util.cpp",
+  "src/utils/hmsf_utils.cpp",
   "src/utils/keep_alive_utils.cpp",
   "src/utils/main_element_utils.cpp",
   "src/utils/modal_system_dialog_util.cpp",
@@ -160,6 +171,9 @@ abilityms_files = [
   "src/utils/uri_utils.cpp",
   "src/utils/want_utils.cpp",
   "src/utils/window_options_utils.cpp",
+  "src/utils/timeout_state_utils.cpp",
+  "src/kiosk_status.cpp",
+  "src/kiosk_manager.cpp"
 ]
 
 if (ability_runtime_graphics) {
