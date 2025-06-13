@@ -561,6 +561,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, UpdateConfigurationForBackgroundApp_001, T
     EXPECT_EQ(ret, ERR_NO_INIT);
 
     MyFlag::flag_ = 1;
+
     appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
     ret = appMgrServiceInner->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);

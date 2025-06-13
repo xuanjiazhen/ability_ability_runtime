@@ -7195,7 +7195,6 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle info when kill process failed");
         return GET_BUNDLE_INFO_FAILED;
     }
-
     int32_t collaboratorType = GetCollaboratorType(bundleInfo.applicationInfo.codePath);
     if (CheckCollaboratorType(collaboratorType)) {
         return KillProcessForCollaborator(collaboratorType, bundleName, userId);
