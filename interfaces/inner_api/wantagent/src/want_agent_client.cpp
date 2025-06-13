@@ -36,7 +36,10 @@ WantAgentClient &WantAgentClient::GetInstance()
 
 WantAgentClient::WantAgentClient() {}
 
-WantAgentClient::~WantAgentClient() {}
+WantAgentClient::~WantAgentClient()
+{
+    RemoveDeathRecipient();
+}
 
 ErrCode WantAgentClient::GetWantSender(
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, sptr<IWantSender> &wantSender,
@@ -80,7 +83,7 @@ ErrCode WantAgentClient::GetWantSender(
     return ERR_OK;
 }
 
-ErrCode WantAgentClient::SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo)
+ErrCode WantAgentClient::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)
 {
     CHECK_POINTER_AND_RETURN(target, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT);
     auto abms = GetAbilityManager();
@@ -103,9 +106,22 @@ ErrCode WantAgentClient::SendWantSender(sptr<IWantSender> target, const SenderIn
     auto error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::SEND_PENDING_WANT_SENDER),
         data, reply, option);
     if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "send request error: %{public}d", error);
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
-    return reply.ReadInt32();
+    std::unique_ptr<SenderInfo> completedDataReply(reply.ReadParcelable<SenderInfo>());
+    if (!completedDataReply) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "readParcelableInfo fail");
+        return INNER_ERR;
+    }
+    senderInfo = *completedDataReply;
+    ErrCode res = reply.ReadInt32();
+    if (res == ERR_WANTAGENT_CANCELED) {
+        return ERR_ABILITY_RUNTIME_EXTERNAL_WANTAGENT_CANCELED;
+    } else if (res == ERR_INVALID_VALUE) {
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
+    }
+    return ERR_OK;
 }
 
 ErrCode WantAgentClient::CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags)
@@ -387,6 +403,27 @@ sptr<IRemoteObject> WantAgentClient::GetAbilityManager()
     }
 
     return proxy_;
+}
+
+void WantAgentClient::RemoveDeathRecipient()
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "remove death recipient");
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (proxy_ == nullptr) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "null proxy_");
+        return;
+    }
+
+    if (deathRecipient_ == nullptr) {
+        TAG_LOGI(AAFwkTag::WANTAGENT, "null deathRecipient_");
+        return;
+    }
+
+    if (proxy_->RemoveDeathRecipient(deathRecipient_)) {
+        proxy_ = nullptr;
+        deathRecipient_ = nullptr;
+        TAG_LOGI(AAFwkTag::WANTAGENT, "remove success");
+    }
 }
 
 void WantAgentClient::WantAgentDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

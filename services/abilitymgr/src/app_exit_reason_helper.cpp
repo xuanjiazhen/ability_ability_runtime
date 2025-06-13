@@ -67,18 +67,16 @@ int32_t AppExitReasonHelper::RecordAppExitReason(const ExitReason &exitReason)
         return ret;
     }
     
-    int32_t pid = NO_PID;
+    int32_t pid = exitReason.reason != Reason::REASON_CPP_CRASH ? IPCSkeleton::GetCallingPid() : NO_PID;
     AppExecFwk::RunningProcessInfo processInfo;
-    if (exitReason.reason != Reason::REASON_CPP_CRASH) {
-        pid = IPCSkeleton::GetCallingPid();
-        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(static_cast<pid_t>(pid),
-            processInfo);
-    }
+    int32_t userId = -1;
+    int32_t getOsAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+        GetOsAccountLocalIdFromUid(uid, userId);
+    GetRunningProcessInfo(pid, userId, bundleName, processInfo);
     int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, exitReason, processInfo, false);
     if (resultCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "record reason failed, code: %{public}d", resultCode);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
     }
-    CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_NULL_OBJECT);
     std::vector<std::string> abilityList;
     int32_t getActiveAbilityListRet = GetActiveAbilityListWithPid(uid, abilityList, pid);
     if (getActiveAbilityListRet != ERR_OK) {
@@ -87,15 +85,12 @@ int32_t AppExitReasonHelper::RecordAppExitReason(const ExitReason &exitReason)
     ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReason(IPCSkeleton::GetCallingPid(),
         exitReason.reason, exitReason.exitMsg);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed,code: %{public}d", ret);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "notify ret: %{public}d", ret);
     }
     if (abilityList.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityLists empty");
         return ERR_GET_ACTIVE_ABILITY_LIST_EMPTY;
     }
-    int32_t userId;
-    int32_t getOsAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
-        GetOsAccountLocalIdFromUid(uid, userId);
     if (getOsAccountRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get GetOsAccountLocalIdFromUid failed. ret: %{public}d", getOsAccountRet);
         return ERR_INVALID_VALUE;
@@ -127,7 +122,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const Ex
     int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, exitReason, processInfo,
         fromKillWithReason);
     if (resultCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "record Reason failed, code: %{public}d", resultCode);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
     }
 
     return RecordProcessExitReason(pid, bundleName, application.uid, application.accessTokenId, exitReason,
@@ -148,6 +143,7 @@ int32_t AppExitReasonHelper::RecordAppExitReason(const std::string &bundleName, 
         "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId, bundleName.c_str(), appIndex);
     uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
     AppExecFwk::RunningProcessInfo processInfo;
+    GetRunningProcessInfo(NO_PID, userId, bundleName, processInfo);
     return RecordProcessExitReason(NO_PID, bundleName, uid, accessTokenId, exitReason, processInfo, false, false);
 }
 
@@ -165,12 +161,8 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(int32_t pid, int32_t uid, c
         return ret;
     }
 
-    AppExecFwk::RunningProcessInfo processInfo;
-    processInfo.pid_ = pid;
-    processInfo.uid_ = uid;
-    processInfo.processName_ = appInfo.processName;
     return RecordProcessExitReason(pid, appInfo.bundleName, uid, appInfo.accessTokenId, exitReason,
-        processInfo, false, true);
+        appInfo.processInfo, false, true);
 }
 
 int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const std::string bundleName,
@@ -203,7 +195,7 @@ int32_t AppExitReasonHelper::RecordProcessExitReason(const int32_t pid, const st
     auto ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReason(pid, exitReason.reason,
         exitReason.exitMsg);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed:%{public}d", ret);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "notify ret:%{public}d", ret);
     }
 
     if (abilityLists.empty()) {
@@ -315,23 +307,10 @@ bool AppExitReasonHelper::IsExitReasonValid(const ExitReason &exitReason)
     return reason >= REASON_MIN && reason <= REASON_MAX;
 }
 
-int32_t AppExitReasonHelper::GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityList)
-{
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto uiAbilityManager = subManagersHelper_->GetUIAbilityManagerByUid(uid);
-        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_NULL_OBJECT);
-        uiAbilityManager->GetActiveAbilityList(uid, abilityList);
-    } else {
-        auto missionListManager = subManagersHelper_->GetMissionListManagerByUid(uid);
-        CHECK_POINTER_AND_RETURN(missionListManager, ERR_NULL_OBJECT);
-        missionListManager->GetActiveAbilityList(uid, abilityList);
-    }
-    return ERR_OK;
-}
-
 int32_t AppExitReasonHelper::GetActiveAbilityListWithPid(int32_t uid, std::vector<std::string> &abilityList,
     int32_t pid)
 {
+    CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_NULL_OBJECT);
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = subManagersHelper_->GetUIAbilityManagerByUid(uid);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_NULL_OBJECT);
@@ -373,6 +352,29 @@ int32_t AppExitReasonHelper::RecordUIAbilityExitReason(const pid_t pid, const st
             UpdateAppExitReason(application.accessTokenId, abilityLists, exitReason, processInfo, false);
     }
     return ERR_OK;
+}
+
+void AppExitReasonHelper::GetRunningProcessInfo(int32_t pid, int32_t userId, const std::string &bundleName,
+    AppExecFwk::RunningProcessInfo &processInfo)
+{
+    if (pid != NO_PID) {
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(static_cast<pid_t>(pid),
+            processInfo);
+        return;
+    }
+    if (userId == -1 || bundleName.empty()) {
+        return;
+    }
+    auto appMgr = AppMgrUtil::GetAppMgr();
+    if (appMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appMgr null");
+        return;
+    }
+    std::vector<AppExecFwk::RunningProcessInfo> infoList;
+    IN_PROCESS_CALL(appMgr->GetRunningProcessInformation(bundleName, userId, infoList));
+    if (infoList.size() == 1) {
+        processInfo = infoList.front();
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

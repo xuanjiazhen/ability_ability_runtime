@@ -22,6 +22,7 @@
 #include "cj_ability_stage.h"
 #endif
 #include "js_ability_stage.h"
+#include "ets_ability_stage.h"
 #include "runtime.h"
 
 namespace OHOS {
@@ -41,6 +42,8 @@ std::shared_ptr<AbilityStage> AbilityStage::Create(
         case Runtime::Language::CJ:
             return CJAbilityStage::Create(runtime, hapModuleInfo);
 #endif
+        case Runtime::Language::ETS:
+            return ETSAbilityStage::Create(runtime, hapModuleInfo);
         default:
             return std::make_shared<AbilityStage>();
     }
@@ -111,14 +114,26 @@ std::string AbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
     return "";
 }
 
+std::string AbilityStage::OnAcceptWant(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
+{
+    return "";
+}
+
+std::string AbilityStage::OnNewProcessRequest(const AAFwk::Want &want,
+    AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
+{
+    return "";
+}
+
 void AbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
 {}
 
 void AbilityStage::OnMemoryLevel(int level)
 {}
 
-int32_t AbilityStage::RunAutoStartupTask(const std::function<void()> &callback, bool &isAsyncCallback,
-    const std::shared_ptr<Context> &stageContext)
+int32_t AbilityStage::RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
+    bool &isAsyncCallback, const std::shared_ptr<Context> &stageContext)
 {
     isAsyncCallback = false;
     return ERR_OK;

@@ -23,6 +23,7 @@
 #include "ability_manager_stub_mock.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_token.h"
+#include "mock_sa_interceptor_stub.h"
 #include "ability_scheduler_mock.h"
 #include "ability_record.h"
 #include "app_debug_listener_stub_mock.h"
@@ -616,6 +617,111 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_033, TestSize.Level2)
     int res = proxy_->StartContinuation(want, abilityToken, 0);
     EXPECT_EQ(res, NO_ERROR);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_CONTINUATION), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: SuspendExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SuspendExtensionAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the abnormal conditions of SuspendExtensionAbility
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_034, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    int res = proxy_->SuspendExtensionAbility(connect);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY), mock_->code_);
+    EXPECT_NE(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResumeExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ResumeExtensionAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the abnormal conditions of ResumeExtensionAbility
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_035, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    int res = proxy_->ResumeExtensionAbility(connect);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY), mock_->code_);
+    EXPECT_NE(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: SuspendExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SuspendExtensionAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the abnormal conditions of SuspendExtensionAbility
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_036, TestSize.Level1)
+{
+    sptr<IAbilityConnection> connect = nullptr;
+    int res = proxy_->SuspendExtensionAbility(connect);
+    EXPECT_NE(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResumeExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ResumeExtensionAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the abnormal conditions of ResumeExtensionAbility
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_037, TestSize.Level1)
+{
+    sptr<IAbilityConnection> connect = nullptr;
+    int res = proxy_->ResumeExtensionAbility(connect);
+
+    EXPECT_NE(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_033
+ * @tc.desc: test ResumeExtensionAbility send async request succeeded
+ * @tc.type: FUNC
+ * @tc.require: AR000GI8IL
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_038, TestSize.Level2)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    int res = proxy_->ResumeExtensionAbility(connect);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY), mock_->code_);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_033
+ * @tc.desc: test SuspendExtensionAbility send async request succeeded
+ * @tc.type: FUNC
+ * @tc.require: AR000GI8IL
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_039, TestSize.Level2)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    int res = proxy_->SuspendExtensionAbility(connect);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY), mock_->code_);
 }
 
 /*
@@ -2728,6 +2834,22 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RestartApp_0100, TestSize.
 }
 
 /**
+ * @tc.name: AbilityManagerProxy_RestartSelfAtomicService_0100
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RestartSelfAtomicService_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    auto token = sptr<MockAbilityToken>::MakeSptr();
+    proxy_->RestartSelfAtomicService(token);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE), mock_->code_);
+}
+
+/**
  * @tc.name: AbilityManagerProxy_ChangeAbilityVisibility_0100
  * @tc.desc: ChangeAbilityVisibility
  * @tc.type: FUNC
@@ -2783,6 +2905,164 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_TerminateMission_001, Test
     int32_t missionId = 1;
     auto res = proxy_->TerminateMission(missionId);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_MISSION), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllInsightIntentInfo
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetAllInsightIntentInfo
+ * EnvConditions: NA
+ * CaseDescription: GetAllInsightIntentInfo
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetAllInsightIntentInfo_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto res = proxy_->GetAllInsightIntentInfo(flag, infos);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByBundleName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
+ * EnvConditions: NA
+ * CaseDescription: GetInsightIntentInfoByBundleName
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByBundleName_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::vector<InsightIntentInfoForQuery> infos;
+    auto res = proxy_->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetInsightIntentInfoByIntentName
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetInsightIntentInfoByIntentName
+ * EnvConditions: NA
+ * CaseDescription: GetInsightIntentInfoByIntentName
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByIntentName_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "entry";
+    std::string intentName = "test";
+    InsightIntentInfoForQuery info;
+    auto res = proxy_->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UpdateKioskApplicationList
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UpdateKioskApplicationList
+ * EnvConditions: NA
+ * CaseDescription: UpdateKioskApplicationList
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_UpdateKioskApplicationList, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    std::vector<std::string> appList = {"com.ohos.test1", "com.ohos.test2"};
+    auto res = proxy_->UpdateKioskApplicationList(appList);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::UPDATE_KIOSK_APP_LIST), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: EnterKioskMode
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService EnterKioskMode
+ * EnvConditions: NA
+ * CaseDescription: EnterKioskMode
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_EnterKioskMode, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    OHOS::sptr<IRemoteObject> callback = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto res = proxy_->EnterKioskMode(callback);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::ENTER_KIOSK_MODE), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ExitKioskMode
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ExitKioskMode
+ * EnvConditions: NA
+ * CaseDescription: ExitKioskMode
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ExitKioskMode, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    OHOS::sptr<IRemoteObject> callback = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto res = proxy_->ExitKioskMode(callback);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::EXIT_KIOSK_MODE), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetKioskStatus
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetKioskStatus
+ * EnvConditions: NA
+ * CaseDescription: GetKioskStatus
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetKioskStatus, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeKioskModeSendRequest));
+    KioskStatus kioskStatus;
+    auto res = proxy_->GetKioskStatus(kioskStatus);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_KIOSK_INFO), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RegisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterSAInterceptor
+ * EnvConditions: NA
+ * CaseDescription: RegisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RegisterSAInterceptor_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto res = proxy_->RegisterSAInterceptor(nullptr);
+    EXPECT_EQ(res, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    res = proxy_->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(res, NO_ERROR);
 }
 } // namespace AAFwk

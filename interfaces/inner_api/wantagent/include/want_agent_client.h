@@ -37,7 +37,7 @@ public:
     ErrCode GetWantSender(const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken,
         sptr<IWantSender> &wantSender, int32_t uid = -1);
 
-    ErrCode SendWantSender(sptr<IWantSender> target, const SenderInfo &senderInfo);
+    ErrCode SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo);
 
     ErrCode CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags = 0);
 
@@ -58,6 +58,8 @@ public:
     ErrCode GetPendingRequestWant(const sptr<IWantSender> &target, std::shared_ptr<Want> &want);
 
     ErrCode GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info);
+
+    void RemoveDeathRecipient();
 private:
     class WantAgentDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

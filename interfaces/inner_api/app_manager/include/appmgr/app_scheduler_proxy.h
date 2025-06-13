@@ -20,6 +20,7 @@
 #include "app_scheduler_interface.h"
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -98,6 +99,16 @@ public:
      * @return
      */
     virtual void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
+
+    /**
+     * ScheduleCjHeapMemory, call ScheduleCjHeapMemory() through proxy project,
+     * triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid, needGc, needSnapshot
+     *
+     * @return
+     */
+    virtual void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
      * ScheduleLaunchApplication, call ScheduleLaunchApplication() through proxy project,
@@ -244,7 +255,7 @@ public:
      *
      * @return Is the status change completed.
      */
-    virtual int32_t ScheduleChangeAppGcState(int32_t state) override;
+    virtual int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid = 0) override;
 
     /**
      * @brief Attach app debug.

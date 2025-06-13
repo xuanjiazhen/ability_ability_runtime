@@ -121,12 +121,21 @@ declare_args() {
   ability_runtime_start_window_options_with_pixelmap = false
   ability_runtime_check_internet_permission = false
   ability_runtime_media_library_enable = true
+  ability_runtime_no_screen = false
+  ability_runtime_hitrace_enable = true
 
   if (!defined(global_parts_info) ||
       defined(global_parts_info.account_os_account)) {
     os_account_part_enabled = true
   } else {
     os_account_part_enabled = false
+  }
+
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.hiviewdfx_hiappevent)) {
+    hiappevent_part_enabled = true
+  } else {
+    hiappevent_part_enabled = false
   }
 
   if (defined(global_parts_info) &&
@@ -216,5 +225,10 @@ declare_args() {
   if (defined(global_parts_info) &&
       !defined(global_parts_info.multimedia_media_library)) {
     ability_runtime_media_library_enable = false
+  }
+
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_hitrace)) {
+    ability_runtime_hitrace_enable = false
   }
 }

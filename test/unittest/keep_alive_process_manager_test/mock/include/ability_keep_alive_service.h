@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -70,11 +70,32 @@ public:
      */
     bool CanSetKeepAlive(const std::string &bundleName, int32_t userId, bool isByEDM, bool &isKeepAlive);
 
+    /**
+     * @brief Set app service extension keep alive state.
+     * @param info The keep-alive info,include bundle name, module name, ability name.
+     * @param flag Indicates whether to keep alive for app service extension.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetAppServiceExtensionKeepAlive(KeepAliveInfo &info, bool flag);
+
+    /**
+     * @brief Query keep-alive app service extensions.
+     * @param infoList Output parameters, return keep-alive info list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &infoList);
+
+    int32_t ClearKeepAliveAppServiceExtension(const KeepAliveInfo &info);
 public:
     static int32_t callSetResult;
     static int32_t callQueryResult;
     static bool callIsKeepAliveResult;
     static int32_t callGetResult;
+    static int32_t callSetAppServiceExtensionResult;
+    static int32_t callQueryAppServiceExtensionResult;
+    static int32_t callClearKeepAliveAppServiceExtensionResult;
+    static int32_t callIsKeepAliveTimes;
+    static bool getInfoList;
 
 private:
     AbilityKeepAliveService();

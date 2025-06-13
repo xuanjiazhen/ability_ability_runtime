@@ -250,6 +250,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_COLLABORATOR) {
         return UnregisterIAbilityManagerCollaboratorInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_ABILITY_MANAGER_COLLABORATOR) {
+        return GetAbilityManagerCollaboratorInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_APP_DEBUG_LISTENER) {
         return RegisterAppDebugListenerInner(data, reply);
     }
@@ -273,6 +276,18 @@ int AbilityManagerStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &
     }
     if (interfaceCode == AbilityManagerInterfaceCode::OPEN_FILE) {
         return OpenFileInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_ALL_INSIGHT_INTENT_INFO) {
+        return GetAllInsightIntentInfoInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_INFO_BY_BUNDLE_NAME) {
+        return GetInsightIntentInfoByBundleNameInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_INSIGHT_INTENT_INFO_BY_INTENT_NAME) {
+        return GetInsightIntentInfoByIntentNameInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_SA_INTERCEPTOR) {
+        return RegisterSAInterceptorInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -625,6 +640,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSixteenth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::START_UI_EXTENSION_CONSTRAINED_EMBEDDED) {
         return StartUIExtensionConstrainedEmbeddedInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_UI_EXTENSION_PRE_VIEW_EMBEDDED) {
+        return StartUIExtensionPreViewEmbeddedInner(data, reply);
+    }
 #endif
     if (interfaceCode == AbilityManagerInterfaceCode::REQUEST_DIALOG_SERVICE) {
         return HandleRequestDialogService(data, reply);
@@ -828,6 +846,43 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentieth(uint32_t code, MessageParc
     if (interfaceCode == AbilityManagerInterfaceCode::REVOKE_DELEGATOR) {
         return RevokeDelegatorInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_WAIT) {
+        return StartAbilityWithWaitInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESTART_SELF_ATOMIC_SERVICE) {
+        return RestartSelfAtomicServiceInner(data, reply);
+    }
+    return ERR_CODE_NOT_EXIST;
+}
+
+int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    AbilityManagerInterfaceCode interfaceCode = static_cast<AbilityManagerInterfaceCode>(code);
+    if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_KIOSK_APP_LIST) {
+        return UpdateKioskApplicationListInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::ENTER_KIOSK_MODE) {
+        return EnterKioskModeInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXIT_KIOSK_MODE) {
+        return ExitKioskModeInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_KIOSK_INFO) {
+        return GetKioskStatusInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_APP_SERVICE_EXTENSION_KEEP_ALIVE) {
+        return SetAppServiceExtensionKeepAliveInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_APP_SERVICE_EXTENSIONS_KEEP_ALIVE) {
+        return QueryKeepAliveAppServiceExtensionsInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::SUSPEND_EXTENSION_ABILITY) {
+        return SuspendExtensionAbilityInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
+        return ResumeExtensionAbilityInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -843,6 +898,11 @@ int AbilityManagerStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
     if (retCode != ERR_CODE_NOT_EXIST) {
         return retCode;
     }
+    retCode = HandleOnRemoteRequestInnerThird(code, data, reply, option);
+    if (retCode != ERR_CODE_NOT_EXIST) {
+        return retCode;
+    }
+
     TAG_LOGW(AAFwkTag::ABILITYMGR, "default case");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
@@ -935,6 +995,17 @@ int AbilityManagerStub::HandleOnRemoteRequestInnerSecond(uint32_t code, MessageP
         return retCode;
     }
     retCode = OnRemoteRequestInnerTwentieth(code, data, reply, option);
+    if (retCode != ERR_CODE_NOT_EXIST) {
+        return retCode;
+    }
+    return ERR_CODE_NOT_EXIST;
+}
+
+int AbilityManagerStub::HandleOnRemoteRequestInnerThird(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    int retCode = ERR_OK;
+    retCode = OnRemoteRequestInnerTwentyFirst(code, data, reply, option);
     if (retCode != ERR_CODE_NOT_EXIST) {
         return retCode;
     }
@@ -1066,6 +1137,9 @@ int AbilityManagerStub::TerminateUIExtensionAbilityInner(MessageParcel &data, Me
     int resultCode = data.ReadInt32();
     Want *resultWant = data.ReadParcelable<Want>();
     int32_t result = TerminateUIExtensionAbility(extensionSessionInfo, resultCode, resultWant);
+    if (extensionSessionInfo != nullptr) {
+        extensionSessionInfo->want.CloseAllFd();
+    }
     reply.WriteInt32(result);
     if (resultWant != nullptr) {
         delete resultWant;
@@ -1119,6 +1193,9 @@ int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, Mes
     }
     auto fromUser = data.ReadBool();
     int32_t result = MinimizeUIExtensionAbility(extensionSessionInfo, fromUser);
+    if (extensionSessionInfo != nullptr) {
+        extensionSessionInfo->want.CloseAllFd();
+    }
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -1532,6 +1609,26 @@ int AbilityManagerStub::StartUIExtensionConstrainedEmbeddedInner(MessageParcel &
     return NO_ERROR;
 }
 
+int AbilityManagerStub::StartUIExtensionPreViewEmbeddedInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<SessionInfo> extensionSessionInfo = nullptr;
+    if (data.ReadBool()) {
+        extensionSessionInfo = data.ReadParcelable<SessionInfo>();
+        if (extensionSessionInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null extensionSessionInfo");
+            return ERR_NULL_OBJECT;
+        }
+        // To ensure security, this attribute must be rewritten.
+        extensionSessionInfo->uiExtensionUsage = UIExtensionUsage::PRE_VIEW_EMBEDDED;
+    }
+
+    int32_t userId = data.ReadInt32();
+
+    int32_t result = StartUIExtensionAbility(extensionSessionInfo, userId);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::StopExtensionAbilityInner(MessageParcel& data, MessageParcel& reply)
 {
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
@@ -1861,6 +1958,9 @@ int AbilityManagerStub::SendWantSenderInner(MessageParcel &data, MessageParcel &
         return ERR_INVALID_VALUE;
     }
     int32_t result = SendWantSender(wantSender, *senderInfo);
+    if (!reply.WriteParcelable(senderInfo.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "completedData write fail");
+    }
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -3472,6 +3572,20 @@ int32_t AbilityManagerStub::UnregisterIAbilityManagerCollaboratorInner(MessagePa
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::GetAbilityManagerCollaboratorInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto collaborator = GetAbilityManagerCollaborator();
+    if (collaborator == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "collaborator nullptr");
+        return ERR_NULL_OBJECT;
+    }
+    if (!reply.WriteRemoteObject(collaborator->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "collaborator write fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::PrepareTerminateAbilityBySCBInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
@@ -3799,7 +3913,7 @@ int32_t AbilityManagerStub::StartAbilityByInsightIntentInner(MessageParcel &data
 
 int32_t AbilityManagerStub::ExecuteInsightIntentDoneInner(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::INTENT, "execute insight intent done stub");
     auto token = data.ReadRemoteObject();
     if (token == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
@@ -4284,7 +4398,8 @@ int AbilityManagerStub::SetApplicationKeepAliveByEDMInner(MessageParcel &data, M
     std::string bundleName = data.ReadString();
     int32_t userId = data.ReadInt32();
     bool flag = data.ReadBool();
-    int32_t result = SetApplicationKeepAliveByEDM(bundleName, userId, flag);
+    bool isAllowUserToCancel = data.ReadBool();
+    int32_t result = SetApplicationKeepAliveByEDM(bundleName, userId, flag, isAllowUserToCancel);
     if (!reply.WriteInt32(result)) {
         return ERR_INVALID_VALUE;
     }
@@ -4494,6 +4609,224 @@ int32_t AbilityManagerStub::RevokeDelegatorInner(MessageParcel &data, MessagePar
         return INNER_ERR;
     }
     return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityManagerStub::StartAbilityWithWaitInner called");
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_NULL_OBJECT;
+    }
+
+    auto callback = iface_cast<IAbilityStartWithWaitObserver>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callback");
+        return ERR_NULL_OBJECT;
+    }
+
+    int32_t result = StartAbilityWithWait(*want, callback);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetAllInsightIntentInfoInner");
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetAllInsightIntentInfo(flag, infos);
+    if (!reply.WriteInt32(infos.size())) {
+        return INNER_ERR;
+    }
+    for (auto &info: infos) {
+        if (!reply.WriteParcelable(&info)) {
+            return INNER_ERR;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    std::vector<InsightIntentInfoForQuery> infos;
+    int32_t result = GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    if (!reply.WriteInt32(infos.size())) {
+        return INNER_ERR;
+    }
+    for (auto &info: infos) {
+        if (!reply.WriteParcelable(&info)) {
+            return INNER_ERR;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto flag = static_cast<AbilityRuntime::GetInsightIntentFlag>(data.ReadUint32());
+    auto bundleName = std::string(data.ReadString());
+    auto modlueName = std::string(data.ReadString());
+    auto intentName = std::string(data.ReadString());
+    InsightIntentInfoForQuery info;
+    int32_t result = GetInsightIntentInfoByIntentName(flag, bundleName, modlueName, intentName, info);
+    if (!reply.WriteParcelable(&info)) {
+        return INNER_ERR;
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return INNER_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = SuspendExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "suspend extension ability ret = %d", result);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ResumeExtensionAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = ResumeExtensionAbility(callback);
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "resume extension ability ret = %d", result);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return INVALID_CALLER_TOKEN;
+    }
+    int32_t result = RestartSelfAtomicService(callerToken);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::UpdateKioskApplicationListInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> appList;
+    data.ReadStringVector(&appList);
+
+    auto result = UpdateKioskApplicationList(appList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::EnterKioskModeInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    auto result = EnterKioskMode(token);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ExitKioskModeInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = data.ReadRemoteObject();
+    auto result = ExitKioskMode(token);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParcel &reply)
+{
+    KioskStatus kioskStatus;
+    int result = GetKioskStatus(kioskStatus);
+    if (!reply.WriteParcelable(&kioskStatus)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write kiosk status fail");
+        return ERR_WRITE_KIOSK_STATUS_FAILED;
+    }
+
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterSaInterceptorInner");
+    auto interceptor = iface_cast<AbilityRuntime::ISAInterceptor>(data.ReadRemoteObject());
+    if (interceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "interceptor is null.");
+        return ERR_NULL_SA_INTERCEPTOR_EXECUTER;
+    }
+    int32_t result = RegisterSAInterceptor(interceptor);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::SetAppServiceExtensionKeepAliveInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::string bundleName = data.ReadString();
+    bool flag = data.ReadBool();
+    int32_t result = SetAppServiceExtensionKeepAlive(bundleName, flag);
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return result;
+}
+
+int AbilityManagerStub::QueryKeepAliveAppServiceExtensionsInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::vector<KeepAliveInfo> list;
+    int32_t result = QueryKeepAliveAppServiceExtensions(list);
+    reply.WriteInt32(list.size());
+    for (auto &it : list) {
+        if (!reply.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return result;
 }
 } // namespace AAFwk
 } // namespace OHOS

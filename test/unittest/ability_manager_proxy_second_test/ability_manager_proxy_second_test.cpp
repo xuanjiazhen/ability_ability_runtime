@@ -371,7 +371,7 @@ HWTEST_F(AbilityManagerProxySecondTest, AbilityManagerProxy_SendWantSender_0100,
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(INVALID_PARAMETERS_ERR));
     EXPECT_EQ(proxy_->SendWantSender(target, senderInf), INVALID_PARAMETERS_ERR);
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(NO_ERROR));
-    EXPECT_EQ(proxy_->SendWantSender(target, senderInf), NO_ERROR);
+    EXPECT_EQ(proxy_->SendWantSender(target, senderInf), INNER_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_SendWantSender_0100 end");
 }
 
@@ -783,6 +783,18 @@ HWTEST_F(AbilityManagerProxySecondTest, UnregisterIAbilityManagerCollaborator_01
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).WillOnce(Return(NO_ERROR));
     proxy_->UnregisterIAbilityManagerCollaborator(type);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_UnregisterIAbilityManagerCollaborator_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_GetAbilityManagerCollaborator_0100
+ * @tc.desc: GetAbilityManagerCollaborator
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySecondTest, AbilityManagerProxy_GetAbilityManagerCollaborator_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_GetAbilityManagerCollaborator_0100 start");
+    EXPECT_EQ(proxy_->GetAbilityManagerCollaborator(), nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_GetAbilityManagerCollaborator_0100 end");
 }
 
 /**

@@ -35,6 +35,7 @@ public:
     static std::unique_ptr<CJRuntime> Create(const Options& options);
     static void SetAppLibPath(const AppLibPathMap& appLibPaths);
     static bool IsCJAbility(const std::string& info);
+    static void SetAppVersion(std::string& version);
     static void SetSanitizerVersion(SanitizerKind kind);
     static void SetPackageName(std::string srcEntryName);
     ~CJRuntime() override = default;
@@ -54,6 +55,8 @@ public:
         const std::string& hapPath,  bool isEsMode, const std::string& srcEntrance) override {}
     void PreloadModule(const std::string& moduleName, const std::string& srcPath,
         const std::string& hapPath, bool isEsMode, bool useCommonTrunk) override {}
+    void PreloadModule(const std::string& moduleName, const std::string& hapPath,
+        bool isEsMode, bool useCommonTrunk) override {}
     void FinishPreload() override {}
     bool LoadRepairPatch(const std::string& patchFile, const std::string& baseFile) override { return false; }
     bool NotifyHotReloadPage() override { return false; }
@@ -66,13 +69,13 @@ public:
     void UnLoadCJAppLibrary();
     void DestroyHeapProfiler() override {};
     void ForceFullGC() override {};
-    void ForceFullGC(uint32_t tid) override {};
-    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {};
+    void ForceFullGC(uint32_t tid) override;
+    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override;
     void DumpCpuProfile() override {};
     void AllowCrossThreadExecution() override {};
     void GetHeapPrepare() override {};
-    void RegisterUncaughtExceptionHandler(const CJUncaughtExceptionInfo& uncaughtExceptionInfo);
     static bool RegisterCangjieCallback();
+    void RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo) override;
 
 private:
     bool StartDebugger();

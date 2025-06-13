@@ -147,7 +147,6 @@
         "DistributedExtensionAbility": [
             "ability.featureAbility",
             "ability.particleAbility",
-            "abilityAccessCtrl",
             "accessibility.config",
             "account.appAccount",
             "account.distributedAccount",
@@ -542,6 +541,9 @@
             "UIAbilityContext",
             "nfctech",
             "tagSession"
+        ],
+        "AppServiceExtension": [
+            "window"
         ]
     }
 }

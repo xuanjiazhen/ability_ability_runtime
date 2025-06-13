@@ -22,7 +22,25 @@ LIFECYCLE_TIMEOUT:
   MSG: {type: STRING, desc: application event message}
   STACK: {type: STRING, desc: main thread stacktrace}
 
+LIFECYCLE_TIMEOUT_WARNING:
+  __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
+  PID: {type: INT32, desc: process id}
+  UID: {type: INT32, desc: app uid}
+  PACKAGE_NAME: {type: STRING, desc: package name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  MSG: {type: STRING, desc: application event message}
+  STACK: {type: STRING, desc: main thread stacktrace}
+
 LIFECYCLE_HALF_TIMEOUT:
+  __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
+  PID: {type: INT32, desc: process id}
+  UID: {type: INT32, desc: app uid}
+  PACKAGE_NAME: {type: STRING, desc: package name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  MSG: {type: STRING, desc: application event message}
+  STACK: {type: STRING, desc: main thread stacktrace}
+
+LIFECYCLE_HALF_TIMEOUT_WARNING:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: ability timeout}
   PID: {type: INT32, desc: process id}
   UID: {type: INT32, desc: app uid}
@@ -85,6 +103,7 @@ START_ABILITY_ERROR:
   BUNDLE_NAME: {type: STRING, desc: bundle name}
   MODULE_NAME: {type: STRING, desc: module name}
   ABILITY_NAME: {type: STRING, desc: ability name}
+  ERROR_MESSAGE: {type: STRING, desc: start ability error message}
 
 TERMINATE_ABILITY_ERROR:
   __BASE: {type: FAULT, level: MINOR, tag: ability, desc: terminate ability error}
@@ -401,6 +420,10 @@ PROCESS_START_FAILED:
   PROCESS_TYPE: {type: INT32, desc: process type}
   REASON: {type: INT32, desc: failed reason}
   SUB_REASON: {type: INT32, desc: failed sub reason}
+
+APP_START_INTERCRPT_BY_EDM:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: app, desc: app start intercepted by EDM}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
 
 DRAWN_COMPLETED:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: app, desc: drawn completed event reporting}

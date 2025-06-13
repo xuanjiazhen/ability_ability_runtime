@@ -40,6 +40,7 @@
 #include "system_memory_attr.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -135,9 +136,10 @@ public:
      *
      * @param pids, the pid list of processes are going to be killed.
      * @param reason, the reason to kill the processes.
+     * @param subProcess, kill SubProcess or not.
      */
     virtual AppMgrResultCode KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids");
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false);
 
     /**
      * Set child and parent relationship
@@ -338,6 +340,15 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual AppMgrResultCode DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+
+    /**
+     * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
+     * triggerGC and dump the application's cjheap memory info.
+     *
+     * @param info, pid needGc needSnapshot
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
      * GetConfiguration
@@ -623,7 +634,7 @@ public:
      * @param pid pid
      * @return Is the status change completed..
      */
-    int32_t ChangeAppGcState(pid_t pid, int32_t state);
+    int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0);
 
      /**
      * @brief Register app debug listener.
@@ -730,6 +741,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer);
+
+    /**
+     * Register native child exit notify.
+     * @param notify, callback to notify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RegisterNativeChildExitNotify(sptr<INativeChildNotify> notify);
+
+    /**
+     * Unregister native child exit notify.
+     * @param notify, callback to notify.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t UnregisterNativeChildExitNotify(sptr<INativeChildNotify> notify);
 
     /**
      * @brief Notify AbilityManagerService the page show.
@@ -871,6 +896,10 @@ public:
     int32_t SetSupportedProcessCacheSelf(bool isSupport);
 
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
     /**
      * set browser channel for caller

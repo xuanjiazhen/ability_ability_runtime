@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/ecological_rule_interceptor.h"
 #include "interceptor/disposed_rule_interceptor.h"
+#include "interceptor/kiosk_interceptor.h"
 #undef private
 #undef protected
 
@@ -467,7 +468,7 @@ HWTEST_F(AbilityInterceptorTest, DisposedRuleInterceptor_012, TestSize.Level1)
     std::shared_ptr<DisposedRuleInterceptor> executer = std::make_shared<DisposedRuleInterceptor>();
     Want want;
     AppExecFwk::DisposedRule disposedRule;
-    ErrCode result = executer->StartNonBlockRule(want, disposedRule);
+    ErrCode result = executer->StartNonBlockRule(want, disposedRule, 0);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -484,7 +485,7 @@ HWTEST_F(AbilityInterceptorTest, DisposedRuleInterceptor_013, TestSize.Level1)
     Want want;
     want.SetBundle(bundleName);
     DisposedRule disposedRule;
-    ErrCode result = executer->StartNonBlockRule(want, disposedRule);
+    ErrCode result = executer->StartNonBlockRule(want, disposedRule, 0);
     EXPECT_EQ(result, ERR_OK);
 }
 

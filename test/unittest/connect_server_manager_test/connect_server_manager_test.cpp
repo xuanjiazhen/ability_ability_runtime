@@ -211,25 +211,6 @@ HWTEST_F(ConnectServerManagerTest, SendInstanceMessageTest_0100, TestSize.Level1
 }
 
 /*
- * @tc.number    : GetDebuggerPostTaskTest_0100
- * @tc.name      : ConnectServerManager
- * @tc.desc      : Test Function ConnectServerManager::GetDebuggerPostTask
- */
-HWTEST_F(ConnectServerManagerTest, GetDebuggerPostTaskTest_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetDebuggerPostTaskTest_0100 is start");
-    auto setStateProfilerStatus = [](bool) {};
-    auto createLayoutInfo = [](int32_t) {};
-    int32_t instanceId = 1;
-    ConnectServerManager &connectServerManager = AbilityRuntime::ConnectServerManager::Get();
-    connectServerManager.SetSwitchCallback(createLayoutInfo, instanceId);
-    connectServerManager.SetProfilerCallBack(setStateProfilerStatus);
-    int32_t tid = 1;
-    EXPECT_EQ(connectServerManager.GetDebuggerPostTask(tid), nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetDebuggerPostTaskTest_0100 is end");
-}
-
-/*
  * @tc.number    : RegisterConnectServerCallbackTest_0100
  * @tc.name      : ConnectServerManager
  * @tc.desc      : Test Function ConnectServerManager::RegisterConnectServerCallback
@@ -318,5 +299,26 @@ HWTEST_F(ConnectServerManagerTest, StoreDebuggerInfo_0100, TestSize.Level1)
     connectServerManager.StoreDebuggerInfo(tid, vm, debugOption, debuggerPostTask, isDebugApp);
     EXPECT_NE(&connectServerManager, nullptr);
 }
+
+/*
+ * @tc.number    : AddInstance_0100
+ * @tc.name      : ConnectServerManager
+ * @tc.desc      : Test Function ConnectServerManager::AddInstance when isConnected_ is false
+ */
+HWTEST_F(ConnectServerManagerTest, AddInstance_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddInstance_0100 is start");
+    int32_t tid = 2;
+    int32_t instanceId = 2;
+    const std::string instanceName = "testInstance";
+    ConnectServerManager &connectServerManager = AbilityRuntime::ConnectServerManager::Get();
+    connectServerManager.instanceMap_.clear();
+    connectServerManager.isConnected_ = false;
+    bool result = connectServerManager.AddInstance(tid, instanceId, instanceName);
+    EXPECT_EQ(connectServerManager.instanceMap_.size(), 1);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "AddInstance_0100 is end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

@@ -46,7 +46,7 @@ public:
         int32_t childProcessType, const AppExecFwk::ChildProcessArgs &args,
         const AppExecFwk::ChildProcessOptions &options);
     ChildProcessManagerErrorCode StartNativeChildProcessByAppSpawnFork(
-        const std::string &libName, const sptr<IRemoteObject> &callbackStub);
+        const std::string &libName, const sptr<IRemoteObject> &callbackStub, const std::string &customProcessName = "");
     bool GetBundleInfo(AppExecFwk::BundleInfo &bundleInfo);
     bool GetEntryHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, AppExecFwk::HapModuleInfo &hapModuleInfo);
     bool GetHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, const std::string &moduleName,
@@ -70,13 +70,15 @@ public:
 private:
     ChildProcessManager();
 
-    ChildProcessManagerErrorCode PreCheck();
+    bool AllowChildProcessOnDevice();
+    ChildProcessManagerErrorCode PreCheckSelfFork();
     ChildProcessManagerErrorCode PreCheck(int32_t childProcessType);
     void RegisterSignal();
     void HandleChildProcessBySelfFork(const std::string &srcEntry, const AppExecFwk::BundleInfo &bundleInfo);
     bool HasChildProcessRecord();
     sptr<AppExecFwk::IAppMgr> GetAppMgr();
     void MakeProcessName(const std::string &srcEntry);
+    bool IsMultiProcessFeatureApp(const AppExecFwk::BundleInfo &bundleInfo);
 
     static bool signalRegistered_;
     bool isChildProcessBySelfFork_ = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,6 @@ namespace AAFwk {
 class UriUtils {
 public:
     static UriUtils &GetInstance();
-
-    int32_t CheckNonImplicitShareFileUri(const Want &want, int32_t userId, uint32_t specifyTokenId);
 
     std::vector<Uri> GetPermissionedUriList(const std::vector<std::string> &uriVec,
         const std::vector<bool> &checkResults, Want &want);
@@ -76,12 +74,13 @@ private:
 
     std::vector<Uri> GetUriListFromWantDms(Want &want);
 
-    int32_t CheckNonImplicitShareFileUriInner(uint32_t callerTokenId, const std::string &targetBundleName,
-        int32_t userId);
-
-    bool IsSystemApplication(const std::string &bundleName, int32_t userId);
-
     void PublishFileOpenEvent(const Want &want);
+
+    bool IsInAncoAppIdentifier(const std::string &bundleName);
+
+    bool CheckIsInAncoAppIdentifier(const std::string &identifier, const std::string &bundleName);
+
+    void ProcessUDMFKey(Want &want);
 
     DISALLOW_COPY_AND_MOVE(UriUtils);
 };

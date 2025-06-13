@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_URI_PERMISSION_EVENT_H
-#define OHOS_ABILITY_RUNTIME_URI_PERMISSION_EVENT_H
+#ifndef OHOS_ABILITY_RUNTIME_URI_PERMISSION_UTILS_H
+#define OHOS_ABILITY_RUNTIME_URI_PERMISSION_UTILS_H
 
 #include "bundle_mgr_helper.h"
 #include "event_report.h"
@@ -27,7 +27,7 @@ class UPMSUtils {
 public:
     static bool SendShareUnPrivilegeUriEvent(uint32_t callTokenId, uint32_t targetTokenId);
     static bool SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
-        const std::vector<Uri> &uriVec, const std::vector<bool> &resVec);
+        const std::vector<std::string> &uriVec, const std::vector<bool> &resVec);
     static int32_t GetCurrentAccountId();
     static bool IsFoundationCall();
     static bool IsSAOrSystemAppCall();
@@ -52,4 +52,4 @@ private:
 };
 } // OHOS
 } // AAFwk
-#endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_EVENT_H
+#endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_UTILS_H

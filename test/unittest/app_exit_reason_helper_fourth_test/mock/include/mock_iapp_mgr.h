@@ -27,6 +27,7 @@
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "app_jsheap_mem_info.h"
+#include "app_cjheap_mem_info.h"
 #include "app_mgr_interface.h"
 #include "fault_data.h"
 #include "iapp_foreground_state_observer.h"
@@ -156,6 +157,11 @@ public:
     virtual void AddAbilityStageDone(const int32_t recordId) {}
 
     virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo& info)
+    {
+        return 0;
+    }
+
+    virtual int DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo& info)
     {
         return 0;
     }
@@ -342,7 +348,7 @@ public:
         return 0;
     }
 
-    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state)
+    virtual int32_t ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid = 0)
     {
         return 0;
     }
@@ -464,6 +470,16 @@ public:
         return 0;
     }
 
+    virtual int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported)
+    {
+        return 0;
+    }
+
+    virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable)
+    {
+        return 0;
+    }
+
     virtual void SetAppAssertionPauseState(bool flag) {}
 
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) {}
@@ -475,8 +491,8 @@ public:
 
 #ifdef SUPPORT_CHILD_PROCESS
 
-    virtual int32_t StartNativeChildProcess(
-        const std::string& libName, int32_t childProcessCount, const sptr<IRemoteObject>& callback)
+    virtual int32_t StartNativeChildProcess(const std::string& libName, int32_t childProcessCount,
+        const sptr<IRemoteObject>& callback, const std::string &customProcessName)
     {
         return 0;
     }

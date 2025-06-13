@@ -92,6 +92,20 @@ public:
     int DisconnectAbility();
 
     /**
+     * Suspend the service ability.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SuspendExtensionAbility();
+    
+    /**
+     * Resume the service ability.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ResumeExtensionAbility();
+
+    /**
      * force to disconnect time out event.
      *
      */
@@ -102,6 +116,12 @@ public:
      *
      */
     void CompleteConnect();
+
+    /**
+     * complete connect ability and just try to invoke callback.
+     *
+     */
+    void CompleteConnectAndOnlyCallConnectDone();
 
     /**
      * complete disconnect ability and invoke callback.

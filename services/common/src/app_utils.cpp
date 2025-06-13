@@ -40,8 +40,14 @@ constexpr const char* START_SPECIFIED_PROCESS = "persist.sys.abilityms.start_spe
 constexpr const char* USE_MULTI_RENDER_PROCESS = "persist.sys.abilityms.use_multi_render_process";
 constexpr const char* LIMIT_MAXIMUM_OF_RENDER_PROCESS = "persist.sys.abilityms.limit_maximum_of_render_process";
 constexpr const char* GRANT_PERSIST_URI_PERMISSION = "persist.sys.abilityms.grant_persist_uri_permission";
+constexpr const char* GRANT_TEMPORARY_URI_PERMISSION = "persist.sys.abilityms.grant_temporary_uri_permission";
 constexpr const char* START_OPTIONS_WITH_ANIMATION = "persist.sys.abilityms.start_options_with_animation";
 constexpr const char* MULTI_PROCESS_MODEL = "persist.sys.abilityms.multi_process_model";
+constexpr const char* PARAM_ANCO_APP_IDENTIFIER = "persist.hmos_fusion_mgr.anco_identifier";
+constexpr const char* ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP =
+    "const.sys.abilityms.allow_child_process_in_multi_process_feature_app";
+constexpr const char* MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS =
+    "const.sys.abilityms.max_multi_process_feature_child_process";
 constexpr const char* START_OPTIONS_WITH_PROCESS_OPTION = "persist.sys.abilityms.start_options_with_process_option";
 constexpr const char* MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE =
     "persist.sys.abilityms.move_ui_ability_to_background_api_enable";
@@ -73,12 +79,15 @@ constexpr const char* MAX_CHILD_PROCESS = "const.max_native_child_process";
 constexpr const char* SUPPORT_MULTI_INSTANCE = "const.abilityms.support_multi_instance";
 constexpr const char* MIGRATE_CLIENT_BUNDLE_NAME = "const.sys.abilityms.migrate_client_bundle_name";
 constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_support_cross_user";
+constexpr const char* SUPPORT_APP_SERVICE_EXTENSION = "const.abilityms.support_app_service";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
 constexpr const char* CACHE_ABILITY_BY_LIST_ENABLE = "persist.sys.abilityms.cache_ability_enable";
 constexpr const char* CACHE_ABILITY_LIST_PATH = "etc/ability/abilityms_cache_ability.json";
 constexpr const char* CACHE_PROCESS_NAME = "cache_list";
+constexpr const char* RESIDENT_WHITE_LIST_PATH = "etc/ability_runtime/resident_process.json";
+constexpr const char* NORMAL_RESIDENT_APPS = "normal_resident_apps";
 }
 
 AppUtils::~AppUtils() {}
@@ -196,6 +205,16 @@ bool AppUtils::IsGrantPersistUriPermission()
     return isGrantPersistUriPermission_.value;
 }
 
+bool AppUtils::IsSupportGrantUriPermission()
+{
+    if (!isGrantTempUriPermission_.isLoaded) {
+        isGrantTempUriPermission_.value = system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true);
+        isGrantTempUriPermission_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantTempUriPermission_.value);
+    return isGrantTempUriPermission_.value;
+}
+
 bool AppUtils::IsStartOptionsWithAnimation()
 {
     if (!isStartOptionsWithAnimation_.isLoaded) {
@@ -214,6 +233,18 @@ bool AppUtils::IsMultiProcessModel()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_.value);
     return isMultiProcessModel_.value;
+}
+
+bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
+{
+    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded) {
+        allowChildProcessInMultiProcessFeatureApp_.value =
+            system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false);
+            allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "AllowChildProcessInMultiProcessFeatureApp:%{public}d",
+        allowChildProcessInMultiProcessFeatureApp_.value);
+    return allowChildProcessInMultiProcessFeatureApp_.value;
 }
 
 bool AppUtils::IsStartOptionsWithProcessOptions()
@@ -450,6 +481,12 @@ std::string AppUtils::GetCacheExtensionTypeList()
     return cacheExtAbilityTypeList;
 }
 
+std::string AppUtils::GetAncoAppIdentifiers()
+{
+    std::string identifiers = system::GetParameter(PARAM_ANCO_APP_IDENTIFIER, "");
+    return identifiers;
+}
+
 bool AppUtils::IsAllowStartAbilityWithoutCallerToken(const std::string& bundleName, const std::string& abilityName)
 {
     std::lock_guard lock(startAbilityWithoutCallerTokenMutex_);
@@ -539,6 +576,18 @@ int32_t AppUtils::MaxChildProcess()
     return maxChildProcess_.value;
 }
 
+int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
+{
+    if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
+        maxMultiProcessFeatureChildProcess_.value =
+            system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
+            maxMultiProcessFeatureChildProcess_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "maxMultiProcessFeatureChildProcess: %{public}d",
+        maxMultiProcessFeatureChildProcess_.value);
+    return maxMultiProcessFeatureChildProcess_.value;
+}
+
 bool AppUtils::IsSupportMultiInstance()
 {
     if (!isSupportMultiInstance_.isLoaded) {
@@ -586,6 +635,7 @@ bool AppUtils::IsSystemReasonMessage(const std::string &reasonMessage)
 {
     const std::unordered_set<std::string> systemReasonMessagesSet = {
         "ReasonMessage_SystemShare",
+        "ReasonMessage_DesktopShortcut",
     };
     return systemReasonMessagesSet.find(reasonMessage) != systemReasonMessagesSet.end();
 }
@@ -648,5 +698,62 @@ bool AppUtils::IsCacheExtensionAbilityByList(const std::string& bundleName, cons
     return false;
 }
 
+void AppUtils::LoadResidentWhiteList()
+{
+    nlohmann::json object;
+    if (!JsonUtils::GetInstance().LoadConfiguration(RESIDENT_WHITE_LIST_PATH, object)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "load resident white list file failed");
+        return;
+    }
+    if (!object.contains(NORMAL_RESIDENT_APPS) ||
+        !object.at(NORMAL_RESIDENT_APPS).is_array()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "resident white list file invalid");
+        return;
+    }
+
+    for (auto &item : object.at(NORMAL_RESIDENT_APPS).items()) {
+        const nlohmann::json& jsonObject = item.value();
+        if (!jsonObject.is_string()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "load resident white bundleName failed");
+            return;
+        }
+        residentWhiteList_.value.emplace_back(jsonObject.get<std::string>());
+    }
+}
+
+const std::vector<std::string>& AppUtils::GetResidentWhiteList()
+{
+    std::lock_guard lock(residentWhiteListMutex_);
+    if (!residentWhiteList_.isLoaded) {
+        LoadResidentWhiteList();
+        residentWhiteList_.isLoaded = true;
+    }
+    return residentWhiteList_.value;
+}
+
+bool AppUtils::InResidentWhiteList(const std::string &bundleName)
+{
+    std::lock_guard lock(residentWhiteListMutex_);
+    if (!residentWhiteList_.isLoaded) {
+        LoadResidentWhiteList();
+        residentWhiteList_.isLoaded = true;
+    }
+    for (const auto &item: residentWhiteList_.value) {
+        if (bundleName == item) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AppUtils::IsSupportAppServiceExtension()
+{
+    if (!isSupportAppServiceExtension_.isLoaded) {
+        isSupportAppServiceExtension_.value = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
+        isSupportAppServiceExtension_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_.value);
+    return isSupportAppServiceExtension_.value;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

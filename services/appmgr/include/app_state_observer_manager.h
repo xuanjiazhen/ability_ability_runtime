@@ -72,6 +72,8 @@ public:
     void OnAppStopped(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnProcessCreated(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload);
     void OnProcessStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void OnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
+                                         const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
     void OnWindowShow(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnWindowHidden(const std::shared_ptr<AppRunningRecord> &appRecord);
     void OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord, const bool isPreload);
@@ -87,6 +89,7 @@ public:
     void OnPageShow(const PageStateData pageStateData);
     void OnPageHide(const PageStateData pageStateData);
     void OnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
+    void OnKeepAliveStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
 private:
     void HandleOnWindowShow(const std::shared_ptr<AppRunningRecord> &appRecord);
     void HandleOnWindowHidden(const std::shared_ptr<AppRunningRecord> &appRecord);
@@ -116,6 +119,7 @@ private:
     AbilityForegroundObserverMap GetAbilityForegroundObserverMapCopy();
     ProcessData WrapProcessData(const std::shared_ptr<AppRunningRecord> &appRecord);
     ProcessData WrapRenderProcessData(const std::shared_ptr<RenderRecord> &renderRecord);
+    ProcessBindData WrapProcessBindData(const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t WrapChildProcessData(ProcessData &processData, std::shared_ptr<ChildProcessRecord> childRecord);
 #endif // SUPPORT_CHILD_PROCESS
@@ -131,6 +135,9 @@ private:
     void HandleOnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
     void AddObserverCount(int32_t uid);
     void DecreaseObserverCount(int32_t uid);
+    void HandleOnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
+        const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
+    void HandleOnKeepAliveStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
 
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> handler_;

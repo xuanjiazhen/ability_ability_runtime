@@ -105,6 +105,7 @@ private:
     int StartUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartUIExtensionAbilityEmbeddedInner(MessageParcel &data, MessageParcel &reply);
     int StartUIExtensionConstrainedEmbeddedInner(MessageParcel &data, MessageParcel &reply);
+    int StartUIExtensionPreViewEmbeddedInner(MessageParcel &data, MessageParcel &reply);
     int StartUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int StopExtensionAbilityInner(MessageParcel& data, MessageParcel& reply);
     int StartAbilityAddCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -260,6 +261,7 @@ private:
 
     int32_t RegisterIAbilityManagerCollaboratorInner(MessageParcel &data, MessageParcel &reply);
     int32_t UnregisterIAbilityManagerCollaboratorInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetAbilityManagerCollaboratorInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t RegisterStatusBarDelegateInner(MessageParcel &data, MessageParcel &reply);
     int32_t KillProcessWithPrepareTerminateInner(MessageParcel &data, MessageParcel &reply);
@@ -316,6 +318,8 @@ private:
     int32_t QueryKeepAliveApplicationsInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetApplicationKeepAliveByEDMInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryKeepAliveApplicationsByEDMInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetAppServiceExtensionKeepAliveInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QueryKeepAliveAppServiceExtensionsInner(MessageParcel &data, MessageParcel &reply);
     int32_t AddQueryERMSObserverInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryAtomicServiceStartupRuleInner(MessageParcel &data, MessageParcel &reply);
     int32_t PrepareTerminateAbilityDoneInner(MessageParcel &data, MessageParcel &reply);
@@ -325,6 +329,14 @@ private:
     int32_t UnregisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryPreLoadUIExtensionRecordInner(MessageParcel &data, MessageParcel &reply);
     int32_t RevokeDelegatorInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ResumeExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
@@ -368,14 +380,22 @@ private:
         MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerTwentieth(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
+    int OnRemoteRequestInnerTwentyFirst(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
     int HandleOnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int HandleOnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
+    int HandleOnRemoteRequestInnerThird(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int32_t OpenLinkInner(MessageParcel &data, MessageParcel &reply);
     int32_t TerminateMissionInner(MessageParcel &data, MessageParcel &reply);
     int32_t BlockAllAppStartInner(MessageParcel &data, MessageParcel &reply);
     int32_t UpdateAssociateConfigListInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UpdateKioskApplicationListInner(MessageParcel &data, MessageParcel &reply);
+    int32_t EnterKioskModeInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExitKioskModeInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

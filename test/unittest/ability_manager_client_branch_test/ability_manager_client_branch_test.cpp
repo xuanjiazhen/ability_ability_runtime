@@ -427,6 +427,17 @@ HWTEST_F(AbilityManagerClientBranchTest, UnRegisterMissionListener_0200, TestSiz
 }
 
 /**
+ * @tc.name: AbilityManagerClient_GetAbilityManagerCollaborator_0100
+ * @tc.desc: GetAbilityManagerCollaborator
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, GetAbilityManagerCollaborator_0100, TestSize.Level1)
+{
+    auto result = client_->GetAbilityManagerCollaborator();
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
  * @tc.name: AbilityManagerClient_GetMissionInfos_0100
  * @tc.desc: GetMissionInfos
  * @tc.type: FUNC
@@ -2476,6 +2487,33 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_RestartApp_0100, T
 }
 
 /**
+ * @tc.name: RestartSelfAtomicService_0100
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RestartSelfAtomicService_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0100 start";
+    client_->RestartSelfAtomicService(nullptr);
+    EXPECT_NE(client_, nullptr);
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0100 end";
+}
+
+/**
+ * @tc.name: RestartSelfAtomicService_0200
+ * @tc.desc: RestartSelfAtomicService
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RestartSelfAtomicService_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0200 start";
+    sptr<IRemoteObject> callerToken = new AbilityManagerStubTestMock();
+    client_->RestartSelfAtomicService(callerToken);
+    EXPECT_NE(client_, nullptr);
+    GTEST_LOG_(INFO) << "RestartSelfAtomicService_0200 end";
+}
+
+/**
  * @tc.name: AbilityManagerClient_KillProcessWithPrepareTerminate_0100
  * @tc.desc: KillProcessWithPrepareTerminate
  * @tc.type: FUNC
@@ -2611,5 +2649,49 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_SetMissionLabel_01
     GTEST_LOG_(INFO) << "AbilityManagerClient_SetMissionLabel_0100 end";
 }
 #endif
+
+/**
+ * @tc.name: AbilityManagerClient_UpdateKioskApplicationList
+ * @tc.desc: UpdateKioskApplicationList
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_UpdateKioskApplicationList, TestSize.Level1)
+{
+    std::vector<std::string> appList = {"com.ohos.test1"};
+    EXPECT_EQ(client_->UpdateKioskApplicationList(appList), ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_EnterKioskMode
+ * @tc.desc: EnterKioskMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_EnterKioskMode, TestSize.Level1)
+{
+    sptr<IRemoteObject> callerToken = new AbilityManagerStubTestMock();
+    EXPECT_EQ(client_->EnterKioskMode(callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ExitKioskMode
+ * @tc.desc: ExitKioskMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_ExitKioskMode, TestSize.Level1)
+{
+    sptr<IRemoteObject> callerToken = new AbilityManagerStubTestMock();
+    EXPECT_EQ(client_->ExitKioskMode(callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: GetKioskStatus
+ * @tc.desc: GetKioskStatus
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, GetKioskStatus, TestSize.Level1)
+{
+    KioskStatus kioskStatus;
+    EXPECT_EQ(client_->GetKioskStatus(kioskStatus), ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

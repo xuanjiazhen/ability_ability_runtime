@@ -65,6 +65,10 @@ int ApplicationStateObserverStub::OnRemoteRequest(
             return HandleOnWindowShow(data, reply);
         case Message::TRANSACT_ON_WINDOW_HIDDEN:
             return HandleOnWindowHidden(data, reply);
+        case Message::TRANSACT_ON_PROCESS_BINDINGRELATION_CHANGED:
+            return HandleOnProcessBindingRelationChanged(data, reply);
+        case Message::TRANSACT_ON_KEEP_ALIVE_STATE_CHANGED:
+            return HandleOnKeepAliveStateChanged(data, reply);
     }
     TAG_LOGW(AAFwkTag::APPMGR, "ApplicationStateObserverStub::OnRemoteRequest, default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -122,6 +126,12 @@ void ApplicationStateObserverStub::OnPageHide(const PageStateData &pageStateData
 {}
 
 void ApplicationStateObserverStub::OnAppCacheStateChanged(const AppStateData &appStateData)
+{}
+
+void ApplicationStateObserverStub::OnProcessBindingRelationChanged(const ProcessBindData &processBindData)
+{}
+
+void ApplicationStateObserverStub::OnKeepAliveStateChanged(const ProcessData &processData)
 {}
 
 int32_t ApplicationStateObserverStub::HandleOnForegroundApplicationChanged(MessageParcel &data, MessageParcel &reply)
@@ -337,6 +347,30 @@ int32_t ApplicationStateObserverStub::HandleOnAppCacheStateChanged(MessageParcel
     }
 
     OnAppCacheStateChanged(*processData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnProcessBindingRelationChanged(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessBindData> processBindData(data.ReadParcelable<ProcessBindData>());
+    if (!processBindData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<ProcessBindData> failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnProcessBindingRelationChanged(*processBindData);
+    return NO_ERROR;
+}
+
+int32_t ApplicationStateObserverStub::HandleOnKeepAliveStateChanged(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<ProcessData> processData(data.ReadParcelable<ProcessData>());
+    if (!processData) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Handle OnKeepAliveStateChanged read ProcessData failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    OnKeepAliveStateChanged(*processData);
     return NO_ERROR;
 }
 
