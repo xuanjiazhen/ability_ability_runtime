@@ -31,7 +31,7 @@ class JSAppForegroundStateObserver : public AppForegroundStateObserverStub {
 public:
     explicit JSAppForegroundStateObserver(napi_env engine);
     virtual ~JSAppForegroundStateObserver() = default;
-    void OnAppStateChanged(const AppStateData &appStateData);
+    ErrCode OnAppStateChanged(const AppStateData &appStateData);
     void HandleOnAppStateChanged(const AppStateData &appStateData);
     void CallJsFunction(const napi_value value, const char *methodName, const napi_value *argv, const size_t argc);
     void AddJsObserverObject(const napi_value &jsObserverObject);

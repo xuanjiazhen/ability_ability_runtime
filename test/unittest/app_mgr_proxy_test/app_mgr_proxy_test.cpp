@@ -39,8 +39,10 @@ public:
     AppForegroundStateObserverMock() = default;
     virtual ~AppForegroundStateObserverMock() = default;
 
-    void OnAppStateChanged(const AppStateData &appStateData) override
-    {}
+    ErrCode OnAppStateChanged(const AppStateData &appStateData) override
+    {
+        return ERR_OK;
+    }
 };
 
 class RenderStateObserverMock : public RenderStateObserverStub {
@@ -955,7 +957,6 @@ HWTEST_F(AppMgrProxyTest, UpdateConfigurationForBackgroundApp_001, TestSize.Leve
     std::vector<BackgroundAppInfo> appInfos;
     ConfigurationPolicy policy;
     int32_t userId = -1;
-
     auto ret = appMgrProxy_->UpdateConfigurationForBackgroundApp(appInfos, policy, userId);
     if (appInfos.size() == 0 || appInfos.size() > MAX_BACKGROUND_APP_COUNT) {
         EXPECT_EQ(ret, ERR_INVALID_DATA);
