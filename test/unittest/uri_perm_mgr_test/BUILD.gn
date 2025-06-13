@@ -41,6 +41,7 @@ ohos_unittest("uri_perm_mgr_test") {
 
   configs = [
     ":coverage_flags",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
   ]
   cflags = []

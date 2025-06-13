@@ -16,7 +16,6 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_unittest("ability_manager_client_branch_third_test") {
   module_out_path = "ability_runtime/ability_runtime/ability_call_test"
-
   include_dirs = [
     "mock/include",
     "${ability_runtime_test_path}/mock/common/include",
