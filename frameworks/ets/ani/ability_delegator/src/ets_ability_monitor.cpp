@@ -183,7 +183,7 @@ std::shared_ptr<AbilityRuntime::ETSNativeReference> EtsAbilityMonitor::GetRuntim
         TAG_LOGE(AAFwkTag::DELEGATOR, "abilityObj is expired");
         return nullptr;
     }
-    auto etsbaseProperty = std::static_pointer_cast<AppExecFwk::ETSDelegatorAbilityProperty>(baseProperty);
+    auto etsbaseProperty = std::static_pointer_cast<AppExecFwk::EtsDelegatorAbilityProperty>(baseProperty);
     auto runtimeObj = etsbaseProperty->object_.lock();
     if (!runtimeObj) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "runtimeObj is nullptr");
