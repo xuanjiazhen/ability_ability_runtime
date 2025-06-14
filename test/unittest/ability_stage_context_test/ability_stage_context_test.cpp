@@ -220,6 +220,40 @@ HWTEST_F(AbilityStageContextTest, AbilityStageContextTest_CreateAreaModeContext_
     TAG_LOGI(AAFwkTag::TEST, "end");
 }
 
+
+/**
+ * @tc.number: AbilityStageContext_GetSetProcessName_0100
+ * @tc.name: SetProcessName、GetProcessName
+ * @tc.desc: SetProcessName、GetProcessName.
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_GetSetProcessName_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityStageContext_GetSetProcessName_0100 start";
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    std::string testProcessName = "test_process";
+    abilityStageContext->SetProcessName(testProcessName);
+    std::string result = abilityStageContext->GetProcessName();
+    EXPECT_EQ(result, testProcessName);
+    GTEST_LOG_(INFO) << "AbilityStageContext_GetSetProcessName_0100 end";
+}
+
+/**
+ * @tc.number: AbilityStageContext_GetSetProcessName_0200
+ * @tc.name: SetProcessName、GetProcessName
+ * @tc.desc: SetProcessName、GetProcessName.
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_GetSetProcessName_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityStageContext_GetSetProcessName_0200 start";
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    std::string testProcessName = "test_process";
+    abilityStageContext->SetProcessName(testProcessName);
+    std::string unexpectedProcessName = "wrong_process";
+    std::string result = abilityStageContext->GetProcessName();
+    EXPECT_NE(result, unexpectedProcessName);
+    GTEST_LOG_(INFO) << "AbilityStageContext_GetSetProcessName_0200 end";
+}
+
 #ifdef SUPPORT_GRAPHICS
 /**
  * @tc.name: AbilityStageContextTest_CreateDisplayContext_0100

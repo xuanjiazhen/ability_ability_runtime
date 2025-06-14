@@ -539,6 +539,20 @@ HWTEST_F(ServiceExtensionContextTest, service_extension_context_PreStartMission_
 }
 
 /**
+ * @tc.number: service_extension_context_OpenLink_001
+ * @tc.name: OpenLink
+ * @tc.desc: OpenLink
+ */
+HWTEST_F(ServiceExtensionContextTest, service_extension_context_OpenLink_001, TestSize.Level1)
+{
+    AAFwk::Want want;
+    ServiceExtensionContext serviceExtensionContextTest;
+    int requestCode = -1;
+    ErrCode result = serviceExtensionContextTest.OpenLink(want, requestCode);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.number: service_extension_context_OpenAtomicService_001
  * @tc.name: OpenAtomicService
  * @tc.desc: Start ui service extension ability success
