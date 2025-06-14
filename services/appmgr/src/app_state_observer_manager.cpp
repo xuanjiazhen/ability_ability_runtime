@@ -16,6 +16,7 @@
 #include "app_state_observer_manager.h"
 
 #include "ability_foreground_state_observer_stub.h"
+#include "app_foreground_state_observer_recipient.h"
 #include "app_foreground_state_observer_stub.h"
 #include "application_state_observer_stub.h"
 #include "hilog_tag_wrapper.h"
