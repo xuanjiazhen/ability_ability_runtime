@@ -87,8 +87,10 @@ class AppForegroundStateObserver : public AppForegroundStateObserverStub {
 public:
     AppForegroundStateObserver() = default;
     virtual ~AppForegroundStateObserver() = default;
-    void OnAppStateChanged(const AppStateData &appStateData) override
-    {}
+    ErrCode OnAppStateChanged(const AppStateData &appStateData) override
+    {
+        return ERR_OK;
+    }
 };
 class AppStateObserverManagerTestSecond : public testing::Test {
 public:
