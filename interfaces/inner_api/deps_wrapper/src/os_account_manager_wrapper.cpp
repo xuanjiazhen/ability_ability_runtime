@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,13 +22,14 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-#ifndef OS_ACCOUNT_PART_ENABLED
 namespace {
+#ifndef OS_ACCOUNT_PART_ENABLED
 const int32_t DEFAULT_OS_ACCOUNT_ID = 0; // default id when there is no os_account part
 const int32_t USER_ID_U100 = 100;
 const int32_t UID_TRANSFORM_DIVISOR = 200000;
-}
 #endif // OS_ACCOUNT_PART_ENABLED
+constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
+}
 
 ErrCode OsAccountManagerWrapper::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
@@ -127,5 +128,56 @@ int32_t OsAccountManagerWrapper::GetCurrentActiveAccountId()
     TAG_LOGD(AAFwkTag::DEFAULT, "accountId: %{public}d", accountIds[0]);
     return accountIds[0];
 }
+
+bool OsAccountManagerWrapper::IsOsAccountForeground(const int32_t userId, bool isSwitchToUser, int32_t callerUid)
+{
+#ifndef OS_ACCOUNT_PART_ENABLED
+    TAG_LOGD(AAFwkTag::DEFAULT, "userId: %{public}d is not in foreground accounts.", userId);
+    return USER_ID_U100 == userId;
+#else // OS_ACCOUNT_PART_ENABLED
+    if (isSwitchToUser && callerUid == ACCOUNT_MGR_SERVICE_UID) {
+        TAG_LOGD(AAFwkTag::DEFAULT,
+            "userId: %{public}d is not in foreground accounts, but it is a account mgr service uid.", userId);
+        return true; // Account Manager Service UID is always considered as foreground
+    }
+
+    std::vector<AccountSA::ForegroundOsAccount> accounts;
+    ErrCode errCode = AccountSA::OsAccountManager::GetForegroundOsAccounts(accounts);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "GetForegroundOsAccounts failed, errCode: %{public}d, userId: %{public}d",
+            errCode, userId);
+        return false;
+    }
+
+    for (const auto& account : accounts) {
+        if (account.localId == userId) {
+            TAG_LOGD(AAFwkTag::DEFAULT, "userId: %{public}d is in foreground accounts.", userId);
+            return true;
+        }
+    }
+
+    TAG_LOGW(AAFwkTag::DEFAULT,
+        "userId: %{public}d is not in foreground accounts. size: %{public}zu", userId, accounts.size());
+    return false;
+#endif // OS_ACCOUNT_PART_ENABLED
+}
+
+ErrCode OsAccountManagerWrapper::GetForegroundOsAccountLocalId(int32_t &userId)
+{
+#ifndef OS_ACCOUNT_PART_ENABLED
+    userId = USER_ID_U100;
+    TAG_LOGD(AAFwkTag::DEFAULT, "Without os account subsystem, set userId: %{public}d", userId);
+    return ERR_OK; // No foreground account in this case
+#else // OS_ACCOUNT_PART_ENABLED
+    auto errCode = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(userId);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DEFAULT,
+            "GetForegroundOsAccountLocalId failed, errCode: %{public}d, userId: %{public}d", errCode, userId);
+        return ERR_OK;
+    }
+    return errCode;
+#endif // OS_ACCOUNT_PART_ENABLED
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

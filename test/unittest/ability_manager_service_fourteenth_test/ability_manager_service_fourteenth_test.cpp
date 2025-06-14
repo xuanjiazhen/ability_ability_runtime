@@ -1236,5 +1236,45 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionIsFocused_001, Tes
     EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Name: IsOsAccountForeground_001
+ * Function: IsOsAccountForeground
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService IsOsAccountForeground
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, IsOsAccountForeground_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest IsOsAccountForeground_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    auto userId = 100;
+    EXPECT_TRUE(abilityMs_->IsOsAccountForeground(userId));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest IsOsAccountForeground_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetForegroundOsAccountLocalId_001
+ * Function: GetForegroundOsAccountLocalId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetForegroundOsAccountLocalId
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetForegroundOsAccountLocalId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetForegroundOsAccountLocalId_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+    auto userId = 100;
+    EXPECT_EQ(abilityMs_->GetForegroundOsAccountLocalId(userId), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetForegroundOsAccountLocalId_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
