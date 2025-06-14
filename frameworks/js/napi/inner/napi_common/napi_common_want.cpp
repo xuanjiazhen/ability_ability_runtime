@@ -1202,6 +1202,14 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &p
         }
     }
 
+    // jsValue = GetPropertyValueByPropertyName(env, param, "fds", napi_object);
+    // if (jsValue != nullptr) {
+    //     AAFwk::WantParams wantParams;
+    //     if (UnwrapWantParams(env, jsValue, wantParams)) {
+    //         want.SetParams(wantParams);
+    //     }
+    // }
+
     std::string natValueString("");
     if (UnwrapStringByPropertyName(env, param, "action", natValueString)) {
         want.SetAction(natValueString);

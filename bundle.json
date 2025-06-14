@@ -130,6 +130,7 @@
           "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
           "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
           "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
+          "//foundation/ability/ability_runtime/frameworks/c/want:ability_runtime_want",
           "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
           "//foundation/ability/ability_runtime/frameworks/ets/ani:ani_packages",
           "//foundation/ability/ability_runtime/frameworks/js/napi:napi_packages",
