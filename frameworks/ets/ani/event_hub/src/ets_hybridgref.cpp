@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#include "ets_event_hub.h"
-
+#include "ets_hybridgref.h"
+ 
 #include "hilog_tag_wrapper.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
 #include <ani.h>
-
+ 
 namespace OHOS {
 namespace AbilityRuntime {
-
-static hybridgref g_ref = nullptr;
+ 
+static __hybridgref* g_ref = nullptr;
+ 
 static napi_value NativeGetRef(napi_env env, [[maybe_unused]] napi_callback_info info)
 {
     napi_value result {};
@@ -32,60 +33,45 @@ static napi_value NativeGetRef(napi_env env, [[maybe_unused]] napi_callback_info
     }
     return result;
 }
-
+ 
 static void NativeSaveHybridGref(ani_env *env, ani_object ref)
 {
-    ASSERT_TRUE(hybridgref_create_from_ani(env, static_cast<ani_ref>(ref), &g_ref));
-}
-
-class HybridGrefPrimitiveEtsToTs {
-public:
-    static bool GetAniEnv(ani_env **env)
-    {
-        ani_vm *aniVm;
-        ani_size res;
-
-        auto status = ANI_GetCreatedVMs(&aniVm, 1U, &res);
-        if (status != ANI_OK || res == 0) {
-            return false;
-        }
-
-        status = aniVm->GetEnv(ANI_VERSION_1, env);
-        return status == ANI_OK && *env != nullptr;
-    }
-
-    static bool RegisterNativeGetRef(napi_env env)
-    {
-        napi_value global;
-        if (napi_get_global(env, &global) != napi_ok) {
-            return false;
-        }
-        napi_value fn;
-        if (napi_create_function(env, "nativeGetRef", NAPI_AUTO_LENGTH, NativeGetRef, nullptr, &fn) != napi_ok) {
-            return false;
-        }
-
-        if (napi_set_named_property(env, global, "nativeGetRef", fn) != napi_ok) {
-            return false;
-        }
-
-        return true;
-    }
-
-    static bool RegisterNativeSaveRef(ani_env *env)
-    {
-        ani_module etsMod {};
-        auto status = env->FindModule("Lets_functions;", &etsMod);
-        if (status != ANI_OK) {
-            return false;
-        }
-        std::array methods = {
-            ani_native_function {"saveHybridGref", nullptr, reinterpret_cast<void *>(NativeSaveHybridGref)},
-        };
-        status = env->Module_BindNativeFunctions(etsMod, methods.data(), methods.size());
-        return status == ANI_OK;
+    if (!hybridgref_create_from_ani(env, static_cast<ani_ref>(ref), &g_ref)) {
+        return;
     }
 }
-
+ 
+bool HybridGrefPrimitiveEtsToTs::RegisterNativeGetRef(napi_env env)
+{
+    napi_value global;
+    if (napi_get_global(env, &global) != napi_ok) {
+        return false;
+    }
+    napi_value fn;
+    if (napi_create_function(env, "nativeGetRef", NAPI_AUTO_LENGTH, NativeGetRef, nullptr, &fn) != napi_ok) {
+        return false;
+    }
+ 
+    if (napi_set_named_property(env, global, "nativeGetRef", fn) != napi_ok) {
+        return false;
+    }
+ 
+    return true;
+}
+ 
+bool HybridGrefPrimitiveEtsToTs::RegisterNativeSaveRef(ani_env *env)
+{
+    ani_module etsMod {};
+    auto status = env->FindModule("Lets_functions;", &etsMod);
+    if (status != ANI_OK) {
+        return false;
+    }
+    std::array methods = {
+        ani_native_function {"saveHybridGref", nullptr, reinterpret_cast<void *>(NativeSaveHybridGref)},
+    };
+    status = env->Module_BindNativeFunctions(etsMod, methods.data(), methods.size());
+    return status == ANI_OK;
+}
+ 
 } // namespace AbilityRuntime
 } // namespace OHOS
