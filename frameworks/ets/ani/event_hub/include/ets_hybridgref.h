@@ -15,15 +15,18 @@
 
 #ifndef ETS_HYBRIDGREF_H
 #define ETS_HYBRIDGREF_H
-
+ 
 #include "ts_hybridgref.h"
-
+#include "sts_runtime.h"
+ 
 namespace OHOS {
 namespace AbilityRuntime {
-
-bool RegisterNativeGetRef(napi_env env);
-bool RegisterNativeSaveRef(ani_env* env);
-
+ 
+class HybridGrefPrimitiveEtsToTs {
+public:
+    static bool RegisterNativeGetRef(napi_env env);
+    static bool RegisterNativeSaveRef(ani_env* env);
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // ETS_HYBRIDGREF_H
