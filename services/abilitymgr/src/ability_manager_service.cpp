@@ -2170,6 +2170,200 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     return ret;
 }
 
+ErrCode AbilityManagerService::StartAbilities(std::vector<AAFwk::Want> &wantList,
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call StartAbilities");
+    std::vector<AbilityRequest> abilityRequestList;
+    int32_t oriValidUserId = GetValidUserId(userId);
+    int32_t validUserId = oriValidUserId;
+    //before want
+    //callerToken 必须存在且有效 before want
+    if (callerToken == nullptr || !VerificationAllToken(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities %{public}s verificationAllToken failed", __func__);
+        return ERR_INVALID_CALLER;
+    }
+
+    for (Want &want : wantList) {
+        //func processWant
+        AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
+
+        //intent openlink do not RemoveInsightIntent action
+        if (!want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) {
+            InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
+        }
+
+#ifdef SUPPORT_SCREEN
+        DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
+#endif
+
+#ifdef WITH_DLP //不支持 返回错误码 怎么判断是否触发了DLP handle == true？ 是的，判断完后再判断DLP权限
+        if (AbilityUtil::HandleDlpApp(const_cast<Want &>(want))) {
+            //新增错误码
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support Dlp");
+            return START_ABILITIES_NOT_SUPPORT_DLP;
+        }
+        HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "CHECK_DLP");
+        if (!DlpUtils::OtherAppsAccessDlpCheck(callerToken, want) ||
+            VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED ||
+            !DlpUtils::DlpAccessOtherAppsCheck(callerToken, want)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities Dlp %{public}s: permission verification failed", __func__);
+            return CHECK_PERMISSION_FAILED;
+        }
+#endif // WITH_DLP
+
+        if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+            //新增错误码
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support StartPlugin");
+            return START_ABILITIES_NOT_SUPPORT_START_PLUGIN;
+        }
+
+        AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
+
+        //ERR_CREATE_INSTANCE_KEY_FAILED 创建新实例 不支持 返回错误码 需要在这里判断吗 判断key前置拦截
+        if (want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support CREATE_APP_INSTANCE_KEY");
+            return START_ABILITIES_NOT_SUPPORT_CREATE_APP_INSTANCE_KEY;
+        }
+        // AppIndex是否有值  没有->与caller不同包名设置为0，同包名设置为caller的index；有值->是否有效（最大最小范围）
+        // func StartAbilitiesProcessAppIndex
+        if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+            auto appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+            if (appIndex < 0 || appIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities appCloneIndex exist and invalid");
+                return ERR_APP_CLONE_INDEX_INVALID;
+            }
+        }
+        //action1
+        SetTargetCloneIndexInSameBundle(want, callerToken);//不同包名 不处理；同包名 有预置的key不处理；同包名 没有预置的key -> 若caller的index有效，给want也设置相同值
+        int32_t appIndex = 0
+        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+            return ERR_APP_CLONE_INDEX_INVALID;
+        }
+        // func StartAbilitiesProcessAppIndex end
+
+        //action1
+        auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(const_cast<Want &>(want),
+            validUserId, appIndex, callerToken);
+        if (checkRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities CheckMultiInstanceAndAppClone failed");
+            return checkRet;
+        }
+        //action1
+        StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
+
+        //action1 不支持 返回错误码 zfm
+        if (CheckIfOperateRemote(want)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support StartRemoteAbility");
+            return START_ABILITIES_NOT_SUPPORT_OPERATE_REMOTE;
+        }1  
+
+        //action0 不支持 返回错误码 zfm 返回false说明不允许
+        if (!JudgeMultiUserConcurrency(validUserId)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities multi-user non-concurrent unsatisfied");
+            return START_ABILITIES_NOT_SUPPORT_CROSS_USER;
+        }
+        // 隐式启动 不支持 返回错误码
+#ifdef SUPPORT_SCREEN
+    if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support implicit start");
+        return START_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    }
+#endif
+        AbilityRequest abilityRequest;
+        result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+        auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+        std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error");
+            return result;
+        }
+
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities abilityRequest generated");
+        UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+
+        auto abilityInfo = abilityRequest.abilityInfo;
+        //仅支持UIAbility
+        if (abilityInfo.type != AbilityType::PAGE) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities only support UIAbility");
+            return START_ABILITIES_ONLY_SUPPORT_UI_ABILITY;
+        }
+        //校验StaticCfg权限
+        result = CheckStaticCfgPermission(abilityRequest, isStartAsCaller,
+            abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), false, false, false);
+        if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities checkStaticCfgPermission error, result:%{public}d", result);
+            return ERR_STATIC_CFG_PERMISSION;// 是否需要新增错误码
+        }
+        //校验拉起权限 specifyTokenId从哪里获取 默认为0
+        result = CheckCallPermission(want, abilityInfo, abilityRequest, false,
+            false, specifyTokenId, callerBundleName);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities checkCallPermission error, result:%{public}d", result);
+            return result;
+        }
+
+        //action1
+        Want newWant = abilityRequest.want;
+        //action1 前置拦截器
+        auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
+        AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, GetUserId(),
+            true, nullptr, shouldBlockFunc);
+        auto result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
+            interceptorExecuter_->DoProcess(interceptorParam);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities interceptorExecuter_ null or DoProcess error");
+            return START_ABILITIES_INTERCEPTOR_CHECK_FAILED;
+        }
+        //后置拦截器
+        AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, requestCode, GetUserId(),
+            true, callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo), isStartAsCaller, appIndex);
+        result = afterCheckExecuter_ == nullptr ? ERR_INVALID_VALUE :
+            afterCheckExecuter_->DoProcess(afterCheckParam);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities afterCheckExecuter_ null or DoProcess error");
+            return START_ABILITIES_INTERCEPTOR_CHECK_FAILED;
+        }
+        //
+        bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
+        newWant.RemoveParam("queryWantFromErms");
+
+        RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerToken);
+
+        //abilityController权限校验
+        if (!IsAbilityControllerStart(want, abilityInfo.bundleName)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities isAbilityControllerStart failed:%{public}s", abilityInfo.bundleName.c_str());
+            return ERR_WOULD_BLOCK;
+        }
+
+        //action1 需要
+        abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
+        //action1 需要
+        abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
+
+        abilityRequestList.emplace_back(abilityRequest);
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities ready to NotifySCBToStartUIAbilities");
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        for (AbilityRequest &abilityRequest : abilityRequestList) {
+            auto abilityInfo = abilityRequest.abilityInfo;
+            //action1 需要放到最后调多次，涉及与SCB通信
+            ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
+            //action1 需要
+            abilityRequest.userId = oriValidUserId;
+            abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+        }
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
+        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        // return uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList);
+    }
+    //不支持
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities is not supported");
+    return ERR_CAPABILITY_NOT_SUPPORT;
+}
+
 int32_t AbilityManagerService::RequestDialogService(const Want &want, const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

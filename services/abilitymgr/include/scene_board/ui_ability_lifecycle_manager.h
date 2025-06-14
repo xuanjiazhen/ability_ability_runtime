@@ -164,6 +164,7 @@ public:
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
+    int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList);
 
     int NotifySCBToPreStartUIAbility(const AbilityRequest &abilityRequest,
         sptr<SessionInfo> &sessionInfo);

@@ -636,6 +636,96 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     return ret;
 }
 
+int UIAbilityLifecycleManager::NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities Call NotifySCBToStartUIAbilities");
+
+    std::vector<SessionInfo> sessionInfoList;
+    for (AbilityRequest &abilityRequest : abilityRequestList) {
+        if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
+            return ERR_INVALID_VALUE;
+        }
+        abilityRequest.want.SetParam(IS_SHELL_CALL, AAFwk::PermissionVerification::GetInstance()->IsShellCall());
+        std::string callerKey = std::to_string(IPCSkeleton::GetCallingPid()) + ":" +
+            std::to_string(IPCSkeleton::GetCallingUid());
+        bool isCallerKilling = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsCallerKilling(callerKey));
+        if (isCallerKilling) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities caller is killing");
+            return ERR_INVALID_VALUE;
+        }
+        abilityRequest.want.SetParam(Want::PARAMS_REAL_CALLER_KEY, callerKey);
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        // start ability with persistentId by dms //这里Ability_Manager_Service里StartAbilities没有处理，是不是也不要了
+        int32_t persistentId = abilityRequest.want.GetIntParam(DMS_PERSISTENT_ID, 0);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities NotifySCBToStartUIAbility, want with persistentId: %{public}d.", persistentId);
+        if (persistentId != 0 &&
+            AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(DMS_PROCESS_NAME)) {
+            return StartWithPersistentIdByDistributed(abilityRequest, persistentId);
+        }
+        // 开始执行specified场景
+        if (IsStartSpecifiedProcessRequest(abilityRequest)) {
+            return StartSpecifiedProcessRequest(abilityRequest);
+        }
+        const auto &abilityInfo = abilityRequest.abilityInfo;
+        auto requestId = GetRequestId();
+        auto isPlugin = StartupUtil::IsStartPlugin(abilityRequest.want);
+        auto isSpecified = (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
+        if (isSpecified && !isPlugin) {
+            auto specifiedRequest = std::make_shared<SpecifiedRequest>(requestId, abilityRequest);
+            specifiedRequest->preCreateProcessName = true;
+            AddSpecifiedRequest(specifiedRequest);
+            return ERR_OK;
+        }
+        //这里是否也不相关，不需要了
+        if (IsHookModule(abilityRequest)) {
+            auto abilityRecord = FindRecordFromSessionMap(abilityRequest);
+            if (abilityRecord != nullptr) {
+                if (abilityRecord->IsHook() && !abilityRecord->GetHookOff()) {
+                    AbilityRequest request;
+                    request.callerToken = abilityRequest.callerToken;
+                    sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
+                    if (hookSessionInfo != nullptr) {
+                        hookSessionInfo->want = abilityRequest.want;
+                    }
+                    std::string errMsg;
+                    int ret = NotifySCBPendingActivation(hookSessionInfo, request, errMsg);
+                    if (hookSessionInfo != nullptr) {
+                        hookSessionInfo->want.RemoveAllFd();
+                    }
+                    return ret;
+                }
+            }
+        }
+        //这里的sessionInfo是一个指针 sptr<SessionInfo>
+        auto sessionInfo = CreateSessionInfo(abilityRequest);
+        sessionInfo->requestCode = abilityRequest.requestCode;
+        sessionInfo->requestId = requestId;
+        // auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
+        // if (abilityInfo.applicationInfo.multiAppMode.multiAppModeType != AppExecFwk::MultiAppModeType::MULTI_INSTANCE ||
+        //     !isCreating) {
+        //     sessionInfo->persistentId = GetPersistentIdByAbilityRequest(abilityRequest, sessionInfo->reuse);
+        // }
+        sessionInfo->userId = userId_;
+        sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
+            sessionInfo->persistentId, userId_, requestId);
+
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilities sessionInfo abilityName: %{public}s",
+            sessionInfo->want.GetElement().GetAbilityName().c_str());
+        sessionInfoList.emplace_back(*sessionInfo);
+    }
+    std::string errMsg;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilities sessionInfoList size: %{public}zu",
+        sessionInfoList.size());
+    sptr<SessionInfo> sessionInfo0 = &sessionInfoList[0];
+    int ret = NotifySCBPendingActivation(sessionInfo0, abilityRequestList[0], errMsg);
+    for (auto &item : sessionInfoList) {
+        item.want.RemoveAllFd();
+    }
+    return ret;
+}
+
 int32_t UIAbilityLifecycleManager::NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
