@@ -66,7 +66,7 @@ public:
 };
 class MyRenderStateObserver : public IRenderStateObserver {
 public:
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override {}
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override {return ERR_OK;}
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;

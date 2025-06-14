@@ -64,9 +64,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     MessageParcel reply;
     MessageOption option;
     renderStateObserverProxy->OnRenderStateChanged(renderStateData);
-    renderStateObserverProxy->WriteInterfaceToken(dataParcel);
-    uint32_t code = static_cast<uint32_t>(GetU32Data(data));
-    renderStateObserverProxy->SendTransactCmd(code, dataParcel, reply, option);
 
     return true;
 }

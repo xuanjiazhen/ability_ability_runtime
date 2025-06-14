@@ -78,7 +78,7 @@ ErrCode AbilityDebugResponse::OnAbilitysDebugStarted(const std::vector<sptr<IRem
 {
     if (tokens.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "tokens empty");
-        return ERR_INVALID_VALUE;
+        return ERR_ABILITY_DEBUG_EMPTY_TOKENS;
     }
 
     auto deal = abilityDebugDeal_.lock();
@@ -94,7 +94,7 @@ ErrCode AbilityDebugResponse::OnAbilitysDebugStoped(const std::vector<sptr<IRemo
 {
     if (tokens.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "tokens empty");
-        return ERR_INVALID_VALUE;
+        return ERR_ABILITY_DEBUG_EMPTY_TOKENS;
     }
 
     auto deal = abilityDebugDeal_.lock();
@@ -111,7 +111,7 @@ ErrCode AbilityDebugResponse::OnAbilitysAssertDebugChange(
 {
     if (tokens.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "tokens empty");
-        return ERR_INVALID_VALUE;
+        return ERR_ABILITY_DEBUG_EMPTY_TOKENS;
     }
 
     auto deal = abilityDebugDeal_.lock();
