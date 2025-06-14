@@ -141,10 +141,6 @@ class EventHub {
 
   dispose() {
     this.eventMap = {};
-
-    if (globalThis.nativeReleaseEventHubRefs) {
-      globalThis.nativeReleaseEventHubRefs();
-    }
   }
 }
 
