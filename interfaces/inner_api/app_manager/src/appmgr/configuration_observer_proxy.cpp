@@ -41,7 +41,9 @@ void ConfigurationObserverProxy::OnConfigurationUpdated(const Configuration& con
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    data.WriteParcelable(&configuration);
+    if (!data.WriteParcelable(&configuration)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "configuration is NULL");
+    }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "Remote() is NULL");
