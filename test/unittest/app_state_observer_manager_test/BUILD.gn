@@ -34,7 +34,10 @@ ohos_unittest("app_state_observer_manager_test") {
 
   sources += [ "app_state_observer_manager_test.cpp" ]
 
-  configs = [ "${ability_runtime_test_path}/unittest:appmgr_test_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_test_path}/unittest:appmgr_test_config",
+  ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

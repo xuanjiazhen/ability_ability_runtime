@@ -1059,6 +1059,7 @@ int32_t AppMgrStub::HandleUpdateConfigurationForBackgroundApp(MessageParcel &dat
         TAG_LOGE(AAFwkTag::APPMGR, "Resource allocation error");
         return ERR_NO_MEMORY;
     }
+
     for (auto &item : appInfos) {
         std::unique_ptr<BackgroundAppInfo> tmpInfo(data.ReadParcelable<BackgroundAppInfo>());
         if (tmpInfo == nullptr) {
