@@ -296,8 +296,9 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResult(std::shared_ptr
     return ERR_OK;
 }
 
-int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
-    std::shared_ptr<AbilityRecord> callerAbilityRecord)
+int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(
+    std::shared_ptr<AbilityRecord> currentAbilityRecord, std::shared_ptr<AbilityRecord> callerAbilityRecord,
+    const Want &resultWant)
 {
     return ERR_OK;
 }

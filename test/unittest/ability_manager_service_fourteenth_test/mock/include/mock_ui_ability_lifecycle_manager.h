@@ -435,8 +435,8 @@ private:
     void PrepareCloseUIAbility(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, bool isClearSession);
     int CloseUIAbilityInner(std::shared_ptr<AbilityRecord> abilityRecord);
-    int32_t BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
-        std::shared_ptr<AbilityRecord> callerAbilityRecord);
+    int32_t BackToCallerAbilityWithResultLocked(std::shared_ptr<AbilityRecord> currentAbilityRecord,
+        std::shared_ptr<AbilityRecord> callerAbilityRecord, const Want &resultWant);
 
     // byCall
     int CallAbilityLocked(const AbilityRequest &abilityRequest);

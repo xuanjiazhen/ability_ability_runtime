@@ -1243,7 +1243,11 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, BackToCallerAbilityWithResultLocke
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     callerAbilityRecord->sessionInfo_ = nullptr;
 
-    auto ret = mgr->BackToCallerAbilityWithResultLocked(currentSessionInfo, callerAbilityRecord);
+    auto currentAbilityRecord = std::make_shared<AbilityRecord>(
+        abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
+    currentAbilityRecord->SetSessionInfo(currentSessionInfo);
+    Want resultWant;
+    auto ret = mgr->BackToCallerAbilityWithResultLocked(currentAbilityRecord, callerAbilityRecord, resultWant);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 }  // namespace AAFwk

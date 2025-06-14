@@ -15,6 +15,7 @@
 
 #include "scene_board/ui_ability_lifecycle_manager.h"
 
+#include "ability_config.h"
 #include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_record_death_manager.h"
@@ -38,6 +39,7 @@
 #include "startup_util.h"
 #include "timeout_state_utils.h"
 #include "ui_extension_utils.h"
+#include "update_caller_info_util.h"
 #include "ability_stage_constant.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
@@ -1621,13 +1623,15 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResult(std::shared_ptr
         TAG_LOGI(AAFwkTag::ABILITYMGR, "caller uiExtension");
         callerAbilityRecord = callerAbilityRecord->GetCallerRecord();
     }
-    return BackToCallerAbilityWithResultLocked(abilityRecord->GetSessionInfo(), callerAbilityRecord);
+    return BackToCallerAbilityWithResultLocked(abilityRecord, callerAbilityRecord, *resultWant);
 }
 
-int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<SessionInfo> currentSessionInfo,
-    std::shared_ptr<AbilityRecord> callerAbilityRecord)
+int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(
+    std::shared_ptr<AbilityRecord> currentAbilityRecord, std::shared_ptr<AbilityRecord> callerAbilityRecord,
+    const Want &resultWant)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    auto currentSessionInfo = currentAbilityRecord->GetSessionInfo();
     if (currentSessionInfo == nullptr || currentSessionInfo->sessionToken == nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "currentSessionInfo invalid");
         return ERR_INVALID_VALUE;
@@ -1645,6 +1649,19 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
     }
 
     auto currentSession = iface_cast<Rosen::ISession>(currentSessionInfo->sessionToken);
+    // set resultWant as the want of OnNewWant
+    callerSessionInfo->want = resultWant;
+    // not support grant uri permission for back to caller, remove uri and flag
+    callerSessionInfo->want.SetUri("");
+    callerSessionInfo->want.RemoveParam(AbilityConfig::PARAMS_STREAM);
+    uint32_t flag = (callerSessionInfo->want.GetFlags() &
+        ~(Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION));
+    callerSessionInfo->want.SetFlags(flag);
+    auto abilityInfo = callerAbilityRecord->GetAbilityInfo();
+    callerSessionInfo->want.SetElementName(abilityInfo.deviceId, abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+    UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(callerSessionInfo->want,
+        currentAbilityRecord->GetToken());
     callerSessionInfo->isBackTransition = true;
     auto ret = static_cast<int>(currentSession->PendingSessionActivation(callerSessionInfo));
     callerSessionInfo->isBackTransition = false;
