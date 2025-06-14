@@ -15,18 +15,22 @@
 
 #ifndef TS_HYBRIDGREF_H
 #define TS_HYBRIDGREF_H
-
+ 
 #include <cstddef>
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"
-
+#include "sts_runtime.h"
+ 
 namespace OHOS {
 namespace AbilityRuntime {
 using hybridgref = void*;
-
-bool RegisterNativeSaveRef(napi_env env);
-bool RegisterETSGetter(ani_env* env);
-
+ 
+class NativeGrefTsToEts {
+public:
+    static bool RegisterNativeSaveRef(napi_env env);
+    static bool RegisterETSGetter(ani_env* env);
+};
+ 
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // TS_HYBRIDGREF_H
