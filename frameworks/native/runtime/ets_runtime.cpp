@@ -14,42 +14,14 @@
  */
 
 #include "ets_runtime.h"
-
-#include <atomic>
-#include <cerrno>
-#include <climits>
-#include <cstdlib>
-#include <dlfcn.h>
-#include <filesystem>
 #include <fstream>
-#include <mutex>
 #include <nlohmann/json.hpp>
 #include <regex>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <uv.h>
 
-#include "accesstoken_kit.h"
-#include "config_policy_utils.h"
-#include "connect_server_manager.h"
 #include "constants.h"
-#include "extract_resource_manager.h"
-#include "extractor.h"
-#include "file_ex.h"
-#include "file_mapper.h"
 #include "file_path_utils.h"
-#include "hdc_register.h"
 #include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
-#include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "module_checker_delegate.h"
-#include "parameters.h"
-#include "source_map.h"
-#include "source_map_operator.h"
 #include "ets_environment.h"
-#include "syscap_ts.h"
-#include "system_ability_definition.h"
 
 #ifdef SUPPORT_SCREEN
 #include "ace_forward_compatibility.h"
