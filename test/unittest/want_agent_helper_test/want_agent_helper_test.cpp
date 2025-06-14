@@ -1403,5 +1403,6 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6600, Function | MediumTest | Leve
     std::string actualBundleName;
     const auto retCode = WantAgentHelper::GetBundleName(wantAgent, actualBundleName);
     ASSERT_TRUE(retCode == ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+    ASSERT_TRUE(retCode != 0);
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent
