@@ -370,6 +370,7 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
     jsonObject["requestCode"] = (*info.get()).requestCode;
     jsonObject["operationType"] = (*info.get()).type;
     jsonObject["flags"] = (*info.get()).flags;
+    jsonObject["userId"] = (*info.get()).userId;
 
     nlohmann::json wants = nlohmann::json::array();
     for (auto &wantInfo : (*info.get()).allWants) {
@@ -400,6 +401,10 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     int requestCode = -1;
     if (jsonObject.contains("requestCode") && jsonObject["requestCode"].is_number_integer()) {
         requestCode = jsonObject.at("requestCode").get<int>();
+    }
+    int userId = -1;
+    if (jsonObject.contains("userId") && jsonObject["userId"].is_number_integer()) {
+        userId = jsonObject.at("userId").get<int>();
     }
 
     WantAgentConstant::OperationType operationType = WantAgentConstant::OperationType::UNKNOWN_TYPE;
@@ -432,7 +437,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     }
     WantAgentInfo info(requestCode, operationType, flagsVec, wants, extraInfo);
 
-    return GetWantAgent(info, INVLID_WANT_AGENT_USER_ID, uid);
+    return GetWantAgent(info, userId, uid);
 }
 
 std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json jsonObject)

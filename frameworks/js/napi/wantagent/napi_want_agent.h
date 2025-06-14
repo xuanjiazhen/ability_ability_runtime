@@ -93,6 +93,7 @@ public:
     static napi_value NapiTrigger(napi_env env, napi_callback_info info);
     static napi_value NapiTriggerAsync(napi_env env, napi_callback_info info);
     static napi_value NapiGetWantAgent(napi_env env, napi_callback_info info);
+    static napi_value NapiGetWantAgentByUserId(napi_env env, napi_callback_info info);
     static napi_value NapiGetOperationType(napi_env env, napi_callback_info info);
     static napi_value NapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
     static napi_value CreateJsCompletedData(napi_env env, const CompletedDispatcher &data);
@@ -110,6 +111,7 @@ private:
     napi_value OnNapiTrigger(napi_env env, napi_callback_info info);
     napi_value OnNapiTriggerAsync(napi_env env, napi_callback_info info);
     napi_value OnNapiGetWantAgent(napi_env env, napi_callback_info info);
+    napi_value OnNapiGetWantAgentByUserId(napi_env env, napi_callback_info info);
     napi_value OnNapiGetOperationType(napi_env env, napi_callback_info info);
     napi_value OnNapiSetWantAgentMultithreading(napi_env env, napi_callback_info info);
     std::shared_ptr<AbilityRuntime::Context> ConvertToContext(std::shared_ptr<AbilityRuntime::Context> context);
@@ -126,6 +128,8 @@ private:
     void SetOnCancelCallback(std::shared_ptr<WantAgent> wantAgent,
         AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
     void SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsParas> spParas,
+        AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
+    void SetOnNapiGetWantAgentByUserIdCallback(std::shared_ptr<WantAgentWantsParas> spParas, int32_t userId,
         AbilityRuntime::NapiAsyncTask::CompleteCallback &complete);
     int32_t GetTriggerWant(napi_env env, napi_value param, std::shared_ptr<AAFwk::Want> &want);
     int32_t GetTriggerPermission(napi_env env, napi_value param, std::string &permission);

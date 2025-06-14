@@ -311,6 +311,12 @@ napi_value JsWantAgent::NapiGetWantAgent(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnNapiGetWantAgent(env, info) : nullptr;
 };
 
+napi_value JsWantAgent::NapiGetWantAgentByUserId(napi_env env, napi_callback_info info)
+{
+    JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
+    return (me != nullptr) ? me->OnNapiGetWantAgentByUserId(env, info) : nullptr;
+}
+
 napi_value JsWantAgent::NapiGetOperationType(napi_env env, napi_callback_info info)
 {
     JsWantAgent* me = CheckParamsAndGetThis<JsWantAgent>(env, info);
@@ -1302,6 +1308,41 @@ napi_value JsWantAgent::OnNapiGetWantAgent(napi_env env, napi_callback_info info
     return result;
 }
 
+napi_value JsWantAgent::OnNapiGetWantAgentByUserId(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGS_MAX_COUNT;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc > ARGC_THREE || argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::shared_ptr<WantAgentWantsParas> spParas = std::make_shared<WantAgentWantsParas>();
+    int32_t ret = GetWantAgentParam(env, info, *spParas);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to get wantAgent param");
+        ThrowInvalidParamError(env, "Parameter error! Info must be a WantAgentInfo.");
+        return CreateJsUndefined(env);
+    }
+    int32_t userId = -1;
+    if (!ConvertFromJsValue(env, argv[INDEX_ONE], userId)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse userId failed");
+        ThrowInvalidParamError(env, "Parse param userId failed, userId must be number.");
+        return CreateJsUndefined(env);
+    }
+
+    NapiAsyncTask::CompleteCallback complete;
+    SetOnNapiGetWantAgentByUserIdCallback(spParas, userId, complete);
+
+    napi_value lastParam = (argc >= ARGC_THREE) ? argv[INDEX_TWO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiGetWantAgentByUserId",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+    return result;
+}
+
 void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsParas> spParas,
     AbilityRuntime::NapiAsyncTask::CompleteCallback &complete)
 {
@@ -1323,6 +1364,44 @@ void JsWantAgent::SetOnNapiGetWantAgentCallback(std::shared_ptr<WantAgentWantsPa
             task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));
             return;
         }
+        if (wantAgent == nullptr) {
+            result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+            task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));
+            return;
+        }
+        WantAgent *pWantAgent = new (std::nothrow) WantAgent(wantAgent->GetPendingWant());
+        if (pWantAgent == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "null pWantAgent");
+            result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+            task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));
+        } else {
+            napi_value jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
+            if (jsWantAgent == nullptr) {
+                delete pWantAgent;
+                pWantAgent = nullptr;
+            }
+            task.ResolveWithNoError(env, jsWantAgent);
+        }
+    };
+}
+
+void JsWantAgent::SetOnNapiGetWantAgentByUserIdCallback(std::shared_ptr<WantAgentWantsParas> spParas, int32_t userId,
+    AbilityRuntime::NapiAsyncTask::CompleteCallback &complete)
+{
+    complete = [weak = weak_from_this(), parasobj = spParas, userId](napi_env env,
+        NapiAsyncTask &task, int32_t status) {
+        TAG_LOGD(AAFwkTag::WANTAGENT, "called");
+        auto self = weak.lock();
+        std::shared_ptr<AAFwk::WantParams> extraInfo = std::make_shared<AAFwk::WantParams>(parasobj->extraInfo);
+        WantAgentInfo wantAgentInfo(parasobj->requestCode,
+                                    static_cast<WantAgentConstant::OperationType>(parasobj->operationType),
+                                    parasobj->wantAgentFlags,
+                                    parasobj->wants,
+                                    extraInfo);
+
+        auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+        std::shared_ptr<WantAgent> wantAgent = WantAgentHelper::GetWantAgent(wantAgentInfo, userId);
+        ErrCode result;
         if (wantAgent == nullptr) {
             result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
             task.Reject(env, CreateJsError(env, result, AbilityRuntimeErrorUtil::GetErrMessage(result)));

@@ -5294,29 +5294,27 @@ int AbilityManagerService::UnRegisterMissionListener(const std::string &deviceId
     return dmsClient.UnRegisterMissionListener(Str8ToStr16(deviceId), listener->AsObject());
 }
 
+int32_t AbilityManagerService::GetUidByCloneBundleInfo(
+    std::string &bundleName, int32_t callerUid, int32_t appIndex, int32_t userId)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, -1);
+    AppExecFwk::BundleInfo bundleInfo;
+    MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(
+        bundleName, static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appIndex, bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundle info for %{public}s", bundleName.c_str());
+        return -1;
+    }
+    return bundleInfo.uid;
+}
+
 sptr<IWantSender> AbilityManagerService::GetWantSender(
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken,
     int32_t uid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
-
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    CHECK_POINTER_AND_RETURN(bms, nullptr);
-
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    int32_t userId = wantSenderInfo.userId;
-    int32_t bundleMgrResult = 0;
-
-    if (userId < 0) {
-        if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
-            GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
-            return nullptr;
-        }
-    }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid userId: %{public}d", userId);
     //sa caller and has uid，no need find from bms.
     bool isSpecifyUidBySa = (uid != -1) && (AAFwk::PermissionVerification::GetInstance()->IsSACall());
 
@@ -5326,31 +5324,53 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     if (!wantSenderInfo.allWants.empty()) {
         bundleName = wantSenderInfo.allWants.back().want.GetElement().GetBundleName();
     }
-    if (!bundleName.empty()) {
-        if (!isSpecifyUidBySa) {
-            AppExecFwk::BundleInfo bundleInfo;
-            MultiAppUtils::GetRunningMultiAppIndex(bundleName, callerUid, appIndex);
-            bundleMgrResult = IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
-                static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
-                appIndex, bundleInfo, userId));
-            if (bundleMgrResult == ERR_OK) {
-                appUid = bundleInfo.uid;
-            }
-        } else {
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t callerUserId = callerUid / BASE_USER_RANGE;
+    int32_t userId = -1;
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    bool isSpecifyUserId = wantSenderInfo.userId >= 0;
+    bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
+    if ((isSpecifyUidBySa || callerUserId == U0_USER_ID) && isSpecifyUserId) {
+        userId = wantSenderInfo.userId;
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+        if (uid >= 0) {
             appUid = uid;
+        } else {
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
         }
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "bundleName: %{public}s, uid: %{public}d, userId: %{public}d, appIndex: %{public}d", bundleName.c_str(),
-            appUid, userId, appIndex);
+    } else if ((isSpecifyUidBySa || callerUserId == U0_USER_ID) && !isSpecifyUserId) {
+        if (uid >= 0) {
+            if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+                GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
+                return nullptr;
+            }
+            appUid = uid;
+        } else {
+            userId = callerUserId;
+            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
+        }
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else if (!isSystemApp) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "called by normal app");
+        userId = callerUserId;
+        appUid = callerUid;
+    } else if (isSystemApp) {
+        if (isSpecifyUserId) {
+            userId = wantSenderInfo.userId;
+        } else {
+            userId = callerUserId;
+        }
+        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, appIndex, userId);
     }
-    if (!CheckSenderWantInfo(callerUid, wantSenderInfo)) {
+    pendingWantManager = GetPendingWantManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
+    if (!CheckSenderWantInfo(appUid, wantSenderInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check bundleName failed");
         return nullptr;
     }
 
-    bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
         "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
     return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
@@ -5358,17 +5378,31 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(target, ERR_INVALID_VALUE);
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, ERR_INVALID_VALUE);
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     return pendingWantManager->SendWantSender(target, senderInfo);
 }
 
 void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER(pendingWantManager);
     CHECK_POINTER(sender);
 
     sptr<IRemoteObject> obj = sender->AsObject();
@@ -5376,19 +5410,20 @@ void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
         return;
     }
-
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    CHECK_POINTER(bms);
-
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
     sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER(record);
 
-    int userId = -1;
-    if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
-        GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
-        return;
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
     }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER(pendingWantManager);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "getOsAccountLocalIdFromUid userId: %{public}d", userId);
     bool isSystemAppCall = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
 
@@ -5430,12 +5465,29 @@ void AbilityManagerService::CancelWantSenderByFlags(const sptr<IWantSender> &sen
 int AbilityManagerService::GetPendingWantUid(const sptr<IWantSender> &target)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:begin", __func__);
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     if (target == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
         return -1;
     }
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return -1;
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, -1);
+
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     return pendingWantManager->GetPendingWantUid(target);
 }
 
@@ -5455,21 +5507,56 @@ std::string AbilityManagerService::GetPendingWantBundleName(const sptr<IWantSend
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, "");
     CHECK_POINTER_AND_RETURN(target, "");
+
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return "";
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, "");
+
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER_AND_RETURN(pendingWantManager, "");
     return pendingWantManager->GetPendingWantBundleName(target);
 }
 
 int AbilityManagerService::GetPendingWantCode(const sptr<IWantSender> &target)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:begin", __func__);
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     if (target == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
         return -1;
     }
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return -1;
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, -1);
+
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     return pendingWantManager->GetPendingWantCode(target);
 }
 
@@ -5477,12 +5564,29 @@ int AbilityManagerService::GetPendingWantType(const sptr<IWantSender> &target)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
-    auto pendingWantManager = GetCurrentPendingWantManager();
-    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     if (target == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
         return -1;
     }
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return -1;
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, -1);
+
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
+    CHECK_POINTER_AND_RETURN(pendingWantManager, -1);
     return pendingWantManager->GetPendingWantType(target);
 }
 
@@ -5513,7 +5617,28 @@ int AbilityManagerService::GetPendingRequestWant(const sptr<IWantSender> &target
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Get pending request want.");
     XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
-    auto pendingWantManager = GetCurrentPendingWantManager();
+    if (target == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "%s, target null", __func__);
+        return -1;
+    }
+    sptr<IRemoteObject> obj = target->AsObject();
+    if (!obj || obj->IsProxyObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obj null or proxy obj");
+        return -1;
+    }
+    sptr<PendingWantRecord> record = iface_cast<PendingWantRecord>(obj);
+    CHECK_POINTER_AND_RETURN(record, -1);
+
+    int32_t userId = -1;
+    if (record->GetKey() != nullptr) {
+        userId = record->GetKey()->GetUserId();
+    }
+    std::shared_ptr<PendingWantManager> pendingWantManager;
+    if (userId > 0) {
+        pendingWantManager = GetPendingWantManagerByUserId(userId);
+    } else {
+        pendingWantManager = GetCurrentPendingWantManager();
+    }
     CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(target, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(want, ERR_INVALID_VALUE);
