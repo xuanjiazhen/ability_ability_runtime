@@ -13,29 +13,53 @@
  * limitations under the License.
  */
 
-// eventHub.ets
-native function nativeGetEventHubOnRef(): ESObject;
-native function nativeGetEventHubOffRef(): ESObject;
-native function nativeGetEventHubEmitRef(): ESObject;
+type refType = Object | ESObject;
+type RegisterEmitFunction = (event: string, ...args: FixedArray<NullishType>) => void;
+ 
+interface EventHubRegistration {
+  registerOn: (event: string, callback: Function) => void;
+  registerOff: (event: string, callback?: Function) => void;
+  registerEmit: RegisterEmitFunction;
+}
 
 type refType = Object | ESObject;
-native function saveEventHubOnHybridGref(ref: refType): void;
-native function saveEventHubOffHybridGref(ref: refType): void;
-native function saveEventHubEmitHybridGref(ref: refType): void;
+type RegisterEmitFunction = (event: string, ...args: FixedArray<NullishType>) => void;
+
+interface EventHubRegistration {
+  registerOn: (event: string, callback: Function) => void;
+  registerOff: (event: string, callback?: Function) => void;
+  registerEmit: RegisterEmitFunction;
+}
 
 export default class EventHub {
-  private eventMap: Map<string, Function[]> = new Map();
+
+  native nativeGetEventHubOnRef(): ESObject;
+  native nativeGetEventHubOffRef(): ESObject;
+  native nativeGetEventHubEmitRef(): ESObject;
+
+  native saveEventHubOnHybridGref(ref: refType): void;
+  native saveEventHubOffHybridGref(ref: refType): void;
+  native saveEventHubEmitHybridGref(ref: refType): void;
+
+  private eventMap: Map<string, Function[]> = new Map<string, Function[]>();
 
   constructor() {
-    saveEventHubOnHybridGref({
-      registerOn: (event: string, callback: Function) => this.registerOnCallback(event, callback, true)
-    });
-    saveEventHubOffHybridGref({
-      registerOff: (event: string, callback?: Function) => this.registerOffCallback(event, callback, true)
-    })
-    saveEventHubEmitHybridGref({
-      registerEmit: (event: string, ...args: FixedArray<NullishType>) => this.registerEmitCallback(event, ...args)
-    })
+    this.saveEventHubOnHybridGref({
+      registerOn: (event: string, callback: Function): void => {
+        this.on(event, callback, true);
+      }
+    } as EventHubRegistration);
+    this.saveEventHubOffHybridGref({
+      registerOff: (event: string, callback?: Function): void => {
+        this.off(event, callback, true);
+      }
+    } as EventHubRegistration);
+
+    const emitHandler: RegisterEmitFunction = (event: string, ...args: FixedArray<NullishType>): void => {
+        this.emit(event, ...args);
+    }
+
+    this.saveEventHubEmitHybridGref({ registerEmit: emitHandler } as EventHubRegistration);
   }
 
   private registerOnCallback(event: string, callback: Function): void {
@@ -49,13 +73,13 @@ export default class EventHub {
     }
   }
 
-  on(event: string, callback: Function, fromNative = false): void {
+  on(event: string, callback: Function, fromNative: boolean = false): void {
     this.registerOnCallback(event, callback);
 
     if (!fromNative) {
-      const nativeObj = this.nativeGetEventHubOnRef();
+      let nativeObj = this.nativeGetEventHubOnRef();
       if (nativeObj) {
-        obj.invokeMethod(event, callback);
+        nativeObj.invokeMethod(event, callback);
       }
     }
   }
@@ -80,22 +104,22 @@ export default class EventHub {
     }
   }
 
-  off(event: string, callback?: Function, fromNative = false): void {
+  off(event: string, callback?: Function, fromNative: boolean = false): void {
     this.registerOffCallback(event, callback);
 
     if (!fromNative) {
       const nativeObj = this.nativeGetEventHubOffRef();
       if (nativeObj) {
         if (callback) {
-          nativeObj.callFunction(event, callback);
+          nativeObj.invokeMethod(event, callback);
         } else {
-          nativeObj.callFunction(event);
+          nativeObj.invokeMethod(event);
         }
       }
     }
   }
 
-  private registerEmitCallback(event: string, args: FixedArray<NullishType>[]): void {
+  private registerEmitCallback(event: string, ...args: FixedArray<NullishType>): void {
     if (!this.eventMap.has(event)) {
       return;
     }
@@ -111,9 +135,10 @@ export default class EventHub {
   }
 
   emit(event: string, ...args: FixedArray<NullishType>): void {
-    this.registerEmitCallback(event, args);
+    this.registerEmitCallback(event, ...args);
+    const nativeObj = this.nativeGetEventHubEmitRef();
     if (nativeObj) {
-      nativeObj.callFunction(event, ...args);
+      nativeObj.invokeMethod(event, ...args);
     }
   }
 }
