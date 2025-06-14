@@ -49,8 +49,8 @@ class RenderStateObserverMock : public RenderStateObserverStub {
 public:
     RenderStateObserverMock() = default;
     virtual ~RenderStateObserverMock() = default;
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override
-    {}
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override
+    {return ERR_OK;}
 };
 
 class NativeChildCallbackMock : public NativeChildNotifyStub {
