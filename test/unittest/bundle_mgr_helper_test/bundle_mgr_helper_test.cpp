@@ -63,6 +63,227 @@ void BundleMgrHelperTest::TearDown()
 {}
 
 /**
+ * @tc.name: BundleMgrHelperTest_Connect_001
+ * @tc.desc: Connect
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_Connect_001, TestSize.Level1)
+{
+    auto ret = bundleMgrHelper->Connect();
+    EXPECT_NE(ret, nullptr);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_Connect_001
+ * @tc.desc: Connect
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_Connect_002, TestSize.Level1)
+{
+    auto ret = bundleMgrHelper->Connect(true);
+    EXPECT_NE(ret, nullptr);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_Connect_001
+ * @tc.desc: Connect
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_Connect_003, TestSize.Level1)
+{
+    auto ret = bundleMgrHelper->Connect(false);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetNameAndIndexForUid_001
+ * @tc.desc: GetNameAndIndexForUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetNameAndIndexForUid_001, TestSize.Level1)
+{
+    std::string name;
+    int32_t uid = 1;
+    int32_t appIndex;
+    auto ret = bundleMgrHelper->GetNameAndIndexForUid(uid, name, appIndex);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetAppIdByBundleName_001
+ * @tc.desc: GetAppIdByBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetAppIdByBundleName_001, TestSize.Level1)
+{
+    std::string name = "name";
+    int32_t uid = 1;
+    auto ret = bundleMgrHelper->GetAppIdByBundleName(name, uid);
+    EXPECT_FALSE(ret.empty());
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetAppIdByBundleName_002
+ * @tc.desc: GetAppIdByBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetAppIdByBundleName_002, TestSize.Level1)
+{
+    std::string name = "";
+    int32_t uid = 1;
+    auto ret = bundleMgrHelper->GetAppIdByBundleName(name, uid);
+    EXPECT_TRUE(ret.empty());
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_SetBmsReady_001
+ * @tc.desc: SetBmsReady
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_SetBmsReady_001, TestSize.Level1)
+{
+    bundleMgrHelper->SetBmsReady(true);
+    EXPECT_EQ(bundleMgrHelper->bmsReady_, true);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_SetBmsReady_002
+ * @tc.desc: SetBmsReady
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_SetBmsReady_002, TestSize.Level1)
+{
+    bundleMgrHelper->SetBmsReady(false);
+    EXPECT_NE(bundleMgrHelper->bmsReady_, true);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetBundleInfoForSelfWithOutCache_001
+ * @tc.desc: GetBundleInfoForSelfWithOutCache
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetBundleInfoForSelfWithOutCache_001, TestSize.Level1)
+{
+    int32_t flags = 0;
+    BundleInfo bundleInfo;
+    auto ret = bundleMgrHelper->GetBundleInfoForSelfWithOutCache(flags, bundleInfo);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetApplicationInfoWithAppIndex_001
+ * @tc.desc: GetApplicationInfoWithAppIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetApplicationInfoWithAppIndex_001, TestSize.Level1)
+{
+    std::string appName;
+    int32_t appIndex = 1;
+    int userId = 1;
+    ApplicationInfo appInfo;
+    auto ret = bundleMgrHelper->GetApplicationInfoWithAppIndex(appName, appIndex, userId, appInfo);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_QueryAppGalleryBundleName_001
+ * @tc.desc: QueryAppGalleryBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_QueryAppGalleryBundleName_001, TestSize.Level1)
+{
+    std::string bundleName;
+    auto ret = bundleMgrHelper->QueryAppGalleryBundleName(bundleName);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_QueryAppGalleryBundleName_002
+ * @tc.desc: QueryAppGalleryBundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_QueryAppGalleryBundleName_002, TestSize.Level1)
+{
+    std::string bundleName = "cn.com.bundleName";
+    auto ret = bundleMgrHelper->QueryAppGalleryBundleName(bundleName);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetCloneAppIndexes_001
+ * @tc.desc: GetCloneAppIndexes
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetCloneAppIndexes_001, TestSize.Level1)
+{
+    std::string bundleName;
+    std::vector<int32_t> appIndexes;
+    int32_t userId = 1;
+    auto ret = bundleMgrHelper->GetCloneAppIndexes(bundleName, appIndexes, userId);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetStringById_001
+ * @tc.desc: GetStringById
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetStringById_001, TestSize.Level1)
+{
+    std::string bundleName;
+    std::string moduleName;
+    uint32_t resId = 1;
+    int32_t userId = 1;
+    auto ret = bundleMgrHelper->GetStringById(bundleName, moduleName, resId, userId);
+    EXPECT_TRUE(ret.empty()); 
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetDataDir_001
+ * @tc.desc: GetDataDir
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetDataDir_001, TestSize.Level1)
+{
+    std::string bundleName;
+    int32_t appIndex = 1;
+    auto ret = bundleMgrHelper->GetDataDir(bundleName, appIndex);
+    EXPECT_TRUE(ret.empty()); 
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetPluginAbilityInfo_001
+ * @tc.desc: GetPluginAbilityInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetPluginAbilityInfo_001, TestSize.Level1)
+{
+    std::string hostBundleName;
+    std::string pluginBundleName;
+    std::string pluginModuleName;
+    std::string pluginAbilityName;
+    int32_t userId = 1;
+    AbilityInfo pluginAbilityInfo;
+    auto ret = bundleMgrHelper->GetPluginAbilityInfo(hostBundleName, pluginBundleName, pluginModuleName,
+        pluginAbilityName, userId, pluginAbilityInfo);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BundleMgrHelperTest_GetLauncherAbilityInfoSync_001
+ * @tc.desc: GetLauncherAbilityInfoSync
+ * @tc.type: FUNC
+ */
+HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetLauncherAbilityInfoSync_001, TestSize.Level1)
+{
+    std::string bundleName;
+    int32_t userId = 1;
+    std::vector<AbilityInfo> abilityInfo;
+    auto ret = bundleMgrHelper->GetLauncherAbilityInfoSync(bundleName, userId, abilityInfo);
+    EXPECT_NE(ret, ERR_OK);
+}
+
+/**
  * @tc.name: BundleMgrHelperTest_GetBundleInfo_001
  * @tc.desc: GetBundleInfo
  * @tc.type: FUNC

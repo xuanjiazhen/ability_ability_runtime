@@ -1878,5 +1878,112 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003, Fu
     EXPECT_EQ(contextImpl->GetHapModuleInfo(), nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginHapModuleInfo_003 end";
 }
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001
+ * @tc.name: GetDatabaseDirWithCheck
+ * @tc.desc: GetDatabaseDirWithCheck test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string dir;
+    EXPECT_EQ(contextImpl->GetDatabaseDirWithCheck(true, dir), ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001
+ * @tc.name: GetGroupDatabaseDirWithCheck
+ * @tc.desc: GetGroupDatabaseDirWithCheck test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+    contextImpl->currArea_ = "el1";
+    string systemDatabaseDir;
+    auto res = contextImpl->GetGroupDatabaseDirWithCheck("", true, systemDatabaseDir);
+    EXPECT_EQ(res, 0);
+    res = contextImpl->GetGroupDatabaseDirWithCheck("", false, systemDatabaseDir);
+    EXPECT_EQ(res, 0);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001
+ * @tc.name: GetGroupDatabaseDirWithCheck
+ * @tc.desc: GetGroupDatabaseDirWithCheck test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+    contextImpl->currArea_ = "KKK";
+    string systemDatabaseDir;
+    auto res = contextImpl->GetGroupDatabaseDirWithCheck("Invalid_Group", true, systemDatabaseDir);
+    EXPECT_NE(res, ERR_OK);
+    res = contextImpl->GetGroupDatabaseDirWithCheck("Invalid_Group", false, systemDatabaseDir);
+    EXPECT_NE(res, ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001
+ * @tc.name: GetPreferencesDirWithCheck
+ * @tc.desc: GetPreferencesDirWithCheck test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string dir;
+    EXPECT_EQ(contextImpl->GetPreferencesDirWithCheck(true, dir), ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetAllTempDir_001
+ * @tc.name: GetAllTempDir
+ * @tc.desc: GetAllTempDir test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetAllTempDir_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllTempDir_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::vector<std::string> tempDir1{};
+    contextImpl->GetAllTempDir(tempDir1);
+    EXPECT_NE(tempDir1.size(), 0);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllTempDir_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateDirIfNotExist_001
+ * @tc.name: CreateDirIfNotExist
+ * @tc.desc: CreateDirIfNotExist test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateDirIfNotExist_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string dir = contextImpl->GetBaseDir() + AbilityRuntime::ContextImpl::CONTEXT_FILES;
+    EXPECT_FALSE(dir.empty());
+    contextImpl->CreateDirIfNotExist(dir, MODE);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 end";
+}
 }  // namespace AppExecFwk
 }
