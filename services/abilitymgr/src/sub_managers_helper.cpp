@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -538,6 +538,18 @@ std::shared_ptr<MissionListManagerInterface> SubManagersHelper::CreateMissionLis
     }
 
     return nullptr;
+}
+
+bool SubManagersHelper::IsOsAccountForeground(const int32_t userId, bool isSwitchToUser, int32_t callerUid)
+{
+    return DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        userId, isSwitchToUser, callerUid);
+}
+
+ErrCode SubManagersHelper::GetForegroundOsAccountLocalId(int32_t &userId)
+{
+    return
+        DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetForegroundOsAccountLocalId(userId);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

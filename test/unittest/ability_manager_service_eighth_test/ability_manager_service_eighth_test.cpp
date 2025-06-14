@@ -587,5 +587,40 @@ HWTEST_F(AbilityManagerServiceEighthTest, TerminateUIServiceExtensionAbility_002
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest TerminateUIServiceExtensionAbility_002 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: JudgeMultiUserConcurrency
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService JudgeMultiUserConcurrency
+ */
+HWTEST_F(AbilityManagerServiceEighthTest, JudgeMultiUserConcurrency_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest JudgeMultiUserConcurrency_001 start");
+    const auto u0UserId = 0;
+    const auto u1UserId = 1;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(u0UserId));
+    EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(u1UserId));
+
+    auto subHelper = abilityMs_->subManagersHelper_;
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    auto u100UserId = 100;
+    EXPECT_EQ(abilityMs_->GetForegroundOsAccountLocalId(u100UserId), ERR_OK);
+    const auto invalidUserId = 9956;
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * invalidUserId);
+    EXPECT_FALSE(abilityMs_->JudgeMultiUserConcurrency(u100UserId));
+
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * u100UserId);
+    EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(u100UserId));
+
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * u1UserId);
+    EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(u100UserId));
+
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE * u0UserId);
+    EXPECT_TRUE(abilityMs_->JudgeMultiUserConcurrency(u100UserId));
+    abilityMs_->subManagersHelper_ = subHelper;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest JudgeMultiUserConcurrency_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

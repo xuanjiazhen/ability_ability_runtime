@@ -1590,6 +1590,10 @@ public:
      */
     int32_t GetUserId() const;
 
+    int32_t GetDefalutUserId() const;
+
+    bool IsOsAccountForeground(int32_t userId) const;
+
     virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids) override;
@@ -2338,6 +2342,7 @@ private:
     std::shared_ptr<UIAbilityLifecycleManager> GetCurrentUIAbilityManager();
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUserId(int32_t userId) const;
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUid(int32_t uid);
+    ErrCode GetForegroundOsAccountLocalId(int32_t &userId) const;
     bool JudgeSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool IsAppSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);
 
@@ -2827,6 +2832,8 @@ private:
     ffrt::mutex shouldBlockAllAppStartMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
+
+    std::atomic<bool> isUserSwitching_ {false};
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -85,6 +85,34 @@ public:
      * @return int32_t user ID
      */
     static int32_t GetCurrentActiveAccountId();
+
+    /**
+     * @brief Checks whether the specified OS account is currently in the foreground login state.
+     *
+     * This function determines if the OS account identified by the given userId
+     * is the one currently active and in the foreground on the device.
+     *
+     * @param userId The user ID of the OS account to check.
+     * @param isSwitchToUser Whether to check the foreground state during a user switch operation.
+     *        If true, the check is performed in the context of switching users.
+     *        If false (default), the check is performed in the current context.
+     * @param callerUid The UID of the caller process.
+     *        Default is -1, which means the current process UID will be used.
+     *        This parameter can be used to specify a different UID for permission or context checks.
+     * @return Returns true if the specified OS account is in the foreground; false otherwise.
+     */
+    bool IsOsAccountForeground(const int32_t userId, bool isSwitchToUser = false, int32_t callerUid = -1);
+
+    /**
+     * @brief Gets the local ID of the current foreground OS account.
+     *
+     * This function retrieves the local user ID of the OS account that is currently
+     * in the foreground (active) on the device.
+     *
+     * @param userId [out] The local ID of the current foreground OS account.
+     * @return error code, ERR_OK on success, others on failure.
+     */
+    ErrCode GetForegroundOsAccountLocalId(int32_t &userId);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

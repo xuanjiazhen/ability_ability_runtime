@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+
+constexpr const int32_t U100_USER_ID = 100;
 
 SubManagersHelper::SubManagersHelper(
     std::shared_ptr<TaskHandlerWrap> taskHandler, std::shared_ptr<AbilityEventHandler> eventHandler)
@@ -202,5 +204,17 @@ std::shared_ptr<MissionListManagerInterface> SubManagersHelper::CreateMissionLis
 {
     return nullptr;
 }
+
+bool SubManagersHelper::IsOsAccountForeground(const int32_t userId, bool isSwitchToUser, int32_t callerUid)
+{
+    return userId == U100_USER_ID; // Mocking a user ID for testing purposes
+}
+
+ErrCode SubManagersHelper::GetForegroundOsAccountLocalId(int32_t &userId)
+{
+    userId = U100_USER_ID; // Mocking a user ID for testing purposes
+    return ERR_OK;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
