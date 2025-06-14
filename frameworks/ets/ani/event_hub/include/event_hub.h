@@ -13,20 +13,22 @@
  * limitations under the License.
  */
  
-#ifndef ETS_HYBRIDGREF_H
-#define ETS_HYBRIDGREF_H
- 
+#ifndef EVENT_HUB_H
+#define EVENT_HUB_H
+
+#include "ets_hybridgref.h"
 #include "ts_hybridgref.h"
-#include "sts_runtime.h"
- 
+
 namespace OHOS {
 namespace AbilityRuntime {
- 
-class HybridGrefPrimitiveEtsToTs {
+
+class EventHub {
 public:
-    static bool RegisterNativeGetRef(napi_env env);
-    static bool RegisterNativeSaveRef(ani_env* env);
+    static void InitAni(ani_env* env);
+    static napi_value InitEventHubNapi(napi_env env, napi_value exportObj);
 };
+
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // ETS_HYBRIDGREF_H
+
+#endif // EVENT_HUB_H

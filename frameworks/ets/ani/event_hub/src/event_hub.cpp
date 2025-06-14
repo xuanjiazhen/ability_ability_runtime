@@ -25,27 +25,38 @@
 namespace OHOS {
 namespace AbilityRuntime {
  
-void InitAni(ani_env *aniEnv) {
-    if (!NativeGrefTsToEts::RegisterETSGetter(aniEnv)) {
-        TAG_LOGI(AAFwkTag::APPKIT, "Failed to register ETS getter functions");
+static std::atomic<bool> g_initialized(false);
+
+void EventHub::InitAni(ani_env *aniEnv) {
+    if (g_initialized.exchange(true)) {
+        return;
     }
-    if (aniEnv) {
-        if (!HybridGrefPrimitiveEtsToTs::RegisterNativeSaveRef(aniEnv)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "Failed to register ETS save functions");
-        }
+    
+    if (!aniEnv) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid ani_env in InitAni");
+        return;
     }
+    
+    bool success = NativeGrefTsToEts::RegisterETSGetter(aniEnv) &&
+                   HybridGrefPrimitiveEtsToTs::RegisterNativeSaveRef(aniEnv);
+    
+    TAG_LOGI(AAFwkTag::APPKIT, "EventHub ANI initialization %s", 
+             success ? "succeeded" : "failed");
 }
- 
-napi_value InitEventHubNapi(napi_env env, napi_value exportObj)
-{
-    if (!NativeGrefTsToEts::RegisterNativeSaveRef(env)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Failed to register NativeSaveRef functions");
+
+napi_value EventHub::InitEventHubNapi(napi_env env, napi_value exportObj) {
+    if (!env) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid napi_env in InitEventHubNapi");
+        return nullptr;
     }
-    if (!HybridGrefPrimitiveEtsToTs::RegisterNativeGetRef(env)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Failed to register JS getter functions");
-    }
- 
-    return CreateJsUndefined(env);
+    
+    bool success = NativeGrefTsToEts::RegisterNativeSaveRef(env) &&
+                   HybridGrefPrimitiveEtsToTs::RegisterNativeGetRef(env);
+    
+    TAG_LOGI(AAFwkTag::APPKIT, "EventHub NAPI initialization %s", 
+             success ? "succeeded" : "failed");
+    
+    return exportObj;
 }
  
 extern "C" {

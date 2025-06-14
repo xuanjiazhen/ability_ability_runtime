@@ -24,7 +24,6 @@ namespace OHOS {
 namespace AbilityRuntime {
  
 static __hybridgref* g_ref = nullptr;
- 
 static napi_value NativeGetRef(napi_env env, [[maybe_unused]] napi_callback_info info)
 {
     napi_value result {};
