@@ -13,57 +13,62 @@
  * limitations under the License.
  */
 
+#include "event_hub.h"
+ 
 #include "ts_hybridgref.h"
 #include "ets_hybridgref.h"
 #include <napi/native_api.h>
 #include "hilog_tag_wrapper.h"
-
-using namespace AbilityRuntime;
-
-static napi_value Init(napi_env env, napi_value exports) {
-
-    if (!RegisterNativeSaveRef(env)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Failed to register NativeSaveRef functions");
+#include "js_runtime.h"
+#include "js_runtime_utils.h"
+ 
+namespace OHOS {
+namespace AbilityRuntime {
+ 
+void InitAni(ani_env *aniEnv) {
+    if (!NativeGrefTsToEts::RegisterETSGetter(aniEnv)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "Failed to register ETS getter functions");
     }
-    
-    // 注册 ETS 到 TS 的功能
-    ani_env* aniEnv = nullptr;
-    if (NativeGrefTsToEts::GetAniEnv(&aniEnv)) {
-        if (!RegisterETSGetter(aniEnv)) {
-            TAG_LOGI(AAFwkTag::APPKIT\, ("Failed to register ETS getter functions");
-        }
-    } else {
-        TAG_LOGE(AAFwkTag::APPKIT, "Failed to get ANI environment");
-    }
-    
-    // 注册 ETS 侧功能
     if (aniEnv) {
         if (!HybridGrefPrimitiveEtsToTs::RegisterNativeSaveRef(aniEnv)) {
             TAG_LOGE(AAFwkTag::APPKIT, "Failed to register ETS save functions");
         }
     }
-    
-    // 注册 JS 侧功能
+}
+ 
+napi_value InitEventHubNapi(napi_env env, napi_value exportObj)
+{
+    if (!NativeGrefTsToEts::RegisterNativeSaveRef(env)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to register NativeSaveRef functions");
+    }
     if (!HybridGrefPrimitiveEtsToTs::RegisterNativeGetRef(env)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to register JS getter functions");
     }
-    
-    return exports;
+ 
+    return CreateJsUndefined(env);
 }
-
-// 模块注册
-EXTERN_C_START
-static napi_module eventhub_module = {
-    .nm_version = 1,
-    .nm_flags = 0,
-    .nm_filename = nullptr,
-    .nm_register_func = Init,
-    .nm_modname = "eventhub",
-    .nm_priv = nullptr,
-    .reserved = {0},
-};
-EXTERN_C_END
-
-extern "C" __attribute__((constructor)) void RegisterModule() {
-    napi_module_register(&eventhub_module);
+ 
+extern "C" {
+ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "in EventHub ETS.ANI_Constructor");
+    if (vm == nullptr || result == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null vm or result");
+        return ANI_INVALID_ARGS;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    status = vm->GetEnv(ANI_VERSION_1, &env);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetEnv failed, status: %{public}d", status);
+        return ANI_NOT_FOUND;
+    }
+    InitAni(env);
+    *result = ANI_VERSION_1;
+    TAG_LOGD(AAFwkTag::APPKIT, "EventHub.ANI_Constructor finished");
+    return ANI_OK;
 }
+}
+ 
+} // namespace AbilityRuntime
+} // namespace OHOS
