@@ -61,8 +61,6 @@ ohos_unittest("window_options_utils_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
-    "json:nlohmann_json_static",
-    "jsoncpp:jsoncpp",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]

@@ -94,7 +94,6 @@ ohos_unittest("cj_test_runner_test") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
     "napi:cj_bind_native",
     "resource_management:global_resmgr",

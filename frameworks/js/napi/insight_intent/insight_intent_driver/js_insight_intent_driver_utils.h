@@ -29,7 +29,7 @@ napi_value CreatePageInfoForQuery(napi_env env, const PageInfoForQuery &info);
 napi_value CreateEntryInfoForQuery(napi_env env, const EntryInfoForQuery &info);
 napi_value CreateFunctionInfoForQuery(napi_env env, const FunctionInfoForQuery &info);
 napi_value CreateFormInfoForQuery(napi_env env, const FormInfoForQuery &info);
-napi_value CreateInsightIntentInfoWithJson(napi_env env, const nlohmann::json &jsonObject);
+napi_value CreateInsightIntentInfoWithJson(napi_env env, const cJSON *jsonObject);
 napi_value CreateInsightIntentInfoParam(napi_env env, const std::string &paramStr);
 napi_value CreateInsightIntentInfoResult(napi_env env, const std::string &resultStr);
 napi_value CreateInsightIntentInfoForQuery(napi_env env, const InsightIntentInfoForQuery &info);

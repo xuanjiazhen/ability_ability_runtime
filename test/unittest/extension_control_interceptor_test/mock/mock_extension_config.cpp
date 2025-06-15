@@ -74,29 +74,27 @@ bool ExtensionConfig::IsExtensionStartServiceEnable(const std::string &extension
     return StatusSingleton::GetInstance().isExtensionStartServiceEnable_;
 }
 
-void ExtensionConfig::LoadExtensionConfig(const nlohmann::json &object)
+void ExtensionConfig::LoadExtensionConfig(const cJSON *object)
 {
     return;
 }
 
-void ExtensionConfig::LoadExtensionAutoDisconnectTime(const nlohmann::json &object,
-    const std::string &extensionTypeName)
+void ExtensionConfig::LoadExtensionAutoDisconnectTime(const cJSON *object, const std::string &extensionTypeName)
 {
     return;
 }
 
-void ExtensionConfig::LoadExtensionThirdPartyAppBlockedList(const nlohmann::json &object,
-    std::string extensionTypeName)
+void ExtensionConfig::LoadExtensionThirdPartyAppBlockedList(const cJSON *object, std::string extensionTypeName)
 {
     return;
 }
 
-void ExtensionConfig::LoadExtensionServiceBlockedList(const nlohmann::json &object, std::string extensionTypeName)
+void ExtensionConfig::LoadExtensionServiceBlockedList(const cJSON *object, std::string extensionTypeName)
 {
     return;
 }
 
-bool ExtensionConfig::LoadExtensionAbilityAccess(const nlohmann::json &object, const std::string &extensionTypeName)
+bool ExtensionConfig::LoadExtensionAbilityAccess(const cJSON *object, const std::string &extensionTypeName)
 {
     return true;
 }
@@ -109,20 +107,18 @@ std::string ExtensionConfig::FormatAccessFlag(const std::optional<bool> &flag)
     return flag.value() ? "true" : "false";
 }
 
-void ExtensionConfig::LoadExtensionAllowOrBlockedList(const nlohmann::json &object, const std::string &key,
+void ExtensionConfig::LoadExtensionAllowOrBlockedList(const cJSON *object, const std::string &key,
     std::unordered_set<std::string> &list)
 {
     return;
 }
 
-void ExtensionConfig::LoadExtensionNetworkEnable(const nlohmann::json &object,
-    const std::string &extensionTypeName)
+void ExtensionConfig::LoadExtensionNetworkEnable(const cJSON *object, const std::string &extensionTypeName)
 {
     return;
 }
 
-void ExtensionConfig::LoadExtensionSAEnable(const nlohmann::json &object,
-    const std::string &extensionTypeName)
+void ExtensionConfig::LoadExtensionSAEnable(const cJSON *object, const std::string &extensionTypeName)
 {
     return;
 }
@@ -194,7 +190,7 @@ bool ExtensionConfig::IsExtensionSAEnable(const std::string &extensionTypeName)
     return EXTENSION_SA_ENABLE_FLAG_DEFAULT;
 }
 
-bool ExtensionConfig::ReadFileInfoJson(const std::string &filePath, nlohmann::json &jsonBuf)
+bool ExtensionConfig::ReadFileInfoJson(const std::string &filePath, cJSON *&jsonBuf)
 {
     return true;
 }

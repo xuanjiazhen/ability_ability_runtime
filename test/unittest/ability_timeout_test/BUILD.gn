@@ -46,7 +46,6 @@ ohos_unittest("ability_timeout_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "safwk:api_cache_manager",
   ]
 

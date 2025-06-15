@@ -54,7 +54,6 @@ ohos_unittest("multi_app_utils_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
   ]
   if (ability_runtime_child_process) {
     defines = [ "SUPPORT_CHILD_PROCESS" ]

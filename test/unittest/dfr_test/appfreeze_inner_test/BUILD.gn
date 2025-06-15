@@ -101,7 +101,6 @@ ohos_unittest("appfreeze_inner_test") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "safwk:system_ability_fwk",

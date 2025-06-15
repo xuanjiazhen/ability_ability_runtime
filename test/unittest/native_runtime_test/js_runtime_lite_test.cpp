@@ -288,13 +288,14 @@ HWTEST_F(JsRuntimeLiteTest, InitLoop_0100, TestSize.Level1)
  */
 HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJsonString_0100, TestSize.Level1)
 {
-    nlohmann::json itemObject;
-    itemObject["key"] = "value";
+    cJSON *itemObject = cJSON_CreateObject();
+    cJSON_AddStringToObject(itemObject, "key", "value");
     std::string key = "key";
     std::vector<std::string> items = {};
     JsRuntimeLite::GetInstance().ParsePkgContextInfoJsonString(itemObject, key, items);
     auto rBeginIt = items.rbegin();
     EXPECT_EQ(*rBeginIt, "value");
+    cJSON_Delete(itemObject);
 }
 
 /**
@@ -304,13 +305,14 @@ HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJsonString_0100, TestSize.Level1)
  */
 HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJsonString_0200, TestSize.Level1)
 {
-    nlohmann::json itemObject;
-    itemObject["key"] = "value";
+    cJSON *itemObject = cJSON_CreateObject();
+    cJSON_AddStringToObject(itemObject, "key", "value");
     std::string key = "FakeKey";
     std::vector<std::string> items = {};
     JsRuntimeLite::GetInstance().ParsePkgContextInfoJsonString(itemObject, key, items);
     auto rBeginIt = items.rbegin();
     EXPECT_EQ(*rBeginIt, "");
+    cJSON_Delete(itemObject);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

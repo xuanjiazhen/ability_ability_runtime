@@ -26,6 +26,7 @@
 #include "app_startup_task_matcher.h"
 #include "bundle_info.h"
 #include "app_launch_data.h"
+#include "cJSON.h"
 #include "native_startup_task.h"
 #include "preload_so_startup_task.h"
 #include "singleton.h"
@@ -170,21 +171,19 @@ private:
     bool AnalyzeStartupConfig(const ModuleStartupConfigInfo& info, const std::string& startupConfig,
         std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks,
         std::vector<StartupTaskInfo>& pendingStartupTaskInfos, std::string& pendingConfigEntry);
-    static bool AnalyzeAppStartupTask(const ModuleStartupConfigInfo& info, nlohmann::json &startupConfigJson,
+    static bool AnalyzeAppStartupTask(const ModuleStartupConfigInfo& info, cJSON *startupConfigJson,
         std::vector<StartupTaskInfo>& pendingStartupTaskInfos);
-    bool AnalyzePreloadSoStartupTask(const ModuleStartupConfigInfo& info, nlohmann::json &startupConfigJson,
+    bool AnalyzePreloadSoStartupTask(const ModuleStartupConfigInfo& info, cJSON *startupConfigJson,
         std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks);
-    static bool AnalyzeAppStartupTaskInner(const ModuleStartupConfigInfo& info,
-        const nlohmann::json &startupTaskJson,
+    static bool AnalyzeAppStartupTaskInner(const ModuleStartupConfigInfo& info, const cJSON *startupTaskJson,
         std::vector<StartupTaskInfo>& pendingStartupTaskInfos);
-    bool AnalyzePreloadSoStartupTaskInner(const ModuleStartupConfigInfo& info,
-        const nlohmann::json &preloadStartupTaskJson,
+    bool AnalyzePreloadSoStartupTaskInner(const ModuleStartupConfigInfo& info, const cJSON *preloadStartupTaskJson,
         std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks);
-    static void SetOptionalParameters(const nlohmann::json& module, AppExecFwk::ModuleType moduleType,
+    static void SetOptionalParameters(const cJSON *module, AppExecFwk::ModuleType moduleType,
         StartupTaskInfo& startupTaskInfo);
-    static void SetOptionalParameters(const nlohmann::json &module, AppExecFwk::ModuleType moduleType,
+    static void SetOptionalParameters(const cJSON *module, AppExecFwk::ModuleType moduleType,
         std::shared_ptr<PreloadSoStartupTask> &task);
-    static void SetMatchRules(const nlohmann::json &module, StartupTaskMatchRules &matchRules);
+    static void SetMatchRules(const cJSON *module, StartupTaskMatchRules &matchRules);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

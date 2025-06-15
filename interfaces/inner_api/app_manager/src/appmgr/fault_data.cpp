@@ -15,7 +15,6 @@
 
 #include "fault_data.h"
 
-#include "nlohmann/json.hpp"
 #include "string_ex.h"
 #include "hilog_tag_wrapper.h"
 

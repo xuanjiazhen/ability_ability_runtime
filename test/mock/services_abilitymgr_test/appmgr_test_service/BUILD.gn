@@ -54,7 +54,6 @@ ohos_source_set("appmgr_test_service") {
     "ipc:ipc_core",
   ]
   public_external_deps = [
-    "jsoncpp:jsoncpp",
     "samgr:samgr_proxy",
   ]
   subsystem_name = "ability"
