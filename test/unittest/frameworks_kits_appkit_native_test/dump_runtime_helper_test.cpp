@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#define private public
+#define protected public
 #include "dump_runtime_helper.h"
+#undef protected
+#undef private
 
 using namespace testing::ext;
 
@@ -62,6 +66,70 @@ HWTEST_F(DumpRuntimeHelperTest, DumpJsHeap_0100, Function | MediumTest | Level1)
     helper->DumpJsHeap(info);
     EXPECT_NE(application, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpJsHeap_0100 end";
+}
+
+/**
+ * @tc.number: Check2CQuota_0100
+ * @tc.name: Check2CQuota
+ * @tc.desc: Test Check2CQuota.
+ */
+HWTEST_F(DumpRuntimeHelperTest, Check2CQuota_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2CQuota_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    bool result = helper->Check2CQuota();
+    EXPECT_NE(application, nullptr);
+    EXPECT_EQ(result, false); 
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2CQuota_0100 end";
+}
+
+/**
+ * @tc.number: Check2DQuota_0200
+ * @tc.name: Check2DQuota
+ * @tc.desc: Test Check2DQuota.
+ */
+HWTEST_F(DumpRuntimeHelperTest, Check2DQuota_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DQuota_0200 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    bool result = helper->Check2DQuota(true);
+    EXPECT_NE(application, nullptr);
+    EXPECT_EQ(result, false); 
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DQuota_0200 end";
+}
+
+/**
+ * @tc.number: Check2DQuota_0200
+ * @tc.name: Check2DQuota
+ * @tc.desc: Test Check2DQuota.
+ */
+HWTEST_F(DumpRuntimeHelperTest, Check2DQuota_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DQuota_0300 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    bool result = helper->Check2DQuota(false);
+    EXPECT_NE(application, nullptr);
+    EXPECT_EQ(result, false); 
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DQuota_0300 end";
+}
+
+/**
+ * @tc.number: Check2DOOMDumpOpt_0100
+ * @tc.name: Check2DOOMDumpOpt
+ * @tc.desc: Test Check2DOOMDumpOpt.
+ */
+HWTEST_F(DumpRuntimeHelperTest, Check2DOOMDumpOpt_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DOOMDumpOpt_0100 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    bool result = helper->Check2DOOMDumpOpt();
+    EXPECT_NE(application, nullptr);
+    EXPECT_EQ(result, false); 
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest Check2DOOMDumpOpt_0100 end";
 }
 }
 }
