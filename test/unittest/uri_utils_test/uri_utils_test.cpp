@@ -15,14 +15,18 @@
 
 #include <gtest/gtest.h>
 
+#include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "array_wrapper.h"
+#include "oh_mock_utils.h"
 #include "string_wrapper.h"
+#include "uri_permission_manager_client.h"
 
 #include "uri_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace AAFwk {
@@ -43,7 +47,12 @@ void UriUtilsTest::SetUpTestCase() {}
 
 void UriUtilsTest::TearDownTestCase() {}
 
-void UriUtilsTest::SetUp() {}
+void UriUtilsTest::SetUp()
+{
+    OH_MOCK_INIT_ALL_EXPECT_RET();
+    AccessTokenKit::InitMockResult();
+    UriPermissionManagerClient::InitMockResult();
+}
 
 void UriUtilsTest::TearDown() {}
 
@@ -490,6 +499,16 @@ HWTEST_F(UriUtilsTest, IsDmsCall_001, TestSize.Level1)
     uint32_t fromTokenId = 1001;
     bool res1 = UriUtils::GetInstance().IsDmsCall(fromTokenId);
     EXPECT_EQ(res1, false);
+
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    AccessTokenKit::getTokenTypeFlagRet = ATokenTypeEnum::TOKEN_NATIVE;
+    res1 = UriUtils::GetInstance().IsDmsCall(fromTokenId);
+    EXPECT_EQ(res1, false);
+
+    AccessTokenKit::getNativeTokenInfoRet = 0;
+    AccessTokenKit::nativeTokenInfo.processName = "distributedsched";
+    res1 = UriUtils::GetInstance().IsDmsCall(fromTokenId);
+    EXPECT_EQ(res1, true);
 }
 
 #ifdef SUPPORT_UPMS
@@ -512,9 +531,12 @@ HWTEST_F(UriUtilsTest, GrantDmsUriPermission_001, TestSize.Level1)
         params.SetParam("ability.verify.uri", ao2);
     }
     want.SetParams(params);
-    UriUtils::GetInstance().GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
-    bool res = want.GetParams().HasParam("ability.verify.uri");
-    EXPECT_EQ(res, true);
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = -1;
+    auto ret = UriUtils::GetInstance().GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
+    EXPECT_EQ(ret, false);
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = 0;
+    ret = UriUtils::GetInstance().GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
+    EXPECT_EQ(ret, true);
 }
 
 /*
@@ -558,7 +580,11 @@ HWTEST_F(UriUtilsTest, CheckUriPermission_001, TestSize.Level1)
         params.SetParam("ability.params.stream", ao);
     }
     want.SetParams(params);
-    UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    std::vector<bool> expectRet(BEYOND_MAX_URI_COUNT - 1, false);
+    OH_MOCK_METHOD_EXPECT_RET({expectRet}, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
+    bool ret = UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    EXPECT_EQ(ret, false);
     sptr<IInterface> value = want.GetParams().GetParam("ability.params.stream");
     IArray *arr = IArray::Query(value);
     long arrSize = 0;
@@ -570,50 +596,73 @@ HWTEST_F(UriUtilsTest, CheckUriPermission_001, TestSize.Level1)
 
 /*
  * Feature: UriUtils
- * Function: GrantUriPermission
+ * Function: CheckUriPermission
  * SubFunction: NA
- * FunctionPoints: UriUtils GrantUriPermission
+ * FunctionPoints: UriUtils CheckUriPermission, flag is 0
  */
-HWTEST_F(UriUtilsTest, GrantUriPermission_001, TestSize.Level1)
+HWTEST_F(UriUtilsTest, CheckUriPermission_002, TestSize.Level1)
 {
+    uint32_t callerTokenId = 1001;
     Want want;
-    std::string targetBundleName = "";
-    int32_t appIndex = 101;
-    bool isSandboxApp = false;
-    int32_t callerTokenId = 0;
-    int32_t collaboratorType = 2;
-    want.SetFlags(0x00000003);
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
+    std::vector<std::string> uris(1, "file://com.example.test/1.txt");
+    want.SetParam("ability.params.stream", uris);
+    bool ret = UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    EXPECT_EQ(ret, false);
+}
 
-    want.SetFlags(0x00000001);
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
+/*
+ * Feature: UriUtils
+ * Function: CheckUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriUtils CheckUriPermission, uri is empty
+ */
+HWTEST_F(UriUtilsTest, CheckUriPermission_003, TestSize.Level1)
+{
+    uint32_t callerTokenId = 1001;
+    Want want;
+    want.SetFlags(1);
+    bool ret = UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    EXPECT_EQ(ret, false);
+}
 
-    targetBundleName = "com.example.tsapplication";
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
+/*
+ * Feature: UriUtils
+ * Function: CheckUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriUtils CheckUriPermission, CheckUriAuthorizatoion falied
+ */
+HWTEST_F(UriUtilsTest, CheckUriPermission_004, TestSize.Level1)
+{
+    uint32_t callerTokenId = 1001;
+    Want want;
+    want.SetFlags(1);
+    std::vector<std::string> uris(1, "file://com.example.test/1.txt");
+    want.SetParam("ability.params.stream", uris);
+    std::vector<bool> expectRet(1, false);
+    OH_MOCK_METHOD_EXPECT_RET({expectRet}, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
+    bool ret = UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    EXPECT_EQ(ret, false);
+}
 
-    callerTokenId = 1001;
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
-
-    WantParams params;
-    sptr<AAFwk::IArray> ao = new (std::nothrow) AAFwk::Array(1, AAFwk::g_IID_IString);
-    if (ao != nullptr) {
-        ao->Set(0, String::Box("file"));
-        params.SetParam("ability.params.stream", ao);
-    }
-    want.SetParams(params);
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
-
-    want.SetUri("file://data/storage/el2/distributedfiles/test.txt");
-    UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp, callerTokenId,
-        collaboratorType);
-
-    std::string bundleName = AppUtils::GetInstance().GetBrokerDelegateBundleName();
-    EXPECT_EQ(bundleName.empty(), true);
+/*
+ * Feature: UriUtils
+ * Function: CheckUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriUtils CheckUriPermission, CheckUriAuthorizatoion success
+ */
+HWTEST_F(UriUtilsTest, CheckUriPermission_005, TestSize.Level1)
+{
+    uint32_t callerTokenId = 1001;
+    Want want;
+    want.SetFlags(1);
+    std::vector<std::string> uris(1, "file://com.example.test/1.txt");
+    want.SetParam("ability.params.stream", uris);
+    std::vector<bool> expectRet(1, true);
+    OH_MOCK_METHOD_EXPECT_RET({expectRet}, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
+    bool ret = UriUtils::GetInstance().CheckUriPermission(callerTokenId, want);
+    EXPECT_EQ(ret, true);
 }
 
 /*
@@ -629,6 +678,9 @@ HWTEST_F(UriUtilsTest, GrantUriPermissionInner_001, TestSize.Level1)
     std::string targetBundleName = "com.example.tsapplication";
     int32_t appIndex = 0;
     Want want;
+    std::vector<bool> expectRet(1, false);
+    OH_MOCK_METHOD_EXPECT_RET({expectRet}, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
     bool res = UriUtils::GetInstance().GrantUriPermissionInner(uriVec, callerTokenId, targetBundleName, appIndex, want);
     EXPECT_EQ(res, false);
 }
@@ -642,13 +694,25 @@ HWTEST_F(UriUtilsTest, GrantUriPermissionInner_001, TestSize.Level1)
  */
 HWTEST_F(UriUtilsTest, IsSandboxApp_001, TestSize.Level1)
 {
-    uint32_t tokenId = 0;
+    uint32_t tokenId = 1001;
+    // 1. tokenId is invalid
     bool res = UriUtils::GetInstance().IsSandboxApp(tokenId);
     EXPECT_EQ(res, false);
-
-    tokenId = 1001;
+    // 2. tokenId is TOKEN_HAP, but getHapTokenInfo failed
+    AccessTokenKit::getTokenTypeFlagRet = ATokenTypeEnum::TOKEN_HAP;
+    AccessTokenKit::getHapTokenInfoRet = -1;
     res = UriUtils::GetInstance().IsSandboxApp(tokenId);
     EXPECT_EQ(res, false);
+    // 3. hapInfo is not sandbox
+    AccessTokenKit::getHapTokenInfoRet = 0;
+    AccessTokenKit::hapInfo.instIndex = 0;
+    res = UriUtils::GetInstance().IsSandboxApp(tokenId);
+    EXPECT_EQ(res, false);
+    // 4. hapInfo is sandbox
+    AccessTokenKit::getHapTokenInfoRet = 0;
+    AccessTokenKit::hapInfo.instIndex = 10000;
+    res = UriUtils::GetInstance().IsSandboxApp(tokenId);
+    EXPECT_EQ(res, true);
 }
 
 /*
@@ -763,36 +827,354 @@ HWTEST_F(UriUtilsTest, ProcessUDMFKey_002, TestSize.Level1)
 
 /*
  * Feature: UriUtils
- * Function: IsInAncoAppIdentifier
+ * Function: PublishFileOpenEvent
  * SubFunction: NA
- * FunctionPoints: UriUtils IsInAncoAppIdentifier
+ * FunctionPoints: want.GetUri empty
  */
 HWTEST_F(UriUtilsTest, IsInAncoAppIdentifier_001, TestSize.Level1)
 {
-    auto &uriUtils = UriUtils::GetInstance();
-    std::string uri = "";
-    Want want;
-    want.SetUri(uri);
-    uriUtils.PublishFileOpenEvent(want);
-    auto result = uriUtils.IsInAncoAppIdentifier("com.example.test");
-    EXPECT_FALSE(result);
+    std::string bundleName = "";
+    std::string brokerName = "com.example.broker";
+    OH_MOCK_METHOD_EXPECT_RET({brokerName}, AppUtils, GetAncoAppIdentifiers);
+    auto ret = UriUtils::GetInstance().IsInAncoAppIdentifier(bundleName);
+    EXPECT_EQ(ret, false);
 }
 
 /*
  * Feature: UriUtils
- * Function: IsInAncoAppIdentifier
+ * Function: PublishFileOpenEvent
  * SubFunction: NA
- * FunctionPoints: UriUtils IsInAncoAppIdentifier
+ * FunctionPoints: want.GetUri empty
  */
-HWTEST_F(UriUtilsTest, IsInAncoAppIdentifier_002, TestSize.Level1)
+HWTEST_F(UriUtilsTest, PublishFileOpenEvent_001, TestSize.Level1)
 {
-    auto &uriUtils = UriUtils::GetInstance();
-    std::string uri = "file://com.example.test/test.txt";
     Want want;
-    want.SetUri(uri);
-    uriUtils.PublishFileOpenEvent(want);
-    auto result = uriUtils.IsInAncoAppIdentifier("com.example.test");
-    EXPECT_FALSE(result);
+    auto ret = UriUtils::GetInstance().PublishFileOpenEvent(want);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: PublishFileOpenEvent
+ * SubFunction: NA
+ * FunctionPoints: scheme of uri is http
+ */
+HWTEST_F(UriUtilsTest, PublishFileOpenEvent_002, TestSize.Level1)
+{
+    Want want;
+    want.SetUri("http://www.aaa.com/11");
+    auto ret = UriUtils::GetInstance().PublishFileOpenEvent(want);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: PublishFileOpenEvent
+ * SubFunction: NA
+ * FunctionPoints:  scheme of uri is file
+ */
+HWTEST_F(UriUtilsTest, PublishFileOpenEvent_004, TestSize.Level1)
+{
+    Want want;
+    want.SetUri("file://com.example.temp/11.txt");
+    auto ret = UriUtils::GetInstance().PublishFileOpenEvent(want);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with uri vector
+ * SubFunction: NA
+ * FunctionPoints: uri vector empty
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithUris_001, TestSize.Level1)
+{
+    std::vector<std::string> uris;
+    int32_t flag = 1;
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t initiatorTokenId= 1001;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(uris, flag, targetBundleName, appIndex, initiatorTokenId);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with uri vector
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission failed
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithUris_002, TestSize.Level1)
+{
+    std::vector<std::string> uris = { "file://com.example.test/1.txt" };
+    int32_t flag = 1;
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t initiatorTokenId= 1001;
+    OH_MOCK_METHOD_EXPECT_RET({-1}, UriPermissionManagerClient, GrantUriPermission, const std::vector<Uri>&,
+        unsigned int, const std::string, int32_t, uint32_t);
+    bool ret = UriUtils::GetInstance().GrantUriPermission(uris, flag, targetBundleName, appIndex, initiatorTokenId);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with uri vector
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission success
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithUris_003, TestSize.Level1)
+{
+    std::vector<std::string> uris = { "file://com.example.test/1.txt" };
+    int32_t flag = 1;
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t initiatorTokenId= 1001;
+    OH_MOCK_METHOD_EXPECT_RET({0}, UriPermissionManagerClient, GrantUriPermission, const std::vector<Uri>&,
+        unsigned int, const std::string, int32_t, uint32_t);
+    bool ret = UriUtils::GetInstance().GrantUriPermission(uris, flag, targetBundleName, appIndex, initiatorTokenId);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, flag is 0.
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_001, TestSize.Level1)
+{
+    Want want;
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = true;
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(1, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, collaborator app.
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_002, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(3, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+    std::string targetBundleName = brokerDelegateBundleName;
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 0;
+    bool isSandboxApp = true;
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(3, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    CollaboratorType collaboratorType = CollaboratorType::OTHERS_TYPE;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+    // collaboratorType is others_type
+    targetBundleName = "com.example.test";
+    collaboratorType = CollaboratorType::OTHERS_TYPE;
+    ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp,
+        callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+    // collaboratorType is others_type
+    targetBundleName = brokerDelegateBundleName;
+    collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, isSandboxApp test
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_003, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = true;
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(2, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(2, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+    isSandboxApp = false;
+    // IsSandboxApp is true;
+    AccessTokenKit::getHapTokenInfoRet = 0;
+    AccessTokenKit::hapInfo.instIndex = 10000;
+    ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp,
+        callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, dms call
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_004, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = false;
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(1, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(1, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    // dms call
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    AccessTokenKit::getTokenTypeFlagRet = ATokenTypeEnum::TOKEN_NATIVE;
+    AccessTokenKit::getNativeTokenInfoRet = 0;
+    AccessTokenKit::nativeTokenInfo.processName = "distributedsched";
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = 0;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, not uri in want
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_005, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = false;
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(1, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(1, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    // get uri from want is empty
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, broker call
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_006, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    want.SetUri("file://com.example.test/1.txt");
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = false;
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(2, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+
+    // mock broker call
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(2, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, brokerName);
+
+    // broker caller, GrantShellUriPermission failed
+    std::vector<bool> expectRet(1, false);
+    OH_MOCK_METHOD_EXPECT_RET({expectRet}, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = -1;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex,
+        isSandboxApp, callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+    // broker caller, GrantShellUriPermission success
+    want.SetUri("content://com.example.test/1.txt");
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = 0;
+    ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp,
+        callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: GrantUriPermission with want
+ * SubFunction: NA
+ * FunctionPoints: GrantUriPermission, GrantUriPermissionInner ret test
+ */
+HWTEST_F(UriUtilsTest, GrantUriPermissionWithWant_007, TestSize.Level1)
+{
+    Want want;
+    want.SetFlags(1);
+    want.SetUri("file://com.example.test/1.txt");
+    std::string targetBundleName = "com.example.test";
+    int32_t appIndex = 0;
+    uint32_t callerTokenId = 1001;
+    bool isSandboxApp = false;
+    std::string brokerDelegateBundleName = "com.example.delegator";
+    std::vector<std::string> expectBrokerDelegateBundleNames(2, brokerDelegateBundleName);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerDelegateBundleNames, AppUtils, GetBrokerDelegateBundleName);
+    // broker uid
+    std::vector<int32_t> expectBrokerUIDs(2, 1001);
+    OH_MOCK_METHOD_EXPECT_RET(expectBrokerUIDs, AppUtils, GetCollaboratorBrokerUID);
+
+    std::string brokerName = "com.example.broker";
+    std::vector<std::string> expectIdentifiers(2, brokerName);
+    OH_MOCK_METHOD_EXPECT_RET(expectIdentifiers, AppUtils, GetAncoAppIdentifiers);
+    CollaboratorType collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    std::vector<bool> expectRet(1, true);
+    std::vector<std::vector<bool>> expectRets;
+    expectRets.emplace_back(expectRet);
+    expectRets.emplace_back(expectRet);
+    // GrantUriPermissionInner failed
+    OH_MOCK_METHOD_EXPECT_RET(expectRets, UriPermissionManagerClient, CheckUriAuthorization,
+        const std::vector<std::string>&, uint32_t, uint32_t);
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = -1;
+    bool ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp,
+        callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, false);
+
+    // GrantUriPermissionInner success
+    UriPermissionManagerClient::grantUriPermissionPrivilegedRet = 0;
+    ret = UriUtils::GetInstance().GrantUriPermission(want, targetBundleName, appIndex, isSandboxApp,
+        callerTokenId, collaboratorType);
+    EXPECT_EQ(ret, true);
 }
 }
 }
