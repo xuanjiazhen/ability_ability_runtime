@@ -38,6 +38,13 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AppExecFwk;
 
+extern void from_json(const nlohmann::json &jsonObject, LinkInfoForQuery &linkInfo);
+extern void to_json(nlohmann::json& jsonObject, const LinkInfoForQuery &info);
+extern void from_json(const nlohmann::json &jsonObject, PageInfoForQuery &pageInfo);
+extern void to_json(nlohmann::json& jsonObject, const PageInfoForQuery &info);
+extern void from_json(const nlohmann::json &jsonObject, EntityInfoForQuery &entityInfo);
+extern void to_json(nlohmann::json& jsonObject, const EntityInfoForQuery &info);
+
 namespace OHOS {
 namespace AAFwk {
 namespace {
@@ -333,6 +340,67 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentInfo_0100, TestSize.
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentInfo_0100 end.");
+}
+
+/**
+ * @tc.name: LinkInfoForQuery_From_Json_0100
+ * @tc.desc: basic function test of linkInfoForQuery.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, LinkInfoForQuery_From_Json_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    LinkInfoForQuery linkInfoForQuery;
+    std::string uri = "test_uri";
+    linkInfoForQuery.uri = uri;
+    to_json(jsonObject, linkInfoForQuery);
+
+    LinkInfoForQuery outLinkInfoForQuery;
+    EXPECT_EQ(outLinkInfoForQuery.uri, "");
+    from_json(jsonObject, outLinkInfoForQuery);
+    EXPECT_EQ(outLinkInfoForQuery.uri, uri);
+}
+
+/**
+ * @tc.name: PageInfoForQuery_From_Json_0100
+ * @tc.desc: basic function test of PageInfoForQuery.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, PageInfoForQuery_From_Json_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    PageInfoForQuery pageInfoForQuery;
+    std::string uiAbility = "uiAbility";
+    std::string pagePath = "pagePath";
+    pageInfoForQuery.uiAbility = uiAbility;
+    pageInfoForQuery.pagePath = pagePath;
+    to_json(jsonObject, pageInfoForQuery);
+
+    PageInfoForQuery outPageInfoForQuery;
+    EXPECT_EQ(outPageInfoForQuery.uiAbility, "");
+    EXPECT_EQ(outPageInfoForQuery.pagePath, "");
+    from_json(jsonObject, outPageInfoForQuery);
+    EXPECT_EQ(outPageInfoForQuery.uiAbility, uiAbility);
+    EXPECT_EQ(outPageInfoForQuery.pagePath, pagePath);
+}
+
+/**
+ * @tc.name: EntityInfoForQuery_From_Json_0100
+ * @tc.desc: basic function test of entityInfoForQuery.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, EntityInfoForQuery_From_Json_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject;
+    EntityInfoForQuery entityInfoForQuery;
+    std::string className = "className";
+    entityInfoForQuery.className = className;
+    to_json(jsonObject, entityInfoForQuery);
+
+    EntityInfoForQuery outEntityInfoForQuery;
+    EXPECT_EQ(outEntityInfoForQuery.className, "");
+    from_json(jsonObject, outPageInfoForQuery);
+    EXPECT_EQ(outEntityInfoForQuery.className, className);
 }
 } // namespace AAFwk
 } // namespace OHOS
