@@ -574,6 +574,51 @@ HWTEST_F(StartupManagerTest, RunAppPreloadSoTaskMainThread_0100, Function | Medi
 }
 
 /**
+ * @tc.name: RunLoadModuleStartupConfigTask_0200
+ * @tc.type: FUNC
+ * @tc.Function: RunLoadModuleStartupConfigTask
+ */
+HWTEST_F(StartupManagerTest, RunLoadModuleStartupConfigTask_0200, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string name = "test_name";
+    std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
+    std::shared_ptr<PreloadSoStartupTask> appStartupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
+    startupManager->appStartupTasks_.emplace(name, appStartupTask);
+    std::string moduleName = "application";
+    bool needRunAutoStartupTask = false;
+    std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo = std::make_shared<AppExecFwk::HapModuleInfo>();
+    hapModuleInfo->name = moduleName;
+    hapModuleInfo->appStartup = "";
+    startupManager->isModuleStartupConfigInited_.clear();
+    int32_t result = startupManager->RunLoadModuleStartupConfigTask(needRunAutoStartupTask, hapModuleInfo);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: RunLoadModuleStartupConfigTask_0300
+ * @tc.type: FUNC
+ * @tc.Function: RunLoadModuleStartupConfigTask
+ */
+HWTEST_F(StartupManagerTest, RunLoadModuleStartupConfigTask_0300, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string name = "test_name";
+    std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
+    std::shared_ptr<PreloadSoStartupTask> appStartupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
+    startupManager->appStartupTasks_.emplace(name, appStartupTask);
+    std::string moduleName = "application";
+    bool needRunAutoStartupTask = false;
+    std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo = std::make_shared<AppExecFwk::HapModuleInfo>();
+    hapModuleInfo->name = moduleName;
+    hapModuleInfo->appStartup = "notExistappStartup";
+    int32_t result = startupManager->RunLoadModuleStartupConfigTask(needRunAutoStartupTask, hapModuleInfo);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
  * @tc.name: GetStartupConfigString_0100
  * @tc.type: FUNC
  * @tc.Function: GetStartupConfigString
@@ -1055,5 +1100,102 @@ HWTEST_F(StartupManagerTest, PreloadSoStartupTask_0100, Function | MediumTest | 
     EXPECT_EQ(ret, ERR_STARTUP_INTERNAL_ERROR);
 }
 
+/**
+ * @tc.name: GetModuleName_0100
+ * @tc.type: FUNC
+ * @tc.Function: GetModuleName
+ */
+HWTEST_F(StartupManagerTest, GetModuleName_0100, Function | MediumTest | Level1)
+{
+    std::string name = "test_name";
+    std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
+    std::shared_ptr<PreloadSoStartupTask> startupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
+    std::string moduelName = "entry";
+    startupTask->SetModuleName(moduelName);
+    auto result = startupTask->GetModuleName();
+    EXPECT_EQ(result, moduelName);
+}
+
+/**
+ * @tc.name: GetModuleType_0100
+ * @tc.type: FUNC
+ * @tc.Function: GetModuleType
+ */
+HWTEST_F(StartupManagerTest, GetModuleType_0100, Function | MediumTest | Level1)
+{
+    std::string name = "test_name";
+    std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
+    std::shared_ptr<PreloadSoStartupTask> startupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
+    AppExecFwk::ModuleType moduleType = AppExecFwk::ModuleType::FEATURE;
+    startupTask->SetModuleType(moduleType);
+    auto result = startupTask->GetModuleType();
+    EXPECT_EQ(result, moduleType);
+}
+
+/**
+ * @tc.name: GetStartupTaskInfos_0100
+ * @tc.type: FUNC
+ * @tc.Function: GetStartupTaskInfos
+ */
+HWTEST_F(StartupManagerTest, GetStartupTaskInfos_0100, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    startupManager->isAppStartupTaskRegistered_ = false;
+    std::string moduleName = "testModuleName";
+    auto startupTaskInfos = startupManager->GetStartupTaskInfos(moduleName);
+    size_t pendingStartupTaskSize = startupManager->pendingStartupTaskInfos_.size();
+    EXPECT_EQ(startupTaskInfos.size(), pendingStartupTaskSize);
+}
+
+/**
+ * @tc.name: GetStartupTaskInfos_0200
+ * @tc.type: FUNC
+ * @tc.Function: GetStartupTaskInfos
+ */
+HWTEST_F(StartupManagerTest, GetStartupTaskInfos_0200, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    startupManager->isAppStartupTaskRegistered_ = true;
+    startupManager->ClearAppStartupTask();
+    std::string moduleName = "testModuleName";
+    auto result = startupManager->GetStartupTaskInfos(moduleName);
+    EXPECT_EQ(result.size(), 0);
+
+    StartupTaskInfo startupTaskInfo;
+    startupTaskInfo.moduleName = moduleName;
+    startupManager->pendingStartupTaskInfos_.push_back(startupTaskInfo);
+    result = startupManager->GetStartupTaskInfos(moduleName);
+    EXPECT_EQ(result.size(), 1);
+}
+
+/**
+ * @tc.name: GetDefaultConfig_0100
+ * @tc.type: FUNC
+ * @tc.Function: GetDefaultConfig
+ */
+HWTEST_F(StartupManagerTest, GetDefaultConfig_0100, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::shared_ptr<StartupConfig> config = std::make_shared<StartupConfig>();
+    startupManager->SetDefaultConfig(config);
+    EXPECT_NE(startupManager->GetDefaultConfig(), nullptr);
+}
+
+/**
+ * @tc.name: StopAutoPreloadSoTask_0100
+ * @tc.type: FUNC
+ * @tc.Function: StopAutoPreloadSoTask
+ */
+HWTEST_F(StartupManagerTest, StopAutoPreloadSoTask_0100, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    startupManager->autoPreloadSoStopped_ = false;
+    startupManager->StopAutoPreloadSoTask();
+    EXPECT_TRUE(startupManager->autoPreloadSoStopped_);
+}
 }
 }
