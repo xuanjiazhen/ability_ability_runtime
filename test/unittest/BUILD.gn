@@ -377,6 +377,7 @@ group("unittest") {
       "insight_intent:unittest",
       "insight_intent_db_cache_test:unittest",
       "insight_intent_profile_test:unittest",
+      "insight_intent_query_test:unittest",
       "insight_intent_rdb_data_manager_test:unittest",
       "insight_intent_rdb_storage_mgr_test:unittest",
       "js_ability_context_test:unittest",
