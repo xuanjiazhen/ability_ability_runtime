@@ -473,5 +473,255 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0200, TestSize.Level0)
     EXPECT_EQ(linkInfo2.paramMapping.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "TransformTo_0200 called. end");
 }
+
+/**
+ * @tc.number: ProfileInfoFormat_0100
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0100, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0100 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentLink";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0100 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0200
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0200, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0200 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentLink";
+    insightIntent.uri = "/data/app/base";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0200 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0300
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0300, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0300 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentLink";
+    insightIntent.uri = "/data/app/base";
+    insightIntent.paramMapping.push_back({"paramName", "paramMappingName", "paramCategory"});
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0300 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0400
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0400, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0400 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentPage";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0400 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0500
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0500, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0500 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentPage";
+    insightIntent.pagePath = "/data/app/base";
+    insightIntent.uiAbility = "uiAbility";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0500 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0600
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0600, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0600 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentEntry";
+    insightIntent.uri = "/data/app/base";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0600 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0700
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0700, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0700 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentEntry";
+    insightIntent.uri = "/data/app/base";
+    insightIntent.abilityName = "abilityName";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0700 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0800
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0800, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0800 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentFunctionMethod";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0800 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0900
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0900, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0900 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "@InsightIntentFunctionMethod";
+    insightIntent.functionName = "functionName";
+    insightIntent.functionParams = {"param1", "param2"};
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_0900 called. end");
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_1000
+ * @tc.name: ProfileInfoFormat
+ * @tc.desc: Test ProfileInfoFormat invalid param profileStr.
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_1000, TestSize.Level0)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_1000 called. start");
+    ExtractInsightIntentInfo info;
+    ExtractInsightIntentProfileInfo insightIntent;
+    insightIntent.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    insightIntent.decoratorClass = "base";
+    insightIntent.decoratorType = "invalid decoratorType";
+    insightIntent.bundleName = "com.example.instent";
+    insightIntent.moduleName = "entry";
+    insightIntent.intentName = "functionName";
+    insightIntent.domain = "game";
+    insightIntent.intentVersion = "1.0.2";
+    insightIntent.displayName = "Home";
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(insightIntent, info);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ProfileInfoFormat_1000 called. end");
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
