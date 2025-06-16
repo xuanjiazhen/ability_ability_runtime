@@ -15,7 +15,6 @@
 
 #include "background_app_info.h"
 #include "hilog_tag_wrapper.h"
-#include "nlohmann/json.hpp"
 #include "parcel_macro_base.h"
 #include "string_ex.h"
 

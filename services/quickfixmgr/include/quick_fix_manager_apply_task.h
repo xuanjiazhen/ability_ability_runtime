@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_QUICK_FIX_MANAGER_APPLY_TASK_H
 
 #include "app_mgr_interface.h"
+#include "cJSON.h"
 #include "event_handler.h"
 #include "quick_fix_result_info.h"
 #include "quick_fix/quick_fix_manager_interface.h"
@@ -44,7 +45,7 @@ public:
     void HandlePatchDeleted();
 
     bool SetQuickFixInfo(const std::shared_ptr<AppExecFwk::QuickFixResult> &result);
-    bool ExtractQuickFixDataFromJson(nlohmann::json& resultJson);
+    bool ExtractQuickFixDataFromJson(cJSON *resultJson);
     bool GetRunningState();
 
     void RemoveTimeoutTask();

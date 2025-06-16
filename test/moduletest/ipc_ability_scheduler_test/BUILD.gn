@@ -49,7 +49,6 @@ ohos_moduletest("IpcAbilitySchedulerModuleTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
     "relational_store:native_appdatafwk",
     "relational_store:native_dataability",

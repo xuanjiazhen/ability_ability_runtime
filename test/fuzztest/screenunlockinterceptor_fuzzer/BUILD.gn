@@ -84,7 +84,6 @@ ohos_fuzztest("ScreenUnlockInterceptorFuzzTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "safwk:api_cache_manager",

@@ -29,7 +29,6 @@ ohos_shared_library("abilityconstant_napi") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
   public_external_deps = [ "ability_base:want" ]
@@ -53,7 +52,6 @@ ohos_shared_library("abilityconstant") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
   public_external_deps = [ "ability_base:want" ]

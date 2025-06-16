@@ -72,7 +72,6 @@ ohos_unittest("extension_control_interceptor_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "safwk:api_cache_manager",
     "samgr:samgr_proxy",
   ]

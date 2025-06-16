@@ -353,7 +353,6 @@ if (accessibility_enable) {
       "cJSON:cjson",
       "googletest:gmock_main",
       "hilog:libhilog",
-      "jsoncpp:jsoncpp",
       "selinux_adapter:librestorecon",
     ]
   }
