@@ -541,6 +541,9 @@ std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json
         flags = jsonObject.at("flags").get<int>();
     }
 
+
+
+
     if (flags < 0) {
         return flagsVec;
     }
