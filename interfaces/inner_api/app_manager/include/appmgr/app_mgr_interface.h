@@ -32,10 +32,10 @@
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
-#include "kia_interceptor_interface.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "ikia_interceptor.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
