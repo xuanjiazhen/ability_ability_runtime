@@ -40,7 +40,10 @@ ohos_fuzztest("AbilityMgrAbilityManagerStubFuzzTest") {
   ]
   sources = [ "abilitymgrabilitymanagerstub_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

@@ -25,12 +25,12 @@ constexpr size_t ARGC_ONE = 1;
 }
 JSAppForegroundStateObserver::JSAppForegroundStateObserver(napi_env env) : env_(env) {}
 
-void JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStateData)
+ErrCode JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStateData)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!valid_) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid appMgr");
-        return;
+        return ERR_INVALID_VALUE;
     }
     wptr<JSAppForegroundStateObserver> self = this;
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
@@ -45,6 +45,7 @@ void JSAppForegroundStateObserver::OnAppStateChanged(const AppStateData &appStat
     napi_ref callback = nullptr;
     NapiAsyncTask::Schedule("JSAppForegroundStateObserver::OnAppStateChanged", env_,
         std::make_unique<NapiAsyncTask>(callback, nullptr, std::move(complete)));
+    return ERR_OK;
 }
 
 void JSAppForegroundStateObserver::HandleOnAppStateChanged(const AppStateData &appStateData)
