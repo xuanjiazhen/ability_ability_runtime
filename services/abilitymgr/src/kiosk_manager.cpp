@@ -51,7 +51,7 @@ void KioskManager::OnAppStop(const AppInfo &info)
         info.bundleName.c_str(), static_cast<int32_t>(info.state));
     std::lock_guard<std::mutex> lock(kioskManagermutex_);
     if (IsInKioskModeInner() && (info.bundleName == kioskStatus_.kioskBundleName_)) {
-        ExitKioskModeInner(info.bundleName, nullptr);
+        ExitKioskModeInner(info.bundleName, kioskStatus_.kioskToken_);
     }
 }
 
@@ -120,6 +120,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     kioskStatus_.isKioskMode_ = true;
     kioskStatus_.kioskBundleName_ = bundleName;
     kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
+    kioskStatus_.kioskToken_ = callerToken;
     GetEnterKioskModeCallback()();
     NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
