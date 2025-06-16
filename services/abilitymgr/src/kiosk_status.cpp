@@ -24,6 +24,7 @@ bool KioskStatus::ReadFromParcel(Parcel &parcel)
     isKioskMode_ = parcel.ReadBool();
     kioskBundleName_ = Str16ToStr8(parcel.ReadString16());
     kioskBundleUid_ = parcel.ReadInt32();
+    kioskToken_ = parcel.ReadParcelable<IRemoteObject>();
     return true;
 }
 
@@ -54,6 +55,11 @@ bool KioskStatus::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write kioskBundleUid_ failed");
         return false;
     }
+
+    if (!parcel.WriteParcelable(kioskToken_.GetRefPtr())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write kioskToken_ failed");
+        return false;
+    }
     return true;
 }
 
@@ -62,6 +68,7 @@ void KioskStatus::Clear()
     isKioskMode_ = false;
     kioskBundleUid_ = 0;
     kioskBundleName_.clear();
+    kioskToken_ = nullptr;
 }
 } // namespace AAFwk
 } // namespace OHOS
