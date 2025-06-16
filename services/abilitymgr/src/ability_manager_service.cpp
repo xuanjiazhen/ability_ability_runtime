@@ -7162,8 +7162,15 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
     TAG_LOGI(AAFwkTag::ABILITYMGR, "On ability died: %{public}s, %{public}d, %{public}" PRId64,
         abilityRecord->GetURI().c_str(), abilityRecord->GetRecordId(),
         abilityRecord->GetAbilityRecordId());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt call 1.");
     if (abilityRecord->GetToken()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt call 2.");
         FreezeUtil::GetInstance().DeleteLifecycleEvent(abilityRecord->GetToken()->AsObject());
+        if (KioskManager::GetInstance().IsInKioskMode() &&
+            KioskManager::GetInstance().IsInWhiteList(abilityRecord->GetAbilityInfo().bundleName)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt call 3.");
+            KioskManager::GetInstance().ExitKioskMode(abilityRecord->GetToken()->AsObject());
+        }
     }
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
