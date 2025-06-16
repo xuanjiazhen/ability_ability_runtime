@@ -414,7 +414,6 @@ public:
     bool CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
-    std::shared_ptr<AppRunningRecord> QueryAppRecordPlus(int32_t pid, int32_t uid);
     int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
     int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
     int32_t RemoveUIExtensionBindItemById(int32_t uiExtensionBindAbilityId);
@@ -431,14 +430,11 @@ private:
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
-    void AddRecordToDeadList(std::shared_ptr<AppRunningRecord> appRecord);
-    void RemoveTimeoutDeadAppRecord();
     void ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId);
     bool UpdateConfiguration(std::shared_ptr<AppRunningRecord> &appRecord, Rosen::ConfigMode configMode);
 private:
     std::mutex runningRecordMapMutex_;
     std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> appRunningRecordMap_;
-    std::list<std::pair<int64_t, std::shared_ptr<AppRunningRecord>>> deadAppRecordList_; // dead time and record
 
     std::mutex uiExtensionMapLock_;
     std::map<int32_t, std::pair<pid_t, pid_t>> uiExtensionLauncherMap_;
