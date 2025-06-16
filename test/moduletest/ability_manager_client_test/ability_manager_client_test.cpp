@@ -163,9 +163,26 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordProcessExitReason_
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0100 start");
     ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
-    auto result = AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
+    int32_t pid = 1111;
+    auto result = AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, exitReason);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_RecordProcessExitReason_0200
+ * @tc.desc: RecordAppExitReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordProcessExitReason_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0200 start");
+    int32_t pid = 1111;
+    int32_t uid = 1;
+    ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
+    auto result = AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, uid, exitReason);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0200 end");
 }
 
 /**
