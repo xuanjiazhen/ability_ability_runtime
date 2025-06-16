@@ -19,7 +19,6 @@
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
 #include "ams_mgr_interface.h"
-#include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
@@ -33,6 +32,7 @@
 #endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
 #include "kia_interceptor_interface.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
