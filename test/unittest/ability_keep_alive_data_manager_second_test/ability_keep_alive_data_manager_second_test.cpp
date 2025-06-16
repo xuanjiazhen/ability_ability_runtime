@@ -432,7 +432,7 @@ HWTEST_F(AbilityKeepAliveDataManagerTest, QueryKeepAliveApplications_300, TestSi
 
     int32_t result = abilityKeepAliveDataManager.QueryKeepAliveApplications(params, infoList);
     EXPECT_EQ(result, ERR_NO_INIT);
-    GTEST_LOG_(INFO) << "QueryKeepAliveData_300 end";
+    GTEST_LOG_(INFO) << "QueryKeepAliveApplications_300 end";
 }
 
 /**
@@ -458,7 +458,7 @@ HWTEST_F(AbilityKeepAliveDataManagerTest, QueryKeepAliveApplications_400, TestSi
     abilityKeepAliveDataManager.kvStorePtr_ = kvStorePtr;
     int32_t result = abilityKeepAliveDataManager.QueryKeepAliveApplications(params, infoList);
     EXPECT_EQ(result, ERR_INVALID_OPERATION);
-    GTEST_LOG_(INFO) << "QueryKeepAliveData_400 end";
+    GTEST_LOG_(INFO) << "QueryKeepAliveApplications_400 end";
 }
 
 /**
@@ -582,7 +582,7 @@ HWTEST_F(AbilityKeepAliveDataManagerTest, ConvertKeepAliveInfoFromKey_100, TestS
  */
 HWTEST_F(AbilityKeepAliveDataManagerTest, ConvertKeepAliveInfoFromKey_200, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ConvertKeepAliveInfoFromKey_100 start";
+    GTEST_LOG_(INFO) << "ConvertKeepAliveInfoFromKey_200 start";
     KeepAliveInfo info;
     DistributedKv::Key key = "invalid_key";
     AbilityKeepAliveDataManager abilityKeepAliveDataManager;
@@ -591,7 +591,7 @@ HWTEST_F(AbilityKeepAliveDataManagerTest, ConvertKeepAliveInfoFromKey_200, TestS
     EXPECT_EQ(retInfo.userId, info.userId);
     EXPECT_EQ(retInfo.appType, info.appType);
     EXPECT_EQ(retInfo.setter, info.setter);
-    GTEST_LOG_(INFO) << "ConvertKeepAliveInfoFromKey_100 end";
+    GTEST_LOG_(INFO) << "ConvertKeepAliveInfoFromKey_200 end";
 }
 
 /**
