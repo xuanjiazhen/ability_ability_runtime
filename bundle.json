@@ -48,6 +48,7 @@
             "access_token",
             "ace_engine",
             "app_domain_verify",
+            "app_extension_framework",
             "app_file_service",
             "appspawn",
             "background_task_mgr",
