@@ -84,7 +84,6 @@ ohos_fuzztest("AbilityAppMgrAppRunningManagerFuzzTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_mgr",
     "memory_utils:libmeminfo",
     "napi:ace_napi",

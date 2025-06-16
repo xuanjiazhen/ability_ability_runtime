@@ -61,7 +61,6 @@ ohos_unittest("js_auto_fill_extension_test") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "ipc:ipc_napi",
-    "json:nlohmann_json_static",
     "napi:ace_napi",
     "resource_management:global_resmgr",
   ]

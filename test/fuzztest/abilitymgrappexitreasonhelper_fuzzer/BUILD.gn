@@ -96,7 +96,6 @@ ohos_fuzztest("AbilityMgrAppExitReasonHelperFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
