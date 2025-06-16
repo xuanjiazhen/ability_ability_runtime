@@ -1220,5 +1220,28 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ResumeExtensionAbility_001, TestSize.
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest ResumeExtensionAbility_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    sptr<IAbilityConnection> connect = nullptr;
+
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_INVALID_VALUE);
+
+    connect = new AbilityConnectCallback();
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
