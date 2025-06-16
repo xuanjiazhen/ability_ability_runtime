@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,9 @@ namespace AppExecFwk {
 class MockQuickFixCallbackStub : public QuickFixCallbackStub {
 public:
     MOCK_METHOD4(SendRequest, int(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
-    MOCK_METHOD2(OnLoadPatchDone, void(int32_t resultCode, int32_t recordId));
-    MOCK_METHOD2(OnUnloadPatchDone, void(int32_t resultCode, int32_t recordId));
-    MOCK_METHOD2(OnReloadPageDone, void(int32_t resultCode, int32_t recordId));
+    MOCK_METHOD2(OnLoadPatchDone, ErrCode(int32_t resultCode, int32_t recordId));
+    MOCK_METHOD2(OnUnloadPatchDone, ErrCode(int32_t resultCode, int32_t recordId));
+    MOCK_METHOD2(OnReloadPageDone, ErrCode(int32_t resultCode, int32_t recordId));
 
     int InvokeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {
