@@ -101,7 +101,6 @@ ohos_moduletest("running_infos_module_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "relational_store:native_appdatafwk",

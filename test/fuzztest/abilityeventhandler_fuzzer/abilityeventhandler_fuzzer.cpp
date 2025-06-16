@@ -168,11 +168,11 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AmsConfigurationParameter::GetInstance().GetMaxRestartNum(true);
     AmsConfigurationParameter::GetInstance().GetDeviceType();
     AmsConfigurationParameter::GetInstance().GetBootAnimationTimeoutTime();
-    nlohmann::json Object;
+    cJSON *Object = cJSON_CreateObject();
     AmsConfigurationParameter::GetInstance().LoadAppConfigurationForStartUpService(Object);
     AmsConfigurationParameter::GetInstance().LoadAppConfigurationForMemoryThreshold(Object);
     AmsConfigurationParameter::GetInstance().LoadSystemConfiguration(Object);
-
+    cJSON_Delete(Object);
     return true;
 }
 }

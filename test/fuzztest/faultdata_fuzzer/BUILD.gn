@@ -64,7 +64,6 @@ ohos_fuzztest("FaultDataFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",

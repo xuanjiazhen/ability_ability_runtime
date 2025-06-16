@@ -71,8 +71,6 @@ ohos_unittest("app_native_spawn_manager_test") {
     "samgr:samgr_proxy",
     "window_manager:libwm",
     "window_manager:libwsutils",
-    "json:nlohmann_json_static",
-    "jsoncpp:jsoncpp",
   ]
 
   if (ability_runtime_child_process) {

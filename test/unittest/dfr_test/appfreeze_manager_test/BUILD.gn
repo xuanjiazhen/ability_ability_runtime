@@ -85,7 +85,6 @@ ohos_unittest("appfreeze_manager_test") {
     "hilog:libhilog",
     "init:libbeget_proxy",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
   ]
 
   defines = []

@@ -15,7 +15,6 @@
 
 #include "render_process_info.h"
 
-#include "nlohmann/json.hpp"
 #include "string_ex.h"
 
 #include "hilog_tag_wrapper.h"

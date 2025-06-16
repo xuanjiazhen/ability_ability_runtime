@@ -77,7 +77,6 @@ ohos_fuzztest("NapiCommonWantFuzzTest") {
     "hitrace:libhitracechain",
     "image_framework:image_native",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",

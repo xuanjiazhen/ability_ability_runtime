@@ -92,7 +92,6 @@ ohos_unittest("AmsAbilityRunningRecordTest") {
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "samgr:samgr_proxy",
-    "json:nlohmann_json_static",
     "window_manager:session_manager_lite",
   ]
 
