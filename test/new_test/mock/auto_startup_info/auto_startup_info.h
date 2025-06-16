@@ -25,13 +25,15 @@ struct AutoStartupInfo : public Parcelable {
 public:
     int32_t appCloneIndex = 0;
     int32_t userId = -1;
+    int32_t setterUserId = -1;
+    bool canUserModify = false;
     int32_t retryCount = 0;
     std::string bundleName;
     std::string abilityName;
     std::string moduleName;
     std::string abilityTypeName;
     std::string accessTokenId;
- 
+
     bool ReadFromParcel(Parcel &parcel)
     {
         return false;
@@ -50,6 +52,14 @@ struct AutoStartupStatus {
     bool isAutoStartup = false;
     bool isEdmForce = false;
     int32_t code = -1;
+};
+
+struct AutoStartupAbilityData {
+    std::string abilityTypeName;
+    std::string accessTokenId;
+    int32_t userId = -1;
+    int32_t setterUserId = -1;
+    bool isVisible = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
