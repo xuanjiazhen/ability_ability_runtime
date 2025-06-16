@@ -1319,13 +1319,13 @@ bool StsUIAbility::CallObjectMethod(bool withResult, const char *name, const cha
     return false;
 }
 
-std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> StsUIAbility::CreateADelegatorAbilityProperty()
+std::shared_ptr<AppExecFwk::ETSDelegatorAbilityProperty> StsUIAbility::CreateADelegatorAbilityProperty()
 {
     if (abilityContext_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
         return nullptr;
     }
-    auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
+    auto property = std::make_shared<AppExecFwk::ETSDelegatorAbilityProperty>();
     property->token_ = abilityContext_->GetToken();
     property->name_ = GetAbilityName();
     property->moduleName_ = GetModuleName();
@@ -1340,14 +1340,54 @@ std::shared_ptr<AppExecFwk::ADelegatorAbilityProperty> StsUIAbility::CreateADele
         }
     }
     property->lifecycleState_ = GetState();
-    property->stsObject_ = stsAbilityObj_;
+    property->object_ = stsAbilityObj_;
     return property;
 }
 
 void StsUIAbility::Dump(const std::vector<std::string> &params, std::vector<std::string> &info)
 {
     UIAbility::Dump(params, info);
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr || stsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or stsAbilityObj");
+        return;
+    }
+    ani_object arrayObj = nullptr;
+    if (!AppExecFwk::WrapArrayString(env, arrayObj, params)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "WrapArrayString failed");
+        return;
+    }
+    if (!stsAbilityObj_->aniObj || !stsAbilityObj_->aniCls) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null aniObj or aniCls");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(stsAbilityObj_->aniCls, "onDump", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Class_FindMethod FAILED: %{public}d", status);
+        return;
+    }
+    if (!method) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "find method onDump failed");
+        return;
+    }
+    ani_ref strArrayRef;
+    if ((status = env->Object_CallMethod_Ref(stsAbilityObj_->aniObj, method, &strArrayRef, arrayObj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Object_CallMethod_Ref FAILED: %{public}d", status);
+        return;
+    }
+    if (!strArrayRef) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null strArrayRef");
+        return;
+    }
+    std::vector<std::string> dumpInfoStrArray;
+    if (!AppExecFwk::UnwrapArrayString(env, reinterpret_cast<ani_object>(strArrayRef), dumpInfoStrArray)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapArrayString failed");
+        return;
+    }
+    for (auto dumpInfoStr:dumpInfoStrArray) {
+        info.push_back(dumpInfoStr);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "dump info size: %{public}zu", info.size());
 }
 

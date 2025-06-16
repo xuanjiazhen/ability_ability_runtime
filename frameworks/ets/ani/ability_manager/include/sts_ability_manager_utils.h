@@ -13,18 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_STS_ABILITY_DELEGATOR_UTILS_H
-#define OHOS_ABILITY_RUNTIME_STS_ABILITY_DELEGATOR_UTILS_H
+#ifndef OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_UTILS_H
+#define OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_UTILS_H
 
-#include "ability_delegator.h"
-#include "ability_delegator_args.h"
+#include "ability_running_info.h"
 #include "sts_runtime.h"
 
 namespace OHOS {
-namespace AbilityDelegatorSts {
-ani_object CreateStsAbilityDelegator(ani_env *env);
-ani_object CreateStsAbilityDelegatorArguments(ani_env *env,
-    const std::shared_ptr<AppExecFwk::AbilityDelegatorArgs> abilityDelegatorArgs);
-} // namespace AbilityDelegatorSts
+namespace AbilityManagerSts {
+bool WrapAbilityRunningInfo(ani_env *env, ani_object &infoObj, const AAFwk::AbilityRunningInfo &info);
+bool WrapAbilityRunningInfoArray(
+    ani_env *env, ani_object &arrayObj, const std::vector<AAFwk::AbilityRunningInfo> &infos);
+bool WrapAbilityRunningInfoInner(
+    ani_env *env, ani_object &infoObj, const AAFwk::AbilityRunningInfo &info, ani_class cls);
+} // namespace AbilityManagerSts
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_STS_ABILITY_DELEGATOR_UTILS_H
+#endif // OHOS_ABILITY_RUNTIME_STS_ABILITY_MANAGER_UTILS_H
