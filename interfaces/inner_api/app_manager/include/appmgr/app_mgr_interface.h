@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "inative_child_notify.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -51,7 +52,6 @@
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
-#include "native_child_notify_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -450,7 +450,7 @@ public:
 
     /**
      * UpdateConfigurationForBackgroundApp
-     * 
+     *
      * @param appInfos Background application information.
      * @param policy Update policy.
      * @param userId configuration for the user

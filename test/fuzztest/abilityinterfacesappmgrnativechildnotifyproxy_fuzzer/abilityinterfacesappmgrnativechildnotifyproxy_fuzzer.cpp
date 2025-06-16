@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,8 @@
 #include <cstdint>
 
 #define private public
+#include "inative_child_notify.h"
 #include "native_child_notify_proxy.h"
-#include "native_child_notify_interface.h"
 #undef private
 
 #include "securec.h"
@@ -72,21 +72,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     infosProxy->OnNativeChildStarted(nativeChild);
     int32_t errCode = static_cast<int32_t>(GetU32Data(data));
     infosProxy->OnError(errCode);
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
-    MessageParcel parcels;
-    parcels.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
-    parcels.WriteBuffer(data, size);
-    parcels.RewindRead(0);
-    infosProxy->WriteInterfaceToken(parcels);
-    uint32_t codeOne = static_cast<uint32_t>(INPUT_ZERO);
-    MessageParcel reply;
-    MessageOption option;
-    infosProxy->SendRequest(codeOne, parcel, reply, option);
-    uint32_t codeTwo = static_cast<uint32_t>(INPUT_ONE);
-    infosProxy->SendRequest(codeTwo, parcel, reply, option);
     return true;
 }
 }
