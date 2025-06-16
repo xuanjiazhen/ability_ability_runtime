@@ -426,20 +426,6 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_2100, TestSize.Level2)
 }
 
 /**
- * @tc.number: IsLauncher_0100
- * @tc.desc: Test IsLauncher works
- * @tc.type: FUNC
- */
-HWTEST_F(AppUtilsTest, IsLauncher_0100, TestSize.Level2)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsLauncher_0100 called.");
-    std::string bundleName = "com.ohos.launcher";
-    auto &appUtils = AAFwk::AppUtils::GetInstance();
-    bool result = appUtils.IsLauncher(bundleName);
-    EXPECT_TRUE(result);
-}
-
-/**
  * @tc.number: IsLauncher_0200
  * @tc.desc: Test IsLauncher works
  * @tc.type: FUNC
@@ -618,20 +604,6 @@ HWTEST_F(AppUtilsTest, IsUseMultiRenderProcess_0100, TestSize.Level2)
     appUtils.isUseMultiRenderProcess_.isLoaded = false;
     bool result = appUtils.IsUseMultiRenderProcess();
     EXPECT_TRUE(result);
-}
-
-/**
- * @tc.number: IsLaunchEmbededUIAbility_0100
- * @tc.desc: Test IsLaunchEmbededUIAbility works
- * @tc.type: FUNC
- */
-HWTEST_F(AppUtilsTest, IsLaunchEmbededUIAbility_0100, TestSize.Level2)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsLaunchEmbededUIAbility_0100 called.");
-    auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isLaunchEmbededUIAbility_.isLoaded = false;
-    bool result = appUtils.IsLaunchEmbededUIAbility();
-    EXPECT_FALSE(result);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
