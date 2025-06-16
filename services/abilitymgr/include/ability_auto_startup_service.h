@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,19 +140,24 @@ private:
     void CleanResource(const wptr<IRemoteObject> &remote);
     std::string GetSelfApplicationBundleName();
     bool CheckSelfApplication(const std::string &bundleName);
-    bool GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, int32_t uid,
-        int32_t &userId, int32_t appIndex);
-    bool GetAbilityData(const AutoStartupInfo &info, bool &isVisible,
-        std::string &abilityTypeName, std::string &accessTokenId, int32_t &userId);
-    std::string GetAbilityTypeName(AppExecFwk::AbilityInfo abilityInfo);
-    std::string GetExtensionTypeName(AppExecFwk::ExtensionAbilityInfo extensionInfo);
+    int32_t GetUserIdByUid(int32_t uid);
+    bool GetBundleInfo(
+        const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, int32_t userId, int32_t appIndex);
+    bool GetAbilityData(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
+    bool IsTargetAbility(const AutoStartupInfo &info, const AppExecFwk::AbilityInfo &abilityInfo);
+    bool IsTargetExtension(const AutoStartupInfo &info, const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
+    bool QueryCurrentUserAbilityData(
+        const AutoStartupInfo &info, int32_t currentUserId, AutoStartupAbilityData &abilityData);
+    bool QueryU1UserAbilityData(
+        const AutoStartupInfo &info, int32_t currentUserId, AutoStartupAbilityData &abilityData);
+    std::string GetAbilityTypeName(const AppExecFwk::AbilityInfo &abilityInfo);
+    std::string GetExtensionTypeName(const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
     std::shared_ptr<AppExecFwk::BundleMgrClient> GetBundleMgrClient();
     int32_t CheckPermissionForSystem();
     int32_t CheckPermissionForSelf(const std::string &bundleName);
     int32_t CheckPermissionForEDM();
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
-    int32_t GetAbilityInfo(const AutoStartupInfo &info, std::string &abilityTypeName,
-        std::string &accessTokenId, int32_t &userId);
+    int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
     void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
 
     mutable std::mutex autoStartUpMutex_;

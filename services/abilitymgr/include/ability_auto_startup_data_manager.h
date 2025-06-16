@@ -57,6 +57,8 @@ private:
     DistributedKv::Key ConvertAutoStartupDataToKey(const AutoStartupInfo &info);
     AutoStartupInfo ConvertAutoStartupInfoFromKeyAndValue(
         const DistributedKv::Key &key, const DistributedKv::Value &value);
+    void ConvertAutoStartupInfoFromKey(const DistributedKv::Key &key, AutoStartupInfo &info);
+    void ConvertAutoStartupInfoFromValue(const DistributedKv::Value &value, AutoStartupInfo &info);
     bool IsEqual(const DistributedKv::Key &key, const AutoStartupInfo &info);
     bool IsEqual(const DistributedKv::Key &key, const std::string &accessTokenId);
     bool IsEqual(const DistributedKv::Key &key, int32_t userId);
