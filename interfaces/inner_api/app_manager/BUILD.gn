@@ -45,6 +45,8 @@ idl_gen_interface("appmgr_innerkits") {
   sources = [
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
+	"idl/IKiaInterceptor.idl",
+    "idl/IQuickFixCallback.idl",
     "idl/IRenderStateObserver.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
   ]
@@ -203,8 +205,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/configuration_observer_stub.cpp",
     "src/appmgr/configuration_policy.cpp",
     "src/appmgr/fault_data.cpp",
-    "src/appmgr/kia_interceptor_proxy.cpp",
-    "src/appmgr/kia_interceptor_stub.cpp",
     "src/appmgr/killed_process_info.cpp",
     "src/appmgr/memory_level_info.cpp",
     "src/appmgr/native_child_notify_proxy.cpp",
@@ -215,8 +215,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/process_info.cpp",
     "src/appmgr/process_memory_state.cpp",
     "src/appmgr/profile.cpp",
-    "src/appmgr/quick_fix_callback_proxy.cpp",
-    "src/appmgr/quick_fix_callback_stub.cpp",
     "src/appmgr/render_process_info.cpp",
     "src/appmgr/render_scheduler_host.cpp",
     "src/appmgr/render_scheduler_proxy.cpp",
