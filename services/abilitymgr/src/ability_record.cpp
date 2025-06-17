@@ -3865,6 +3865,12 @@ void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, co
     lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
 }
 
+void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilitiesRequestDone(startTime, resultCode);
+}
+
 void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
 {
     if (!UIExtensionUtils::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {

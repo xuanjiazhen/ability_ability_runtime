@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+using OnAbilitiesResponseCallback = std::function<void(const std::string&, const int32_t)>;
 /**
  * @brief context supply for service
  *
@@ -122,6 +123,12 @@ public:
 
     ErrCode StartAbilityWithAccount(
         const AAFwk::Want &want, int accountId, const AAFwk::StartOptions &startOptions) const;
+    
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList) const;
+
+    ErrCode OnAbilitiesRequestResponse(const std::string &startTime, const int32_t resultCode) const;
+
+    ErrCode AddAbiltiesCallback(const std::string &startTime, OnAbilitiesResponseCallback callback) const;
 
     ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) const;
 

@@ -1294,5 +1294,35 @@ void AbilitySchedulerProxy::ScheduleAbilityRequestSuccess(const std::string &req
     }
     return;
 }
+
+void AbilitySchedulerProxy::ScheduleAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
+        return;
+    }
+
+    auto msgKey = AbilityRuntime::ErrorMgsUtil::BuildErrorKey(reinterpret_cast<uintptr_t>(this),
+        "ScheduleAbilitiesRequestDone");
+    if (!data.WriteString(startTime)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write startTime failed");
+        AbilityRuntime::ErrorMgsUtil::GetInstance().UpdateErrorMsg(msgKey, "write startTime failed");
+        return;
+    }
+    if (!data.WriteInt32(resultCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write resultCode failed");
+        AbilityRuntime::ErrorMgsUtil::GetInstance().UpdateErrorMsg(msgKey, "write resultCode failed");
+        return;
+    }
+
+    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_ABILITIES_REQUEST_DONE, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+    }
+    return;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

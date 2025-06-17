@@ -22,6 +22,7 @@
 #include "service_extension_context.h"
 #include "event_handler.h"
 #include "js_free_install_observer.h"
+#include "js_start_abilities_observer.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {

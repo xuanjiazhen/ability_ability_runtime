@@ -82,6 +82,7 @@ private:
     int CollaborateDataInner(MessageParcel &data);
     int ScheduleAbilityRequestFailureInner(MessageParcel &data);
     int ScheduleAbilityRequestSuccessInner(MessageParcel &data);
+    int ScheduleAbilitiesRequestDoneInner(MessageParcel &data);
 };
 
 /**

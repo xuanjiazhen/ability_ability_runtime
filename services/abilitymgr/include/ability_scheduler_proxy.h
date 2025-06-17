@@ -338,6 +338,7 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
 
+    void ScheduleAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode) override;
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

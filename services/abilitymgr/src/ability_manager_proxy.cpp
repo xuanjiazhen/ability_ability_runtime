@@ -497,6 +497,56 @@ int AbilityManagerProxy::StartAbilityForResultAsCaller(const Want &want, const S
     return reply.ReadInt32();
 }
 
+ErrCode AbilityManagerProxy::StartAbilities(const std::vector<AAFwk::Want> &wantList,
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return INVALID_CALLER_TOKEN;
+    }
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    int32_t size = static_cast<int32_t>(wantList.size());
+    int32_t threshold = 4;
+    if (size > threshold) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "vector too large");
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
+    }
+    if (!data.WriteInt32(size)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write size fail");
+        return ERR_WRITE_SIZE_FAILED;
+    }
+    for (const Want &item : wantList) {
+        if (!data.WriteParcelable(&item)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write want fail");
+            return ERR_WRITE_WANT;
+        }
+    }
+
+    if (!data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken fail");
+        return ERR_WRITE_CALLER_TOKEN_FAILED;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return ERR_WRITE_USER_ID_FAILED;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::START_ABILITIES, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int AbilityManagerProxy::CheckUISessionParams(MessageParcel &data, const sptr<IRemoteObject> &callerToken,
     const sptr<SessionInfo> &sessionInfo, int32_t userId, int requestCode)
 {

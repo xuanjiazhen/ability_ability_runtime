@@ -215,5 +215,12 @@ void LifecycleDeal::NotifyAbilityRequestSuccess(const std::string &requestId, co
     CHECK_POINTER(abilityScheduler);
     abilityScheduler->ScheduleAbilityRequestSuccess(requestId, element);
 }
+
+void LifecycleDeal::NotifyAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode)
+{
+    auto abilityScheduler = GetScheduler();
+    CHECK_POINTER(abilityScheduler);
+    abilityScheduler->ScheduleAbilitiesRequestDone(startTime, resultCode);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

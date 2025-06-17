@@ -1181,6 +1181,8 @@ public:
 
     void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
 
+    void NotifyAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode);
+
     void ScheduleCollaborate(const Want &want);
 
     bool IsHook () const

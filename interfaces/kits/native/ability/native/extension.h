@@ -191,6 +191,8 @@ public:
     
     virtual void OnConfigurationUpdated(const AppExecFwk::Configuration& configuration);
 
+    virtual void OnAbilitiesRequestResponse(const std::string &startTime, const int32_t resultCode);
+
     /**
      * @brief Notify current memory level.
      *

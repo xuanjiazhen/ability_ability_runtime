@@ -91,5 +91,16 @@ void ServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateGlobalConfig(configuration, context->GetResourceManager());
 }
+
+void ServiceExtension::OnAbilitiesRequestResponse(const std::string &startTime, const int32_t resultCode)
+{
+    Extension::OnAbilitiesRequestResponse(startTime, resultCode);
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
+        return;
+    }
+    context->OnAbilitiesRequestResponse(startTime, resultCode);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -202,6 +202,8 @@ protected:
      */
     void Background(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo);
 
+    void ScheduleAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode);
+
 private:
     inline bool UIExtensionAbilityExecuteInsightIntent(const Want &want);
 

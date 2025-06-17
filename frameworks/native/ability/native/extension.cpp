@@ -152,6 +152,11 @@ void Extension::OnConfigurationUpdated(const AppExecFwk::Configuration &configur
     TAG_LOGD(AAFwkTag::EXT, "call");
 }
 
+void Extension::OnAbilitiesRequestResponse(const std::string &startTime, const int32_t resultCode)
+{
+    TAG_LOGD(AAFwkTag::EXT, "call");
+}
+
 void Extension::OnMemoryLevel(int level)
 {
     TAG_LOGD(AAFwkTag::EXT, "call");

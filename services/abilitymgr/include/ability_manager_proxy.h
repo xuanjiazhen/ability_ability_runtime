@@ -217,6 +217,17 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * @brief start abilities simultaneously.
+     *
+     * @param wantList a list of want to start abilities.
+     * @param callerToken current caller ability token.
+     * @param userId, Designation User ID.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList,
+        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
      * Start ui session ability with extension session info, send session info to ability manager service.
      *
      * @param want, the want of the ability to start.

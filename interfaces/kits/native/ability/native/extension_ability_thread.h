@@ -215,6 +215,8 @@ private:
     void HandleAttachInner(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord);
 
+    void ScheduleAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode);
+
     /**
      * @brief Handle the current command of Extension.
      * @param want The Want object to command to.

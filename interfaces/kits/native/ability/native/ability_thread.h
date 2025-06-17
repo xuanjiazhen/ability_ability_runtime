@@ -364,6 +364,8 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
 
+    void ScheduleAbilitiesRequestDone(const std::string &startTime, const int32_t resultCode) override;
+
     sptr<IRemoteObject> token_;
     std::shared_ptr<AbilityHandler> abilityHandler_ = nullptr;
     std::shared_ptr<EventRunner> runner_ = nullptr;

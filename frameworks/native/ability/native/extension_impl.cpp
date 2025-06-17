@@ -499,6 +499,19 @@ void ExtensionImpl::Background(const Want &want, sptr<AAFwk::SessionInfo> sessio
     lifecycleState_ = AAFwk::ABILITY_STATE_BACKGROUND_NEW;
 }
 
+void ExtensionImpl::ScheduleAbilitiesRequestDone(const std::string &startTime,
+    const int32_t resultCode)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::EXT, "ScheduleAbilitiesRequestDone");
+    if (extension_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extension_");
+        return;
+    }
+
+    extension_->OnAbilitiesRequestResponse(startTime, resultCode);
+}
+
 void ExtensionImpl::ExtensionWindowLifeCycleImpl::AfterForeground()
 {
     TAG_LOGD(AAFwkTag::EXT, "called");

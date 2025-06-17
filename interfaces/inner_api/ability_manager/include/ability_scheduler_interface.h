@@ -312,6 +312,9 @@ public:
     virtual void ScheduleAbilityRequestSuccess(const std::string &requestId,
         const AppExecFwk::ElementName &element) = 0;
 
+    virtual void ScheduleAbilitiesRequestDone(const std::string &startTime,
+        const int32_t resultCode) = 0;
+
     enum {
         // ipc id for scheduling ability to a state of life cycle
         SCHEDULE_ABILITY_TRANSACTION = 0,
@@ -413,7 +416,9 @@ public:
 
         SCHEDULE_ABILITY_REQUEST_FAILURE,
 
-        SCHEDULE_ABILITY_REQUEST_SUCCESS
+        SCHEDULE_ABILITY_REQUEST_SUCCESS,
+
+        SCHEDULE_ABILITIES_REQUEST_DONE,
     };
 };
 }  // namespace AAFwk

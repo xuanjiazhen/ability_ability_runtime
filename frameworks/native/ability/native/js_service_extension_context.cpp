@@ -45,6 +45,7 @@ constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
+constexpr int32_t INDEX_FOUR = 4;
 constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr size_t ARGC_ZERO = 0;
@@ -127,6 +128,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartAbilityWithAccount);
     }
 
+    napi_value JsAbilityContext::StartAbilities(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartAbilities);
+    }
+
     static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnConnectAbilityWithAccount);
@@ -190,6 +196,7 @@ public:
 private:
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
+    sptr<JsStartAbilitiesObserver> startAbilitiesObserver_ = nullptr;
     static void ClearFailedCallConnection(
         const std::weak_ptr<ServiceExtensionContext>& serviceContext, const std::shared_ptr<CallerCallBack> &callback)
     {
@@ -741,6 +748,95 @@ private:
         }
         ++unwrapArgc;
         return true;
+    }
+
+    napi_value OnStartAbilities(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilitiesLog call JsAbilityContext::OnStartAbilities");
+        //入参不止一个 抛出错误
+        if (info.argc != ARGC_ONE) {
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilitiesLog info.argc != ARGC_ONE");
+            ThrowInvalidNumParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        AppExecFwk::ComplexArrayData jsWantList;
+        if (!AppExecFwk::UnwrapArrayComplexFromJS(env, info.argv[INDEX_ZERO], jsWantList)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "startAbilitiesLog wantList not array.");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+            return CreateJsUndefined(env);
+        }
+
+        size_t jsWantSize = jsWantList.objectList.size();
+        if (jsWantSize < INDEX_ONE || jsWantSize > INDEX_FOUR) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "startAbilitiesLog wantList size not support");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+            return CreateJsUndefined(env);
+        }
+
+        std::vector<AAFwk::Want> wantList;
+        std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+            system_clock::now().time_since_epoch()).count());
+        for (uint32_t index = 0; index < jsWantSize; index++) {
+            AAFwk::Want curWant;
+            // 元素不是want或解析失败 抛出错误
+            if (!OHOS::AppExecFwk::UnwrapWant(env, jsWantList.objectList[index], curWant)) {
+                TAG_LOGE(AAFwkTag::SERVICE_EXT, "startAbilitiesLog parse want failed");
+                ThrowInvalidParamError(env, "Parse want failed, wantList members must be Want.");
+                return CreateJsUndefined(env);
+            }
+            InheritWindowMode(curWant);
+            curWant.SetParam(Want::PARAM_RESV_START_TIME, startTime);
+            TAG_LOGD(AAFwkTag::SERVICE_EXT, "startAbilitiesLog ability:%{public}s",
+                curWant.GetElement().GetAbilityName().c_str());
+            wantList.emplace_back(curWant);
+        }
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilitiesLog wantListLength: %{public}zu", wantList.size());
+
+        napi_value result = nullptr;
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        AddStartAbilitiesObserver(env, startTime, &result);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, wantList, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->StartAbilities(wantList);
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities execute innerErrCode: %{public}d", *innerErrCode);
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode, startTime, weak = context_
+            observer = startAbilitiesObserver_](napi_env env, NapiAsyncTask& task, int32_t status) {
+                TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities complete innerErrCode: %{public}d", *innerErrCode);
+                // 收到此返回码，不resolve，等待specified回调
+                if (*innerErrCode == START_ABILITIES_WAITTING_SPECIFIED_CODE)  {
+                    TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities waiting specified.");
+                    return;
+                }
+                // 非此返回码，处理startAbilities完成
+                if (observer != nullptr) {
+                    TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities handle innerErrCode");
+                    observer->OnStartAbilitiesFinished(startTime, *innerErrCode);
+                    return
+                }
+                TAG_LOGE(AAFwkTag::SERVICE_EXT, "startAbilitiesObserver nullptr");
+        };
+
+        NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilities", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
+
+        return result;
+    }
+    //ability_context.js --> js_ability_context.cpp --> ability_context_impl.cpp --> ability_manager_client --> ability_manager_proxy --> IPC --> ability_manager_stub --> ability_manager_service --> SCB
+    void AddStartAbilitiesObserver(napi_env env, std::string startTime, napi_value *result)
+    {
+        TAG_LOGD(AAFwkTag::SERVICE_EXT, "called AddStartAbilitiesObserver");
+        if (startAbilitiesObserver_ == nullptr) {
+            startAbilitiesObserver_  = std::make_shared<JsStartAbilitiesObserver>(env);
+        }
+        startAbilitiesObserver_->AddJsObserverObject(startTime, result);
     }
 
     bool CheckConnectAbilityWithAccountInputParam(
@@ -1404,6 +1500,7 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
         moduleName, JsServiceExtensionContext::DisconnectAbility);
     BindNativeFunction(env, object, "startAbilityWithAccount",
         moduleName, JsServiceExtensionContext::StartAbilityWithAccount);
+    BindNativeFunction(env, object, "startAbilities", moduleName, JsServiceExtensionContext::StartAbilities);
     BindNativeFunction(env, object, "startAbilityByCall",
         moduleName, JsServiceExtensionContext::StartAbilityByCall);
     BindNativeFunction(

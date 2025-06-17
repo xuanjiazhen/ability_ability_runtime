@@ -82,6 +82,8 @@ public:
      */
     void OnConfigurationUpdated(const AppExecFwk::Configuration &configuration) override;
 
+    void OnAbilitiesRequestResponse(const std::string &startTime, const int32_t resultCode) override;
+
 private:
     static CreatorFunc creator_;
 };

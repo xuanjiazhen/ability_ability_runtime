@@ -20,6 +20,7 @@
 
 #include "ui_extension_context.h"
 #include "js_free_install_observer.h"
+#include "js_start_abilities_observer.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
@@ -40,6 +41,7 @@ public:
     static napi_value CreateJsUIExtensionContext(napi_env env, std::shared_ptr<UIExtensionContext> context);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResultAsCaller(napi_env env, napi_callback_info info);
+    static napi_value StartAbilities(napi_env env, napi_callback_info info);
     static napi_value ConnectAbility(napi_env env, napi_callback_info info);
     static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
     static napi_value ReportDrawnCompleted(napi_env env, napi_callback_info info);
@@ -60,6 +62,7 @@ protected:
     virtual napi_value OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResultAsCaller(napi_env env, NapiCallbackInfo &info);
+    virtual napi_value OnStartAbilities(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info);
@@ -85,6 +88,7 @@ protected:
     std::weak_ptr<UIExtensionContext> context_;
 private:
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
+    sptr<JsStartAbilitiesObserver> startAbilitiesObserver_ = nullptr;
     friend class JsEmbeddableUIAbilityContext;
 
     bool CheckStartAbilityInputParam(napi_env env, NapiCallbackInfo& info, AAFwk::Want& want,

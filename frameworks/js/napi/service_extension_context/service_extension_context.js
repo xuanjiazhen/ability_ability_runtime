@@ -79,6 +79,11 @@ class ServiceExtensionContext extends ExtensionContext {
     return this.__context_impl__.startServiceExtensionAbilityWithAccount(want, accountId, callback);
   }
 
+  startAbilities(wantList) {
+    hilog.sLogI(domainID, TAG, 'startAbilities');
+    return this.__context_impl__.startAbilities(wantList);
+  }
+
   stopServiceExtensionAbility(want, callback) {
     hilog.sLogI(domainID, TAG, 'stopServiceExtensionAbility');
     return this.__context_impl__.stopServiceExtensionAbility(want, callback);
