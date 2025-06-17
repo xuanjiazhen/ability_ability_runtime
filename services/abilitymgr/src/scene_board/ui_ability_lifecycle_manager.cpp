@@ -941,14 +941,12 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const std::shared_ptr<Ability
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             sessionAbilityMap_.erase(iter);
-            AbilityRecordDeathManager::GetInstance().AddRecordToDeadList(abilityRecord);
             break;
         }
     }
     for (auto iter = lowMemKillAbilityMap_.begin(); iter != lowMemKillAbilityMap_.end(); iter++) {
         if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             lowMemKillAbilityMap_.erase(iter);
-            AbilityRecordDeathManager::GetInstance().AddRecordToDeadList(abilityRecord);
             break;
         }
     }
@@ -2030,7 +2028,7 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
     if (abilityRecord->GetAbilityState() == AbilityState::BACKGROUNDING) {
         taskHandler->CancelTask("background_" + std::to_string(abilityRecord->GetAbilityRecordId()));
     }
-
+    AbilityRecordDeathManager::GetInstance().AddRecordToDeadList(abilityRecord);
     terminateAbilityList_.push_back(abilityRecord);
     abilityRecord->SetAbilityState(AbilityState::TERMINATING);
     if (abilityRecord->GetKillForPermissionUpdateFlag()) {
