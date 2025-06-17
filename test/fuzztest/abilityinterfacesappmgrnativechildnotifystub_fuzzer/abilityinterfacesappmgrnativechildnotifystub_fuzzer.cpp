@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,8 +20,8 @@
 
 #define private public
 #define protected public
+#include "inative_child_notify.h"
 #include "native_child_notify_stub.h"
-#include "native_child_notify_interface.h"
 #undef protected
 #undef private
 
@@ -58,9 +58,18 @@ public:
     virtual ~ NativeChildNotifyStubFUZZ() {};
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override{ return 0; };
-    void OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild) override{};
-    void OnError(int32_t errCode) override{};
-    int32_t OnNativeChildExit(int32_t pid, int32_t signal) override{ return 0; };
+    ErrCode OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild) override
+   {
+        return ERR_OK;
+    }
+    ErrCode OnError(int32_t errCode) override
+    {
+        return ERR_OK;
+    }
+    ErrCode OnNativeChildExit(int32_t pid, int32_t signal) override
+    {
+        return ERR_OK;
+    }
 };
 
 sptr<Token> GetFuzzAbilityToken()
@@ -79,7 +88,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = static_cast<uint32_t>(INativeChildNotify::IPC_ID_ON_NATIVE_CHILD_STARTED);
+    uint32_t code = static_cast<uint32_t>(INativeChildNotifyIpcCode::COMMAND_ON_NATIVE_CHILD_STARTED);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(NATIVE_CHILD_NOTIFY_TOKEN);
     parcel.WriteBuffer(data, size);
@@ -88,7 +97,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     MessageOption option;
     std::shared_ptr<NativeChildNotifyStubFUZZ> abms = std::make_shared<NativeChildNotifyStubFUZZ>();
     abms->OnRemoteRequest(code, parcel, reply, option);
-    code = static_cast<uint32_t>(INativeChildNotify::IPC_ID_ON_ERROR);
+    code = static_cast<uint32_t>(INativeChildNotifyIpcCode::COMMAND_ON_ERROR);
     abms->OnRemoteRequest(code, parcel, reply, option);
     return true;
 }

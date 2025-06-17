@@ -61,6 +61,7 @@
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "inative_child_notify.h"
 #include "iremote_object.h"
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
@@ -82,7 +83,6 @@
 #include "running_multi_info.h"
 #include "multi_user_config_mgr.h"
 #include "iuser_callback.h"
-#include "native_child_notify_interface.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
