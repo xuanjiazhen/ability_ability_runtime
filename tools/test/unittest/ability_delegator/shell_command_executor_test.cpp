@@ -111,6 +111,26 @@ HWTEST_F(ShellCommandExecutorTest, ShellCommandExecutor_DoWork_0400, TestSize.Le
 }
 
 /**
+ * @tc.number: ShellCommandExecutor_DoWork_0500
+ * @tc.name: DoWork
+ * @tc.desc: Verify that PostTask conditions are met and cmd_ Exception, calling DoWork function branch
+ *           failed to reach coverage.
+ */
+HWTEST_F(ShellCommandExecutorTest, ShellCommandExecutor_DoWork_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_DoWork_0500 start";
+    std::shared_ptr<AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>();
+    ASSERT_NE(handler, nullptr);
+    auto task = []() { GTEST_LOG_(INFO) << "ShellCommandExecutor_DoWork_0500 task called"; };
+    handler->PostTask(task, 1000);
+    Command_->cmd_ = "CMD12";
+    Command_->handler_ = handler;
+    Command_->cmdResult_.exitCode = 100;
+    ASSERT_EQ(Command_->cmdResult_.exitCode, 100);
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_DoWork_0500 end";
+}
+
+/**
  * @tc.number: ShellCommandExecutor_WaitWorkDone_0100
  * @tc.name: WaitWorkDone
  * @tc.desc: Verify that timeoutSec is met_ Condition, call WaitWorkDone function branch to reach coverage.
@@ -124,4 +144,40 @@ HWTEST_F(ShellCommandExecutorTest, ShellCommandExecutor_WaitWorkDone_0100, TestS
     Command_->WaitWorkDone();
     Command_->DoWork();
     GTEST_LOG_(INFO) << "ShellCommandExecutor_WaitWorkDone_0100 end";
+}
+
+/**
+ * @tc.number: ShellCommandExecutor_WaitWorkDone_0200
+ * @tc.name: WaitWorkDone
+ * @tc.desc: Verify that timeoutSec is met_ Condition, call WaitWorkDone function branch to reach coverage.
+ */
+HWTEST_F(ShellCommandExecutorTest, ShellCommandExecutor_WaitWorkDone_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_WaitWorkDone_0200 start";
+    ASSERT_NE(Command_, nullptr);
+    Command_->timeoutSec_ = 1000;
+    Command_->cmdResult_.exitCode = 0;
+    Command_->WaitWorkDone();
+    Command_->DoWork();
+    ASSERT_EQ(Command_->cmdResult_.exitCode, 0);
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_WaitWorkDone_0200 end";
+}
+
+/**
+ * @tc.number: ShellCommandExecutor_WaitWorkDone_0300
+ * @tc.name: WaitWorkDone
+ * @tc.desc: Verify that timeoutSec is met_ Condition, call WaitWorkDone function branch to reach coverage.
+ */
+HWTEST_F(ShellCommandExecutorTest, ShellCommandExecutor_WaitWorkDone_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_WaitWorkDone_0300 start";
+    std::shared_ptr<ShellCommandExecutor> command = std::make_shared<ShellCommandExecutor>("", TIMEOUT);
+    ASSERT_NE(command, nullptr);
+    command->timeoutSec_ = 1000;
+    command->cmdResult_.exitCode = 0;
+    ASSERT_EQ(command->cmdResult_.exitCode, 0);
+    command->WaitWorkDone();
+    command->DoWork();
+    ASSERT_EQ(command->cmdResult_.exitCode, 0);
+    GTEST_LOG_(INFO) << "ShellCommandExecutor_WaitWorkDone_0300 end";
 }

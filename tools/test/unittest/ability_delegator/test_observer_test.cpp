@@ -137,3 +137,15 @@ HWTEST_F(TestObserverTest, Test_Observer_Test_0500, Function | MediumTest | Leve
     ASSERT_NE(observer, nullptr);
     observer->TestStatus(MSG.c_str(), RESULT_CODE);
 }
+
+/**
+ * @tc.number: Test_Observer_Test_GetNowSysTime_0100
+ * @tc.name: TestStatus
+ * @tc.desc: Verify the TestStatus.
+ */
+HWTEST_F(TestObserverTest, Test_Observer_Test_GetNowSysTime_0100, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test_Observer_Test_GetNowSysTime_0100 is called");
+    int64_t nowTime = SystemTime::GetNowSysTime();
+    ASSERT_NE(nowTime, 0);
+}
