@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,6 +47,11 @@ void MissionListenerProxy::OnMissionFocused(int32_t missionId)
 void MissionListenerProxy::OnMissionUnfocused(int32_t missionId)
 {
     SendRequestCommon(missionId, IMissionListener::ON_MISSION_UNFOCUSED);
+}
+
+void MissionListenerProxy::OnMissionBackground(int32_t missionId)
+{
+    SendRequestCommon(missionId, IMissionListener::ON_MISSION_BACKGROUND);
 }
 
 #ifdef SUPPORT_SCREEN
