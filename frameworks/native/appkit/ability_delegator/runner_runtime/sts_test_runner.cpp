@@ -128,7 +128,7 @@ void STSTestRunner::Prepare()
             return;
         }
         if (env->ResetError() != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed");
+            TAG_LOGE(AAFwkTag::DELEGATOR, "ResetError failed");
         }
         ani_method method;
         ani_status status = ANI_ERROR;
@@ -160,7 +160,7 @@ void STSTestRunner::Run()
             return;
         }
         if (env->ResetError() != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed");
+            TAG_LOGE(AAFwkTag::DELEGATOR, "ResetError failed");
         }
         ani_method method;
         ani_status status = ANI_ERROR;

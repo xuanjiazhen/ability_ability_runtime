@@ -151,22 +151,22 @@ std::shared_ptr<STSNativeReference> StsUIExtension::LoadModule(ani_env *env)
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->FindClass(UIEXTENSION_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
 
     ani_method entryMethod = nullptr;
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &entryMethod)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
 
     ani_object entryObject = nullptr;
     if ((status = env->Object_New(cls, entryMethod, &entryObject)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
 
     ani_ref entryObjectRef = nullptr;
     if ((status = env->GlobalReference_Create(entryObject, &entryObjectRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
     stsNativeReference->aniCls = cls;
     stsNativeReference->aniObj = entryObject;
@@ -205,19 +205,19 @@ void StsUIExtension::BindContext(ani_env*env, std::shared_ptr<AAFwk::Want> want,
     ani_field contextField;
     auto status = env->Class_FindField(stsObj_->aniCls, "context", &contextField);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         ResetEnv(env);
         return;
     }
 
     ani_ref contextRef = nullptr;
     if ((status = env->GlobalReference_Create(contextObj, &contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
 
     if ((status = env->Object_SetField_Ref(stsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         ResetEnv(env);
     }
 }

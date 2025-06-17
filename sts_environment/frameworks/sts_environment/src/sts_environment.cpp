@@ -65,18 +65,18 @@ bool STSEnvironment::LoadBootPathFile(std::string& bootfiles)
     std::ifstream inFile;
     inFile.open(BOOT_PATH, std::ios::in);
     if (!inFile.is_open()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "read json error");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "read json error");
         return false;
     }
     nlohmann::json jsonObject = nlohmann::json::parse(inFile);
     if (jsonObject.is_discarded()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "json discarded error");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "json discarded error");
         inFile.close();
         return false;
     }
 
     if (jsonObject.is_null() || jsonObject.empty()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "invalid json");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "invalid json");
         inFile.close();
         return false;
     }
@@ -85,7 +85,7 @@ bool STSEnvironment::LoadBootPathFile(std::string& bootfiles)
       if (!value.is_null() && value.is_string()) {
             std::string jsonValue = value.get<std::string>();
             if (jsonValue.empty()) {
-                TAG_LOGE(AAFwkTag::STSRUNTIME, "json value of %{public}s is empty", key.c_str());
+                TAG_LOGE(AAFwkTag::ETSRUNTIME, "json value of %{public}s is empty", key.c_str());
                 continue;
             }
             if (!bootfiles.empty()) {
@@ -109,7 +109,7 @@ bool STSEnvironment::LoadRuntimeApis()
     dlns_get(STSEnvironment::stsSDKNSName, &ns);
     auto dso = DynamicLoadLibrary(&ns, STS_LIB_PATH, 1);
     if (!dso) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "load library failed: %{public}s", STS_LIB_PATH);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "load library failed: %{public}s", STS_LIB_PATH);
         return false;
     }
 
@@ -117,7 +117,7 @@ bool STSEnvironment::LoadRuntimeApis()
 	    !LoadSymbolGetCreatedVMs(dso, lazyApis_) ||
         !LoadSymbolCreateVM(dso, lazyApis_) ||
         !LoadSymbolANIGetCreatedVMs(dso, lazyApis_)) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "load symbol failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "load symbol failed");
         return false;
     }
 
@@ -150,7 +150,7 @@ std::string STSEnvironment::GetBuildId(std::string stack)
 
 void STSEnvironment::RegisterUncaughtExceptionHandler(const STSUncaughtExceptionInfo& handle)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     uncaughtExceptionInfo_ = handle;
 }
 
@@ -163,7 +163,7 @@ bool STSEnvironment::LoadSymbolGetDefaultVMInitArgs(void* handle, STSRuntimeAPI&
 {
     auto symbol = dlsym(handle, STS_GET_DEFAULT_VM_INIT_ARGS);
     if (symbol == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", STS_GET_DEFAULT_VM_INIT_ARGS);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "runtime api not found: %{public}s", STS_GET_DEFAULT_VM_INIT_ARGS);
         return false;
     }
     apis.ETS_GetDefaultVMInitArgs = reinterpret_cast<GetDefaultVMInitArgsSTSRuntimeType>(symbol);
@@ -175,7 +175,7 @@ bool STSEnvironment::LoadSymbolGetCreatedVMs(void* handle, STSRuntimeAPI& apis)
 {
     auto symbol = dlsym(handle, STS_GET_CREATED_VMS);
     if (symbol == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", STS_GET_CREATED_VMS);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "runtime api not found: %{public}s", STS_GET_CREATED_VMS);
         return false;
     }
     apis.ETS_GetCreatedVMs = reinterpret_cast<GetCreatedVMsSTSRuntimeType>(symbol);
@@ -187,7 +187,7 @@ bool STSEnvironment::LoadSymbolCreateVM(void* handle, STSRuntimeAPI& apis)
 {
     auto symbol = dlsym(handle, STS_CREATE_VM);
     if (symbol == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", STS_CREATE_VM);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "runtime api not found: %{public}s", STS_CREATE_VM);
         return false;
     }
     apis.ANI_CreateVM = reinterpret_cast<CreateVMSTSRuntimeType>(symbol);
@@ -199,7 +199,7 @@ bool STSEnvironment::LoadSymbolANIGetCreatedVMs(void* handle, STSRuntimeAPI& api
 {
     auto symbol = dlsym(handle, STS_ANI_GET_CREATEDVMS);
     if (symbol == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "runtime api not found: %{public}s", STS_ANI_GET_CREATEDVMS);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "runtime api not found: %{public}s", STS_ANI_GET_CREATEDVMS);
         return false;
     }
     apis.ANI_GetCreatedVMs = reinterpret_cast<ANIGetCreatedVMsType>(symbol);
@@ -209,7 +209,7 @@ bool STSEnvironment::LoadSymbolANIGetCreatedVMs(void* handle, STSRuntimeAPI& api
 
 void STSEnvironment::InitSTSChipSDKNS(const ::std::string& path)
 {
-    LOGI("InitSTSChipSDKNS: %{public}s", path.c_str());
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitSTSChipSDKNS: %{public}s", path.c_str());
     Dl_namespace chip_ndk;
     DynamicInitNamespace(&chip_ndk, nullptr, path.c_str(), STSEnvironment::stsChipSDKNSName);
 
@@ -223,7 +223,7 @@ void STSEnvironment::InitSTSChipSDKNS(const ::std::string& path)
 
 void STSEnvironment::InitSTSAppNS(const std::string& path)
 {
-    LOGI("InitSTSAppNS: %{public}s", path.c_str());
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitSTSAppNS: %{public}s", path.c_str());
     Dl_namespace ndk;
     Dl_namespace ns;
     DynamicInitNamespace(&ns, nullptr, path.c_str(), STSEnvironment::stsAppNSName);
@@ -237,7 +237,7 @@ void STSEnvironment::InitSTSAppNS(const std::string& path)
 
 void STSEnvironment::InitSTSSDKNS(const std::string& path)
 {
-    LOGI("InitSTSSDKNS: %{public}s", path.c_str());
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitSTSSDKNS: %{public}s", path.c_str());
     Dl_namespace sts_app;
     Dl_namespace ns;
     dlns_get(STSEnvironment::stsAppNSName, &sts_app);
@@ -246,7 +246,7 @@ void STSEnvironment::InitSTSSDKNS(const std::string& path)
 
 void STSEnvironment::InitSTSSysNS(const std::string& path)
 {
-    LOGI("InitSTSSysNS: %{public}s", path.c_str());
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitSTSSysNS: %{public}s", path.c_str());
     Dl_namespace sts_sdk;
     Dl_namespace ndk;
     Dl_namespace ns;
@@ -258,24 +258,24 @@ void STSEnvironment::InitSTSSysNS(const std::string& path)
 
 bool STSEnvironment::StartRuntime(std::vector<ani_option>& options)
 {
-    TAG_LOGE(AAFwkTag::STSRUNTIME, "StartRuntime call");
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "StartRuntime call");
     if (isRuntimeStarted_) {
         return true;
     }
     if (!LoadRuntimeApis()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadRuntimeApis failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadRuntimeApis failed");
         return false;
     }
     std::string bootfiles;
     if (!LoadBootPathFile(bootfiles)) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "LoadBootPathFile failed");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadBootPathFile failed");
         return false;
     }
 
     const std::string optionPrefix = "--ext:";
     // Create boot-panda-files options
     std::string bootString = optionPrefix + "--boot-panda-files=" + bootfiles;
-    TAG_LOGI(AAFwkTag::STSRUNTIME, "bootString %{public}s", bootString.c_str());
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "bootString %{public}s", bootString.c_str());
     options.push_back(ani_option{bootString.c_str(), nullptr});
 
     std::string forbiddenJIT = optionPrefix + "--compiler-enable-jit=false";
@@ -291,7 +291,7 @@ bool STSEnvironment::StartRuntime(std::vector<ani_option>& options)
     ani_options optionsPtr = {options.size(), options.data()};
     auto status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.ani_vm);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "ANI_CreateVM failed %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "ANI_CreateVM failed %{public}d", status);
         return false;
     }
     ani_size nrVMs;
@@ -377,7 +377,7 @@ void STSEnvironment::DeInitLoop()
 
 bool STSEnvironment::ReInitUVLoop()
 {
-    LOGI("ReInitUVLoop");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "ReInitUVLoop called");
     if (impl_ != nullptr) {
         return impl_->ReInitUVLoop();
     }
@@ -386,7 +386,7 @@ bool STSEnvironment::ReInitUVLoop()
 
 void STSEnvironment::ReInitStsEnvImpl(std::unique_ptr<StsEnvironmentImpl> impl)
 {
-    LOGI("ReInit stsenv impl");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "ReInitStsEnvImpl called");
     impl_ = std::move(impl);
 }
 
@@ -404,14 +404,14 @@ ani_env* STSEnvironment::GetAniEnv()
 
 void STSEnvironment::HandleUncaughtError()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     const StsEnv::STSErrorObject errorObj = GetSTSErrorObject();
     std::string errorStack = errorObj.stack;
     if (errorStack.empty()) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "errorStack is empty");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "errorStack is empty");
         return;
     }
-    TAG_LOGE(AAFwkTag::STSRUNTIME, "errorObj.name:%{public}s, errorObj.message:%{public}s,errorObj.stack:%{public}s",
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "errorObj.name:%{public}s, errorObj.message:%{public}s,errorObj.stack:%{public}s",
         errorObj.name.c_str(), errorObj.message.c_str(), errorObj.stack.c_str());
     std::string summary = "Error name:" + errorObj.name + "\n";
     summary += "Error message:" + errorObj.message + "\n";
@@ -427,36 +427,36 @@ void STSEnvironment::HandleUncaughtError()
     }
 #endif // SUPPORT_GRAPHICS
     if (uncaughtExceptionInfo_.uncaughtTask) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "uncaughtTask called");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "uncaughtTask called");
         uncaughtExceptionInfo_.uncaughtTask(summary, errorObj);
     }
 }
 
 StsEnv::STSErrorObject STSEnvironment::GetSTSErrorObject()
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     ani_boolean errorExists = ANI_FALSE;
     ani_status status = ANI_ERROR;
     auto aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null env");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
         return StsEnv::STSErrorObject();
     }
     if ((status = aniEnv->ExistUnhandledError(&errorExists)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "ExistUnhandledError failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "ExistUnhandledError failed, status : %{public}d", status);
         return StsEnv::STSErrorObject();
     }
     if (errorExists == ANI_FALSE) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "not exist error");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "not exist error");
         return StsEnv::STSErrorObject();
     }
     ani_error aniError = nullptr;
     if ((status = aniEnv->GetUnhandledError(&aniError)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUnhandledError failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUnhandledError failed, status : %{public}d", status);
         return StsEnv::STSErrorObject();
     }
     if ((status = aniEnv->ResetError()) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "ResetError failed, status : %{public}d", status);
         return StsEnv::STSErrorObject();
     }
     std::string errorMsg = GetErrorProperty(aniError, "message");
@@ -472,39 +472,39 @@ StsEnv::STSErrorObject STSEnvironment::GetSTSErrorObject()
 
 std::string STSEnvironment::GetErrorProperty(ani_error aniError, const char* property)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
     auto aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "null env");
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
         return "";
     }
     std::string propertyValue;
     ani_status status = ANI_ERROR;
     ani_type errorType = nullptr;
     if ((status = aniEnv->Object_GetType(aniError, &errorType)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_GetType failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_GetType failed, status : %{public}d", status);
         return propertyValue;
     }
     ani_method getterMethod = nullptr;
     if ((status = aniEnv->Class_FindGetter(static_cast<ani_class>(errorType), property, &getterMethod)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindGetter failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindGetter failed, status : %{public}d", status);
         return propertyValue;
     }
     ani_ref aniRef = nullptr;
     if ((status = aniEnv->Object_CallMethod_Ref(aniError, getterMethod, &aniRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_CallMethod_Ref failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethod_Ref failed, status : %{public}d", status);
         return propertyValue;
     }
     ani_string aniString = reinterpret_cast<ani_string>(aniRef);
     ani_size sz {};
     if ((status = aniEnv->String_GetUTF8Size(aniString, &sz)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_GetUTF8Size failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_GetUTF8Size failed, status : %{public}d", status);
         return propertyValue;
     }
     propertyValue.resize(sz + 1);
     if ((status = aniEnv->String_GetUTF8SubString(
         aniString, 0, sz, propertyValue.data(), propertyValue.size(), &sz))!= ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_GetUTF8SubString failed, status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_GetUTF8SubString failed, status : %{public}d", status);
         return propertyValue;
     }
     propertyValue.resize(sz);
@@ -513,7 +513,7 @@ std::string STSEnvironment::GetErrorProperty(ani_error aniError, const char* pro
 
 int32_t STSEnvironment::ParseHdcRegisterOption(std::string& option)
 {
-    TAG_LOGD(AAFwkTag::JSENV, "Start");
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "ParseHdcRegisterOption called");
     std::size_t pos = option.find_first_of(":");
     if (pos == std::string::npos) {
         return -1;
