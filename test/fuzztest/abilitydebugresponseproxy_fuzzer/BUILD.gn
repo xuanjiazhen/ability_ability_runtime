@@ -74,7 +74,6 @@ ohos_fuzztest("AbilityDebugResponseProxyFuzzTest") {
     "hitrace:libhitracechain",
     "input:libmmi-client",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",

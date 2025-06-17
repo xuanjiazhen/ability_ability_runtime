@@ -974,7 +974,6 @@ ohos_unittest("dump_runtime_helper_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
     "ffrt:libffrt",
     "storage_service:storage_manager_acl",
@@ -1074,7 +1073,6 @@ ohos_unittest("dump_runtime_helper_second_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
     "ffrt:libffrt",
     "storage_service:storage_manager_acl",
@@ -1115,7 +1113,6 @@ ohos_unittest("native_lib_util_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
   ]
 }
@@ -1176,6 +1173,7 @@ ohos_unittest("startup_manager_test") {
     "${ability_runtime_native_path}/appkit/app_startup/startup_manager.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/startup_task.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/startup_utils.cpp",
+    "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "app_startup_task_matcher_test.cpp",
     "startup_manager_test.cpp",
     "startup_utils_test.cpp",
@@ -1195,6 +1193,7 @@ ohos_unittest("startup_manager_test") {
     "ability_base:zuri",
     "ability_runtime:runtime",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "faultloggerd:libfaultloggerd",
     "googletest:gtest_main",
@@ -1202,7 +1201,6 @@ ohos_unittest("startup_manager_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
   ]
 }
@@ -1236,6 +1234,7 @@ ohos_unittest("startup_manager_mock_test") {
     "${ability_runtime_native_path}/appkit/app_startup/startup_listener.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/startup_manager.cpp",
     "${ability_runtime_native_path}/appkit/app_startup/startup_task.cpp",
+    "${ability_runtime_services_path}/common/src/json_utils.cpp",
     "${ability_runtime_test_path}/mock/start_up_and_intent/src/mock_extractor.cpp",
     "${ability_runtime_test_path}/mock/start_up_and_intent/src/mock_native_module_manager.cpp",
     "startup_manager_mock_test.cpp",
@@ -1254,6 +1253,7 @@ ohos_unittest("startup_manager_mock_test") {
     "ability_base:zuri",
     "ability_runtime:runtime",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "faultloggerd:libfaultloggerd",
     "googletest:gtest_main",
@@ -1261,7 +1261,6 @@ ohos_unittest("startup_manager_mock_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "napi:ace_napi",
   ]
 }

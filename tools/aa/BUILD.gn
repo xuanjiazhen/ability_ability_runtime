@@ -79,7 +79,6 @@ ohos_static_library("tools_aa_source_set") {
     "graphic_2d:color_manager",
     "image_framework:image_native",
     "init:libbegetutil",
-    "jsoncpp:jsoncpp",
     "relational_store:native_dataability",
     "relational_store:native_rdb",
     "samgr:samgr_proxy",

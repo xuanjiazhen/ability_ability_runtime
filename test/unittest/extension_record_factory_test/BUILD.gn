@@ -94,8 +94,6 @@ ohos_unittest("extension_record_factory_test") {
     "i18n:intl_util",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
-    "jsoncpp:jsoncpp",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "relational_store:native_rdb",

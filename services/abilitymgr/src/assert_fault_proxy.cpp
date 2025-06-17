@@ -15,6 +15,7 @@
 #include "ability_manager_client.h"
 #include "assert_fault_proxy.h"
 #include "hilog_tag_wrapper.h"
+#include "json_utils.h"
 #include "scene_board_judgement.h"
 #include "task_handler_wrap.h"
 
@@ -204,12 +205,19 @@ void ModalSystemAssertUIExtension::AssertDialogConnection::OnAbilityConnectDone(
     data.WriteString16(u"abilityName");
     data.WriteString16(Str8ToStr16(want_.GetElement().GetAbilityName()));
     data.WriteString16(u"parameters");
-    nlohmann::json param;
-    param[UIEXTENSION_TYPE_KEY] = want_.GetStringParam(UIEXTENSION_TYPE_KEY);
-    param[ASSERT_FAULT_DETAIL] = want_.GetStringParam(ASSERT_FAULT_DETAIL);
-    param[AAFwk::Want::PARAM_ASSERT_FAULT_SESSION_ID] =
-        want_.GetStringParam(AAFwk::Want::PARAM_ASSERT_FAULT_SESSION_ID);
-    std::string paramStr = param.dump();
+
+    cJSON *param = cJSON_CreateObject();
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "create json object failed");
+        return;
+    }
+    cJSON_AddStringToObject(param, UIEXTENSION_TYPE_KEY, want_.GetStringParam(UIEXTENSION_TYPE_KEY).c_str());
+    cJSON_AddStringToObject(param, ASSERT_FAULT_DETAIL, want_.GetStringParam(ASSERT_FAULT_DETAIL).c_str());
+    cJSON_AddStringToObject(param, AAFwk::Want::PARAM_ASSERT_FAULT_SESSION_ID.c_str(),
+        want_.GetStringParam(AAFwk::Want::PARAM_ASSERT_FAULT_SESSION_ID).c_str());
+
+    std::string paramStr = AAFwk::JsonUtils::GetInstance().ToString(param);
+    cJSON_Delete(param);
     data.WriteString16(Str8ToStr16(paramStr));
     uint32_t code = !Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ? COMMAND_START_DIALOG :
         AAFwk::IAbilityConnection::ON_ABILITY_CONNECT_DONE;

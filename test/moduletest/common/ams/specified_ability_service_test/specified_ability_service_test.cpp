@@ -16,7 +16,6 @@
 #include <thread>
 #include <functional>
 #include <fstream>
-#include <nlohmann/json.hpp>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

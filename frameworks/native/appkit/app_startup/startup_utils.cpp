@@ -39,16 +39,18 @@ std::string StartupUtils::GetErrorMessage(int32_t errCode)
     return iter->second;
 }
 
-bool StartupUtils::ParseJsonStringArray(const nlohmann::json &json, const std::string key,
-    std::vector<std::string> &arr)
+bool StartupUtils::ParseJsonStringArray(const cJSON *json, const std::string key, std::vector<std::string> &arr)
 {
-    if (!json.contains(key) || !json[key].is_array()) {
+    cJSON *jsonObject = cJSON_GetObjectItem(json, key.c_str());
+    if (jsonObject == nullptr || !cJSON_IsArray(jsonObject)) {
         return false;
     }
-
-    for (const auto &item : json.at(key)) {
-        if (item.is_string()) {
-            arr.push_back(item.get<std::string>());
+    int size = cJSON_GetArraySize(jsonObject);
+    for (int i = 0; i < size; i++) {
+        cJSON *item = cJSON_GetArrayItem(jsonObject, i);
+        if (item != nullptr && cJSON_IsString(item)) {
+            std::string jsonStr = item->valuestring;
+            arr.push_back(jsonStr);
         }
     }
     return true;

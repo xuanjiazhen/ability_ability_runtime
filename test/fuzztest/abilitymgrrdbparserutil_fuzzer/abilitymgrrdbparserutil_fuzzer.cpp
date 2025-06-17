@@ -71,9 +71,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     instance.ParsePreInstallAbilityConfig(jsonStr, list);
     std::vector<std::string> rootDirList;
     instance.GetPreInstallRootDirList(rootDirList);
-    nlohmann::json jsonBuf;
+    cJSON *jsonBuf = nullptr;
     instance.ReadFileIntoJson(jsonStr, jsonBuf);
     instance.FilterInfoFromJson(jsonBuf, list);
+    cJSON_Delete(jsonBuf);
     return true;
 }
 }

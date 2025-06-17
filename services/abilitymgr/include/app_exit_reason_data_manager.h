@@ -83,7 +83,8 @@ private:
     void ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value, AAFwk::ExitReason &exitReason,
         int64_t &time_stamp, std::vector<std::string> &abilityList, AppExecFwk::RunningProcessInfo &processInfo,
         bool &withKillMsg);
-    void ConvertReasonFromValue(const nlohmann::json &jsonObject, AAFwk::ExitReason &exitReason, bool &withKillMsg);
+    void ConvertAbilityListFromValue(const cJSON *jsonObject, std::vector<std::string> &abilityList);
+    void ConvertReasonFromValue(const cJSON *jsonObject, AAFwk::ExitReason &exitReason, bool &withKillMsg);
     void ConvertAccessTokenIdFromValue(const DistributedKv::Value &value, uint32_t &accessTokenId);
     void InnerDeleteAppExitReason(const std::string &keyName);
     void InnerDeleteSessionId(const int32_t sessionId);
