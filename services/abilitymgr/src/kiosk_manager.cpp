@@ -44,6 +44,8 @@ KioskManager &KioskManager::GetInstance()
 
 void KioskManager::OnAppStop(const AppInfo &info)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt App stop, bundleName: %{public}s, state: %{public}d",
+        info.bundleName.c_str(), static_cast<int32_t>(info.state));
     if (info.state != AppState::TERMINATED && info.state != AppState::END) {
         return;
     }
