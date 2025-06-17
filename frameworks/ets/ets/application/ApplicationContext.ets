@@ -19,6 +19,8 @@ import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import EnvironmentCallback from '@ohos.app.ability.EnvironmentCallback';
+import type ApplicationStateChangeCallback from '@ohos.app.ability.ApplicationStateChangeCallback';
 
 class Cleaner {
   public ptr: long = 0;

@@ -24,6 +24,7 @@ import window from '@ohos.window';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
+import { LocalStorage } from '@ohos.arkui.stateManagement';
 
 class Cleaner {
   public ptr: long = 0;

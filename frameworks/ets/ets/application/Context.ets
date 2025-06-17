@@ -18,6 +18,9 @@ import ApplicationContext from 'application.ApplicationContext'
 import contextConstant from '@ohos.app.ability.contextConstant'
 import { ApplicationInfo } from 'bundleManager.ApplicationInfo'
 import resmgr from '@ohos.resourceManager'
+import { AsyncCallback } from '@ohos.base';
+import { BusinessError } from '@ohos.base';
+import AsyncCallbackWrapper from '../utils/AbilityUtils';
 
 class Cleaner {
   public ptr: long = 0;
