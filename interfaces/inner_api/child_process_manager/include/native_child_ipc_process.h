@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 
 #include <memory>
 #include "child_process.h"
-#include "native_child_notify_interface.h"
+#include "inative_child_notify.h"
 #include "ipc_inner_object.h"
 
 namespace OHOS {

@@ -46,6 +46,7 @@ idl_gen_interface("appmgr_innerkits") {
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
     "idl/IKiaInterceptor.idl",
+    "idl/INativeChildNotify.idl",
     "idl/IQuickFixCallback.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
   ]
@@ -206,8 +207,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/fault_data.cpp",
     "src/appmgr/killed_process_info.cpp",
     "src/appmgr/memory_level_info.cpp",
-    "src/appmgr/native_child_notify_proxy.cpp",
-    "src/appmgr/native_child_notify_stub.cpp",
     "src/appmgr/page_state_data.cpp",
     "src/appmgr/priority_object.cpp",
     "src/appmgr/process_data.cpp",

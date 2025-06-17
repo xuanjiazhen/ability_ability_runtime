@@ -20,7 +20,7 @@
 #include <string>
 #include "nocopyable.h"
 #include "app_running_manager.h"
-#include "native_child_notify_interface.h"
+#include "inative_child_notify.h"
 
 namespace OHOS {
 namespace AppExecFwk {

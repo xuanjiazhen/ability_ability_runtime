@@ -35,6 +35,7 @@
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "inative_child_notify.h"
 #include "ikia_interceptor.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
@@ -51,7 +52,6 @@
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
-#include "native_child_notify_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
