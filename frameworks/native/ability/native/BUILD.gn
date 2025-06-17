@@ -407,6 +407,7 @@ ohos_shared_library("abilitykit_native") {
     "ability_base:session_info",
     "accessibility:accessibility_common",
     "bundle_framework:appexecfwk_core",
+    "ipc:ipc_napi",
     "jsoncpp:jsoncpp",
     "libuv:uv",
     "napi:ace_napi",
