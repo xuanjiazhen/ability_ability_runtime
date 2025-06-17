@@ -45,6 +45,7 @@ idl_gen_interface("appmgr_innerkits") {
   sources = [
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
+    "idl/IConfigurationObserver.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
   ]
   log_domainid = "0xD001311"
@@ -198,8 +199,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/child_process_info.cpp",
     "src/appmgr/child_scheduler_proxy.cpp",
     "src/appmgr/child_scheduler_stub.cpp",
-    "src/appmgr/configuration_observer_proxy.cpp",
-    "src/appmgr/configuration_observer_stub.cpp",
     "src/appmgr/configuration_policy.cpp",
     "src/appmgr/fault_data.cpp",
     "src/appmgr/kia_interceptor_proxy.cpp",
