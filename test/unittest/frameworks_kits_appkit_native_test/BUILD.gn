@@ -28,6 +28,7 @@ config("module_private_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -46,6 +47,7 @@ config("module_context_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
