@@ -236,7 +236,7 @@ constexpr const char* LIFE_CYCLE_STATE_FOREGROUND_DONE = "foreground done";
 constexpr const char* LIFE_CYCLE_STATE_BACKGROUND_DONE = "background done";
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
-    "share", "action"
+    "share", "action", "navigation", "finance"
 };
 std::atomic<bool> g_isDmsAlive = false;
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
