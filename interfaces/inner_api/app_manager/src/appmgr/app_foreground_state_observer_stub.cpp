@@ -53,7 +53,7 @@ int32_t AppForegroundStateObserverStub::HandleOnAppStateChanged(MessageParcel &d
     }
 
     OnAppStateChanged(*processData);
-    return NO_ERROR;
+    return 0;
 }
 
 AppForegroundStateObserverRecipient::AppForegroundStateObserverRecipient(RemoteDiedHandler handler) : handler_(handler)
