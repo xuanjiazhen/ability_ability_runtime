@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,8 +49,8 @@ class RenderStateObserverMock : public RenderStateObserverStub {
 public:
     RenderStateObserverMock() = default;
     virtual ~RenderStateObserverMock() = default;
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override
-    {}
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override
+    { return ERR_OK; }
 };
 
 class NativeChildCallbackMock : public NativeChildNotifyStub {
@@ -58,9 +58,18 @@ public:
     NativeChildCallbackMock() = default;
     virtual ~NativeChildCallbackMock() = default;
 
-    void OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild) {}
-    void OnError(int32_t errCode) {}
-    int32_t OnNativeChildExit(int32_t pid, int32_t signal) { return 0; }
+    ErrCode OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnError(int32_t errCode)
+    {
+        return ERR_OK;
+    }
+    ErrCode OnNativeChildExit(int32_t pid, int32_t signal)
+    {
+        return ERR_OK;
+    }
 };
 
 class AppMgrStubTest : public testing::Test {

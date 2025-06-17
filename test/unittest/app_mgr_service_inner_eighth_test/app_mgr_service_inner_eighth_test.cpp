@@ -54,9 +54,9 @@ public:
 };
 class MyKiaInterceptor : public IKiaInterceptor {
 public:
-    int OnIntercept(AAFwk::Want &want) override
+    ErrCode OnIntercept(AAFwk::Want &want) override
     {
-        return 0;
+        return ERR_OK;
     }
 
     sptr<IRemoteObject> AsObject() override
@@ -66,7 +66,7 @@ public:
 };
 class MyRenderStateObserver : public IRenderStateObserver {
 public:
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override {}
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override { return ERR_OK; }
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;

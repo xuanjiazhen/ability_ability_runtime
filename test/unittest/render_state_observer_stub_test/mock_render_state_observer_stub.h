@@ -27,7 +27,7 @@ public:
     MockRenderStateObserverStub() = default;
     virtual ~MockRenderStateObserverStub() = default;
 
-    MOCK_METHOD1(OnRenderStateChanged, void(const RenderStateData &renderStateData));
+    MOCK_METHOD1(OnRenderStateChanged, ErrCode(const RenderStateData &renderStateData));
 };
 } // namespace AppExecFwk
 } // namespace OHOS

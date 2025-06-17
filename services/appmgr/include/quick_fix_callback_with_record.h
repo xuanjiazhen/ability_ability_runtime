@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,9 +32,9 @@ public:
 
     ~QuickFixCallbackWithRecord() override;
 
-    void OnLoadPatchDone(int32_t resultCode, int32_t recordId) override;
-    void OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override;
-    void OnReloadPageDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnLoadPatchDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override;
+    ErrCode OnReloadPageDone(int32_t resultCode, int32_t recordId) override;
 
     void AddRecordId(int32_t recordId);
     void RemoveRecordId(int32_t recordId);
