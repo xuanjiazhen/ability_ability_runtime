@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_INTERFACE_H
-#define OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_INTERFACE_H
+#include "app_foreground_state_observer_recipient.h"
 
-#include "app_state_data.h"
-#include "iremote_broker.h"
+#include "appexecfwk_errors.h"
+#include "hilog_tag_wrapper.h"
+#include "ipc_types.h"
 #include "iremote_object.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class IAppForegroundStateObserver : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.IAppForegroundStateObserver");
+AppForegroundStateObserverRecipient::AppForegroundStateObserverRecipient(RemoteDiedHandler handler) : handler_(handler)
+{}
 
-    virtual void OnAppStateChanged(const AppStateData &appStateData) = 0;
-
-    enum class Message {
-        ON_APP_STATE_CHANGED,
-    };
-};
+void AppForegroundStateObserverRecipient::OnRemoteDied(const wptr<IRemoteObject> &__attribute__((unused)) remote)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "Remote died.");
+    if (handler_) {
+        handler_(remote);
+    }
+}
 } // namespace AppExecFwk
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_APP_FOREGROUND_STATE_OBSERVER_INTERFACE_H
