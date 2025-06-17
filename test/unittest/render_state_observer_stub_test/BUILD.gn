@@ -25,8 +25,9 @@ ohos_unittest("render_state_observer_stub_test") {
     "${ability_runtime_services_path}/common/include",
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
+
   sources = [
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/render_state_observer_stub.cpp",
     "render_state_observer_stub_test.cpp",
   ]
 
