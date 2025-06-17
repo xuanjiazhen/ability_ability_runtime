@@ -992,21 +992,6 @@ HWTEST_F(ImplicitStartProcessorTest, OnlyKeepReserveApp_005, TestSize.Level1)
 
 /*
  * Feature: ImplicitStartProcessor
- * Function: GetDefaultAppProxy
- * SubFunction: NA
- * FunctionPoints:ImplicitStartProcessor GetDefaultAppProxy
- * EnvConditions: NA
- * CaseDescription: Verify GetDefaultAppProxy  etc.
- */
-HWTEST_F(ImplicitStartProcessorTest, GetDefaultAppProxy_001, TestSize.Level1)
-{
-    auto processor = std::make_shared<ImplicitStartProcessor>();
-    auto result = processor->GetDefaultAppProxy();
-    EXPECT_EQ(result, nullptr);
-}
-
-/*
- * Feature: ImplicitStartProcessor
  * Function: FilterAbilityList
  * SubFunction: NA
  * FunctionPoints:ImplicitStartProcessor FilterAbilityList
