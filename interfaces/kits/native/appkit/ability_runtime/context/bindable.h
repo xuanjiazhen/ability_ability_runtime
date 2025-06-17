@@ -67,6 +67,23 @@ private:
     std::unique_ptr<void, void(*)(void*)> object_;
 };
 
+class BindingObjectSubThread {
+public:
+    BindingObjectSubThread() = default;
+    virtual ~BindingObjectSubThread() = default;
+
+    virtual void BindSubThreadObject(void* napiEnv, void* object);
+    virtual void* GetSubThreadObject(void* napiEnv);
+    virtual void RemoveSubThreadObject(void* napiEnv);
+    virtual void RemoveAllObject();
+
+private:
+    BindingObjectSubThread(const BindingObjectSubThread&) = delete;
+    BindingObjectSubThread(BindingObjectSubThread&&) = delete;
+    BindingObjectSubThread& operator=(const BindingObjectSubThread&) = delete;
+    BindingObjectSubThread& operator=(BindingObjectSubThread&&) = delete;
+};
+
 class Bindable {
 public:
     virtual ~Bindable() = default;
@@ -82,6 +99,37 @@ public:
         if (object_) {
             object_->Unbind();
         }
+
+        if (subThreadObject_) {
+            subThreadObject_->RemoveAllObject();
+        }
+    }
+
+    template<class T>
+    void Unbind() const
+    {
+        if (object_) {
+            object_->Unbind<T>();
+        }
+
+        if (subThreadObject_) {
+            subThreadObject_->RemoveAllObject();
+        }
+    }
+
+    void BindSubThreadObject(void* napiEnv, void* object)
+    {
+        if (subThreadObject_) {
+            subThreadObject_->BindSubThreadObject(napiEnv, object);
+        }
+    }
+
+    void* GetSubThreadObject(void* napiEnv)
+    {
+        if (subThreadObject_) {
+            return subThreadObject_->GetSubThreadObject(napiEnv);
+        }
+        return nullptr;
     }
 
     const std::unique_ptr<BindingObject>& GetBindingObject() const
@@ -91,6 +139,7 @@ public:
 
 protected:
     Bindable() = default;
+    std::unique_ptr<BindingObjectSubThread> subThreadObject_ = nullptr;
 
 private:
     std::unique_ptr<BindingObject> object_;

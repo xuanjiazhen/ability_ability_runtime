@@ -35,10 +35,15 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
+// remove local declaration after Any type is supported
+type Any = Object | null | undefined
+
 export class Context extends BaseContext {
   static {
     loadLibrary("context_ani");
+    loadLibrary("context_ani_kit.z");
   }
+
   etsContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   filesDir: string = "";
@@ -72,14 +77,26 @@ export class Context extends BaseContext {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
   public native getApplicationContextSync(): ApplicationContext;
   public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
+
+  public native nativeGetGroupDir(dataGroupID: string, callback: AsyncCallbackWrapper<string>): void;
+
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+
+  private static native nativeTransferDynamic(input: Object): ESValue;
+
+  private static contextType: string = 'Context';
+
   private native switchArea(mode: contextConstant.AreaMode): void;
   private native getArea(): contextConstant.AreaMode;
   public native nativeGetGroupDir(dataGroupID: string, callback: AsyncCallbackWrapper<string>): void;
   public native nativeCreateDisplayContext(displayId: number): Context;
   public native nativeCreateAreaModeContext(areaMode: contextConstant.AreaMode): Context;
   public native nativeCreateSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
+  private static native nativeTransferStatic(input: ESValue): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
 
   getApplicationContext(): ApplicationContext {
     return this.getApplicationContextSync();
@@ -119,6 +136,29 @@ export class Context extends BaseContext {
     });
   }
 
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return Context.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return Context.nativeTransferDynamic(input).unwrap();
+  }
+
+  set area(mode: contextConstant.AreaMode) {
+    this.switchArea(mode);
+  }
+
+  get area(): contextConstant.AreaMode {
+    return this.getArea();
+  }
+
   createDisplayContext(displayId: number): Context {
     return this.nativeCreateDisplayContext(displayId);
   }
@@ -129,5 +169,11 @@ export class Context extends BaseContext {
 
   createSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
     return this.nativeCreateSystemHspModuleResourceManager(bundleName, moduleName);
+  static transferStatic(input: Any): Object {
+    return Context.nativeTransferStatic(ESValue.wrap(input));
+  }
+
+  static transferDynamic(input: Object): Any {
+    return Context.nativeTransferDynamic(input).unwrap();
   }
 }
