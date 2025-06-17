@@ -225,6 +225,9 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (uiAbilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: FOREGROUND/ BACKGROUND, dropped");
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
+        auto tempWant = uiAbilityRecord->GetWant();
+        InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(tempWant));
+        uiAbilityRecord->SetWant(tempWant);
         return ERR_OK;
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is not FOREGROUND or BACKGROUND.");
