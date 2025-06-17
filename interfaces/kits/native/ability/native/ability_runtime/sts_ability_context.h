@@ -85,6 +85,7 @@ private:
         ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
+    static bool IsInstanceOf(ani_env *env, ani_object aniObj);
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;

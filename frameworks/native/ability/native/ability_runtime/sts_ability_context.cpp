@@ -688,29 +688,42 @@ void StsAbilityContext::NativeRequestModalUIExtension(ani_env *env, ani_object a
 
 ani_object StsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
 {
+    TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
     void *unwrapResult = nullptr;
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         TAG_LOGE(AAFwkTag::UIABILITY, "failed to unwrap");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
     if (unwrapResult == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null unwrapResult");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
     auto context = reinterpret_cast<std::weak_ptr<AbilityContext> *>(unwrapResult)->lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
-    auto &bindingObj = context->GetBindingObject();
+
+    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        ThrowStsTransferClassError(env);
+        return nullptr;
+    }
+    auto &bindingObj = abilityContext->GetBindingObject();
     if (bindingObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
     auto staticContext = bindingObj->Get<ani_ref>();
     if (staticContext == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null staticContext");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
     return reinterpret_cast<ani_object>(*staticContext);
@@ -718,21 +731,39 @@ ani_object StsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani
 
 ani_object StsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, ani_object input)
 {
+    TAG_LOGD(AAFwkTag::UIABILITY, "transfer dynamic UIAbilityContext");
+    bool isInstanceOfAbilityContext = IsInstanceOf(env, input);
+    if (!isInstanceOfAbilityContext) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "not UIAbilityContext");
+        ThrowStsTransferClassError(env);
+        return nullptr;
+    }
     auto context = GetAbilityContext(env, input);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
-    auto &bindingObj = context->GetBindingObject();
+    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        ThrowStsTransferClassError(env);
+        return nullptr;
+    }
+    auto &bindingObj = abilityContext->GetBindingObject();
     if (bindingObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
     auto dynamicContext = bindingObj->Get<NativeReference>();
     if (dynamicContext == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null dynamicContext");
+        ThrowStsTransferClassError(env);
         return nullptr;
     }
+    // Not support yet
+    ThrowStsTransferClassError(env);
     return nullptr;
 }
 
@@ -903,6 +934,26 @@ void StsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     };
     requestCode = GenerateRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));
+}
+
+bool StsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return false;
+    }
+    if ((status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    ani_boolean isInstanceOf = false;
+    if ((status = env->Object_InstanceOf(aniObj, cls, &isInstanceOf)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    return isInstanceOf;
 }
 
 bool SetAbilityInfo(ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<AbilityContext> &context)
