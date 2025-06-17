@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,16 +26,16 @@ NativeChildCallback::NativeChildCallback(OH_Ability_OnNativeChildProcessStarted 
 {
 }
 
-void NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild)
+ErrCode NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &nativeChild)
 {
     if (callback_ == nullptr) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null callback_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (!nativeChild) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null nativeChild");
-        return;
+        return ERR_INVALID_VALUE;
     }
     
     TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process started");
@@ -44,20 +44,21 @@ void NativeChildCallback::OnNativeChildStarted(const sptr<IRemoteObject> &native
     if (ipcProxy == nullptr) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null ipcProxy");
         callback_(NCP_ERR_INTERNAL, nullptr);
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     callback_(static_cast<int32_t>(ChildProcessManagerErrorCode::ERR_OK), ipcProxy);
     callback_ = nullptr;
 
     ChildCallbackManager::GetInstance().RemoveRemoteObject(this);
+    return ERR_OK;
 }
 
-void NativeChildCallback::OnError(int32_t errCode)
+ErrCode NativeChildCallback::OnError(int32_t errCode)
 {
     if (callback_ == nullptr) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null callback_");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     TAG_LOGI(AAFwkTag::PROCESSMGR, "Native child process start err %{public}d", errCode);
@@ -65,9 +66,10 @@ void NativeChildCallback::OnError(int32_t errCode)
     
     callback_ = nullptr;
     ChildCallbackManager::GetInstance().RemoveRemoteObject(this);
+    return ERR_OK;
 }
 
-int32_t NativeChildCallback::OnNativeChildExit(int32_t pid, int32_t signal)
+ErrCode NativeChildCallback::OnNativeChildExit(int32_t pid, int32_t signal)
 {
     auto exitCallbacks = GetExitCallbacks();
     for (const auto &exitCallback : exitCallbacks) {
