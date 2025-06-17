@@ -17,6 +17,7 @@
 
 #include "ability_foreground_state_observer_stub.h"
 #include "app_foreground_state_observer_stub.h"
+#include "app_foreground_state_observer_recipient.h"
 #include "application_state_observer_stub.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"

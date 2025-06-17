@@ -292,6 +292,7 @@ ohos_shared_library("ability_manager_c") {
   external_deps = [
     "ability_base:session_info",
     "c_utils:utils",
+    "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
