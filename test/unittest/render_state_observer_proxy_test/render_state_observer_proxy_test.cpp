@@ -49,17 +49,6 @@ void RenderStateObserverProxyTest::SetUp()
 void RenderStateObserverProxyTest::TearDown() {}
 
 /**
- * @tc.name: WriteInterfaceToken_0100
- * @tc.desc: Write token into parcel data.
- * @tc.type: FUNC
- */
-HWTEST_F(RenderStateObserverProxyTest, WriteInterfaceToken_0100, TestSize.Level1)
-{
-    MessageParcel data;
-    EXPECT_TRUE(observerProxy_->WriteInterfaceToken(data));
-}
-
-/**
  * @tc.name: OnRenderStateChanged_0100
  * @tc.desc: Test when the return of WriteInterfaceToken and
  *      WriteParcelable is true and remote is not nullptr.

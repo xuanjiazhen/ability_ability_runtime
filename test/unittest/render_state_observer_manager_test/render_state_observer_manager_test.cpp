@@ -32,9 +32,10 @@ class MockRenderStateObserver : public RenderStateObserverStub {
 public:
     MockRenderStateObserver() = default;
     virtual ~MockRenderStateObserver() = default;
-    void OnRenderStateChanged(const RenderStateData &renderStateData) override
+    ErrCode OnRenderStateChanged(const RenderStateData &renderStateData) override
     {
         onRenderStateChangedResult = 1;
+        return ERR_OK;
     }
 };
 
