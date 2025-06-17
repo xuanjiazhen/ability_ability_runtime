@@ -136,6 +136,16 @@ ErrCode UIExtensionContext::StartServiceExtensionAbility(const AAFwk::Want& want
     return ret;
 }
 
+ErrCode UIExtensionContext::StartAbilities(const std::vector<AAFwk::Want> &wantList)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartAbilitiesLog call StartAbilities");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbilities(wantList, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "StartAbilitiesLog ret=%{public}d", err);
+    }
+    return err;
+}
+
 ErrCode UIExtensionContext::StartAbilityForResult(const AAFwk::Want &want, int requestCode, RuntimeTask &&task)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");

@@ -71,6 +71,11 @@ class UIExtensionContext extends ExtensionContext {
     return this.__context_impl__.startAbilityForResultAsCaller(want, options, callback);
   }
 
+  startAbilities(wantList) {
+    hilog.sLogI(domainID, TAG, 'startAbilities');
+    return this.__context_impl__.startAbilities(wantList);
+  }
+
   terminateSelfWithResult(abilityResult, callback) {
     hilog.sLogI(domainID, TAG, 'terminateSelfWithResult');
     return this.__context_impl__.terminateSelfWithResult(abilityResult, callback);
