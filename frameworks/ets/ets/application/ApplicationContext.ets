@@ -37,7 +37,14 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
+// remove local declaration after Any type is supported
+type Any = Object | null | undefined
+
 export default class ApplicationContext extends Context {
+  static {
+    loadLibrary("application_context_ani_kit.z");
+  }
+
   etsApplicationContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
 
@@ -56,6 +63,7 @@ export default class ApplicationContext extends Context {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported : boolean):void;
@@ -64,8 +72,10 @@ export default class ApplicationContext extends Context {
   public native nativesetLanguage(language: string): void;
   public native nativesetFontSizeScale(fontSizeScale: number): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
-  public native nativesetFont(font: string): void; 
+  public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
+  private static native nativeTransferStatic(input: ESValue): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
 
   setSupportedProcessCache(isSupported : boolean):void {
     this.setSupportedProcessCacheSync(isSupported);
@@ -195,5 +205,13 @@ export default class ApplicationContext extends Context {
 
   restartApp(want: Want): void {
     this.nativerestartApp(want);
+  }
+
+  static transferStatic(input: Any): Object {
+    return ApplicationContext.nativeTransferStatic(ESValue.wrap(input));
+  }
+
+  static transferDynamic(input: Object): Any {
+    return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 }

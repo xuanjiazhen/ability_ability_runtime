@@ -32,10 +32,15 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
+// remove local declaration after Any type is supported
+type Any = Object | null | undefined
+
 export class Context extends BaseContext {
   static {
     loadLibrary("context_ani");
+    loadLibrary("context_ani_kit.z");
   }
+
   etsContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   filesDir: string = "";
@@ -64,10 +69,13 @@ export class Context extends BaseContext {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
   public native getApplicationContextSync(): ApplicationContext;
   public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
   private native switchArea(mode: contextConstant.AreaMode): void;
   private native getArea(): contextConstant.AreaMode;
+  private static native nativeTransferStatic(input: ESValue): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
 
   getApplicationContext(): ApplicationContext {
     return this.getApplicationContextSync();
@@ -83,5 +91,13 @@ export class Context extends BaseContext {
 
   get area(): contextConstant.AreaMode {
     return this.getArea();
+  }
+
+  static transferStatic(input: Any): Object {
+    return Context.nativeTransferStatic(ESValue.wrap(input));
+  }
+
+  static transferDynamic(input: Object): Any {
+    return Context.nativeTransferDynamic(input).unwrap();
   }
 }
