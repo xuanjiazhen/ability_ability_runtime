@@ -114,7 +114,7 @@ void StsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
     ani_option interopEnabled { "--interop=disable", nullptr };
     ani_options aniArgs { 1, &interopEnabled };
     if ((etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status : %{public}d", status);
     }
     ani_object aniObject = CreateStsError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
@@ -172,7 +172,7 @@ void StsFreeInstallObserver::AddStsObserverCommon(
     ani_ref global = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GlobalReference_Create(callBack, &global)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status : %{public}d", status);
         return;
     }
     object.callBack = reinterpret_cast<ani_object>(global);

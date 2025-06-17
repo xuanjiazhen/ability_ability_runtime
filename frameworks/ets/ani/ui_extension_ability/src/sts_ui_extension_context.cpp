@@ -152,7 +152,7 @@ void StsUIExtensionContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Wa
         ani_vm *etsVm = nullptr;
         ani_status status = ANI_ERROR;
         if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         }
         freeInstallObserver_ = new StsFreeInstallObserver(etsVm);
         ret = context->AddFreeInstallObserver(freeInstallObserver_);
