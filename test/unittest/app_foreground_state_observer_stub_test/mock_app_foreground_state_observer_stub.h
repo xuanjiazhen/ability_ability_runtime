@@ -30,7 +30,7 @@ public:
     MockAppForegroundStateObserverStub() = default;
     virtual ~MockAppForegroundStateObserverStub() = default;
 
-    MOCK_METHOD1(OnAppStateChanged, void(const AppStateData &appStateData));
+    MOCK_METHOD1(OnAppStateChanged, ErrCode(const AppStateData &appStateData));
 };
 } // namespace AppExecFwk
 } // namespace OHOS

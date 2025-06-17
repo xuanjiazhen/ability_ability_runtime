@@ -26,7 +26,6 @@ ohos_unittest("app_foreground_state_observer_proxy_test") {
   ]
 
   sources = [
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_foreground_state_observer_proxy.cpp",
     "app_foreground_state_observer_proxy_test.cpp",
   ]
 
