@@ -45,6 +45,7 @@ idl_gen_interface("appmgr_innerkits") {
   sources = [
     "idl/IAbilityDebugResponse.idl",
     "idl/IAppDebugListener.idl",
+    "idl/IAppForegroundStateObserver.idl",
     "idl/IStartSpecifiedAbilityResponse.idl",
   ]
   log_domainid = "0xD001311"
@@ -173,8 +174,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/ams_mgr_proxy.cpp",
     "src/appmgr/ams_mgr_stub.cpp",
     "src/appmgr/app_debug_info.cpp",
-    "src/appmgr/app_foreground_state_observer_proxy.cpp",
-    "src/appmgr/app_foreground_state_observer_stub.cpp",
     "src/appmgr/app_jsheap_mem_info.cpp",
     "src/appmgr/app_cjheap_mem_info.cpp",
     "src/appmgr/app_launch_data.cpp",

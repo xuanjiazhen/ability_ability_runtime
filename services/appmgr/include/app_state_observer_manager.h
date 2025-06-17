@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,10 +22,10 @@
 #include <unordered_map>
 
 #include "ability_foreground_state_observer_interface.h"
-#include "app_foreground_state_observer_interface.h"
 #include "app_running_record.h"
 #include "app_state_data.h"
 #include "cpp/mutex.h"
+#include "iapp_foreground_state_observer.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "page_state_data.h"
