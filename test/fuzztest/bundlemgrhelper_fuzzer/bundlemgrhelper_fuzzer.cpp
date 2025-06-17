@@ -134,7 +134,6 @@ void BundleMgrHelperFuzztest2(bool boolParam, std::string &stringParam, int32_t 
     bmHelper->QueryAppGalleryBundleName(stringParam);
     bmHelper->GetUidByBundleName(stringParam, int32Param, int32Param);
     bmHelper->QueryExtensionAbilityInfosOnlyWithTypeName(stringParam, int32Param, int32Param, extensionInfos);
-    bmHelper->GetDefaultAppProxy();
     bmHelper->GetJsonProfile(static_cast<ProfileType>(int32Param), stringParam, stringParam, stringParam, int32Param);
     bmHelper->GetLaunchWantForBundle(stringParam, want, int32Param);
     ElementName element;
