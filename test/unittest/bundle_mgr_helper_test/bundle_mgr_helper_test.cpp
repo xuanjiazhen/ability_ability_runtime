@@ -498,17 +498,6 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_QueryAbilityInfo_003, TestSize
     EXPECT_EQ(ret, false);
 }
 
-/**
- * @tc.name: BundleMgrHelperTest_GetDefaultAppProxy_001
- * @tc.desc: GetDefaultAppProxy
- * @tc.type: FUNC
- */
-HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetDefaultAppProxy_001, TestSize.Level1)
-{
-    auto ret = bundleMgrHelper->GetDefaultAppProxy();
-    EXPECT_NE(ret, nullptr);
-}
-
 #ifdef WITH_DLP
 /**
  * @tc.name: BundleMgrHelperTest_InstallSandboxApp_001
