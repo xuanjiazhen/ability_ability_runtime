@@ -230,7 +230,7 @@ void StsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &
 }
 
 void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
-    ani_object wantObj, ani_object opt, ani_object call)
+    ani_object wantObj, ani_object opt, ani_object call, bool isStartRecent)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::Want want;
@@ -243,6 +243,10 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     }
     InheritWindowMode(env, aniObj, want);
 
+    if (isStartRecent) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "startRecentAbility");
+        want.SetParam(AAFwk::Want::PARAM_RESV_START_RECENT, true);
+    }
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
             system_clock::now().time_since_epoch()).count());
@@ -735,6 +739,56 @@ ani_object StsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, an
     }
     return nullptr;
 }
+void StsAbilityContext::OnStartAbilityAsCaller(
+    ani_env *env, ani_object aniObj, ani_object WantObj, ani_object callbackObj, ani_object startOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStartAbilityAsCaller");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_object errorObject = nullptr;
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, WantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse want");
+        ThrowStsInvalidParamError(env, "Failed to parse want");
+        return;
+    }
+    ani_boolean isOptionsUndefined = true;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Reference_IsUndefined(startOptionsObj, &isOptionsUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    AAFwk::StartOptions startOptions;
+    if (!isOptionsUndefined) {
+        if (!OHOS::AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "Failed to UnwrapStartOptions");
+            ThrowStsInvalidParamError(env, "Failed to UnwrapStartOptions");
+            return;
+        }
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        errorObject = CreateStsErrorByNativeErr(
+            env, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+        return;
+    }
+    ErrCode ret = ERR_OK;
+    ret = isOptionsUndefined ? context->StartAbilityAsCaller(want, -1)
+                             : context->StartAbilityAsCaller(want, startOptions, -1);
+    errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+}
+
+void StsAbilityContext::OnStartRecentAbility(
+    ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackObj, ani_object startOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStartRecentAbility");
+    GetInstance().StartAbilityInner(env, aniObj, wantObj, startOptionsObj, callbackObj, true);
+}
 
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -787,6 +841,14 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferStatic) },
             ani_native_function { "nativeTransferDynamic", "Lstd/core/Object;:Lstd/interop/ESValue;",
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferDynamic) },
+            ani_native_function { "nativeStartAbilityAsCaller",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+                "L@ohos/app/ability/StartOptions/StartOptions;:V",
+                reinterpret_cast<void *>(StsAbilityContext::OnStartAbilityAsCaller) },
+            ani_native_function { "nativeStartRecentAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+                "L@ohos/app/ability/StartOptions/StartOptions;:V",
+                reinterpret_cast<void *>(StsAbilityContext::OnStartRecentAbility) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });

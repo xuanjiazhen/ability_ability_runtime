@@ -69,11 +69,15 @@ public:
         ani_object callBackObj);
     static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
+    static void OnStartAbilityAsCaller(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object callbackObj, ani_object startOptionsObj);
+    static void OnStartRecentAbility(
+        ani_env *env, ani_object aniObj, ani_object WantObj, ani_object callbackObj, ani_object startOptionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
-        ani_object wantObj, ani_object opt, ani_object call);
+        ani_object wantObj, ani_object opt, ani_object call, bool isStartRecent = false);
     static void StartAbilityForResultInner(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object startOptionsObj, ani_object callback);
     static int32_t GenerateRequestCode();

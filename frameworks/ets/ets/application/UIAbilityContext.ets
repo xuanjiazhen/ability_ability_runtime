@@ -74,6 +74,9 @@ export default class UIAbilityContext extends Context {
   private native nativeIsTerminating(): boolean;
   private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeStartAbilityAsCaller(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
+  private native nativeStartRecentAbility(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -339,6 +342,72 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute(() => {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
+      });
+    });
+  }
+
+  startAbilityAsCaller(want: Want, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute(() => {
+      this.nativeStartAbilityAsCaller(want, syncCall, undefined);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute(() => {
+      this.nativeStartAbilityAsCaller(want, syncCall, options);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      let finalOptions: StartOptions | undefined = undefined;
+      if (options) {
+        finalOptions = options;
+      }
+      taskpool.execute(() => {
+        this.nativeStartAbilityAsCaller(want, syncCall, finalOptions);
+      });
+    });
+  }
+
+  startRecentAbility(want: Want, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute(() => {
+      this.nativeStartRecentAbility(want, syncCall, undefined);
+    });
+  }
+
+  startRecentAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute(() => {
+      this.nativeStartRecentAbility(want, syncCall, options);
+    });
+  }
+
+  startRecentAbility(want: Want, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      let finalOptions: StartOptions | undefined = undefined;
+      if (options) {
+        finalOptions = options;
+      }
+      taskpool.execute(() => {
+        this.nativeStartRecentAbility(want, syncCall, finalOptions);
       });
     });
   }
