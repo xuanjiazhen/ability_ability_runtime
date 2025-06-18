@@ -46,7 +46,7 @@ public:
     MOCK_METHOD2(GetProcessRunningInfosByUserId, int(std::vector<RunningProcessInfo>& info, int32_t userId));
     MOCK_METHOD4(StartUserTestProcess, int(const AAFwk::Want& want, const sptr<IRemoteObject>& observer,
         const BundleInfo& bundleInfo, int32_t userId));
-    MOCK_METHOD3(FinishUserTest, int(const std::string& msg, const int64_t& resultCode,
+    MOCK_METHOD3(FinishUserTest, ErrCode(const std::string& msg, int64_t resultCode,
         const std::string& bundleName));
     MOCK_METHOD3(ScheduleAcceptWantDone, void(const int32_t recordId, const AAFwk::Want& want,
         const std::string& flag));
@@ -55,9 +55,9 @@ public:
     MOCK_METHOD6(StartRenderProcess,
                  int(const std::string &renderParam, int32_t ipcFd,
                      int32_t sharedFd, int32_t crashFd, pid_t &renderPid, bool isGPU));
-    MOCK_METHOD1(AttachRenderProcess, void(const sptr<IRemoteObject>& renderScheduler));
-    MOCK_METHOD1(SaveBrowserChannel, void(sptr<IRemoteObject> browser));
-    MOCK_METHOD2(GetRenderProcessTerminationStatus, int(pid_t renderPid, int& status));
+    MOCK_METHOD1(AttachRenderProcess, ErrCode(const sptr<IRemoteObject>& renderScheduler));
+    MOCK_METHOD1(SaveBrowserChannel, ErrCode(const sptr<IRemoteObject>& browser));
+    MOCK_METHOD2(GetRenderProcessTerminationStatus, ErrCode(pid_t renderPid, int& status));
     MOCK_METHOD1(GetConfiguration, int32_t(Configuration& config));
     MOCK_METHOD2(UpdateConfiguration, int32_t(const Configuration& config, const int32_t userId));
     MOCK_METHOD1(RegisterConfigurationObserver, int32_t(const sptr<IConfigurationObserver>& observer));
@@ -103,33 +103,37 @@ public:
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
 
-    void AttachApplication(const sptr<IRemoteObject>& app)
+    ErrCode AttachApplication(const sptr<IRemoteObject>& app)
     {
         GTEST_LOG_(INFO) << "MockAppMgrService::AttachApplication called";
         Attached_ = true;
         EXPECT_TRUE(Attached_);
         Appthread_ = iface_cast<IAppScheduler>(app);
+        return 0;
     }
 
-    virtual void ApplicationForegrounded(const int32_t recordId)
+    virtual ErrCode ApplicationForegrounded(int32_t recordId)
     {
         GTEST_LOG_(INFO) << "MockAppMgrService::ApplicationForegrounded called";
         Foregrounded_ = true;
         EXPECT_TRUE(Foregrounded_);
+        return 0;
     }
 
-    virtual void ApplicationBackgrounded(const int32_t recordId)
+    virtual ErrCode ApplicationBackgrounded(int32_t recordId)
     {
         GTEST_LOG_(INFO) << "MockAppMgrService::ApplicationBackgrounded called";
         Backgrounded_ = true;
         EXPECT_TRUE(Backgrounded_);
+        return 0;
     }
 
-    virtual void ApplicationTerminated(const int32_t recordId)
+    virtual ErrCode ApplicationTerminated(int32_t recordId)
     {
         GTEST_LOG_(INFO) << "MockAppMgrService::ApplicationTerminated called";
         Terminated_ = true;
         EXPECT_TRUE(Terminated_);
+        return 0;
     }
 
     virtual void AbilityCleaned(const sptr<IRemoteObject>& token)
@@ -145,12 +149,8 @@ public:
     MOCK_METHOD1(KillProcessesByAccessTokenId, int32_t(const uint32_t accessTokenId));
     MOCK_METHOD3(KillApplication, int(const std::string& appName, const bool clearPageStack, int32_t appIndex));
     MOCK_METHOD3(KillApplicationByUid, int(const std::string&, const int uid, const std::string&));
-    MOCK_METHOD0(IsFinalAppProcess, bool());
+    MOCK_METHOD1(IsFinalAppProcess, ErrCode(bool& funcResult));
 
-    virtual sptr<IAmsMgr> GetAmsMgr() override
-    {
-        return nullptr;
-    };
     virtual int32_t ClearUpApplicationData(const std::string& appName, int32_t appCloneIndex) override
     {
         return 0;
@@ -167,12 +167,6 @@ public:
     }
 
     virtual int GetAllRunningProcesses(std::vector<RunningProcessInfo>& info) override
-    {
-        return 0;
-    }
-
-    virtual int32_t GetRunningMultiAppInfoByBundleName(const std::string &bundleName,
-        RunningMultiAppInfo &info) override
     {
         return 0;
     }
@@ -360,16 +354,231 @@ public:
         return true;
     }
 
-    int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+    int32_t GetRunningMultiAppInfoByBundleName(const std::string &bundleName,
+        RunningMultiAppInfo &info)
     {
         return 0;
     }
 
-    int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+    ErrCode PreloadApplication(
+        const std::string& bundleName, int32_t userId, PreloadMode preloadMode, int32_t appIndex)
     {
         return 0;
     }
 
+    ErrCode GetAmsMgr(sptr<IAmsMgr>& funcResult)
+    {
+        funcResult = nullptr;
+        return 0;
+    }
+
+    ErrCode IsTerminatingByPid(int32_t pid, bool& isTerminating)
+    {
+        return 0;
+    }
+
+    ErrCode HasDumpPermission(bool& funcResult)
+    {
+        return 0;
+    }
+
+    ErrCode DumpJsHeapMemory(const JsHeapDumpInfo& info)
+    {
+        return 0;
+    }
+
+    ErrCode DumpCjHeapMemory(const CjHeapDumpInfo& info)
+    {
+        return 0;
+    }
+
+    ErrCode GetForegroundApplications(
+        std::vector<AppStateData>& list)
+    {
+        return 0;
+    }
+
+    ErrCode FinishUserTest(
+        const std::string& msg,
+        int64_t resultCode,
+        const std::string& bundleName)
+    {
+        return 0;
+    }
+
+    ErrCode SetAppFreezeFilter(
+        int32_t pid,
+        bool& funcResult)
+    {
+        funcResult = false;
+        return 0;
+    }
+
+    ErrCode SetContinuousTaskProcess(
+        int32_t pid,
+        bool isContinuousTask)
+    {
+        return 0;
+    }
+    ErrCode GetRunningProcessInfoByPid(
+        int32_t pid,
+        RunningProcessInfo& info)
+    {
+        return 0;
+    }
+
+    ErrCode GetRunningProcessInfoByChildProcessPid(
+        int32_t childPid,
+        RunningProcessInfo& info)
+    {
+        return 0;
+    }
+
+    ErrCode NotifyPageShow(
+        const sptr<IRemoteObject>& token,
+        const PageStateData& pageStateData)
+    {
+        return 0;
+    }
+
+    ErrCode NotifyPageHide(
+        const sptr<IRemoteObject>& token,
+        const PageStateData& pageStateData)
+    {
+        return 0;
+    }
+
+    ErrCode SignRestartAppFlag(
+        int32_t uid,
+        const std::string& instanceKey)
+    {
+        return 0;
+    }
+
+    ErrCode GetAppRunningUniqueIdByPid(
+        int32_t pid,
+        std::string& appRunningUniqueId)
+    {
+        return 0;
+    }
+
+    ErrCode GetAllUIExtensionRootHostPid(
+        int32_t pid,
+        std::vector<int32_t>& hostPids)
+    {
+        return 0;
+    }
+
+    ErrCode GetAllUIExtensionProviderPid(
+        int32_t hostPid,
+        std::vector<int32_t>& providerPids)
+    {
+        return 0;
+    }
+
+    ErrCode NotifyMemorySizeStateChanged(
+        int32_t memorySizeState)
+    {
+        return 0;
+    }
+
+    ErrCode SaveBrowserChannel(
+        const sptr<IRemoteObject>& browser)
+    {
+        return 0;
+    }
+
+    ErrCode CheckCallingIsUserTestMode(
+        int32_t pid,
+        bool& isUserTest)
+    {
+        return 0;
+    }
+
+    ErrCode SetAppAssertionPauseState(
+        bool flag)
+    {
+        return 0;
+    }
+
+    ErrCode NotifyProcessDependedOnWeb()
+    {
+        return 0;
+    }
+
+    ErrCode KillProcessDependedOnWeb()
+    {
+        return 0;
+    }
+
+    ErrCode RestartResidentProcessDependedOnWeb()
+    {
+        return 0;
+    }
+
+    ErrCode KillAppSelfWithInstanceKey(
+        const std::string& instanceKey,
+        bool clearPageStack,
+        const std::string& reason)
+    {
+        return 0;
+    }
+
+    ErrCode UpdateInstanceKeyBySpecifiedId(
+        int32_t specifiedId,
+        const std::string& instanceKey)
+    {
+        return 0;
+    }
+
+    ErrCode IsSpecifiedModuleLoaded(
+        const Want& want,
+        const AbilityInfo& abilityInfo,
+        bool& funcResult)
+    {
+        return 0;
+    }
+
+    ErrCode UpdateProcessMemoryState(
+        const std::vector<ProcessMemoryState>& procMemState)
+    {
+        return 0;
+    }
+
+    ErrCode GetKilledProcessInfo(
+        int32_t pid,
+        int32_t uid,
+        KilledProcessInfo& info)
+    {
+        return 0;
+    }
+
+    ErrCode LaunchAbility(
+        const sptr<IRemoteObject>& token)
+    {
+        return 0;
+    }
+
+    ErrCode UpdateConfigurationForBackgroundApp(
+        const std::vector<BackgroundAppInfo>& appInfos,
+        const ConfigurationPolicy& policy,
+        int32_t userId)
+    {
+        return 0;
+    }
+
+    ErrCode RegisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
+    }
+
+    ErrCode UnregisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
+    }
+    
 private:
     bool Attached_ = false;
     bool Foregrounded_ = false;

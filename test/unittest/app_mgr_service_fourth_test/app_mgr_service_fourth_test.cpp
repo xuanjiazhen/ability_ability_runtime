@@ -236,7 +236,8 @@ HWTEST_F(AppMgrServiceFourthTest, StartupResidentProcess_0100, TestSize.Level1)
 HWTEST_F(AppMgrServiceFourthTest, GetAmsMgr_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetAmsMgr_0100 start");
-    auto amsMgr = appMgrService_->GetAmsMgr();
+    sptr<IAmsMgr> amsMgr;
+    appMgrService_->GetAmsMgr(amsMgr);
     EXPECT_EQ(amsMgr, appMgrService_->amsMgrScheduler_);
     TAG_LOGI(AAFwkTag::TEST, "GetAmsMgr_0100 end");
 }
@@ -262,7 +263,8 @@ HWTEST_F(AppMgrServiceFourthTest, HasDumpPermission_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "HasDumpPermission_0100 start");
     AAFwk::MyStatus::GetInstance().isVerifyAccessToken_ = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
     AAFwk::MyStatus::GetInstance().isVerifyAccessToken_ += 1;
-    auto result = appMgrService_->HasDumpPermission();
+    bool result = false;
+    appMgrService_->HasDumpPermission(result);
     EXPECT_EQ(result, false);
     TAG_LOGI(AAFwkTag::TEST, "HasDumpPermission_0100 end");
 }

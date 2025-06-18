@@ -563,7 +563,8 @@ void ConnectionStateManager::InitAppStateObserver()
         return;
     }
 
-    int32_t err = appManager->RegisterApplicationStateObserver(appStateObserver_);
+    std::vector<std::string> bundleNameList = {};
+    int32_t err = appManager->RegisterApplicationStateObserver(appStateObserver_, bundleNameList);
     if (err != 0) {
         TAG_LOGE(AAFwkTag::CONNECTION, "register to appmgr err:%{public}d", err);
         appStateObserver_ = nullptr;

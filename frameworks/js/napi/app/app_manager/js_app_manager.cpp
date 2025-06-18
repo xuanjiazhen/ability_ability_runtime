@@ -383,7 +383,8 @@ private:
                 task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "appManager nullptr"));
                 return;
             }
-            auto ret = appManager->ClearUpApplicationData(bundleName, 0);
+            int32_t userId = -1;
+            auto ret = appManager->ClearUpApplicationData(bundleName, 0, userId);
             if (ret == 0) {
                 task.Resolve(env, CreateJsValue(env, ret));
             } else {
@@ -428,7 +429,9 @@ private:
                     task.Reject(env, CreateJsError(env, errCode, "Invalidate params."));
                     return;
                 }
-                auto ret = appManager->GetAmsMgr()->KillProcessWithAccount(bundleName, accountId);
+                sptr<IAmsMgr> appMgr;
+                appManager->GetAmsMgr(appMgr);
+                auto ret = appMgr->KillProcessWithAccount(bundleName, accountId);
                 if (ret == 0) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {

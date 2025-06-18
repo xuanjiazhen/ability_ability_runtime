@@ -1354,9 +1354,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         errMsg = "sessionInfo is nullptr";
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowLeft=%{public}d,windowTop=%{public}d,windowHeight=%{public}d,"
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowTop=%{public}d,windowHeight=%{public}d,"
         "windowWidth=%{public}d,windowMode=%{public}d,supportWindowModes.size=%{public}zu,specifiedFlag=%{public}s",
-        (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_LEFT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_WIDTH, 0),
@@ -1366,10 +1365,11 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     bool hasStartWindow = hasStartWindowOption ? sessionInfo->startWindowOption->hasStartWindow : false;
     std::string backgroundColor =
         hasStartWindowOption ? sessionInfo->startWindowOption->startWindowBackgroundColor : "";
+    sessionInfo->hideStartWindow = abilityRequest.hideStartWindow;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, "
-        "hasStartWindow:%{public}d, backgroundColor:%{public}s",
+        "hasStartWindow:%{public}d, backgroundColor:%{public}s, hideStartWindow: %{public}d",
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
-        hasStartWindow, backgroundColor.c_str());
+        hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
         auto callerSessionInfo = abilityRecord->GetSessionInfo();
@@ -2146,11 +2146,11 @@ void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
         hookSpecifiedMap_.erase(iter);
         return;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
     auto curRequest = GetSpecifiedRequest(requestId);
     if (curRequest == nullptr) {
         return;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedFailed %{public}d", requestId);
     if (curRequest->persistentId != 0) {
         auto iter = sessionAbilityMap_.find(curRequest->persistentId);
         if (iter != sessionAbilityMap_.end() && iter->second != nullptr) {
@@ -2158,6 +2158,8 @@ void UIAbilityLifecycleManager::OnStartSpecifiedFailed(int32_t requestId)
             NotifySCBToHandleException(abilityRecord,
                 static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOAD_TIMEOUT), "handleLoadTimeout");
         }
+    } else {
+        RemoveInstanceKey(curRequest->abilityRequest);
     }
 
     auto nextRequest = PopAndGetNextSpecified(requestId);
@@ -2208,12 +2210,9 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessTimeoutResponse(int32_t r
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse %{public}d", requestId);
     std::lock_guard guard(sessionLock_);
     auto request = GetSpecifiedRequest(requestId);
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    if (request != nullptr  && sceneSessionManager != nullptr) {
+    if (request != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "removing instance key");
-        Rosen::WMError ret = sceneSessionManager->RemoveInstanceKey(request->abilityRequest.want.GetBundle(),
-            request->abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY));
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "remove instance key ret:%{public}d", ret);
+        RemoveInstanceKey(request->abilityRequest);
     }
     auto nextRequest = PopAndGetNextSpecified(requestId);
     if (nextRequest) {
@@ -2270,7 +2269,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
     return ERR_OK;
 }
 
-void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want, AbilityRequest &abilityRequest)
+int32_t UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
@@ -2278,10 +2277,10 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want, Abi
     std::lock_guard guard(sessionLock_);
     // support specified process mode
     if (IsStartSpecifiedProcessRequest(abilityRequest)) {
-        StartSpecifiedProcessRequest(abilityRequest);
-        return;
+        return StartSpecifiedProcessRequest(abilityRequest);
     }
     AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(GetRequestId(), abilityRequest));
+    return ERR_OK;
 }
 
 void UIAbilityLifecycleManager::NotifyRestartSpecifiedAbility(const AbilityRequest &request,
@@ -3607,7 +3606,10 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             sessionInfo->isFromIcon = request.isFromIcon;
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest cold");
             std::string errMsg;
-            NotifySCBPendingActivation(sessionInfo, request, errMsg);
+            auto result = NotifySCBPendingActivation(sessionInfo, request, errMsg);
+            if (result != ERR_OK) {
+                RemoveInstanceKey(request);
+            }
             sessionInfo->want.RemoveAllFd();
         }
         if (!specifiedRequest.isCold) {
@@ -3624,6 +3626,19 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     };
     TaskHandlerWrap::GetFfrtHandler()->SubmitTaskJust(timeoutTask, "SpecifiedFinalTimeout",
         GlobalConstant::TIMEOUT_UNIT_TIME * GlobalConstant::COLDSTART_TIMEOUT_MULTIPLE);
+}
+
+void UIAbilityLifecycleManager::RemoveInstanceKey(const AbilityRequest &abilityRequest) const
+{
+    if (!abilityRequest.want.HasParameter(Want::APP_INSTANCE_KEY)) {
+        return;
+    }
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    if (sceneSessionManager != nullptr) {
+        Rosen::WMError ret = sceneSessionManager->RemoveInstanceKey(abilityRequest.want.GetBundle(),
+            abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY));
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "remove instance key ret:%{public}d", ret);
+    }
 }
 
 std::shared_ptr<SpecifiedRequest> UIAbilityLifecycleManager::PopAndGetNextSpecified(int32_t requestId)

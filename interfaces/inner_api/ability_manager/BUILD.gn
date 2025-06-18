@@ -40,8 +40,10 @@ config("ability_manager_public_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/interfaces/kits/native/appkit",
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
+    "${target_gen_dir}",
   ]
 
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config", ]
   defines = []
 
   if (ability_command_for_test) {

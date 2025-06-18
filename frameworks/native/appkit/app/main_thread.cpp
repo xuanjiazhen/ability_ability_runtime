@@ -3862,7 +3862,8 @@ bool MainThread::NotifyDeviceDisConnect()
         TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");
         return false;
     }
-    bool isLastProcess = appMgr_->IsFinalAppProcess();
+    bool isLastProcess = false;
+    appMgr_->IsFinalAppProcess(isLastProcess);
     ScheduleTerminateApplication(isLastProcess);
     return true;
 }

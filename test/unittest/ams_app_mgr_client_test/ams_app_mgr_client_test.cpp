@@ -125,9 +125,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_001, TestSize.Level1)
         LoadAbility(_, _, _, _)).Times(1);
 
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
     AbilityRuntime::LoadParam loadParam;
     loadParam.token = token_;
     loadParam.preToken = preToken_;
@@ -172,9 +172,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_003, TestSize.Level1)
 
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
     EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())), TerminateAbility(_, _)).Times(1);
 
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->TerminateAbility(token_, false));
@@ -212,9 +212,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_005, TestSize.Level1)
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
     EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())), UpdateAbilityState(_, _)).Times(1);
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
 
     AbilityState state = AbilityState::ABILITY_STATE_CREATE;
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->UpdateAbilityState(token_, state));
@@ -254,9 +254,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_007, TestSize.Level1)
 
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
 
     EXPECT_CALL(*mockCallback, OnAbilityRequestDone(_, _)).Times(1);
     EXPECT_CALL(*mockCallback, OnAppStateChanged(_)).Times(1);
@@ -301,9 +301,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_010, TestSize.Level1)
         .Times(1)
         .WillOnce(Return(ERR_OK));
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
 
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->KillApplication(""));
     TAG_LOGI(AAFwkTag::TEST, "ams_app_mgr_client_test_008 end");
@@ -328,9 +328,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_011, TestSize.Level1)
         .Times(1)
         .WillOnce(Return(ERR_NO_MEMORY));
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
 
     EXPECT_EQ(AppMgrResultCode::ERROR_SERVICE_NOT_READY, client_->KillApplication(""));
     TAG_LOGI(AAFwkTag::TEST, "ams_app_mgr_client_test_011 end");
@@ -354,9 +354,9 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_012, TestSize.Level1)
         .Times(1);
 
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(amsMgrScheduler));
+        .WillOnce(Return(0));
 
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->KillProcessByAbilityToken(token));
     TAG_LOGI(AAFwkTag::TEST, "ams_app_mgr_client_test_012 end");
@@ -378,11 +378,10 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_013, TestSize.Level1)
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
     EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())), KillProcessByAbilityToken(_))
         .Times(0);
-
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
-        GetAmsMgr())
+        GetAmsMgr(_))
         .Times(1)
-        .WillOnce(Return(nullptr));
+        .WillOnce(Return(0));
 
     EXPECT_EQ(AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED, client_->KillProcessByAbilityToken(token));
     TAG_LOGI(AAFwkTag::TEST, "ams_app_mgr_client_test_013 end");

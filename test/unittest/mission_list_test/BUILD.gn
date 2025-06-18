@@ -28,6 +28,7 @@ ohos_unittest("mission_list_test") {
 
   configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test:aafwk_mock_config",
   ]
   cflags = []
@@ -76,6 +77,7 @@ ohos_unittest("mission_list_test_call") {
 
   configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test:aafwk_mock_config",
   ]
   cflags = []

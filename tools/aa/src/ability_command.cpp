@@ -1060,9 +1060,9 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
         return ERR_INVALID_VALUE;
     }
 
-    if (!(inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
-        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
-        inputLevel == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+    if (!(inputLevel == MemoryLevel::MEMORY_LEVEL_MODERATE ||
+        inputLevel == MemoryLevel::MEMORY_LEVEL_CRITICAL ||
+        inputLevel == MemoryLevel::MEMORY_LEVEL_LOW)) {
         TAG_LOGE(AAFwkTag::APPMGR, "level value error. Valid values: 0-2 (0: Moderate, 1: Low, 2: Critical)");
         resultReceiver_.append(STRING_SEND_MEMORY_LEVEL_NG + "\n");
         resultReceiver_.append(GetMessageFromCode(INVALID_LEVEL));
