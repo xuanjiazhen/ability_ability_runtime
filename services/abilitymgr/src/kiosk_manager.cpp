@@ -94,6 +94,7 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
 
 int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
 {
+    kioskStatus_.kioskToken_ = callerToken;
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Disabled config");
         return ERR_CAPABILITY_NOT_SUPPORT;
@@ -120,6 +121,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     kioskStatus_.isKioskMode_ = true;
     kioskStatus_.kioskBundleName_ = bundleName;
     kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
+    kioskStatus_.kioskToken_ = callerToken;
     GetEnterKioskModeCallback()();
     NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
