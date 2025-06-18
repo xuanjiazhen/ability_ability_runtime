@@ -71,6 +71,16 @@ bool BundleMgrHelper::GetBundleInfo(
             extensionAbilityInfo.name = "nameTest";
             extensionAbilityInfo.moduleName = moduleName;
             bundleInfo.extensionInfos.emplace_back(extensionAbilityInfo);
+        } else if ("extensionTypeAppService" == bundleName) {
+            moduleName = "moduleNameTest";
+            ExtensionAbilityInfo extensionAbilityInfo;
+            extensionAbilityInfo.bundleName = bundleName;
+            extensionAbilityInfo.applicationInfo.accessTokenId = accessTokenId;
+            extensionAbilityInfo.bundleName = bundleName;
+            extensionAbilityInfo.name = "nameTest";
+            extensionAbilityInfo.moduleName = moduleName;
+            extensionAbilityInfo.type = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
+            bundleInfo.extensionInfos.emplace_back(extensionAbilityInfo);
         } else {
             AbilityInfo abilityInfo;
             bundleInfo.applicationInfo.accessTokenId = accessTokenId;
