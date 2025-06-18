@@ -104,6 +104,10 @@ AbilityToolCommand::AbilityToolCommand(int argc, char* argv[]) : ShellCommand(ar
 {
     for (int i = 0; i < argc_; i++) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", i, argv_[i]);
+        if (i == 1) {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "argv_[...]: private");
+            break;
+        }
     }
 
     aaShellCmd_ = std::make_shared<AbilityManagerShellCommand>(argc, argv);
