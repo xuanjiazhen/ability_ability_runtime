@@ -6736,6 +6736,11 @@ int32_t AbilityManagerProxy::EnterKioskMode(sptr<IRemoteObject> callerToken)
 
 int32_t AbilityManagerProxy::ExitKioskMode(sptr<IRemoteObject> callerToken)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 1");
+    KioskStatus kioskStatus;
+    GetKioskStatus(kioskStatus);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 1-1");
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -6766,6 +6771,7 @@ int32_t AbilityManagerProxy::ExitKioskMode(sptr<IRemoteObject> callerToken)
 
 int32_t AbilityManagerProxy::GetKioskStatus(KioskStatus &kioskStatus)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 2");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -6774,19 +6780,21 @@ int32_t AbilityManagerProxy::GetKioskStatus(KioskStatus &kioskStatus)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken failed");
         return ERR_WRITE_INTERFACE_TOKEN_FAILED;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 2-1");
 
     auto error = SendRequest(AbilityManagerInterfaceCode::GET_KIOSK_INFO, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
         return error;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 2-2");
 
-    std::unique_ptr<KioskStatus> info(reply.ReadParcelable<KioskStatus>());
-    if (!info) {
+    if (!KioskStatus::UnMarshalling(reply, kioskStatus)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 2-3");
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read KioskStatus fail");
         return ERR_READ_RESULT_PARCEL_FAILED;
     }
-    kioskStatus = *info;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 2-4");
     return reply.ReadInt32();
 }
 

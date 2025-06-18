@@ -26,9 +26,8 @@ namespace AAFwk {
  * KioskStatus is used to save information about Kiosk mode.
  */
 struct KioskStatus : public Parcelable {
-    bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
-    static KioskStatus *Unmarshalling(Parcel &parcel);
+    virtual bool Marshalling(MessageParcel &parcel) const override;
+    static bool UnMarshalling(MessageParcel &parcel, KioskStatus &kioskStatus);
     void Clear();
 
     bool isKioskMode_ = false;

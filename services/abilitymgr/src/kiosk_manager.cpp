@@ -94,6 +94,7 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
 
 int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
 {
+    kioskStatus_.kioskToken_ = callerToken;
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Disabled config");
         return ERR_CAPABILITY_NOT_SUPPORT;

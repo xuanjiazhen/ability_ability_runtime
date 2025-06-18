@@ -19,27 +19,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-bool KioskStatus::ReadFromParcel(Parcel &parcel)
-{
-    isKioskMode_ = parcel.ReadBool();
-    kioskBundleName_ = Str16ToStr8(parcel.ReadString16());
-    kioskBundleUid_ = parcel.ReadInt32();
-    kioskToken_ = parcel.ReadParcelable<IRemoteObject>();
-    return true;
-}
-
-KioskStatus *KioskStatus::Unmarshalling(Parcel &parcel)
-{
-    KioskStatus *info = new KioskStatus();
-    if (!info->ReadFromParcel(parcel)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "ReadFromParcel failed");
-        delete info;
-        info = nullptr;
-    }
-    return info;
-}
-
-bool KioskStatus::Marshalling(Parcel &parcel) const
+bool KioskStatus::Marshalling(MessageParcel& parcel) const
 {
     if (!parcel.WriteBool(isKioskMode_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write isKioskMode_ failed");
@@ -56,10 +36,23 @@ bool KioskStatus::Marshalling(Parcel &parcel) const
         return false;
     }
 
-    if (!parcel.WriteParcelable(kioskToken_.GetRefPtr())) {
+    if (!parcel.WriteRemoteObject(kioskToken_)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write kioskToken_ failed");
         return false;
     }
+
+    return true;
+}
+
+bool KioskStatus::UnMarshalling(MessageParcel &parcel, KioskStatus &kioskStatus)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt UnMarshalling");
+    kioskStatus.isKioskMode_ = parcel.ReadBool();
+    kioskStatus.kioskBundleName_ = Str16ToStr8(parcel.ReadString16());
+    kioskStatus.kioskBundleUid_ = parcel.ReadInt32();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt UnMarshalling 2");
+    kioskStatus.kioskToken_ = parcel.ReadRemoteObject();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt UnMarshalling 3");
     return true;
 }
 
