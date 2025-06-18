@@ -179,12 +179,24 @@ int32_t KioskManager::GetKioskStatus(KioskStatus &kioskStatus)
 bool KioskManager::IsInKioskMode()
 {
     std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    if (IsInKioskModeInner()) {
+        TAG_LOGI(AAFwkTag::TEST, "ttt IsInKioskMode---------- if ");
+    } else {
+        TAG_LOGI(AAFwkTag::TEST, "ttt IsInKioskMode---------- else");
+    }
     return IsInKioskModeInner();
 }
 
 bool KioskManager::IsInWhiteList(const std::string &bundleName)
 {
+    TAG_LOGI(AAFwkTag::TEST, "ttt -----%{public}s", bundleName.c_str());
     std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    TAG_LOGI(AAFwkTag::TEST, "ttt ---2--%{public}s", bundleName.c_str());
+    if (IsInWhiteListInner(bundleName)) {
+        TAG_LOGI(AAFwkTag::TEST, "ttt IsInWhiteList===== if ");
+    } else {
+        TAG_LOGI(AAFwkTag::TEST, "ttt IsInWhiteList===== else");
+    }
     return IsInWhiteListInner(bundleName);
 }
 
