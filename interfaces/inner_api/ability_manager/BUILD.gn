@@ -220,6 +220,7 @@ ohos_shared_library("ability_manager") {
 
   public_configs = [
     ":ability_manager_public_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
   ]
 
@@ -381,6 +382,7 @@ ohos_shared_library("ability_manager_c") {
   external_deps = [
     "ability_base:session_info",
     "c_utils:utils",
+    "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
