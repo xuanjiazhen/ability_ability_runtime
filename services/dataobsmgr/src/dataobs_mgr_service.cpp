@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
-#include "string_ex.h"
 
 #include "ability_connect_callback_stub.h"
 #include "ability_manager_interface.h"
@@ -31,6 +30,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "tokenid_kit.h"
 #include "common_utils.h"
 #include "securec.h"
 #ifdef SCENE_BOARD_ENABLE
@@ -113,6 +113,10 @@ int DataObsMgrService::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserve
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
 
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
+    }
+
     int status;
     if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
         status = dataObsMgrInnerPref_->HandleRegisterObserver(uri, dataObserver);
@@ -142,6 +146,12 @@ int DataObsMgrService::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObser
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
 
+    auto [success, observerNode] = ConstructObserverNode(dataObserver, userId);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
+            CommonUtils::Anonymous(uri.ToString()).c_str(), userId);
+        return DATAOBS_INVALID_USERID;
+    }
     int status;
     if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
         status = dataObsMgrInnerPref_->HandleUnregisterObserver(uri, dataObserver);
@@ -170,6 +180,9 @@ int DataObsMgrService::NotifyChange(const Uri &uri)
             CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
+    }
 
     {
         std::lock_guard<ffrt::mutex> lck(taskCountMutex_);
@@ -197,7 +210,7 @@ int DataObsMgrService::NotifyChange(const Uri &uri)
 }
 
 Status DataObsMgrService::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
-    bool isDescendants)
+    bool isDescendants, DataObsOption opt)
 {
     if (dataObserver == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver, uri:%{public}s, isDescendants:%{public}d",
@@ -210,12 +223,16 @@ Status DataObsMgrService::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityO
             CommonUtils::Anonymous(uri.ToString()).c_str(), isDescendants);
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
+    }
 
     auto innerUri = uri;
     return dataObsMgrInnerExt_->HandleRegisterObserver(innerUri, dataObserver, isDescendants);
 }
 
-Status DataObsMgrService::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver)
+Status DataObsMgrService::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    DataObsOption opt)
 {
     if (dataObserver == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver, uri:%{public}s",
@@ -228,12 +245,15 @@ Status DataObsMgrService::UnregisterObserverExt(const Uri &uri, sptr<IDataAbilit
             CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_SERVICE_INNER_IS_NULL;
     }
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
+    }
 
     auto innerUri = uri;
     return dataObsMgrInnerExt_->HandleUnregisterObserver(innerUri, dataObserver);
 }
 
-Status DataObsMgrService::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver)
+Status DataObsMgrService::UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver, DataObsOption opt)
 {
     if (dataObserver == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObserver");
@@ -243,6 +263,9 @@ Status DataObsMgrService::UnregisterObserverExt(sptr<IDataAbilityObserver> dataO
     if (dataObsMgrInnerExt_ == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null dataObsMgrInner");
         return DATAOBS_SERVICE_INNER_IS_NULL;
+    }
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
     }
 
     return dataObsMgrInnerExt_->HandleUnregisterObserver(dataObserver);
@@ -268,7 +291,7 @@ Status DataObsMgrService::DeepCopyChangeInfo(const ChangeInfo &src, ChangeInfo &
     return SUCCESS;
 }
 
-Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo)
+Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsOption opt)
 {
     if (handler_ == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "null handler");
@@ -341,8 +364,12 @@ sptr<IRemoteObject> DataObsMgrService::GetAbilityManagerService() const
     return remoteObject;
 }
 
-Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer)
+Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
+    DataObsOption opt)
 {
+    if (!CheckSystemCallingPermission(opt)) {
+        return DATAOBS_NOT_SYSTEM_APP;
+    }
     auto remote = GetAbilityManagerService();
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "Get ability manager failed.");
