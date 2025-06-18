@@ -2277,10 +2277,10 @@ void UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(const Want &want, Abi
     abilityRequest.isFromIcon = true;
     std::lock_guard guard(sessionLock_);
     // support specified process mode
-    if (IsStartSpecifiedProcessRequest(abilityRequest)) {
-        StartSpecifiedProcessRequest(abilityRequest);
+    if (!IsStartSpecifiedProcessRequest(abilityRequest)) {
         return;
     }
+    StartSpecifiedProcessRequest(abilityRequest);
     AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(GetRequestId(), abilityRequest));
 }
 
