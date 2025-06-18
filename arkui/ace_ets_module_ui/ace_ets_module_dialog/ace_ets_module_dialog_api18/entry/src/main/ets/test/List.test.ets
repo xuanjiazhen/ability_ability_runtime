@@ -30,6 +30,8 @@ import previewBorderRadius from './bindContextMenuTest/previewBorderRadius.test'
 import isVisible from './popup/isVisible.test';
 import getDialogControllerTest from './dialog/getDialogControllerTest.test';
 import DialogOptions from './promptActionTest/DialogOptions.test';
+import buttonMinFontScaleTest from './buttonType/minFontScale.test'
+import buttonMaxFontScaleTest from './buttonType/maxFontScale.test'
 
 export default function testsuite() {
     isVisible()
@@ -50,4 +52,6 @@ export default function testsuite() {
     bindTips2Test()
     bindContextMenuHapticFeedbackMode()
     previewBorderRadius()
+    buttonMinFontScaleTest()
+    buttonMaxFontScaleTest()
 }

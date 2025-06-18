@@ -9,6 +9,7 @@
     "MainAbility/pages/ExpectedFrameRateRange/ExpectedFrameRateRangeCallback",
     "MainAbility/pages/visibleAreaEventOptions/visibleAreaEventOptions",
     "MainAbility/pages/gestureRecognizer/GestureInterrupterTest",
-    "MainAbility/pages/XComponent/XComponentLifeCyclePage"
+    "MainAbility/pages/XComponent/XComponentLifeCyclePage",
+    "MainAbility/pages/button/buttonFontScale"
   ]
 }
