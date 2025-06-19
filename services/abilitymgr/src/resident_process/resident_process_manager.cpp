@@ -84,8 +84,10 @@ void ResidentProcessManager::StartResidentProcessWithMainElement(std::vector<App
 void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
     size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId)
 {
-    if (userId != 0 && !AppUtils::GetInstance().InResidentWhiteList(bundleInfo.name)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not in resident allow list");
+    if (userId != 0 && !AppUtils::GetInstance().InResidentWhiteList(bundleInfo.name) &&
+        !AppUtils::GetInstance().IsBigMemoryUnrelatedKeepAliveProc(bundleInfo.name)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s not in resident allow list or \
+            resident process of Big memory unrelated.", bundleInfo.name.c_str());
         needEraseIndexSet.insert(index);
         return;
     }
