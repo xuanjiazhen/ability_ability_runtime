@@ -19,6 +19,7 @@
 #include "context.h"
 
 #include "bundle_mgr_interface.h"
+#include "overlay_manager_client.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -522,7 +523,6 @@ private:
     int32_t GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo, bool &currentBundle);
     void GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo,
         std::shared_ptr<Context> inputContext = nullptr);
-    ErrCode GetOverlayMgrProxy();
     void UnsubscribeToOverlayEvents();
     void ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl);
     bool UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
@@ -546,8 +546,6 @@ private:
 
     std::mutex bundleManagerMutex_;
     std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgr_;
-    std::mutex overlayMgrProxyMutex_;
-    sptr<AppExecFwk::IOverlayManager> overlayMgrProxy_ = nullptr;
 
     // True: need to get a new fms remote object,
     // False: no need to get a new fms remote object.
