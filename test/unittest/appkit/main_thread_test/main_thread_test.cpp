@@ -2553,5 +2553,18 @@ HWTEST_F(MainThreadTest, HandleUpdatePluginInfoInstalled_0100, TestSize.Level1)
     EXPECT_EQ(appLibPaths["pluginBundleName/moduleName"][0],
         "/data/storage/el1/bundle/+plugins/test");
 }
+
+/**
+ * @tc.name: NotifyDeviceDisConnect_0100
+ * @tc.desc: Notify device connect.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, NotifyDeviceDisConnect_0100, TestSize.Level1)
+{
+    std::shared_ptr<MainThread> mainThread = std::make_shared<MainThread>();
+    ASSERT_NE(mainThread, nullptr);
+    bool ret = mainThread->NotifyDeviceDisConnect();
+    EXPECT_EQ(ret, false);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
