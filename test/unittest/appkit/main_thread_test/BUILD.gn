@@ -25,7 +25,6 @@ ohos_unittest("main_thread_test") {
 
   sources = [
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_bundle_manager.cpp",
-    "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_overlay_manager.cpp",
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/sys_mgr_client_mock.cpp",
     "main_thread_test.cpp",
   ]
@@ -83,7 +82,6 @@ ohos_unittest("main_thread_by_mock_bms_test") {
 
   sources = [
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_bundle_manager.cpp",
-    "${ability_runtime_test_path}/mock/services_appmgr_test/src/mock_overlay_manager.cpp",
     "${ability_runtime_test_path}/mock/services_appmgr_test/src/sys_mgr_client_mock.cpp",
     "main_thread_by_mock_bms_test.cpp",
   ]

@@ -22,7 +22,6 @@
 #include "iremote_object.h"
 #include "iremote_stub.h"
 #include "module_info.h"
-#include "mock_overlay_manager.h"
 
 namespace OHOS {
 constexpr int32_t BASE_USER_RANGE = 200000;
@@ -54,13 +53,6 @@ public:
     MOCK_METHOD3(QueryAbilityInfoByUri, bool(const std::string&, int32_t, AppExecFwk::AbilityInfo&));
     MOCK_METHOD5(ImplicitQueryInfoByPriority, bool(const Want&, int32_t, int32_t, AppExecFwk::AbilityInfo&,
         AppExecFwk::ExtensionAbilityInfo&));
-
-    sptr<AppExecFwk::IOverlayManager> GetOverlayManagerProxy()
-    {
-        sptr<AppExecFwk::IOverlayManager> overlayModuleProxy =
-            new (std::nothrow) AppExecFwk::OverlayManagerProxy(nullptr);
-        return overlayModuleProxy;
-    }
 
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId) override
