@@ -73,7 +73,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     Parcel wantParcel;
     Want want;
     auto dialogSessionInfo = std::make_shared<DialogSessionInfo>();
-    bool isSCBCall = *data % ENABLE;
+    FuzzedDataProvider fdp(data, size);
+    bool isSCBCall = fdp.ConsumeBool();
     if (dialogSessionInfo == nullptr) {
         return false;
     }
