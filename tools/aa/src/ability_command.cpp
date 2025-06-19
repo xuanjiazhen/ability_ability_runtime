@@ -270,7 +270,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
 
 ErrCode AbilityManagerShellCommand::CreateMessageMap()
 {
-    messageMap_[RESOLVE_ABILITY_ERR] = GetAaToolErrorInfo("10104001", "The specified ability does not exist",
+    messageMap_[RESOLVE_ABILITY_ERR] = GetAaToolErrorInfo("10104001", "The input bundleName is not a system HSP.",
         "The specified Ability is not installed",
         {RESOLVE_ABILITY_ERR_SOLUTION_ONE, RESOLVE_ABILITY_ERR_SOLUTION_TWO, RESOLVE_ABILITY_ERR_SOLUTION_THREE});
     messageMap_[GET_ABILITY_SERVICE_FAILED] = GetAaToolErrorInfo("10105002", "Failed to get the ability service",
