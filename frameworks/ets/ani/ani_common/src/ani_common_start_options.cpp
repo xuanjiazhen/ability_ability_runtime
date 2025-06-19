@@ -42,58 +42,58 @@ bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::
 
 void UnwrapStartOptionsWindowOptions(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions)
 {
-    ani_double windowLeft = 0.0;
-    if (GetDoubleOrUndefined(env, param, "windowLeft", windowLeft)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "windowLeft:%{public}f", windowLeft);
+    ani_int windowLeft = 0;
+    if (GetIntOrUndefined(env, param, "windowLeft", windowLeft)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "windowLeft:%{public}d", windowLeft);
         startOptions.SetWindowLeft(windowLeft);
         startOptions.windowLeftUsed_ = true;
     }
 
-    ani_double windowTop = 0.0;
-    if (GetDoubleOrUndefined(env, param, "windowTop", windowTop)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "windowTop:%{public}f", windowTop);
+    ani_int windowTop = 0;
+    if (GetIntOrUndefined(env, param, "windowTop", windowTop)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "windowTop:%{public}d", windowTop);
         startOptions.SetWindowTop(windowTop);
         startOptions.windowTopUsed_ = true;
     }
 
-    ani_double windowWidth = 0.0;
-    if (GetDoubleOrUndefined(env, param, "windowWidth", windowWidth)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "windowWidth:%{public}f", windowWidth);
+    ani_int windowWidth = 0;
+    if (GetIntOrUndefined(env, param, "windowWidth", windowWidth)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "windowWidth:%{public}d", windowWidth);
         startOptions.SetWindowWidth(windowWidth);
         startOptions.windowWidthUsed_ = true;
     }
 
-    ani_double windowHeight = 0.0;
-    if (GetDoubleOrUndefined(env, param, "windowHeight", windowHeight)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "windowHeight:%{public}f", windowHeight);
+    ani_int windowHeight = 0;
+    if (GetIntOrUndefined(env, param, "windowHeight", windowHeight)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "windowHeight:%{public}d", windowHeight);
         startOptions.SetWindowHeight(windowHeight);
         startOptions.windowHeightUsed_ = true;
     }
 
-    ani_double minWindowWidth = 0.0;
-    if (GetDoubleOrUndefined(env, param, "minWindowWidth", minWindowWidth)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "minWindowWidth:%{public}f", minWindowWidth);
+    ani_int minWindowWidth = 0;
+    if (GetIntOrUndefined(env, param, "minWindowWidth", minWindowWidth)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "minWindowWidth:%{public}d", minWindowWidth);
         startOptions.SetMinWindowWidth(minWindowWidth);
         startOptions.minWindowWidthUsed_ = true;
     }
 
-    ani_double minWindowHeight = 0.0;
-    if (GetDoubleOrUndefined(env, param, "minWindowHeight", minWindowHeight)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "minWindowHeight:%{public}f", minWindowHeight);
+    ani_int minWindowHeight = 0;
+    if (GetIntOrUndefined(env, param, "minWindowHeight", minWindowHeight)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "minWindowHeight:%{public}d", minWindowHeight);
         startOptions.SetMinWindowHeight(minWindowHeight);
         startOptions.minWindowHeightUsed_ = true;
     }
 
-    ani_double maxWindowWidth = 0.0;
-    if (GetDoubleOrUndefined(env, param, "maxWindowWidth", maxWindowWidth)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "maxWindowWidth:%{public}f", maxWindowWidth);
+    ani_int maxWindowWidth = 0;
+    if (GetIntOrUndefined(env, param, "maxWindowWidth", maxWindowWidth)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "maxWindowWidth:%{public}d", maxWindowWidth);
         startOptions.SetMaxWindowWidth(maxWindowWidth);
         startOptions.maxWindowWidthUsed_ = true;
     }
 
-    ani_double maxWindowHeight = 0.0;
-    if (GetDoubleOrUndefined(env, param, "maxWindowHeight", maxWindowHeight)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "maxWindowHeight:%{public}f", maxWindowHeight);
+    ani_int maxWindowHeight = 0;
+    if (GetIntOrUndefined(env, param, "maxWindowHeight", maxWindowHeight)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "maxWindowHeight:%{public}d", maxWindowHeight);
         startOptions.SetMaxWindowHeight(maxWindowHeight);
         startOptions.maxWindowHeightUsed_ = true;
     }
@@ -135,15 +135,15 @@ bool UnwrapStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &sta
         return false;
     }
 
-    ani_double windowMode = 0.0;
-    if (GetDoubleOrUndefined(env, param, "windowMode", windowMode)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "windowMode:%{public}f", windowMode);
+    ani_int windowMode = 0;
+    if (GetIntOrUndefined(env, param, "windowMode", windowMode)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "windowMode:%{public}d", windowMode);
         startOptions.SetWindowMode(windowMode);
     }
 
-    ani_double displayId = 0.0;
-    if (GetDoubleOrUndefined(env, param, "displayId", displayId)) {
-        TAG_LOGD(AAFwkTag::JSNAPI, "displayId:%{public}f", displayId);
+    ani_int displayId = 0;
+    if (GetIntOrUndefined(env, param, "displayId", displayId)) {
+        TAG_LOGD(AAFwkTag::JSNAPI, "displayId:%{public}d", displayId);
         startOptions.SetDisplayID(static_cast<int>(displayId));
     }
 
