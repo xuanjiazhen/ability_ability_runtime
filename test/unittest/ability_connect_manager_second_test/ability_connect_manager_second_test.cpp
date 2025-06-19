@@ -29,8 +29,6 @@ using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
 
 namespace {
-const std::string VASSISTANT_BUNDLE_NAME = "com.huawei.hmos.vassistant";
-const std::string VASSISTANT_B2 = "com.huawei.hmos.vassistant.test";
 constexpr size_t LOAD_TIMEOUT = 0;
 constexpr size_t ACTIVE_TIMEOUT = 1;
 constexpr size_t INACTIVE_TIMEOUT = 2;
@@ -165,37 +163,6 @@ HWTEST_F(AbilityConnectManagerSecondTest, GetExtensionByIdFromTerminatingMap_001
     res = connectManager->GetExtensionByIdFromTerminatingMap(abilityRecordId);
     EXPECT_NE(res, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "GetExtensionByIdFromTerminatingMap_001 end");
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: ReportXiaoYiToRSSIfNeeded
- */
-HWTEST_F(AbilityConnectManagerSecondTest, ReportXiaoYiToRSSIfNeeded_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetExtensionByIdFromTerminatingMap_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    abilityRequest_.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto res = connectManager->ReportXiaoYiToRSSIfNeeded(abilityRequest_.abilityInfo);
-    EXPECT_EQ(res, ERR_OK);
-
-    abilityRequest_.abilityInfo.type = AppExecFwk::AbilityType::UNKNOWN;
-    abilityRequest_.abilityInfo.bundleName = VASSISTANT_BUNDLE_NAME;
-    res = connectManager->ReportXiaoYiToRSSIfNeeded(abilityRequest_.abilityInfo);
-    EXPECT_EQ(res, ERR_OK);
-
-    abilityRequest_.abilityInfo.bundleName = VASSISTANT_B2;
-    res = connectManager->ReportXiaoYiToRSSIfNeeded(abilityRequest_.abilityInfo);
-    EXPECT_EQ(res, ERR_OK);
-
-    abilityRequest_.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    abilityRequest_.abilityInfo.bundleName = VASSISTANT_BUNDLE_NAME;
-    res = connectManager->ReportXiaoYiToRSSIfNeeded(abilityRequest_.abilityInfo);
-    EXPECT_EQ(res, ERR_OK);
-
-    TAG_LOGI(AAFwkTag::TEST, "ReportXiaoYiToRSSIfNeeded_001 end");
 }
 
 /*

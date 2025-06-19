@@ -738,16 +738,6 @@ std::string AbilityConnectManager::GenerateBundleName(const AbilityRequest &abil
     return "";
 }
 
-int32_t AbilityConnectManager::ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo)
-{
-    return ERR_OK;
-}
-
-int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo)
-{
-    return ERR_OK;
-}
-
 void AbilityConnectManager::UninstallApp(const std::string &bundleName, int32_t uid)
 {
 }

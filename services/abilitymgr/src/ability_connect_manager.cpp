@@ -86,7 +86,6 @@ constexpr int32_t HALF_TIMEOUT = 2;
 constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
 
-const std::string XIAOYI_BUNDLE_NAME = "com.huawei.hmos.vassistant";
 constexpr int32_t U1_USER_ID = 1;
 
 bool IsSpecialAbility(const AppExecFwk::AbilityInfo &abilityInfo)
@@ -214,11 +213,6 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
             uiExtensionMap_[remoteObj] = UIExtWindowMapValType(targetService, abilityRequest.sessionInfo);
         }
         AddUIExtWindowDeathRecipient(remoteObj);
-    }
-
-    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
-    if (ret != ERR_OK) {
-        return ret;
     }
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, abilityRequest.callerToken);
@@ -686,12 +680,6 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         std::lock_guard guard(windowExtensionMapMutex_);
         windowExtensionMap_.emplace(connectObject,
             WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
-    }
-
-    auto &abilityInfo = abilityRequest.abilityInfo;
-    ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
-    if (ret != ERR_OK) {
-        return ret;
     }
 
     if (!isLoadedAbility) {
@@ -3604,46 +3592,6 @@ std::string AbilityConnectManager::GenerateBundleName(const AbilityRequest &abil
         }
     }
     return bundleName;
-}
-
-int32_t AbilityConnectManager::ReportXiaoYiToRSSIfNeeded(const AppExecFwk::AbilityInfo &abilityInfo)
-{
-    if (abilityInfo.type != AppExecFwk::AbilityType::EXTENSION ||
-        abilityInfo.bundleName != XIAOYI_BUNDLE_NAME) {
-        return ERR_OK;
-    }
-    TAG_LOGI(AAFwkTag::SERVICE_EXT,
-        "bundleName is extension, abilityName:%{public}s",
-        abilityInfo.name.c_str());
-    auto ret = ReportAbilityStartInfoToRSS(abilityInfo);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "fail, ret:%{public}d", ret);
-        return ret;
-    }
-    return ERR_OK;
-}
-
-int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::AbilityInfo &abilityInfo)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::vector<AppExecFwk::RunningProcessInfo> runningProcessInfos;
-    auto ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfos(
-        runningProcessInfos));
-    if (ret != ERR_OK) {
-        return ret;
-    }
-    bool isColdStart = true;
-    int32_t pid = 0;
-    for (auto const &info : runningProcessInfos) {
-        if (info.uid_ == abilityInfo.applicationInfo.uid) {
-            isColdStart = false;
-            pid = info.pid_;
-            break;
-        }
-    }
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ReportAbilityStartInfoToRSS, abilityName:%{public}s", abilityInfo.name.c_str());
-    ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid, isColdStart, -1); // -1代表与预加载无关
-    return ERR_OK;
 }
 
 void AbilityConnectManager::UninstallApp(const std::string &bundleName, int32_t uid)
