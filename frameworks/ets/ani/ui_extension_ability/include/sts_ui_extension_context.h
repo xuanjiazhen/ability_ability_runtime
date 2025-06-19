@@ -24,9 +24,9 @@
 #include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "sts_free_install_observer.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
-
 [[maybe_unused]] static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj,
     [[maybe_unused]] ani_object callback);
 [[maybe_unused]] static void TerminateSelfWithResultSync([[maybe_unused]] ani_env *env,
@@ -34,6 +34,24 @@ namespace AbilityRuntime {
 ani_object CreateStsUIExtensionContext(ani_env *env, std::shared_ptr<UIExtensionContext> context);
 
 bool BindNativeMethods(ani_env *env, ani_class &cls);
+
+class EtsUiExtensionConnection : public AbilityConnectCallback {
+public:
+    explicit EtsUiExtensionConnection(ani_vm *etsVm);
+    ~EtsUiExtensionConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void CallEtsFailed(int32_t errorCode);
+    void SetConnectionId(int64_t id);
+    int64_t GetConnectionId() { return connectionId_; }
+    void SetConnectionRef(ani_object connectOptionsObj);
+
+protected:
+    ani_vm *etsVm_;
+    int64_t connectionId_ = -1;
+    ani_ref stsConnectionRef_;
+};
 
 class StsUIExtensionContext final {
 public:
@@ -47,9 +65,33 @@ public:
     static UIExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callback, UIExtensionContext* context);
+    static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object connectOptionsObj);
+    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
+        ani_object connectOptionsObj);
+
 private:
+    static bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
+        sptr<EtsUiExtensionConnection>& connection, AAFwk::Want& want);
+
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
+
+struct EtsUIExtensionConnectionKey {
+    AAFwk::Want want;
+    int64_t id;
+};
+
+struct Etskey_compare {
+    bool operator()(const EtsUIExtensionConnectionKey &key1, const EtsUIExtensionConnectionKey &key2) const
+    {
+        if (key1.id < key2.id) {
+            return true;
+        }
+        return false;
+    }
+};
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
