@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ets_application.h"
+
 #include "accesstoken_kit.h"
 #include "ani_base_context.h"
 #include "ani_common_util.h"
 #include "application_context.h"
 #include "context_impl.h"
-#include "ets_application.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 #include "sts_context_utils.h"
@@ -149,13 +150,22 @@ void SetCreateCompleteCallback(ani_env *env, std::shared_ptr<std::shared_ptr<Con
         TAG_LOGE(AAFwkTag::APPKIT, "set nativeContextLong failed");
         return;
     }
-    auto application = context->GetApplicationContext();
-    if (application == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "application is null");
-        return;
-    }
-    ContextUtil::StsCreatContext(env, cls, contextObj, application->GetApplicationCtxObjRef(), context);
+    ContextUtil::StsCreatContext(env, cls, contextObj, context);
     AppExecFwk::AsyncCallback(env, callback, CreateStsError(env, AbilityErrorCode::ERROR_OK), contextObj);
+}
+
+std::shared_ptr<Context> GetStageModeContext(ani_env *env, ani_object &contextObj,
+    ani_object callback, ani_object emptyObject)
+{
+    ani_boolean stageMode = false;
+    ani_status status = OHOS::AbilityRuntime::IsStageContext(env, contextObj, stageMode);
+    if (status != ANI_OK || !stageMode) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
+        AppExecFwk::AsyncCallback(env, callback, CreateStsInvalidParamError(env,
+            "Parse param context failed, must be a context of stageMode."), emptyObject);
+        return nullptr;
+    }
+    return OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
 }
 
 static void CreateModuleContext([[maybe_unused]] ani_env *env,
@@ -171,15 +181,7 @@ static void CreateModuleContext([[maybe_unused]] ani_env *env,
     std::string stdModuleName = "";
     AppExecFwk::GetStdString(env, bundleName, stdBundleName);
     AppExecFwk::GetStdString(env, moduleName, stdModuleName);
-    ani_boolean stageMode = false;
-    ani_status status = OHOS::AbilityRuntime::IsStageContext(env, contextObj, stageMode);
-    if (status != ANI_OK || !stageMode) {
-        TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
-        AppExecFwk::AsyncCallback(env, callback, CreateStsInvalidParamError(env,
-            "Parse param context failed, must be a context of stageMode."), emptyObject);
-        return;
-    }
-    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+    auto context = GetStageModeContext(env, contextObj, callback, emptyObject);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         AppExecFwk::AsyncCallback(env, callback, CreateStsInvalidParamError(env,
@@ -221,6 +223,7 @@ static void CreateBundleContext([[maybe_unused]] ani_env *env,
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
+    ani_object emptyObject = GetNullObject(env);
     if (!CheckCaller(env, callback)) {
         TAG_LOGE(AAFwkTag::APPKIT, "CheckCaller failed");
         return;
