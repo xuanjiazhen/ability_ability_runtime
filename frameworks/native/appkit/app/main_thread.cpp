@@ -3652,13 +3652,7 @@ int MainThread::GetOverlayModuleInfos(const std::string &bundleName, const std::
         return ERR_INVALID_VALUE;
     }
 
-    auto overlayMgrProxy = bundleMgrHelper->GetOverlayManagerProxy();
-    if (overlayMgrProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null overlayMgrProxy");
-        return ERR_INVALID_VALUE;
-    }
-
-    auto ret = overlayMgrProxy->GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
+    auto ret = OverlayManagerClient::GetInstance().GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed");
         return ret;
