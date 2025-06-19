@@ -74,7 +74,7 @@ constexpr const char* ERROR_MSG_WUKONG_MODE_CANT_MOVE_STATE =
 constexpr const char* ERROR_MSG_START_OPTIONS_CHECK_FAILED = "The StartOptions check failed.";
 constexpr const char* ERROR_MSG_ABILITY_ALREADY_RUNNING = "The ability is already running.";
 constexpr const char* ERROR_MSG_NOT_SUPPORT_CROSS_APP_START =
-    "Redirection to a third-party application is not allowed in API version 11 or later.";
+    "Redirection to a third-party application is not allowed in API version greater than 11.";
 constexpr const char* ERROR_MSG_CANNOT_MATCH_ANY_COMPONENT = "No matching ability is found.";
 constexpr const char* ERROR_MSG_TARGET_BUNDLE_NOT_EXIST = "The bundle does not exist or no patch has been applied.";
 constexpr const char* ERROR_MSG_NO_MAIN_ABILITY = "The target bundle has no main ability.";
@@ -111,13 +111,18 @@ constexpr const char* ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE =
     "The caller is not an atomic service.";
 constexpr const char* ERROR_MSG_NOT_UI_ABILITY_CONTEXT =
     "The context is not UIAbilityContext.";
-constexpr const char* ERR_MSG_GET_FILE_URIS_BY_KEY_FAILED = "Failed to get file uri from key.";
-constexpr const char* ERR_MSG_NO_PERMISSION_GRANT_URI = "No permission to grant uri permission.";
-constexpr const char* ERR_MSG_INVALID_CALLER_TOKENID = "Caller token id is invalid.";
-constexpr const char* ERR_MSG_INVALID_TARGET_TOKENID = "Target token id is invalid.";
+constexpr const char* ERR_MSG_GET_FILE_URIS_BY_KEY_FAILED = "Failed to get the file URI from the key.";
+constexpr const char* ERR_MSG_NO_PERMISSION_GRANT_URI = "No permission to authorize the URI.";
+constexpr const char* ERR_MSG_INVALID_CALLER_TOKENID = "The caller token ID is invalid.";
+constexpr const char* ERR_MSG_INVALID_TARGET_TOKENID = "The target token ID is invalid.";
 constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type";
 constexpr const char* ERROR_MSG_CHANGE_KEEP_ALIVE = "Can not change keep alive status";
 constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1";
+constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST = "The current application is not in the kiosk whitelist.";
+constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE = "The system is already in the kiosk mode.";
+constexpr const char* ERROR_MSG_NOT_IN_KIOSK_MODE =
+    "The current application is not in the kiosk mode. Exit is not allowed.";
+constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "The current ability is not foreground.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -205,6 +210,10 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE, ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE},
     { AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE, ERROR_MSG_CHANGE_KEEP_ALIVE},
     { AbilityErrorCode::ERROR_CODE_NO_U1, ERROR_MSG_NO_U1},
+    { AbilityErrorCode::ERROR_CODE_KIOSK_MODE_NOT_IN_WHITELIST, ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST},
+    { AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE, ERROR_MSG_ALREADY_IN_KIOSK_MODE},
+    { AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE, ERROR_MSG_NOT_IN_KIOSK_MODE},
+    { AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS, ERROR_MSG_APP_NOT_IN_FOCUS},
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -294,6 +303,10 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_INVALID_MAIN_ELEMENT_TYPE, AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE},
     {ERR_CHANGE_KEEP_ALIVE, AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE},
     {ERR_NO_U1, AbilityErrorCode::ERROR_CODE_NO_U1},
+    {ERR_KIOSK_MODE_NOT_IN_WHITELIST, AbilityErrorCode::ERROR_CODE_KIOSK_MODE_NOT_IN_WHITELIST},
+    {ERR_ALREADY_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE},
+    {ERR_NOT_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE},
+    {ERR_APP_NOT_IN_FOCUS, AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS},
 };
 }
 

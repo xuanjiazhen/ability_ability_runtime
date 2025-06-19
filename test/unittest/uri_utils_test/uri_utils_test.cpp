@@ -29,7 +29,6 @@ namespace AAFwk {
 namespace {
 const int32_t BEYOND_MAX_URI_COUNT = 501;
 const int32_t MAX_URI_COUNT = 500;
-constexpr const char* UDMF_DATA_KEY = "ohos.param.ability.udmfKey";
 constexpr const char* ABILIY_PARAM_STREAM = "ability.params.stream";
 }
 class UriUtilsTest : public testing::Test {
@@ -80,82 +79,6 @@ HWTEST_F(UriUtilsTest, GetUriListFromWantDms_001, TestSize.Level1)
     want.SetParams(params);
     auto uriList3 = UriUtils::GetInstance().GetUriListFromWantDms(want);
     EXPECT_EQ(uriList3.size(), 0);
-}
-
-/*
- * Feature: UriUtils
- * Function: CheckNonImplicitShareFileUri
- * SubFunction: NA
- * FunctionPoints: UriUtils CheckNonImplicitShareFileUri
- */
-HWTEST_F(UriUtilsTest, CheckNonImplicitShareFileUri_001, TestSize.Level1)
-{
-    Want want;
-    int32_t userId = 1;
-    uint32_t specifyTokenId = 1001;
-    int32_t errorCode0 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode0, ERR_OK);
-
-    want.SetElementName("com.example.tsapplication", "EntryAbility");
-    int32_t errorCode1 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode1, ERR_OK);
-#ifdef SUPPORT_UPMS
-    want.SetFlags(0x00000003);
-    int32_t errorCode2 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode2, ERR_OK);
-
-    want.SetFlags(0x00000001);
-    int32_t errorCode3 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode3, ERR_OK);
-#endif // SUPPORT_UPMS
-    want.SetUri("file://data/storage/el2/distributedfiles/test.txt");
-    int32_t errorCode4 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode4, ERR_OK);
-
-    WantParams params;
-    sptr<AAFwk::IArray> ao = new (std::nothrow) AAFwk::Array(1, AAFwk::g_IID_IString);
-    if (ao != nullptr) {
-        ao->Set(0, String::Box("file"));
-        params.SetParam("ability.params.stream", ao);
-    }
-    want.SetParams(params);
-    int32_t errorCode5 = UriUtils::GetInstance().CheckNonImplicitShareFileUri(want, userId, specifyTokenId);
-    EXPECT_EQ(errorCode5, ERR_OK);
-}
-
-/*
- * Feature: UriUtils
- * Function: CheckNonImplicitShareFileUriInner
- * SubFunction: NA
- * FunctionPoints: UriUtils CheckNonImplicitShareFileUriInner
- */
-HWTEST_F(UriUtilsTest, CheckNonImplicitShareFileUriInner_001, TestSize.Level1)
-{
-    uint32_t callerTokenId = 1001;
-    std::string targetBundleName = "com.example.tsapplication";
-    int32_t userId = 1;
-    int32_t errorCode0 =
-        UriUtils::GetInstance().CheckNonImplicitShareFileUriInner(callerTokenId, targetBundleName, userId);
-    EXPECT_EQ(errorCode0, INNER_ERR);
-
-    callerTokenId = 0;
-    int32_t errorCode1 =
-        UriUtils::GetInstance().CheckNonImplicitShareFileUriInner(callerTokenId, targetBundleName, userId);
-    EXPECT_EQ(errorCode1, CHECK_PERMISSION_FAILED);
-}
-
-/*
- * Feature: UriUtils
- * Function: IsSystemApplication
- * SubFunction: NA
- * FunctionPoints: UriUtils IsSystemApplication
- */
-HWTEST_F(UriUtilsTest, IsSystemApplication_001, TestSize.Level1)
-{
-    std::string targetBundleName = "com.example.tsapplication";
-    int32_t userId = 1;
-    bool result = UriUtils::GetInstance().IsSystemApplication(targetBundleName, userId);
-    EXPECT_EQ(result, false);
 }
 
 /*
@@ -807,14 +730,14 @@ HWTEST_F(UriUtilsTest, ProcessUDMFKey_001, TestSize.Level1)
     auto &uriUtils = UriUtils::GetInstance();
     Want want;
     std::string udKey = "udmf:tempKey";
-    want.SetParam(UDMF_DATA_KEY, udKey);
+    want.SetParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY, udKey);
     uriUtils.ProcessUDMFKey(want);
-    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), false);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY).empty(), false);
 
     std::vector<std::string> uris = { "file://com.example.test/aaa.txt" };
     want.SetParam(ABILIY_PARAM_STREAM, uris);
     uriUtils.ProcessUDMFKey(want);
-    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY).empty(), true);
 }
 
 /*
@@ -828,14 +751,48 @@ HWTEST_F(UriUtilsTest, ProcessUDMFKey_002, TestSize.Level1)
     auto &uriUtils = UriUtils::GetInstance();
     Want want;
     std::string udKey;
-    want.SetParam(UDMF_DATA_KEY, udKey);
+    want.SetParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY, udKey);
     uriUtils.ProcessUDMFKey(want);
-    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY).empty(), true);
 
     std::vector<std::string> uris = { "file://com.example.test/aaa.txt" };
     want.SetParam(ABILIY_PARAM_STREAM, uris);
     uriUtils.ProcessUDMFKey(want);
-    EXPECT_EQ(want.GetStringParam(UDMF_DATA_KEY).empty(), true);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY).empty(), true);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: IsInAncoAppIdentifier
+ * SubFunction: NA
+ * FunctionPoints: UriUtils IsInAncoAppIdentifier
+ */
+HWTEST_F(UriUtilsTest, IsInAncoAppIdentifier_001, TestSize.Level1)
+{
+    auto &uriUtils = UriUtils::GetInstance();
+    std::string uri = "";
+    Want want;
+    want.SetUri(uri);
+    uriUtils.PublishFileOpenEvent(want);
+    auto result = uriUtils.IsInAncoAppIdentifier("com.example.test");
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UriUtils
+ * Function: IsInAncoAppIdentifier
+ * SubFunction: NA
+ * FunctionPoints: UriUtils IsInAncoAppIdentifier
+ */
+HWTEST_F(UriUtilsTest, IsInAncoAppIdentifier_002, TestSize.Level1)
+{
+    auto &uriUtils = UriUtils::GetInstance();
+    std::string uri = "file://com.example.test/test.txt";
+    Want want;
+    want.SetUri(uri);
+    uriUtils.PublishFileOpenEvent(want);
+    auto result = uriUtils.IsInAncoAppIdentifier("com.example.test");
+    EXPECT_FALSE(result);
 }
 }
 }

@@ -326,6 +326,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_CANCEL_LISTENER) {
         return UnregisterCancelListenerInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SEND_LOCAL_PENDING_WANT_SENDER) {
+        return SendLocalWantSenderInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -1137,6 +1140,9 @@ int AbilityManagerStub::TerminateUIExtensionAbilityInner(MessageParcel &data, Me
     int resultCode = data.ReadInt32();
     Want *resultWant = data.ReadParcelable<Want>();
     int32_t result = TerminateUIExtensionAbility(extensionSessionInfo, resultCode, resultWant);
+    if (extensionSessionInfo != nullptr) {
+        extensionSessionInfo->want.CloseAllFd();
+    }
     reply.WriteInt32(result);
     if (resultWant != nullptr) {
         delete resultWant;
@@ -1190,6 +1196,9 @@ int AbilityManagerStub::MinimizeUIExtensionAbilityInner(MessageParcel &data, Mes
     }
     auto fromUser = data.ReadBool();
     int32_t result = MinimizeUIExtensionAbility(extensionSessionInfo, fromUser);
+    if (extensionSessionInfo != nullptr) {
+        extensionSessionInfo->want.CloseAllFd();
+    }
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -1955,6 +1964,18 @@ int AbilityManagerStub::SendWantSenderInner(MessageParcel &data, MessageParcel &
     if (!reply.WriteParcelable(senderInfo.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "completedData write fail");
     }
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::SendLocalWantSenderInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<SenderInfo> senderInfo(data.ReadParcelable<SenderInfo>());
+    if (senderInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "senderInfo null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = SendLocalWantSender(*senderInfo);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
@@ -3516,7 +3537,8 @@ int32_t AbilityManagerStub::StartSpecifiedAbilityBySCBInner(MessageParcel &data,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
         return ERR_INVALID_VALUE;
     }
-    StartSpecifiedAbilityBySCB(*want);
+    auto resultCode = StartSpecifiedAbilityBySCB(*want);
+    reply.WriteInt32(resultCode);
     return NO_ERROR;
 }
 

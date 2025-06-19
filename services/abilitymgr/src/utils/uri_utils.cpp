@@ -42,7 +42,6 @@ const std::string PARAMS_URI = "ability.verify.uri";
 const std::string DISTRIBUTED_FILES_PATH = "/data/storage/el2/distributedfiles/";
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 const std::string DMS_PROCESS_NAME = "distributedsched";
-const std::string UDMF_DATA_KEY = "ohos.param.ability.udmfKey";
 const int32_t MAX_URI_COUNT = 500;
 constexpr int32_t API14 = 14;
 constexpr int32_t API_VERSION_MOD = 100;
@@ -127,84 +126,6 @@ std::vector<Uri> UriUtils::GetUriListFromWantDms(Want &want)
     return validUriVec;
 }
 
-int32_t UriUtils::CheckNonImplicitShareFileUri(const Want &want, int32_t userId, uint32_t specifyTokenId)
-{
-    auto element = want.GetElement();
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckNonImplicitShareFileUri, %{public}s-%{public}s",
-        element.GetBundleName().c_str(), element.GetAbilityName().c_str());
-    if (element.GetBundleName().empty() || element.GetAbilityName().empty()) {
-        return ERR_OK;
-    }
-#ifdef SUPPORT_UPMS
-    if (!IsGrantUriPermissionFlag(want)) {
-        return ERR_OK;
-    }
-#endif // SUPPORT_UPMS
-    bool isFileUri = (!want.GetUriString().empty() && want.GetUri().GetScheme() == "file");
-    if (!isFileUri && want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM).empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "not file uri");
-        return ERR_OK;
-    }
-    // SA and system app support
-    auto callerTokenId = specifyTokenId > 0 ? specifyTokenId : IPCSkeleton::GetCallingTokenID();
-    if (CheckNonImplicitShareFileUriInner(callerTokenId, element.GetBundleName(), userId) != ERR_OK) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "share file uri non-implicitly will not support");
-    }
-    return ERR_OK;
-}
-
-int32_t UriUtils::CheckNonImplicitShareFileUriInner(uint32_t callerTokenId, const std::string &targetBundleName,
-    int32_t userId)
-{
-    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerTokenId);
-    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "SA call");
-        return ERR_OK;
-    }
-    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
-        Security::AccessToken::HapTokenInfo hapInfo;
-        auto ret = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callerTokenId, hapInfo);
-        if (ret != Security::AccessToken::AccessTokenKitRet::RET_SUCCESS) {
-            TAG_LOGE(AAFwkTag::URIPERMMGR, "GetHapTokenInfo failed, ret:%{public}d", ret);
-            return INNER_ERR;
-        }
-        // check api version
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "CallerBundleName:%{public}s, API:%{public}d",
-            hapInfo.bundleName.c_str(), hapInfo.apiVersion);
-        if ((hapInfo.apiVersion % API_VERSION_MOD) <= API14) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "api version lower than 14");
-            return ERR_OK;
-        }
-        // check system app
-        uint64_t fullCallerTokenId = (static_cast<uint64_t>(hapInfo.tokenAttr) << TOKEN_ID_BIT_SIZE) + callerTokenId;
-        if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullCallerTokenId)) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "system app call");
-            return ERR_OK;
-        }
-    }
-    // target is system app
-    if (IsSystemApplication(targetBundleName, userId)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "target is system app");
-        return ERR_OK;
-    }
-    return CHECK_PERMISSION_FAILED;
-}
-
-bool UriUtils::IsSystemApplication(const std::string &bundleName, int32_t userId)
-{
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    if (!bundleMgrHelper) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetBundleManagerHelper failed");
-        return false;
-    }
-    AppExecFwk::ApplicationInfo appInfo;
-    if (!IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(bundleName,
-        AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, userId, appInfo))) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetApplicationInfo failed");
-        return false;
-    }
-    return appInfo.isSystemApp;
-}
 
 std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string> &uriVec,
     const std::vector<bool> &checkResults, Want &want)
@@ -457,7 +378,7 @@ void UriUtils::ProcessUDMFKey(Want &want)
 {
     // PARAMS_STREAM and UDMF_DATA_KEY is conflict
     if (!want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM).empty()) {
-        want.RemoveParam(UDMF_DATA_KEY);
+        want.RemoveParam(Want::PARAM_ABILITY_UNIFIED_DATA_KEY);
     }
 }
 

@@ -23,6 +23,7 @@
 #undef private
 #undef protected
 #include "js_runtime_utils.h"
+#include "ability_stage_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -172,19 +173,83 @@ HWTEST_F(JsUiAbilityTest, JSUIAbility_DoOnForegroundForSceneIsNull_0100, TestSiz
     wptr<IRemoteObject> token(new IPCObjectStub());
     ability->sessionToken_ = token;
     auto abilityContextImpl = std::make_shared<AbilityContextImpl>();
+
+    auto stageContext = std::make_shared<AbilityRuntime::AbilityStageContext>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    stageContext->InitHapModuleInfo(hapModuleInfo);
+    abilityContextImpl->SetStageContext(stageContext);
+    abilityContextImpl->SetAbilityInfo(nullptr);
+    
     ability->abilityContext_ = abilityContextImpl;
     Rosen::SceneBoardJudgement::flag_ = true;
     Want want;
+    ability->DoOnForegroundForSceneIsNull(want);
+    EXPECT_NE(abilityContextImpl->GetSessionToken(), nullptr);
+
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->applicationInfo.bundleType = OHOS::AppExecFwk::BundleType::APP;
+    abilityContextImpl->SetAbilityInfo(abilityInfo);
+    ability->abilityContext_ = abilityContextImpl;
+    ability->DoOnForegroundForSceneIsNull(want);
+    EXPECT_NE(abilityContextImpl->GetSessionToken(), nullptr);
+
     std::string navDestinationInfo = "testNavDestinationInfo";
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, navDestinationInfo);
+    ability->DoOnForegroundForSceneIsNull(want);
+    EXPECT_NE(abilityContextImpl->GetSessionToken(), nullptr);
+
+    abilityInfo->applicationInfo.bundleType = OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE;
+    abilityContextImpl->SetAbilityInfo(abilityInfo);
+    ability->abilityContext_ = abilityContextImpl;
+    navDestinationInfo = "testNavDestinationInfo";
     want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, navDestinationInfo);
     ability->DoOnForegroundForSceneIsNull(want);
     EXPECT_NE(abilityContextImpl->GetSessionToken(), nullptr);
 
     navDestinationInfo = "";
     want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, navDestinationInfo);
+    ability->sceneListener_ = new Rosen::IWindowLifeCycle();
     ability->DoOnForegroundForSceneIsNull(want);
     EXPECT_NE(abilityContextImpl->GetSessionToken(), nullptr);
     GTEST_LOG_(INFO) << "JSUIAbility_DoOnForegroundForSceneIsNull_0100 end";
+}
+
+/**
+ * @tc.name: JSUIAbility_OnNewWant_0100
+ * @tc.desc: OnNewWant test
+ * @tc.desc: Verify function OnNewWant.
+ */
+HWTEST_F(JsUiAbilityTest, JSUIAbility_OnNewWant_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "JSUIAbility_OnNewWant_0100 start";
+    AbilityRuntime::Runtime::Options options;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
+    auto runtime = AbilityRuntime::Runtime::Create(options);
+    auto jsRuntime = static_cast<AbilityRuntime::JsRuntime*>(runtime.get());
+    auto ability = std::make_shared<AbilityRuntime::JsUIAbility>(*jsRuntime);
+    Want want;
+
+    ability->scene_ = std::make_shared<Rosen::WindowScene>();
+    auto abilityContextImpl = std::make_shared<AbilityContextImpl>();
+    abilityContextImpl->SetAbilityInfo(nullptr);
+    ability->abilityContext_ = abilityContextImpl;
+    ability->OnNewWant(want);
+    
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->applicationInfo.bundleType = OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE;
+    abilityContextImpl->SetAbilityInfo(abilityInfo);
+    ability->abilityContext_ = abilityContextImpl;
+    ability->OnNewWant(want);
+
+    abilityInfo->applicationInfo.bundleType = OHOS::AppExecFwk::BundleType::APP;
+    abilityContextImpl->SetAbilityInfo(abilityInfo);
+    ability->abilityContext_ = abilityContextImpl;
+
+    std::string navDestinationInfo = "testNavDestinationInfo";
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, navDestinationInfo);
+    ability->OnNewWant(want);
+    EXPECT_NE(want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER), navDestinationInfo);
+    GTEST_LOG_(INFO) << "JSUIAbility_OnNewWant_0100 end";
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

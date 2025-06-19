@@ -58,6 +58,7 @@ constexpr static char APP_ACCOUNT_AUTHORIZATION_EXTENSION[] = "AppAccountAuthori
 constexpr static char FENCE_EXTENSION[] = "FenceExtension";
 constexpr static char CALLER_INFO_QUERY_EXTENSION[] = "CallerInfoQueryExtension";
 constexpr static char ASSET_ACCELERATION_EXTENSION[] = "AssetAccelerationExtension";
+constexpr static char SELECTION_EXTENSION[] = "SelectionExtensionAbility";
 }
 
 const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_MAP = {
@@ -160,6 +161,8 @@ void ExtensionAbilityThread::CreateExtensionAbilityName(
         abilityName = CALLER_INFO_QUERY_EXTENSION;
     } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::ASSET_ACCELERATION) {
         abilityName = ASSET_ACCELERATION_EXTENSION;
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::SELECTION) {
+        abilityName = SELECTION_EXTENSION;
     }
 #ifdef SUPPORT_GRAPHICS
     else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::SYSDIALOG_USERAUTH) {
@@ -242,7 +245,13 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     }
 
     // 2.new ability
-    auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName);
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
+        return;
+    }
+    auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
+        abilityInfo->codeLanguage);
     if (extension == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null extension");
         return;

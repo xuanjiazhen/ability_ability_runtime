@@ -145,6 +145,27 @@ HWTEST_F(UIExtensionRecordFactoryTest, NeedReuse_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.number: NeedReuse_0300
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Set UIEXTENSION_ABILITY_ID equal INVALID_EXTENSION_RECORD_ID
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, NeedReuse_0300, TestSize.Level1)
+{
+    AbilityRuntime::UIExtensionRecordFactory info;
+    AAFwk::AbilityRequest abilityRequest;
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    abilityRequest.sessionInfo = nullptr;
+    int32_t extensionRecordId = 1;
+    bool result = info.NeedReuse(abilityRequest, extensionRecordId);
+    EXPECT_EQ(result, false);
+}
+
+/**
  * @tc.number: CreateRecord_0100
  * @tc.name: UIExtensionRecordFactoryTest
  * @tc.desc: Call function CreateRecord
@@ -204,6 +225,118 @@ HWTEST_F(UIExtensionRecordFactoryTest, PreCheck_0100, TestSize.Level1)
     std::string hostBundleName = "com.ohos.example.hostBundleName";
     abilityRequest.extensionType = ExtensionAbilityType::WORK_SCHEDULER;
     EXPECT_EQ(uiExtensionRecordFactory->PreCheck(abilityRequest, hostBundleName), ERR_OK);
+}
+
+/**
+ * @tc.number: PreCheck_0200
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function PreCheck
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, PreCheck_0200, TestSize.Level1)
+{
+    std::string bundleName = "com.ohos.example.hostBundleName";
+    std::string name = "MainAbility";
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = bundleName;
+    abilityRequest.abilityInfo.name = name;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = static_cast<AppExecFwk::ExtensionAbilityType>(1000);
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->PreCheck(abilityRequest, bundleName), ERR_OK);
+}
+
+/**
+ * @tc.number: PreCheck_0300
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function PreCheck
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, PreCheck_0300, TestSize.Level1)
+{
+    std::string hostBundleName = "com.ohos.example.hostBundleName";
+    std::string name = "MainAbility";
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = name;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->PreCheck(abilityRequest, hostBundleName), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.number: GetExtensionProcessMode_0200
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function GetExtensionProcessMode
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, GetExtensionProcessMode_0200, TestSize.Level1)
+{
+    bool isHostSpecified;
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    abilityRequest.customProcess = "value";
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified), PROCESS_MODE_CUSTOM);
+}
+
+/**
+ * @tc.number: GetExtensionProcessMode_0300
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function GetExtensionProcessMode
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, GetExtensionProcessMode_0300, TestSize.Level1)
+{
+    bool isHostSpecified;
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    abilityRequest.customProcess = "value";
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified), PROCESS_MODE_CUSTOM);
+}
+
+/**
+ * @tc.number: GetExtensionProcessMode_0400
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function GetExtensionProcessMode
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, GetExtensionProcessMode_0400, TestSize.Level1)
+{
+    bool isHostSpecified;
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.extensionProcessMode = ExtensionProcessMode::UNDEFINED;
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified), PROCESS_MODE_BUNDLE);
+}
+
+/**
+ * @tc.number: GetExtensionProcessMode_0500
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function GetExtensionProcessMode
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, GetExtensionProcessMode_0500, TestSize.Level1)
+{
+    bool isHostSpecified;
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::LIVE_FORM;
+    abilityRequest.extensionProcessMode = ExtensionProcessMode::BUNDLE;
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified), PROCESS_MODE_BUNDLE);
+}
+
+/**
+ * @tc.number: GetExtensionProcessMode_0600
+ * @tc.name: UIExtensionRecordFactoryTest
+ * @tc.desc: Call function GetExtensionProcessMode
+ */
+HWTEST_F(UIExtensionRecordFactoryTest, GetExtensionProcessMode_0600, TestSize.Level1)
+{
+    bool isHostSpecified;
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.extensionProcessMode = ExtensionProcessMode::BUNDLE;
+    auto uiExtensionRecordFactory = std::make_shared<AbilityRuntime::UIExtensionRecordFactory>();
+    EXPECT_EQ(uiExtensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified), PROCESS_MODE_BUNDLE);
 }
 
 /**

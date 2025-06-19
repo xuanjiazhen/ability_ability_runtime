@@ -82,6 +82,42 @@ napi_value CreateFormInfoForQuery(napi_env env, const FormInfoForQuery &info)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
+    napi_set_named_property(env, objValue, "abilityName", CreateJsValue(env, info.abilityName));
+    napi_set_named_property(env, objValue, "formName", CreateJsValue(env, info.formName));
+    return objValue;
+}
+
+napi_value CreateEntityInfoForArray(napi_env env, const std::vector<EntityInfoForQuery> &infos)
+{
+    napi_value arrayValue = nullptr;
+    napi_status status = napi_create_array_with_length(env, infos.size(), &arrayValue);
+    if (status != napi_ok) {
+        return nullptr;
+    }
+    uint32_t index = 0;
+    for (const auto &info : infos) {
+        napi_value entityInfoObj = CreateJsEntityInfo(env, info);
+        NAPI_CALL(env, napi_set_element(env, arrayValue, index++, entityInfoObj));
+    }
+
+    return arrayValue;
+}
+
+napi_value CreateJsEntityInfo(napi_env env, const EntityInfoForQuery &info)
+{
+    napi_value objValue = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &objValue));
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null obj");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, objValue, "className", CreateJsValue(env, info.className));
+    napi_set_named_property(env, objValue, "entityId", CreateJsValue(env, info.entityId));
+    napi_set_named_property(env, objValue, "entityCategory", CreateJsValue(env, info.entityCategory));
+    napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
+    napi_set_named_property(env, objValue, "parentClassName", CreateJsValue(env, info.parentClassName));
+
     return objValue;
 }
 
@@ -173,6 +209,7 @@ napi_value CreateInsightIntentInfoForQuery(napi_env env, const InsightIntentInfo
     napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
     napi_set_named_property(env, objValue, "result", CreateInsightIntentInfoResult(env, info.result));
     napi_set_named_property(env, objValue, "keywords", CreateNativeArray(env, info.keywords));
+    napi_set_named_property(env, objValue, "entities", CreateEntityInfoForArray(env, info.entities));
     if (info.intentType == INSIGHT_INTENTS_TYPE_LINK) {
         napi_set_named_property(env, objValue, "subIntentInfo", CreateLinkInfoForQuery(env, info.linkInfo));
     } else if (info.intentType == INSIGHT_INTENTS_TYPE_PAGE) {
