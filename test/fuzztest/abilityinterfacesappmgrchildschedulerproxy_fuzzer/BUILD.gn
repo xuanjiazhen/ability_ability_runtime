@@ -58,6 +58,7 @@ ohos_fuzztest("AbilityInterfacesAppMgrChildSchedulerProxyFuzzTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",

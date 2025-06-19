@@ -51,6 +51,7 @@ ohos_fuzztest("AbilityRunningRecordFuzzTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "napi:ace_napi",
     "safwk:system_ability_fwk",

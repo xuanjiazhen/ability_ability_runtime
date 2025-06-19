@@ -46,6 +46,7 @@ ohos_fuzztest("UnRegisterMissionListenerFuzzTest") {
     "ability_runtime:app_manager",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
     "relational_store:native_dataability",
