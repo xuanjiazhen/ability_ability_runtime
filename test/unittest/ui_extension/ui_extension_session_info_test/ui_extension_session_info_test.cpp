@@ -89,5 +89,24 @@ HWTEST_F(UIExtensionSessionInfoTest, Marshalling_0100, TestSize.Level1)
     EXPECT_EQ(parcelable2->extensionAbilityType, AppExecFwk::ExtensionAbilityType::SYSDIALOG_COMMON);
     EXPECT_EQ(parcelable2->hostElementName, hostElementName);
 }
+
+/**
+ * @tc.name: Unmarshalling_0100
+ * @tc.desc: Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require: issueI5OD2E
+ */
+HWTEST_F(UIExtensionSessionInfoTest, Unmarshalling_0100, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.WriteUint32(1);
+    parcel.WriteUint32(1);
+    parcel.WriteParcelable(new AppExecFwk::ElementName());
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(nullptr);
+    UIExtensionSessionInfo *reuslt = UIExtensionSessionInfo::Unmarshalling(parcel);
+    EXPECT_EQ(true, nullptr);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
