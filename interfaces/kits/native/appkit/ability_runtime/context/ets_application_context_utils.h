@@ -45,10 +45,10 @@ public:
         ani_object callback);
     static void GetRunningProcessInformation([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_object callback);
-    static ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    static ani_int NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_string type, ani_object envCallback);
     static void NativeOffSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
-        ani_string type, ani_double callbackId, ani_object call);
+        ani_string type, ani_int callbackId, ani_object call);
     static void killAllProcesses([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_boolean clearPageStack, ani_object call);
     static void PreloadUIExtensionAbility([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,

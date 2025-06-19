@@ -48,7 +48,7 @@ void SetBasicConfiguration(
     env->Object_SetPropertyByName_Ref(object, "colorMode", colorModeItem);
 
     int32_t displayId = ConvertDisplayId(configuration.GetItem(ConfigurationInner::APPLICATION_DISPLAYID));
-    env->Object_SetPropertyByName_Ref(object, "displayId", createDouble(env, static_cast<ani_double>(displayId)));
+    env->Object_SetPropertyByName_Ref(object, "displayId", createInt(env, static_cast<ani_int>(displayId)));
 
     std::string direction = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DIRECTION);
     ani_enum_item directionItem {};

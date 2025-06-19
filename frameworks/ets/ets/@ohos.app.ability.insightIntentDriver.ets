@@ -30,9 +30,9 @@ export default namespace insightIntentDriver {
     insightIntentName: string;
     insightIntentParam: Record<string, Object>;
     executeMode: insightIntent.ExecuteMode;
-    displayId?: number;
+    displayId?: int;
     uris?: Array<string>;
-    flags?: number;
+    flags?: int;
   }
 
   export native function nativeExecuteSync(param: ExecuteParam,
