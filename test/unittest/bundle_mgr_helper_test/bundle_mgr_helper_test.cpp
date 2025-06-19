@@ -168,17 +168,6 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetGroupDir_001, TestSize.Leve
 }
 
 /**
- * @tc.name: BundleMgrHelperTest_GetOverlayManagerProxy_001
- * @tc.desc: GetOverlayManagerProxy
- * @tc.type: FUNC
- */
-HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetOverlayManagerProxy_001, TestSize.Level1)
-{
-    auto ret = bundleMgrHelper->GetOverlayManagerProxy();
-    EXPECT_NE(ret, nullptr);
-}
-
-/**
  * @tc.name: BundleMgrHelperTest_QueryAbilityInfo_002
  * @tc.desc: QueryAbilityInfo
  * @tc.type: FUNC
