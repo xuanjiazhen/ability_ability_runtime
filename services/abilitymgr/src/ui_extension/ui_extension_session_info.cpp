@@ -38,10 +38,10 @@ UIExtensionSessionInfo *UIExtensionSessionInfo::Unmarshalling(Parcel &parcel)
     info->elementName = *element;
     info->extensionAbilityType = static_cast<AppExecFwk::ExtensionAbilityType>(parcel.ReadInt32());
     std::unique_ptr<AppExecFwk::ElementName> hostElement(parcel.ReadParcelable<AppExecFwk::ElementName>());
-    if (hostElement != nullptr) {
-        info->hostElementName = *hostElement;
-    } else {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "hostElement is null but allowed");
+    if (hostElement == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get hostElement failed");
+        delete info;
+        return nullptr;
     }
     return info;
 }

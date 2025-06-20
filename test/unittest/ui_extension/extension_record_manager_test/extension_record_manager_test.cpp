@@ -596,6 +596,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0300, TestSize.Le
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.abilityInfo.extensionAbilityType =  AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
     auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
