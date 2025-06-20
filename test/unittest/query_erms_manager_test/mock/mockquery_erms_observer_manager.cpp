@@ -24,8 +24,11 @@ namespace AAFwk {
 // Mock class for QueryERMSObserver
 class MockQueryERMSObserver : public IQueryERMSObserver {
 public:
-    void OnQueryFinished(const std::string &appId, const std::string &startTime,
-        const AbilityRuntime::AtomicServiceStartupRule &rule, int resultCode) override {}
+    ErrCode OnQueryFinished(const std::string &appId, const std::string &startTime,
+        const AbilityRuntime::AtomicServiceStartupRule &rule, int resultCode) override
+    {
+            return ERR_OK;
+    }
     sptr<IRemoteObject> AsObject() override { return nullptr; }
 };
 

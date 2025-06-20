@@ -103,6 +103,10 @@ class MockIPrepareTerminateCallback : public IPrepareTerminateCallback {
 public:
     MockIPrepareTerminateCallback() = default;
     virtual ~MockIPrepareTerminateCallback() = default;
+    ErrCode DoPrepareTerminate() override
+    {
+        return ERR_OK;
+    }
     sptr<IRemoteObject> AsObject() override
     {
         return sptr<IRemoteObject>(new IRemoteObjectMocker());

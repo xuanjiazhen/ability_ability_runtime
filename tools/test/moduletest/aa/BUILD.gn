@@ -29,7 +29,10 @@ ohos_moduletest("aa_command_dumpsys_module_test") {
   sources = [ "aa_command_dumpsys_module_test.cpp" ]
   sources += tools_aa_mock_sources
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -58,7 +61,10 @@ ohos_moduletest("aa_command_start_module_test") {
   sources = [ "aa_command_start_module_test.cpp" ]
   sources += tools_aa_mock_sources
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -86,7 +92,10 @@ ohos_moduletest("aa_command_stop_service_module_test") {
   sources = [ "aa_command_stop_service_module_test.cpp" ]
   sources += tools_aa_mock_sources
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -114,7 +123,10 @@ ohos_moduletest("aa_command_dump_module_test") {
   sources = [ "aa_command_dump_module_test.cpp" ]
   sources += tools_aa_mock_sources
 
-  configs = [ ":tools_aa_config_mock" ]
+  configs = [
+    ":tools_aa_config_mock",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

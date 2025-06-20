@@ -148,9 +148,11 @@ HWTEST_F(AaCommandForceTimeOut, Aa_Command_Force_Timeout_0400, Function | Medium
     auto managerClientPtr = AbilityManagerClient::GetInstance();
     auto mockAbilityManagerStub = sptr<MockAbilityManagerStub>(new MockAbilityManagerStub());
     ASSERT_NE(mockAbilityManagerStub, nullptr);
+#ifdef ABILITY_COMMAND_FOR_TEST
     EXPECT_CALL(*mockAbilityManagerStub, ForceTimeoutForTest(_, _))
         .Times(1)
         .WillOnce(Return(-1));
+#endif
     managerClientPtr->proxy_ = static_cast<IAbilityManager*>(mockAbilityManagerStub);
 
     EXPECT_EQ(cmd.ExecCommand(), STRING_FORCE_TIMEOUT_NG + "\n");
@@ -176,9 +178,11 @@ HWTEST_F(AaCommandForceTimeOut, Aa_Command_Force_Timeout_0500, Function | Medium
     auto managerClientPtr = AbilityManagerClient::GetInstance();
     auto mockAbilityManagerStub = sptr<MockAbilityManagerStub>(new MockAbilityManagerStub());
     ASSERT_NE(mockAbilityManagerStub, nullptr);
+#ifdef ABILITY_COMMAND_FOR_TEST
     EXPECT_CALL(*mockAbilityManagerStub, ForceTimeoutForTest(_, _))
         .Times(1)
         .WillOnce(Return(0));
+#endif
     managerClientPtr->proxy_ = static_cast<IAbilityManager*>(mockAbilityManagerStub);
 
     EXPECT_EQ(cmd.ExecCommand(), STRING_FORCE_TIMEOUT_OK + "\n");

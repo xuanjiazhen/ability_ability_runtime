@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "native_engine/native_engine.h"
-#include "query_erms_observer_stub.h"
+#include "query_e_r_m_s_observer_stub.h"
 #include "js_runtime_utils.h"
 
 namespace OHOS {
@@ -54,7 +54,7 @@ public:
      * @param rule The ERMS query result.
      * @param resultCode The result code.
      */
-    void OnQueryFinished(const std::string &appId, const std::string &startTime,
+    ErrCode OnQueryFinished(const std::string &appId, const std::string &startTime,
         const AtomicServiceStartupRule &rule, int32_t resultCode) override;
 
     /**

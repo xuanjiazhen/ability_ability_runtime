@@ -80,10 +80,10 @@ class IQueryERMSObserverMock : public IQueryERMSObserver {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IQueryERMSObserver");
 
-    void OnQueryFinished(const std::string &appId, const std::string &startTime,
+    ErrCode OnQueryFinished(const std::string &appId, const std::string &startTime,
                          const AtomicServiceStartupRule &rule, int resultCode)
     {
-        return;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject()
     {
