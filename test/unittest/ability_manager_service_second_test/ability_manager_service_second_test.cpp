@@ -63,13 +63,13 @@ public:
 class MockIRemoteMissionListener : public IRemoteMissionListener {
     public:
         virtual ~MockIRemoteMissionListener() {}
-        void NotifyMissionsChanged(const std::string& deviceId) override
+        ErrCode NotifyMissionsChanged(const std::string& deviceId) override
         {}
 
-        void NotifySnapshot(const std::string& deviceId, int32_t missionId) override
+        ErrCode NotifySnapshot(const std::string& deviceId, int32_t missionId) override
         {}
 
-        void NotifyNetDisconnect(const std::string& deviceId, int32_t state) override
+        ErrCode NotifyNetDisconnect(const std::string& deviceId, int32_t state) override
         {}
 
         sptr<IRemoteObject> AsObject() override

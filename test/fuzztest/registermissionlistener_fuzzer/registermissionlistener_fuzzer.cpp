@@ -20,7 +20,7 @@
 
 #include "ability_manager_client.h"
 #include "mission_listener_interface.h"
-#include "remote_mission_listener_interface.h"
+#include "iremote_mission_listener.h"
 #include "securec.h"
 
 using namespace OHOS::AAFwk;
@@ -49,9 +49,9 @@ class RemoteMissionListenerFuzz : public IRemoteMissionListener {
 public:
     explicit RemoteMissionListenerFuzz() {};
     virtual ~RemoteMissionListenerFuzz() {};
-    void NotifyMissionsChanged(const std::string& deviceId) override {};
-    void NotifySnapshot(const std::string& deviceId, int32_t missionId) override {};
-    void NotifyNetDisconnect(const std::string& deviceId, int32_t state) override {};
+    ErrCode NotifyMissionsChanged(const std::string& deviceId) override {};
+    ErrCode NotifySnapshot(const std::string& deviceId, int32_t missionId) override {};
+    ErrCode NotifyNetDisconnect(const std::string& deviceId, int32_t state) override {};
 };
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {

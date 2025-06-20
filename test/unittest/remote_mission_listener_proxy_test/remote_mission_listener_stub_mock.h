@@ -18,7 +18,7 @@
 #include <gmock/gmock.h>
 #include <iremote_object.h>
 #include <iremote_stub.h>
-#include "remote_mission_listener_interface.h"
+#include "iremote_mission_listener.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -45,9 +45,9 @@ public:
 
     int code_ = 0;
 
-    virtual void NotifyMissionsChanged(const std::string& deviceId) {};
-    virtual void NotifySnapshot(const std::string& deviceId, int32_t missionId) {};
-    virtual void NotifyNetDisconnect(const std::string& deviceId, int32_t state) {};
+    virtual ErrCode NotifyMissionsChanged(const std::string& deviceId) {};
+    virtual ErrCode NotifySnapshot(const std::string& deviceId, int32_t missionId) {};
+    virtual ErrCode NotifyNetDisconnect(const std::string& deviceId, int32_t state) {};
 };
 }  // namespace AAFwk
 }  // namespace OHOS

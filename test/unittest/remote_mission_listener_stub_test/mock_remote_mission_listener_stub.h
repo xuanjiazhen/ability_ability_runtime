@@ -29,9 +29,9 @@ public:
     MockRemoteMissionListenerStub() = default;
     virtual ~MockRemoteMissionListenerStub() = default;
 
-    MOCK_METHOD1(NotifyMissionsChanged, void(const std::string& deviceId));
-    MOCK_METHOD2(NotifySnapshot, void(const std::string& deviceId, int32_t missionId));
-    MOCK_METHOD2(NotifyNetDisconnect, void(const std::string& deviceId, int32_t state));
+    MOCK_METHOD1(NotifyMissionsChanged, ErrCode(const std::string& deviceId));
+    MOCK_METHOD2(NotifySnapshot, ErrCode(const std::string& deviceId, int32_t missionId));
+    MOCK_METHOD2(NotifyNetDisconnect, ErrCode(const std::string& deviceId, int32_t state));
 };
 }  // namespace AAFwk
 }  // namespace OHOS

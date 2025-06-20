@@ -1125,7 +1125,7 @@ void UvWorkOnCallback(uv_work_t *work, int status)
     TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
 }
 
-void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceId)
+ErrCode NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceId)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     uv_loop_s *loop = nullptr;
@@ -1133,7 +1133,7 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null loop");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     uv_work_t *work = new uv_work_t;
@@ -1142,7 +1142,7 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
     if (registerMissionCB == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null registerMissionCB");
         delete work;
-        return;
+        return ERR_INVALID_VALUE;
     }
     registerMissionCB->cbBase.cbInfo.env = env_;
     registerMissionCB->cbBase.cbInfo.callback = notifyMissionsChangedRef_;
@@ -1157,6 +1157,7 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
         delete work;
     }
     TAG_LOGI(AAFwkTag::MISSION, "end");
+    return ERR_OK;
 }
 
 void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
@@ -1248,14 +1249,14 @@ void CallbackReturn(napi_value *result, RegisterMissionCB *registerMissionCB)
     napi_call_function(registerMissionCB->cbBase.cbInfo.env, undefined, callback, ARGS_TWO, &result[0], &callResult);
 }
 
-void NAPIRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int32_t missionId)
+ErrCode NAPIRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int32_t missionId)
 {
     uv_loop_s *loop = nullptr;
 
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null loop");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     uv_work_t *work = new uv_work_t;
@@ -1264,7 +1265,7 @@ void NAPIRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int3
     if (registerMissionCB == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null registerMissionCB");
         delete work;
-        return;
+        return ERR_INVALID_VALUE;
     }
     registerMissionCB->cbBase.cbInfo.env = env_;
     registerMissionCB->cbBase.cbInfo.callback = notifySnapshotRef_;
@@ -1280,6 +1281,7 @@ void NAPIRemoteMissionListener::NotifySnapshot(const std::string &deviceId, int3
         delete work;
     }
     TAG_LOGI(AAFwkTag::MISSION, "NotifySnapshot end");
+    return ERR_OK;
 }
 
 void UvWorkNotifyNetDisconnect(uv_work_t *work, int status)
@@ -1320,7 +1322,7 @@ void UvWorkNotifyNetDisconnect(uv_work_t *work, int status)
     TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
 }
 
-void NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId, int32_t state)
+ErrCode NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId, int32_t state)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called. state: %{public}d", state);
     uv_loop_s *loop = nullptr;
@@ -1328,7 +1330,7 @@ void NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId,
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null loop");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     uv_work_t *work = new uv_work_t;
@@ -1337,7 +1339,7 @@ void NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId,
     if (registerMissionCB == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "null registerMissionCB");
         delete work;
-        return;
+        return ERR_INVALID_VALUE;
     }
     registerMissionCB->cbBase.cbInfo.env = env_;
     registerMissionCB->cbBase.cbInfo.callback = notifyNetDisconnectRef_;
@@ -1353,6 +1355,7 @@ void NAPIRemoteMissionListener::NotifyNetDisconnect(const std::string &deviceId,
         delete work;
     }
     TAG_LOGI(AAFwkTag::MISSION, "end");
+    return ERR_OK;
 }
 
 void UnRegisterMissionExecuteCB(napi_env env, void *data)
