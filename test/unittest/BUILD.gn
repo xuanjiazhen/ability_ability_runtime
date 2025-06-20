@@ -215,6 +215,7 @@ group("unittest") {
       "ams_mgr_scheduler_second_test:unittest",
       "ams_mgr_scheduler_test:unittest",
       "ams_mgr_stub_test:unittest",
+      "ams_open_link_test:unittest",
       "ams_recent_app_list_test:unittest",
       "ams_service_load_ability_process_test:unittest",
       "ams_service_startup_test:unittest",
