@@ -15,7 +15,7 @@
 
 import { AbilityResult } from 'ability.abilityResult';
 
- export default class AbilityStartCallback {
-    onError(code: int, name: string, message: string) {}
-    onResult?:(parameter: AbilityResult)=>void = (parameter:AbilityResult) => {}
+export default interface AbilityStartCallback {
+  onError(code: int, name: string, message: string): void;
+  onResult?:(parameter: AbilityResult)=>void;
 }

@@ -22,6 +22,7 @@
 #include "js_runtime_utils.h"
 #include "session_info.h"
 #include "start_options.h"
+#include "ui_extension_context.h"
 #include "window.h"
 
 namespace OHOS {
@@ -44,16 +45,15 @@ class JsUIExtensionContentSession {
 private:
     class CallbackWrapper;
 public:
-    JsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo,
-        sptr<Rosen::Window> uiWindow, std::weak_ptr<AbilityRuntime::Context>& context,
-        std::shared_ptr<AbilityResultListeners>& abilityResultListeners);
+    JsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
+        std::weak_ptr<UIExtensionContext> context, std::shared_ptr<AbilityResultListeners> abilityResultListeners);
     JsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo,
         sptr<Rosen::Window> uiWindow);
     virtual ~JsUIExtensionContentSession() = default;
     static void Finalizer(napi_env env, void* data, void* hint);
     static napi_value CreateJsUIExtensionContentSession(napi_env env,
         sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-        std::weak_ptr<AbilityRuntime::Context> context,
+        std::weak_ptr<UIExtensionContext> context,
         std::shared_ptr<AbilityResultListeners>& abilityResultListeners);
     static napi_value CreateJsUIExtensionContentSession(napi_env env,
         sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow);
@@ -109,7 +109,7 @@ protected:
 private:
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
-    std::weak_ptr<AbilityRuntime::Context> context_;
+    std::weak_ptr<UIExtensionContext> context_;
     std::shared_ptr<CallbackWrapper> receiveDataCallback_;
     bool isRegistered = false;
     std::shared_ptr<CallbackWrapper> receiveDataForResultCallback_;

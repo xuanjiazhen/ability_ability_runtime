@@ -504,9 +504,9 @@ bool StsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
         if ((status = env->GlobalReference_Create(wantObj, &wantRef)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         }
-        std::weak_ptr<Context> wkctx = context;
+        std::weak_ptr<UIExtensionContext> uiExtensionContext = context;
         stsUiExtContentSession_ = std::make_shared<StsUIExtensionContentSession>(sessionInfo, uiWindow,
-            wkctx, abilityResultListeners_);
+            uiExtensionContext, abilityResultListeners_);
         ani_object sessonObj = StsUIExtensionContentSession::CreateStsUIExtensionContentSession(env,
             sessionInfo, uiWindow, context, abilityResultListeners_, stsUiExtContentSession_);
         if ((status = env->GlobalReference_Create(sessonObj, &contentSession_)) != ANI_OK) {
