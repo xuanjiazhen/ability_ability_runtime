@@ -82,6 +82,7 @@ PolicyInfo FilePermissionManager::GetPathPolicyInfoFromUri(Uri &uri, uint32_t fl
 std::vector<bool> FilePermissionManager::CheckUriPersistentPermission(std::vector<Uri> &uriVec,
     uint32_t callerTokenId, uint32_t flag, std::vector<PolicyInfo> &pathPolicies, const std::string &bundleName)
 {
+    // add log
     TAG_LOGI(AAFwkTag::URIPERMMGR,
         "CheckUriPersistentPermission call, size of uri is %{public}zu", uriVec.size());
     std::vector<bool> resultCodes(uriVec.size(), false);

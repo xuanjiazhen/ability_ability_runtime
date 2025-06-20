@@ -750,6 +750,7 @@ int32_t UriPermissionManagerStubImpl::CheckGrantUriPermissionByKeyParams(const s
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Flag invalid");
         return ERR_CODE_INVALID_URI_FLAG;
     }
+    // add log
     if (callerAppInfo.tokenId == targetAppInfo.tokenId) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "caller equal to target");
         return ERR_UPMS_INVALID_TARGET_TOKENID;
