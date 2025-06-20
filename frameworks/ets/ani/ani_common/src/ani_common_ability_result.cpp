@@ -49,7 +49,7 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
     }
 
-    ani_double dResultCode {resultCode};
+    ani_int dResultCode {resultCode};
     if ((status = env->Object_CallMethod_Void(result_obj, resultCodeSetter, dResultCode)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
         return nullptr;
