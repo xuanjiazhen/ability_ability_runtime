@@ -16,10 +16,7 @@
 #include <gtest/gtest.h>
 #include "parcel.h"
 
-#define private public
 #include "ui_extension/ui_extension_session_info.h"
-#include "hilog_tag_wrapper.h"
-#undef private
 
 using namespace testing;
 using namespace testing::ext;
