@@ -21,6 +21,7 @@
 #ifdef SUPPORT_SCREEN
 #include "pixel_map.h"
 #endif
+#include "isnapshot_handler.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -44,27 +45,6 @@ public:
 private:
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap_ = nullptr;
 #endif
-};
-
-/**
- * @class ISnapshotHandler
- * Snapshot handler, use to get snapshot
- */
-class ISnapshotHandler : public OHOS::IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.SnapshotHandler");
-
-    enum {
-        TRANS_ID_GET_SNAPSHOT
-    };
-
-    /**
-     * @brief Get the Snapshot object
-     * @param token remote object token
-     * @param snapshot the application snapshot
-     * @return int32_t function result
-     */
-    virtual int32_t GetSnapshot(const sptr<IRemoteObject>& token, Snapshot& snapshot) = 0;
 };
 } // namespace AAFwk
 } // namespace OHOS
