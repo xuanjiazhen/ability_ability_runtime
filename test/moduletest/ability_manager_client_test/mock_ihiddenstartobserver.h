@@ -21,9 +21,9 @@ namespace OHOS {
 namespace AAFwk {
     class MockIHiddenStartObserver : public IHiddenStartObserver {
     public:
-        bool IsHiddenStart(int32_t pid) override
+        ErrCode IsHiddenStart(int32_t pid, bool& funcResult) override
         {
-            return true;
+            return ERR_OK;
         }
         sptr<IRemoteObject> AsObject() override
         {

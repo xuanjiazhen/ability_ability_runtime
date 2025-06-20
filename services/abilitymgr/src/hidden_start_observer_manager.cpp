@@ -98,11 +98,13 @@ bool HiddenStartObserverManager::IsHiddenStart(int32_t pid)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto observersCopy = GetObserversCopy();
     TAG_LOGE(AAFwkTag::ABILITYMGR, "Need query %{public}zu observers.", observersCopy.size());
+    bool funcResult = false;
     for (auto it = observersCopy.begin(); it != observersCopy.end(); ++it) {
         if (*it == nullptr) {
             continue;
         }
-        if ((*it)->IsHiddenStart(pid)) {
+        (*it)->IsHiddenStart(pid, funcResult);
+        if (funcResult) {
             return true;
         }
     }

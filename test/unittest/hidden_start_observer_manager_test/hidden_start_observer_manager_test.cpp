@@ -72,9 +72,9 @@ public:
     IHiddenStartObserverMock() = default;
     virtual ~IHiddenStartObserverMock() = default;
     
-    bool IsHiddenStart(int32_t pid) override
+    ErrCode IsHiddenStart(int32_t pid, bool& funcResult) override
     {
-        return mockReturnValue;
+        return funcResult = mockReturnValue;
     }
     
     sptr<IRemoteObject> AsObject() override
