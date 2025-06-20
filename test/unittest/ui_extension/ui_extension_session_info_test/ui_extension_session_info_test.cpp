@@ -106,7 +106,7 @@ HWTEST_F(UIExtensionSessionInfoTest, Unmarshalling_0100, TestSize.Level1)
     parcel.WriteInt32(1);
     parcel.WriteParcelable(nullptr);
     UIExtensionSessionInfo *reuslt = UIExtensionSessionInfo::Unmarshalling(parcel);
-    EXPECT_EQ(true, nullptr);
+    EXPECT_EQ(reuslt, nullptr);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
