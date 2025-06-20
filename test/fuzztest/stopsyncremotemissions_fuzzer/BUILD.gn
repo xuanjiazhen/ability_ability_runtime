@@ -47,6 +47,7 @@ ohos_fuzztest("StopSyncRemoteMissionsFuzzTest") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
     "relational_store:native_dataability",

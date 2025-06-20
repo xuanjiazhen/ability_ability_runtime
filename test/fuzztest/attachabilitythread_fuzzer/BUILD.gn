@@ -52,6 +52,7 @@ ohos_fuzztest("AttachAbilityThreadFuzzTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
+    "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
