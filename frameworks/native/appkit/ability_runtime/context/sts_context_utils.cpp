@@ -224,7 +224,6 @@ void StsCreatContext(ani_env* aniEnv, ani_class contextClass, ani_object context
     }
     if (!SetHapModuleInfo(aniEnv, contextClass, contextObj, context)) {
         TAG_LOGE(AAFwkTag::APPKIT, "SetHapModuleInfo fail");
-        return;
     }
     context_ = context;
     BindParentProperty(aniEnv, contextClass, contextObj, context);
