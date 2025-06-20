@@ -37,7 +37,7 @@
 #include "ability_keep_alive_service.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ams_configuration_parameter.h"
-#include "app_debug_listener_interface.h"
+#include "iapp_debug_listener.h"
 #include "app_exit_reason_helper.h"
 #include "app_mgr_interface.h"
 #include "app_scheduler.h"
@@ -2142,9 +2142,9 @@ protected:
 
     void NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId) override;
 
-    void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    void NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
-    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    void NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
 
     /**
      * @brief Notify abilityms app process pre cache
@@ -2167,7 +2167,7 @@ protected:
 
     int32_t GetCollaboratorType(const std::string &codePath) const;
     int32_t KillProcessForCollaborator(int32_t collaboratorType, const std::string &bundleName, int32_t userId);
-    
+
     /**
      * Check if Caller is allowed to start AppServiceExtension(Stage).
      *
@@ -2779,9 +2779,9 @@ private:
 
     ErrCode IntentOpenLinkInner(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
- 
+
     AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentGenericInfo(const InsightIntentExecuteParam &param);
- 
+
     void CombinLinkInfo(
         const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);
 
