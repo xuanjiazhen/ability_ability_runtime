@@ -417,6 +417,8 @@ enum class AbilityManagerInterfaceCode {
     CLOSE_UI_EXTENSION_ABILITY_BY_SCB = 1069,
 
     SEND_LOCAL_PENDING_WANT_SENDER = 1070,
+    // ipc id for start abilities
+    START_ABILITIES = 1071,
 
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,

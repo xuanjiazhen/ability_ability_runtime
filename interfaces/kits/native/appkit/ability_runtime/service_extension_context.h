@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -122,6 +122,8 @@ public:
 
     ErrCode StartAbilityWithAccount(
         const AAFwk::Want &want, int accountId, const AAFwk::StartOptions &startOptions) const;
+    
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList, const std::string &requestKey);
 
     ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) const;
 

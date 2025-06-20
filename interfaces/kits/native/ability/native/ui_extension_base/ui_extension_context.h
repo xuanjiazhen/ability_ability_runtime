@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,6 +97,8 @@ public:
      * @return ErrCode ERR_OK on success, others on failure.
      */
     ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1);
+
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList, const std::string &requestKey);
 
     /**
      * Start other ability for result.
