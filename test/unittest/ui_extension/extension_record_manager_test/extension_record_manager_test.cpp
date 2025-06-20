@@ -562,7 +562,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0100, TestSize.Le
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_NULL_OBJECT);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
 }
 
 /**
@@ -578,7 +578,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0200, TestSize.Le
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_NULL_OBJECT);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
 }
 
 /**
@@ -607,7 +607,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0300, TestSize.Le
 
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_NULL_OBJECT);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
 }
 
 /**
@@ -637,7 +637,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0400, TestSize.Le
 
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_NULL_OBJECT);
+    EXPECT_EQ(ret, ERR_NULL_OBJECT);
 }
 
 /**
@@ -679,7 +679,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0500, TestSize.Le
 
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**
@@ -727,7 +727,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0600, TestSize.Le
     int32_t callerExtensionRecordId = 2;
     extRecordMgr->AddExtensionRecord(callerExtensionRecordId, callerExtRecord);
     sptr<IRemoteObject> callerToken = callerAbilityRecord->GetToken();
-    EXPECT_NE(callerToken, nullptr);
+    ASSERT_NE(callerToken, nullptr);
 
     sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
     sessionInfo->persistentId  = 1;
@@ -739,7 +739,7 @@ HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionSessionInfo_0600, TestSize.Le
 
     UIExtensionSessionInfo uiExtensionSessionInfo;
     auto ret = extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo);
-    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_OK);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
