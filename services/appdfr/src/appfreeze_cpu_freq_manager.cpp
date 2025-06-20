@@ -137,7 +137,7 @@ bool AppfreezeCpuFreqManager::InitCpuDataProcessor(const std::string &eventType,
         cpuInfoMap_[key] = data;
     }
     TAG_LOGD(AAFwkTag::APPDFR, "init success. eventType: %{public}s path: %{public}s "
-        "halfStartTime: %{public}" PRIu64", optimalCpuStartTime: %{public}" PRIu64".",
+        "halfStartTime: %{public}" PRIu64", optimalCpuStartTime: %{public}lf.",
         eventType.c_str(), stackPath.c_str(), cpuStartTime.halfStartTime,
         cpuStartTime.optimalCpuStartTime);
     return true;
@@ -382,11 +382,11 @@ double AppfreezeCpuFreqManager::GetOptimalCpuTime(int32_t pid)
     int maxCpuCount = cpuCount_ - AppfreezeUtil::CPU_COUNT_SUBTRACT;
     if (maxCpuCount <= 0) {
         TAG_LOGE(AAFwkTag::APPDFR, "GetOptimalCpuTime failed, maxCpuCount:%{public}d", maxCpuCount);
-        return -1;
+        return 0;
     }
     std::string statPath = "/sys/devices/system/cpu/cpu" + std::to_string(maxCpuCount) + "/cpu_capacity";
     std::string content;
-    int ret = -1;
+    double ret = 0;
     if (!LoadStringFromFile(statPath, content)) {
         TAG_LOGE(AAFwkTag::APPDFR, "GetOptimalCpuTime failed, path:%{public}s, errno:%{public}d",
             statPath.c_str(), errno);
@@ -396,29 +396,31 @@ double AppfreezeCpuFreqManager::GetOptimalCpuTime(int32_t pid)
         TAG_LOGE(AAFwkTag::APPDFR, "Read info failed, path:%{public}s", statPath.c_str());
         return ret;
     }
-    int32_t dmips = static_cast<int32_t>(strtoull(content.c_str(), nullptr, CPU_FREQ_DECIMAL_BASE));
-    void* threadFuncHandler = dlopen(LIB_THREAD_CPU_LOAD_PATH, RTLD_LAZY);
-    if (threadFuncHandler == nullptr) {
-        TAG_LOGE(AAFwkTag::APPDFR, "dlopen failed, funcHandler is nullptr.");
+    double dmips = static_cast<double>(strtoull(content.c_str(), nullptr, CPU_FREQ_DECIMAL_BASE));
+    if (dmips <= 0) {
         return ret;
     }
-    dlerror();
+    void* threadFuncHandler = dlopen(LIB_THREAD_CPU_LOAD_PATH, RTLD_LAZY);
+    if (threadFuncHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "dlopen failed, threadFuncHandler is nullptr.");
+        return ret;
+    }
     char* err = nullptr;
     auto getThreadCpuload = reinterpret_cast<GetThreadCpuload>(dlsym(threadFuncHandler, "GetThreadCpuload"));
     err = dlerror();
     if (err != nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "dlsym GetThreadCpuload func failed. %{public}s", err);
-        return ret;
+    } else {
+        double optimalCpuTime = getThreadCpuload(pid);
+        if (optimalCpuTime >= 0) {
+            ret = optimalCpuTime / dmips;
+        }
+        TAG_LOGW(AAFwkTag::APPDFR, "dmips %{public}lf optimalCpuTime %{public}lf", dmips, optimalCpuTime);
     }
-    double optimalCpuTime = getThreadCpuload(pid);
+    dlclose(threadFuncHandler);
     threadFuncHandler = nullptr;
     getThreadCpuload = nullptr;
-    dlclose(threadFuncHandler);
-    if (dmips <= 0 || optimalCpuTime < 0) {
-        return ret;
-    }
-    TAG_LOGW(AAFwkTag::APPDFR, "dmips %{public}d optimalCpuTime %{public}lf", dmips, optimalCpuTime);
-    return optimalCpuTime / dmips;
+    return ret;
 }
 
 std::string AppfreezeCpuFreqManager::GetStartTime(uint64_t start)
@@ -464,9 +466,9 @@ std::string AppfreezeCpuFreqManager::GetStaticInfo(int32_t pid, CpuStartTime cpu
     uint64_t duration = AppfreezeUtil::GetMilliseconds() - cpuStartTime.halfStartTime;
     staticInfoStr << "StaticsDuration: " << duration << " ms" << std::endl;
     uint64_t cpuTime = GetAppCpuTime(pid);
-    uint64_t syncWaitTime = duration - cpuTime;
-    uint64_t optimalCpuTime = GetOptimalCpuTime(pid) - cpuStartTime.optimalCpuStartTime;
-    uint64_t supplyAvailableTime = duration - optimalCpuTime - syncWaitTime;
+    uint64_t syncWaitTime = duration > cpuTime ? (duration - cpuTime) : 0;
+    double optimalCpuTime = GetOptimalCpuTime(pid) - cpuStartTime.optimalCpuStartTime;
+    double supplyAvailableTime = static_cast<double>(cpuTime) - optimalCpuTime;
     staticInfoStr << "CpuTime: " << cpuTime << " ms" << std::endl;
     staticInfoStr << "SyncWaitTime: " << syncWaitTime << " ms" << std::endl;
     staticInfoStr << "OptimalCpuTime: " << optimalCpuTime << " ms" << std::endl;
