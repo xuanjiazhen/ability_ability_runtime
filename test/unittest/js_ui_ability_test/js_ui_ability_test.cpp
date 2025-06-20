@@ -100,6 +100,24 @@ HWTEST_F(JsUiAbilityTest, JSUIAbility_OnWillBackground_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: JSUIAbility_OnWillBackground_0200
+ * @tc.desc: OnWillBackground test
+ * @tc.desc: Verify function OnWillBackground.
+ */
+HWTEST_F(JsUiAbilityTest, JSUIAbility_OnWillBackground_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "JSUIAbility_OnWillBackground_0200 start";
+    AbilityRuntime::Runtime::Options options;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
+    auto runtime = AbilityRuntime::Runtime::Create(options);
+    auto ability = AbilityRuntime::JsUIAbility::Create(runtime);
+    ASSERT_NE(ability, nullptr);
+    ability->scene_ = std::make_shared<Rosen::WindowScene>();
+    ability->OnWillBackground();
+    GTEST_LOG_(INFO) << "JSUIAbility_OnWillBackground_0200 end";
+}
+
+/**
  * @tc.name: JSUIAbility_OnDidBackground_0100
  * @tc.desc: OnDidBackground test
  * @tc.desc: Verify function OnDidBackground.
