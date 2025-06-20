@@ -43,6 +43,7 @@ UIExtensionSessionInfo *UIExtensionSessionInfo::Unmarshalling(Parcel &parcel)
         delete info;
         return nullptr;
     }
+    info->hostElementName = *hostElement;
     return info;
 }
 
