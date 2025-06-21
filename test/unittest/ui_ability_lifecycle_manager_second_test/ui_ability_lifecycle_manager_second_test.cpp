@@ -126,10 +126,11 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, HandleLegacyAcceptWantDone_001, Te
     bool reuse = false;
     std::string flag = "";
     int32_t requestId = 1;
-    mgr->HandleLegacyAcceptWantDone(abilityRequest, requestId, flag, want);
+    SpecifiedRequest specifiedRequest(requestId, abilityRequest);
+    mgr->HandleLegacyAcceptWantDone(specifiedRequest, flag, want);
     EXPECT_EQ(abilityRequest.specifiedFlag, "");
     flag = "specified";
-    mgr->HandleLegacyAcceptWantDone(abilityRequest, requestId, flag, want);
+    mgr->HandleLegacyAcceptWantDone(specifiedRequest, flag, want);
     EXPECT_EQ(abilityRequest.specifiedFlag, flag);
     TAG_LOGI(AAFwkTag::TEST, "HandleLegacyAcceptWantDone_001 end.");
 }

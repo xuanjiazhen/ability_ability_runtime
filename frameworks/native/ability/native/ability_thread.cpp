@@ -304,7 +304,7 @@ void AbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId, 
 
 void AbilityThread::ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
-    TAG_LOGD(AAFwkTag::ABILITY, "called");
+    TAG_LOGD(AAFwkTag::ABILITY, "ScheduleAbilitiesRequestDone");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

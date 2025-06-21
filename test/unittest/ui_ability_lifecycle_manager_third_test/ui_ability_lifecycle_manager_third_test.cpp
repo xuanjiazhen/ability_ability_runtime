@@ -843,8 +843,8 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_001, TestSize.Le
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
 
     AppUtils::isStartOptionsWithAnimation_ = true;
-
-    uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, abilityRecord, nullptr, 0);
+    SpecifiedRequest specifiedRequest(0, abilityRequest);
+    uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, abilityRecord);
 
     auto sessionInfo = abilityRecord->GetSessionInfo();
     EXPECT_NE(sessionInfo->processOptions, nullptr);
@@ -868,8 +868,8 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_002, TestSize.Le
     abilityRequest.abilityInfo.launchMode = AppExecFwk::LaunchMode::SPECIFIED;
 
     AppUtils::isStartOptionsWithAnimation_ = false;
-
-    uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, abilityRecord, nullptr, 0);
+    SpecifiedRequest specifiedRequest(0, abilityRequest);
+    uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, abilityRecord);
 
     auto sessionInfo = abilityRecord->GetSessionInfo();
     EXPECT_EQ(sessionInfo->processOptions, nullptr);
@@ -896,10 +896,9 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_003, TestSize.Le
 
     AppUtils::isStartOptionsWithAnimation_ = false;
 
-    auto startOptions = std::make_shared<StartOptions>();
-    startOptions->windowMode_ = AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY;
-
-    uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, abilityRecord, startOptions, 0);
+    SpecifiedRequest specifiedRequest(0, abilityRequest);
+    specifiedRequest.requestListId = 0;
+    uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, abilityRecord);
 
     auto ret = abilityRecord->want_.GetIntParam(Want::PARAM_RESV_WINDOW_MODE, -1);
     EXPECT_EQ(ret, AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY);
@@ -926,10 +925,8 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, MoveAbilityToFront_004, TestSize.Le
 
     AppUtils::isStartOptionsWithAnimation_ = false;
 
-    auto startOptions = std::make_shared<StartOptions>();
-    startOptions->windowMode_ = AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY;
-
-    uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, abilityRecord, nullptr, 0);
+    SpecifiedRequest specifiedRequest(0, abilityRequest);
+    uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, abilityRecord);
 
     auto ret = abilityRecord->want_.GetIntParam(Want::PARAM_RESV_WINDOW_MODE, -1);
     EXPECT_EQ(ret, -1);
