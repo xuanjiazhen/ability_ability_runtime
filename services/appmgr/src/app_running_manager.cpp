@@ -186,8 +186,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     return nullptr;
 }
 
-std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpecifiedProcess(
-    int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag)
+std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpecifiedProcess(int32_t uid,
+    const std::string &instanceKey, const std::string &customProcessFlag,
+    const std::shared_ptr<AbilityRuntime::ProcessInfoCheck> &processInfoCheck)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d: customProcessFlag: %{public}s", uid, customProcessFlag.c_str());
@@ -195,28 +196,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpe
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
         if (appRecord->GetInstanceKey() == instanceKey && appRecord->GetUid() == uid &&
-            appRecord->GetProcessType() == ProcessType::NORMAL &&
-            (appRecord->GetCustomProcessFlag() == customProcessFlag) &&
-            !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
-            !(appRecord->IsUserRequestCleaning()) &&
-            !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked()) &&
-            appRecord->GetKillReason() != AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL) {
-            return appRecord;
-        }
-    }
-    return nullptr;
-}
-
-std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForUIExtension(
-    int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d: customProcessFlag: %{public}s", uid, customProcessFlag.c_str());
-    auto appRunningMap = GetAppRunningRecordMap();
-    for (const auto &item : appRunningMap) {
-        const auto &appRecord = item.second;
-        if (appRecord != nullptr && appRecord->GetInstanceKey() == instanceKey && appRecord->GetUid() == uid &&
-            appRecord->GetExtensionType() == AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI &&
+            processInfoCheck && processInfoCheck->SpecifiedProcessTypeCheck(appRecord) &&
             (appRecord->GetCustomProcessFlag() == customProcessFlag) &&
             !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
             !(appRecord->IsUserRequestCleaning()) &&

@@ -881,6 +881,8 @@ public:
     void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         int32_t requestId = 0, std::string customProcess = "");
 
+    std::shared_ptr<AbilityRuntime::ProcessInfoCheck> SpecifiedProcessTypeCheck(
+        const AppExecFwk::AbilityInfo &abilityInfo);
     void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response);
 
     /**

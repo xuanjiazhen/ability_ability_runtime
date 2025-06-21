@@ -41,6 +41,7 @@
 #include "running_process_info.h"
 #include "simple_process_info.h"
 #include "process_bind_data.h"
+#include "process_info_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -87,8 +88,9 @@ public:
         const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr, const std::string &instanceKey = "",
         const std::string &customProcessFlag = "");
 
-    std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(
-        int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
+    std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(int32_t uid,
+        const std::string &instanceKey, const std::string &customProcessFlag,
+        const std::shared_ptr<AbilityRuntime::ProcessInfoCheck> &processInfoCheck);
 
 #ifdef APP_NO_RESPONSE_DIALOG
     /**
