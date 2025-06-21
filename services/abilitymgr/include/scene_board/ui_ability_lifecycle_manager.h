@@ -513,6 +513,8 @@ private:
     bool IsStartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
     int32_t StartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
+    int HandleUIAbilityPendingActivation(std::shared_ptr<AbilityRecord> abilityRecord,
+        sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;

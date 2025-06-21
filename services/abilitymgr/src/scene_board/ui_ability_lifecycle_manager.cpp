@@ -1348,6 +1348,25 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     return sessionInfo;
 }
 
+int UIAbilityLifecycleManager::HandleUIAbilityPendingActivation(std::shared_ptr<AbilityRecord> abilityRecord,
+    sptr<SessionInfo> &sessionInfo, const AbilityRequest &abilityRequest)
+{
+    auto callerSessionInfo = abilityRecord->GetSessionInfo();
+    CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
+    auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
+    CheckCallerFromBackground(abilityRecord, sessionInfo);
+    auto requestId = abilityRequest.want.GetStringParam(KEY_REQUEST_ID);
+    if (!requestId.empty()) {
+        abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
+    }
+    const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
+        "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
+    return static_cast<int>(callerSession->PendingSessionActivation(sessionInfo));
+}
+
 int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
     const AbilityRequest &abilityRequest, std::string &errMsg)
 {
@@ -1374,20 +1393,7 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
     auto abilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
     if (abilityRecord != nullptr && !abilityRecord->GetRestartAppFlag()) {
-        auto callerSessionInfo = abilityRecord->GetSessionInfo();
-        CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
-        CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
-        auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
-        CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
-        CheckCallerFromBackground(abilityRecord, sessionInfo);
-        auto requestId = abilityRequest.want.GetStringParam(KEY_REQUEST_ID);
-        if (!requestId.empty()) {
-            abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
-        }
-        const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
-            "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
-        return static_cast<int>(callerSession->PendingSessionActivation(sessionInfo));
+        return HandleUIAbilityPendingActivation(abilityRecord, sessionInfo, abilityRequest);
     }
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     if (tmpSceneSession == nullptr) {
