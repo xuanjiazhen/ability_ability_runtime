@@ -55,11 +55,11 @@ struct SpecifiedRequest {
 };
 
 struct AbilitiesRequest {
-    std::vector<int32_t> waitingRequestIdList;
-    std::vector<AbilityRequest> abilityRequestList;
-    std::vector<sptr<SessionInfo>> UnsortedSessionInfoList;
-
-    AbilitiesRequest(std::vector<AbilityRequest> abilityRequestList) : abilityRequestList(abilityRequestList) {}
+    int32_t requestListId = -1;
+    std::string requestKey;
+    std::vector<std::pair<int32_t, sptr<SessionInfo>>> sessionInfoList;
+    uint32_t doneCount = 0;
+    sptr<IRemoteObject> callerToken;
 };
 
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {
@@ -164,7 +164,8 @@ public:
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
-    int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList);
+    int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList,
+        const std::string &requestKey);
 
     int NotifySCBToPreStartUIAbility(const AbilityRequest &abilityRequest,
         sptr<SessionInfo> &sessionInfo);
@@ -438,8 +439,8 @@ private:
     sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
         const AbilityRequest &abilityRequest, std::string &errMsg);
-    int32_t BatchNotifySCBPendingActivation(std::vector<sptr<SessionInfo>> &sessionInfoList,
-        const std::vector<AbilityRequest> &abilityRequestList, std::string &errMsg);
+    int32_t BatchNotifySCBPendingActivation(const AbilitiesRequest &abilitiesRequest);
+    void HandleAbilitiesRequestDone(int32_t requestId, int32_t requestListId, sptr<SessionInfo> sessionInfo);
     bool IsHookModule(const AbilityRequest &abilityRequest) const;
     int ResolveAbility(const std::shared_ptr<AbilityRecord> &targetAbility, const AbilityRequest &abilityRequest) const;
     std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
@@ -448,11 +449,11 @@ private:
 
     void NotifyStartSpecifiedAbility(AbilityRequest &request, const AAFwk::Want &want);
     void NotifyRestartSpecifiedAbility(const AbilityRequest &request, const sptr<IRemoteObject> &token);
-    int MoveAbilityToFront(const AbilityRequest &abilityRequest, const std::shared_ptr<AbilityRecord> &abilityRecord,
-        std::shared_ptr<AbilityRecord> callerAbility, std::shared_ptr<StartOptions> startOptions, int32_t requestId);
+    int32_t MoveAbilityToFront(const SpecifiedRequest &specifiedRequest,
+        const std::shared_ptr<AbilityRecord> abilityRecord, std::shared_ptr<AbilityRecord> callerAbility);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
-    int StartAbilityBySpecifed(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &callerAbility,
-        int32_t requestId);
+    int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+        std::shared_ptr<AbilityRecord> callerAbility);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
     void SetReceiverInfo(const AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &abilityRecord) const;
@@ -508,7 +509,7 @@ private:
     bool HandleStartSpecifiedCold(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag);
     bool HandleColdAcceptWantDone(const AAFwk::Want &want, const std::string &flag,
         const SpecifiedRequest &specifiedRequest);
-    void HandleLegacyAcceptWantDone(AbilityRequest &abilityRequest, int32_t requestId,
+    void HandleLegacyAcceptWantDone(SpecifiedRequest &specifiedRequest,
         const std::string &flag, const AAFwk::Want &want);
     std::shared_ptr<SpecifiedRequest> GetSpecifiedRequest(int32_t requestId);
     bool CheckPrepareTerminateTokens(const std::vector<sptr<IRemoteObject>> &tokens,
@@ -523,7 +524,8 @@ private:
         std::shared_ptr<AbilityRecord> uiAbilityRecord, bool isColdStart);
     bool TryProcessHookModule(SpecifiedRequest &specifiedRequest, bool isHookModule);
     bool IsStartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
-    int32_t StartSpecifiedProcessRequest(const AbilityRequest &abilityRequest);
+    int32_t StartSpecifiedProcessRequest(const AbilityRequest &abilityRequest,
+        std::shared_ptr<AbilitiesRequest> abilitiesRequest);
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
 
     int32_t userId_ = -1;
@@ -564,7 +566,6 @@ private:
     std::vector<std::shared_ptr<PrepareTerminateByPidRecord>> prepareTerminateByPidRecords_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> hookSpecifiedMap_;
 
-    ffrt::mutex startAbilitiesProcessLock_;
     std::map<int32_t, std::shared_ptr<AbilitiesRequest>> abilitiesRequestMap_;
     std::mutex startingPidsMutex_;
     std::vector<pid_t> startingPids_;

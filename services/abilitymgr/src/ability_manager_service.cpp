@@ -2213,7 +2213,7 @@ ErrCode AbilityManagerService::StartAbilities(const std::vector<AAFwk::Want> &wa
     }
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    return uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList);
+    return uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList, requestKey);
 }
 
 int32_t AbilityManagerService::StartAbilitiesHandleWant(std::vector<AbilityRequest> &abilityRequestList,

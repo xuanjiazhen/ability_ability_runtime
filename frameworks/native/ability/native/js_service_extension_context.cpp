@@ -24,8 +24,10 @@
 #include "js_extension_context.h"
 #include "js_error_utils.h"
 #include "js_data_struct_converter.h"
+#include "js_deferred_callback.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "js_start_abilities_observer.h"
 #include "napi/native_api.h"
 #include "napi_common_ability.h"
 #include "napi_common_want.h"
@@ -835,7 +837,8 @@ private:
         
         TAG_LOGD(AAFwkTag::UI_EXT, "startAbilities wantListLength: %{public}zu", wantList.size());
     
-        napi_value result = nullptr;
+        JsDeferredCallback callback(env);
+        JsStartAbilitiesObserver::GetInstance().AddObserver(requestKey, callback);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, wantList, requestKey, innerErrCode]() {
             auto context = weak.lock();
@@ -847,19 +850,19 @@ private:
             *innerErrCode = context->StartAbilities(wantList, requestKey);
         };
     
-        NapiAsyncTask::CompleteCallback complete = [innerErrCode, weak = context_]
-            (napi_env env, NapiAsyncTask& task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode, weak = context_, requestKey]
+            (napi_env, NapiAsyncTask&, int32_t) {
                 TAG_LOGI(AAFwkTag::UI_EXT, "startAbilities complete innerErrCode: %{public}d", *innerErrCode);
-                if (*innerErrCode == 0)  {
-                    task.Resolve(env, CreateJsUndefined(env));
+                if (*innerErrCode == AAFwk::START_ABILITIES_WAITING_SPECIFIED_CODE)  {
+                    TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities waiting specified.");
                     return;
                 }
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
         };
     
         NapiAsyncTask::ScheduleHighQos("JSUIExtensionConnection::OnStartAbilities", env,
-            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
+        return callback.result;
     }
     
     bool UnwrapWantList(napi_env env, NapiCallbackInfo &info, std::vector<AAFwk::Want> &wantList)
