@@ -955,8 +955,8 @@ public:
      *
      * @return Returns 0 if the event is normal, 1 if the event needs to be managed.
      */
-    int32_t NotifyAppStatusByCommonEventName(const std::string &bundleName, const std::string &eventName,
-        const Want &want);
+    bool IsSubscriberControlledAndNotifyAppStatusByCommonEventName(const std::string &bundleName,
+        const std::string &eventName, const Want &want);
 
     int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation");
 
