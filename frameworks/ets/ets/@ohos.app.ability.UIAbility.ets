@@ -21,14 +21,21 @@ import window from '@ohos.window';
 import { AbilityUtils } from './utils/AbilityUtils';
 
 export type OnReleaseCallback = (msg: string) => void;
+export type OnRemoteStateChangeCallback = (msg: string) => void;
 export type CalleeCallback = (indata: rpc.MessageSequence) => rpc.Parcelable;
 export interface Caller {
   call(method: string, data: rpc.Parcelable): Promise<void>;
+  callWithResult(method: string, data: rpc.Parcelable): Promise<rpc.MessageSequence>;
   onRelease(callback: OnReleaseCallback): void;
   release(): void;
+  onRemoteStateChange(callback: OnRemoteStateChangeCallback): void;
+  on(type: 'release', callback: OnReleaseCallback): void;
+  off(type: 'release', callback: OnReleaseCallback): void;
+  off(type: 'release'): void;
 }
 export interface Callee {
   on(method: string, callback: CalleeCallback): void;
+  off(method: string): void;
 }
 
 export default class UIAbility {

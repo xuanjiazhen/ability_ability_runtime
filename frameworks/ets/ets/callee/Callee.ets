@@ -65,6 +65,16 @@ export class CalleeImpl extends rpc.RemoteObject implements Callee {
   }
 
   on(method: string, callback: CalleeCallback): void {
+    if (typeof method !== 'string' || method === '' || typeof callback !== 'function') {
+      hilog.info(domainID, TAG,
+        'Callee on error, method is [' + typeof method + '], typeof callback [' + typeof callback + ']');
+    }
+
+    if (this.callList == null) {
+      hilog.info(domainID, TAG, 'Callee on error, this.callList is nullptr');
+      throw buildError(ERROR_CODE_INNER_ERROR);
+    }
+
     if (this.callList.has(method)) {
       hilog.info(domainID, TAG, 'Callee on error, [' + method + '] has registered');
       throw buildError(ERROR_CODE_FUNC_REGISTERED);
@@ -75,6 +85,15 @@ export class CalleeImpl extends rpc.RemoteObject implements Callee {
   }
 
   off(method: string): void {
+    if (typeof method !== 'string' || method === '') {
+      hilog.info(domainID, TAG, 'Callee off error, method is [' + typeof method + ']');
+    }
+
+    if (this.callList == null) {
+      hilog.info(domainID, TAG, 'Callee off error, this.callList is null');
+      throw buildError(ERROR_CODE_INNER_ERROR);
+    }
+
     if (!this.callList.has(method)) {
       hilog.info(domainID, TAG, 'Callee off error, this.callList not found ' + method);
       throw buildError(ERROR_CODE_FUNC_NOT_EXIST);
