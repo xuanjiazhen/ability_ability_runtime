@@ -62,6 +62,7 @@ ohos_fuzztest("ResidentProcessManagerSeventhFuzzTest") {
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "hisysevent:libhisysevent",
     "input:libmmi-client",
     "ipc:ipc_core",
     "jsoncpp:jsoncpp",
