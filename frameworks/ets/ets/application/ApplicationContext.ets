@@ -17,11 +17,19 @@ import Context from 'application.Context'
 import EnvironmentCallback from '@ohos.app.ability.EnvironmentCallback';
 import { BusinessError, AsyncCallback } from '@ohos.base'
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
+import type ApplicationStateChangeCallback from '@ohos.app.ability.ApplicationStateChangeCallback';
 import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
+// remove local declaration after Any type is supported
+type Any = Object | null | undefined
+
 export default class ApplicationContext extends Context {
+  static {
+    loadLibrary("application_context_ani_kit.z");
+  }
+
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativeOnSync(type: 'environment', callback: EnvironmentCallback): number;
   public native nativeOffSync(type: 'environment', callbackId: number, callback: AsyncCallbackWrapper<void>): void;
@@ -32,13 +40,27 @@ export default class ApplicationContext extends Context {
   public native nativesetLanguage(language: string): void;
   public native nativesetFontSizeScale(fontSizeScale: number): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
-  public native nativesetFont(font: string): void; 
+  public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
+  public native nativeOnApplicationStateChangeSync(callback: ApplicationStateChangeCallback): void;
+  public native nativeOffApplicationStateChangeSync(callback?: ApplicationStateChangeCallback): void;
+  public native nativegetCurrentAppCloneIndex(): number;
+  public native nativegetCurrentInstanceKey(): string;
+  private static native nativeTransferStatic(input: ESValue): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
 
   setSupportedProcessCache(isSupported: boolean): void {
     taskpool.execute((): void => {
       this.setSupportedProcessCacheSync(isSupported);
     });
+  }
+
+  on(type: 'applicationStateChange', callback: ApplicationStateChangeCallback): void {
+    this.nativeOnApplicationStateChangeSync(callback);
+  }
+
+  off(type: 'applicationStateChange', callback?: ApplicationStateChangeCallback): void {
+    this.nativeOffApplicationStateChangeSync(callback);
   }
 
   on(type: 'environment', callback: EnvironmentCallback): number {
@@ -188,6 +210,14 @@ export default class ApplicationContext extends Context {
     this.nativesetColorMode(colorMode);
   }
 
+  getCurrentInstanceKey(): string {
+    return this.nativegetCurrentInstanceKey();
+  }
+
+  getCurrentAppCloneIndex(): number {
+    return this.nativegetCurrentAppCloneIndex();
+  }
+
   setFont(font: string): void {
     this.nativesetFont(font);
   }
@@ -196,5 +226,13 @@ export default class ApplicationContext extends Context {
     taskpool.execute((): void => {
       this.nativerestartApp(want);
     });
+  }
+
+  static transferStatic(input: Any): Object {
+    return ApplicationContext.nativeTransferStatic(ESValue.wrap(input));
+  }
+
+  static transferDynamic(input: Object): Any {
+    return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 }
