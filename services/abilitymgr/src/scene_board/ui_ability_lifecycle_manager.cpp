@@ -172,6 +172,17 @@ void UIAbilityLifecycleManager::RecordPidKilling(pid_t pid, const std::string &r
     }
 }
 
+void UIAbilityLifecycleManager::CheckPidAbilityForeground(pid_t pid)
+{
+    std::lock_guard<ffrt::mutex> guard(sessionLock_);
+    for (const auto& [first, second] : sessionAbilityMap_) {
+        if (second && pid == second->GetPid() && second->IsForeground) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRequest)
 {
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {

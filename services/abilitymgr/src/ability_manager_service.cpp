@@ -11453,6 +11453,14 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
         return ERR_PERMISSION_DENIED;
     }
 
+    if (!reason.shouldKillForeground) {
+        auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+        if (uiAbilityManager != nullptr && uiAbilityManager->CheckPidAbilityForeground(pid)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "do no kill foreground apps, pid = %{public}d", pid);
+            return ERR_KILL_APP_WHILE_FOREGROUND;
+        }
+    }
+
     if (ProcessLowMemoryKill(pid, reason)) {
         // if app is already starting, return
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);

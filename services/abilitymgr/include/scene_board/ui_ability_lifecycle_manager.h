@@ -395,6 +395,8 @@ public:
 
     void RecordPidKilling(pid_t pid, const std::string &reason);
 
+    void CheckPidAbilityForeground(pid_t pid);
+
 private:
     void AddStartingPid(pid_t pid);
     void RemoveStartingPid(pid_t pid);
