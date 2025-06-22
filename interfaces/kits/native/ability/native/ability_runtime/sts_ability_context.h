@@ -26,6 +26,10 @@
 #include "ohos_application.h"
 #include "sts_free_install_observer.h"
 #include "open_link_options.h"
+#ifdef SUPPORT_GRAPHICS
+#include "pixel_map_ani.h"
+#include "image_ani_utils.h"
+#endif
 
 class STSNativeReference;
 
@@ -69,7 +73,10 @@ public:
         ani_object callBackObj);
     static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
-
+#ifdef SUPPORT_GRAPHICS
+    static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+#endif
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
