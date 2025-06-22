@@ -73,6 +73,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     Parcel wantParcel;
     Want want;
     auto dialogSessionInfo = std::make_shared<DialogSessionInfo>();
+    FuzzedDataProvider fdp(data, size);
+    bool isSCBCall = fdp.ConsumeBool();
     if (dialogSessionInfo == nullptr) {
         return false;
     }
@@ -101,6 +103,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     dialogSessionManager->HandleErmsResult(abilityRequest, int32Param, want);
     dialogSessionManager->HandleErmsResultBySCB(abilityRequest, want);
     dialogSessionManager->IsCreateCloneSelectorDialog(bundleName, int32Param);
+    dialogSessionManager->UpdateExtensionWantWithDialogCallerInfo(abilityRequest, callerToken, isSCBCall);
     return true;
 }
 } // namespace OHOS
