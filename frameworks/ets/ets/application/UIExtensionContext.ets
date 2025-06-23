@@ -27,6 +27,8 @@ export default class UIExtensionContext extends ExtensionContext {
   native terminateSelfWithResultSync(parameter: AbilityResult, callback: AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilitySync(want: Want, options: StartOptions, callback:AsyncCallbackWrapper<void>): void;
+  private native nativeStartAbilityForResult(want: Want, callback:AsyncCallbackWrapper<AbilityResult>): void;
+  private native nativeStartAbilityForResult(want: Want, startOptions: StartOptions, callback:AsyncCallbackWrapper<AbilityResult>): void;
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -114,4 +116,50 @@ export default class UIExtensionContext extends ExtensionContext {
       this.nativeReportDrawnCompleted(myCall);
     });
   }
+
+  startAbilityForResult(want: Want, callback: AsyncCallback<AbilityResult, void>): void {
+    let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityForResult(want, myCall);
+    });
+  }
+
+  startAbilityForResult(want: Want, startOptions: StartOptions, callback: AsyncCallback<AbilityResult, void>): void {
+    let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityForResult(want, startOptions, myCall);
+    });
+  }
+
+  startAbilityForResult(want: Want): Promise<AbilityResult>{
+    let p = new Promise<AbilityResult>((resolve: (data: AbilityResult)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError<void>, data: AbilityResult)=>{
+        if (err.code == 0) {
+          resolve(data);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityForResult(want, myCall);
+      });
+    });
+    return p;
+  }
+
+  startAbilityForResult(want: Want, startOptions: StartOptions): Promise<AbilityResult> {
+    let p = new Promise<AbilityResult>((resolve: (data: AbilityResult)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError<void>, data: AbilityResult)=>{
+        if (err.code == 0) {
+          resolve(data);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityForResult(want, startOptions, myCall);
+      });
+    });
+    return p;
+  } 
 }
