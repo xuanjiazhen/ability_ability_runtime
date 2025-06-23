@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
 #include "runtime.h"
 
 namespace panda::ecmascript {
