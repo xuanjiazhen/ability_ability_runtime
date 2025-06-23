@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <optional>
+
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
 #include "render_record.h"
@@ -2628,6 +2630,18 @@ uint32_t AppRunningRecord::GetAddStageTimeout() const
 void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 {
     isDebugFromLocal_ = isDebugFromLocal;
+}
+
+std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
+{
+    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
+    return supportMultiProcessDeviceFeature_;
+}
+
+void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
+{
+    std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
+    supportMultiProcessDeviceFeature_ = support;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
