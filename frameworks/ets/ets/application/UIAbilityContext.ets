@@ -94,6 +94,12 @@ export default class UIAbilityContext extends Context {
 
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeShowAbility(callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeHideAbility(callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeOnSetRestoreEnabled(enabled: boolean): 
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -196,6 +202,42 @@ export default class UIAbilityContext extends Context {
     taskpool.execute((): void => {
       this.nativeTerminateSelfSync(myCall);
     });
+  }
+
+  nativeShowAbility(): Promise<void>{
+    let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeShowAbility();
+      });
+    });
+    return p;
+  }
+
+  nativeHideAbility(): Promise<void>{
+    let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeHideAbility();
+      });
+    });
+    return p;
+  }
+
+  nativeOnSetRestoreEnabled(): string {
+    return this.NativeOnSetRestoreEnabled();
   }
 
   terminateSelf(): Promise<void> {

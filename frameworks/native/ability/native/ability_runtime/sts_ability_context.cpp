@@ -686,6 +686,53 @@ void StsAbilityContext::NativeRequestModalUIExtension(ani_env *env, ani_object a
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
+void StsAbilityContext::NativeShowAbility(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    return ChangeAbilityVisibility(env, aniObj, callback, true);
+}
+
+void StsAbilityContext::NativeHideAbility(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    return ChangeAbilityVisibility(env, aniObj, callback, false);
+}
+
+void StsAbilityContext::ChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_object callbackObj, bool isShow)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    ani_object errorObject = nullptr;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        errorObject = CreateStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+        return;
+    }
+    ErrCode errCode = ERR_OK;
+    errCode = context->ChangeAbilityVisibility(isShow);
+    if (errCode != ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callbackObj, CreateStsErrorByNativeErr(env, errCode), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+}
+void StsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto abilityContext = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (abilityContext == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityContext");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    bool enabled = static_cast<bool>(aniEnabled);
+    abilityContext->SetRestoreEnabled(enabled);
+    return;
+}
+
 ani_object StsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
@@ -818,6 +865,13 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferStatic) },
             ani_native_function { "nativeTransferDynamic", "Lstd/core/Object;:Lstd/interop/ESValue;",
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferDynamic) },
+            ani_native_function { "nativeShowAbility", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeShowAbility)},
+            ani_native_function { "nativeHideAbility", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeHideAbility)},
+            ani_native_function {  "nativeOnSetRestoreEnabled", nullptr,
+                reinterpret_cast<void*>(StsAbilityContext::NativeOnSetRestoreEnabled)
+            }
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
