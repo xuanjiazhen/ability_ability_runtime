@@ -16,11 +16,15 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
 #define OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
 
-#include "ability_delegator_infos.h"
-#include "ets_runtime.h"
 #include "ui_ability.h"
 
+#include "ability_delegator_infos.h"
+#include "ets_runtime.h"
+
 namespace OHOS {
+namespace EtsEnv {
+struct ETSNativeReference;
+}
 namespace AbilityRuntime {
 using AbilityHandler = AppExecFwk::AbilityHandler;
 using AbilityInfo = AppExecFwk::AbilityInfo;
@@ -145,7 +149,7 @@ private:
     void AbilityContinuationOrRecover(const Want &want);
     void UpdateEtsWindowStage(ani_ref windowStage);
     
-    std::shared_ptr<ETSNativeReference> etsWindowStageObj_;
+    std::shared_ptr<EtsEnv::ETSNativeReference> etsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif
 
@@ -162,8 +166,8 @@ private:
     bool BindNativeMethods();
 
     ETSRuntime &etsRuntime_;
-    std::shared_ptr<ETSNativeReference> shellContextRef_;
-    std::shared_ptr<ETSNativeReference> etsAbilityObj_;
+    std::shared_ptr<EtsEnv::ETSNativeReference> shellContextRef_;
+    std::shared_ptr<EtsEnv::ETSNativeReference> etsAbilityObj_;
     static std::once_flag singletonFlag_;
 };
 } // namespace AbilityRuntime

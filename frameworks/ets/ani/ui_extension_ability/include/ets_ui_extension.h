@@ -29,9 +29,10 @@
 #include "ets_runtime.h"
 #include "ets_ui_extension_content_session.h"
 
-class ETSNativeReference;
-
 namespace OHOS {
+namespace EtsEnv {
+struct ETSNativeReference;
+}
 namespace AbilityRuntime {
 class UIExtension;
 class UIExtensionContext;
@@ -196,15 +197,15 @@ private:
         const AppExecFwk::InsightIntentExecuteResult &result) override;
     void PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &sessionInfo,
         const AppExecFwk::InsightIntentExecuteResult &result, bool needForeground);
-    std::unique_ptr<ETSNativeReference> CreateAppWindowStage(sptr<Rosen::Window> uiWindow,
+    std::unique_ptr<EtsEnv::ETSNativeReference> CreateAppWindowStage(sptr<Rosen::Window> uiWindow,
         sptr<AAFwk::SessionInfo> sessionInfo);
     sptr<Rosen::Window> CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
         const sptr<AAFwk::SessionInfo> &sessionInfo);
     static void PromiseCallback(ani_env* env, ani_object aniObj);
 
     ETSRuntime& etsRuntime_;
-    std::shared_ptr<ETSNativeReference> etsObj_ = nullptr;
-    std::shared_ptr<ETSNativeReference> shellContextRef_ = nullptr;
+    std::shared_ptr<EtsEnv::ETSNativeReference> etsObj_ = nullptr;
+    std::shared_ptr<EtsEnv::ETSNativeReference> shellContextRef_ = nullptr;
     std::mutex uiWindowMutex_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
     std::set<uint64_t> foregroundWindows_;

@@ -26,24 +26,20 @@
 
 #include "runtime.h"
 #include "js_runtime.h"
-#include "ets_exception_callback.h"
-#include "ani.h"
 
 using AppLibPathMap = std::map<std::string, std::vector<std::string>>;
 using AppLibPathVec = std::vector<std::string>;
+struct __ani_env;
+using ani_env = __ani_env;
 
 namespace OHOS {
 namespace EtsEnv {
 class ETSEnvironment;
 struct ETSUncaughtExceptionInfo;
+struct ETSNativeReference;
 } // namespace EtsEnv
 
 namespace AbilityRuntime {
-struct ETSNativeReference {
-    ani_class aniCls = nullptr;
-    ani_object aniObj = nullptr;
-    ani_ref aniRef = nullptr;
-};
 
 class ETSRuntime : public Runtime {
 public:
@@ -84,7 +80,7 @@ public:
     void GetHeapPrepare() override {};
     void RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo);
     ani_env *GetAniEnv();
-    std::unique_ptr<ETSNativeReference> LoadModule(const std::string &moduleName, const std::string &modulePath,
+    std::unique_ptr<EtsEnv::ETSNativeReference> LoadModule(const std::string &moduleName, const std::string &modulePath,
         const std::string &hapPath, bool esmodule, bool useCommonChunk, const std::string &srcEntrance);
     bool HandleUncaughtError();
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
@@ -93,7 +89,7 @@ private:
     bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
     void Deinitialize();
     bool CreateEtsEnv(const Options &options, Runtime *jsRuntime);
-    std::unique_ptr<ETSNativeReference> LoadEtsModule(const std::string &moduleName, const std::string &fileName,
+    std::unique_ptr<EtsEnv::ETSNativeReference> LoadEtsModule(const std::string &moduleName, const std::string &fileName,
         const std::string &hapPath, const std::string &srcEntrance);
     std::shared_ptr<EtsEnv::ETSEnvironment> etsEnv_;
     int32_t apiTargetVersion_ = 0;
