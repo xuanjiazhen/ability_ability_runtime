@@ -513,6 +513,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
 
     std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
     std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
+    std::replace(entryPath.begin(), entryPath.end(), '/', '.');
     void *cls = nullptr;
     void *obj = nullptr;
     void *ref = nullptr;
