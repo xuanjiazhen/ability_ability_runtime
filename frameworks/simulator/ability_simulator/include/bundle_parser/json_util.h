@@ -137,7 +137,7 @@ void GetObjectValueIfFindKey(const cJSON *jsonObject,
         parseResult = ERR_APPEXECFWK_PARSE_PROFILE_PROP_TYPE_ERROR;
         return;
     }
-    from_json(jsonObject, data);
+    from_json(item, data);
 }
 
 template<typename T>
