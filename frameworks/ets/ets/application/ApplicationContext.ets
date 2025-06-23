@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import AbilityLifecycleCallback from '@ohos.app.ability.AbilityLifecycleCallback';
 import Context from 'application.Context'
 import EnvironmentCallback from '@ohos.app.ability.EnvironmentCallback';
 import { BusinessError, AsyncCallback } from '@ohos.base'
@@ -21,6 +22,7 @@ import type ApplicationStateChangeCallback from '@ohos.app.ability.ApplicationSt
 import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import StaticAbilityLifecycleCallback from '@ohos.app.ability.StaticAbilityLifecycleCallback';
 
 // remove local declaration after Any type is supported
 type Any = Object | null | undefined
@@ -33,6 +35,8 @@ export default class ApplicationContext extends Context {
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativeOnSync(type: 'environment', callback: EnvironmentCallback): number;
   public native nativeOffSync(type: 'environment', callbackId: number, callback: AsyncCallbackWrapper<void>): void;
+  public native nativeOnLifecycleCallbackSync(type: string, callback: Object): number;
+  public native nativeOffLifecycleCallbackSync(type: string, callbackId: number): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported: boolean): void;
   public native nativegetRunningProcessInformation(callback: AsyncCallbackWrapper<Array<ProcessInformation>>): void;
@@ -253,5 +257,23 @@ export default class ApplicationContext extends Context {
 
   static transferDynamic(input: Object): Any {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
+  }
+
+  on(type: 'staticAbilityLifecycle', callback: StaticAbilityLifecycleCallback): number {
+    return this.nativeOnLifecycleCallbackSync(type, callback);
+  }
+
+  on(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): number {
+    return this.nativeOnLifecycleCallbackSync(type, callback);
+  }
+
+  off(type: 'abilityLifecycle' | 'staticAbilityLifecycle', callbackId: number): Promise<void> {
+    let p =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+        taskpool.execute((): void => {
+          this.nativeOffLifecycleCallbackSync(type, callbackId);
+        });
+      });
+    return p;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,12 +19,13 @@
 #include <memory>
 #include <mutex>
 
-#include "ability_lifecycle_callback.h"
 #include "application_context.h"
 #include "application_state_change_callback.h"
 #include "js_ability_auto_startup_callback.h"
+#include "js_ability_lifecycle_callback.h"
 #include "native_engine/native_engine.h"
 #include "running_process_info.h"
+#include "js_static_ability_lifecycle_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -71,7 +72,9 @@ public:
     napi_value OnOn(napi_env env, NapiCallbackInfo& info);
     napi_value OnOff(napi_env env, NapiCallbackInfo& info);
     napi_value OnOnAbilityLifecycle(napi_env env, NapiCallbackInfo& info, bool isSync);
+    napi_value OnOnStaticAbilityLifecycle(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffAbilityLifecycle(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
+    napi_value OnOffStaticAbilityLifecycle(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOffAbilityLifecycleEventSync(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOnEnvironment(napi_env env, NapiCallbackInfo& info, bool isSync);
     napi_value OnOffEnvironment(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
@@ -155,6 +158,7 @@ private:
     static JsAppProcessState ConvertToJsAppProcessState(
         const AppExecFwk::AppProcessState &appProcessState, const bool &isFocused);
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
+    std::shared_ptr<JsStaticAbilityLifecycleCallback> staticCallback_;
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;

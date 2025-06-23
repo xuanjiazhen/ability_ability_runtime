@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 
-#include "ability_lifecycle_callback.h"
+#include "js_ability_lifecycle_callback.h"
 
 #include "hilog_tag_wrapper.h"
+#include "interop_guard.h"
 #include "js_runtime_utils.h"
+#include "napi/native_api.h"
+#include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

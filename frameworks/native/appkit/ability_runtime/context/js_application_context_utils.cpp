@@ -1370,6 +1370,9 @@ napi_value JsApplicationContextUtils::OnOn(napi_env env, NapiCallbackInfo& info)
     if (type == "applicationStateChange") {
         return OnOnApplicationStateChange(env, info);
     }
+    if (type == "staticAbilityLifecycle") {
+        return OnOnStaticAbilityLifecycle(env, info);
+    }
     TAG_LOGE(AAFwkTag::APPKIT, "on function type not match");
     ThrowInvalidParamError(env, "Parse param callback failed, callback must be function.");
     return CreateJsUndefined(env);
@@ -1484,6 +1487,65 @@ napi_value JsApplicationContextUtils::OnOffAbilityLifecycle(
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsApplicationContextUtils::OnOffAbilityLifecycle", env,
         CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+    return result;
+}
+
+napi_value JsApplicationContextUtils::OnOnStaticAbilityLifecycle(napi_env env, NapiCallbackInfo& info)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    if (staticCallback_ != nullptr) {
+        TAG_LOGD(AAFwkTag::APPKIT, "staticCallback_ is not nullptr");
+        return CreateJsValue(env, staticCallback_->Register(info.argv[INDEX_ONE]));
+    }
+    staticCallback_ = std::make_shared<JsStaticAbilityLifecycleCallback>(env);
+    int32_t callbackId = staticCallback_->Register(info.argv[INDEX_ONE]);
+    applicationContext->RegisterStaticAbilityLifecycleCallback(staticCallback_);
+    return CreateJsValue(env, callbackId);
+}
+
+napi_value JsApplicationContextUtils::OnOffStaticAbilityLifecycle(
+    napi_env env, NapiCallbackInfo& info, int32_t callbackId)
+{
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    std::weak_ptr<JsStaticAbilityLifecycleCallback> callbackWeak(staticCallback_);
+    NapiAsyncTask::ExecuteCallback execute =
+        [applicationContext = applicationContext_, innerErrCode, callbackId, callbackWeak]() {
+            auto context = applicationContext.lock();
+            if (!context) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+                *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
+                return;
+            }
+            auto callback = callbackWeak.lock();
+            if (callback == nullptr) {
+                TAG_LOGE(AAFwkTag::APPKIT, "null callback");
+                *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+                return;
+            }
+            if (!callback->Unregister(callbackId)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "failed to unregister");
+                *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+            }
+        };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, callbackId](
+            napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (*innerErrCode != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPKIT, "unregister error:%{public}d", *innerErrCode);
+                task.Reject(env, CreateJsError(env, *innerErrCode, "Failed to unregister!"));
+                return;
+            }
+
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        };
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnOffStaticAbilityLifecycle", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }
 

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_STS_UI_ABILITY_H
-#define OHOS_ABILITY_RUNTIME_STS_UI_ABILITY_H
+#ifndef OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
+#define OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
 
 #include "ability_delegator_infos.h"
 #include "freeze_util.h"
-#include "ui_ability.h"
 #include "sts_runtime.h"
+#include "ui_ability.h"
 
 class STSNativeReference;
 namespace OHOS {
@@ -329,4 +329,4 @@ private:
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_STS_UI_ABILITY_H
+#endif // OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H

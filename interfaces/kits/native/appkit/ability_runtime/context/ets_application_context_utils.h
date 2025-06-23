@@ -57,6 +57,10 @@ public:
         ani_string type, ani_object envCallback);
     static void NativeOffSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_string type, ani_double callbackId, ani_object call);
+    static ani_double NativeOnLifecycleCallbackSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_string type, ani_object callback);
+    static void NativeOffLifecycleCallbackSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+        ani_string type, ani_double callbackId);
     static void NativeOnApplicationStateChangeSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_object callback);
     static void NativeOffApplicationStateChangeSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
@@ -72,6 +76,12 @@ public:
     static void BindApplicationContextFunc(ani_env* aniEnv, ani_class& contextClass);
     static void SetAndBindApplicationObject(ani_env* aniEnv, ani_object applicationContextObject,
         std::shared_ptr<ApplicationContext> applicationContext);
+
+private:
+    static ani_double RegisterStaticAbilityLifecycleCallback(ani_env *env, ani_object callback);
+    static void UnregisterStaticAbilityLifecycleCallback(ani_env *env, int32_t callbackId);
+    static ani_double RegisterAbilityLifecycleCallback(ani_env *env, ani_object callback);
+    static void UnregisterAbilityLifecycleCallback(ani_env *env, int32_t callbackId);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
