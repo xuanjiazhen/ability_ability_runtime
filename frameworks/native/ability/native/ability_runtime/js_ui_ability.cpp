@@ -427,6 +427,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityWillCreate(jsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillCreate(env, jsAbilityObj_);
     }
 
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -442,8 +443,8 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityCreate(jsAbilityObj_);
+        applicationContext->DispatchOnAbilityCreate(env, jsAbilityObj_);
     }
-    TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
 void JsUIAbility::AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState state, const std::string &methodName) const
@@ -566,6 +567,8 @@ void JsUIAbility::OnStopCallback()
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityDestroy(jsAbilityObj_);
+        auto env = jsRuntime_.GetNapiEnv();
+        applicationContext->DispatchOnAbilityDestroy(env, jsAbilityObj_);
     }
 }
 
@@ -588,6 +591,8 @@ void JsUIAbility::OnSceneCreated()
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWindowStageWillCreate(jsAbilityObj_, jsWindowStageObj_);
+        auto env = jsRuntime_.GetNapiEnv();
+        applicationContext->DispatchOnWindowStageWillCreate(env, jsAbilityObj_, jsWindowStageObj_);
     }
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
@@ -606,6 +611,8 @@ void JsUIAbility::OnSceneCreated()
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWindowStageCreate(jsAbilityObj_, jsWindowStageObj_);
+        auto env = jsRuntime_.GetNapiEnv();
+        applicationContext->DispatchOnWindowStageCreate(env, jsAbilityObj_, jsWindowStageObj_);
     }
 
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -687,6 +694,8 @@ void JsUIAbility::onSceneDestroyed()
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWindowStageDestroy(jsAbilityObj_, jsWindowStageObj_);
+        auto env = jsRuntime_.GetNapiEnv();
+        applicationContext->DispatchOnWindowStageDestroy(env, jsAbilityObj_, jsWindowStageObj_);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -749,6 +758,7 @@ void JsUIAbility::CallOnForegroundFunc(const Want &want)
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityForeground(jsAbilityObj_);
+        applicationContext->DispatchOnAbilityForeground(env, jsAbilityObj_);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -778,6 +788,8 @@ void JsUIAbility::OnBackground()
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityBackground(jsAbilityObj_);
+        auto env = jsRuntime_.GetNapiEnv();
+        applicationContext->DispatchOnAbilityBackground(env, jsAbilityObj_);
     }
     auto want = GetWant();
     if (want != nullptr) {
