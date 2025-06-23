@@ -1659,7 +1659,7 @@ std::string JsRuntime::GetSystemKitPath()
 {
     char buf[MAX_PATH_LEN] = { 0 };
     char *configPath = GetOneCfgFile(CONFIG_PATH.c_str(), buf, MAX_PATH_LEN);
-    if (configPath == nullptr || configPath[0] == '\0' || strlen(configPath) > MAX_PATH_LEN) {
+    if (configPath == nullptr) {
         return SYSTEM_KITS_CONFIG_PATH;
     }
     return configPath;

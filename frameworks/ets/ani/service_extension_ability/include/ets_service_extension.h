@@ -16,10 +16,14 @@
 #define OHOS_ABILITY_RUNTIME_ETS_SERVICE_EXTENSION_H
 
 #include "configuration.h"
+#include "ets_envsetup.h"
 #include "ets_runtime.h"
 #include "service_extension.h"
 
 namespace OHOS {
+namespace EtsEnv {
+struct ETSNativeReference;
+}
 namespace AbilityRuntime {
 /**
  * @brief Basic service components.
@@ -143,7 +147,7 @@ private:
     sptr<IRemoteObject> OnConnectInner(ani_env *env, ani_object &aniRemoteobj, bool &isAsyncCallback);
 
     ETSRuntime &etsRuntime_;
-    std::unique_ptr<ETSNativeReference> etsObj_;
+    std::unique_ptr<EtsEnv::ETSNativeReference> etsObj_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

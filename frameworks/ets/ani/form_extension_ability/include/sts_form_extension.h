@@ -17,12 +17,14 @@
 #define OHOS_ABILITY_RUNTIME_STS_FORM_EXTENSION_H
 
 #include "ani.h"
+#include "ets_envsetup.h"
 #include "form_extension.h"
-#include "ets_runtime.h"
 
 class NativeReference;
-class STSNativeReference;
 namespace OHOS {
+namespace EtsEnv {
+struct ETSNativeReference;
+}
 namespace AbilityRuntime {
 class FormExtension;
 class ETSRuntime;
@@ -73,7 +75,7 @@ private:
     std::string ANIUtils_ANIStringToStdString(ani_env *env, ani_string ani_str);
     ani_status ANIUtils_FormIdToAniString(ani_env *env, int64_t formId, ani_string &formIdStr);
     std::unique_ptr<NativeReference> stsObj_;
-    std::shared_ptr<ETSNativeReference> stsAbilityObj_;
+    std::shared_ptr<EtsEnv::ETSNativeReference> stsAbilityObj_;
     ETSRuntime &stsRuntime_;
     sptr<IRemoteObject> providerRemoteObject_ = nullptr;
 }; // namespace AbilityRuntime
