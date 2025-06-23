@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 #include "constants.h"
-#include "ets_interface.h"
+#include "ets_envsetup.h"
 #include "file_path_utils.h"
 #include "hilog_tag_wrapper.h"
 
