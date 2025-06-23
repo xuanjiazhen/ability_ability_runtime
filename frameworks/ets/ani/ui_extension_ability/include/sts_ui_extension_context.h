@@ -49,6 +49,8 @@ public:
         ani_object callback, UIExtensionContext* context);
     static void NativeSetColorMode(ani_env *env, ani_object aniCls, ani_enum_item aniColorMode);
     static void NativeReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
+    void StartAbilityForResultInner(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object startOptinsObj, ani_object callback);
 private:
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
