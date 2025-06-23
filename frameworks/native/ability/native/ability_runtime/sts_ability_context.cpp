@@ -37,6 +37,7 @@
 #include "ani_common_want.h"
 #include "ani_common_start_options.h"
 #include "ani_common_configuration.h"
+#include "ani_remote_object.h"
 #include "ani_common_ability_result.h"
 #include "ani_enum_convert.h"
 #include "open_link_options.h"
@@ -59,6 +60,18 @@ std::mutex StsAbilityContext::requestCodeMutex_;
 namespace {
 static std::once_flag g_bindNativeMethodsFlag;
 constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
+std::recursive_mutex g_connectsLock;
+uint32_t g_serialNumber = 0;
+static std::mutex g_connectsMutex;
+static std::map<EtsConnectionKey, sptr<ETSAbilityConnection>, EtsKeyCompare> g_connects;
+constexpr const int FAILED_CODE = -1;
+constexpr const char *CONNECT_OPTIONS_CLASS_NAME = "Lability/connectOptions/ConnectOptionsInner;";
+constexpr const char *SIGNATURE_ONCONNECT = "LbundleManager/ElementName/ElementName;L@ohos/rpc/rpc/IRemoteObject;:V";
+constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/ElementName;:V";
+constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
+    "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:D";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+
 constexpr int32_t CALLER_TIME_OUT = 10; // 10s
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 constexpr uint64_t MAX_REQUEST_CODE = (1ULL << 49) - 1;
@@ -859,6 +872,97 @@ void StsAbilityContext::NativeBackToCallerAbilityWithResult(ani_env *env, ani_ob
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
 }
 
+ani_int StsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnConnectServiceExtensionAbility call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    AAFwk::Want want;
+    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to UnwrapWant");
+        ThrowStsInvalidParamError(env, "Failed to UnwrapWant");
+        return FAILED_CODE;
+    }
+    ani_vm *etsVm = nullptr;
+    if (status = env->GetVM(&etsVm) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsVm");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    sptr<ETSAbilityConnection> connection = sptr<ETSAbilityConnection>::MakeSptr(etsVm);
+    connection->SetConnectionRef(connectOptionsObj);
+    int32_t connectId = InsertConnection(connection, want);
+    auto innerErrCode = context->ConnectAbility(want, connection);
+    int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(innerErrCode));
+    if (errcode) {
+        connection->CallEtsFailed(errcode);
+    }
+    return connectId;
+}
+
+void StsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnDisconnectServiceExtensionAbility call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    ani_object aniObject = nullptr;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        aniObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+    }
+    if (etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsVm");
+        return;
+    }
+    sptr<ETSAbilityConnection> connection = nullptr;
+    AAFwk::Want want;
+    int32_t accountId = -1;
+    {
+        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        auto iter = std::find_if(
+            g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
+        if (iter != g_connects.end()) {
+            want = iter->first.want;
+            connection = iter->second;
+            accountId = iter->first.accountId;
+            g_connects.erase(iter);
+        } else {
+            TAG_LOGI(AAFwkTag::CONTEXT, "Failed to found connection");
+        }
+    }
+    if (!connection) {
+        errorObject = CreateStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        AppExecFwk::AsyncCallback(env, callback, errorObject, nullptr);
+        return;
+    }
+
+    ErrCode ret = context->DisconnectAbility(want, connection, accountId);
+    errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callback, errorObject, nullptr);
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -916,6 +1020,10 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeBackToCallerAbilityWithResult",
                 "Lability/abilityResult/AbilityResult;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(StsAbilityContext::NativeBackToCallerAbilityWithResult) },
+            ani_native_function { "nativeConnectServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(StsAbilityContext::OnConnectServiceExtensionAbility) },
+            ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(StsAbilityContext::OnDisconnectServiceExtensionAbility) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -1159,6 +1267,212 @@ ani_ref CreateStsAbilityContext(ani_env *env, const std::shared_ptr<AbilityConte
         return nullptr;
     }
     return contextObj;
+}
+
+ETSAbilityConnection::ETSAbilityConnection(ani_vm *etsVm) : etsVm_(etsVm) {}
+
+ETSAbilityConnection::~ETSAbilityConnection()
+{
+    if (etsVm_ != nullptr && stsConnectionRef_ != nullptr) {
+        ani_env *env = nullptr;
+        if (etsVm_->GetEnv(ANI_VERSION_1, &env) == ANI_OK) {
+            env->GlobalReference_Delete(stsConnectionRef_);
+            stsConnectionRef_ = nullptr;
+        }
+    }
+}
+
+void ETSAbilityConnection::SetConnectionId(int32_t id)
+{
+    connectionId_ = id;
+}
+
+void ETSAbilityConnection::CallEtsFailed(int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "CallEtsFailed");
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsVm");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_OK;
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    if (stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef_");
+        return;
+    }
+    ani_class cls = nullptr;
+    if ((status = env->FindClass(CONNECT_OPTIONS_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find connectOptions calss, status: %{public}d", status);
+        return;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null class");
+        return;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(cls, "onFailed", "D:V", &method))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find onFailed method, status: %{public}d", status);
+        return;
+    }
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null method");
+        return;
+    }
+    status = env->Object_CallMethod_Void(
+        reinterpret_cast<ani_object>(stsConnectionRef_), method, static_cast<double>(errorCode));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+    }
+}
+
+void ETSAbilityConnection::SetConnectionRef(ani_object connectOptionsObj)
+{
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsVm_ is nullptr");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    if ((status = env->GlobalReference_Create(connectOptionsObj, &stsConnectionRef_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+    }
+}
+
+int32_t InsertConnection(sptr<ETSAbilityConnection> connection, const AAFwk::Want &want, int32_t accountId = -1)
+{
+    std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null connection");
+        return -1;
+    }
+    int32_t connectId = static_cast<int32_t>(g_serialNumber);
+    EtsConnectionKey key;
+    key.id = g_serialNumber;
+    key.want = want;
+    key.accountId = accountId;
+    connection->SetConnectionId(key.id);
+    g_connects.emplace(key, connection);
+    g_serialNumber++;
+    return connectId;
+}
+
+void ETSAbilityConnection::OnAbilityConnectDone(
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
+{
+    if (etsVm_ == nullptr || stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef or etsVm");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_option interopEnabled { "--interop=disable", nullptr };
+    ani_options aniArgs { 1, &interopEnabled };
+    if ((status = (etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_class cls = nullptr;
+    if ((status = env->FindClass(CONNECT_OPTIONS_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find connectOptions calss, status: %{public}d", status);
+        return;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null cls");
+        return;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(cls, "onConnect", SIGNATURE_ONCONNECT, &method))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find onConnect method, status: %{public}d", status);
+        return;
+    }
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null method");
+        return;
+    }
+    ani_ref refElement = AppExecFwk::WrapElementName(env, element);
+    if (refElement == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null refElement");
+        return;
+    }
+    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    status = env->Object_CallMethod_Void(
+        reinterpret_cast<ani_object>(stsConnectionRef_), method, refElement, refRemoteObject);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+    }
+    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+    }
+}
+
+void ETSAbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode)
+{
+    if (etsVm_ == nullptr || stsConnectionRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef or etsVm");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_option interopEnabled { "--interop=disable", nullptr };
+    ani_options aniArgs { 1, &interopEnabled };
+    if ((status = (etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_class cls = nullptr;
+    if ((status = env->FindClass(CONNECT_OPTIONS_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find connectOptions calss, status: %{public}d", status);
+        return;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null cls");
+        return;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(cls, "onDisconnect", SIGNATURE_ONDISCONNECT, &method))) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to find onDisconnect method, status: %{public}d", status);
+        return;
+    }
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null method");
+        return;
+    }
+    ani_ref refElement = AppExecFwk::WrapElementName(env, element);
+    if (refElement == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null refElement");
+        return;
+    }
+    status = env->Object_CallMethod_Void(reinterpret_cast<ani_object>(stsConnectionRef_), method, refElement);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_CallMethod_Void status: %{public}d", status);
+    }
+    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

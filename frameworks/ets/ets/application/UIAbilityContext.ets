@@ -20,6 +20,7 @@ import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import { Configuration } from '@ohos.app.ability.Configuration';
+import { ConnectOptions } from 'ability.connectOptions';
 import Context from 'application.Context';
 import window from '@ohos.window';
 import { Caller } from '@ohos.app.ability.UIAbility';
@@ -97,6 +98,10 @@ export default class UIAbilityContext extends Context {
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
+
+  private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -390,6 +395,36 @@ export default class UIAbilityContext extends Context {
       taskpool.execute(() => {
         this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
       });
+    });
+  }
+
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): number {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+
+  disconnectServiceExtensionAbility(connection: number, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeDisconnectServiceExtensionAbility(connection, syncCall);
+    });
+  }
+
+  disconnectServiceExtensionAbility(connection: number): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void,
+      reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbility(connection, syncCall);
+      })
     });
   }
 }
