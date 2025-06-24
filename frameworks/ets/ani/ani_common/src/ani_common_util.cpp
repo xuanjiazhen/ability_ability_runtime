@@ -625,22 +625,26 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     ani_class clsCall {};
 
     if ((status = env->FindClass(CLASSNAME_ASYNC_CALLBACK_WRAPPER, &clsCall)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::JSNAPI, "FindClass status: %{public}d", status);
         return false;
     }
     ani_method method {};
-    if ((status = env->Class_FindMethod(
-        clsCall, "invoke", "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+    if ((status = env->Class_FindMethod(clsCall, "invoke", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Class_FindMethod status: %{public}d", status);
         return false;
     }
-    if (result == nullptr) {
+    if (error == nullptr) {
         ani_ref nullRef = nullptr;
         env->GetNull(&nullRef);
-        result = reinterpret_cast<ani_object>(nullRef);
+        error = reinterpret_cast<ani_object>(nullRef);
+    }
+    if (result == nullptr) {
+        ani_ref undefinedRef = nullptr;
+        env->GetUndefined(&undefinedRef);
+        result = reinterpret_cast<ani_object>(undefinedRef);
     }
     if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::JSNAPI, "Object_CallMethod_Void status: %{public}d", status);
         return false;
     }
     return true;
@@ -1020,6 +1024,34 @@ bool UnwrapArrayString(ani_env *env, const ani_object &arrayObj, std::vector<std
         stringList.push_back(str);
     }
     return true;
+}
+
+ani_object CreateEmptyArray(ani_env *env)
+{
+    ani_status status = ANI_OK;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return nullptr;
+    }
+    ani_class arrayCls = nullptr;
+    status = env->FindClass("Lescompat/Array;", &arrayCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "FindClass failed status: %{public}d", status);
+        return nullptr;
+    }
+    ani_method arrayCtor;
+    status = env->Class_FindMethod(arrayCls, "<ctor>", ":V", &arrayCtor);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "find ctor failed status: %{public}d", status);
+        return nullptr;
+    }
+    ani_object arrayObj;
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Object_New array failed status: %{public}d", status);
+        return nullptr;
+    }
+    return arrayObj;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
