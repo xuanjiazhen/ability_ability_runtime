@@ -82,7 +82,7 @@ void AbilityAutoStartupDataManagerFuzztest1(bool boolParam, std::string &stringP
     info.abilityName = "MainAbility";
     info.appCloneIndex = int32Param;
     info.accessTokenId = "accessTokenId";
-    info.currentUserId = int32Param;
+    info.setterUserId = int32Param;
     info.userId = int32Param;
     dataMgr->ConvertAutoStartupDataToKey(info);
 
@@ -110,9 +110,9 @@ void AbilityAutoStartupDataManagerFuzztest1(bool boolParam, std::string &stringP
     dataMgr->IsEqual(key1, "NaN");
     dataMgr->IsEqual(key1Illegal, "token");
 
-    dataMgr->IsEqual(key1, 100); // 100 means userid
-    dataMgr->IsEqual(key1, int32Param);
-    dataMgr->IsEqual(key1Illegal, 0);
+    dataMgr->IsEqual(key1, value1, 100); // 100 means userid
+    dataMgr->IsEqual(key1, value1, int32Param);
+    dataMgr->IsEqual(key1Illegal, value1, 0);
 }
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)

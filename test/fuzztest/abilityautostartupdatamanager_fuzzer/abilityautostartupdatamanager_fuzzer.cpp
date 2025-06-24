@@ -53,19 +53,24 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AbilityRuntime::AutoStartupInfo info;
     bool isAutoStartup = *data % ENABLE;
     bool isEdmForce = *data % ENABLE;
+    bool isCalledByEDM = *data % ENABLE;
     abilityAutoStartupDataManager->InsertAutoStartupData(info, isAutoStartup, isEdmForce);
     abilityAutoStartupDataManager->UpdateAutoStartupData(info, isAutoStartup, isEdmForce);
     std::string strParam(data, size);
     int32_t in32Param = static_cast<int32_t>(GetU32Data(data));
     abilityAutoStartupDataManager->QueryAutoStartupData(info);
     std::vector<AbilityRuntime::AutoStartupInfo> infoList;
-    abilityAutoStartupDataManager->QueryAllAutoStartupApplications(infoList, in32Param);
+    abilityAutoStartupDataManager->QueryAllAutoStartupApplications(infoList, in32Param, isCalledByEDM);
     abilityAutoStartupDataManager->GetCurrentAppAutoStartupData(strParam, infoList, strParam);
     abilityAutoStartupDataManager->GetKvStore();
     abilityAutoStartupDataManager->CheckKvStore();
     DistributedKv::Value value;
     DistributedKv::Key key;
-    abilityAutoStartupDataManager->ConvertAutoStartupStatusFromValue(value, isAutoStartup, isEdmForce);
+    AbilityRuntime::AutoStartupStatus asustatus;
+    asustatus.isAutoStartup = *data % ENABLE;
+    asustatus.isEdmForce = *data % ENABLE;
+    asustatus.setterUserId = in32Param;
+    abilityAutoStartupDataManager->ConvertAutoStartupStatusFromValue(value, asustatus);
     abilityAutoStartupDataManager->ConvertAutoStartupDataToKey(info);
     abilityAutoStartupDataManager->ConvertAutoStartupInfoFromKeyAndValue(key, value);
     std::string keys(data, size);
@@ -73,7 +78,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     bool checkEmpty = *data % ENABLE;
     abilityAutoStartupDataManager->IsEqual(key, info);
     abilityAutoStartupDataManager->IsEqual(key, strParam);
-    abilityAutoStartupDataManager->IsEqual(key, in32Param);
+    abilityAutoStartupDataManager->IsEqual(key, value, in32Param);
     abilityAutoStartupDataManager->DeleteAutoStartupData(info);
     abilityAutoStartupDataManager->DeleteAutoStartupData(strParam, in32Param);
 
