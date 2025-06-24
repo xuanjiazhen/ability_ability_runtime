@@ -28,6 +28,7 @@
 namespace OHOS::AbilityRuntime {
 namespace ExtensionConfigItem {
     constexpr char ITEM_NAME_BLOCKLIST[] = "blocklist";
+    constexpr char ITEM_NAME_REPLACEMODULELIST[] = "replaceModuleList";
 }
 namespace {
     constexpr int32_t EXTENSION_TYPE_UNKNOWN = 255;
@@ -73,9 +74,23 @@ public:
      */
     void UpdateRuntimeModuleChecker(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 
+    /**
+     * @brief set runtime module checker
+     *
+     * @param runtime the runtime pointer
+     */
+    void SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
+
 private:
+    /**
+     * @brief Generate ets blocklist list by extension_blocklist_config
+     *
+     */
+    void GenerateExtensionEtsBlocklists();
     std::unordered_map<std::string, std::unordered_set<std::string>> blocklistConfig_;
     std::unordered_map<int32_t, std::unordered_set<std::string>> extensionBlocklist_;
+    std::unordered_map<std::string, std::string> replaceModuleListConfig_;
+    std::unordered_set<std::string> extensionEtsBlocklist_;
     int32_t extensionType_ = EXTENSION_TYPE_UNKNOWN;
 };
 } // namespace OHOS::AbilityRuntime

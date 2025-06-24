@@ -66,6 +66,19 @@ void ExtensionConfigMgr::Init()
         blocklistConfig_.emplace(item.key(), std::move(currentBlockList));
         currentBlockList.clear();
     }
+    if (!extensionConfig.contains(ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST)) {
+        TAG_LOGE(AAFwkTag::EXT, "extension config file have no replaceList node");
+        inFile.close();
+        return;
+    }
+    auto replaceList = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST);
+    for (const auto& item : replaceList.items()) {
+        if (!replaceList[item.key()].is_string()) {
+            continue;
+        }
+        replaceModuleListConfig_.emplace(item.key(), replaceList[item.key()].get<std::string>());
+    }
+
     inFile.close();
     TAG_LOGD(AAFwkTag::EXT, "Init end");
 }
@@ -88,8 +101,65 @@ void ExtensionConfigMgr::UpdateRuntimeModuleChecker(const std::unique_ptr<Abilit
         return;
     }
     TAG_LOGD(AAFwkTag::EXT, "extensionType_: %{public}d", extensionType_);
-    auto moduleChecker = std::make_shared<AppModuleChecker>(extensionType_, extensionBlocklist_);
-    runtime->SetModuleLoadChecker(moduleChecker);
+    GenerateExtensionEtsBlocklists();
+    if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::STS) {
+        TAG_LOGD(AAFwkTag::EXT, "etsruntime");
+        SetExtensionEtsCheckCallback(runtime);
+    } else {
+        TAG_LOGD(AAFwkTag::EXT, "non ets runtime");
+        auto moduleChecker = std::make_shared<AppModuleChecker>(extensionType_, extensionBlocklist_);
+        runtime->SetModuleLoadChecker(moduleChecker);
+        extensionBlocklist_.clear();
+    }
+}
+
+void ExtensionConfigMgr::GenerateExtensionEtsBlocklists()
+{
+    if (!extensionEtsBlocklist_.empty()) {
+        TAG_LOGD(AAFwkTag::EXT, "extension ets blocklist not empty");
+        return;
+    }
+    auto iter = extensionBlocklist_.find(extensionType_);
+    if (iter == extensionBlocklist_.end()) {
+        TAG_LOGD(AAFwkTag::EXT, "null extension block, extensionType_: %{public}d", extensionType_);
+        return;
+    }
+    for (const auto& module: iter->second) {
+        std::string lowermodule;
+        lowermodule.reserve(module.size());
+        std::transform(module.cbegin(), module.cend(), std::back_inserter(lowermodule),
+            [](unsigned char c) { return std::tolower(c); });
+        auto replaceIter = replaceModuleListConfig_.find(module);
+        if (replaceIter == replaceModuleListConfig_.end()) {
+            extensionEtsBlocklist_.emplace(std::move(lowermodule));
+        } else {
+            std::string lowerReplacedModule;
+            lowerReplacedModule.reserve(replaceIter->second.size());
+            std::transform(replaceIter->second.cbegin(), replaceIter->second.cend(),
+                std::back_inserter(lowerReplacedModule),
+                [](unsigned char c) { return std::tolower(c); });
+            extensionEtsBlocklist_.emplace(std::move(lowerReplacedModule));
+        }
+    }
+}
+
+void ExtensionConfigMgr::SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
+{
+    TAG_LOGD(AAFwkTag::EXT, "extensionType_: %{public}d", extensionType_);
+    auto &extensionEtsBlocklists = extensionEtsBlocklist_;
+    auto callback = [extensionEtsBlocklists](const std::string& className) -> bool {
+        std::string lowerClassName;
+        lowerClassName.reserve(className.size());
+        std::transform(className.cbegin(), className.cend(), std::back_inserter(lowerClassName),
+            [](unsigned char c) { return std::tolower(c); });
+        for (const auto& module: extensionEtsBlocklists) {
+            if (lowerClassName.compare(0, module.length(), module) == 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    runtime->SetExtensionApiCheckCallback(callback);
     extensionBlocklist_.clear();
 }
 }

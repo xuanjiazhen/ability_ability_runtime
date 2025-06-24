@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_RUNTIME_H
 #define OHOS_ABILITY_RUNTIME_RUNTIME_H
 
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -128,6 +129,7 @@ public:
     virtual bool UnLoadRepairPatch(const std::string& patchFile) = 0;
     virtual void RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath) = 0;
     virtual void StartProfiler(const DebugOption debugOption) = 0;
+    virtual void SetExtensionApiCheckCallback(const std::function<bool(const std::string &className)> &cb) = 0;
     virtual void DoCleanWorkAfterStageCleaned() {}
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
