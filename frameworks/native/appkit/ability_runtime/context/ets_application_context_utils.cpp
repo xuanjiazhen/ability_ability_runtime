@@ -27,6 +27,7 @@ namespace {
 }
 std::weak_ptr<ApplicationContext> applicationContext_;
 std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_ = nullptr;
+std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_ = nullptr;
 
 void EtsApplicationContextUtils::RestartApp([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_object wantObj)
@@ -210,7 +211,58 @@ void EtsApplicationContextUtils::GetRunningProcessInformation([[maybe_unused]]an
     }
 }
 
-ani_int EtsApplicationContextUtils::NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+void EtsApplicationContextUtils::NativeOnApplicationStateChangeSync([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeOnApplicationStateChangeSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return;
+    }
+    if (applicationStateCallback_ != nullptr) {
+        applicationStateCallback_->Register(callback);
+        return;
+    }
+    applicationStateCallback_ = std::make_shared<EtsApplicationStateChangeCallback>(env);
+    applicationStateCallback_->Register(callback);
+    applicationContext->RegisterApplicationStateChangeCallback(applicationStateCallback_);
+}
+
+void EtsApplicationContextUtils::NativeOffApplicationStateChangeSync([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeOffApplicationStateChangeSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    if (applicationStateCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationStateCallback_");
+        ThrowStsInvalidParamError(
+            env, "Parse applicationStateCallback failed, applicationStateCallback must be function.");
+        return;
+    }
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    if (isUndefined) {
+        applicationStateCallback_->UnRegister();
+    } else if (!applicationStateCallback_->UnRegister(callback)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
+        ThrowStsInvalidParamError(env, "Parse param call UnRegister failed, call UnRegister must be function.");
+        return;
+    }
+    if (applicationStateCallback_->IsEmpty()) {
+        applicationStateCallback_.reset();
+    }
+}
+
+ani_double EtsApplicationContextUtils::NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_string type, ani_object envCallback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "NativeOnSync Call");
@@ -355,6 +407,86 @@ void EtsApplicationContextUtils::SetApplicationContextToEts(const std::shared_pt
     applicationContext_ = abilityRuntimeContext;
 }
 
+ani_double EtsApplicationContextUtils::GetCurrentAppCloneIndex([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj)
+{
+    auto context = applicationContext_.lock();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return ANI_ERROR;
+    }
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return ANI_ERROR;
+    }
+    if (context->GetCurrentAppMode() != static_cast<int32_t>(AppExecFwk::MultiAppModeType::APP_CLONE)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not clone");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_NOT_APP_CLONE);
+        return ANI_ERROR;
+    }
+    int32_t appIndex = context->GetCurrentAppCloneIndex();
+    return ani_double(appIndex);
+}
+
+ani_string EtsApplicationContextUtils::GetCurrentInstanceKey([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj)
+{
+    auto context = applicationContext_.lock();
+    ani_string aniStr = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return nullptr;
+    }
+    if (context->GetCurrentAppMode() != static_cast<int32_t>(AppExecFwk::MultiAppModeType::MULTI_INSTANCE)) {
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_MULTI_INSTANCE_NOT_SUPPORTED);
+        TAG_LOGE(AAFwkTag::APPKIT, "not support");
+        return nullptr;
+    }
+    std::string instanceKey = context->GetCurrentInstanceKey();
+    aniStr = AppExecFwk::GetAniString(env, instanceKey);
+    return aniStr;
+}
+
+void EtsApplicationContextUtils::GetAllRunningInstanceKeys([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetAllRunningInstanceKeys Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_object emptyArray = AppExecFwk::CreateEmptyArray(env);
+    std::vector<std::string> instanceKeys;
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        AppExecFwk::AsyncCallback(env, callback, CreateStsError(env,
+            AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), emptyArray);
+        return;
+    }
+    if (applicationContext->GetCurrentAppMode() != static_cast<int32_t>(AppExecFwk::MultiAppModeType::MULTI_INSTANCE)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not supported");
+        AppExecFwk::AsyncCallback(env, callback, CreateStsErrorByNativeErr(env,
+            AAFwk::ERR_MULTI_INSTANCE_NOT_SUPPORTED), emptyArray);
+        return;
+    }
+    ErrCode innerErrCode = applicationContext->GetAllRunningInstanceKeys(instanceKeys);
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "innerErrCode=%{public}d", innerErrCode);
+        AppExecFwk::AsyncCallback(env, callback, CreateStsErrorByNativeErr(env, (int32_t)innerErrCode), emptyArray);
+        return;
+    }
+    ani_object stringArray;
+    AppExecFwk::WrapArrayString(env, stringArray, instanceKeys);
+    AppExecFwk::AsyncCallback(env, callback, CreateStsError(env, AbilityErrorCode::ERROR_OK), stringArray);
+}
+
 void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env* aniEnv, ani_class& contextClass)
 {
     if (aniEnv == nullptr) {
@@ -392,6 +524,18 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env* aniEnv, ani
             reinterpret_cast<void *>(EtsApplicationContextUtils::SetFont)},
         ani_native_function {"nativerestartApp", "L@ohos/app/ability/Want/Want;:V",
             reinterpret_cast<void *>(EtsApplicationContextUtils::RestartApp)},
+        ani_native_function {"nativeGetAllRunningInstanceKeys", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(EtsApplicationContextUtils::GetAllRunningInstanceKeys)},
+        ani_native_function {"nativeOnApplicationStateChangeSync",
+            "L@ohos/app/ability/ApplicationStateChangeCallback/ApplicationStateChangeCallback;:V",
+            reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOnApplicationStateChangeSync)},
+        ani_native_function {"nativeOffApplicationStateChangeSync",
+            "L@ohos/app/ability/ApplicationStateChangeCallback/ApplicationStateChangeCallback;:V",
+            reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffApplicationStateChangeSync)},
+        ani_native_function{"nativegetCurrentInstanceKey", ":Lstd/core/String;",
+            reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentInstanceKey)},
+        ani_native_function {"nativegetCurrentAppCloneIndex", ":D",
+            reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentAppCloneIndex)},
     };
     ani_status status = aniEnv->Class_BindNativeMethods(contextClass, applicationContextFunctions.data(),
     applicationContextFunctions.size());
