@@ -22,7 +22,7 @@
 
 #include "bundle_info.h"
 #include "extension_ability_info.h"
-#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
 #include "runtime.h"
 
 namespace OHOS::AbilityRuntime {
