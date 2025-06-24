@@ -900,7 +900,7 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
         TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
         return nullptr;
     }
-    napi_add_detached_finalizer(env, object, DetachFinalizeBaseContext, nullptr);
+    napi_add_detached_finalizer(env, contextObj, DetachFinalizeBaseContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
 
     if (obj != nullptr) {

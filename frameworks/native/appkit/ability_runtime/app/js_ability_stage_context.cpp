@@ -123,7 +123,7 @@ napi_value AttachAbilityStageContext(napi_env env, void *value, void *hint)
         TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
         return nullptr;
     }
-    napi_add_detached_finalizer(env, object, DetachFinalizeAbilityStageContext, nullptr);
+    napi_add_detached_finalizer(env, contextObj, DetachFinalizeAbilityStageContext, nullptr);
 
     status = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
