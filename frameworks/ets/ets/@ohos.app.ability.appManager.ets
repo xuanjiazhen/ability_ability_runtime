@@ -78,10 +78,10 @@ export class KeepAliveBundleInfoInner implements KeepAliveBundleInfo {
 export native function nativePreloadApplication(callback: AsyncCallbackWrapper<void>, bundleName: string, userId: number,
     mode: PreloadMode, appIndex?: number): void;
 export function preloadApplication(bundleName: string, userId: number, mode: PreloadMode, appIndex?: number): Promise<void>{
-   let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+   let p:Promise<void> = new Promise<void>((resolve: (data: PromiseLike<void>)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
         if (err == null || err.code == 0) {
-          resolve(undefined);
+          resolve(Promise.resolve());
         } else {
           reject(err);
         }
@@ -227,10 +227,10 @@ export function off(type: 'applicationState', observerId: number, callback: Asyn
 }
 
 export function off(type: 'applicationState', observerId: number): Promise<void> {
-    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let p:Promise<void> = new Promise<void>((resolve: (data: PromiseLike<void>)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
         if (err == null || err.code == 0) {
-          resolve(undefined);
+          resolve(Promise.resolve());
         } else {
           reject(err);
         }
@@ -251,8 +251,8 @@ export function getAppMemorySize(callback: AsyncCallback<number>): void
     });
 }
 export function getAppMemorySize(): Promise<number> {
-    let p = new Promise<number>((resolve:(data:number)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
+    let p = new Promise<number>((resolve:(data:number)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined): void =>{
         if (err == null || err.code == 0) {
           resolve(data as number);
         } else {
@@ -274,8 +274,8 @@ export function isRamConstrainedDevice(callback: AsyncCallback<boolean>): void {
     });
 }
 export function isRamConstrainedDevice(): Promise<boolean> {
-    let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+    let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined): void =>{
         if (err == null || err.code == 0) {
           resolve(data as boolean);
         } else {
@@ -297,8 +297,8 @@ export function isRunningInStabilityTest(callback: AsyncCallback<boolean>): void
     });
 }
 export function isRunningInStabilityTest(): Promise<boolean> {
-    let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+    let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined): void =>{
         if (err == null || err.code == 0) {
           resolve(data as boolean);
         } else {
@@ -321,10 +321,10 @@ export function killProcessesByBundleName(bundleName: string, callback: AsyncCal
     });
 }
 export function killProcessesByBundleName(bundleName: string): Promise<void> {
-    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let p:Promise<void> = new Promise<void>((resolve: (data: PromiseLike<void>)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
         if (err == null || err.code == 0) {
-          resolve(undefined);
+          resolve(Promise.resolve());
         } else {
           reject(err);
         }
@@ -336,10 +336,10 @@ export function killProcessesByBundleName(bundleName: string): Promise<void> {
     return p;
 }
 export function killProcessesByBundleName(bundleName: string, clearPageStack: boolean, appIndex?: number): Promise<void> {
-    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let p:Promise<void> = new Promise<void>((resolve: (data: PromiseLike<void>)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
         if (err == null || err.code == 0) {
-          resolve(undefined);
+          resolve(Promise.resolve());
         } else {
           reject(err);
         }
@@ -360,7 +360,7 @@ export function killProcessWithAccount(bundleName: string, accountId: number, ca
 }
 export function killProcessWithAccount(bundleName: string, accountId: number): Promise<void> {
   let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
       if (err == null || err.code == 0) {
         resolve(undefined);
       } else {
@@ -379,7 +379,7 @@ export function killProcessWithAccount(bundleName: string, accountId: number,
   clearPageStack: boolean, appIndex?: number): Promise<void>
 {
   let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
       if (err == null || err.code == 0) {
         resolve(undefined);
       } else {
@@ -402,7 +402,7 @@ export function getProcessMemoryByPid(pid: number, callback: AsyncCallback<numbe
 }
 export function getProcessMemoryByPid(pid: number): Promise<number> {
   let p = new Promise<number>((resolve:(data:number)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
+    let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined): void =>{
       if (err == null || err.code == 0) {
         resolve(data as number);
       } else {
@@ -444,7 +444,7 @@ export function isSharedBundleRunning(bundleName: string, versionCode: number, c
 }
 export function isSharedBundleRunning(bundleName: string, versionCode: number): Promise<boolean> {
   let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+    let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined): void =>{
       if (err == null || err.code == 0) {
         resolve(data as boolean);
       } else {
@@ -461,7 +461,7 @@ export function isSharedBundleRunning(bundleName: string, versionCode: number): 
 export native function nativeGetSupportedProcessCachePids(bundleName: string, callback: AsyncCallbackWrapper<Array<number>>) : void;
 export function getSupportedProcessCachePids(bundleName: string): Promise<Array<number>> {
   let p = new Promise<Array<number>>((resolve:(data:Array<number>)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<Array<number>>((err: BusinessError | null, data: Array<number> | undefined)=>{
+    let myCall = new AsyncCallbackWrapper<Array<number>>((err: BusinessError | null, data: Array<number> | undefined): void =>{
       if (err == null || err.code == 0) {
         resolve(data as Array<number>);
       } else {
@@ -478,7 +478,7 @@ export function getSupportedProcessCachePids(bundleName: string): Promise<Array<
 export native function nativeKillProcessesInBatch(pids: Array<number>, callback: AsyncCallbackWrapper<void>) : void;
 export function killProcessesInBatch(pids: Array<number>) : Promise<void> {
   let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
       if (err == null || err.code == 0) {
         resolve(undefined);
       } else {
@@ -495,7 +495,7 @@ export function killProcessesInBatch(pids: Array<number>) : Promise<void> {
 export native function nativeIsAppRunning(callback: AsyncCallbackWrapper<boolean>, bundleName: string, appCloneIndex?: number) : void;
 export function isAppRunning(bundleName: string, appCloneIndex?: number): Promise<boolean> {
   let p = new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+    let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined): void =>{
       if (err == null || err.code == 0) {
         resolve(data as boolean);
       } else {
@@ -513,7 +513,7 @@ export native function nativeSetKeepAliveForBundle(bundleName: string,
   userId: number, enable: boolean, callback: AsyncCallbackWrapper<void>) : void;
 export function setKeepAliveForBundle(bundleName: string, userId: number, enable: boolean): Promise<void> {
   let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+    let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null): void =>{
       if (err == null || err.code == 0) {
         resolve(undefined);
       } else {
@@ -531,7 +531,7 @@ export native function nativeGetKeepAliveBundles(callback: AsyncCallbackWrapper<
   type: KeepAliveAppType, userId?: number) : void;
 export function getKeepAliveBundles(type: KeepAliveAppType, userId?: number): Promise<Array<KeepAliveBundleInfo>> {
   let p = new Promise<Array<KeepAliveBundleInfo>>((resolve:(data:Array<KeepAliveBundleInfo>)=>void, reject:(err: BusinessError)=>void):void => {
-    let myCall = new AsyncCallbackWrapper<Array<KeepAliveBundleInfo>>((err: BusinessError | null, data: Array<KeepAliveBundleInfo> | undefined)=>{
+    let myCall = new AsyncCallbackWrapper<Array<KeepAliveBundleInfo>>((err: BusinessError | null, data: Array<KeepAliveBundleInfo> | undefined): void =>{
       if (err == null || err.code == 0) {
         resolve(data as Array<KeepAliveBundleInfo>);
       } else {
