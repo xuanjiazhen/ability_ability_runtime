@@ -1196,18 +1196,19 @@ ErrCode ModuleProfile::TransformTo(const std::vector<uint8_t> &buf, InnerBundleI
 
     Profile::ModuleJson moduleJson;
     from_json(jsonObject, moduleJson);
-    cJSON_Delete(jsonObject);
     if (Profile::g_parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "g_parseResult:%{public}d", Profile::g_parseResult);
         int32_t ret = Profile::g_parseResult;
         // need recover parse result to ERR_OK
         Profile::g_parseResult = ERR_OK;
+        cJSON_Delete(jsonObject);
         return ret;
     }
 
     TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ToInnerBundleInfo");
     if (!ToInnerBundleInfo(moduleJson, innerBundleInfo)) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ToInnerBundleInfo failed");
+        cJSON_Delete(jsonObject);
         return ERR_APPEXECFWK_PARSE_PROFILE_PROP_CHECK_ERROR;
     }
 
@@ -1215,9 +1216,11 @@ ErrCode ModuleProfile::TransformTo(const std::vector<uint8_t> &buf, InnerBundleI
     if (!ParserAtomicConfig(jsonObject, innerBundleInfo)) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "Parser atomicService config failed");
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ParserAtomicConfig failed");
+        cJSON_Delete(jsonObject);
         return ERR_APPEXECFWK_PARSE_PROFILE_PROP_CHECK_ERROR;
     }
 
+    cJSON_Delete(jsonObject);
     TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo OK");
     return ERR_OK;
 }
