@@ -54,22 +54,22 @@ constexpr const char *TASKPOOL_LOWER = "taskpool";
 constexpr const char *CALLBACK_SUCCESS = "success";
 constexpr const int32_t ARGC_ONE = 1;
 namespace {
-void* DetachNewAbilityStageContext(napi_env, void* nativeObject, void*)
+void *DetachNewBaseContext(napi_env, void *nativeObject, void *)
 {
-    auto* origContext = static_cast<std::weak_ptr<AbilityStageContext> *>(nativeObject);
+    auto *origContext = static_cast<std::weak_ptr<Context> *>(nativeObject);
     if (origContext == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "origContext is null");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "origContext is null");
         return nullptr;
     }
-    TAG_LOGD(AAFwkTag::APPKIT, "New detached abilityStage context");
-    auto* detachNewContext = new (std::nothrow) std::weak_ptr<AbilityStageContext>(*origContext);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "New detached base context");
+    auto *detachNewContext = new (std::nothrow) std::weak_ptr<Context>(*origContext);
     return detachNewContext;
 }
 
-void DetachFinalizeAbilityStageContext(void* detachedObject, void*)
+void DetachFinalizeBaseContext(void *detachedObject, void *)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "Finalizer detached abilityStage context");
-    delete static_cast<std::weak_ptr<AbilityStageContext> *>(detachedObject);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "Finalizer detached base context");
+    delete static_cast<std::weak_ptr<Context> *>(detachedObject);
 }
 
 void RegisterStopPreloadSoCallback(JsRuntime& jsRuntime)
@@ -895,12 +895,12 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
     }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
     auto status = napi_coerce_to_native_binding_object(
-        env, contextObj, DetachNewAbilityStageContext, AttachAbilityStageContext, workContext, nullptr);
+        env, contextObj, DetachNewBaseContext, AttachAbilityStageContext, workContext, nullptr);
     if (status != napi_ok) {
         TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
         return nullptr;
     }
-    napi_add_detached_finalizer(env, object, DetachFinalizeAbilityStageContext, nullptr);
+    napi_add_detached_finalizer(env, object, DetachFinalizeBaseContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
 
     if (obj != nullptr) {
