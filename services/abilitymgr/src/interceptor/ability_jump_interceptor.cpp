@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "accesstoken_kit.h"
+#include "app_control_client.h"
 #include "hitrace_meter.h"
 #include "permission_constants.h"
 #include "start_ability_utils.h"
@@ -111,14 +112,9 @@ bool AbilityJumpInterceptor::CheckControl(std::shared_ptr<AppExecFwk::BundleMgrH
         return false;
     }
     // get disposed status
-    auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
-    if (appControlMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");
-        return false;
-    }
 
-    if (IN_PROCESS_CALL(appControlMgr->GetAppJumpControlRule(callerBundleName, targetBundleName,
-        userId, controlRule)) != ERR_OK) {
+    if (IN_PROCESS_CALL(AppExecFwk::AppControlClient::GetInstance().GetAppJumpControlRule(callerBundleName,
+        targetBundleName, userId, controlRule)) != ERR_OK) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "no jump rule");
         return true;
     }

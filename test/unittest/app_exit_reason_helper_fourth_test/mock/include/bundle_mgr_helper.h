@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
 
 #include "ability_keep_alive_service.h"
-#include "app_control_interface.h"
 #include "bundle_info.h"
 
 namespace OHOS {
@@ -150,11 +149,6 @@ public:
     bool ProcessPreload(const AAFwk::Want& want)
     {
         return false;
-    }
-
-    sptr<IAppControlMgr> GetAppControlProxy()
-    {
-        return nullptr;
     }
 
     bool QueryExtensionAbilityInfos(const AAFwk::Want& want, const int32_t& flag, const int32_t& userId,
