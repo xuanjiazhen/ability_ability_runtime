@@ -46,8 +46,9 @@ export default class InsightIntentExecutor {
     insightIntent.ExecuteResult {
     let p = this.onExecuteInUIAbilityBackgroundModeAsync(name, param);
     if (this.isOnExecuteInUIAbilityBackgroundModeAsync) {
-      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): void => {
+      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): insightIntent.ExecuteResult => {
         this.nativeOnExecuteResult(result);
+        return result;
       });
       let ret: insightIntent.ExecuteResult = {};
       return ret;
@@ -60,8 +61,9 @@ export default class InsightIntentExecutor {
     pageLoader: UIExtensionContentSession): insightIntent.ExecuteResult {
     let p = this.onExecuteInUIExtensionAbilityAsync(name, param, pageLoader);
     if (this.isOnExecuteInUIExtensionAbilityAsync) {
-      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): void => {
+      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): insightIntent.ExecuteResult => {
         this.nativeOnExecuteResult(result);
+        return result;
       });
       let ret: insightIntent.ExecuteResult = {};
       return ret;
@@ -74,8 +76,9 @@ export default class InsightIntentExecutor {
     insightIntent.ExecuteResult {
     let p = this.onExecuteInServiceExtensionAbilityAsync(name, param);
     if (this.isOnExecuteInServiceExtensionAbilityAsync) {
-      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): void => {
+      p.then<insightIntent.ExecuteResult>((result: insightIntent.ExecuteResult): insightIntent.ExecuteResult => {
         this.nativeOnExecuteResult(result);
+        return result;
       });
       let ret: insightIntent.ExecuteResult = {};
       return ret;
