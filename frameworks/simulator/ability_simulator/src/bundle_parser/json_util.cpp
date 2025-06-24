@@ -40,7 +40,9 @@ void GetStringValueIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetStringValueIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetStringValueIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -67,7 +69,9 @@ void GetStringValuesIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetStringValuesIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetStringValuesIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -105,7 +109,9 @@ void GetUnorderedSetValuesIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetUnorderedSetValuesIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetUnorderedSetValuesIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -143,7 +149,9 @@ void GetBoolValueIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValueIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValueIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -166,7 +174,9 @@ void GetBoolValuesIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValuesIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValuesIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -199,7 +209,9 @@ void GetBoolValueMapIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValueMapIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValueMapIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -233,7 +245,9 @@ void GetBoolValuesMapIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValuesMapIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetBoolValuesMapIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());

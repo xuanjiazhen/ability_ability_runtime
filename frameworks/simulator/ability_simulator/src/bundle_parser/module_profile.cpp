@@ -300,7 +300,9 @@ void from_json(const cJSON *jsonObject, Ability &ability)
     TAG_LOGD(AAFwkTag::ABILITY_SIM, "read ability tag from module.json");
     GetStringValueIfFindKey(jsonObject, ABILITY_NAME, ability.name, true, g_parseResult);
     // both srcEntry and srcEntrance can be configured, but srcEntry has higher priority
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Ability 1111");
     cJSON *srcEntryItem = cJSON_GetObjectItem(jsonObject, SRC_ENTRY);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Ability 2222");
     if (srcEntryItem != nullptr) {
         GetStringValueIfFindKey(jsonObject, SRC_ENTRY, ability.srcEntrance, true, g_parseResult);
     } else {
@@ -351,7 +353,9 @@ void from_json(const cJSON *jsonObject, Extension &extension)
     }
     GetStringValueIfFindKey(jsonObject, EXTENSION_ABILITY_NAME, extension.name, true, g_parseResult);
     // both srcEntry and srcEntrance can be configured, but srcEntry has higher priority
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Extension 1111");
     cJSON *srcEntryItem = cJSON_GetObjectItem(jsonObject, SRC_ENTRY);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Extension 2222");
     if (srcEntryItem != nullptr) {
         GetStringValueIfFindKey(jsonObject, SRC_ENTRY, extension.srcEntrance, true, g_parseResult);
     } else {
@@ -383,34 +387,46 @@ void from_json(const cJSON *jsonObject, Extension &extension)
 
 void from_json(const cJSON *jsonObject, DeviceConfig &deviceConfig)
 {
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 1111");
     cJSON *minApiVersionItem = cJSON_GetObjectItem(jsonObject, MIN_API_VERSION);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 2222");
     if (minApiVersionItem != nullptr) {
         deviceConfig.minAPIVersion.first = true;
         GetNumberValueIfFindKey(jsonObject, MIN_API_VERSION, deviceConfig.minAPIVersion.second, false, g_parseResult);
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 3333");
     cJSON *deviceConfigKeepAliveItem = cJSON_GetObjectItem(jsonObject, DEVICE_CONFIG_KEEP_ALIVE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 4444");
     if (deviceConfigKeepAliveItem != nullptr) {
         deviceConfig.keepAlive.first = true;
         GetBoolValueIfFindKey(jsonObject, DEVICE_CONFIG_KEEP_ALIVE, deviceConfig.keepAlive.second, false,
             g_parseResult);
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 5555");
     cJSON *deviceConfigRemovableItem = cJSON_GetObjectItem(jsonObject, DEVICE_CONFIG_REMOVABLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 6666");
     if (deviceConfigRemovableItem != nullptr) {
         deviceConfig.removable.first = true;
         GetBoolValueIfFindKey(jsonObject, DEVICE_CONFIG_REMOVABLE, deviceConfig.removable.second, false, g_parseResult);
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 7777");
     cJSON *deviceConfigSingletonItem = cJSON_GetObjectItem(jsonObject, DEVICE_CONFIG_SINGLETON);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 8888");
     if (deviceConfigSingletonItem != nullptr) {
         deviceConfig.singleton.first = true;
         GetBoolValueIfFindKey(jsonObject, DEVICE_CONFIG_SINGLETON, deviceConfig.singleton.second, false, g_parseResult);
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig 9999");
     cJSON *deviceConfigUserDataClearableItem = cJSON_GetObjectItem(jsonObject, DEVICE_CONFIG_USER_DATA_CLEARABLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig aaaa");
     if (deviceConfigUserDataClearableItem != nullptr) {
         deviceConfig.userDataClearable.first = true;
         GetBoolValueIfFindKey(jsonObject, DEVICE_CONFIG_USER_DATA_CLEARABLE, deviceConfig.userDataClearable.second,
             false, g_parseResult);
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig bbbb");
     cJSON *deviceConfigAccessibleItem = cJSON_GetObjectItem(jsonObject, DEVICE_CONFIG_ACCESSIBLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json DeviceConfig cccc");
     if (deviceConfigAccessibleItem != nullptr) {
         deviceConfig.accessible.first = true;
         GetBoolValueIfFindKey(jsonObject, DEVICE_CONFIG_ACCESSIBLE, deviceConfig.accessible.second, false,
@@ -438,7 +454,9 @@ void from_json(const cJSON *jsonObject, App &app)
         g_parseResult);
     GetStringValueIfFindKey(jsonObject, APP_API_RELEASETYPE, app.apiReleaseType, false, g_parseResult);
     GetBoolValueIfFindKey(jsonObject, APP_KEEP_ALIVE, app.keepAlive, false, g_parseResult);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 1111");
     cJSON *appRemovableItem = cJSON_GetObjectItem(jsonObject, APP_REMOVABLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 2222");
     if (appRemovableItem != nullptr) {
         app.removable.first = true;
         GetBoolValueIfFindKey(jsonObject, APP_REMOVABLE, app.removable.second, false, g_parseResult);
@@ -448,49 +466,65 @@ void from_json(const cJSON *jsonObject, App &app)
     GetBoolValueIfFindKey(jsonObject, APP_ACCESSIBLE, app.accessible, false, g_parseResult);
     GetBoolValueIfFindKey(jsonObject, APP_ASAN_ENABLED, app.asanEnabled, false, g_parseResult);
     GetStringValueIfFindKey(jsonObject, BUNDLE_TYPE, app.bundleType, false, g_parseResult);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 3333");
     cJSON *appPhoneItem = cJSON_GetObjectItem(jsonObject, APP_PHONE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 4444");
     if (appPhoneItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_PHONE, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_PHONE] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 5555");
     cJSON *appTableItem = cJSON_GetObjectItem(jsonObject, APP_TABLET);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 6666");
     if (appTableItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_TABLET, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_TABLET] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 7777");
     cJSON *appTvItem = cJSON_GetObjectItem(jsonObject, APP_TV);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 7777");
     if (appTvItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_TV, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_TV] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App 9999");
     cJSON *appWearableItem = cJSON_GetObjectItem(jsonObject, APP_WEARABLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App aaaa");
     if (appWearableItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_WEARABLE, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_WEARABLE] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App bbbb");
     cJSON *appLiteWearableItem = cJSON_GetObjectItem(jsonObject, APP_LITE_WEARABLE);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App cccc");
     if (appLiteWearableItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_LITE_WEARABLE, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_LITE_WEARABLE] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App dddd");
     cJSON *appCarItem = cJSON_GetObjectItem(jsonObject, APP_CAR);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App eeee");
     if (appCarItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_CAR, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_CAR] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App ffff");
     cJSON *appSmartVersionItem = cJSON_GetObjectItem(jsonObject, APP_SMART_VISION);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App gggg");
     if (appSmartVersionItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_SMART_VISION, deviceConfig, false, g_parseResult);
         app.deviceConfigs[APP_SMART_VISION] = deviceConfig;
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App hhhh");
     cJSON *appRouterItem = cJSON_GetObjectItem(jsonObject, APP_ROUTER);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json App iiii");
     if (appRouterItem != nullptr) {
         DeviceConfig deviceConfig;
         GetObjectValueIfFindKey(jsonObject, APP_ROUTER, deviceConfig, false, g_parseResult);
@@ -512,7 +546,9 @@ void from_json(const cJSON *jsonObject, Module &module)
     GetBoolValueIfFindKey(jsonObject, MODULE_DELIVERY_WITH_INSTALL, module.deliveryWithInstall, true, g_parseResult);
     GetStringValueIfFindKey(jsonObject, MODULE_PAGES, module.pages, false, g_parseResult);
     // both srcEntry and srcEntrance can be configured, but srcEntry has higher priority
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Module 1111");
     cJSON *srcEntryItem = cJSON_GetObjectItem(jsonObject, SRC_ENTRY);
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## from_json Module 2222");
     if (srcEntryItem != nullptr) {
         GetStringValueIfFindKey(jsonObject, SRC_ENTRY, module.srcEntrance, false, g_parseResult);
     } else {
@@ -812,15 +848,19 @@ bool ToExtensionInfo(
     extensionInfo.bundleName = moduleJson.app.bundleName;
     extensionInfo.moduleName = moduleJson.module.name;
 
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ToExtensionInfo 1111");
     if (extensionInfo.type != ExtensionAbilityType::SERVICE &&
         extensionInfo.type != ExtensionAbilityType::DATASHARE) {
+        TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ToExtensionInfo 3333");
         extensionInfo.process = extensionInfo.bundleName;
         extensionInfo.process.append(":");
         extensionInfo.process.append(ConvertToExtensionTypeName(extensionInfo.type));
     }
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ToExtensionInfo 2222");
 
     extensionInfo.compileMode = ConvertCompileMode(moduleJson.module.compileMode);
 
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ToExtensionInfo 4444");
     return true;
 }
 
@@ -918,47 +958,63 @@ void ToBundleInfo(const ApplicationInfo &applicationInfo, const InnerModuleInfo 
 bool ParseExtensionInfo(const Profile::ModuleJson &moduleJson, InnerBundleInfo &innerBundleInfo,
     const TransformParam &transformParam, InnerModuleInfo &innerModuleInfo)
 {
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 1111");
     for (const Profile::Extension &extension : moduleJson.module.extensionAbilities) {
         ExtensionAbilityInfo extensionInfo;
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 3333");
         if (!ToExtensionInfo(moduleJson, extension, transformParam, extensionInfo)) {
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 4444");
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "extensionInfo failed");
             return false;
         }
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 5555");
 
         if (innerModuleInfo.mainAbility == extensionInfo.name) {
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 6666");
             innerModuleInfo.icon = extensionInfo.icon;
             innerModuleInfo.iconId = extensionInfo.iconId;
             innerModuleInfo.label = extensionInfo.label;
             innerModuleInfo.labelId = extensionInfo.labelId;
         }
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 7777");
 
         std::string key;
         key.append(moduleJson.app.bundleName).append(".")
             .append(moduleJson.module.name).append(".").append(extension.name);
         innerModuleInfo.extensionKeys.emplace_back(key);
         innerBundleInfo.InsertExtensionInfo(key, extensionInfo);
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 8888");
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParseExtensionInfo 2222");
     return true;
 }
 
 bool ToInnerBundleInfo(const Profile::ModuleJson &moduleJson, InnerBundleInfo &innerBundleInfo)
 {
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 1111");
     if (!CheckBundleNameIsValid(moduleJson.app.bundleName) || !CheckModuleNameIsValid(moduleJson.module.name)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 2222");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 3333");
     TransformParam transformParam;
     ApplicationInfo applicationInfo;
     applicationInfo.isSystemApp = innerBundleInfo.GetAppType() == Constants::AppType::SYSTEM_APP;
     transformParam.isSystemApp = applicationInfo.isSystemApp;
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 4444");
     if (!ToApplicationInfo(moduleJson, transformParam, applicationInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 5555");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 6666");
     InnerModuleInfo innerModuleInfo;
     ToInnerModuleInfo(moduleJson, transformParam, innerModuleInfo);
     SetInstallationFree(innerModuleInfo, applicationInfo.bundleType);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 7777");
 
     BundleInfo bundleInfo;
     ToBundleInfo(applicationInfo, innerModuleInfo, transformParam, bundleInfo);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 8888");
 
     for (const Profile::Ability &ability : moduleJson.module.abilities) {
         AbilityInfo abilityInfo;
@@ -969,15 +1025,19 @@ bool ToInnerBundleInfo(const Profile::ModuleJson &moduleJson, InnerBundleInfo &i
             innerModuleInfo.label = abilityInfo.label;
             innerModuleInfo.labelId = abilityInfo.labelId;
         }
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 999911");
         std::string key;
         key.append(moduleJson.app.bundleName).append(".")
             .append(moduleJson.module.name).append(".").append(abilityInfo.name);
         innerModuleInfo.abilityKeys.emplace_back(key);
         innerBundleInfo.InsertAbilitiesInfo(key, abilityInfo);
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo 9999");
     if (!ParseExtensionInfo(moduleJson, innerBundleInfo, transformParam, innerModuleInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo aaaa");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo bbbb");
     if (!transformParam.isPreInstallApp &&
         innerModuleInfo.distro.moduleType != Profile::MODULE_TYPE_SHARED) {
         applicationInfo.needAppDetail = true;
@@ -986,11 +1046,13 @@ bool ToInnerBundleInfo(const Profile::ModuleJson &moduleJson, InnerBundleInfo &i
             applicationInfo.label = applicationInfo.bundleName;
         }
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo cccc");
     innerBundleInfo.SetCurrentModulePackage(moduleJson.module.name);
     innerBundleInfo.SetBaseApplicationInfo(applicationInfo);
     innerBundleInfo.SetBaseBundleInfo(bundleInfo);
     innerBundleInfo.InsertInnerModuleInfo(moduleJson.module.name, innerModuleInfo);
     innerBundleInfo.SetTargetPriority(moduleJson.app.targetPriority);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ToInnerBundleInfo dddd");
     return true;
 }
 
@@ -1015,7 +1077,9 @@ bool ParseAtomicServicePreloads(const cJSON *jsonObject, std::vector<std::string
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "preloads is null");
             return false;
         }
+        TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ParseAtomicServicePreloads 1111");
         cJSON *preloadsModuleNameItem = cJSON_GetObjectItem(preloadItem, Profile::PRELOADS_MODULE_NAME);
+        TAG_LOGD(AAFwkTag::ABILITY_SIM, "## JASON ## ParseAtomicServicePreloads 2222");
         if (preloadsModuleNameItem == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITY_SIM, "preloads must have moduleName");
             return false;
@@ -1028,47 +1092,70 @@ bool ParseAtomicServicePreloads(const cJSON *jsonObject, std::vector<std::string
 
 bool ParserAtomicModuleConfig(const cJSON *jsonObject, InnerBundleInfo &innerBundleInfo)
 {
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 1111");
     cJSON *moduleJson = cJSON_GetObjectItem(jsonObject, Profile::MODULE);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 1111-1");
     if (moduleJson == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "get module json failed");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 2222");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 3333");
     cJSON *moduleNameItem = cJSON_GetObjectItem(moduleJson, Profile::MODULE_NAME);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 3333-1");
     if (moduleNameItem == nullptr || !cJSON_IsString(moduleNameItem)) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "get module name failed");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 4444");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 5555");
     std::string moduleName = moduleNameItem->valuestring;
     std::vector<std::string> preloads;
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 5555-1");
     cJSON *moduleAtomicObj = cJSON_GetObjectItem(moduleJson, Profile::ATOMIC_SERVICE);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 6666");
     if (moduleAtomicObj != nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 7777");
         cJSON *preloadObj = cJSON_GetObjectItem(moduleAtomicObj, Profile::MODULE_ATOMIC_SERVICE_PRELOADS);
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 8888");
         if (preloadObj != nullptr) {
             if (!ParseAtomicServicePreloads(preloadObj, preloads)) {
+                TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 9999");
                 TAG_LOGE(AAFwkTag::ABILITY_SIM, "reloadObj not array");
                 return false;
             }
         }
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig 0000");
     innerBundleInfo.SetInnerModuleAtomicPreload(moduleName, preloads);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicModuleConfig aaaa");
     return true;
 }
 
 bool ParserAtomicConfig(const cJSON *jsonObject, InnerBundleInfo &innerBundleInfo)
 {
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 1111");
     cJSON *moduleJson = cJSON_GetObjectItem(jsonObject, Profile::MODULE);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 1111-1");
     cJSON *appJson = cJSON_GetObjectItem(jsonObject, Profile::APP);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 1111-2");
     if (moduleJson == nullptr || appJson == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "ParserAtomicConfig failed due to bad module.json");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 2222");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 3333");
 
     if (!cJSON_IsObject(moduleJson) || !cJSON_IsObject(appJson)) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "module.json file lacks of invalid module or app properties");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 4444");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 5555");
     BundleType bundleType = BundleType::APP;
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 5555-1");
     cJSON *bundleTypeItem = cJSON_GetObjectItem(appJson, Profile::BUNDLE_TYPE);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 5555-2");
     if (bundleTypeItem != nullptr && cJSON_IsString(bundleTypeItem)) {
         std::string type = bundleTypeItem->valuestring;
         if (type == Profile::BUNDLE_TYPE_ATOMIC_SERVICE) {
@@ -1082,11 +1169,15 @@ bool ParserAtomicConfig(const cJSON *jsonObject, InnerBundleInfo &innerBundleInf
         }
     }
 
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 6666");
     innerBundleInfo.SetApplicationBundleType(bundleType);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 7777");
     if (!ParserAtomicModuleConfig(jsonObject, innerBundleInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 8888");
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "parse module atomicService failed");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## ParserAtomicConfig 9999");
     return true;
 }
 } // namespace
@@ -1114,15 +1205,20 @@ ErrCode ModuleProfile::TransformTo(const std::vector<uint8_t> &buf, InnerBundleI
         return ret;
     }
 
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ToInnerBundleInfo");
     if (!ToInnerBundleInfo(moduleJson, innerBundleInfo)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ToInnerBundleInfo failed");
         return ERR_APPEXECFWK_PARSE_PROFILE_PROP_CHECK_ERROR;
     }
 
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ParserAtomicConfig");
     if (!ParserAtomicConfig(jsonObject, innerBundleInfo)) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "Parser atomicService config failed");
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo # Call ParserAtomicConfig failed");
         return ERR_APPEXECFWK_PARSE_PROFILE_PROP_CHECK_ERROR;
     }
 
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## TransformTo OK");
     return ERR_OK;
 }
 }  // namespace AppExecFwk

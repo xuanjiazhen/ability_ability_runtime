@@ -984,7 +984,9 @@ void SimulatorImpl::GetPkgContextInfoListMap(const std::map<std::string, std::st
 
             std::string pkgName = "";
             items.emplace_back(PACKAGE_NAME);
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 1111");
             cJSON *packageNameItem = cJSON_GetObjectItem(childItem, PACKAGE_NAME.c_str());
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 2222");
             if (packageNameItem != nullptr && cJSON_IsString(packageNameItem)) {
                 pkgName = packageNameItem->valuestring;
             }
@@ -992,7 +994,9 @@ void SimulatorImpl::GetPkgContextInfoListMap(const std::map<std::string, std::st
 
             std::string bundleName = "";
             items.emplace_back(BUNDLE_NAME);
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 3333");
             cJSON *bundleNameItem = cJSON_GetObjectItem(childItem, BUNDLE_NAME.c_str());
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 4444");
             if (bundleNameItem != nullptr && cJSON_IsString(bundleNameItem)) {
                 bundleName = bundleNameItem->valuestring;
             }
@@ -1000,7 +1004,9 @@ void SimulatorImpl::GetPkgContextInfoListMap(const std::map<std::string, std::st
 
             std::string moduleName = "";
             items.emplace_back(MODULE_NAME);
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 5555");
             cJSON *moduleNameItem = cJSON_GetObjectItem(childItem, MODULE_NAME.c_str());
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListMap 6666");
             if (moduleNameItem != nullptr && cJSON_IsString(moduleNameItem)) {
                 moduleName = moduleNameItem->valuestring;
             }
@@ -1021,7 +1027,9 @@ void SimulatorImpl::GetPkgContextInfoListInner(cJSON *itemObject, std::vector<st
     std::map<std::string, std::string> &pkgAliasMap, std::string &pkgName)
 {
     items.emplace_back(VERSION);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 1111");
     cJSON *versionItem = cJSON_GetObjectItem(itemObject, VERSION.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 2222");
     if (versionItem == nullptr || !cJSON_IsString(versionItem)) {
         items.emplace_back("");
     } else {
@@ -1030,7 +1038,9 @@ void SimulatorImpl::GetPkgContextInfoListInner(cJSON *itemObject, std::vector<st
     }
 
     items.emplace_back(ENTRY_PATH);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 3333");
     cJSON *entryPathItem = cJSON_GetObjectItem(itemObject, ENTRY_PATH.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 4444");
     if (entryPathItem == nullptr || !cJSON_IsString(entryPathItem)) {
         items.emplace_back("");
     } else {
@@ -1039,7 +1049,9 @@ void SimulatorImpl::GetPkgContextInfoListInner(cJSON *itemObject, std::vector<st
     }
 
     items.emplace_back(IS_SO);
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 5555");
     cJSON *isSoItem = cJSON_GetObjectItem(itemObject, IS_SO.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 6666");
     if (isSoItem == nullptr || !cJSON_IsBool(isSoItem)) {
         items.emplace_back("false");
     } else {
@@ -1047,7 +1059,9 @@ void SimulatorImpl::GetPkgContextInfoListInner(cJSON *itemObject, std::vector<st
         items.emplace_back(isSo);
     }
     
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 7777");
     cJSON *dependencyAliasItem = cJSON_GetObjectItem(itemObject, DEPENDENCY_ALIAS.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetPkgContextInfoListInner 8888");
     if (dependencyAliasItem != nullptr && cJSON_IsString(dependencyAliasItem)) {
         std::string pkgAlias = dependencyAliasItem->valuestring;
         if (!pkgAlias.empty()) {
