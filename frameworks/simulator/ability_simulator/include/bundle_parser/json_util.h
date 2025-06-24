@@ -50,7 +50,10 @@ void GetNumberValueIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetNumberValueIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetNumberValueIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -74,7 +77,9 @@ void GetNumberValuesIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetNumberValuesIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetNumberValuesIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -124,7 +129,9 @@ void GetObjectValueIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValueIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValueIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -137,7 +144,7 @@ void GetObjectValueIfFindKey(const cJSON *jsonObject,
         parseResult = ERR_APPEXECFWK_PARSE_PROFILE_PROP_TYPE_ERROR;
         return;
     }
-    from_json(jsonObject, data);
+    from_json(item, data);
 }
 
 template<typename T>
@@ -148,7 +155,9 @@ void GetObjectValuesIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValuesIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValuesIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -183,7 +192,9 @@ void GetObjectValueMapIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValueMapIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValueMapIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
@@ -219,7 +230,9 @@ void GetObjectValuesMapIfFindKey(const cJSON *jsonObject,
     if (parseResult) {
         return;
     }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValuesMapIfFindKey 1111");
     cJSON *item = cJSON_GetObjectItem(jsonObject, key.c_str());
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "## JASON ## GetObjectValuesMapIfFindKey 2222");
     if (item == nullptr) {
         if (isNecessary) {
             TAG_LOGD(AAFwkTag::ABILITY_SIM, "profile prop %{public}s is mission", key.c_str());
