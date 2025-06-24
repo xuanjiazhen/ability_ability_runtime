@@ -229,7 +229,7 @@ bool UriUtils::IsDmsCall(uint32_t fromTokenId)
 }
 
 #ifdef SUPPORT_UPMS
-void UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
+bool UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
     std::string targetBundleName, int32_t appIndex)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -239,8 +239,9 @@ void UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
         want.GetFlags(), targetBundleName, appIndex, callerTokenId, hideSensitiveType));
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ret is %{public}d.", ret);
-        return;
+        return false;
     }
+    return true;
 }
 
 bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec, uint32_t flag,
@@ -266,29 +267,30 @@ bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec
     return true;
 }
 
-void UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
+bool UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
 {
     // Check and clear no-permission uris in want, not support content uri
     uint32_t flag = want.GetFlags();
     if (!IsGrantUriPermissionFlag(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", flag);
-        return;
+        return false;
     }
     std::vector<std::string> uriVec;
     if (!UriUtils::GetUriListFromWant(want, uriVec)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No file uri neet grant.");
-        return;
+        return false;
     }
     auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
         uriVec, flag, callerTokenId));
     auto permissionUris = GetPermissionedUriList(uriVec, checkResults, want);
     if (permissionUris.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "all uris not permissioned.");
-        return;
+        return false;
     }
+    return true;
 }
 
-void UriUtils::GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
+bool UriUtils::GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
     const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId)
 {
     std::vector<Uri> permissionUris;
@@ -297,15 +299,15 @@ void UriUtils::GrantUriPermission(const std::vector<std::string> &uriVec, int32_
         permissionUris.emplace_back(uri);
     }
     if (permissionUris.empty()) {
-        return;
+        return false;
     }
     auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermission(permissionUris,
         flag, targetBundleName, appIndex, initiatorTokenId));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, err:%{public}d", ret);
+        return false;
     }
-
-    return;
+    return true;
 }
 #endif // SUPPORT_UPMS
 
@@ -325,39 +327,38 @@ bool UriUtils::IsSandboxApp(uint32_t tokenId)
 }
 
 #ifdef SUPPORT_UPMS
-void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int32_t appIndex,
+bool UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int32_t appIndex,
     bool isSandboxApp, uint32_t callerTokenId, int32_t collaboratorType)
 {
     uint32_t flag = want.GetFlags();
     if (!IsGrantUriPermissionFlag(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", flag);
-        return;
+        return false;
     }
 
     if (targetBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName() &&
         collaboratorType == CollaboratorType::OTHERS_TYPE) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "reject shell application to grant uri permission");
-        return;
+        return false;
     }
     if (callerTokenId == 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerTokenId is invalid.");
-        return;
+        return false;
     }
     if (isSandboxApp || IsSandboxApp(callerTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
-        return;
+        return false;
     }
     ProcessUDMFKey(want);
 
     if (IsDmsCall(callerTokenId)) {
-        GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
-        return;
+        return GrantDmsUriPermission(want, callerTokenId, targetBundleName, appIndex);
     }
 
     std::vector<std::string> uriVec;
     if (!UriUtils::GetUriListFromWant(want, uriVec)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "No file uri neet grant.");
-        return;
+        return false;
     }
 
     auto callerPkg = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
@@ -365,13 +366,14 @@ void UriUtils::GrantUriPermission(Want &want, std::string targetBundleName, int3
         IPCSkeleton::GetCallingUid() == AppUtils::GetInstance().GetCollaboratorBrokerUID());
     if (isBrokerCall && GrantShellUriPermission(uriVec, flag, targetBundleName, appIndex)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "permission to shell");
-        return;
+        return true;
     }
     if (!GrantUriPermissionInner(uriVec, callerTokenId, targetBundleName, appIndex, want)) {
-        return;
+        return false;
     }
     // report open file event
     PublishFileOpenEvent(want);
+    return true;
 }
 
 void UriUtils::ProcessUDMFKey(Want &want)
@@ -406,7 +408,7 @@ bool UriUtils::GrantUriPermissionInner(std::vector<std::string> uriVec, uint32_t
 }
 #endif // SUPPORT_UPMS
 
-void UriUtils::PublishFileOpenEvent(const Want &want)
+bool UriUtils::PublishFileOpenEvent(const Want &want)
 {
     auto wangUri = want.GetUri();
     std::string uriStr = wangUri.ToString();
@@ -430,7 +432,9 @@ void UriUtils::PublishFileOpenEvent(const Want &want)
         commonEventPublishInfo.SetSubscriberPermissions(subscriberPermissions);
         IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEventAsUser(commonData, commonEventPublishInfo,
             userId));
+        return true;
     }
+    return false;
 }
 
 #ifdef SUPPORT_UPMS

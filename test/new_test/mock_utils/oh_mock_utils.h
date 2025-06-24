@@ -215,4 +215,12 @@ do {                                                                            
     g_mockMap[key] = v;                                                            \
 } while (0)
 
+/**
+ * @brief Initial global mock map.
+ */
+#define OH_MOCK_INIT_ALL_EXPECT_RET()                                               \
+do {                                                                                \
+    g_mockMap.clear();                                                              \
+} while (0)
+
 #endif  // OHOS_MOCK_UTIL_H

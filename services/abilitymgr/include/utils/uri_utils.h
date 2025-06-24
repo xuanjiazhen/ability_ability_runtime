@@ -42,18 +42,18 @@ public:
     bool IsServiceExtensionType(AppExecFwk::ExtensionAbilityType extensionAbilityType);
 
 #ifdef SUPPORT_UPMS
-    void GrantDmsUriPermission(Want &want, uint32_t callerTokenId, std::string targetBundleName, int32_t appIndex);
+    bool GrantDmsUriPermission(Want &want, uint32_t callerTokenId, std::string targetBundleName, int32_t appIndex);
 
     void GrantUriPermissionForServiceExtension(const AbilityRequest &abilityRequest);
 
     void GrantUriPermissionForUIOrServiceExtension(const AbilityRequest &abilityRequest);
 
-    void GrantUriPermission(Want &want, std::string targetBundleName, int32_t appIndex,
+    bool GrantUriPermission(Want &want, std::string targetBundleName, int32_t appIndex,
         bool isSandboxApp, uint32_t callerTokenId, int32_t collaboratorType);
 
-    void CheckUriPermission(uint32_t callerTokenId, Want &want);
+    bool CheckUriPermission(uint32_t callerTokenId, Want &want);
 
-    void GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
+    bool GrantUriPermission(const std::vector<std::string> &uriVec, int32_t flag,
         const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId);
 #endif // SUPPORT_UPMS
 private:
@@ -74,7 +74,7 @@ private:
 
     std::vector<Uri> GetUriListFromWantDms(Want &want);
 
-    void PublishFileOpenEvent(const Want &want);
+    bool PublishFileOpenEvent(const Want &want);
 
     bool IsInAncoAppIdentifier(const std::string &bundleName);
 
