@@ -54,6 +54,24 @@ constexpr const char *TASKPOOL_LOWER = "taskpool";
 constexpr const char *CALLBACK_SUCCESS = "success";
 constexpr const int32_t ARGC_ONE = 1;
 namespace {
+void* DetachNewAbilityStageContext(napi_env, void* nativeObject, void*)
+{
+    auto* origContext = static_cast<std::weak_ptr<AbilityStageContext> *>(nativeObject);
+    if (origContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "origContext is null");
+        return nullptr;
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "New detached abilityStage context");
+    auto* detachNewContext = new (std::nothrow) std::weak_ptr<AbilityStageContext>(*origContext);
+    return detachNewContext;
+}
+
+void DetachFinalizeAbilityStageContext(void* detachedObject, void*)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Finalizer detached abilityStage context");
+    delete static_cast<std::weak_ptr<AbilityStageContext> *>(detachedObject);
+}
+
 void RegisterStopPreloadSoCallback(JsRuntime& jsRuntime)
 {
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
@@ -876,8 +894,13 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
         return;
     }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
-    napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachAbilityStageContext, workContext, nullptr);
+    auto status = napi_coerce_to_native_binding_object(
+        env, contextObj, DetachNewAbilityStageContext, AttachAbilityStageContext, workContext, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
+        return nullptr;
+    }
+    napi_add_detached_finalizer(env, object, DetachFinalizeAbilityStageContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
 
     if (obj != nullptr) {
