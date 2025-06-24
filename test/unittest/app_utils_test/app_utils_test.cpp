@@ -932,5 +932,31 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_4100, TestSize.Level2)
     auto isSupportNativeChildProcess = appUtils.IsSupportNativeChildProcess();
     EXPECT_TRUE(isSupportNativeChildProcess);
 }
+
+/**
+ * @tc.number: InOnNewProcessEnableList_0100
+ * @tc.desc: Test InOnNewProcessEnableList works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, InOnNewProcessEnableList_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InOnNewProcessEnableList_0100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    bool result = appUtils.GetOnNewProcessEnableList();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.number: InOnNewProcessEnableList_0200
+ * @tc.desc: Test InOnNewProcessEnableList works
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, InOnNewProcessEnableList_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InOnNewProcessEnableList_0200 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    bool result = appUtils.GetOnNewProcessEnableList();
+    EXPECT_FALSE(result);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
