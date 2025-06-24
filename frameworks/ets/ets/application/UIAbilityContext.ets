@@ -27,6 +27,7 @@ import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 // remove local declaration after Any type is supported
 type Any = Object | null | undefined
@@ -93,12 +94,13 @@ export default class UIAbilityContext extends Context {
   private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
   private native nativeShowAbility(callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeHideAbility(callback: AsyncCallbackWrapper<void>): void;
 
-  private native nativeOnSetRestoreEnabled(enabled: boolean): 
+  private native nativeOnSetRestoreEnabled(enabled: boolean): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -204,40 +206,42 @@ export default class UIAbilityContext extends Context {
     });
   }
 
-  nativeShowAbility(): Promise<void>{
-    let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
-        if (err.code == 0) {
-          resolve(undefined);
-        } else {
-          reject(err);
-        }
-      });
+  showAbility(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
       taskpool.execute((): void => {
-        this.nativeShowAbility();
+        this.nativeShowAbility(myCall);
       });
     });
     return p;
   }
 
-  nativeHideAbility(): Promise<void>{
-    let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>)=>{
-        if (err.code == 0) {
-          resolve(undefined);
-        } else {
-          reject(err);
-        }
-      });
+  hideAbility(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
       taskpool.execute((): void => {
-        this.nativeHideAbility();
+        this.nativeHideAbility(myCall);
       });
     });
     return p;
   }
 
-  nativeOnSetRestoreEnabled(): string {
-    return this.NativeOnSetRestoreEnabled();
+  setRestoreEnabled(enabled: boolean): void {
+    return this.nativeOnSetRestoreEnabled(enabled);
   }
 
   terminateSelf(): Promise<void> {
@@ -410,5 +414,9 @@ export default class UIAbilityContext extends Context {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
       });
     });
+  }
+    
+  setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
+    this.nativeSetColorMode(colorMode);
   }
 }
