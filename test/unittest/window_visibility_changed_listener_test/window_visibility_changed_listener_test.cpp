@@ -126,6 +126,5 @@ HWTEST_F(WindowVisibilityChangedListenerTest, OnWindowVisibilityChanged_0300, Te
     EXPECT_NE(Info->taskHandler_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "OnWindowVisibilityChanged_0300 called end.");
 }
-
 } // namespace AppExecFwk
 } // namespace OHOS
