@@ -1114,7 +1114,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, SetOverlayInfo_003, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
     AAFwk::MyStatus::GetInstance().getOverlayCall_ = 0;
-    AAFwk::MyStatus::GetInstance().getOverlay_ = new (std::nothrow) AppExecFwk::OverlayManagerProxy(nullptr);
 
     std::string bundleName = "";
     int32_t userId = 0;
