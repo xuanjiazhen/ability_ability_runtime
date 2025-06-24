@@ -3114,7 +3114,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(const Want &want, std:
 int AbilityManagerService::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
     std::string &hostBundleName)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     auto connectManager = GetConnectManagerByToken(abilityRecord->GetToken());
     if (connectManager == nullptr) {
@@ -4512,8 +4512,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT,
-        "elementUri:%{public}s", want.GetElement().GetURI().c_str());
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "elementUri:%{public}s", want.GetElement().GetURI().c_str());
     CheckExtensionRateLimit();
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(connect->AsObject(), ERR_INVALID_VALUE);
@@ -5362,7 +5361,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(target, ERR_INVALID_VALUE);
@@ -5371,7 +5370,7 @@ int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &
 
 int AbilityManagerService::SendLocalWantSender(const SenderInfo &senderInfo)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     auto pendingWantManager = GetCurrentPendingWantManager();
     CHECK_POINTER_AND_RETURN(pendingWantManager, ERR_INVALID_VALUE);
     if (!PermissionVerification::GetInstance()->VerifyPermissionByTokenId(senderInfo.tokenId,

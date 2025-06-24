@@ -718,7 +718,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &targetService,
     std::shared_ptr<ConnectionRecord> &connectRecord)
 {
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
     if (targetService == nullptr) {
         TAG_LOGW(AAFwkTag::SERVICE_EXT, "null targetService");
         return;
@@ -1293,7 +1293,7 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
             AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "don't terminate uiservice");
         } else {
-            TAG_LOGI(AAFwkTag::SERVICE_EXT, "need terminate or cache");
+            TAG_LOGD(AAFwkTag::SERVICE_EXT, "need terminate or cache");
             TerminateOrCacheAbility(abilityRecord);
         }
     }
