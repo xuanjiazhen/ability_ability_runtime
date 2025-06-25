@@ -70,19 +70,40 @@ private:
     void DeleteInValidMissionFileById(std::string path, int32_t missionId);
     bool GetMissionIds(std::string path, std::vector<int32_t> &missionIds);
 
-    bool isEnable_;
+    std::atomic<bool> isEnable_;
+
+    std::mutex stateConfigMutex_;
     uint16_t restartFlag_;
     uint16_t saveOccasion_;
     uint16_t saveMode_;
+
+    std::mutex tokenMutex_;
     wptr<IRemoteObject> token_;
+
+    std::mutex mainWantMutex_;
     AAFwk::Want mainWant_;
+
+    std::mutex mainHandlerMutex_;
     std::weak_ptr<AppExecFwk::EventHandler> mainHandler_;
+
+    std::mutex applicationInfoMutex_;
     std::weak_ptr<AppExecFwk::ApplicationInfo> applicationInfo_;
+
+    std::mutex abilityMutex_;
     std::weak_ptr<AbilityRuntime::UIAbility> ability_;
+
+    std::mutex abilityRecoveryMutex_;
     std::vector<std::shared_ptr<AbilityRecovery>> abilityRecoverys_;
+
+    std::mutex wantMutex_;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
+
     std::atomic<bool> useAppSettedValue_ = false; // If the value is true means app call appRecovery.enableAppRecovery
+    
+    std::mutex callbackMutex_;
     FreezeFunction freezeCallback = nullptr;
+
+    std::atmoc<bool> isEnableCrossProcess_ = true; // If the value is true means appRecovery is cross process
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
