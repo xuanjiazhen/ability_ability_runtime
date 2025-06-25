@@ -57,9 +57,15 @@ public:
     int32_t RunAutoStartupTask(const std::function<void()> &callback, bool &isAsyncCallback,
         const std::shared_ptr<Context> &stageContext) override;
 
+    bool OnPrepareTerminate(
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
+        bool &isAsync) const override;
+
 private:
 
     bool CallObjectMethod(bool withResult, const char* name, const char* signature, ...) const;
+
+    ani_object CallObjectMethod(const char *name, const char *signature, ...) const;
 
     std::shared_ptr<AppExecFwk::ETSDelegatorAbilityStageProperty> CreateStageProperty() const;
 
@@ -77,6 +83,14 @@ private:
     int32_t RegisterAppStartupTask(const std::shared_ptr<AppExecFwk::HapModuleInfo>& hapModuleInfo);
 
     static int32_t RunAutoStartupTaskInner(const std::function<void()> &callback, bool &isAsyncCallback);
+
+    bool CallOnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>
+         *callbackInfo) const;
+
+    bool CallOnPrepareTerminateAsync(AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>
+        *callbackInfo, bool &isAsync) const;
+
+    bool BindNativeMethods();
 
     STSRuntime& stsRuntime_;
 
