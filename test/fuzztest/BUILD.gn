@@ -303,6 +303,8 @@ group("fuzztest") {
     "deeplinkreserveconfig_fuzzer:fuzztest",
     "delegatordoabilityforeground_fuzzer:fuzztest",
     "dialogsessioninfo_fuzzer:fuzztest",
+    "dialogsessionmanager_fuzzer",
+    "dialogsessionmanagerfirst_fuzzer",
     "disposedobserver_fuzzer:fuzztest",
     "doabilitybackground_fuzzer:fuzztest",
     "doabilityforeground_fuzzer:fuzztest",
