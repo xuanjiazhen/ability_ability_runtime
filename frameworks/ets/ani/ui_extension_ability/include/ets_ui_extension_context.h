@@ -34,13 +34,6 @@ public:
 
     static void TerminateSelfSync(ani_env *env, ani_object obj, ani_object callback);
     static void TerminateSelfWithResultSync(ani_env *env, ani_object obj, ani_object abilityResult, ani_object callback);
-
-    static void EtsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-        std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context);
-private:
-    static void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-        std::shared_ptr<OHOS::AbilityRuntime::Context> context, std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo);
-
 protected:
     std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
 };

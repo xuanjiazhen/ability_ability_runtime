@@ -163,7 +163,10 @@ void BindNativeFunction(ani_env *aniEnv)
         ani_native_function {"switchArea", nullptr,
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchArea)},
         ani_native_function {"getArea", nullptr,
-            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetArea)}
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetArea)},
+        ani_native_function {"createModuleResourceManagerSync", "Lstd/core/String;Lstd/core/String;"
+            ":L@ohos/resourceManager/resourceManager/ResourceManager;",
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::CreateModuleResourceManagerSync)},
     };
     ani_status status = aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());
@@ -172,11 +175,40 @@ void BindNativeFunction(ani_env *aniEnv)
     }
 }
 
+bool SetHapModuleInfo(
+    ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+{
+    if (env == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or context");
+        return false;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (hapModuleInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfo is nullptr");
+        return false;
+    }
+    ani_ref hapModuleInfoRef = AppExecFwk::CommonFunAni::ConvertHapModuleInfo(env, *hapModuleInfo);
+    if (hapModuleInfoRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "hapModuleInfoRef is nullptr");
+        return false;
+    }
+    ani_status status = ANI_OK;
+    status = env->Object_SetPropertyByName_Ref(contextObj, "currentHapModuleInfo", hapModuleInfoRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetPropertyByName_Ref failed, status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
-    if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv");
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+    }
+    if (!SetHapModuleInfo(aniEnv, contextClass, contextObj, context)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "SetHapModuleInfo fail");
     }
     BindParentProperty(aniEnv, contextClass, contextObj, context);
     BindNativeFunction(aniEnv);
@@ -206,6 +238,43 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
     }
     auto weakContext = reinterpret_cast<std::weak_ptr<Context>*>(nativeContextLong);
     return weakContext != nullptr ? weakContext->lock() : nullptr;
+}
+
+bool CheckCallerIsSystemApp()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken);
+}
+
+ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
+    ani_string bundleName, ani_string moduleName)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return {};
+    }
+    std::string bundleName_ = "";
+    AppExecFwk::AniStringToStdString(env, bundleName, bundleName_);
+    std::string moduleName_ = "";
+    AppExecFwk::AniStringToStdString(env, moduleName, moduleName_);
+    auto context = GetBaseContext(env, aniObj);
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return {};
+    }
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return {};
+    }
+    auto resourceManager = context->CreateModuleResourceManager(bundleName_, moduleName_);
+    if (resourceManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return {};
+    }
+    return Global::Resource::ResMgrAddon::CreateResMgr(env, "", resourceManager, context);
 }
 
 ani_object GetApplicationContext(ani_env *env, const std::shared_ptr<ApplicationContext> applicationContext)

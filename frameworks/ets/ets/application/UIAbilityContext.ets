@@ -21,6 +21,7 @@ import { AbilityResult } from 'ability.abilityResult';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
 import window from '@ohos.window';
+import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 
 export class AsyncCallbackWrapper<T> {
   myFun_: AsyncCallback<T, void> = (err: BusinessError<void>, data: T) => {
@@ -44,14 +45,16 @@ export default class UIAbilityContext extends Context {
   config: Configuration;
   abilityInfo: AbilityInfo;
   windowStage: window.WindowStage;
+  currentHapModuleInfo: HapModuleInfo;
 
   native constructor();
 
-  constructor(config: Configuration, abilityInfo: AbilityInfo, windowStage: window.WindowStage) {
+  constructor(config: Configuration, abilityInfo: AbilityInfo, windowStage: window.WindowStage, currentHapModuleInfo: HapModuleInfo) {
     super();
     this.config = config;
     this.abilityInfo = abilityInfo;
     this.windowStage = windowStage;
+    this.currentHapModuleInfo = currentHapModuleInfo;
   }
 
   private native nativeStartAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;

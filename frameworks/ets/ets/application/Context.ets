@@ -37,11 +37,16 @@ export class Context extends BaseContext {
       this.resourceManager = resourceManager;
   }
   public native getApplicationContextSync(): ApplicationContext;
+  public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
   private native switchArea(mode: contextConstant.AreaMode): void;
   private native getArea(): contextConstant.AreaMode;
 
   getApplicationContext(): ApplicationContext {
     return this.getApplicationContextSync();
+  }
+
+  createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager {
+    return this.createModuleResourceManagerSync(bundleName, moduleName);
   }
 
   set area(mode: contextConstant.AreaMode) {
