@@ -37,7 +37,7 @@ namespace {
 /**
  * @brief Manage extension configuration.
  */
-class ExtensionConfigMgr {
+class ExtensionConfigMgr : public std::enable_shared_from_this<ExtensionConfigMgr> {
 public:
     ExtensionConfigMgr() = default;
 
@@ -81,6 +81,13 @@ public:
      */
     void SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 
+    /**
+     * @brief Check Whether the ets module can be loaded
+     *
+     * @param className the className of the ets module
+     * @return Return true if the module can be loaded, false if the module can not be loaded.
+     */
+    bool CheckEtsModuleLoadable(const std::string &className);
 private:
     /**
      * @brief Generate ets blocklist list by extension_blocklist_config

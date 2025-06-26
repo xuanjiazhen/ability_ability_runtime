@@ -298,7 +298,7 @@ void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const AppLibPat
 void STSRuntime::SetExtensionApiCheckCallback(const std::function<bool(const std::string &className)> &cb)
 {
     TAG_LOGD(AAFwkTag::STSRUNTIME, "called");
-    ark::ets::EtsNamespaceManager::SetExtensionApiCheckCallback(cb);
+    ark::ets::EtsNamespaceManager::SetExtensionApiCheckCallback(std::move(cb));
 }
 
 bool STSRuntime::Initialize(const Options& options)

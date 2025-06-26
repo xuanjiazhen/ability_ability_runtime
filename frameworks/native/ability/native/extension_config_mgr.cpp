@@ -143,21 +143,32 @@ void ExtensionConfigMgr::GenerateExtensionEtsBlocklists()
     }
 }
 
+bool ExtensionConfigMgr::CheckEtsModuleLoadable(const std::string &className)
+{
+    std::string lowerClassName;
+    TAG_LOGD(AAFwkTag::EXT, "called");
+    lowerClassName.reserve(className.size());
+    std::transform(className.cbegin(), className.cend(), std::back_inserter(lowerClassName),
+        [](unsigned char c) { return std::tolower(c); });
+    for (const auto& module: extensionEtsBlocklist_) {
+        if (lowerClassName.compare(0, module.length(), module) == 0) {
+            TAG_LOGD(AAFwkTag::EXT, "class is in block list: %{public}s", className.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
 void ExtensionConfigMgr::SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
 {
     TAG_LOGD(AAFwkTag::EXT, "extensionType_: %{public}d", extensionType_);
-    auto &extensionEtsBlocklists = extensionEtsBlocklist_;
-    auto callback = [extensionEtsBlocklists](const std::string& className) -> bool {
-        std::string lowerClassName;
-        lowerClassName.reserve(className.size());
-        std::transform(className.cbegin(), className.cend(), std::back_inserter(lowerClassName),
-            [](unsigned char c) { return std::tolower(c); });
-        for (const auto& module: extensionEtsBlocklists) {
-            if (lowerClassName.compare(0, module.length(), module) == 0) {
-                return false;
-            }
+    auto callback = [extensionConfigMgrWeak = weak_from_this()](const std::string& className) -> bool {
+        auto extensionConfigMgr = extensionConfigMgrWeak.lock();
+        if (extensionConfigMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null extensionConfigMgr");
+            return false;
         }
-        return true;
+        return extensionConfigMgr->CheckEtsModuleLoadable(className);
     };
     runtime->SetExtensionApiCheckCallback(callback);
     extensionBlocklist_.clear();
