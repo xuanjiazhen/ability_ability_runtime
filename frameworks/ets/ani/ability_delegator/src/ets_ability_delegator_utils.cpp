@@ -45,6 +45,7 @@ bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
         ani_native_function {"nativeStartAbility",
             "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsAbilityDelegator::StartAbility)},
+        ani_native_function {"GetCurrentTopAbilitySync", nullptr, reinterpret_cast<void *>(GetCurrentTopAbilitySync)},
     };
     ani_status status = aniEnv->Class_BindNativeMethods(abilityDelegator, functions.data(), functions.size());
     if (status != ANI_OK) {

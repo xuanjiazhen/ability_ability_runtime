@@ -1668,6 +1668,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.uid = bundleInfo.applicationInfo.uid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
+        options.isStartWithDebug = appLaunchData.GetDebugApp();
         options.allowArkTsLargeHeap = appInfo.allowArkTsLargeHeap;
         options.versionCode = appInfo.versionCode;
 #ifdef CJ_FRONTEND
@@ -1744,6 +1745,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 ResHelper::ReportLoadAbcCompletedInfoToRss(uid, currentPid, bundleName);
             });
         AbilityRuntime::Runtime::DebugOption debugOption;
+        debugOption.codeLanguage = appInfo.codeLanguage;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;

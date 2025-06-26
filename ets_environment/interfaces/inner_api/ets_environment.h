@@ -44,6 +44,8 @@ public:
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
+    int32_t ParseHdcRegisterOption(std::string& option);
+    bool debugMode_ = false;
     bool PreloadModule(const std::string &modulePath);
     bool LoadModule(const std::string &modulePath, const std::string &srcEntrance, ani_class &cls,
         ani_object &obj, ani_ref &ref);
