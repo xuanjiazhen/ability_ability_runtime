@@ -30,6 +30,7 @@
 #include "system_ability_definition.h"
 #include "ability_util.h"
 #include "connection_data.h"
+#include "interceptor/kiosk_interceptor.h"
 #include "mock_scene_board_judgement.h"
 #include "mock_test_object.h"
 
@@ -1304,6 +1305,109 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.
         [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
             return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnAbilityDied
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnAbilityDied
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
+    std::shared_ptr<AbilityRecord> abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    EXPECT_NE(abilityRecord, nullptr);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    abilityRecord->abilityInfo_.bundleName = "com.test.example";
+    KioskManager::GetInstance().whitelist_.emplace(abilityRecord->GetAbilityInfo().bundleName);
+    abilityMs->OnAbilityDied(abilityRecord);
+    if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
+        EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
+    }
+    EXPECT_FALSE(abilityMs->VerificationToken(token));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_002 end");
+}
+
+/*
+ * Feature: KioskManager
+ * Function: GetKioskStatus
+ * SubFunction: NA
+ * FunctionPoints: KioskManager GetKioskStatus
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetKioskStatus_003, TestSize.Level1) {
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    IPCSkeleton::SetCallingTokenID(ONE);
+    MyFlag::flag_ = true;
+    KioskStatus kioskStatus;
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    auto result = KioskManager::GetInstance().GetKioskStatus(kioskStatus);
+    result = KioskManager::GetInstance().GetKioskStatus(kioskStatus);
+    if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
+        ASSERT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        ASSERT_EQ(result, ERR_NOT_SYSTEM_APP);
+    }
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KioskInterceptor_001
+ * SubFunction: NA
+ * FunctionPoints: KioskInterceptor DoProcess
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, KioskInterceptor_001, TestSize.Level1)
+{
+    auto kioskInterceptor = std::make_shared<KioskInterceptor>();
+    Want want;
+    auto shouldBlockFunc = []() { return false; };
+    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
+        shouldBlockFunc);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = false;
+    int32_t res = kioskInterceptor->DoProcess(param);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KioskInterceptor_002
+ * SubFunction: NA
+ * FunctionPoints: KioskInterceptor DoProcess
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, KioskInterceptor_002, TestSize.Level1)
+{
+    auto kioskInterceptor = std::make_shared<KioskInterceptor>();
+    Want want;
+    auto shouldBlockFunc = []() { return false; };
+    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
+        shouldBlockFunc);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    KioskManager::GetInstance().whitelist_.clear();
+    int32_t res = kioskInterceptor->DoProcess(param);
+    EXPECT_EQ(res, ERR_KIOSK_MODE_NOT_IN_WHITELIST);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KioskInterceptor_003
+ * SubFunction: NA
+ * FunctionPoints: KioskInterceptor DoProcess
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, KioskInterceptor_003, TestSize.Level1)
+{
+    auto kioskInterceptor = std::make_shared<KioskInterceptor>();
+    Want want;
+    std::string bundleName = "com.test.example";
+    want.SetElementName(bundleName, "");
+    auto shouldBlockFunc = []() { return false; };
+    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
+        shouldBlockFunc);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    KioskManager::GetInstance().whitelist_.emplace(bundleName);
+    int32_t res = kioskInterceptor->DoProcess(param);
+    EXPECT_EQ(res, ERR_OK);
 }
 } // namespace AAFwk
 } // namespace OHOS
