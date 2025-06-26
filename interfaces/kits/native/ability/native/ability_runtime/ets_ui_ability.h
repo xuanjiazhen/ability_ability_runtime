@@ -99,6 +99,8 @@ public:
      */
     void OnAbilityResult(int requestCode, int resultCode, const Want &resultData) override;
 
+    sptr<IRemoteObject> CallRequest() override;
+
 #ifdef SUPPORT_SCREEN
 public:
     /**

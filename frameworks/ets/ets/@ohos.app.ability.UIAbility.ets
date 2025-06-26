@@ -17,10 +17,24 @@ import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import UIAbilityContext from 'application.UIAbilityContext';
 import Want from '@ohos.app.ability.Want';
 import window from '@ohos.window';
+import rpc from '@ohos.rpc';
 import { AbilityUtils } from './utils/AbilityUtils';
+import { CalleeImpl } from './application/Callee';
+
+export type OnReleaseCallback = (msg: string) => void;
+export type CalleeCallback = (indata: rpc.MessageSequence) => rpc.Parcelable;
+export interface Caller {
+  call(method: string, data: rpc.Parcelable): Promise<void>;
+  onRelease(callback: OnReleaseCallback): void;
+  release(): void;
+}
+export interface Callee {
+  on(method: string, callback: CalleeCallback): void;
+}
 
 export default class UIAbility {
   private destroyCallbackPoint: long;
+  callee: Callee = new CalleeImpl() as Callee;
 
   private native nativeOnDestroyCallback(): void;
 

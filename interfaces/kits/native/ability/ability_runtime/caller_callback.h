@@ -90,6 +90,8 @@ private:
     bool isCallBack_ = false;
     std::weak_ptr<LocalCallRecord> localCallRecord_;
 };
+
+using ReleaseCallFunc = std::function<ErrCode(std::shared_ptr<CallerCallBack>)>;
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_CALLER_CALLBACK_H
