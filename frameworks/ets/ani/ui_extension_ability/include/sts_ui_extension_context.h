@@ -15,15 +15,17 @@
 #ifndef OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
 
-#include "sts_runtime.h"
 #include <array>
 #include <iostream>
 #include <unistd.h>
-#include "ui_extension_context.h"
+
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ohos_application.h"
+#include "open_link_options.h"
 #include "sts_free_install_observer.h"
+#include "sts_runtime.h"
+#include "ui_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -62,20 +64,34 @@ public:
     }
     void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
         ani_object wantObj, ani_object opt, ani_object call);
-    static UIExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
-    void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
-        ani_object callback, UIExtensionContext* context);
+    static UIExtensionContext *GetAbilityContext(ani_env *env, ani_object obj);
     static void NativeSetColorMode(ani_env *env, ani_object aniCls, ani_enum_item aniColorMode);
     static void NativeReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
     static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
     static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object connectOptionsObj);
+    static void OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+        ani_object optionsObj, ani_object callbackobj);
+    static void OnOpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId,
+        ani_object callbackobj, ani_object optionsObj);
 
 private:
     static bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
+    void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
+        UIExtensionContext *context, bool isAbilityResult = false, bool isOpenLink = false);
+    void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+        ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
+    void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
+        AAFwk::Want &want);
+    void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj, UIExtensionContext *context,
+        AAFwk::Want &want, int &requestCode);
+    void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want, AAFwk::StartOptions &options,
+        std::string appId, ani_object callbackobj);
+    int32_t GenerateRequestCode();
 
+    static std::mutex requestCodeMutex_;
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
 

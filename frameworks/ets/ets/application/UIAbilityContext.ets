@@ -19,6 +19,7 @@ import StartOptions from '@ohos.app.ability.StartOptions';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import AbilityStartCallback from 'application.AbilityStartCallback';
+import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
 import window from '@ohos.window';
@@ -97,6 +98,8 @@ export default class UIAbilityContext extends Context {
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -389,6 +392,25 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute(() => {
         this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
+      });
+    });
+  }
+
+  openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
+    return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as AbilityResult);
+        } else {
+          reject(err);
+        }
+      });
+      let finalOptions: AtomicServiceOptions | undefined = undefined;
+      if (options) {
+        finalOptions = options;
+      }
+      taskpool.execute(() => {
+        this.nativeOpenAtomicService(appId, syncCall, finalOptions);
       });
     });
   }

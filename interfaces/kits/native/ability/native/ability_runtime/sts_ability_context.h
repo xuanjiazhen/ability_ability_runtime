@@ -72,6 +72,8 @@ public:
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
     static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
+    static void OnOpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackobj,
+        ani_object optionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
@@ -89,6 +91,8 @@ private:
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
+    void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+        AAFwk::StartOptions &options, std::string appId, ani_object callbackobj);
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;

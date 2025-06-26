@@ -31,7 +31,7 @@ struct StsFreeInstallObserverObject {
     std::string abilityName;
     std::string startTime;
     std::string url;
-    ani_object callBack;
+    ani_object callback;
     bool isAbilityResult = false;
 };
 
@@ -42,17 +42,20 @@ public:
 
     void OnInstallFinished(const std::string &bundleName, const std::string &abilityName, const std::string &startTime,
         const int &resultCode) override;
+    void OnInstallFinished(const std::string &bundleName, const std::string &abilityName,
+        const std::string &startTime, ani_object abilityResult);
     void OnInstallFinishedByUrl(const std::string &startTime, const std::string& url, const int &resultCode) override;
     void AddStsObserverObject(ani_env *env, const std::string &bundleName, const std::string &abilityName,
-        const std::string &startTime, ani_object callBack);
-    void AddStsObserverObject(ani_env *env, const std::string &startTime, const std::string &url, ani_object callBack);
+        const std::string &startTime, ani_object callback, bool isAbilityResult = false);
+    void AddStsObserverObject(ani_env *env, const std::string &startTime, const std::string &url, ani_object callback);
 
 private:
     void CallCallback(ani_object callback, int32_t resultCode);
+    void CallCallback(ani_object callback, ani_object abilityResult);
     void HandleOnInstallFinished(const std::string &bundleName, const std::string &abilityName,
         const std::string &startTime, const int &resultCode);
     void HandleOnInstallFinishedByUrl(const std::string &startTime, const std::string& url, const int &resultCode);
-    void AddStsObserverCommon(ani_env *env, StsFreeInstallObserverObject &object, ani_object callBack);
+    void AddStsObserverCommon(ani_env *env, StsFreeInstallObserverObject &object, ani_object callback);
 
     ani_vm *etsVm_;
     std::mutex stsObserverObjectListLock_;
