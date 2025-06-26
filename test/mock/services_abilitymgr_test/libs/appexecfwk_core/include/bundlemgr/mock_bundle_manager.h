@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,13 +19,13 @@
 #include <vector>
 #include <gmock/gmock.h>
 #include "ability_info.h"
+#include "app_control_mgr_proxy.h"
 #include "application_info.h"
-#include "bundlemgr/bundle_mgr_interface.h"
+#include "bundle_mgr_interface.h"
 #include "want.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
 #include "form_info.h"
-#include "mock_app_control_manager.h"
 #include "shortcut_info.h"
 
 namespace OHOS {
@@ -337,7 +337,7 @@ public:
             isAppControlProxyNull_ = false;
             return nullptr;
         }
-        sptr<IAppControlMgr> appControlMgr = new (std::nothrow) AppControlProxy(nullptr);
+        sptr<IAppControlMgr> appControlMgr = new (std::nothrow) AppControlMgrProxy(nullptr);
         return appControlMgr;
     }
     ErrCode GetBaseSharedBundleInfos(const std::string &bundleName,

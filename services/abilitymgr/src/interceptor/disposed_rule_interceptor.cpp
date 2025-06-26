@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "interceptor/disposed_rule_interceptor.h"
 
 #include "ability_manager_service.h"
+#include "app_control_client.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
@@ -96,21 +97,20 @@ bool DisposedRuleInterceptor::CheckControl(const Want &want, int32_t userId,
 
     // get disposed status
     std::string bundleName = want.GetBundle();
-    auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
-    if (appControlMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");
-        return false;
-    }
     std::vector<AppExecFwk::DisposedRule> disposedRuleList;
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "GetAbilityRunningControlRule");
         int32_t ret = ERR_OK;
         if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-            ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
+            ret = IN_PROCESS_CALL(AppExecFwk::AppControlClient::GetInstance().GetAbilityRunningControlRule(bundleName,
                 userId, disposedRuleList, appIndex));
         } else {
-            ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
+            ret = IN_PROCESS_CALL(AppExecFwk::AppControlClient::GetInstance().GetAbilityRunningControlRule(bundleName,
                 userId, disposedRuleList, 0));
+        }
+        if (ret == ERR_APPEXECFWK_NULL_PTR) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");
+            return false;
         }
         if (ret != ERR_OK || disposedRuleList.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Get No DisposedRule");
