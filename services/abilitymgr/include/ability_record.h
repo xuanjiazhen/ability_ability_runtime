@@ -1461,6 +1461,7 @@ private:
     std::string killReason_ = "";
     std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<Want> lastWant_ = nullptr;
+
 };
 }  // namespace AAFwk
 }  // namespace OHOS
