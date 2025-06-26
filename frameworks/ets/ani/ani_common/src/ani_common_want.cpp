@@ -356,5 +356,64 @@ bool UnWrapAbilityResult(ani_env *env, ani_object param, int &resultCode, AAFwk:
     }
     return UnwrapWant(env, reinterpret_cast<ani_object>(wantRef), want);
 }
+
+ani_object WrapElementName(ani_env *env, const AppExecFwk::ElementName &elementNameParam)
+{
+    TAG_LOGD(AAFwkTag::ANI, "WrapElementName");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    ani_class elementNameObj = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_method method = nullptr;
+    ani_object object = nullptr;
+    static const char *className = "LbundleManager/ElementNameInner/ElementNameInner;";
+    if ((status = env->FindClass(className, &elementNameObj)) != ANI_OK || elementNameObj == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass status : %{public}d or null elementNameObj", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(elementNameObj, "<ctor>", ":V", &method)) != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status : %{public}d or null method", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(elementNameObj, method, &object)) != ANI_OK || object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New status : %{public}d or null object", status);
+        return nullptr;
+    }
+    return WrapElementNameInner(env, elementNameObj, object, elementNameParam);
+}
+
+ani_object WrapElementNameInner(ani_env *env, ani_class elementNameObj, ani_object object,
+    const AppExecFwk::ElementName &elementNameParam)
+{
+    TAG_LOGD(AAFwkTag::ANI, "WrapElementNameInner");
+    if (env == nullptr || elementNameObj == nullptr || object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "invalid args");
+        return nullptr;
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "bundleName", elementNameParam.GetBundleName())) {
+        TAG_LOGE(AAFwkTag::ANI, "set bundleName failed");
+        return nullptr;
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "abilityName", elementNameParam.GetAbilityName())) {
+        TAG_LOGE(AAFwkTag::ANI, "set abilityName failed");
+        return nullptr;
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "deviceId", elementNameParam.GetDeviceID())) {
+        TAG_LOGE(AAFwkTag::ANI, "set deviceId failed");
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "moduleName", elementNameParam.GetModuleName())) {
+        TAG_LOGE(AAFwkTag::ANI, "set moduleName failed");
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "uri", elementNameParam.GetURI())) {
+        TAG_LOGE(AAFwkTag::ANI, "set uri failed");
+    }
+    if (!SetFieldStringByName(env, elementNameObj, object, "shortName", elementNameParam.GetURI())) {
+        TAG_LOGE(AAFwkTag::ANI, "set shortName failed");
+    }
+    return object;
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
