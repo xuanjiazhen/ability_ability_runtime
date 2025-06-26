@@ -139,11 +139,9 @@ public:
 
 private:
     void ConfigurationUpdated();
-    ani_ref CallObjectMethod(bool withResult, const char *name, const char *signature, ...);
-    sptr<IRemoteObject> OnConnectInner(ani_env *env, ani_object &aniRemoteobj, bool &isAsyncCallback);
 
     ETSRuntime &etsRuntime_;
-    std::unique_ptr<ETSNativeReference> etsObj_;
+    std::shared_ptr<ETSServiceExtensionObject> etsAbilityObj_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

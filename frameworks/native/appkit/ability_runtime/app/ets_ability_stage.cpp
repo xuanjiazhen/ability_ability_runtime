@@ -18,8 +18,6 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "configuration_convertor.h"
-#include "ets_ability_stage_context.h"
-#include "ani_common_configuration.h"
 #include "ohos_application.h"
 #include "startup_manager.h"
 #include "hitrace_meter.h"
@@ -73,18 +71,21 @@ std::shared_ptr<AbilityStage> ETSAbilityStage::Create(
             srcPath.append(".abc");
         }
     }
-    std::unique_ptr<ETSNativeReference> moduleObj;
-    if (!hapModuleInfo.srcEntrance.empty()) {
-        TAG_LOGD(AAFwkTag::APPKIT, "entry path: %{public}s", hapModuleInfo.srcEntrance.c_str());
-        moduleObj = etsRuntime.LoadModule(moduleName, srcPath, hapModuleInfo.hapPath,
-            hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE, commonChunkFlag,
-            hapModuleInfo.srcEntrance);
+
+    etsAbilityStageObj_ = std::make_shared<ETSAbilityStageObject>();
+    if (etsAbilityStageObj_->Init(reinterpret_cast<void *>(this), reinterpret_cast<void *>(&etsRuntime))) {
+        if (!hapModuleInfo.srcEntrance.empty()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "entry path: %{public}s", hapModuleInfo.srcEntrance.c_str());
+            etsAbilityStageObj_->LoadModule(moduleName, srcPath, hapModuleInfo.hapPath,
+                hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE, commonChunkFlag,
+                hapModuleInfo.srcEntrance);
+        }
     }
-    return std::make_shared<ETSAbilityStage>(etsRuntime, std::move(moduleObj));
+    return std::make_shared<ETSAbilityStage>(etsRuntime);
 }
 
-ETSAbilityStage::ETSAbilityStage(ETSRuntime & etsRuntime, std::unique_ptr<ETSNativeReference>&& etsAbilityStageObj)
-    : etsRuntime_(etsRuntime), etsAbilityStageObj_(std::move(etsAbilityStageObj))
+ETSAbilityStage::ETSAbilityStage(ETSRuntime & etsRuntime)
+    : etsRuntime_(etsRuntime)
 {}
 
 ETSAbilityStage::~ETSAbilityStage()
@@ -104,7 +105,12 @@ void ETSAbilityStage::Init(const std::shared_ptr<Context> &context,
         TAG_LOGE(AAFwkTag::APPKIT, "null stage");
         return;
     }
-    SetEtsAbilityStage(context);
+    
+    if (etsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
+        return;
+    }
+    etsAbilityStageObj_->SetEtsAbilityStage(context);
 }
 
 void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
@@ -112,8 +118,12 @@ void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
     TAG_LOGD(AAFwkTag::APPKIT, "OnCreate called");
     AbilityStage::OnCreate(want);
 
+    if (etsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
+        return;
+    }
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate begin");
-    CallObjectMethod(false, "onCreate", ":V");
+    etsAbilityStageObj_->OnCreate();
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate end");
 
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
@@ -124,18 +134,21 @@ void ETSAbilityStage::OnCreate(const AAFwk::Want &want) const
 
 void ETSAbilityStage::OnDestroy() const
 {
+    if (etsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
+        return;
+    }
     TAG_LOGD(AAFwkTag::APPKIT, "OnDestroy called");
     AbilityStage::OnDestroy();
-    CallObjectMethod(false, "onDestroy", ":V");
+    etsAbilityStageObj_->OnDestroy();
 }
 
 void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnConfigurationUpdated called");
     AbilityStage::OnConfigurationUpdated(configuration);
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
+    if (etsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsAbilityStageObj_");
         return;
     }
     auto application = application_.lock();
@@ -148,55 +161,7 @@ void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& co
         TAG_LOGE(AAFwkTag::APPKIT, "null fullConfig");
         return;
     }
-    ETSAbilityStageContext::ConfigurationUpdated(env, fullConfig);
-    ani_object configObj = OHOS::AppExecFwk::WrapConfiguration(env, configuration);
-    if (configObj == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null configObj");
-        return;
-    }
-    CallObjectMethod(false, "onConfigurationUpdate", "L@ohos/app/ability/Configuration/Configuration;:V", configObj);
-}
-
-bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
-    TAG_LOGD(AAFwkTag::ABILITY, "CallObjectMethod: name:%{public}s", name);
-    if (etsAbilityStageObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "etsAbilityStageObj_ nullptr");
-        return false;
-    }
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
-        return false;
-    }
-    ani_status status = ANI_OK;
-    ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(etsAbilityStageObj_->aniCls, name, signature, &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
-        return false;
-    }
-    env->ResetError();
-    if (withResult) {
-        ani_boolean res = ANI_FALSE;
-        va_list args;
-        va_start(args, signature);
-        if ((status = env->Object_CallMethod_Boolean(etsAbilityStageObj_->aniObj, method, &res, args)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
-            etsRuntime_.HandleUncaughtError();
-        }
-        va_end(args);
-        return res;
-    }
-    va_list args;
-    va_start(args, signature);
-    if ((status = env->Object_CallMethod_Void_V(etsAbilityStageObj_->aniObj, method, args)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "status: %{public}d", status);
-        etsRuntime_.HandleUncaughtError();
-        return false;
-    }
-    va_end(args);
-    return false;
+    etsAbilityStageObj_->OnConfigurationUpdated(fullConfig, configuration);
 }
 
 std::shared_ptr<AppExecFwk::DelegatorAbilityStageProperty> ETSAbilityStage::CreateStageProperty() const
@@ -228,41 +193,5 @@ std::string ETSAbilityStage::GetHapModuleProp(const std::string &propName) const
     TAG_LOGD(AAFwkTag::APPKIT, "name = %{public}s", propName.c_str());
     return std::string();
 }
-
-void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context)
-{
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
-        return;
-    }
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
-        return;
-    }
-
-    ani_object stageCtxObj = ETSAbilityStageContext::CreateEtsAbilityStageContext(env, context);
-    if (stageCtxObj == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "CreateEtsAbilityStageContext failed");
-        return;
-    }
-
-    ani_status status = ANI_OK;
-    ani_field contextField;
-    status = env->Class_FindField(etsAbilityStageObj_->aniCls, "context", &contextField);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Class_GetField context failed");
-        return;
-    }
-    ani_ref stageCtxObjRef = nullptr;
-    if (env->GlobalReference_Create(stageCtxObj, &stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GlobalReference_Create stageCtxObj failed");
-        return;
-    }
-    if (env->Object_SetField_Ref(etsAbilityStageObj_->aniObj, contextField, stageCtxObjRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Object_SetField_Ref stageCtxObj failed");
-    }
-}
-
 }  // namespace AbilityRuntime
 }  // namespace OHOS

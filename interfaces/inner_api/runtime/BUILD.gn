@@ -62,8 +62,6 @@ ohos_shared_library("runtime") {
 
   sources = [
     "${ability_runtime_native_path}/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp",
-    "${ability_runtime_native_path}/runtime/ets_error_utils.cpp",
-    "${ability_runtime_native_path}/runtime/ets_data_struct_converter.cpp",
     "${ability_runtime_native_path}/runtime/ets_runtime.cpp",
     "${ability_runtime_native_path}/runtime/hdc_register.cpp",
     "${ability_runtime_native_path}/runtime/js_app_process_state.cpp",
@@ -126,7 +124,6 @@ ohos_shared_library("runtime") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "resource_management:global_resmgr",
-    "runtime_core:ani",
     "samgr:samgr_proxy",
     "zlib:shared_libz",
     "faultloggerd:libfaultloggerd",
