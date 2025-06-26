@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include "ui_extension_context.h"
 #include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
 #include "ohos_application.h"
 #include "sts_free_install_observer.h"
 namespace OHOS {
