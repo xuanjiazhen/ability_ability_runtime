@@ -125,12 +125,12 @@ void ExtensionConfigMgr::GenerateExtensionEtsBlocklists()
         return;
     }
     for (const auto& module: iter->second) {
-        std::string lowermodule;
-        lowermodule.reserve(module.size());
-        std::transform(module.cbegin(), module.cend(), std::back_inserter(lowermodule),
-            [](unsigned char c) { return std::tolower(c); });
         auto replaceIter = replaceModuleListConfig_.find(module);
         if (replaceIter == replaceModuleListConfig_.end()) {
+            std::string lowermodule;
+            lowermodule.reserve(module.size());
+            std::transform(module.cbegin(), module.cend(), std::back_inserter(lowermodule),
+                [](unsigned char c) { return std::tolower(c); });
             extensionEtsBlocklist_.emplace(std::move(lowermodule));
         } else {
             std::string lowerReplacedModule;
@@ -143,23 +143,45 @@ void ExtensionConfigMgr::GenerateExtensionEtsBlocklists()
     }
 }
 
+bool ExtensionConfigMgr::CheckEtsModuleLoadable(const std::string &className)
+{
+    TAG_LOGD(AAFwkTag::EXT, "called");
+    std::string classNameAfterRemovePreFix;
+    if (className.length() >= ExtensionConfigItem::ITEM_LENGTH_OHOSPREFIX &&
+        (className.compare(0, ExtensionConfigItem::ITEM_LENGTH_OHOSPREFIX, ExtensionConfigItem::ITEM_NAME_OHOSPREFIX)
+        == 0)) {
+        classNameAfterRemovePreFix = className.substr(ExtensionConfigItem::ITEM_LENGTH_OHOSPREFIX);
+    } else if (className.length() >= ExtensionConfigItem::ITEM_LENGTH_HMSPREFIX &&
+        (className.compare(0, ExtensionConfigItem::ITEM_LENGTH_HMSPREFIX, ExtensionConfigItem::ITEM_NAME_HMSPREFIX)
+        == 0)) {
+        classNameAfterRemovePreFix = className.substr(ExtensionConfigItem::ITEM_LENGTH_HMSPREFIX);
+    } else {
+        classNameAfterRemovePreFix = className;
+    }
+    std::string lowerClassName;
+    lowerClassName.reserve(classNameAfterRemovePreFix.size());
+    std::transform(classNameAfterRemovePreFix.cbegin(), classNameAfterRemovePreFix.cend(),
+        std::back_inserter(lowerClassName), [](unsigned char c) { return std::tolower(c); });
+    for (const auto& module: extensionEtsBlocklist_) {
+        if (lowerClassName.compare(0, module.length(), module) == 0) {
+            TAG_LOGD(AAFwkTag::EXT, "class is in block list: %{public}s", className.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
 void ExtensionConfigMgr::SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
 {
     TAG_LOGD(AAFwkTag::EXT, "extensionType_: %{public}d", extensionType_);
-    auto &extensionEtsBlocklists = extensionEtsBlocklist_;
-    auto callback = [extensionEtsBlocklists](const std::string& className) -> bool {
-        std::string lowerClassName;
-        lowerClassName.reserve(className.size());
-        std::transform(className.cbegin(), className.cend(), std::back_inserter(lowerClassName),
-            [](unsigned char c) { return std::tolower(c); });
-        for (const auto& module: extensionEtsBlocklists) {
-            if (lowerClassName.compare(0, module.length(), module) == 0) {
-                return false;
-            }
+    auto callback = [extensionConfigMgrWeak = weak_from_this()](const std::string& className) -> bool {
+        auto extensionConfigMgr = extensionConfigMgrWeak.lock();
+        if (extensionConfigMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null extensionConfigMgr");
+            return false;
         }
-        return true;
+        return extensionConfigMgr->CheckEtsModuleLoadable(className);
     };
     runtime->SetExtensionApiCheckCallback(callback);
-    extensionBlocklist_.clear();
 }
 }
