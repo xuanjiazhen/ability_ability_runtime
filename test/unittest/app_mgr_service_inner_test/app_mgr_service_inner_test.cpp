@@ -5916,5 +5916,134 @@ HWTEST_F(AppMgrServiceInnerTest, GetSpecifiedProcessFlag_0003, TestSize.Level1)
     std::string result = appMgrServiceInner->GetSpecifiedProcessFlag(abilityInfo, want);
     EXPECT_EQ(result, "");
 }
+
+/**
+ * @tc.name: StartSpecifiedProcess_0002
+ * @tc.desc: ExtensionAbilityType not is SYS_COMMON_UI.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, StartSpecifiedProcess_0002, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appInfo->uid = 1000;
+    appInfo->name = "testApp";
+    std::string processName = "testProcess";
+    std::string instanceKey = "key1";
+    std::string customProcessFlag = "flag1";
+
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 1, processName);
+    appRecord->SetInstanceKey(instanceKey);
+    appRecord->SetUid(1000);
+    appRecord->SetCustomProcessFlag(customProcessFlag);
+    appRecord->processType_ = ProcessType::NORMAL;
+    appRecord->SetRestartAppFlag(false);
+    appRecord->isCaching_ = false;
+    appRecord->killReason_ = "";
+
+    appRunningManager->appRunningRecordMap_.emplace(1, appRecord);
+    appMgrServiceInner->appRunningManager_ = appRunningManager;
+
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
+    abilityInfo.applicationInfo.uid = 1000;
+    abilityInfo.applicationInfo.name = "testApp";
+    abilityInfo.process = "testProcess";
+    AAFwk::Want want;
+    int32_t requestId = 1;
+    std::string customProcess = "flag1";
+
+    auto processInfoCheck = std::make_shared<AbilityRuntime::ProcessInfoCheck>();
+    auto result = appMgrServiceInner->appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(
+        1000, instanceKey, customProcessFlag, processInfoCheck);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: StartSpecifiedProcess_0003
+ * @tc.desc: ExtensionAbilityType is SYS_COMMON_UI.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, StartSpecifiedProcess_0003, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appInfo->uid = 1000;
+    appInfo->name = "testApp";
+    std::string processName = "testProcess";
+    std::string instanceKey = "key1";
+    std::string customProcessFlag = "flag1";
+
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 1, processName);
+    appRecord->SetInstanceKey(instanceKey);
+    appRecord->SetUid(1000);
+    appRecord->SetCustomProcessFlag(customProcessFlag);
+    appRecord->processType_ = ProcessType::NORMAL;
+    appRecord->SetRestartAppFlag(false);
+    appRecord->isCaching_ = false;
+    appRecord->killReason_ = "";
+
+    appRunningManager->appRunningRecordMap_.emplace(1, appRecord);
+    appMgrServiceInner->appRunningManager_ = appRunningManager;
+
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityInfo.applicationInfo.uid = 1000;
+    abilityInfo.applicationInfo.name = "testApp";
+    abilityInfo.process = "testProcess";
+    AAFwk::Want want;
+    int32_t requestId = 1;
+    std::string customProcess = "flag1";
+
+    auto processInfoCheck = std::make_shared<AbilityRuntime::ProcessInfoCheck>();
+    auto result = appMgrServiceInner->appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(
+        1000, instanceKey, customProcessFlag, processInfoCheck);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: StartSpecifiedProcess_0004
+ * @tc.desc: ExtensionAbilityType is SYS_COMMON_UI, customProcess ne
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, StartSpecifiedProcess_0004, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appInfo->uid = 1000;
+    appInfo->name = "testApp";
+    std::string processName = "testProcess";
+    std::string instanceKey = "key1";
+    std::string customProcessFlag = "flag1";
+
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 1, processName);
+    appRecord->SetInstanceKey(instanceKey);
+    appRecord->SetUid(1000);
+    appRecord->SetCustomProcessFlag(customProcessFlag);
+    appRecord->processType_ = ProcessType::NORMAL;
+    appRecord->SetRestartAppFlag(false);
+    appRecord->isCaching_ = false;
+    appRecord->killReason_ = "";
+
+    appRunningManager->appRunningRecordMap_.emplace(1, appRecord);
+    appMgrServiceInner->appRunningManager_ = appRunningManager;
+
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityInfo.applicationInfo.uid = 1000;
+    abilityInfo.applicationInfo.name = "testApp";
+    abilityInfo.process = "testProcess";
+    AAFwk::Want want;
+    int32_t requestId = 1;
+    std::string customProcess = "flag2";
+
+    auto processInfoCheck = std::make_shared<AbilityRuntime::ProcessInfoCheck>();
+    auto result = appMgrServiceInner->appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(
+        1000, instanceKey, customProcess, processInfoCheck);
+    EXPECT_EQ(result, nullptr);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

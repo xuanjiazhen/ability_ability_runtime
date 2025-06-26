@@ -75,6 +75,7 @@
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
+#include "process_info_check.h"
 #include "render_state_observer_manager.h"
 #include "res_sched_util.h"
 #include "startup_util.h"
@@ -440,6 +441,15 @@ void AppMgrServiceInner::Init()
 AppMgrServiceInner::~AppMgrServiceInner()
 {}
 
+std::shared_ptr<AbilityRuntime::ProcessInfoCheck> AppMgrServiceInner::SpecifiedProcessTypeCheck(
+    const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    if (AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)) {
+        return std::make_shared<AbilityRuntime::UIExtensionProcessInfoCheck>();
+    }
+    return std::make_shared<AbilityRuntime::ProcessInfoCheck>();
+}
+
 void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId, std::string customProcess)
 {
@@ -498,15 +508,9 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
         masterAppRecord->ScheduleNewProcessRequest(want, hapModuleInfo.moduleName);
         return;
     }
-    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     TAG_LOGI(AAFwkTag::APPMGR, "main process do not exists.");
-    if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
-        appRecord =
-            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->uid, instanceKey, customProcessFlag);
-    } else {
-        appRecord =
-            appRunningManager_->CheckAppRunningRecordForUIExtension(appInfo->uid, instanceKey, customProcessFlag);
-    }
+    auto appRecord = appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(
+        appInfo->uid, instanceKey, customProcessFlag, SpecifiedProcessTypeCheck(abilityInfo));
     if (appRecord != nullptr) {
         TAG_LOGI(AAFwkTag::APPMGR, "starting process [%{public}s]", processName.c_str());
         AbilityRuntime::LoadParam loadParam;
