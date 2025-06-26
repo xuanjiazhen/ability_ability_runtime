@@ -637,6 +637,7 @@ int32_t AppExitReasonDataManager::DeleteAbilityRecoverInfo(
         recoverInfoList.erase(std::remove(recoverInfoList.begin(), recoverInfoList.end(), recoverInfo),
             recoverInfoList.end());
         int index = std::distance(recoverInfoList.begin(), pos);
+        int sessionId = sessionIdList[index];
         sessionIdList.erase(std::remove(sessionIdList.begin(), sessionIdList.end(), sessionIdList[index]),
             sessionIdList.end());
         InnerDeleteSessionId(sessionIdList[index]);
