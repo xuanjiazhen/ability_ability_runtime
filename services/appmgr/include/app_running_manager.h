@@ -88,7 +88,7 @@ public:
         const std::string &customProcessFlag = "");
 
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(
-        int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
+        int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag, BundleInfo &bundleInfo);
 
 #ifdef APP_NO_RESPONSE_DIALOG
     /**

@@ -502,7 +502,7 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
     TAG_LOGI(AAFwkTag::APPMGR, "main process do not exists.");
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         appRecord =
-            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->uid, instanceKey, customProcessFlag);
+            appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->uid, instanceKey, customProcessFlag, bundleInfo);
     } else {
         appRecord =
             appRunningManager_->CheckAppRunningRecordForUIExtension(appInfo->uid, instanceKey, customProcessFlag);
