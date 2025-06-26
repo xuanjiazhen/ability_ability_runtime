@@ -19,7 +19,35 @@ import { BusinessError } from '@ohos.base';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import ExtensionContext from 'application.ExtensionContext';
 
+class Cleaner {
+  static callback(cleaner: Cleaner): void {
+      cleaner.clean()
+  }
+  constructor(targetPtr: long) {
+      this.targetPtr = targetPtr
+  }
+  native clean(): void
+  private targetPtr: long = 0
+}
+let destroyRegister = new FinalizationRegistry<Cleaner>(Cleaner.callback)
+let unregisterToken = new object()
+
 export default class UIExtensionContext extends ExtensionContext {
+  nativeExtensionContext:long = 0;
+  private cleaner: Cleaner | null = null;
+  registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner(ptr)
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+  }
+  unregisterCleaner(): void {
+      destroyRegister.unregister(unregisterToken);
+  }
+  constructor(context:long) {
+    if(this.nativeExtensionContext == 0){
+          this.nativeExtensionContext = context;
+    }
+    this.registerCleaner(this.nativeExtensionContext)
+  }
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback: AsyncCallbackWrapper<void>): void;
 
