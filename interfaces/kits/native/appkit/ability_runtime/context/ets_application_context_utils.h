@@ -30,7 +30,25 @@ class EtsApplicationContextUtils {
 public:
     explicit EtsApplicationContextUtils() {}
     virtual ~EtsApplicationContextUtils() = default;
-    static void SetSupportedProcessCacheSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
+    static void RestartApp(ani_env *env, ani_object aniObj,
+        ani_object wantObj);
+    static void SetFont(ani_env *env, ani_object aniObj,
+        ani_string font);
+    static void SetColorMode(ani_env *env, ani_object aniObj,
+        ani_enum_item colorMode);
+    static void SetLanguage(ani_env *env, ani_object aniObj,
+        ani_string language);
+    static void SetFontSizeScale(ani_env *env, ani_object aniObj,
+        ani_double fontSizeScale);
+    static void ClearUpApplicationData(ani_env *env, ani_object aniObj,
+        ani_object callback);
+    static void GetRunningProcessInformation(ani_env *env, ani_object aniObj,
+        ani_object callback);
+    static void killAllProcesses(ani_env *env, ani_object aniObj,
+        ani_boolean clearPageStack, ani_object call);
+    static void PreloadUIExtensionAbility(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object call);
+    static void SetSupportedProcessCacheSync(ani_env *env, ani_object aniObj,
         ani_boolean value);
     static std::shared_ptr<ApplicationContext> GeApplicationContext(ani_env *env, ani_object aniObj);
     static ani_object SetApplicationContext(ani_env* aniEnv,

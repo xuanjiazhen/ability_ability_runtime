@@ -50,6 +50,8 @@ ani_object CreateDouble(ani_env *env, ani_double value);
 ani_object CreateBoolean(ani_env *env, ani_boolean value);
 
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
+ani_object CreateRunningProcessInfoArray(ani_env *env, std::vector<AppExecFwk::RunningProcessInfo> infos);
+ani_object CreateEmptyArray(ani_env *env);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
