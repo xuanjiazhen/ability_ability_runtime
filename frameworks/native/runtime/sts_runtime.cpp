@@ -57,6 +57,8 @@
 #include "system_ability_definition.h"
 #include "ets_ani_expo.h"
 #include "static_core/plugins/ets/runtime/ets_namespace_manager.h"
+#include "bundle_mgr_helper.h"
+#include "base_shared_bundle_info.h"
 
 #ifdef SUPPORT_SCREEN
 #include "ace_forward_compatibility.h"
@@ -232,6 +234,8 @@ void STSRuntime::PostFork(const Options &options, std::vector<ani_option>& aniOp
     pkgContextInfoJsonStringMap_ = options.pkgContextInfoJsonStringMap;
     packageNameList_ = options.packageNameList;
     ReInitUVLoop();
+
+    appInnerHspPathList_ = options.appInnerHspPathList;
 
     // interop
     const std::string optionPrefix = "--ext:";
@@ -523,7 +527,7 @@ ani_env* STSRuntime::GetAniEnv()
 void STSRuntime::PreloadModule(const std::string& moduleName, const std::string& hapPath,
     bool isEsMode, bool useCommonTrunk)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "moduleName: %{public}s", moduleName.c_str());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName: %{public}s", moduleName.c_str());
     ani_env* aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "GetAniEnv failed");
@@ -559,14 +563,16 @@ void STSRuntime::PreloadModule(const std::string& moduleName, const std::string&
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return;
     }
-    ani_method method = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;Lescompat/Array;:V", &method) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
+    ani_object object = CreateRuntimeLinker(aniEnv, cls, undefined_ref, refArray);
+    if (object == nullptr) {
         return;
     }
-    ani_object object = nullptr;
-    if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+
+    ani_class contextCls{};
+    if (aniEnv->FindClass("std.interop.InteropContext", &contextCls) == ANI_OK) {
+        TAG_LOGD(AAFwkTag::STSRUNTIME, "setDefaultInteropLinker");
+        aniEnv->Class_CallStaticMethodByName_Void(
+            contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:", object);
     }
 }
 
@@ -574,7 +580,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
     const std::string& modulePath, const std::string& hapPath, bool esmodule, bool useCommonChunk,
     const std::string& srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::STSRUNTIME, "Load module(%{public}s, %{public}s, %{public}s, %{public}s)",
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "Load module(%{public}s, %{public}s, %{public}s, %{public}s)",
         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), esmodule ? "true" : "false");
 
     std::string path = moduleName;
@@ -599,6 +605,208 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadModule(const std::string& mo
     }
     std::unique_ptr<STSNativeReference> stsNativeReference = LoadStsModule(moduleName, fileName, hapPath, srcEntrance);
     return stsNativeReference;
+}
+
+bool STSRuntime::GetHspArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos, ani_array_ref &refArray)
+{
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetAniEnv failed");
+        return false;
+    }
+
+    ani_class stringCls = nullptr;
+    if (aniEnv->FindClass(STRING_CLASS_NAME, &stringCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
+        return false;
+    }
+
+    ani_ref undefined_ref;
+    if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+        return false;
+    }
+
+    if (aniEnv->Array_New_Ref(stringCls, hapPathInfos.size(), undefined_ref, &refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+        return false;
+    }
+
+    for (size_t index = 0; index < hapPathInfos.size(); index++) {
+        std::string hspPath = hapPathInfos[index];
+        ani_string ani_str;
+        if (aniEnv->String_NewUTF8(hspPath.c_str(), hspPath.size(), &ani_str) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 modulePath Failed");
+            return false;
+        }
+        if (aniEnv->Array_Set_Ref(refArray, index, ani_str) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::string> STSRuntime::GetHspPathList()
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "null bundleMgrHelper");
+        return {};
+    }
+
+    std::vector<std::string> hspPathList;
+
+    std::vector<AppExecFwk::BaseSharedBundleInfo> baseSharedBundleInfos;
+    if (bundleMgrHelper->GetBaseSharedBundleInfos(bundleName_,
+        baseSharedBundleInfos,
+        AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO) != 0) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "GetBaseSharedBundleInfos failed");
+        return {};
+    }
+
+    for (const auto &it : baseSharedBundleInfos) {
+        if (it.codeLanguage != AppExecFwk::Constants::CODE_LANGUAGE_1_1) {
+            hspPathList.push_back(it.hapPath);
+        }
+    }
+
+    hspPathList.insert(hspPathList.end(), appInnerHspPathList_.begin(), appInnerHspPathList_.end());
+
+    auto transferSandboxPathToRealPath = [](std::vector<std::string> &pathList) {
+        for (auto &it : pathList) {
+            const std::string realPathPrefix = "/data/app/el1/bundle/public/";
+            if (it.find(realPathPrefix) != 0) {
+                continue;
+            }
+            std::string tmp = it.substr(it.find(realPathPrefix) + realPathPrefix.size());
+            std::string tmp1 = tmp.substr(tmp.find_first_of("/") + 1);
+            if (!tmp1.empty()) {
+                it = "/data/storage/el1/bundle/" + tmp1;
+            }
+        }
+    };
+
+    transferSandboxPathToRealPath(hspPathList);
+
+    for (const auto &it : hspPathList) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "list hspPath:%{public}s", it.c_str());
+    }
+
+    return hspPathList;
+}
+
+bool STSRuntime::GetHspAbcRuntimeLinker(ani_array_ref &refHspLinkerArray, ani_class cls)
+{
+    auto hspPathList = GetHspPathList();
+    if (hspPathList.empty()) {
+        return true;
+    }
+    ani_env *aniEnv = GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetAniEnv failed");
+        return false;
+    }
+    ani_method method = nullptr;
+    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Class_FindMethod ctor failed");
+        return false;
+    }
+    ani_class stringCls = nullptr;
+    if (aniEnv->FindClass(STRING_CLASS_NAME, &stringCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass Lstd/core/String Failed");
+        return false;
+    }
+    std::string hspPath = *hspPathList.begin();
+    hspPathList.erase(hspPathList.begin());
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "hspPath:%{public}s", hspPath.c_str());
+    ani_string ani_str;
+    if (aniEnv->String_NewUTF8(hspPath.c_str(), hspPath.size(), &ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "String_NewUTF8 modulePath Failed");
+        return false;
+    }
+    ani_ref undefined_ref;
+    if (aniEnv->GetUndefined(&undefined_ref) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "GetUndefined failed");
+        return false;
+    }
+    ani_array_ref refArray;
+    if (aniEnv->Array_New_Ref(stringCls, 1, undefined_ref, &refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+        return false;
+    }
+    if (aniEnv->Array_Set_Ref(refArray, 0, ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+        return false;
+    }
+
+    ani_object object = nullptr;
+    if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
+        return false;
+    }
+    if (!hspPathList.empty()) {
+        ani_method addAbcFilesClassMethod = nullptr;
+        if (aniEnv->Class_FindMethod(cls, "addAbcFiles", nullptr, &addAbcFilesClassMethod) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Class_FindMethod addAbcFiles failed");
+            return false;
+        }
+        ani_array_ref str_refArray;
+        if (GetHspArray(aniEnv, hspPathList, str_refArray) == false) {
+            return false;
+        }
+        if (aniEnv->Object_CallMethod_Void(object, addAbcFilesClassMethod, str_refArray) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Object_CallMethod_Void loadClassMethod failed");
+            return false;
+        }
+    }
+    if (aniEnv->Array_New_Ref(cls, 1, undefined_ref, &refHspLinkerArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_New_Ref Failed");
+        return false;
+    }
+    if (aniEnv->Array_Set_Ref(refHspLinkerArray, 0, object) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Array_Set_Ref Failed");
+        return false;
+    }
+    return true;
+}
+
+ani_object STSRuntime::CreateRuntimeLinker(
+    ani_env *aniEnv, ani_class cls, ani_ref undefined_ref, ani_array refArray)
+{
+    ani_object object = nullptr;
+    ani_array_ref refHspLinkerArray = nullptr;
+    GetHspAbcRuntimeLinker(refHspLinkerArray, cls);
+
+    if (refHspLinkerArray == nullptr) {
+        ani_method runtimeLinkerCtorMethod = nullptr;
+        if (aniEnv->Class_FindMethod(
+            cls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &runtimeLinkerCtorMethod) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Class_FindMethod ctor failed");
+            return nullptr;
+        }
+        if (aniEnv->Object_New(cls, runtimeLinkerCtorMethod, &object, undefined_ref, refArray) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Object_New runtimeLinkerCtorMethod failed");
+            HandleUncaughtError();
+            return nullptr;
+        }
+    } else {
+        ani_method runtimeLinkerCtorMethodEx = nullptr;
+        if (aniEnv->Class_FindMethod(cls,
+            "<ctor>",
+            "Lstd/core/RuntimeLinker;[Lstd/core/String;[Lstd/core/RuntimeLinker;:V",
+            &runtimeLinkerCtorMethodEx) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Class_FindMethod ctor failed");
+            return nullptr;
+        }
+        if (aniEnv->Object_New(cls, runtimeLinkerCtorMethodEx, &object, undefined_ref, refArray, refHspLinkerArray) !=
+            ANI_OK) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Object_New runtimeLinkerCtorMethodEx failed");
+            HandleUncaughtError();
+            return nullptr;
+        }
+    }
+
+    return object;
 }
 
 std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string& moduleName,
@@ -646,16 +854,10 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         TAG_LOGE(AAFwkTag::STSRUNTIME, "FindClass AbcRuntimeLinker failed");
         return std::make_unique<STSNativeReference>();
     }
-    ani_method method = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;Lescompat/Array;:V", &method) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod ctor failed");
-        return std::make_unique<STSNativeReference>();
-    }
-    ani_object object = nullptr;
+
     aniEnv->ResetError();
-    if (aniEnv->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_New AbcRuntimeLinker failed");
-        HandleUncaughtError();
+    ani_object object = CreateRuntimeLinker(aniEnv, cls, undefined_ref, refArray);
+    if (object == nullptr) {
         return std::make_unique<STSNativeReference>();
     }
     ani_method loadClassMethod = nullptr;
@@ -675,6 +877,13 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         return std::make_unique<STSNativeReference>();
     } else {
         entryClass = static_cast<ani_class>(entryClassRef);
+    }
+
+    ani_class contextCls {};
+    if (aniEnv->FindClass("std.interop.InteropContext", &contextCls) == ANI_OK) {
+        TAG_LOGD(AAFwkTag::STSRUNTIME, "setDefaultInteropLinker");
+        aniEnv->Class_CallStaticMethodByName_Void(contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:",
+            object);
     }
 
     ani_method entryMethod = nullptr;
