@@ -17,9 +17,11 @@
 #include "hilog_tag_wrapper.h"
 #include "js_insight_intent_entry.h"
 #include "js_insight_intent_executor.h"
+#include "ets_insight_intent_executor.h"
 #include "js_insight_intent_func.h"
 #include "js_insight_intent_page.h"
 #include "js_runtime.h"
+#include "ets_runtime.h"
 #include "runtime.h"
 
 namespace OHOS::AbilityRuntime {
@@ -47,6 +49,9 @@ std::shared_ptr<InsightIntentExecutor> InsightIntentExecutor::Create(Runtime& ru
                     return nullptr;
                 }
             }
+        case Runtime::Language::STS:
+            return static_cast<std::shared_ptr<InsightIntentExecutor>>(EtsInsightIntentExecutor::Create(
+                static_cast<STSRuntime&>(runtime)));
         default:
             return nullptr;
     }

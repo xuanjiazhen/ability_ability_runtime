@@ -45,6 +45,19 @@ struct ETSNativeReference {
     ani_ref aniRef = nullptr;
 };
 
+class STSNativeReferenceWrapper : public NativeReference {
+public:
+    uint32_t Ref() override { return 0; };
+    uint32_t Unref() override { return 0; };
+    napi_value Get() override { return nullptr; };
+    operator napi_value() override { return nullptr; };
+    void SetDeleteSelf() override { return; };
+    uint32_t GetRefCount() override { return 0; };
+    bool GetFinalRun() override { return false; };
+    napi_value GetNapiValue() override { return 0; };
+    std::shared_ptr<STSNativeReference> ref_;
+};
+
 class ETSRuntime : public Runtime {
 public:
     static std::unique_ptr<ETSRuntime> Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
