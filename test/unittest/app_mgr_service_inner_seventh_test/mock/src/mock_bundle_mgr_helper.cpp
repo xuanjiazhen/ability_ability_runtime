@@ -180,11 +180,6 @@ bool BundleMgrHelper::ProcessPreload(const Want& want)
     return false;
 }
 
-sptr<IAppControlMgr> BundleMgrHelper::GetAppControlProxy()
-{
-    return nullptr;
-}
-
 bool BundleMgrHelper::QueryExtensionAbilityInfos(const Want& want, const int32_t& flag, const int32_t& userId,
     std::vector<ExtensionAbilityInfo>& extensionInfos)
 {

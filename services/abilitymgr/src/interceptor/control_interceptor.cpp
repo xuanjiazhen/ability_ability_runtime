@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "appexecfwk_errors.h"
+#include "app_control_client.h"
 #include "hitrace_meter.h"
 
 namespace OHOS {
@@ -78,18 +79,13 @@ bool ControlInterceptor::CheckControl(const Want &want, int32_t userId,
 
     // get disposed status
     std::string bundleName = want.GetBundle();
-    auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
-    if (appControlMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");
-        return false;
-    }
 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "GetAppRunningControlRule");
     std::string identity = IPCSkeleton::ResetCallingIdentity();
     if (identity == "") {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getId fail");
     }
-    auto ret = appControlMgr->GetAppRunningControlRule(bundleName, userId, controlRule);
+    auto ret = AppExecFwk::AppControlClient::GetInstance().GetAppRunningControlRule(bundleName, userId, controlRule);
     if (ret == ERR_BUNDLE_MANAGER_PERMISSION_DENIED) {
         IPCSkeleton::SetCallingIdentity(identity, true);
     } else {
