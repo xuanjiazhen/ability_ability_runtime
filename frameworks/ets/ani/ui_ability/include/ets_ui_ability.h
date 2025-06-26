@@ -130,6 +130,8 @@ public:
      */
     void Dump(const std::vector<std::string> &params, std::vector<std::string> &info) override;
 
+    sptr<IRemoteObject> CallRequest() override;
+
 #ifdef SUPPORT_SCREEN
 public:
     /**
