@@ -6834,15 +6834,22 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
 
 void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt called");
     auto connectManager = GetCurrentConnectManager();
-    CHECK_POINTER_LOG(connectManager, "Connect manager not init.");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 000");
+    CHECK_POINTER_LOG(connectManager, "ttt Connect manager not init.");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 111");
     connectManager->OnAppStateChanged(info);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 222");
+    KioskManager::GetInstance().OnAppStop(info);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 333");
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt if");
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
         uiAbilityManager->OnAppStateChanged(info);
     } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt else");
         auto missionListManager = GetCurrentMissionListManager();
         CHECK_POINTER_LOG(missionListManager, "Current mission list manager not init.");
         missionListManager->OnAppStateChanged(info);
@@ -6858,7 +6865,6 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
     if (system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         KeepAliveProcessManager::GetInstance().OnAppStateChanged(info);
     }
-    KioskManager::GetInstance().OnAppStop(info);
 }
 
 std::shared_ptr<AbilityEventHandler> AbilityManagerService::GetEventHandler()
