@@ -85,8 +85,10 @@ void AbilityStartupServiceFuzztest1(bool boolParam, std::string &stringParam, in
 
     service->GetSelfApplicationBundleName();
     service->CheckSelfApplication(stringParam);
+    int32_t validUserId = DEFAULT_INVAL_VALUE;
+    service->GetValidUserId(int32Param, validUserId);
     AppExecFwk::BundleInfo bundleInfo;
-    service->GetBundleInfo(stringParam, bundleInfo, int32Param, int32Param, int32Param); // branch
+    service->GetBundleInfo(stringParam, bundleInfo, int32Param, int32Param); // branch
     AutoStartupInfo info;
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.bundleName = stringParam;
@@ -111,7 +113,7 @@ void AbilityStartupServiceFuzztest2(bool boolParam, std::string &stringParam, in
     abilityData.isVisible = boolParam;
     abilityData.abilityTypeName = stringParam;
     abilityData.accessTokenId = stringParam;
-    abilityData.currentUserId = int32Param;
+    abilityData.setterUserId = int32Param;
     AutoStartupInfo info;
     service->GetAbilityData(info, abilityData); // branch
     AppExecFwk::AbilityInfo abilityInfo;

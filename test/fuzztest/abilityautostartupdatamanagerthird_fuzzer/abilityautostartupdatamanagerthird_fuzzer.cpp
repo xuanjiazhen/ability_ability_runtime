@@ -43,6 +43,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     info.appCloneIndex = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
     info.userId = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
     info.retryCount = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
+    info.userId = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
+    info.setterUserId = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
+    info.canUserModify = fdp.ConsumeIntegralInRange<bool>(false, true);
     info.bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     info.moduleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
