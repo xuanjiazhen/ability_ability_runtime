@@ -769,22 +769,6 @@ void JsServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration&
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     ServiceExtension::OnConfigurationUpdated(configuration);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "call");
-    auto context = GetContext();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
-        return;
-    }
-
-    auto contextConfig = context->GetConfiguration();
-    if (contextConfig != nullptr) {
-        TAG_LOGD(AAFwkTag::SERVICE_EXT, "Config dump: %{public}s", contextConfig->GetName().c_str());
-        std::vector<std::string> changeKeyV;
-        contextConfig->CompareDifferent(changeKeyV, configuration);
-        if (!changeKeyV.empty()) {
-            contextConfig->Merge(changeKeyV, configuration);
-        }
-        TAG_LOGD(AAFwkTag::SERVICE_EXT, "Config dump after merge: %{public}s", contextConfig->GetName().c_str());
-    }
     ConfigurationUpdated();
 }
 

@@ -94,4 +94,8 @@ export default class ServiceExtensionAbility {
     return new Promise<void>((resolve: (a: undefined) => void, reject: (err: Error) => void): void => {
     });
   }
+
+  onConfigurationUpdate(newConfig: Configuration): void {
+    console.log("onConfigurationUpdate");
+  }
 }

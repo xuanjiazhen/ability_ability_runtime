@@ -141,6 +141,8 @@ private:
     void ConfigurationUpdated();
     ani_ref CallObjectMethod(bool withResult, const char *name, const char *signature, ...);
     sptr<IRemoteObject> OnConnectInner(ani_env *env, ani_object &aniRemoteobj, bool &isAsyncCallback);
+    void BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want);
+    ani_object CreateETSContext(ani_env *env, std::shared_ptr<ServiceExtensionContext> context);
 
     ETSRuntime &etsRuntime_;
     std::unique_ptr<ETSNativeReference> etsObj_;

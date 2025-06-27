@@ -19,7 +19,10 @@
 #include "ability_manager_client.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ani_common_start_options.h"
 
+namespace OHOS {
+namespace AbilityRuntime {
 const char *INVOKE_METHOD_NAME = "invoke";
 const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext;";
 
@@ -30,7 +33,7 @@ void EtsUIExtensionContext::TerminateSelfSync(ani_env *env, ani_object obj, ani_
     ani_long nativeContextLong;
     ani_field contextField = nullptr;
     ani_status status = ANI_ERROR;
-    OHOS::ErrCode ret = OHOS::ERR_INVALID_VALUE;
+    ErrCode ret = ERR_INVALID_VALUE;
     if ((status = env->FindClass(UI_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
@@ -43,9 +46,9 @@ void EtsUIExtensionContext::TerminateSelfSync(ani_env *env, ani_object obj, ani_
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    ret = ((OHOS::AbilityRuntime::UIExtensionContext*)nativeContextLong)->TerminateSelf();
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    ret = ((UIExtensionContext*)nativeContextLong)->TerminateSelf();
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
 
 void EtsUIExtensionContext::TerminateSelfWithResultSync(ani_env *env,  ani_object obj,
@@ -56,7 +59,7 @@ void EtsUIExtensionContext::TerminateSelfWithResultSync(ani_env *env,  ani_objec
     ani_long nativeContextLong;
     ani_field contextField = nullptr;
     ani_status status = ANI_ERROR;
-    OHOS::ErrCode ret = OHOS::ERR_INVALID_VALUE;
+    ErrCode ret = ERR_INVALID_VALUE;
     if ((status = env->FindClass(UI_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
@@ -69,34 +72,164 @@ void EtsUIExtensionContext::TerminateSelfWithResultSync(ani_env *env,  ani_objec
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    auto context = ((OHOS::AbilityRuntime::UIExtensionContext*)nativeContextLong);
+    auto context = ((UIExtensionContext*)nativeContextLong);
     if (!context) {
         TAG_LOGE(AAFwkTag::UI_EXT, "context is released");
         return;
     }
 
-    OHOS::AAFwk::Want want;
+    AAFwk::Want want;
     int resultCode = 0;
-    OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
+    AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
     auto token = context->GetToken();
-    OHOS::AAFwk::AbilityManagerClient::GetInstance()->TransferAbilityResultForExtension(token, resultCode, want);
+    AAFwk::AbilityManagerClient::GetInstance()->TransferAbilityResultForExtension(token, resultCode, want);
     ret = context->TerminateSelf();
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TerminateSelf failed, errorCode is %{public}d", ret);
         return;
     }
-    OHOS::AppExecFwk::AsyncCallback(env, callback,
-        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+    AppExecFwk::AsyncCallback(env, callback,
+    EtsErrorUtil::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+}
+
+static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartAbility");
+    EtsUIExtensionContext::GetInstance().StartAbilityInner(env, aniObj, wantObj, nullptr, call);
+}
+
+static void StartAbilityWithOption(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object opt, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartAbilityWithOption");
+    EtsUIExtensionContext::GetInstance().StartAbilityInner(env, aniObj, wantObj, opt, call);
+}
+
+UIExtensionContext* EtsUIExtensionContext::GetAbilityContext(ani_env *env, ani_object obj)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "GetAbilityContext start");
+    ani_class cls = nullptr;
+    ani_long nativeContextLong;
+    ani_field contextField = nullptr;
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return nullptr;
+    }
+    if ((status = env->FindClass("Lapplication/UIExtensionContext/UIExtensionContext;", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetAbilityContext find class status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetAbilityContext find field status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_GetField_Long(obj, contextField, &nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetAbilityContext get filed status: %{public}d", status);
+        return nullptr;
+    }
+    return (UIExtensionContext*)nativeContextLong;
+}
+
+void EtsUIExtensionContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
+    ani_object callback, UIExtensionContext*context)
+{
+    // adapter free install async return install and start result
+    TAG_LOGD(AAFwkTag::UI_EXT, "AddFreeInstallObserver");
+    int ret = 0;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    if (freeInstallObserver_ == nullptr) {
+        ani_vm *etsVm = nullptr;
+        ani_status status = ANI_ERROR;
+        if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "status: %{public}d", status);
+        }
+        freeInstallObserver_ = new ETSFreeInstallObserver(etsVm);
+        ret = context->AddFreeInstallObserver(freeInstallObserver_);
+    }
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "addFreeInstallObserver error");
+    }
+    std::string startTime = want.GetStringParam(AAFwk::Want::PARAM_RESV_START_TIME);
+    TAG_LOGI(AAFwkTag::UI_EXT, "addETSObserver");
+    std::string bundleName = want.GetElement().GetBundleName();
+    std::string abilityName = want.GetElement().GetAbilityName();
+    freeInstallObserver_->AddETSObserverObject(
+        env, bundleName, abilityName, startTime, callback);
+}
+
+void EtsUIExtensionContext::StartAbilityInner(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object opt, ani_object call)
+{
+    ani_object aniObject = nullptr;
+    AAFwk::Want want;
+    ErrCode innerErrCode = ERR_OK;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+        return;
+    }
+    auto context = EtsUIExtensionContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetAbilityContext is nullptr");
+        innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(innerErrCode));
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+        return;
+    }
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+            system_clock::now().time_since_epoch()).count());
+        want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+        AddFreeInstallObserver(env, want, call, context);
+    }
+    if (opt != nullptr) {
+        AAFwk::StartOptions startOptions;
+        if (!AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions)) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapStartOptions filed");
+            aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
+            AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+            return;
+        }
+        innerErrCode = context->StartAbility(want, startOptions);
+    } else {
+        innerErrCode = context->StartAbility(want);
+    }
+    aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    if (innerErrCode != ERR_OK) {
+        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    }
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        if (innerErrCode != ERR_OK && freeInstallObserver_ != nullptr) {
+            std::string bundleName = want.GetElement().GetBundleName();
+            std::string abilityName = want.GetElement().GetAbilityName();
+            std::string startTime = want.GetStringParam(AAFwk::Want::PARAM_RESV_START_TIME);
+            freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, innerErrCode);
+        }
+    } else {
+        AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+    }
 }
 
 void EtsUIExtensionContext::BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> context, std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo)
+    std::shared_ptr<Context> context, std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "BindExtensionInfo");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
     auto hapModuleInfo = context->GetHapModuleInfo();
     ani_status status = ANI_OK;
     if (abilityInfo && hapModuleInfo) {
-        auto isExist = [&abilityInfo](const OHOS::AppExecFwk::ExtensionAbilityInfo& info) {
+        auto isExist = [&abilityInfo](const AppExecFwk::ExtensionAbilityInfo& info) {
             TAG_LOGD(AAFwkTag::UI_EXT, "%{public}s, %{public}s", info.bundleName.c_str(), info.name.c_str());
             return info.bundleName == abilityInfo->bundleName && info.name == abilityInfo->name;
         };
@@ -112,7 +245,7 @@ void EtsUIExtensionContext::BindExtensionInfo(ani_env* aniEnv, ani_class context
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
             return;
         }
-        ani_object extAbilityInfoObj = OHOS::AppExecFwk::CommonFunAni::ConvertExtensionInfo(aniEnv, *infoIter);
+        ani_object extAbilityInfoObj = AppExecFwk::CommonFunAni::ConvertExtensionInfo(aniEnv, *infoIter);
         status = aniEnv->Object_SetField_Ref(contextObj, extensionAbilityInfoField,
             reinterpret_cast<ani_ref>(extAbilityInfoObj));
         if (status != ANI_OK) {
@@ -122,14 +255,29 @@ void EtsUIExtensionContext::BindExtensionInfo(ani_env* aniEnv, ani_class context
     }
 }
 
-void EtsUIExtensionContext::EtsCreatExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
-    std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context)
+bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
-    OHOS::AbilityRuntime::ContextUtil::CreateEtsBaseContext(aniEnv, contextClass, contextObj, context);
-    BindExtensionInfo(aniEnv, contextClass, contextObj, context, context->GetAbilityInfo());
+    ani_status status = ANI_ERROR;
+    std::array functions = {
+        ani_native_function { "terminateSelfSync", nullptr, reinterpret_cast<ani_int*>(TerminateSelfSync) },
+        ani_native_function { "terminateSelfWithResultSync", nullptr,
+            reinterpret_cast<ani_int*>(TerminateSelfWithResultSync) },
+        ani_native_function { "nativeStartAbilitySync",
+            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(StartAbility) },
+        ani_native_function { "nativeStartAbilitySync",
+            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
+            "AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(StartAbilityWithOption) },
+    };
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
-ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context)
+ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<UIExtensionContext> context)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     ani_class cls = nullptr;
@@ -141,12 +289,10 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    std::array functions = {
-        ani_native_function { "terminateSelfSync", nullptr,
-            reinterpret_cast<ani_int*>(EtsUIExtensionContext::TerminateSelfSync) },
-        ani_native_function { "terminateSelfWithResultSync", nullptr,
-            reinterpret_cast<ani_int*>(EtsUIExtensionContext::TerminateSelfWithResultSync) },
-    };
+    if (!BindNativeMethods(env, cls)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to BindNativeMethods");
+        return nullptr;
+    }
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
@@ -168,6 +314,9 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    EtsUIExtensionContext::EtsCreatExtensionContext(env, cls, contextObj, context);
+    ContextUtil::StsCreateContext(env, cls, contextObj, context);
+    CreateEtsExtensionContext(env, cls, contextObj, context, context->GetAbilityInfo());
     return contextObj;
 }
+} // AbilityRuntime
+} // OHOS

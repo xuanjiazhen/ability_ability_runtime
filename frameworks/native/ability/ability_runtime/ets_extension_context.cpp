@@ -60,10 +60,10 @@ bool SetExtensionAbilityInfo(ani_env *aniEnv, ani_class contextClass, ani_object
     return iRet;
 }
 
-void CreatEtsExtensionContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
+void CreateEtsExtensionContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<ExtensionContext> context, std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo)
 {
-    TAG_LOGD(AAFwkTag::CONTEXT, "CreatEtsExtensionContext Call");
+    TAG_LOGD(AAFwkTag::CONTEXT, "CreateEtsExtensionContext Call");
     if (aniEnv == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "aniEnv or context is nullptr");
         return;

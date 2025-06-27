@@ -90,6 +90,16 @@ void ServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
 
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateGlobalConfig(configuration, context->GetResourceManager());
+    auto contextConfig = context->GetConfiguration();
+    if (contextConfig != nullptr) {
+        TAG_LOGD(AAFwkTag::SERVICE_EXT, "Config dump: %{public}s", contextConfig->GetName().c_str());
+        std::vector<std::string> changeKeyV;
+        contextConfig->CompareDifferent(changeKeyV, configuration);
+        if (!changeKeyV.empty()) {
+            contextConfig->Merge(changeKeyV, configuration);
+        }
+        TAG_LOGD(AAFwkTag::SERVICE_EXT, "Config dump after merge: %{public}s", contextConfig->GetName().c_str());
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
