@@ -20,12 +20,12 @@
 #include <gmock/gmock.h>
 #include "ability_info.h"
 #include "application_info.h"
+#include "app_control_mgr_proxy.h"
 #include "bundlemgr/bundle_mgr_interface.h"
 #include "want.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
 #include "form_info.h"
-#include "mock_app_control_manager.h"
 #include "shortcut_info.h"
 
 namespace OHOS {
@@ -109,7 +109,7 @@ public:
             isAppControlProxyNull_ = false;
             return nullptr;
         }
-        sptr<IAppControlMgr> appControlMgr = new (std::nothrow) AppControlProxy(nullptr);
+        sptr<IAppControlMgr> appControlMgr = new (std::nothrow) AppControlMgrProxy(nullptr);
         return appControlMgr;
     }
     ErrCode GetBaseSharedBundleInfos(const std::string &bundleName,

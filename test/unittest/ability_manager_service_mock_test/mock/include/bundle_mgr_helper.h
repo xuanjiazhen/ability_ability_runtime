@@ -38,7 +38,6 @@ public:
     ErrCode GetCloneBundleInfo(const std::string &bundleName, int32_t flags, int32_t appCloneIndex,
         BundleInfo &bundleInfo, int32_t userId);
     ErrCode GetSandboxBundleInfo(const std::string &bundleName, int32_t appIndex, int32_t userId, BundleInfo &info);
-    sptr<IAppControlMgr> GetAppControlProxy();
     bool GetApplicationInfo(
         const std::string &appName, const ApplicationFlag flag, const int32_t userId, ApplicationInfo &appInfo);
     bool GetApplicationInfo(const std::string &appName, int32_t flags, int32_t userId, ApplicationInfo &appInfo);

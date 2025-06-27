@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -69,10 +69,7 @@ ohos_source_set("appexecfwk_bundlemgr_mock") {
     blocklist = "../../../../cfi_blocklist.txt"
   }
   branch_protector_ret = "pac_ret"
-  sources = [
-    "src/bundlemgr/mock_app_control_manager.cpp",
-    "src/bundlemgr/mock_bundle_manager.cpp",
-  ]
+  sources = [ "src/bundlemgr/mock_bundle_manager.cpp" ]
   testonly = true
   configs = [
     ":appexecfwk_core_mock_config",
