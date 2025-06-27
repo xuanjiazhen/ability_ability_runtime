@@ -24,6 +24,7 @@ namespace AppExecFwk {
 constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
 constexpr const char* CLASSNAME_BOOL = "Lstd/core/Boolean;";
 constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char* CLASSNAME_LONG = "Lstd/core/Long;";
 constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "Lutils/AbilityUtils/AsyncCallbackWrapper;";
 
 bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, double &value)
@@ -453,6 +454,31 @@ ani_object CreateBoolean(ani_env *env, ani_boolean value)
     return obj;
 }
 
+ani_object CreateLong(ani_env *env, ani_long value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    ani_class cls = nullptr;
+    ani_status status = env->FindClass(CLASSNAME_LONG, &cls);
+    if (status != ANI_OK || cls == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass status: %{public}d, or null class", status);
+        return nullptr;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d, or null method", status);
+        return nullptr;
+    }
+    ani_object object = nullptr;
+    if ((status = env->Object_New(cls, method, &object, value)) != ANI_OK || object == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_New status: %{public}d, or null object", status);
+        return nullptr;
+    }
+    return object;
+}
+
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result)
 {
     if (env == nullptr) {
@@ -479,6 +505,25 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     }
     if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool GetPropertyRef(ani_env *env, ani_object obj, const char *name, ani_ref &ref, ani_boolean &isUndefined)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
+    ani_status status = env->Object_GetPropertyByName_Ref(obj, name, &ref);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Failed to get property '%{public}s', status: %{public}d", name, status);
+        return false;
+    }
+    status = env->Reference_IsUndefined(ref, &isUndefined);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Failed to check undefined for '%{public}s', status: %{public}d", name, status);
         return false;
     }
     return true;

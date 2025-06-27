@@ -378,6 +378,44 @@ void EtsUIAbility::OnSceneCreated()
     TAG_LOGD(AAFwkTag::UIABILITY, "OnSceneCreated end");
 }
 
+void EtsUIAbility::OnSceneRestored()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    UIAbility::OnSceneRestored();
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnSceneRestored called");
+
+    auto etsAppWindowStage = CreateAppWindowStage();
+    if (etsAppWindowStage == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null etsAppWindowStage");
+        return;
+    }
+    UpdateEtsWindowStage(reinterpret_cast<ani_ref>(etsAppWindowStage));
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    if (etsWindowStageObj_ && etsWindowStageObj_->aniRef) {
+        env->GlobalReference_Delete(etsWindowStageObj_->aniRef);
+    }
+    etsWindowStageObj_ = std::make_shared<STSNativeReference>();
+    etsWindowStageObj_->aniObj = etsAppWindowStage;
+    ani_ref entryObjectRef = nullptr;
+    env->GlobalReference_Create(etsAppWindowStage, &entryObjectRef);
+    etsWindowStageObj_->aniRef = entryObjectRef;
+    CallObjectMethod(false, "onWindowStageRestore", nullptr, etsAppWindowStage);
+}
+
+void EtsUIAbility::OnSceneWillDestroy()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
+    if (etsWindowStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null etsWindowStageObj_");
+        return;
+    }
+    CallObjectMethod(false, "onWindowStageWillDestroy", nullptr, etsWindowStageObj_->aniRef);
+}
+
 void EtsUIAbility::onSceneDestroyed()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
@@ -508,6 +546,7 @@ void EtsUIAbility::AbilityContinuationOrRecover(const Want &want)
         launchParam_.lastExitReason);
     if (IsRestoredInContinuation()) {
         RestorePageStack(want);
+        OnSceneRestored();
         NotifyContinuationResult(want, true);
         return;
     }
@@ -615,6 +654,7 @@ void EtsUIAbility::ContinuationRestore(const Want &want)
         return;
     }
     RestorePageStack(want);
+    OnSceneRestored();
     NotifyContinuationResult(want, true);
 }
 

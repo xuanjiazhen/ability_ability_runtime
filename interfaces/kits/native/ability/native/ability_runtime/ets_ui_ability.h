@@ -111,7 +111,19 @@ public:
      * @brief Called after ability stoped.
      * You can override this function to implement your own processing logic.
      */
+    void OnSceneWillDestroy() override;
+
+    /**
+     * @brief Called after ability stoped.
+     * You can override this function to implement your own processing logic.
+     */
     void onSceneDestroyed() override;
+
+    /**
+     * @brief Called after ability restored.
+     * You can override this function to implement your own processing logic.
+     */
+    void OnSceneRestored() override;
 
     /**
      * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
