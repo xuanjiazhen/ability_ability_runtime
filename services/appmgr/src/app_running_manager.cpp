@@ -187,10 +187,13 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpecifiedProcess(
-    int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag)
+    int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag, BundleInfo &bundleInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d: customProcessFlag: %{public}s", uid, customProcessFlag.c_str());
+    if (!AAFwk::AppUtils::GetInstance().InOnNewProcessEnableList(bundleInfo.name)) {
+        return nullptr;
+    }
     auto appRunningMap = GetAppRunningRecordMap();
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
