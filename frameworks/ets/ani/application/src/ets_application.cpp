@@ -83,7 +83,7 @@ bool SetNativeContextLong(ani_env *env, std::shared_ptr<Context> context, ani_cl
     }
     ani_status status = ANI_ERROR;
     ani_method method {};
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return false;
     }
@@ -127,7 +127,7 @@ void SetCreateCompleteCallback(ani_env *env, std::shared_ptr<std::shared_ptr<Con
     }
     ani_class cls {};
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("Lapplication/Context/Context;", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("C{application.Context.Context}", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return;
     }
@@ -283,7 +283,7 @@ void ApplicationInit(ani_env *env)
     }
     ani_status status = ANI_ERROR;
     ani_namespace ns;
-    status = env->FindNamespace("L@ohos/app/ability/application/application;", &ns);
+    status = env->FindNamespace("C{@ohos.app.ability.application.application}", &ns);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace application failed status: %{public}d", status);
         return;

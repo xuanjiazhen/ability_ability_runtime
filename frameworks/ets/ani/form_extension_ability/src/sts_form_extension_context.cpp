@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* FORM_EXTENSION_CONTEXT_CLASS_NAME = "Lapplication/FormExtensionContext/FormExtensionContext;";
+constexpr const char* FORM_EXTENSION_CONTEXT_CLASS_NAME = "C{application.FormExtensionContext.FormExtensionContext}";
 }
 
 ani_object STSFormExtensionContext::SetFormExtensionContext(
