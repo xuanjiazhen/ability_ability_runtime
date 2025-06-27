@@ -16,8 +16,8 @@
 #define OHOS_ABILITY_RUNTIME_KIOSK_STATUS_H
 
 #include <string>
-
-#include "parcel.h"
+#include "iremote_object.h"
+#include "dp_parcel.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -25,15 +25,15 @@ namespace AAFwk {
  * @struct KioskStatus
  * KioskStatus is used to save information about Kiosk mode.
  */
-struct KioskStatus : public Parcelable {
-    bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
-    static KioskStatus *Unmarshalling(Parcel &parcel);
+struct KioskStatus : public DpParcel {
+    bool Marshalling(MessageParcel& parcel) const override;
+    bool UnMarshalling(MessageParcel& parcel) override;
     void Clear();
 
     bool isKioskMode_ = false;
     std::string kioskBundleName_;
     int32_t kioskBundleUid_{};
+    sptr<IRemoteObject> kioskToken_;
 };
 } // namespace AAFwk
 } // namespace OHOS
