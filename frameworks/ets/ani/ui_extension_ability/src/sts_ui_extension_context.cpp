@@ -36,13 +36,13 @@ int32_t g_serialNumber = 0;
 static std::map<EtsUIExtensionConnectionKey, sptr<EtsUIExtensionConnection>, Etskey_compare> g_connects;
 
 constexpr const int FAILED_CODE = -1;
-constexpr const char *UI_CONTEXT_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext;";
-constexpr const char *CONNECT_OPTIONS_CLASS_NAME = "Lability/connectOptions/ConnectOptionsInner;";
-constexpr const char *SIGNATURE_ONCONNECT = "LbundleManager/ElementName/ElementName;L@ohos/rpc/rpc/IRemoteObject;:V";
-constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/ElementName;:V";
+constexpr const char *UI_CONTEXT_CLASS_NAME = "application.UIExtensionContext.UIExtensionContext";
+constexpr const char *CONNECT_OPTIONS_CLASS_NAME = "ability.connectOptions.ConnectOptionsInner";
+constexpr const char *SIGNATURE_ONCONNECT = "C{bundleManager.ElementName.ElementName}C{@ohos.rpc.rpc.IRemoteObject}:";
+constexpr const char *SIGNATURE_ONDISCONNECT = "C{bundleManager.ElementName.ElementName}:";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:D";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:d";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "dC{utils.AbilityUtils.AsyncCallbackWrapper}:";
 }
 
 static void TerminateSelfSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object obj,
@@ -489,18 +489,18 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
         ani_native_function { "terminateSelfWithResultSync", nullptr,
             reinterpret_cast<ani_int*>(TerminateSelfWithResultSync) },
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(StartAbility) },
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-            "AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+            "AsyncCallbackWrapper;:",
             reinterpret_cast<void*>(StartAbilityWithOption) },
         ani_native_function { "nativeStartAbilityForResult",
-            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(StartAbilityForResult) },
         ani_native_function { "nativeStartAbilityForResult",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-            "AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+            "AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(StartAbilityForResultWithOptions) },
         ani_native_function { "setColorMode", nullptr,
             reinterpret_cast<void*>(StsUIExtensionContext::NativeSetColorMode)},

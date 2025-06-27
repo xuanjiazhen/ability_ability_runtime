@@ -27,7 +27,7 @@ ani_object WrapAbilityResult(ani_env *env, int32_t resultCode, const AAFwk::Want
     ani_status status = ANI_ERROR;
     ani_method ctor = nullptr;
     ani_object result_obj = {};
-    static const char *className = "Lability/abilityResult/AbilityResultInner;";
+    static const char *className = "ability.abilityResult.AbilityResultInner";
 
     if ((status = env->FindClass(className, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);

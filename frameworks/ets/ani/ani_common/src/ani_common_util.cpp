@@ -23,14 +23,14 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
-constexpr const char* CLASSNAME_BOOLEAN = "Lstd/core/Boolean;";
-constexpr const char* CLASSNAME_INT = "Lstd/core/Int;";
-constexpr const char* CLASSNAME_LONG = "Lstd/core/Long;";
-constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
-constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
-constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "Lutils/AbilityUtils/AsyncCallbackWrapper;";
-constexpr const char* SET_OBJECT_VOID_SIGNATURE = "ILstd/core/Object;:V";
+constexpr const char* CLASSNAME_DOUBLE = "std.core.Double";
+constexpr const char* CLASSNAME_BOOLEAN = "std.core.Boolean";
+constexpr const char* CLASSNAME_INT = "std.core.Int";
+constexpr const char* CLASSNAME_LONG = "std.core.Long";
+constexpr const char* CLASSNAME_STRING = "std.core.String";
+constexpr const char* CLASSNAME_ARRAY = "escompat.Array";
+constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "utils.AbilityUtils.AsyncCallbackWrapper";
+constexpr const char* SET_OBJECT_VOID_SIGNATURE = "iC{Lstd.core.Object}:";
 }
 
 bool GetIntByName(ani_env *env, ani_object param, const char *name, int &value)
@@ -75,7 +75,7 @@ bool GetBoolOrUndefined(ani_env *env, ani_object param, const char *name)
         TAG_LOGW(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
         return false;
     }
-    if ((status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(obj), "unboxed", ":Z", &res)) !=
+    if ((status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(obj), "unboxed", ":z", &res)) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return res;
@@ -258,7 +258,7 @@ bool SetFieldArrayString(ani_env *env, ani_class cls, ani_object object, const s
         return false;
     }
 
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;
@@ -278,7 +278,7 @@ bool SetFieldArrayString(ani_env *env, ani_class cls, ani_object object, const s
             return false;
         }
 
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, string);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", i, string);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
             return false;
@@ -350,7 +350,7 @@ ani_object createDouble(ani_env *env, ani_double value)
         return nullptr;
     }
     ani_method personInfoCtor;
-    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "D:V", &personInfoCtor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "d:", &personInfoCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
@@ -371,7 +371,7 @@ ani_object createBoolean(ani_env *env, ani_boolean value)
         return nullptr;
     }
     ani_method personInfoCtor;
-    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "Z:V", &personInfoCtor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "z:", &personInfoCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
@@ -392,7 +392,7 @@ ani_object createInt(ani_env *env, ani_int value)
         return nullptr;
     }
     ani_method ctor;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "I:V", &ctor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "i:", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "Class_FindMethod status : %{public}d", status);
         return nullptr;
     }
@@ -413,7 +413,7 @@ ani_object createLong(ani_env *env, ani_long value)
         return nullptr;
     }
     ani_method personInfoCtor;
-    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "J:V", &personInfoCtor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "l:", &personInfoCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }
@@ -761,7 +761,7 @@ bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, st
     for (int i = 0; i < static_cast<int>(length); i++) {
         ani_ref stringEntryRef;
         status = env->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(arrayObj),
-            "$_get", "I:Lstd/core/Object;", &stringEntryRef, (ani_int)i);
+            "$_get", "i:C{std.core.Object}", &stringEntryRef, (ani_int)i);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d, index: %{public}d", status, i);
             return false;
@@ -890,13 +890,13 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
     ani_object arrayObj;
     ani_string string = nullptr;
 
-    ani_status status = env->FindClass("Lescompat/Array;", &arrayCls);
+    ani_status status = env->FindClass("escompat.Array", &arrayCls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
     }
 
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
@@ -916,7 +916,7 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
             return false;
         }
 
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, string);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", i, string);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
             return false;
@@ -961,7 +961,7 @@ bool WrapArrayString(ani_env *env, ani_object &arrayObj, const std::vector<std::
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;
     }
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return false;

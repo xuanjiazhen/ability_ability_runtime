@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* LONG_CLASS = "Lstd/core/Long;";
+constexpr const char* LONG_CLASS = "std.core.Long";
 
 ani_object createLong(ani_env *env, ani_long value)
 {
@@ -31,7 +31,7 @@ ani_object createLong(ani_env *env, ani_long value)
         return nullptr;
     }
     ani_method personInfoCtor;
-    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "J:V", &personInfoCtor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(persion_cls, "<ctor>", "l:", &personInfoCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
         return nullptr;
     }

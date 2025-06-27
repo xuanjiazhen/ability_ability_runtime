@@ -50,7 +50,7 @@ ani_object STSAbilityStageContext::CreateStsAbilityStageContext(ani_env* env, st
     }
 
     ani_method method = nullptr;
-    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":V", &method);
+    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
         return nullptr;
@@ -158,7 +158,7 @@ void STSAbilityStageContext::ConfigurationUpdated(ani_env* env,
     }
 
     ani_method method = nullptr;
-    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":V", &method);
+    status = env->Class_FindMethod(abilityStageCtxCls, "<ctor>", ":", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "call Class_FindMethod ctor failed");
     }
@@ -169,7 +169,7 @@ void STSAbilityStageContext::ConfigurationUpdated(ani_env* env,
     }
 
     method = nullptr;
-    status = env->Class_FindMethod(abilityStageCtxCls, "onUpdateConfiguration", "LConfiguration;:V", &method);
+    status = env->Class_FindMethod(abilityStageCtxCls, "onUpdateConfiguration", "C{Configuration}:", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "Class_FindMethod FAILED");
         return;
