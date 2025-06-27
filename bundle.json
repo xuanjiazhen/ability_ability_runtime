@@ -280,7 +280,7 @@
             "header": {
               "header_base": "//foundation/ability/ability_runtime/ets_environment/interfaces/inner_api",
               "header_files": [
-                "ets_environment.h"
+                "ets_envsetup.h"
               ]
             },
             "name": "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment:ets_environment"

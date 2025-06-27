@@ -257,5 +257,17 @@ HWTEST_F(EtsRuntimeTest, LoadEtsModule_100, TestSize.Level1)
     auto env = etsRuntime->LoadEtsModule(moduleName, modulePath, hapPath, srcEntrance);
     EXPECT_EQ(env, nullptr);
 }
+
+/**
+ * @tc.name: GetLanguage_100
+ * @tc.desc: EtsRuntime test for GetLanguage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, GetLanguage_100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    auto language = etsRuntime->GetLanguage();
+    EXPECT_EQ(language, Runtime::Language::ETS);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

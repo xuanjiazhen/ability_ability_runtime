@@ -20,6 +20,7 @@
 #include "ani_common_want.h"
 #include "ani_remote_object.h"
 #include "configuration_utils.h"
+#include "ets_envsetup.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_service_extension_context.h"

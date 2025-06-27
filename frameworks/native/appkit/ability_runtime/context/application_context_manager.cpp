@@ -90,13 +90,13 @@ void ApplicationContextManager::RemoveGlobalObject(napi_env env)
 }
 
 void ApplicationContextManager::SetEtsGlobalObject(
-    std::shared_ptr<AbilityRuntime::ETSNativeReference> applicationContextObj)
+    std::shared_ptr<EtsEnv::ETSNativeReference> applicationContextObj)
 {
     std::lock_guard<std::mutex> lock(applicationContextMutex_);
     etsApplicationContextRef_ = applicationContextObj;
 }
 
-std::shared_ptr<AbilityRuntime::ETSNativeReference> ApplicationContextManager::GetEtsGlobalObject()
+std::shared_ptr<EtsEnv::ETSNativeReference> ApplicationContextManager::GetEtsGlobalObject()
 {
     std::lock_guard<std::mutex> lock(applicationContextMutex_);
     return etsApplicationContextRef_;
