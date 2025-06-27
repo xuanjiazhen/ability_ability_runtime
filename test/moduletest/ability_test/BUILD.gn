@@ -58,9 +58,11 @@ ohos_moduletest("ability_moduletest") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
   ]
 
@@ -74,6 +76,7 @@ ohos_moduletest("ability_moduletest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -87,6 +90,7 @@ ohos_moduletest("ability_moduletest") {
     "relational_store:native_rdb",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
 
   if (ability_runtime_graphics) {
@@ -122,6 +126,8 @@ ohos_moduletest("ability_conetxt_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -134,6 +140,7 @@ ohos_moduletest("ability_conetxt_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -146,6 +153,7 @@ ohos_moduletest("ability_conetxt_test") {
     "relational_store:native_rdb",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
   if (ability_runtime_graphics) {
     external_deps += [
@@ -166,6 +174,7 @@ ohos_moduletest("ability_thread_call_request_module_test") {
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -177,11 +186,13 @@ ohos_moduletest("ability_thread_call_request_module_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_napi",
     "napi:ace_napi",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
 }
 
@@ -208,6 +219,7 @@ ohos_moduletest("data_ability_operation_moduletest") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
   ]
 
   external_deps = [
@@ -220,6 +232,7 @@ ohos_moduletest("data_ability_operation_moduletest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -232,6 +245,7 @@ ohos_moduletest("data_ability_operation_moduletest") {
     "relational_store:native_rdb",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
 
   if (ability_runtime_graphics) {
@@ -267,6 +281,8 @@ ohos_moduletest("data_ability_helper_module_test") {
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -286,6 +302,7 @@ ohos_moduletest("data_ability_helper_module_test") {
     "relational_store:native_appdatafwk",
     "relational_store:native_dataability",
     "relational_store:native_rdb",
+    "window_manager:sms",
   ]
 
   if (ability_runtime_graphics) {
@@ -315,6 +332,7 @@ ohos_moduletest("ability_post_event_timeout_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [

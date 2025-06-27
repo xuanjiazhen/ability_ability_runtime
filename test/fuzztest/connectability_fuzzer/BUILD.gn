@@ -50,6 +50,8 @@ ohos_fuzztest("ConnectAbilityFuzzTest") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
+    "${ability_runtime_path}/services/abilitymgr:abilityms_target",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
   ]
 
   external_deps = [

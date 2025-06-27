@@ -53,6 +53,7 @@ ohos_unittest("assert_fault_callback_death_mgr_test") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_path}/utils/server/startup:startup_util",

@@ -48,11 +48,13 @@ ohos_unittest("cj_ui_ability_test") {
   ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
@@ -64,6 +66,7 @@ ohos_unittest("cj_ui_ability_test") {
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_path}/services/abilitymgr:abilityms_target",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:event_report",
   ]
@@ -81,6 +84,7 @@ ohos_unittest("cj_ui_ability_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",

@@ -38,7 +38,10 @@ ohos_unittest("cj_ability_connect_callback_object_test") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+  ]
 
   external_deps = [
     "ability_base:want",

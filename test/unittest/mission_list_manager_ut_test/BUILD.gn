@@ -39,6 +39,7 @@ ohos_unittest("mission_list_manager_ut_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
@@ -57,6 +58,7 @@ ohos_unittest("mission_list_manager_ut_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -68,6 +70,7 @@ ohos_unittest("mission_list_manager_ut_test") {
     "relational_store:native_dataability",
     "relational_store:native_rdb",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
 
   if (background_task_mgr_continuous_task_enable) {
