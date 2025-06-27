@@ -49,6 +49,18 @@ bool GetAniStringArray(ani_env *env, const std::vector<std::string> &values, ani
 ani_object CreateDouble(ani_env *env, ani_double value);
 ani_object CreateBoolean(ani_env *env, ani_boolean value);
 
+bool IsExistsProperty(ani_env *env, ani_object param, const char *name);
+bool GetStringProperty(ani_env *env, ani_object param, const char *name, std::string &value);
+bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
+bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value);
+bool GetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double &value);
+bool GetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref &value);
+
+bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double value);
+bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double value);
+bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, const std::vector<std::string> &values);
+bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref value);
+
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
 } // namespace AppExecFwk
 } // namespace OHOS
