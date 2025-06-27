@@ -1167,6 +1167,9 @@ ohos_shared_library("ui_service_extension") {
     "${ability_runtime_path}/utils/global/freeze/include",
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+    "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
   ]
 
   sources = [
@@ -1174,6 +1177,8 @@ ohos_shared_library("ui_service_extension") {
     "${ability_runtime_native_path}/ability/native/ui_service_extension_ability/js_ui_service_extension_context.cpp",
     "${ability_runtime_native_path}/ability/native/ui_service_extension_ability/ui_service_extension.cpp",
     "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/ui_service_extension_context.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/src/ets_ui_service_extension_context.cpp",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_service_extension_ability/src/ets_ui_service_extension.cpp",
   ]
 
   deps = [
@@ -1196,6 +1201,7 @@ ohos_shared_library("ui_service_extension") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
 
   external_deps = [
@@ -1212,6 +1218,7 @@ ohos_shared_library("ui_service_extension") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "ipc:rpc_ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
