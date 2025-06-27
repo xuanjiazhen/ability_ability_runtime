@@ -4797,6 +4797,11 @@ int32_t AbilityManagerStub::GetKioskStatusInner(MessageParcel &data, MessageParc
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_WRITE_RESULT_CODE_FAILED;
     }
+
+    if (kioskStatus.kioskToken_ != nullptr && !reply.WriteRemoteObject(kioskStatus.kioskToken_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_CALLER_TOKEN_FAILED;
+    }
     return NO_ERROR;
 }
 
