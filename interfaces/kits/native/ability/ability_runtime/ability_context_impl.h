@@ -368,6 +368,7 @@ public:
     ErrCode StopAppServiceExtensionAbility(const Want& want) override;
     ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want,
         const sptr<AbilityConnectCallback>& connectCallback) override;
+    ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;

@@ -260,6 +260,10 @@ class AbilityContext extends Context {
   disconnectAppServiceExtensionAbility(connection, callback) {
     return this.__context_impl__.disconnectAppServiceExtensionAbility(connection, callback);
   }
+
+  setOnNewWantSkipScenarios(scenarios) {
+    return this.__context_impl__.setOnNewWantSkipScenarios(scenarios);
+  }
 }
 
 export default AbilityContext;
