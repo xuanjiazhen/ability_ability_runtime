@@ -199,36 +199,54 @@ bool RegisterETSEnvFuncs()
 }
 } // namespace
 
-std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options& options)
 {
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
-    if (jsRuntime == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null jsRuntime");
-        return std::unique_ptr<ETSRuntime>();
-    }
-    std::unique_ptr<ETSRuntime> instance;
-    if (!options.preload) {
-        auto preloadedInstance = Runtime::GetPreloaded();
-#ifdef SUPPORT_SCREEN
-        // reload ace if compatible mode changes
-        if (Ace::AceForwardCompatibility::PipelineChanged() && preloadedInstance) {
-            preloadedInstance.reset();
-        }
-#endif
-        if (preloadedInstance && preloadedInstance->GetLanguage() == Runtime::Language::ETS) {
-            instance.reset(static_cast<ETSRuntime *>(preloadedInstance.release()));
-        } else {
-            instance = std::make_unique<ETSRuntime>();
-        }
-    } else {
-        instance = std::make_unique<ETSRuntime>();
-    }
-
-    if (!instance->Initialize(options, jsRuntime)) {
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreFork begin");
+    std::unique_ptr<ETSRuntime> instance = std::make_unique<ETSRuntime>();
+    if (!instance->Initialize(options)) {
         return std::unique_ptr<ETSRuntime>();
     }
     EntryPathManager::GetInstance().Init();
+    return instance;
+}
 
+void ETSRuntime::PostFork(const Options &options, JsRuntime* jsRuntime)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostFork begin");
+    codePath_ = options.codePath;
+
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->PostFork == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PostFork");
+        return;
+    }
+
+    std::string aotFilePath = "";
+    if (!options.arkNativeFilePath.empty()) {
+        aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
+    }
+    napi_env napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime)->GetNapiEnv();
+    g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath);
+}
+ 
+std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options& options, JsRuntime* jsRuntime)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    std::unique_ptr<ETSRuntime> instance;
+    auto preloadedInstance = Runtime::GetPreloaded(options.lang);
+#ifdef SUPPORT_SCREEN
+    // reload ace if compatible mode changes
+    if (Ace::AceForwardCompatibility::PipelineChanged() && preloadedInstance) {
+        preloadedInstance.reset();
+    }
+#endif
+    if (preloadedInstance && preloadedInstance->GetLanguage() == Runtime::Language::STS) {
+        instance.reset(static_cast<ETSRuntime*>(preloadedInstance.release()));
+    } else {
+        instance = PreFork(options);
+    }
+
+    instance->PostFork(options, jsRuntime);
     return instance;
 }
 
@@ -275,6 +293,16 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &
     apiTargetVersion_ = options.apiTargetVersion;
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
     return true;
+}
+
+void ETSRuntime::FinishPreload()
+{
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->FinishPreload == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or FinishPreload");
+        return;
+    }
+    g_etsEnvFuncs->FinishPreload();
 }
 
 void ETSRuntime::RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo)

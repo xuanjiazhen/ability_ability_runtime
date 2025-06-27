@@ -65,7 +65,7 @@ public:
         bool isEsMode, bool useCommonTrunk) override {}
     void PreloadModule(
         const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
-    void FinishPreload() override {}
+    void FinishPreload() override;
     bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override { return false; }
     bool NotifyHotReloadPage() override { return false; }
     bool UnLoadRepairPatch(const std::string &patchFile) override { return false; }
@@ -87,6 +87,7 @@ public:
         bool useCommonChunk, const std::string &srcEntrance);
     bool HandleUncaughtError();
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
+    static std::unique_ptr<ETSRuntime> PreFork(const Options& options);
 
 private:
     bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
@@ -94,6 +95,7 @@ private:
     bool CreateEtsEnv(const Options &options, Runtime *jsRuntime);
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsModule(const std::string &moduleName,
         const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance);
+    void PostFork(const Options &options, JsRuntime* jsRuntime);
     int32_t apiTargetVersion_ = 0;
     std::string codePath_;
     std::string moduleName_;

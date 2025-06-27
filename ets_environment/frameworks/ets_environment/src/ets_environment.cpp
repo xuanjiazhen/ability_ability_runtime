@@ -26,6 +26,7 @@
 
 #include "dynamic_loader.h"
 #include "elf_factory.h"
+#include "ets_ani_expo.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "unwinder.h"
@@ -203,7 +204,7 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
     dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
 }
 
-bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
+bool ETSEnvironment::Initialize(const std::string &aotPath)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");
     if (!LoadRuntimeApis()) {
@@ -217,13 +218,13 @@ bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
     }
 
     std::vector<ani_option> options;
-    std::string aotPathString = "";
-    if (!aotPath.empty()) {
-        aotPathString = "--ext:--aot-file=" + aotPath;
-        options.push_back(ani_option { aotPathString.data(), nullptr });
-        options.push_back(ani_option { "--ext:--enable-an", nullptr });
-        TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());
-    }
+    // std::string aotPathString = "";
+    // if (!aotPath.empty()) {
+    //     aotPathString = "--ext:--aot-file=" + aotPath;
+    //     options.push_back(ani_option { aotPathString.data(), nullptr });
+    //     options.push_back(ani_option { "--ext:--enable-an", nullptr });
+    //     TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());
+    // }
     // Create boot-panda-files options
     std::string bootString = "--ext:--boot-panda-files=" + bootfiles;
     options.push_back(ani_option { bootString.data(), nullptr });
@@ -232,7 +233,7 @@ bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
     options.push_back(ani_option { "--ext:--verification-enabled=true", nullptr });
     options.push_back(ani_option { "--ext:--verification-mode=on-the-fly", nullptr });
-    options.push_back(ani_option { "--ext:interop", napiEnv });
+    //options.push_back(ani_option { "--ext:interop", napiEnv });
     ani_options optionsPtr = { options.size(), options.data() };
     ani_status status = ANI_ERROR;
     if ((status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.aniVm_)) != ANI_OK) {
@@ -479,6 +480,32 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     return true;
 }
 
+void ETSEnvironment::FinishPreload() {
+    ani_env* env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
+        return;
+    }
+    ark::ets::ETSAni::Prefork(env);
+}
+
+void ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath)
+{
+    std::vector<ani_option> options;
+    std::string aotPathString = "";
+    if (!aotPath.empty()) {
+        aotPathString = "--ext:--aot-file=" + aotPath;
+        options.push_back(ani_option { aotPathString.data(), nullptr });
+        options.push_back(ani_option { "--ext:--enable-an", nullptr });
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());
+    }
+
+    options.push_back(ani_option { "--ext:interop", napiEnv });
+
+    ani_env* aniEnv = GetAniEnv();
+    ark::ets::ETSAni::Postfork(aniEnv, options);
+}
+
 ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
 {
     static ETSEnvFuncs funcs {
@@ -503,6 +530,12 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         .LoadModule = [](const std::string &modulePath, const std::string &srcEntrance, void *&cls,
              void *&obj,  void *&ref) {
             return ETSEnvironment::GetInstance()->LoadModule(modulePath, srcEntrance, cls, obj, ref);
+        }
+        .FinishPreload = []() {
+            ETSEnvironment::GetInstance()->FinishPreload();
+        }
+        .PostFork = [](void *napiEnv, const std::string &aotPath) {
+            ETSEnvironment::GetInstance()->PostFork(napiEnv, aotPath);
         }
     };
     return &funcs;
