@@ -20,6 +20,7 @@
 #include "ability_manager_interface.h"
 #include "ability_util.h"
 #include "hilog_tag_wrapper.h"
+#include "hitrace_chain_utils.h"
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -45,6 +46,7 @@ ErrCode WantAgentClient::GetWantSender(
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, sptr<IWantSender> &wantSender,
     int32_t uid)
 {
+    Ability_MANAGER_HITRACE_CHAIN_NAME("GetWantSender", HITRACE_FLAG_INCLUDE_ASYNC);
     auto abms = GetAbilityManager();
     CHECK_POINTER_AND_RETURN(abms, ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_BUSY);
     MessageParcel data;
@@ -144,7 +146,11 @@ ErrCode WantAgentClient::SendLocalWantSender(const SenderInfo &senderInfo)
         TAG_LOGE(AAFwkTag::WANTAGENT, "send request error: %{public}d", error);
         return ERR_ABILITY_RUNTIME_EXTERNAL_SERVICE_TIMEOUT;
     }
-    return reply.ReadInt32();
+    const auto res = reply.ReadInt32();
+    if (res == CHECK_PERMISSION_FAILED) {
+        return ERR_ABILITY_RUNTIME_EXTERNAL_NO_ACCESS_PERMISSION;
+    }
+    return res;
 }
 
 ErrCode WantAgentClient::CancelWantSender(const sptr<IWantSender> &sender, uint32_t flags)

@@ -38,7 +38,7 @@ bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, dou
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(field, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -93,7 +93,7 @@ bool GetFieldBoolByName(ani_env *env, ani_object object, const char *name, bool 
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(field, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -102,7 +102,7 @@ bool GetFieldBoolByName(ani_env *env, ani_object object, const char *name, bool 
         TAG_LOGE(AAFwkTag::ANI, "%{public}s: undefined", name);
         return false;
     }
-    ani_boolean aniValue = false;
+    ani_boolean aniValue = ANI_FALSE;
     if ((status = env->Object_CallMethodByName_Boolean(
         reinterpret_cast<ani_object>(field), "booleanValue", nullptr, &aniValue)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
@@ -143,7 +143,7 @@ bool GetFieldStringByName(ani_env *env, ani_object object, const char *name, std
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(field, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -244,7 +244,7 @@ bool GetFieldStringArrayByName(ani_env *env, ani_object object, const char *name
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(arrayObj, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -336,7 +336,7 @@ bool GetFieldRefByName(ani_env *env, ani_object object, const char *name, ani_re
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(ref, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -435,17 +435,17 @@ ani_object CreateBoolean(ani_env *env, ani_boolean value)
         return nullptr;
     }
     ani_status status = ANI_ERROR;
-    ani_class cls;
+    ani_class cls = nullptr;
     if ((status = env->FindClass(CLASSNAME_BOOL, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return nullptr;
     }
-    ani_method ctor;
+    ani_method ctor = nullptr;
     if ((status = env->Class_FindMethod(cls, "<ctor>", "Z:V", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return nullptr;
     }
-    ani_object obj;
+    ani_object obj = nullptr;
     if ((status = env->Object_New(cls, ctor, &obj, value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return nullptr;
@@ -455,14 +455,18 @@ ani_object CreateBoolean(ani_env *env, ani_boolean value)
 
 bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
     ani_status status = ANI_ERROR;
-    ani_class clsCall {};
+    ani_class clsCall = nullptr;
 
     if ((status = env->FindClass(CLASSNAME_ASYNC_CALLBACK_WRAPPER, &clsCall)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    ani_method method {};
+    ani_method method = nullptr;
     if ((status = env->Class_FindMethod(
         clsCall, "invoke", "L@ohos/base/BusinessError;Lstd/core/Object;:V", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);

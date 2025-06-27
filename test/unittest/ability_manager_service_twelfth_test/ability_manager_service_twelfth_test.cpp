@@ -1227,6 +1227,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, SuspendExtensionAbility_001, TestSize
     connect = new AbilityConnectCallback();
     EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), ERR_NO_INIT);
 
+    MyFlag::flag_ = false;
+    EXPECT_EQ(abilityMs_->SuspendExtensionAbility(connect), CHECK_PERMISSION_FAILED);
+
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest SuspendExtensionAbility_001 end");
 }
 
@@ -1247,7 +1250,60 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, ResumeExtensionAbility_001, TestSize.
     connect = new AbilityConnectCallback();
     EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), ERR_NO_INIT);
 
+    MyFlag::flag_ = false;
+    EXPECT_EQ(abilityMs_->ResumeExtensionAbility(connect), CHECK_PERMISSION_FAILED);
+
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest ResumeExtensionAbility_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnAbilityDied
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnAbilityDied
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, OnAbilityDied_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    sptr<IRemoteObject> token = MockToken(AbilityType::PAGE);
+    std::shared_ptr<AbilityRecord> abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    EXPECT_NE(abilityRecord, nullptr);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = false;
+    abilityMs->OnAbilityDied(abilityRecord);
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    abilityMs->OnAbilityDied(abilityRecord);
+    EXPECT_NE(abilityRecord->GetToken(), nullptr);
+    KioskManager::GetInstance().whitelist_.emplace(abilityRecord->GetAbilityInfo().bundleName);
+    abilityMs->OnAbilityDied(abilityRecord);
+    if (system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
+        EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskBundleName_, "");
+    }
+    EXPECT_FALSE(abilityMs->VerificationToken(token));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest OnAbilityDied_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    sptr<IAbilityConnection> connect = nullptr;
+
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_INVALID_VALUE);
+
+    connect = new AbilityConnectCallback();
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

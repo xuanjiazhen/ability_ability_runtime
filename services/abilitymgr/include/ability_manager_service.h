@@ -1533,12 +1533,7 @@ public:
      */
     virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) override;
 
-    /**
-     * Start specified ability by SCB.
-     *
-     * @param want Want information.
-     */
-    virtual void StartSpecifiedAbilityBySCB(const Want &want) override;
+    virtual int32_t StartSpecifiedAbilityBySCB(const Want &want) override;
 
     /**
      * Notify sandbox app the result of saving file.
@@ -2759,11 +2754,11 @@ private:
 
     std::string GetConfigFileAbsolutePath(const std::string &relativePath);
 
-    int32_t ParseJsonValueFromFile(nlohmann::json &value, const std::string& fullPath);
+    int32_t ParseJsonValueFromFile(cJSON *&value, const std::string& fullPath);
 
     bool ConvertFullPath(const std::string& partialPath, std::string& fullPath);
 
-    bool GetJsonFromFile(const char *filePath, Json::Value &root);
+    bool GetJsonFromFile(const char *filePath, cJSON *root);
 
     bool ParseJsonFromBoot(const std::string &relativePath);
 
@@ -2795,6 +2790,7 @@ private:
 
     int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
         bool removeInsightIntentFlag);
+    int32_t KillProcessWithReasonInner(int32_t pid, const ExitReason &reason);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
@@ -2834,7 +2830,7 @@ private:
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
-    std::shared_ptr<AbilityEventUtil> abilityEventHelper_;
+    AbilityEventUtil abilityEventHelper_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -115,14 +115,21 @@ constexpr const char* ERR_MSG_GET_FILE_URIS_BY_KEY_FAILED = "Failed to get the f
 constexpr const char* ERR_MSG_NO_PERMISSION_GRANT_URI = "No permission to authorize the URI.";
 constexpr const char* ERR_MSG_INVALID_CALLER_TOKENID = "The caller token ID is invalid.";
 constexpr const char* ERR_MSG_INVALID_TARGET_TOKENID = "The target token ID is invalid.";
-constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type";
-constexpr const char* ERROR_MSG_CHANGE_KEEP_ALIVE = "Can not change keep alive status";
-constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1";
+constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type.";
+constexpr const char* ERROR_MSG_CHANGE_KEEP_ALIVE = "Cannot change the keep-alive status.";
+constexpr const char* ERROR_MSG_NO_U1 = "The target bundle is not in u1.";
 constexpr const char* ERROR_MSG_KIOSK_MODE_NOT_IN_WHITELIST = "The current application is not in the kiosk whitelist.";
 constexpr const char* ERROR_MSG_ALREADY_IN_KIOSK_MODE = "The system is already in the kiosk mode.";
 constexpr const char* ERROR_MSG_NOT_IN_KIOSK_MODE =
     "The current application is not in the kiosk mode. Exit is not allowed.";
 constexpr const char* ERROR_MSG_APP_NOT_IN_FOCUS = "The current ability is not foreground.";
+
+constexpr const char* ERROR_MSG_NOT_ISOLATION_PROCESS = "The current process is not running a component configured "
+                                        "with \"isolationProcess\" and cannot be set as a candidate master process.";
+constexpr const char* ERROR_MSG_ALREADY_MASTER_PROCESS =
+    "The current process is already a master process and does not support cancellation.";
+constexpr const char* ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS =
+    "The current process is not a candidate master process and does not support cancellation.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -214,6 +221,9 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE, ERROR_MSG_ALREADY_IN_KIOSK_MODE},
     { AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE, ERROR_MSG_NOT_IN_KIOSK_MODE},
     { AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS, ERROR_MSG_APP_NOT_IN_FOCUS},
+    { AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS, ERROR_MSG_NOT_ISOLATION_PROCESS},
+    { AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS, ERROR_MSG_ALREADY_MASTER_PROCESS},
+    { AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS, ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS },
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -307,6 +317,9 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_ALREADY_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_ALREADY_IN_KIOSK_MODE},
     {ERR_NOT_IN_KIOSK_MODE, AbilityErrorCode::ERROR_CODE_NOT_IN_KIOSK_MODE},
     {ERR_APP_NOT_IN_FOCUS, AbilityErrorCode::ERROR_CODE_APP_NOT_IN_FOCUS},
+    {ERR_NOT_ISOLATION_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS},
+    {ERR_ALREADY_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS},
+    {ERR_NOT_CANDIDATE_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS},
 };
 }
 
