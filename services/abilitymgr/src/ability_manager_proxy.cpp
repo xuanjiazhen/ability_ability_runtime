@@ -6770,6 +6770,10 @@ int32_t AbilityManagerProxy::EnterKioskMode(sptr<IRemoteObject> callerToken)
 
 int32_t AbilityManagerProxy::ExitKioskMode(sptr<IRemoteObject> callerToken)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 1");
+    KioskStatus kioskStatus;
+    GetKioskStatus(kioskStatus);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 1-1");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -6821,6 +6825,11 @@ int32_t AbilityManagerProxy::GetKioskStatus(KioskStatus &kioskStatus)
         return ERR_READ_RESULT_PARCEL_FAILED;
     }
     kioskStatus = *info;
+    sptr<IRemoteObject> token = reply.ReadRemoteObject();
+    if (token != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt 1-1-1");
+        kioskStatus.kioskToken_ = token;
+    }
     return reply.ReadInt32();
 }
 
