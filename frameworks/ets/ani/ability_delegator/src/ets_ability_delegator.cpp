@@ -507,5 +507,23 @@ bool EtsAbilityDelegator::ParseMonitorParaInner(ani_env *env, ani_object monitor
     return true;
 }
 
+ani_ref GetCurrentTopAbilitySync(ani_env* env)
+{
+    TAG_LOGD(AAFwkTag::DELEGATOR, "called");
+    ani_object objValue = nullptr;
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::STS);
+    if (delegator != nullptr) {
+        auto property = delegator->GetCurrentTopAbility();
+        if (!property || property->stsObject_.expired()) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "invalid property");
+            return {};
+        }
+        return property->stsObject_.lock()->aniRef;
+    } else {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "delegator is nullptr");
+        return {};
+    }
+    return objValue;
+}
 } // namespace AbilityDelegatorEts
 } // namespace OHOS

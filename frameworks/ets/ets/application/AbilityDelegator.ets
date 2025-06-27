@@ -19,6 +19,7 @@ import Context from 'application.Context';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import { ShellCmdResult } from 'application.shellCmdResult';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
+import UIAbility from '@ohos.app.ability.UIAbility';
 
 export interface AbilityDelegator {
   printSync(msg: string): void;
@@ -42,6 +43,10 @@ export interface AbilityDelegator {
   startAbility(want: Want, callback: AsyncCallback<void>): void;
 
   startAbility(want: Want): Promise<void>;
+
+  getCurrentTopAbility(callback: AsyncCallback<UIAbility>);
+
+  getCurrentTopAbility(): Promise<UIAbility>;
 }
 
 class AbilityDelegatorInner implements AbilityDelegator {
@@ -58,6 +63,8 @@ class AbilityDelegatorInner implements AbilityDelegator {
   public native nativeAddAbilityMonitor(monitor: AbilityMonitor, callback: AsyncCallbackWrapper<void>): void;
 
   public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  public native GetCurrentTopAbilitySync() : UIAbility;
 
   finishTest(msg: string, code: number, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -162,4 +169,34 @@ class AbilityDelegatorInner implements AbilityDelegator {
     return p;
   }
 
+  getCurrentTopAbility (callback: AsyncCallback<UIAbility>) : void {
+        let p = taskpool.execute(():UIAbility => {return this.GetCurrentTopAbilitySync()});
+        console.log("getCurrentTopAbility callback2_04");
+        p.then((e :NullishType)=>{
+            let ability = e as UIAbility;
+            let resultCode: Int  = 0;
+            let error: BusinessError = { code: resultCode.intValue(), data: undefined };
+            callback(error, ability);
+            console.log("getCurrentTopAbility callback2_06");
+        }).catch((err: BusinessError): void => {
+            console.log("getCurrentTopAbility callback2_0606 err end");
+            callback(err, {});
+        });
+    }
+
+    getCurrentTopAbility() : Promise<UIAbility>{
+        let p = new Promise<UIAbility>((resolve: (v: UIAbility) => void, reject: (error: Object) => void) => {
+            console.log("getCurrentTopAbility promise1_01");
+            let pPromise1 = taskpool.execute(():UIAbility => {return this.GetCurrentTopAbilitySync();});
+            pPromise1.then((e :NullishType)=>{
+                console.log("getCurrentTopAbility promise1_04");
+                let r : UIAbility = e as UIAbility;
+                resolve(r);
+            }).catch((err: BusinessError): void => {
+                reject(err);
+                console.log("getCurrentTopAbility promise1 end");
+          });
+        });
+        return p;
+    }
 }

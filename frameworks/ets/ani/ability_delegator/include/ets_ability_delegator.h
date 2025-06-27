@@ -57,6 +57,8 @@ public:
 private:
     [[maybe_unused]] void RetrieveStringFromAni(ani_env *env, ani_string string, std::string &resString);
 
+    ani_ref GetCurrentTopAbilitySync(ani_env* env);
+
     ani_object WrapShellCmdResult(ani_env* env, std::unique_ptr<AppExecFwk::ShellCmdResult> result);
 
     bool ParseMonitorPara(ani_env *env, ani_object monitorObj,

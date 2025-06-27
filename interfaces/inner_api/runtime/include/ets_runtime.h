@@ -88,6 +88,7 @@ public:
         const std::string &hapPath, bool esmodule, bool useCommonChunk, const std::string &srcEntrance);
     bool HandleUncaughtError();
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
+    bool debugMode_ = false;
 
 private:
     bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
@@ -101,6 +102,9 @@ private:
     static AppLibPathVec appLibPaths_;
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
+    uint32_t instanceId_ = 0;
+    void DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug);
+    void StopDebugMode();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

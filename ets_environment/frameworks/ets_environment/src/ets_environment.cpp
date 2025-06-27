@@ -455,5 +455,25 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     }
     return true;
 }
+
+int32_t ETSEnvironment::ParseHdcRegisterOption(std::string& option)
+{
+    TAG_LOGD(AAFwkTag::JSENV, "Start");
+    std::size_t pos = option.find_first_of(":");
+    if (pos == std::string::npos) {
+        return -1;
+    }
+    std::string idStr = option.substr(pos + 1);
+    pos = idStr.find(DEBUGGER);
+    if (pos == std::string::npos) {
+        return -1;
+    }
+    idStr = idStr.substr(0, pos);
+    pos = idStr.find("@");
+    if (pos != std::string::npos) {
+        idStr = idStr.substr(pos + 1);
+    }
+    return std::atoi(idStr.c_str());
+}
 } // namespace EtsEnv
 } // namespace OHOS
