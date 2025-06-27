@@ -29,12 +29,13 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+class ETSAbilityStageObject;
 class ETSAbilityStage : public AbilityStage {
 public:
     static std::shared_ptr<AbilityStage> Create(
         const std::unique_ptr<Runtime>& runtime, const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
-    ETSAbilityStage(ETSRuntime& etsRuntime, std::unique_ptr<ETSNativeReference>&& ETSAbilityStageObj);
+    ETSAbilityStage(ETSRuntime &etsRuntime);
     ~ETSAbilityStage() override;
 
     void Init(const std::shared_ptr<Context> &context,
@@ -47,7 +48,6 @@ public:
     void OnConfigurationUpdated(const AppExecFwk::Configuration& configuration) override;
 
 private:
-    bool CallObjectMethod(bool withResult, const char* name, const char* signature, ...) const;
 
     std::shared_ptr<AppExecFwk::DelegatorAbilityStageProperty> CreateStageProperty() const;
 
@@ -55,10 +55,8 @@ private:
 
     static bool UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo);
 
-    void SetEtsAbilityStage(const std::shared_ptr<Context> &context);
-
     ETSRuntime& etsRuntime_;
-    std::unique_ptr<ETSNativeReference> etsAbilityStageObj_;
+    std::shared_ptr<ETSAbilityStageObject> etsAbilityStageObj_ = nullptr;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

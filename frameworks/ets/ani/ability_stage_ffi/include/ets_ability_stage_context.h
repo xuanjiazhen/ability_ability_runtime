@@ -48,7 +48,6 @@ private:
     std::weak_ptr<Context> context_;
     static ani_ref etsAbilityStageContextObj_;
 };
-
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_ETS_ABILITY_STAGE_CONTEXT_H
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // OHOS_ABILITY_RUNTIME_ETS_ABILITY_STAGE_CONTEXT_H
