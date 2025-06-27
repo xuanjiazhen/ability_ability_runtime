@@ -24,8 +24,10 @@
 #include "js_extension_context.h"
 #include "js_error_utils.h"
 #include "js_data_struct_converter.h"
+#include "js_deferred_callback.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "js_start_abilities_observer.h"
 #include "napi/native_api.h"
 #include "napi_common_ability.h"
 #include "napi_common_want.h"
@@ -45,6 +47,7 @@ constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
+constexpr int32_t INDEX_FOUR = 4;
 constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr size_t ARGC_ZERO = 0;
@@ -126,6 +129,11 @@ public:
     static napi_value StartAbilityWithAccount(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartAbilityWithAccount);
+    }
+
+    static napi_value StartAbilities(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartAbilities);
     }
 
     static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info)
@@ -809,6 +817,84 @@ private:
         return true;
     }
 
+    napi_value OnStartAbilities(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::UI_EXT, "call OnStartAbilities");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Too few parameters.");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+    
+        std::vector<AAFwk::Want> wantList;
+        std::string requestKey = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::
+            system_clock::now().time_since_epoch()).count());
+    
+        if (!UnwrapWantList(env, info, wantList)) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Unwrap wantList param failed.");
+            return CreateJsUndefined(env);
+        }
+        
+        TAG_LOGD(AAFwkTag::UI_EXT, "startAbilities wantListLength: %{public}zu", wantList.size());
+    
+        JsDeferredCallback callback(env);
+        JsStartAbilitiesObserver::GetInstance().AddObserver(requestKey, callback);
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, wantList, requestKey, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "null context");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->StartAbilities(wantList, requestKey);
+        };
+    
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode, weak = context_, requestKey]
+            (napi_env, NapiAsyncTask&, int32_t) {
+                TAG_LOGI(AAFwkTag::UI_EXT, "startAbilities complete innerErrCode: %{public}d", *innerErrCode);
+                if (*innerErrCode == AAFwk::START_ABILITIES_WAITING_SPECIFIED_CODE)  {
+                    TAG_LOGI(AAFwkTag::SERVICE_EXT, "startAbilities waiting specified.");
+                    return;
+                }
+                JsStartAbilitiesObserver::GetInstance().HandleFinished(requestKey, *innerErrCode);
+        };
+    
+        NapiAsyncTask::ScheduleHighQos("JSUIExtensionConnection::OnStartAbilities", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
+        return callback.result;
+    }
+    
+    bool UnwrapWantList(napi_env env, NapiCallbackInfo &info, std::vector<AAFwk::Want> &wantList)
+    {
+        AppExecFwk::ComplexArrayData jsWantList;
+        if (!AppExecFwk::UnwrapArrayComplexFromJS(env, info.argv[INDEX_ZERO], jsWantList)) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "wantList not array.");
+            ThrowInvalidParamError(env, "wantList not array");
+            return false;
+        }
+    
+        size_t jsWantSize = jsWantList.objectList.size();
+        if (jsWantSize < INDEX_ONE || jsWantSize > INDEX_FOUR) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "wantList size not support");
+            ThrowInvalidParamError(env, "wantList size error");
+            return false;
+        }
+    
+        for (uint32_t index = 0; index < jsWantSize; index++) {
+            AAFwk::Want curWant;
+            if (!OHOS::AppExecFwk::UnwrapWant(env, jsWantList.objectList[index], curWant)) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "startAbilities parse want failed");
+                ThrowInvalidParamError(env, "parse want error");
+                return false;
+            }
+            TAG_LOGD(AAFwkTag::UI_EXT, "startAbilities ability:%{public}s",
+                curWant.GetElement().GetAbilityName().c_str());
+            wantList.emplace_back(curWant);
+        }
+        return true;
+    }
+
     bool CheckConnectAbilityWithAccountInputParam(
         napi_env env, NapiCallbackInfo& info,
         AAFwk::Want& want, int32_t& accountId, sptr<JSServiceExtensionConnection>& connection) const
@@ -1470,6 +1556,7 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
         moduleName, JsServiceExtensionContext::DisconnectAbility);
     BindNativeFunction(env, object, "startAbilityWithAccount",
         moduleName, JsServiceExtensionContext::StartAbilityWithAccount);
+    BindNativeFunction(env, object, "startAbilities", moduleName, JsServiceExtensionContext::StartAbilities);
     BindNativeFunction(env, object, "startAbilityByCall",
         moduleName, JsServiceExtensionContext::StartAbilityByCall);
     BindNativeFunction(

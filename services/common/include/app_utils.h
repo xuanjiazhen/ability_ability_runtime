@@ -140,6 +140,13 @@ public:
     bool IsStartOptionsWithAnimation();
 
     /**
+     * IsSupportStartAbilities, check whether the StartAbilities API is supported.
+     *
+     * @return Whether the StartAbilities API is supported.
+     */
+    bool IsSupportStartAbilities();
+
+    /**
      * IsStartOptionsWithAnimation, check whether it is a multi-process model.
      *
      * @return Whether it is a multi-process model.
@@ -424,6 +431,7 @@ private:
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
     volatile DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
+    volatile DeviceConfiguration<bool> isSupportStartAbilities_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;

@@ -22,6 +22,7 @@
 #include "ability_info.h"
 #include "extension_ability_info.h"
 #include "want.h"
+#include "scene_board_judgement.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -59,7 +60,7 @@ struct StartAbilityUtils {
     static std::vector<int32_t> GetCloneAppIndexes(const std::string &bundleName, int32_t userId);
 
     static bool IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken);
-
+    static bool IsSupportStartAbilities();
     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
     static thread_local bool skipCrowTest;

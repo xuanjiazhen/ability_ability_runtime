@@ -22,6 +22,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "js_start_abilities_observer.h"
 #include "ui_extension_utils.h"
 
 namespace OHOS {
@@ -574,6 +575,31 @@ void ExtensionAbilityThread::SendResult(int requestCode, int resultCode, const W
         TAG_LOGE(AAFwkTag::EXT, "PostTask error");
     }
     TAG_LOGD(AAFwkTag::EXT, "End");
+}
+
+void ExtensionAbilityThread::ScheduleAbilitiesRequestDone(const std::string &startTime,
+    const int32_t resultCode)
+{
+    TAG_LOGD(AAFwkTag::EXT, "ScheduleAbilitiesRequestDone");
+    if (abilityHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
+        return;
+    }
+
+    wptr<ExtensionAbilityThread> weak = this;
+    auto task = [weak, startTime, resultCode]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null abilityThread");
+            return;
+        }
+
+        JsStartAbilitiesObserver::GetInstance().HandleFinished(startTime, resultCode);
+    };
+    bool ret = abilityHandler_->PostTask(task);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::EXT, "PostTask error");
+    }
 }
 
 void ExtensionAbilityThread::NotifyMemoryLevel(int32_t level)

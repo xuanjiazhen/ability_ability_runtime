@@ -336,6 +336,18 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
+    
+    /**
+     * @brief start abilities simultaneously.
+     *
+     * @param wantList a list of want to start abilities.
+     * @param requestKey, The unique key of this StartAbilities request.
+     * @param callerToken current caller ability token.
+     * @return Returns ERR_OK if success.
+     */
+    ErrCode StartAbilities(const std::vector<AAFwk::Want> &wantList,
+        const std::string &requestKey, const sptr<IRemoteObject> &callerToken) override;
+
     /**
      * Start ui session ability with extension session info, send session info to ability manager service.
      *
@@ -2543,6 +2555,13 @@ private:
 
     virtual int RegisterSessionHandler(const sptr<IRemoteObject> &object) override;
 
+    int32_t StartAbilitiesHandleWant(std::vector<AbilityRequest> &abilityRequestList,
+        const Want &want, const sptr<IRemoteObject> &callerToken);
+    int32_t StartAbilitiesCheckDlp(const Want &want, const sptr<IRemoteObject> &callerToken);
+    int32_t StartAbilitiesProcessAppIndex(int32_t &appIndex, Want &want,
+        const sptr<IRemoteObject> &callerToken);
+    int32_t StartAbilitiesInterceptorCheck(const Want &want, AbilityRequest &abilityRequest,
+        const sptr<IRemoteObject> &callerToken,  int32_t appIndex);
     /**
      * Start switch user dialog Extension ability.
      */

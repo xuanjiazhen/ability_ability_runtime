@@ -2576,19 +2576,19 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MoveAbilityToFront_001, TestSize.Level1)
 {
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
-    int res = uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, nullptr, nullptr, nullptr, 0);
+    SpecifiedRequest specifiedRequest(0, abilityRequest);
+    int res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, nullptr, nullptr);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 
-    abilityRequest.sessionInfo = new SessionInfo();
-    abilityRequest.appInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
-    res = uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, nullptr, nullptr, 0);
+    specifiedRequest.abilityRequest.sessionInfo = new SessionInfo();
+    specifiedRequest.abilityRequest.appInfo.bundleName = "com.example.unittest";
+    specifiedRequest.abilityRequest.abilityInfo.name = "MainAbility";
+    specifiedRequest.abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(specifiedRequest.abilityRequest);
+    res = uiAbilityLifecycleManager->MoveAbilityToFront(specifiedRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
-    auto startOptions = std::make_shared<StartOptions>();
-    res = uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, nullptr, nullptr, 0);
+    res = uiAbilityLifecycleManager->MoveAbilityToFront(abilityRequest, abilityRecord, nullptr);
     EXPECT_EQ(res, ERR_OK);
 
     uiAbilityLifecycleManager.reset();
@@ -2647,8 +2647,26 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_001, TestSize.Lev
     auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
     EXPECT_NE(uiAbilityLifecycleManager, nullptr);
     AbilityRequest request;
+    SpecifiedRequest specifiedRequest(0, request);
     std::shared_ptr<AbilityRecord> callerAbility = nullptr;
-    uiAbilityLifecycleManager->StartAbilityBySpecifed(request, callerAbility, 0);
+    uiAbilityLifecycleManager->StartAbilityBySpecifed(specifiedRequest, callerAbility);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_StartAbilityBySpecifed_0200
+ * @tc.desc: StartAbilityBySpecifed
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartAbilityBySpecifed_0200, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest request;
+    SpecifiedRequest specifiedRequest(0, request);
+    specifiedRequest.requestListId = 0;
+    std::shared_ptr<AbilityRecord> callerAbility = nullptr;
+    uiAbilityLifecycleManager->StartAbilityBySpecifed(specifiedRequest, callerAbility);
     uiAbilityLifecycleManager.reset();
 }
 
