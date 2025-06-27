@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ability_runtime/ets_ability_context.h"
+#include "ets_ability_context.h"
 
 #include "ani_common_ability_result.h"
 #include "ani_common_configuration.h"
@@ -265,7 +265,6 @@ void EtsAbilityContext::OnStartAbilityForResult(
     if (startOptionsObj) {
         OHOS::AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
     }
-    TAG_LOGE(AAFwkTag::CONTEXT, "displayId:%{public}d", startOptions.GetDisplayID());
     std::string startTime = std::to_string(
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count());

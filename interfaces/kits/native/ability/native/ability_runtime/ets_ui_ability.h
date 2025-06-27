@@ -26,6 +26,7 @@ using AbilityHandler = AppExecFwk::AbilityHandler;
 using AbilityInfo = AppExecFwk::AbilityInfo;
 using OHOSApplication = AppExecFwk::OHOSApplication;
 using Want = AppExecFwk::Want;
+class ETSAbilityObject;
 
 class EtsUIAbility : public UIAbility {
 public:
@@ -143,28 +144,21 @@ private:
     void RestorePageStack(const Want &want);
     void GetPageStackFromWant(const Want &want, std::string &pageStack);
     void AbilityContinuationOrRecover(const Want &want);
-    void UpdateEtsWindowStage(ani_ref windowStage);
     
     std::shared_ptr<ETSNativeReference> etsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif
 
 private:
-    bool CallObjectMethod(bool withResult, const char *name, const char *signature, ...);
-    ani_object CreateAppWindowStage();
     std::shared_ptr<AppExecFwk::ETSDelegatorAbilityProperty> CreateADelegatorAbilityProperty();
     void SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<Want> want,
         const std::string &moduleName, const std::string &srcPath, const std::shared_ptr<OHOSApplication> &application);
     void DoOnForegroundForSceneIsNull(const Want &want);
     void UpdateAbilityObj(std::shared_ptr<AbilityInfo> abilityInfo,
         const std::string &moduleName, const std::string &srcPath);
-    void CreateEtsContext(int32_t screenMode, const std::shared_ptr<OHOSApplication> &application);
-    bool BindNativeMethods();
 
     ETSRuntime &etsRuntime_;
-    std::shared_ptr<ETSNativeReference> shellContextRef_;
-    std::shared_ptr<ETSNativeReference> etsAbilityObj_;
-    static std::once_flag singletonFlag_;
+    std::shared_ptr<ETSAbilityObject> etsAbilityObj_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
