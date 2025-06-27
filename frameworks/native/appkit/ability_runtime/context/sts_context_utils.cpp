@@ -36,8 +36,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace ContextUtil {
 namespace {
-constexpr const char* AREA_MODE_ENUM_NAME = "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;";
-constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
+constexpr const char* AREA_MODE_ENUM_NAME = "C{@ohos.app.ability.contextConstant.contextConstant.AreaMode}";
+constexpr const char* CONTEXT_CLASS_NAME = "C{application.Context.Context}";
 
 void BindContextDir(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Context> context)
 {

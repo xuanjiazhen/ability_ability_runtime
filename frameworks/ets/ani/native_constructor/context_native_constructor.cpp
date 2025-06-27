@@ -48,13 +48,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     }
     // class Context
     ani_class contextClass;
-    static const char *contextClassName = "Lapplication/Context/Context;";
+    static const char *contextClassName = "C{application.Context.Context}";
     if (ANI_OK != env->FindClass(contextClassName, &contextClass)) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Not found class %{public}s.", contextClassName);
         return ANI_NOT_FOUND;
     }
     std::array classMethods_context = {
-        ani_native_function {"<ctor>", ":V", reinterpret_cast<void *>(ContextConstructor)},
+        ani_native_function {"<ctor>", ":", reinterpret_cast<void *>(ContextConstructor)},
     };
     if (ANI_OK != env->Class_BindNativeMethods(contextClass, classMethods_context.data(),
         classMethods_context.size())) {
@@ -63,13 +63,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
     // class ExtensionContext
     ani_class extensionContextClass;
-    static const char *extensionContextClassName = "Lapplication/ExtensionContext/ExtensionContext;";
+    static const char *extensionContextClassName = "C{application.ExtensionContext.ExtensionContext}";
     if (ANI_OK != env->FindClass(extensionContextClassName, &extensionContextClass)) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Not found class %{public}s.", extensionContextClassName);
         return ANI_NOT_FOUND;
     }
     std::array classMethods_extensionContext = {
-        ani_native_function {"<ctor>", ":V", reinterpret_cast<void *>(ExtensionContextConstructor)},
+        ani_native_function {"<ctor>", ":", reinterpret_cast<void *>(ExtensionContextConstructor)},
     };
     if (ANI_OK != env->Class_BindNativeMethods(extensionContextClass, classMethods_extensionContext.data(),
         classMethods_extensionContext.size())) {
@@ -78,13 +78,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
     // class UIAbilityContext
     ani_class uiAbilityClass;
-    static const char *uiAbilityClassName = "Lapplication/UIAbilityContext/UIAbilityContext;";
+    static const char *uiAbilityClassName = "C{application.UIAbilityContext.UIAbilityContext}";
     if (ANI_OK != env->FindClass(uiAbilityClassName, &uiAbilityClass)) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Not found class %{public}s.", uiAbilityClassName);
         return ANI_NOT_FOUND;
     }
     std::array classMethods_uiAbility = {
-        ani_native_function {"<ctor>", ":V", reinterpret_cast<void *>(UIAbilityContextConstructor)},
+        ani_native_function {"<ctor>", ":", reinterpret_cast<void *>(UIAbilityContextConstructor)},
     };
     if (ANI_OK != env->Class_BindNativeMethods(uiAbilityClass, classMethods_uiAbility.data(),
         classMethods_uiAbility.size())) {
@@ -93,13 +93,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
     // class AbilityStageContext
     ani_class abilityStageContextClass;
-    static const char *abilityStageContextClassName = "Lapplication/AbilityStageContext/AbilityStageContext;";
+    static const char *abilityStageContextClassName = "C{application.AbilityStageContext.AbilityStageContext}";
     if (ANI_OK != env->FindClass(abilityStageContextClassName, &abilityStageContextClass)) {
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Not found class %{public}s.", abilityStageContextClassName);
         return ANI_NOT_FOUND;
     }
     std::array classMethods_abilityStage = {
-        ani_native_function {"<ctor>", ":V", reinterpret_cast<void *>(AbilityStageContextConstructor)},
+        ani_native_function {"<ctor>", ":", reinterpret_cast<void *>(AbilityStageContextConstructor)},
     };
     if (ANI_OK != env->Class_BindNativeMethods(abilityStageContextClass, classMethods_abilityStage.data(),
         classMethods_abilityStage.size())) {

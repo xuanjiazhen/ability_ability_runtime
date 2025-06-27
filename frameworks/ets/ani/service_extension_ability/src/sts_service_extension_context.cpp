@@ -318,11 +318,11 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
     std::array functions = {
         ani_native_function { "nativeTerminateSelfSync", nullptr, reinterpret_cast<ani_int*>(TerminateSelfSync) },
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(StartAbility) },
         ani_native_function { "nativeStartAbilitySync",
-            "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-            "AsyncCallbackWrapper;:V",
+            "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+            "AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(StartAbilityWithOption) },
         ani_native_function { "nativeStartServiceExtensionAbilitySync", nullptr,
             reinterpret_cast<ani_int*>(StartServiceExtensionAbilitySync) },

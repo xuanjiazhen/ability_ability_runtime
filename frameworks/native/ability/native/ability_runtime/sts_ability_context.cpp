@@ -58,7 +58,7 @@ std::mutex StsAbilityContext::requestCodeMutex_;
 
 namespace {
 static std::once_flag g_bindNativeMethodsFlag;
-constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
+constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "C{application.UIAbilityContext.UIAbilityContext}";
 constexpr int32_t CALLER_TIME_OUT = 10; // 10s
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 constexpr uint64_t MAX_REQUEST_CODE = (1ULL << 49) - 1;
@@ -176,7 +176,7 @@ ani_object StsAbilityContext::SetAbilityContext(ani_env *env, const std::shared_
         TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
         return nullptr;
     }
@@ -869,32 +869,32 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
     std::call_once(g_bindNativeMethodsFlag, [&status, env, cls]() {
         std::array functions = {
             ani_native_function { "nativeStartAbilitySync",
-                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::StartAbility1) },
             ani_native_function { "nativeStartAbilitySync",
-                "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-                "AsyncCallbackWrapper;:V",
+                "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+                "AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::StartAbility2) },
             ani_native_function { "nativeStartAbilityForResult",
-                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResult1) },
             ani_native_function { "nativeStartAbilityForResult",
-                "L@ohos/app/ability/Want/Want;L@ohos/app/ability/StartOptions/StartOptions;Lutils/AbilityUtils/"
-                "AsyncCallbackWrapper;:V",
+                "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+                "AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResult2) },
-            ani_native_function { "nativeTerminateSelfSync", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function { "nativeTerminateSelfSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::TerminateSelf) },
             ani_native_function { "nativeTerminateSelfWithResult",
-                "Lability/abilityResult/AbilityResult;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{ability.abilityResult.AbilityResult}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(StsAbilityContext::TerminateSelfWithResult) },
-            ani_native_function { "nativeReportDrawnCompletedSync", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function { "nativeReportDrawnCompletedSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<ani_int*>(StsAbilityContext::reportDrawnCompletedSync) },
             ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityByTypeSync) },
             ani_native_function { "nativeStartServiceExtensionAbilitySync", nullptr,
                 reinterpret_cast<void*>(StsAbilityContext::StartServiceExtensionAbilitySync) },
             ani_native_function { "nativeStartAbilityByCallSync",
-                "L@ohos/app/ability/Want/Want;:L@ohos/app/ability/UIAbility/Caller;",
+                "C{@ohos.app.ability.Want.Want}:C{@ohos.app.ability.UIAbility.Caller}",
                 reinterpret_cast<void*>(StsAbilityContext::StartAbilityByCall) },
             ani_native_function { "nativeOpenLinkSync", nullptr,
                 reinterpret_cast<void*>(StsAbilityContext::NativeOpenLinkSync) },
