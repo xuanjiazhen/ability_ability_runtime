@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-namespace{
+namespace {
 void* DetachNewAbilityStageContext(napi_env, void* nativeObject, void*)
 {
     auto* origContext = static_cast<std::weak_ptr<AbilityStageContext> *>(nativeObject);

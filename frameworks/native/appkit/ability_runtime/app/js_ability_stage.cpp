@@ -881,7 +881,6 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
             return;
         }
     }
-
     napi_value contextObj = CreateJsAbilityStageContext(env, context);
     shellContextRef_ = JsRuntime::LoadSystemModuleByEngine(env, "application.AbilityStageContext", &contextObj, 1);
     if (shellContextRef_ == nullptr) {
@@ -894,9 +893,9 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
         return;
     }
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
-    auto status = napi_coerce_to_native_binding_object(
+    auto coerceStatus = napi_coerce_to_native_binding_object(
         env, contextObj, DetachNewBaseContext, AttachAbilityStageContext, workContext, nullptr);
-    if (status != napi_ok) {
+    if (coerceStatus != napi_ok) {
         TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
         return nullptr;
     }
