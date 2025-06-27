@@ -182,7 +182,7 @@ void EtsInsightIntentDriverInit(ani_env *env)
     }
 
     ani_namespace ns;
-    ani_status status = env->FindNamespace("L@ohos/app/ability/insightIntentDriver/insightIntentDriver;", &ns);
+    ani_status status = env->FindNamespace("@ohos.app.ability.insightIntentDriver.insightIntentDriver", &ns);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "FindNamespace insightIntentDriver failed status: %{public}d", status);
         return;
