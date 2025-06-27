@@ -49,6 +49,7 @@ ohos_shared_library("ani_common") {
     "src/ets_context_utils.cpp",
     "src/ets_data_struct_converter.cpp",
     "src/ets_error_utils.cpp",
+    "src/ets_free_install_observer.cpp",
   ]
 
   cflags = []
@@ -60,6 +61,7 @@ ohos_shared_library("ani_common") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:application_context_manager",
@@ -76,6 +78,7 @@ ohos_shared_library("ani_common") {
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",

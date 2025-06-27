@@ -17,9 +17,11 @@
 
 #include "ability_info.h"
 #include "ability_manager_client.h"
+#include "ani_common_configuration.h"
 #include "ani_common_want.h"
 #include "ani_remote_object.h"
 #include "configuration_utils.h"
+#include "ets_service_extension_context.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_service_extension_context.h"
@@ -35,6 +37,8 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const char *CLASSNAME_SERVICE_ABILITY = "L@ohos/app/ability/ServiceExtensionAbility/ServiceExtensionAbility;";
+constexpr const char *SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
+    "Lapplication/ServiceExtensionContext/ServiceExtensionContext;";
 constexpr const char *NATIVE_ONCONNECT_CALLBACK_SIGNATURE = "L@ohos/rpc/rpc/RemoteObject;:Z";
 constexpr const char *ON_CREATE_SIGNATURE = "L@ohos/app/ability/Want/Want;:V";
 constexpr const char *VOID_SIGNATURE = ":V";
@@ -43,6 +47,7 @@ constexpr const char *CHECK_PROMISE_SIGNATURE = "Lstd/core/Object;:Z";
 constexpr const char *CALL_PROMISE_SIGNATURE = "Lstd/core/Promise;:Z";
 constexpr const char *ON_DISCONNECT_SIGNATURE = "L@ohos/app/ability/Want/Want;:V";
 constexpr const char *ON_REQUEST_SIGNATURE = "L@ohos/app/ability/Want/Want;D:V";
+constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "L@ohos/app/ability/Configuration/Configuration;:V";
 
 void DisconnectPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -119,7 +124,7 @@ void EtsServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "init failed, some obj null");
         return;
     }
-    Extension::Init(record, application, handler, token);
+    ServiceExtension::Init(record, application, handler, token);
     if (Extension::abilityInfo_ == nullptr || Extension::abilityInfo_->srcEntrance.empty()) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "EtsServiceExtension Init abilityInfo error");
         return;
@@ -160,6 +165,7 @@ void EtsServiceExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "Class_BindNativeMethods is fail %{public}d", status);
         return;
     }
+    BindContext(env, record->GetWant());
 }
 
 void EtsServiceExtension::OnStart(const AAFwk::Want &want)
@@ -396,10 +402,110 @@ ani_ref EtsServiceExtension::CallObjectMethod(bool withResult, const char *name,
     va_end(args);
     return nullptr;
 }
-void EtsServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration) {}
 
-void EtsServiceExtension::ConfigurationUpdated() {}
+ani_object EtsServiceExtension::CreateETSContext(ani_env *env, std::shared_ptr<ServiceExtensionContext> context)
+{
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "CreateETSContext");
+    ani_object obj = CreateEtsServiceExtensionContext(env, context);
+    return obj;
+}
 
+void EtsServiceExtension::BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "BindContext");
+    if (env == nullptr || want == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Want info is null or env is null");
+        return;
+    }
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get context");
+        return;
+    }
+    ani_object contextObj = CreateETSContext(env, context);
+    if (contextObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null contextObj");
+        return;
+    }
+    // bind EtsServiceExtension
+    ani_field contextField;
+    auto status = env->Class_FindField(etsObj_->aniCls, "context", &contextField);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Class_GetField context failed");
+        return;
+    }
+    ani_ref contextRef = nullptr;
+    if (env->GlobalReference_Create(contextObj, &contextRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "GlobalReference_Create contextObj failed");
+        return;
+    }
+    if (env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef) != ANI_OK) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "Object_SetField_Ref contextObj failed");
+    }
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "BindContext end");
+}
+
+void EtsServiceExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnConfigurationUpdated");
+    ServiceExtension::OnConfigurationUpdated(configuration);
+    ConfigurationUpdated();
+}
+
+void EtsServiceExtension::ConfigurationUpdated()
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "ConfigurationUpdated");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "env nullptr");
+        return;
+    }
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
+        return;
+    }
+    auto fullConfig = context->GetConfiguration();
+    if (fullConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null configuration");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_object aniConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
+    status = env->Object_CallMethodByName_Void(
+        etsObj_->aniObj, "onConfigurationUpdate", ON_CONFIGURATION_UPDATE_SIGNATURE, aniConfiguration);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "CALL Object_CallMethod failed, status: %{public}d", status);
+        return;
+    }
+    ani_field contextField = nullptr;
+    ani_ref contextRef = nullptr;
+    if ((status = env->Class_FindField(etsObj_->aniCls, "context", &contextField)) != ANI_OK ||
+        contextField == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to find field, status : %{public}d", status);
+        return;
+    }
+    if ((status = env->Object_GetField_Ref(etsObj_->aniObj, contextField, &contextRef)) != ANI_OK ||
+        contextRef == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to get field, status : %{public}d", status);
+        return;
+    }
+    ani_class cls = nullptr;
+    ani_field configField = nullptr;
+    if ((status = env->FindClass(SERVICE_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK || cls == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to find class, status : %{public}d", status);
+        return;
+    }
+    if ((status = env->Class_FindField(cls, "config", &configField)) != ANI_OK || configField == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to find field, status : %{public}d", status);
+        return;
+    }
+    if ((status = env->Object_SetField_Ref(reinterpret_cast<ani_object>(contextRef), configField, aniConfiguration)) !=
+        ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Failed to set field, status : %{public}d", status);
+        return;
+    }
+}
 void EtsServiceExtension::Dump(const std::vector<std::string> &params, std::vector<std::string> &info) {}
 } // namespace AbilityRuntime
 } // namespace OHOS

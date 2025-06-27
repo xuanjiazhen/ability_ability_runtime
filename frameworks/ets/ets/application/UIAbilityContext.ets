@@ -20,6 +20,7 @@ import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import { Configuration } from '@ohos.app.ability.Configuration';
 import Context from 'application.Context';
+import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import window from '@ohos.window';
 
 export class AsyncCallbackWrapper<T> {
@@ -68,6 +69,16 @@ export default class UIAbilityContext extends Context {
   private native nativeTerminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeReportDrawnCompletedSync(callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeStartServiceExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeOpenLinkSync(link: string, myCallback:AsyncCallbackWrapper<void>, options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
+
+  private native nativeIsTerminating(): boolean;
+
+  private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -217,6 +228,89 @@ export default class UIAbilityContext extends Context {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeReportDrawnCompletedSync(myCall);
+    });
+  }
+
+  startServiceExtensionAbility(want: Want, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    this.nativeStartServiceExtensionAbilitySync(want, myCall);
+  }
+
+  startServiceExtensionAbility(want: Want): Promise<void> {
+    let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError<void>) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      this.nativeStartServiceExtensionAbilitySync(want, myCall);
+    });
+    return p;
+  }
+
+  openLink(link: string, options?: OpenLinkOptions, callback?: AsyncCallback<AbilityResult, void>): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let finalOptions: OpenLinkOptions | undefined = undefined;
+      if (options) {
+        finalOptions = options;
+      }
+      let callParam: AsyncCallbackWrapper<AbilityResult> | undefined = undefined;
+      if (callback) {
+        callParam = new AsyncCallbackWrapper<AbilityResult>(callback);
+      }
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeOpenLinkSync(link, myCall, finalOptions, callParam);
+      });
+    });
+  }
+
+  isTerminating(): boolean {
+    return this.nativeIsTerminating();
+  }
+
+  moveAbilityToBackground(): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeMoveAbilityToBackground(syncCall);
+      });
+    });
+  }
+
+  requestModalUIExtension(pickerWant: Want, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeRequestModalUIExtension(pickerWant, syncCall);
+    });
+  }
+
+  requestModalUIExtension(pickerWant: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError<void>) => {
+        if (err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeRequestModalUIExtension(pickerWant, syncCall);
+      });
     });
   }
 }

@@ -100,4 +100,8 @@ export default class ServiceExtensionAbility {
   onDisconnectAsync(want: Want): Promise<void> {
     return new Promise<void>((resolve: (a: undefined) => void, reject: (err: Error) => void): void => {});
   }
+
+  onConfigurationUpdate(newConfig: Configuration): void {
+    console.log("onConfigurationUpdate");
+  }
 }

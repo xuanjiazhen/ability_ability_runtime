@@ -45,6 +45,12 @@ public:
 
     static ani_object SetAbilityContext(ani_env *env, const std::shared_ptr<AbilityContext> &context);
     static std::shared_ptr<AbilityContext> GetAbilityContext(ani_env *env, ani_object aniObj);
+    static void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackobj);
+    static bool OnIsTerminating(ani_env *env, ani_object aniObj);
+    static void OnMoveAbilityToBackground(ani_env *env, ani_object aniObj, ani_object callBack);
+    static void OnRequestModalUIExtension(ani_env *env, ani_object aniObj, ani_object pickerWantObj,
+        ani_object callBackObj);
 
 private:
     static bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
@@ -59,8 +65,15 @@ private:
         const std::shared_ptr<AbilityContext> &context, bool isAbilityResult = false, bool isOpenLink = false);
     void StartAbilityForResultInner(ani_env *env, const AAFwk::StartOptions &startOptions, AAFwk::Want &want,
         std::shared_ptr<AbilityContext> context, ani_object startOptionsObj, ani_object callback);
+    void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj,
+        AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want);
+    void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
+        ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
+    void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
+        std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     int32_t GenerateRequestCode();
 
+    sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
