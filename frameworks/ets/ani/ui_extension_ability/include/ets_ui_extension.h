@@ -27,7 +27,6 @@
 #include <mutex>
 #include <unordered_set>
 #include "ets_runtime.h"
-#include "ets_ui_extension_content_session.h"
 
 class ETSNativeReference;
 
@@ -35,6 +34,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 class UIExtension;
 class UIExtensionContext;
+class ETSUIExtensionObject;
 
 /**
  * @brief Basic ui extension components.
@@ -176,14 +176,9 @@ public:
      */
     void ConfigurationUpdated();
 
+    void SetScreenMode(int32_t screenMode);
+
 private:
-    virtual void BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want);
-    ani_object CreateETSContext(ani_env *env, std::shared_ptr<UIExtensionContext> context, int32_t screenMode);
-
-    bool CallObjectMethod(bool withResult, const char* name, const char* signature, ...);
-
-    ani_status CallOnDisconnect(const AAFwk::Want &want, bool withResult = false);
-
     void ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
     void BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
     void DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);
@@ -200,11 +195,10 @@ private:
         sptr<AAFwk::SessionInfo> sessionInfo);
     sptr<Rosen::Window> CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
         const sptr<AAFwk::SessionInfo> &sessionInfo);
-    static void PromiseCallback(ani_env* env, ani_object aniObj);
 
     ETSRuntime& etsRuntime_;
-    std::shared_ptr<ETSNativeReference> etsObj_ = nullptr;
-    std::shared_ptr<ETSNativeReference> shellContextRef_ = nullptr;
+    std::shared_ptr<ETSUIExtensionObject> etsAbilityObj_;
+
     std::mutex uiWindowMutex_;
     std::map<uint64_t, sptr<Rosen::Window>> uiWindowMap_;
     std::set<uint64_t> foregroundWindows_;
@@ -213,9 +207,6 @@ private:
     std::shared_ptr<int32_t> screenModePtr_;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
-    std::shared_ptr<EtsAbilityResultListeners> abilityResultListeners_ = nullptr;
-    ani_ref contentSession_ = nullptr;
-    std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
 
 #ifdef SUPPORT_GRAPHICS
     class EtsUIExtensionAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {

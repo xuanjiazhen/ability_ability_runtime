@@ -28,11 +28,8 @@
 #include "insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
 #include "ets_runtime.h"
-#include "ani_common_want.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
-#include "ets_data_struct_converter.h"
-#include "ets_ui_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -45,6 +42,7 @@ EtsUIExtension* EtsUIExtension::Create(const std::unique_ptr<Runtime>& runtime)
 
 EtsUIExtension::EtsUIExtension(ETSRuntime &eTSRuntime) : etsRuntime_(eTSRuntime)
 {
+    etsAbilityObj_ = std::make_shared<ETSUIExtensionObject>();
 }
 
 EtsUIExtension::~EtsUIExtension()
@@ -56,38 +54,19 @@ EtsUIExtension::~EtsUIExtension()
     contentSessions_.clear();
 }
 
-void EtsUIExtension::PromiseCallback(ani_env* env, ani_object aniObj)
-{
-    if (env == nullptr || aniObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null env or null aniObj");
-        return;
-    }
-    ani_long destroyCallbackPoint = 0;
-    ani_status status = ANI_ERROR;
-    if ((status = env->Object_GetFieldByName_Long(aniObj, "destroyCallbackPoint", &destroyCallbackPoint)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return;
-    }
-    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<> *>(destroyCallbackPoint);
-    if (callbackInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null callbackInfo");
-        return;
-    }
-    callbackInfo->Call();
-    AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
-
-    if ((status = env->Object_SetFieldByName_Long(aniObj, "destroyCallbackPoint",
-        static_cast<ani_long>(0))) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
-        return;
-    }
-}
-
 void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
+        return;
+    }
+    if (!etsAbilityObj_->Init(reinterpret_cast<void *>(this), reinterpret_cast<void *>(&etsRuntime_))) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Init failed");
+        return;
+    }
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "record null");
         return;
@@ -111,74 +90,13 @@ void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
 
-    etsObj_ = etsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE,
-        false, abilityInfo_->srcEntrance);
-
-    if (etsObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ null");
+    if (!etsAbilityObj_->LoadModule(moduleName, srcPath, abilityInfo_->hapPath,
+        abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE, false, abilityInfo_->srcEntrance)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "LoadModule failed");
         return;
     }
-
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
-        return;
-    }
-    std::array functions = {
-        ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void*>(EtsUIExtension::PromiseCallback) },
-    };
-    ani_status status = ANI_ERROR;
-    if ((status = env->Class_BindNativeMethods(etsObj_->aniCls, functions.data(), functions.size())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-    }
-    BindContext(env, record->GetWant());
+    etsAbilityObj_->BindContext(record->GetWant(), GetContext());
     RegisterDisplayInfoChangedListener();
-}
-
-ani_object EtsUIExtension::CreateETSContext(ani_env* env,
-    std::shared_ptr<UIExtensionContext> context, int32_t screenMode)
-{
-    ani_object obj = CreateEtsUIExtensionContext(env, context);
-    return obj;
-}
-
-void EtsUIExtension::BindContext(ani_env*env, std::shared_ptr<AAFwk::Want> want)
-{
-    if (env == nullptr || want == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Want info is null or env is null");
-        return;
-    }
-
-    auto context = GetContext();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "context null");
-        return;
-    }
-
-    int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-    ani_object contextObj = CreateETSContext(env, context, screenMode);
-    if (contextObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "null contextObj");
-        return;
-    }
-
-    ani_field contextField;
-    auto status = env->Class_FindField(etsObj_->aniCls, "context", &contextField);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "status: %{public}d", status);
-        return;
-    }
-
-    ani_ref contextRef = nullptr;
-    if ((status = env->GlobalReference_Create(contextObj, &contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "status: %{public}d", status);
-        return;
-    }
-
-    if ((status = env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "status: %{public}d", status);
-    }
 }
 
 void EtsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -193,30 +111,21 @@ void EtsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> s
     }
 #endif // SUPPORT_GRAPHICS
 
-    auto env = etsRuntime_.GetAniEnv();
-    if (!env) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "env not found Ability.ets");
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
         return;
     }
-    const char *signature =
-        "L@ohos/app/ability/AbilityConstant/AbilityConstant/LaunchParam;:V";
-    auto launchParam = Extension::GetLaunchParam();
-    if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
-        launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
-    }
-
-    ani_object launchParamObj = nullptr;
-    if (!WrapLaunchParam(env, launchParam, launchParamObj)) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "WrapLaunchParam failed");
-        return;
-    }
-    CallObjectMethod(false, "onCreate", signature, launchParamObj);
+    etsAbilityObj_->OnStart(want, Extension::GetLaunchParam());
 }
 
 void EtsUIExtension::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    CallObjectMethod(false, "onDestroy", nullptr);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
+        return;
+    }
+    etsAbilityObj_->OnStop();
 #ifdef SUPPORT_GRAPHICS
     UnregisterDisplayInfoChangedListener();
 #endif // SUPPORT_GRAPHICS
@@ -246,23 +155,15 @@ void EtsUIExtension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callba
         etsUIExtension->OnStopCallBack();
     };
     callbackInfo->Push(asyncCallback);
-    ani_long destroyCallbackPoint = (ani_long)callbackInfo;
-    ani_status status = ANI_ERROR;
-    ani_field field = nullptr;
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr || etsObj_ == nullptr) {
-        isAsyncCallback = false;
-        OnStop();
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
         return;
     }
-    if ((status = env->Class_FindField(etsObj_->aniCls, "destroyCallbackPoint", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-    }
-    if ((status = env->Object_SetField_Long(etsObj_->aniObj, field, destroyCallbackPoint)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+    if (!etsAbilityObj_->CallOnDestroy(callbackInfo, isAsyncCallback)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "CallOnDestroy failed");
+        return;
     }
 
-    isAsyncCallback = CallObjectMethod(true, "callOnDestroy", ":Z");
     if (!isAsyncCallback) {
         OnStopCallBack();
         return;
@@ -292,12 +193,6 @@ void EtsUIExtension::OnDisconnect(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     Extension::OnDisconnect(want);
-}
-
-ani_status EtsUIExtension::CallOnDisconnect(const AAFwk::Want &want, bool withResult)
-{
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return ANI_OK;
 }
 
 void EtsUIExtension::OnCommandWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
@@ -381,9 +276,12 @@ void EtsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &s
     const AppExecFwk::InsightIntentExecuteResult &result, bool needForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
     if (needForeground) {
         // If uiextensionability is started for the first time or need move background to foreground.
-        CallObjectMethod(false, "onForeground", nullptr);
+        if (etsAbilityObj_ != nullptr) {
+            etsAbilityObj_->OnForeground();
+        }
     }
 
     OnInsightIntentExecuteDone(sessionInfo, result);
@@ -476,13 +374,21 @@ void EtsUIExtension::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> ses
         }
     }
     ForegroundWindow(want, sessionInfo);
-    CallObjectMethod(false, "onForeground", nullptr);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
+        return;
+    }
+    etsAbilityObj_->OnForeground();
 }
 
 void EtsUIExtension::OnBackground()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    CallObjectMethod(false, "onBackground", nullptr);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
+        return;
+    }
+    etsAbilityObj_->OnBackground();
 }
 
 bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo)
@@ -501,35 +407,12 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
             TAG_LOGE(AAFwkTag::UI_EXT, "create ui window error");
             return false;
         }
-        auto env = etsRuntime_.GetAniEnv();
-        ani_ref wantObj = OHOS::AppExecFwk::WrapWant(env, want);
-        if (wantObj == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "null wantObj");
+        if (etsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
             return false;
         }
-        ani_ref wantRef = nullptr;
-        ani_status status = ANI_OK;
-        if ((status = env->GlobalReference_Create(wantObj, &wantRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        }
-        std::weak_ptr<Context> wkctx = context;
-        etsUiExtContentSession_ = std::make_shared<EtsUIExtensionContentSession>(sessionInfo, uiWindow,
-            wkctx, abilityResultListeners_);
-        ani_object sessonObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(env,
-            sessionInfo, uiWindow, context, abilityResultListeners_, etsUiExtContentSession_);
-        if ((status = env->GlobalReference_Create(sessonObj, &contentSession_)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        }
-        int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
-        if (screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE) {
-            screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
-            auto jsAppWindowStage = CreateAppWindowStage(uiWindow, sessionInfo);
-            if (jsAppWindowStage == nullptr) {
-                TAG_LOGE(AAFwkTag::UI_EXT, "JsAppWindowStage is nullptr");
-                return false;
-            }
-        } else {
-            CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessonObj);
+        if (!etsAbilityObj_->OnWindowStageCreate(want, context, sessionInfo, uiWindow)) {
+            return false;
         }
         uiWindowMap_[compId] = uiWindow;
 #ifdef SUPPORT_GRAPHICS
@@ -562,13 +445,6 @@ sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExten
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
-}
-
-std::unique_ptr<ETSNativeReference> EtsUIExtension::CreateAppWindowStage(sptr<Rosen::Window> uiWindow,
-    sptr<AAFwk::SessionInfo> sessionInfo)
-{
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
-    return std::make_unique<ETSNativeReference>();
 }
 
 void EtsUIExtension::ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo)
@@ -622,12 +498,11 @@ void EtsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         TAG_LOGE(AAFwkTag::UI_EXT, "Wrong to find uiWindow");
         return;
     }
-    ani_object contenSessionObj = static_cast<ani_object>(contentSession_);
-    if (contenSessionObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "contenSessionObj null ptr");
-    } else {
-        CallObjectMethod(false, "onSessionDestroy", nullptr, contenSessionObj);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsAbilityObj_");
+        return;
     }
+    etsAbilityObj_->OnSessionDestroy();
     auto uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {
         uiWindow->Destroy();
@@ -645,47 +520,7 @@ void EtsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
 #endif // SUPPORT_GRAPHICS
     foregroundWindows_.erase(componentId);
     contentSessions_.erase(componentId);
-    if (abilityResultListeners_) {
-        abilityResultListeners_->RemoveListener(componentId);
-    }
-}
-
-bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
-    if (etsObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ nullptr");
-        return false;
-    }
-
-    auto env = etsRuntime_.GetAniEnv();
-    ani_status status = ANI_OK;
-    ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return false;
-    }
-    env->ResetError();
-    if (withResult) {
-        ani_boolean res = ANI_FALSE;
-        va_list args;
-        va_start(args, signature);
-        if ((status = env->Object_CallMethod_Boolean(etsObj_->aniObj, method, &res, args)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-            etsRuntime_.HandleUncaughtError();
-        }
-        va_end(args);
-        return res;
-    }
-    va_list args;
-    va_start(args, signature);
-    if ((status = env->Object_CallMethod_Void_V(etsObj_->aniObj, method, args)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        etsRuntime_.HandleUncaughtError();
-        return false;
-    }
-    va_end(args);
-    return false;
+    etsAbilityObj_->RemoveListener(componentId);
 }
 
 void EtsUIExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
@@ -718,20 +553,12 @@ void EtsUIExtension::OnAbilityResult(int requestCode, int resultCode, const Want
         return;
     }
     context->OnAbilityResult(requestCode, resultCode, resultData);
-    if (abilityResultListeners_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "abilityResultListensers null");
-        return;
-    }
-    abilityResultListeners_->OnAbilityResult(requestCode, resultCode, resultData);
+
+    etsAbilityObj_->OnAbilityResult(requestCode, resultCode, resultData);
 }
 
 void EtsUIExtension::ConfigurationUpdated()
 {
-    ani_env* env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "env null");
-        return;
-    }
     auto context = GetContext();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "context null");
@@ -743,6 +570,11 @@ void EtsUIExtension::ConfigurationUpdated()
         TAG_LOGE(AAFwkTag::UI_EXT, "fullConfig null");
         return;
     }
+}
+
+void EtsUIExtension::SetScreenMode(int32_t screenMode)
+{
+    screenMode_ = screenMode;
 }
 
 #ifdef SUPPORT_GRAPHICS
