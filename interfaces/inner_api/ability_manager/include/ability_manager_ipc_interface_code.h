@@ -418,6 +418,8 @@ enum class AbilityManagerInterfaceCode {
 
     SEND_LOCAL_PENDING_WANT_SENDER = 1070,
 
+    NOTIFY_STARTUP_EXCEPTION_BY_SCB = 1071,
+
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
 

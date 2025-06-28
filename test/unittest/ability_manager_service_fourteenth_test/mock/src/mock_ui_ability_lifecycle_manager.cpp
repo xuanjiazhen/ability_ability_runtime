@@ -708,10 +708,6 @@ bool UIAbilityLifecycleManager::HasAbilityRequest(const AbilityRequest &abilityR
     return false;
 }
 
-void UIAbilityLifecycleManager::AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId)
-{
-}
-
 void UIAbilityLifecycleManager::RemoveAbilityRequest(int32_t requestId)
 {
 }

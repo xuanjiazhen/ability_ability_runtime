@@ -2109,6 +2109,8 @@ public:
      */
     virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
 
+    virtual int32_t NotifyStartupExceptionBySCB() override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;

@@ -886,6 +886,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::RESUME_EXTENSION_ABILITY) {
         return ResumeExtensionAbilityInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::NOTIFY_STARTUP_EXCEPTION_BY_SCB) {
+        return NotifyStartupExceptionBySCBInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4843,6 +4846,18 @@ int AbilityManagerStub::QueryKeepAliveAppServiceExtensionsInner(MessageParcel &d
         return ERR_INVALID_VALUE;
     }
     return result;
+}
+
+int AbilityManagerStub::NotifyStartupExceptionBySCBInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    int32_t requestId = data.ReadInt32();
+    int32_t result = NotifyStartupExceptionBySCB(requestId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Fail to write result.");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS

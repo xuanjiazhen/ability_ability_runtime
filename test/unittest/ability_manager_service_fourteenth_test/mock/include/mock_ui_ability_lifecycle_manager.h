@@ -487,7 +487,6 @@ private:
     bool AddStartCallerTimestamp(int32_t callerUid);
     std::shared_ptr<AbilityRecord> FindRecordFromSessionMap(const AbilityRequest &abilityRequest);
     bool HasAbilityRequest(const AbilityRequest &abilityRequest);
-    void AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId);
     void RemoveAbilityRequest(int32_t requestId);
     inline int32_t GetRequestId()
     {

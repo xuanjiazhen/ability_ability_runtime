@@ -1779,6 +1779,8 @@ public:
      */
     virtual int32_t ResumeExtensionAbility(sptr<IAbilityConnection> connect) override;
 
+    virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

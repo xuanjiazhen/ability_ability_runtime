@@ -2285,6 +2285,17 @@ public:
     {
         return 0;
     }
+
+    /**
+     * SCB notifies AMS that UIAbility startup was intercepted.
+     *
+     * @param 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

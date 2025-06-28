@@ -1858,6 +1858,8 @@ public:
      */
     ErrCode ResumeExtensionAbility(sptr<IAbilityConnection> connect);
 
+    ErrCode NotifyStartupExceptionBySCB(int32_t requestId);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

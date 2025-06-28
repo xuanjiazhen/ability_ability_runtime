@@ -2335,5 +2335,14 @@ ErrCode AbilityManagerClient::ResumeExtensionAbility(sptr<IAbilityConnection> co
     return abms->ResumeExtensionAbility(connect);
 }
 
+ErrCode AbilityManagerClient::NotifyStartupExceptionBySCB(int32_t requestId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "NotifyStartupExceptionBySCB call");
+    return abms->NotifyStartupExceptionBySCB(requestId);
+}
+
 } // namespace AAFwk
 } // namespace OHOS

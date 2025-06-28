@@ -14732,5 +14732,12 @@ int32_t AbilityManagerService::QueryKeepAliveAppServiceExtensions(std::vector<Ke
 {
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveAppServiceExtensions(list, false);
 }
+
+int32_t AbilityManagerService::NotifyStartupExceptionBySCB(int32_t requestId)
+{
+    auto uiAbilityMGR = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_NULL_OBJECT, "uiAbilityLifecycleManager nullptr");
+    return uiAbilityMGR->NotifyStartupExceptionBySCB(requestId);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
