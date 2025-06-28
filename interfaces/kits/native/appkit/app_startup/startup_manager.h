@@ -139,6 +139,7 @@ private:
     std::map<std::string, std::shared_ptr<StartupConfig>> moduleConfigs_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> preloadHandler_;
+    std::unordered_set<std::string> preloadSystemSoAllowlist_;
 
     static int32_t AddStartupTask(const std::string &name, std::map<std::string, std::shared_ptr<StartupTask>> &taskMap,
         std::map<std::string, std::shared_ptr<AppStartupTask>> &allTasks);
@@ -154,6 +155,12 @@ private:
         std::map<std::string, std::shared_ptr<StartupTask>> &currentStartupTasks);
     std::shared_ptr<NativeStartupTask> CreateAppPreloadSoTask(
         const std::map<std::string, std::shared_ptr<StartupTask>> &currentPreloadSoTasks);
+
+    void InitPreloadSystemSoAllowlist();
+    bool ReadPreloadSystemSoAllowlist(
+        const std::string &filePath, std::string &readJsonStr);
+    bool ParsePreloadSystemSoAllowlist(
+        const std::string &jsonStr, std::unordered_set<std::string> &allowlist);
 
     void PreloadAppHintStartupTask(std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData);
     int32_t AddLoadAppStartupConfigTask(std::map<std::string, std::shared_ptr<StartupTask>> &preloadAppHintTasks);
@@ -178,6 +185,8 @@ private:
     static bool AnalyzeAppStartupTaskInner(const ModuleStartupConfigInfo& info, const cJSON *startupTaskJson,
         std::vector<StartupTaskInfo>& pendingStartupTaskInfos);
     bool AnalyzePreloadSoStartupTaskInner(const ModuleStartupConfigInfo& info, const cJSON *preloadStartupTaskJson,
+        std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks);
+    bool AnalyzePreloadSystemSoStartupTaskInner(const cJSON *preloadStartupTaskJson,
         std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks);
     static void SetOptionalParameters(const cJSON *module, AppExecFwk::ModuleType moduleType,
         StartupTaskInfo& startupTaskInfo);

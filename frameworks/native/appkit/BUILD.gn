@@ -155,6 +155,7 @@ ohos_shared_library("appkit_native") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    ":ability_runtime_app_startup",
     ":appkit_delegator",
     "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -643,4 +644,14 @@ ohos_shared_library("application_context_manager") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+}
+
+ohos_prebuilt_etc("ability_runtime_app_startup.json") {
+  source = "etc/ability_runtime_app_startup.json"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+group("ability_runtime_app_startup") {
+  deps = [ ":ability_runtime_app_startup.json" ]
 }

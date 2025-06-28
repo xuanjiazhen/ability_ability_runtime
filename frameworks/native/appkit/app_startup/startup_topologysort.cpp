@@ -18,6 +18,9 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+    constexpr const char* SYSTEM_SO = "~systemSo#";
+}
 int32_t StartupTopologySort::Sort(const std::map<std::string, std::shared_ptr<StartupTask>> &startupMap,
     std::shared_ptr<StartupSortResult> &startupSortResult)
 {
@@ -86,8 +89,10 @@ int32_t StartupTopologySort::SortZeroDeque(const std::shared_ptr<StartupTask> &s
     }
     std::vector<std::string> dependencies = startup->GetDependencies();
     if (dependencies.empty()) {
-        zeroDeque.push_back(key);
-        startupSortResult->zeroDequeResult_.push_back(key);
+        // Adapt the preload system SO task
+        std::string name = startup->IsPreloadSystemSoTask() ? SYSTEM_SO + key : key;
+        zeroDeque.push_back(name);
+        startupSortResult->zeroDequeResult_.push_back(name);
     } else {
         for (auto &parentName : dependencies) {
             if (startupMap.find(parentName) == startupMap.end()) {

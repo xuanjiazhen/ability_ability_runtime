@@ -15,6 +15,7 @@
 
 #include "startup_manager.h"
 
+#include <fstream>
 #include <set>
 
 #include "app_startup_task_matcher.h"
@@ -54,6 +55,10 @@ constexpr const char* URIS = "uris";
 constexpr const char* INSIGHT_INTENTS = "insightIntents";
 constexpr const char* ACTIONS = "actions";
 constexpr const char* CUSTOMIZATION = "customization";
+constexpr const char* PRELOAD_SYSTEM_SO_STARTUP_TASKS = "systemPreloadHintStartupTasks";
+constexpr const char* PRELOAD_SYSTEM_SO_ALLOWLIST_FILE = "/system/etc/ability_runtime_app_startup.json";
+constexpr const char* SYSTEM_PRELOAD_SO_ALLOW_LIST = "systemPreloadSoAllowList";
+constexpr const char* SYSTEM_SO = "~systemSo#";
 
 struct StartupTaskResultCallbackInfo {
     std::unique_ptr<StartupTaskResultCallback> callback_;
@@ -305,7 +310,7 @@ int32_t StartupManager::RemoveAllResult()
         }
     }
     for (auto &iter: preloadSoStartupTasks_) {
-        if (iter.second != nullptr) {
+        if (iter.first.compare(0, std::string(SYSTEM_SO).size(), SYSTEM_SO) != 0 && iter.second != nullptr) {
             iter.second->RemoveResult();
         }
     }
@@ -669,6 +674,7 @@ int32_t StartupManager::RunLoadAppStartupConfigTask()
     }
 
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    InitPreloadSystemSoAllowlist();
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     std::vector<StartupTaskInfo> pendingStartupTaskInfos;
     std::string pendingConfigEntry;
@@ -805,6 +811,10 @@ int32_t StartupManager::GetAppAutoPreloadSoTasks(
         ExcludeFromAutoStartStartupTaskMatcher taskMatcher;
         FilterMatchedStartupTask(taskMatcher, preloadSoStartupTasks_, appAutoPreloadSoTasks, dependenciesSet);
     }
+
+    MatchPreloadSystemSoTaskMatcher preloadSystemSoTaskMatcher;
+    FilterMatchedStartupTask(
+        preloadSystemSoTaskMatcher, preloadSoStartupTasks_, appAutoPreloadSoTasks, dependenciesSet);
 
     for (auto &dep : dependenciesSet) {
         if (appAutoPreloadSoTasks.find(dep) != appAutoPreloadSoTasks.end()) {
@@ -1015,6 +1025,18 @@ bool StartupManager::AnalyzePreloadSoStartupTask(const ModuleStartupConfigInfo& 
             }
         }
     }
+
+    // Preloading system processing so
+    cJSON *preloadSystemSoTasksItem = cJSON_GetObjectItem(startupConfigJson, PRELOAD_SYSTEM_SO_STARTUP_TASKS);
+    if (!preloadSystemSoAllowlist_.empty() &&
+        preloadSystemSoTasksItem != nullptr && cJSON_IsArray(preloadSystemSoTasksItem)) {
+        auto size = cJSON_GetArraySize(preloadSystemSoTasksItem);
+        for (auto i = 0; i < size; i++) {
+            cJSON *module = cJSON_GetArrayItem(preloadSystemSoTasksItem, i);
+            AnalyzePreloadSystemSoStartupTaskInner(module, preloadSoStartupTasks);
+        }
+    }
+
     return true;
 }
 
@@ -1068,6 +1090,43 @@ bool StartupManager::AnalyzePreloadSoStartupTaskInner(const ModuleStartupConfigI
 
     SetOptionalParameters(preloadStartupTaskJson, info.moduleType_, task);
     preloadSoStartupTasks.emplace(name, task);
+    return true;
+}
+
+
+bool StartupManager::AnalyzePreloadSystemSoStartupTaskInner(
+    const cJSON *preloadStartupTaskJson,
+    std::map<std::string, std::shared_ptr<AppStartupTask>>& preloadSoStartupTasks)
+{
+    if (preloadStartupTaskJson == nullptr || !cJSON_IsObject(preloadStartupTaskJson)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Invalid system 'so' preloading startup task JSON data");
+        return false;
+    }
+
+    cJSON *nameItem = cJSON_GetObjectItem(preloadStartupTaskJson, NAME);
+    cJSON *ohmUrlItem = cJSON_GetObjectItem(preloadStartupTaskJson, OHMURL);
+    cJSON *srcEntryItem = cJSON_GetObjectItem(preloadStartupTaskJson, SRC_ENTRY);
+    if (nameItem == nullptr || !cJSON_IsString(nameItem) || ohmUrlItem == nullptr || !cJSON_IsString(ohmUrlItem) ||
+        srcEntryItem == nullptr || !cJSON_IsString(srcEntryItem)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Invalid system 'so' preloading startup task JSON data");
+        return false;
+    }
+
+    std::string ohmUrl = ohmUrlItem->valuestring;
+    if (preloadSystemSoAllowlist_.find(ohmUrl) == preloadSystemSoAllowlist_.end()) {
+        TAG_LOGE(AAFwkTag::STARTUP, "OHM URL %{public}s is in forbidden whitelist", ohmUrl.c_str());
+        return false;
+    }
+
+    std::string name = nameItem->valuestring;
+    if (name.empty()) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Field name cannot be empty, ohmUrl is %{public}s", ohmUrl.c_str());
+        return false;
+    }
+
+    auto task = std::make_shared<PreloadSoStartupTask>(name, ohmUrl, "", true);
+    task->SetIsExcludeFromAutoStart(true);
+    preloadSoStartupTasks.emplace(SYSTEM_SO + name, task);
     return true;
 }
 
@@ -1161,6 +1220,62 @@ void StartupManager::SetMatchRules(const cJSON *module, StartupTaskMatchRules &m
         "SetMatchRules uris:%{public}zu, insightIntents:%{public}zu, actions:%{public}zu, customization:%{public}zu",
         matchRules.uris.size(), matchRules.insightIntents.size(), matchRules.actions.size(),
         matchRules.customization.size());
+}
+
+void StartupManager::InitPreloadSystemSoAllowlist()
+{
+    std::string jsonStr;
+    if (!ReadPreloadSystemSoAllowlist(PRELOAD_SYSTEM_SO_ALLOWLIST_FILE, jsonStr)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Read failure. Clear the blank list.");
+        preloadSystemSoAllowlist_.clear();
+        return;
+    }
+    if (!ParsePreloadSystemSoAllowlist(jsonStr, preloadSystemSoAllowlist_)) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Parsing failed. Clear the blank list of names.");
+        preloadSystemSoAllowlist_.clear();
+    }
+}
+
+bool StartupManager::ReadPreloadSystemSoAllowlist(const std::string &filePath, std::string &readJsonStr)
+{
+    std::ifstream ifs;
+    ifs.open(filePath, std::ios::in);
+    if (!ifs.is_open()) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Failed to open allowlist file: %{public}s. The allowlist will be cleared.",
+            filePath.c_str());
+        return false;
+    }
+    readJsonStr.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    return true;
+}
+
+bool StartupManager::ParsePreloadSystemSoAllowlist(
+    const std::string &jsonStr, std::unordered_set<std::string> &allowlist)
+{
+    cJSON *parseResult = cJSON_Parse(jsonStr.c_str());
+    if (parseResult == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "Failed to parse JSON string for allowlist. Input: %{public}s", jsonStr.c_str());
+        return false;
+    }
+
+    cJSON *systemPreloadSoAllowList = cJSON_GetObjectItem(parseResult, SYSTEM_PRELOAD_SO_ALLOW_LIST);
+    if (systemPreloadSoAllowList == nullptr || !cJSON_IsArray(systemPreloadSoAllowList)) {
+        TAG_LOGE(AAFwkTag::STARTUP,
+            "JSON does not contain valid 'systemPreloadSoAllowList' array. Content: %{public}s", jsonStr.c_str());
+        return false;
+    }
+
+    allowlist.clear();
+    auto size = cJSON_GetArraySize(systemPreloadSoAllowList);
+    for (auto i = 0; i < size; i++) {
+        cJSON *item = cJSON_GetArrayItem(systemPreloadSoAllowList, i);
+        if (item == nullptr || !cJSON_IsString(item)) {
+            continue;
+        }
+        allowlist.insert(item->valuestring);
+    }
+
+    return true;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

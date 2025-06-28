@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr char OHM_URL_APP_PREFIX[] = "@app:";
+constexpr char OHM_URL_OHOS_PREFIX[] = "@ohos:";
 constexpr char OHM_URL_NORMALIZED_SO_PREFIX[] = "@normalized:Y";
 constexpr char OHM_URL_NORMALIZED_TAG = '&';
 constexpr char OHM_URL_APP_COLON_TAG = ':';
@@ -64,15 +65,21 @@ int32_t ParseNormalizedOhmUrl(const std::string& ohmUrl, std::string& soName)
     return ERR_OK;
 }
 
-int32_t ParseAppOhmUrl(const std::string& ohmUrl, std::string& soName)
+int32_t ParseAppOhmUrl(const std::string& ohmUrl, std::string& soName, bool isPreloadSystemSo)
 {
     // @app:<bundleName>/<moduleName>/<libName>
+    // @ohos:<libName>
     size_t pos = ohmUrl.find(OHM_URL_APP_COLON_TAG);
     if (pos == std::string::npos) {
         TAG_LOGE(AAFwkTag::STARTUP, "invalid app ohmUrl: %{public}s", ohmUrl.c_str());
         return ERR_STARTUP_INVALID_VALUE;
     }
     std::string soFullPath = ohmUrl.substr(pos + 1);
+
+    if (isPreloadSystemSo) {
+        soName = soFullPath;
+        return ERR_OK;
+    }
 
     pos = soFullPath.rfind(OHM_URL_SLASH_TAG);
     if (pos == std::string::npos) {
@@ -83,7 +90,7 @@ int32_t ParseAppOhmUrl(const std::string& ohmUrl, std::string& soName)
     return ERR_OK;
 }
 
-int32_t ParseOhmUrl(const std::string& ohmUrl, std::string& soName)
+int32_t ParseOhmUrl(const std::string& ohmUrl, std::string& soName, bool isPreloadSystemSo)
 {
     if (ohmUrl.empty()) {
         TAG_LOGE(AAFwkTag::STARTUP, "ohmUrl is empty");
@@ -92,8 +99,8 @@ int32_t ParseOhmUrl(const std::string& ohmUrl, std::string& soName)
     if (StringStartWith(ohmUrl, OHM_URL_NORMALIZED_SO_PREFIX)) {
         return ParseNormalizedOhmUrl(ohmUrl, soName);
     }
-    if (StringStartWith(ohmUrl, OHM_URL_APP_PREFIX)) {
-        return ParseAppOhmUrl(ohmUrl, soName);
+    if (StringStartWith(ohmUrl, OHM_URL_APP_PREFIX) || StringStartWith(ohmUrl, OHM_URL_OHOS_PREFIX)) {
+        return ParseAppOhmUrl(ohmUrl, soName, isPreloadSystemSo);
     }
     TAG_LOGE(AAFwkTag::STARTUP, "invalid ohmUrl: %{public}s", ohmUrl.c_str());
     return ERR_STARTUP_INVALID_VALUE;
@@ -101,8 +108,9 @@ int32_t ParseOhmUrl(const std::string& ohmUrl, std::string& soName)
 } // namespace
 const std::string PreloadSoStartupTask::TASK_TYPE = "PreloadSo";
 
-PreloadSoStartupTask::PreloadSoStartupTask(const std::string& name, const std::string& ohmUrl, const std::string& path)
-    : AppStartupTask(name), ohmUrl_(ohmUrl), path_(path)
+PreloadSoStartupTask::PreloadSoStartupTask(
+    const std::string& name, const std::string& ohmUrl, const std::string& path, bool isPreloadSystemSo)
+    : AppStartupTask(name), ohmUrl_(ohmUrl), path_(path), isPreloadSystemSo_(isPreloadSystemSo)
 {
     SetWaitOnMainThread(false);
     SetCallCreateOnMainThread(false);
@@ -115,10 +123,15 @@ const std::string &PreloadSoStartupTask::GetType() const
     return TASK_TYPE;
 }
 
+bool PreloadSoStartupTask::IsPreloadSystemSoTask() const
+{
+    return isPreloadSystemSo_;
+}
+
 int32_t PreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> callback)
 {
     std::string soName;
-    int32_t code = ParseOhmUrl(ohmUrl_, soName);
+    int32_t code = ParseOhmUrl(ohmUrl_, soName, isPreloadSystemSo_);
     AAFwk::EventInfo eventInfo;
     if (code != ERR_OK) {
         TAG_LOGW(AAFwkTag::STARTUP, "task %{public}s, parse ohmUrl failed: %{public}s", name_.c_str(), ohmUrl_.c_str());
@@ -138,8 +151,11 @@ int32_t PreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallb
     }
 
     std::string errInfo;
-    NativeModule* module = moduleManager->LoadNativeModule(soName.c_str(), path_.empty() ? nullptr : path_.c_str(),
-        true, errInfo, false, "");
+    NativeModule* module = isPreloadSystemSo_ ?
+        moduleManager->LoadNativeModule(soName.c_str(),  nullptr, false, errInfo, false, "") :
+        moduleManager->LoadNativeModule(soName.c_str(), path_.empty() ? nullptr : path_.c_str(),
+            true, errInfo, false, "");
+
     if (module == nullptr) {
         TAG_LOGW(AAFwkTag::STARTUP, "module is null, errInfo: %{public}s", errInfo.c_str());
         OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);

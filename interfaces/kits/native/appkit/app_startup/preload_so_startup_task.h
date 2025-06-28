@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,11 +24,14 @@ class PreloadSoStartupTask : public AppStartupTask {
 public:
     static const std::string TASK_TYPE;
 
-    PreloadSoStartupTask(const std::string& name, const std::string& ohmUrl, const std::string& path = "");
+    PreloadSoStartupTask(const std::string& name, const std::string& ohmUrl, const std::string& path = "",
+        bool isPreloadSystemSo = false);
 
     ~PreloadSoStartupTask() override;
 
     const std::string &GetType() const override;
+
+    bool IsPreloadSystemSoTask() const override;
 
     int32_t RunTaskInit(std::unique_ptr<StartupTaskResultCallback> callback) override;
 
@@ -39,6 +42,7 @@ private:
     std::string ohmUrl_;
     std::string path_;
     bool isExcludeFromAutoStart_ = false;
+    bool isPreloadSystemSo_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

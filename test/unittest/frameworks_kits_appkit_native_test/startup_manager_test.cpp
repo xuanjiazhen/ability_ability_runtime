@@ -845,6 +845,58 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0200, Function | Medium
 }
 
 /**
+ * @tc.name: AnalyzePreloadSoStartupTask_0300
+ * @tc.type: FUNC
+ * @tc.Function: AnalyzePreloadSoStartupTask
+ */
+HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTask_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTask_0300 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string name = "test_name";
+    ModuleStartupConfigInfo info(name, "", "", AppExecFwk::ModuleType::UNKNOWN, false);
+    std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    cJSON *preloadHintStartupTasksJson1 = cJSON_Parse(R"(
+        {
+            "systemPreloadHintStartupTasks": ""
+        }
+    )");
+    bool ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson1, preloadSoStartupTasks);
+    EXPECT_TRUE(ret);
+
+    startupManager->preloadSystemSoAllowlist_.insert("@ohos:testUrl");
+    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson1, preloadSoStartupTasks);
+    EXPECT_TRUE(ret);
+
+    cJSON *preloadHintStartupTasksJson2 = cJSON_Parse(R"(
+        {
+            "systemPreloadHintStartupTasks": []
+        }
+    )");
+    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson2, preloadSoStartupTasks);
+    EXPECT_TRUE(ret);
+
+    cJSON *preloadHintStartupTasksJson3 = cJSON_Parse(R"(
+        {
+            "systemPreloadHintStartupTasks": [
+                {
+                    "name": "testName",
+                    "srcEntry": "testEntry",
+                    "ohmurl": "@ohos:testUrl"
+                },
+                {}
+            ]
+        }
+    )");
+    ret = startupManager->AnalyzePreloadSoStartupTask(info, preloadHintStartupTasksJson3, preloadSoStartupTasks);
+    EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSoStartupTask_0300 end";
+}
+
+/**
  * @tc.name: AnalyzeAppStartupTaskInner_0100
  * @tc.type: FUNC
  * @tc.Function: AnalyzeAppStartupTaskInner
@@ -1034,6 +1086,112 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSoStartupTaskInner_0200, Function | M
 }
 
 /**
+ * @tc.name: AnalyzePreloadSystemSoStartupTaskInner_0100
+ * @tc.type: FUNC
+ * @tc.Function: AnalyzePreloadSystemSoStartupTaskInner
+ */
+HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTaskInner_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSystemSoStartupTaskInner_0100 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string name = "test_name";
+    std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
+    cJSON *preloadSoStartupTaskInnerJson1 = cJSON_Parse("{}");
+    bool ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson1,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson2 = cJSON_Parse(R"({"name":[]})");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson2,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson3 = cJSON_Parse(R"({"name":"testName"})");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson3,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson4 = cJSON_Parse(R"({"name":"testName","srcEntry":[],"ohmurl":"testOhmurl"})");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson4,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson5 = cJSON_Parse(R"({"name":"testName","srcEntry":"testEntry"})");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson5,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson6 = cJSON_Parse(R"({"name":"testName","srcEntry":"testEntry","ohmurl":[]})");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson6,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSystemSoStartupTaskInner_0100 end";
+}
+
+/**
+ * @tc.name: AnalyzePreloadSystemSoStartupTaskInner_0200
+ * @tc.type: FUNC
+ * @tc.Function: AnalyzePreloadSystemSoStartupTaskInner
+ */
+HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTaskInner_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSystemSoStartupTaskInner_0200 start";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string name = "test_name";
+    std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    cJSON *preloadSoStartupTaskInnerJson0 = nullptr;
+    bool ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson0,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson1 = cJSON_Parse(R"(
+        {
+            "name": "testName",
+            "srcEntry": "testEntry",
+            "ohmurl": "testOhmurl"
+        }
+    )");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(
+        cJSON_GetObjectItem(preloadSoStartupTaskInnerJson1, "name"), preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson1,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    startupManager->preloadSystemSoAllowlist_.insert("testOhmurl");
+    cJSON *preloadSoStartupTaskInnerJson2 = cJSON_Parse(R"(
+        {
+            "name": "",
+            "srcEntry": "testEntry",
+            "ohmurl": "testOhmurl"
+        }
+    )");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson2,
+        preloadSoStartupTasks);
+    EXPECT_FALSE(ret);
+
+    cJSON *preloadSoStartupTaskInnerJson3 = cJSON_Parse(R"(
+        {
+            "name": "testName",
+            "srcEntry": "testEntry",
+            "ohmurl": "testOhmurl"
+        }
+    )");
+    ret = startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson3,
+        preloadSoStartupTasks);
+    EXPECT_TRUE(ret);
+
+
+    GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSystemSoStartupTaskInner_0200 end";
+}
+
+/**
  * @tc.name: GetModuleConfig_0100
  * @tc.type: FUNC
  * @tc.Function: GetModuleConfig
@@ -1104,5 +1262,80 @@ HWTEST_F(StartupManagerTest, PreloadSoStartupTask_0100, Function | MediumTest | 
     EXPECT_EQ(ret, ERR_STARTUP_INTERNAL_ERROR);
 }
 
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0100
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerTest, InitPreloadSystemSoAllowlist_0100, Function | MediumTest | Level1)
+{
+    const std::string preloadSystemSoAllowlistFile = "/system/etc/ability_runtime_app_startup.json";
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+    std::string jsonStr;
+    if (startupManager->ReadPreloadSystemSoAllowlist(preloadSystemSoAllowlistFile, jsonStr)) {
+        preloadSystemSoAllowlist.clear();
+    }
+
+    if (startupManager->ParsePreloadSystemSoAllowlist(jsonStr, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+}
+
+/**
+ * @tc.name: ReadPreloadSystemSoAllowlist_0100
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerTest, ReadPreloadSystemSoAllowlist_0100, Function | MediumTest | Level1)
+{
+    const std::string preloadSystemSoAllowlistFile = "/system/etc/ability_runtime_app_startup.json";
+    const std::string testFile = "/system/etc/ability_runtime_app_startup.json/invalid_data_file_test";
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+
+    std::string jsonStr;
+    EXPECT_FALSE(startupManager->ReadPreloadSystemSoAllowlist(testFile, jsonStr));
+    EXPECT_TRUE(startupManager->ReadPreloadSystemSoAllowlist(preloadSystemSoAllowlistFile, jsonStr));
+}
+
+/**
+ * @tc.name: ParsePreloadSystemSoAllowlist_0100
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerTest, ParsePreloadSystemSoAllowlist_0100, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    std::unordered_set<std::string> allowlist;
+
+    const std::string jsonStr1;
+    allowlist.clear();
+    EXPECT_FALSE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr1, allowlist));
+    EXPECT_TRUE(allowlist.empty());
+
+    const std::string jsonStr2 = "{}";
+    allowlist.clear();
+    EXPECT_FALSE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr2, allowlist));
+    EXPECT_TRUE(allowlist.empty());
+
+    const std::string jsonStr3 = "{\"systemPreloadSoAllowList\":\"\"}";
+    allowlist.clear();
+    EXPECT_FALSE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr3, allowlist));
+    EXPECT_TRUE(allowlist.empty());
+
+    const std::string jsonStr4 = "{\"systemPreloadSoAllowList\":[]}";
+    allowlist.clear();
+    EXPECT_TRUE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr4, allowlist));
+    EXPECT_TRUE(allowlist.empty());
+
+    const std::string jsonStr5 = "{\"systemPreloadSoAllowList\":[\"testOhmurl\"]}";
+    allowlist.clear();
+    EXPECT_TRUE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr5, allowlist));
+    EXPECT_FALSE(allowlist.empty());
+}
 }
 }

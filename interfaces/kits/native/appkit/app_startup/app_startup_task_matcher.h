@@ -104,6 +104,11 @@ private:
     std::shared_ptr<CustomizationStartupTaskMatcher> customizationMatcher_ = nullptr;
 };
 
+class MatchPreloadSystemSoTaskMatcher : public AppStartupTaskMatcher {
+public:
+    bool Match(const AppStartupTask &task) const override;
+};
+
 class DefaultStartupTaskMatcher : public AppStartupTaskMatcher {
 public:
     DefaultStartupTaskMatcher(const std::string &moduleName);

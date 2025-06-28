@@ -195,6 +195,11 @@ void MatchRulesStartupTaskMatcher::SetCustomizationMatcher(std::shared_ptr<Custo
     customizationMatcher_ = matcher;
 }
 
+bool MatchPreloadSystemSoTaskMatcher::Match(const AppStartupTask &task) const
+{
+    return task.IsPreloadSystemSoTask();
+}
+
 DefaultStartupTaskMatcher::DefaultStartupTaskMatcher(const std::string &moduleName) : moduleMatcher_(moduleName)
 {}
 
