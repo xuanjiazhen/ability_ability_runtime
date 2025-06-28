@@ -74,6 +74,8 @@ public:
     static void NativeHideAbility(ani_env *env, ani_object aniObj, ani_object callback);
     static void ChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_object callback, bool isShow);
     static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
+    static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
+        ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
