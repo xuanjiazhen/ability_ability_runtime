@@ -70,10 +70,10 @@ public:
     static void SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
     static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
-    static void NativeShowAbility(ani_env *env, ani_object aniObj, ani_object callback);
-    static void NativeHideAbility(ani_env *env, ani_object aniObj, ani_object callback);
-    static void ChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_object callback, bool isShow);
-    static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
+    static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
+        ani_object callbackObj);
+    static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
+        ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
