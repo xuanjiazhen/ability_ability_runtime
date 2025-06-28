@@ -418,6 +418,9 @@ enum class AbilityManagerInterfaceCode {
 
     SEND_LOCAL_PENDING_WANT_SENDER = 1070,
 
+    // ipc id for start UI abilities
+    START_UI_ABILITIES = 1071,
+
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
 

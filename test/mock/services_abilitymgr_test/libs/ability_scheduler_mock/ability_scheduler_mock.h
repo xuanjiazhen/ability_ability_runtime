@@ -48,6 +48,7 @@ public:
     MOCK_METHOD2(DumpAbilityInfo, void(const std::vector<std::string>& params, std::vector<std::string>& info));
     MOCK_METHOD1(ScheduleShareData, void(const int32_t &uniqueId));
     MOCK_METHOD0(SchedulePrepareTerminateAbility, bool());
+    MOCK_METHOD2(ScheduleAbilitiesRequestDone, void(const std::string &, int32_t));
     int InvokeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {
         code_ = code;
@@ -182,6 +183,9 @@ public:
 
     virtual void ScheduleAbilityRequestSuccess(const std::string &requestId,
         const AppExecFwk::ElementName &element) override
+    {}
+
+    virtual void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override
     {}
 
     int code_ = 0;

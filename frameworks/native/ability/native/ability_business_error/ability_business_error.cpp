@@ -130,6 +130,19 @@ constexpr const char* ERROR_MSG_ALREADY_MASTER_PROCESS =
     "The current process is already a master process and does not support cancellation.";
 constexpr const char* ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS =
     "The current process is not a candidate master process and does not support cancellation.";
+constexpr const char* ERROR_MSG_EXCEEDS_WANT_LIST_MAXIMUM_SIZE =
+    "A maximum of four UIAbility instances can be started simultaneously."
+    "The current parameter exceeds the maximum number.";
+constexpr const char* ERROR_MSG_TARGET_TYPE_NOT_UI_ABILITY = "The target component type is not a UIAbility.";
+constexpr const char* ERROR_MSG_TARGET_BLOCKED_BY_SYSTEM_MODULE =
+    "The target component is blocked by the system module and does not support startup.";
+constexpr const char* ERROR_MSG_NOT_SUPPORT_IMPLICIT_START = "Implicit startup is not supported.";
+constexpr const char* ERROR_MSG_NOT_SUPPORT_START_REMOTE_UI_ABILITY =
+    "Starting a remote UIAbility is not supported.";
+constexpr const char* ERROR_MSG_NOT_SUPPORT_START_PLUGIN_UI_ABILITY =
+    "Starting a plugin UIAbility is not supported.";
+constexpr const char* ERROR_MSG_NOT_SUPPORT_START_DLP_FILES =
+    "Starting DLP files is not supported.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -224,6 +237,13 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS, ERROR_MSG_NOT_ISOLATION_PROCESS},
     { AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS, ERROR_MSG_ALREADY_MASTER_PROCESS},
     { AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS, ERROR_MSG_NOT_CANDIDATE_MASTER_PROCESS },
+    { AbilityErrorCode::ERROR_CODE_EXCEEDS_WANT_LIST_MAXIMUM_SIZE, ERROR_MSG_EXCEEDS_WANT_LIST_MAXIMUM_SIZE },
+    { AbilityErrorCode::ERROR_CODE_TARGET_TYPE_NOT_UI_ABILITY, ERROR_MSG_TARGET_TYPE_NOT_UI_ABILITY },
+    { AbilityErrorCode::ERROR_CODE_TARGET_BLOCKED_BY_SYSTEM_MODULE, ERROR_MSG_TARGET_BLOCKED_BY_SYSTEM_MODULE },
+    { AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_IMPLICIT_START, ERROR_MSG_NOT_SUPPORT_IMPLICIT_START },
+    { AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_REMOTE_UI_ABILITY, ERROR_MSG_NOT_SUPPORT_START_REMOTE_UI_ABILITY },
+    { AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_PLUGIN_UI_ABILITY, ERROR_MSG_NOT_SUPPORT_START_PLUGIN_UI_ABILITY },
+    { AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_DLP_FILES, ERROR_MSG_NOT_SUPPORT_START_DLP_FILES },
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -320,6 +340,13 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_NOT_ISOLATION_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_ISOLATION_PROCESS},
     {ERR_ALREADY_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_ALREADY_MASTER_PROCESS},
     {ERR_NOT_CANDIDATE_MASTER_PROCESS, AbilityErrorCode::ERROR_CODE_NOT_CANDIDATE_MASTER_PROCESS},
+    {START_UI_ABILITIES_WANT_LIST_SIZE_ERROR, AbilityErrorCode::ERROR_CODE_EXCEEDS_WANT_LIST_MAXIMUM_SIZE },
+    {START_UI_ABILITIES_ONLY_SUPPORT_UI_ABILITY, AbilityErrorCode::ERROR_CODE_TARGET_TYPE_NOT_UI_ABILITY },
+    {START_UI_ABILITIES_INTERCEPTOR_CHECK_FAILED, AbilityErrorCode::ERROR_CODE_TARGET_BLOCKED_BY_SYSTEM_MODULE },
+    {START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START, AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_IMPLICIT_START },
+    {START_UI_ABILITIES_NOT_SUPPORT_OPERATE_REMOTE, AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_REMOTE_UI_ABILITY },
+    {START_UI_ABILITIES_NOT_SUPPORT_START_PLUGIN, AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_PLUGIN_UI_ABILITY },
+    {START_UI_ABILITIES_NOT_SUPPORT_DLP, AbilityErrorCode::ERROR_CODE_NOT_SUPPORT_START_DLP_FILES },
 };
 }
 
