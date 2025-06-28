@@ -67,6 +67,7 @@ group("fuzztest") {
     "abilitycontext_fuzzer:fuzztest",
     "abilitydebugdeal_fuzzer:fuzztest",
     "abilitydebugresponseproxy_fuzzer:fuzztest",
+    "abilityecologicalrulemgrservicefirst_fuzzer:fuzztest",
     "abilityeventutil_fuzzer:fuzztest",
     "abilityfirstframestateobservermanager_fuzzer:fuzztest",
     "abilityforegroundstateobserverproxy_fuzzer:fuzztest",
