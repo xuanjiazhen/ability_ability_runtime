@@ -24,6 +24,11 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace Rosen {
+struct StartAnimationOptions;
+struct StartAnimationSystemOptions;
+}
+
 using OnRequestResult = std::function<void(const AppExecFwk::ElementName&, const std::string&)>;
 struct OnRequestResultElement {
     std::string requestId_;
@@ -56,6 +61,8 @@ public:
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
     std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
     std::string requestId_;
+    std::shared_ptr<Rosen::StartAnimationOptions> animationOptions_ = nullptr;
+    std::shared_ptr<Rosen::StartAnimationSystemOptions> animationSystemOptions_ = nullptr;
 
     StartOptions() = default;
     ~StartOptions() = default;
