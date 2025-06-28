@@ -24,23 +24,23 @@ const TAG = 'UIAbility';
 const EVENT_CALL_NOTIFY = 1;
 const REQUEST_SUCCESS = 0;
 
-const ERROR_CODE_INVALID_PARAM = 401;
-const ERROR_CODE_CALLER_RELEASED = 16200001;
-const ERROR_CODE_CLAAEE_INVALID = 16200002;
-const ERROR_CODE_INNER_ERROR = 16000050;
+const ERROR_CODE_INVALID_PARAM: int = 401;
+const ERROR_CODE_FUNC_REGISTERED: int = 16200004;
+const ERROR_CODE_FUNC_NOT_EXIST: int = 16200005;
+const ERROR_CODE_INNER_ERROR: int = 16000050;
 
 const ERROR_MSG_INVALID_PARAM = 'Invalid input parameter.';
 const ERROR_MSG_CALLER_RELEASED = 'Caller released. The caller has been released.';
 const ERROR_MSG_CLAAEE_INVALID = 'The callee does not exist.';
 const ERROR_MSG_INNER_ERROR = 'Inner Error.';
 
-let errMap = new Map<number, string>();
+let errMap = new Map<int, string>();
 errMap.set(ERROR_CODE_INVALID_PARAM, ERROR_MSG_INVALID_PARAM);
 errMap.set(ERROR_CODE_CALLER_RELEASED, ERROR_MSG_CALLER_RELEASED);
 errMap.set(ERROR_CODE_CLAAEE_INVALID, ERROR_MSG_CLAAEE_INVALID);
 errMap.set(ERROR_CODE_INNER_ERROR, ERROR_MSG_INNER_ERROR);
 
-function buildError(code: number): BusinessError {
+function buildError(code: int): BusinessError {
   return new BusinessError(code, new Error(errMap.get(code) as string));
 }
 
