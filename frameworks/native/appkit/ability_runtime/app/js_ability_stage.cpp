@@ -896,7 +896,7 @@ void JsAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
     auto coerceStatus = napi_coerce_to_native_binding_object(
         env, contextObj, DetachNewBaseContext, AttachAbilityStageContext, workContext, nullptr);
     if (coerceStatus != napi_ok) {
-        TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", status);
+        TAG_LOGW(AAFwkTag::APPKIT, "coerce ability stage context failed: %{public}d", coerceStatus);
         return nullptr;
     }
     napi_add_detached_finalizer(env, contextObj, DetachFinalizeBaseContext, nullptr);
