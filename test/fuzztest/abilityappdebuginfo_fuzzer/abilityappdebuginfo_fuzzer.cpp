@@ -13,6 +13,26 @@
  * limitations under the License.
  */
 
+/*
+
+#include "abilityappdebuginfo_fuzzer.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <fuzzer/FuzzedDataProvider.h>
+
+#define private public
+#define protected public
+#include "app_debug_info.h"
+#undef protected
+#undef private
+#include "parcel.h"
+#include <iostream>
+#include "securec.h"
+#include "configuration.h"
+
+*/
+
 #include "abilityappdebuginfo_fuzzer.h"
 
 #include <cstddef>
