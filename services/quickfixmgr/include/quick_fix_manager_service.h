@@ -18,9 +18,9 @@
 
 #include <mutex>
 
+#include "appexecfwk_core/iquick_fix_manager.h"
 #include "event_runner.h"
 #include "event_handler.h"
-#include "quick_fix/quick_fix_manager_interface.h"
 #include "quick_fix_manager_apply_task.h"
 #include "quick_fix_manager_stub.h"
 

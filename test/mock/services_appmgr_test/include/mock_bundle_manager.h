@@ -176,12 +176,6 @@ public:
     MOCK_METHOD2(DeleteQuickFix, ErrCode(const std::string& bundleName,
         const sptr<IQuickFixStatusCallback>& statusCallback));
     MOCK_METHOD3(CreateFd, ErrCode(const std::string& fileName, int32_t& fd, std::string& path));
-
-    virtual ErrCode CopyFiles(const std::vector<std::string>& sourceFiles, std::vector<std::string>& destFiles) override
-    {
-        destFiles = sourceFiles;
-        return 0;
-    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

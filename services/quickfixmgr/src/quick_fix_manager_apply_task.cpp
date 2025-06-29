@@ -412,7 +412,10 @@ void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::str
         }
 
         TAG_LOGD(AAFwkTag::QUICKFIX, "isDebug is %d isReplace is %d", isDebug, isReplace);
-        auto ret = applyTask->bundleQfMgr_->DeployQuickFix(quickFixFiles, callback, isDebug, "", isReplace);
+        int32_t funcResult = -1;
+        auto ret = applyTask->bundleQfMgr_->DeployQuickFix(
+            quickFixFiles, callback, isDebug, "", isReplace, funcResult);
+        ret = (ret == 0) ? funcResult : ret;
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "failed: %{public}d", ret);
             applyTask->NotifyApplyStatus(QUICK_FIX_DEPLOY_FAILED);
@@ -451,7 +454,9 @@ void QuickFixManagerApplyTask::PostSwitchQuickFixTask()
             return;
         }
 
-        auto ret = applyTask->bundleQfMgr_->SwitchQuickFix(applyTask->bundleName_, true, callback);
+        int32_t funcResult = -1;
+        auto ret = applyTask->bundleQfMgr_->SwitchQuickFix(applyTask->bundleName_, true, callback, funcResult);
+        ret = (ret == 0) ? funcResult : ret;
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "failed: %{public}d", ret);
             applyTask->NotifyApplyStatus(QUICK_FIX_SWICH_FAILED);
@@ -490,7 +495,9 @@ void QuickFixManagerApplyTask::PostDeleteQuickFixTask()
             return;
         }
 
-        auto ret = applyTask->bundleQfMgr_->DeleteQuickFix(applyTask->bundleName_, callback);
+        int32_t funcResult = -1;
+        auto ret = applyTask->bundleQfMgr_->DeleteQuickFix(applyTask->bundleName_, callback, funcResult);
+        ret = (ret == 0) ? funcResult : ret;
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "delete quick fix failed: %{public}d", ret);
             applyTask->NotifyApplyStatus(QUICK_FIX_DELETE_FAILED);
@@ -912,7 +919,9 @@ void QuickFixManagerApplyTask::PostRevokeQuickFixDeleteTask()
     }
 
     // call delete patch to bms
-    auto ret = bundleQfMgr_->DeleteQuickFix(bundleName_, callback);
+    int32_t funcResult = -1;
+    auto ret = bundleQfMgr_->DeleteQuickFix(bundleName_, callback, funcResult);
+    ret = (ret == 0) ? funcResult : ret;
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "failed: %{public}d", ret);
         NotifyApplyStatus(QUICK_FIX_DELETE_FAILED);
@@ -939,7 +948,9 @@ void QuickFixManagerApplyTask::HandleRevokeQuickFixAppStop()
         return;
     }
 
-    auto ret = bundleQfMgr_->SwitchQuickFix(bundleName_, false, callback);
+    int32_t funcResult = -1;
+    auto ret = bundleQfMgr_->SwitchQuickFix(bundleName_, false, callback, funcResult);
+    ret = (ret == 0) ? funcResult : ret;
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "failed: %{public}d", ret);
         NotifyApplyStatus(QUICK_FIX_SWICH_FAILED);
