@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,7 +65,6 @@ public:
     bool QueryAbilityInfo(const Want &want, int32_t flags, int32_t userId, AbilityInfo &abilityInfo);
     bool GetBundleInfos(int32_t flags,
         std::vector<BundleInfo> &bundleInfos, int32_t userId = Constants::UNSPECIFIED_USERID);
-    sptr<IQuickFixManager> GetQuickFixManagerProxy();
     bool ProcessPreload(const Want &want);
     sptr<IAppControlMgr> GetAppControlProxy();
     bool QueryExtensionAbilityInfos(const Want &want, const int32_t &flag, const int32_t &userId,

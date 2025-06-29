@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -277,17 +277,6 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_RegisterBundleEventCallback_00
     const sptr<IBundleEventCallback> bundleEventCallback = nullptr;
     auto ret = bundleMgrHelper->RegisterBundleEventCallback(bundleEventCallback);
     EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: BundleMgrHelperTest_GetQuickFixManagerProxy_001
- * @tc.desc: GetQuickFixManagerProxy
- * @tc.type: FUNC
- */
-HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetQuickFixManagerProxy_001, TestSize.Level1)
-{
-    auto ret = bundleMgrHelper->GetQuickFixManagerProxy();
-    EXPECT_NE(ret, nullptr);
 }
 
 /**

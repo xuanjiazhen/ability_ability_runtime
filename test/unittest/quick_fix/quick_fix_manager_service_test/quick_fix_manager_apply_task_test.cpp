@@ -23,6 +23,7 @@
 #include "nativetoken_kit.h"
 #include "quick_fix_error_utils.h"
 #define private public
+#include "quick_fix/quick_fix_manager_client.h"
 #include "quick_fix_manager_service.h"
 #undef private
 #include "quick_fix_result_info.h"
@@ -97,7 +98,6 @@ public:
     void TearDown() override;
 
     sptr<QuickFixManagerService> quickFixMs_ = nullptr;
-    sptr<AppExecFwk::QuickFixManagerHostImpl> bundleQfMgr_ = nullptr;
     sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
     std::shared_ptr<QuickFixUtil> quickFixUtil_ = nullptr;
 };
@@ -123,9 +123,6 @@ void QuickFixManagerApplyTaskTest::SetUp()
     sptr<IRemoteObject> bundleObject = new (std::nothrow) AppExecFwk::BundleMgrService();
     quickFixUtil_->RegisterSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID, bundleObject);
 
-    bundleQfMgr_ = new (std::nothrow) AppExecFwk::QuickFixManagerHostImpl();
-    ASSERT_NE(bundleQfMgr_, nullptr);
-
     appMgr_ = QuickFixUtil::GetAppManagerProxy();
     ASSERT_NE(appMgr_, nullptr);
 }
@@ -143,11 +140,10 @@ HWTEST_F(QuickFixManagerApplyTaskTest, Run_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
 
-    EXPECT_CALL(*bundleQfMgr_, DeployQuickFix(_, _, _, _, _)).Times(1);
     std::vector<std::string> quickFixFiles;
     applyTask->Run(quickFixFiles);
     WaitUntilTaskDone(quickFixMs_->eventHandler_);
@@ -165,11 +161,10 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandlePatchDeployed_0100, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
 
-    EXPECT_CALL(*bundleQfMgr_, SwitchQuickFix(_, _, _)).Times(1);
     applyTask->HandlePatchDeployed();
     WaitUntilTaskDone(quickFixMs_->eventHandler_);
 
@@ -186,11 +181,10 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandlePatchSwitched_0100, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
 
-    EXPECT_CALL(*bundleQfMgr_, DeleteQuickFix(_, _)).Times(1);
     applyTask->HandlePatchSwitched();
     WaitUntilTaskDone(quickFixMs_->eventHandler_);
 
@@ -207,7 +201,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandlePatchDeleted_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
 
@@ -226,7 +220,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandlePatchDeleted_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, NotifyApplyStatus_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -245,7 +239,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, NotifyApplyStatus_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, RemoveTimeoutTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RemoveTimeoutTask();
@@ -261,7 +255,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RemoveTimeoutTask_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, RemoveTimeoutTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RemoveTimeoutTask();
@@ -277,7 +271,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RemoveTimeoutTask_0200, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::shared_ptr<AppExecFwk::QuickFixResult> quickFixRes =
@@ -296,7 +290,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     auto quickFixRes = std::make_shared<AppExecFwk::DeployQuickFixResult>();
@@ -316,7 +310,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0200, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     auto quickFixRes = std::make_shared<AppExecFwk::DeployQuickFixResult>();
@@ -335,7 +329,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0300, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0400, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "testcase start.");
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     auto quickFixRes = std::make_shared<AppExecFwk::DeployQuickFixResult>();
@@ -369,7 +363,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, SetQuickFixInfo_0400, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, GetRunningState_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, nullptr,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     bool res = applyTask->GetRunningState();
@@ -386,7 +380,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, GetRunningState_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyLoadRepairPatchTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyLoadRepairPatchTask();
@@ -402,7 +396,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyLoadRepairPatchTask_0100, TestS
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyLoadRepairPatchTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyLoadRepairPatchTask();
@@ -418,7 +412,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyLoadRepairPatchTask_0200, TestS
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyUnloadRepairPatchTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyUnloadRepairPatchTask();
@@ -434,7 +428,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyUnloadRepairPatchTask_0100, Tes
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyUnloadRepairPatchTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyUnloadRepairPatchTask();
@@ -450,7 +444,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyUnloadRepairPatchTask_0200, Tes
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyHotReloadPageTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyHotReloadPageTask();
@@ -466,7 +460,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyHotReloadPageTask_0100, TestSiz
 HWTEST_F(QuickFixManagerApplyTaskTest, PostNotifyHotReloadPageTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostNotifyHotReloadPageTask();
@@ -483,7 +477,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RegAppStateObserver_0100, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     SetPermission();
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RegAppStateObserver();
@@ -500,7 +494,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RegAppStateObserver_0200, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     SetPermission();
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, nullptr,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RegAppStateObserver();
@@ -516,7 +510,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RegAppStateObserver_0200, TestSize.Level1
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokePatchDeleted_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -535,7 +529,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokePatchDeleted_0100, TestSize.L
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokePatchSwitched_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -555,7 +549,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokePatchSwitched_0100, TestSize.
 HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixProcessDiedTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -575,7 +569,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixProcessDiedTask_0100, T
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppRunning_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -596,7 +590,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppRunning_0100, Test
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppRunning_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -617,7 +611,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppRunning_0200, Test
 HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixNotifyUnloadPatchTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -639,7 +633,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixNotifyUnloadPatchTask_0
 HWTEST_F(QuickFixManagerApplyTaskTest, RunRevoke_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -659,7 +653,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RunRevoke_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, InitRevokeTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::string bundleName = "testBundleName";
@@ -677,7 +671,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, InitRevokeTask_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, GetBundleName_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::string bundleName = "testBundleName";
@@ -697,7 +691,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, GetBundleName_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, GetTaskType_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::string bundleName = "testBundleName";
@@ -719,7 +713,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, GetTaskType_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, RemoveSelf_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RemoveSelf();
@@ -735,7 +729,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RemoveSelf_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, RemoveSelf_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->RemoveSelf();
@@ -751,7 +745,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, RemoveSelf_0200, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, PostSwitchQuickFixTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostSwitchQuickFixTask();
@@ -766,7 +760,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostSwitchQuickFixTask_0100, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostSwitchQuickFixTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostSwitchQuickFixTask();
@@ -782,7 +776,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostSwitchQuickFixTask_0200, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostDeployQuickFixTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::vector<std::string> quickFixFiles;
@@ -799,7 +793,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostDeployQuickFixTask_0100, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostDeployQuickFixTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     std::vector<std::string> quickFixFiles;
@@ -816,7 +810,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostDeployQuickFixTask_0200, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostDeleteQuickFixTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostDeleteQuickFixTask();
@@ -831,7 +825,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostDeleteQuickFixTask_0100, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostDeleteQuickFixTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostDeleteQuickFixTask();
@@ -848,7 +842,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, UnregAppStateObserver_0100, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     SetPermission();
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->UnregAppStateObserver();
@@ -865,7 +859,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, UnregAppStateObserver_0200, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     SetPermission();
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, nullptr,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->UnregAppStateObserver();
@@ -880,7 +874,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, UnregAppStateObserver_0200, TestSize.Leve
 HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixDeleteTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -902,7 +896,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixDeleteTask_0100, TestSi
 HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostRevokeQuickFixTask();
@@ -918,7 +912,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixTask_0100, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostRevokeQuickFixTask();
@@ -934,7 +928,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostRevokeQuickFixTask_0200, TestSize.Lev
 HWTEST_F(QuickFixManagerApplyTaskTest, PostTimeOutTask_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostTimeOutTask();
@@ -950,7 +944,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostTimeOutTask_0100, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, PostTimeOutTask_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         nullptr, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->PostTimeOutTask();
@@ -966,7 +960,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, PostTimeOutTask_0200, TestSize.Level1)
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppStop_0100, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr_, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -988,7 +982,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppStop_0100, TestSiz
 HWTEST_F(QuickFixManagerApplyTaskTest, HandleRevokeQuickFixAppStop_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     ASSERT_NE(applyTask, nullptr);
     applyTask->bundleName_ = "testBundleName";
@@ -1017,7 +1011,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0100, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_TRUE(ret);
@@ -1045,7 +1039,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0200, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1068,7 +1062,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0300, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1091,7 +1085,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0400, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1114,7 +1108,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0500, TestSiz
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_PATCH_VERSION_CODE, static_cast<double>(456));
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1137,7 +1131,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0600, TestSiz
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_PATCH_VERSION_CODE, static_cast<double>(456));
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1161,7 +1155,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0700, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1185,7 +1179,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0800, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1210,7 +1204,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_0900, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, true);
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1236,7 +1230,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_1000, TestSiz
     cJSON_AddStringToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, "invalid");
     cJSON_AddNumberToObject(jsonData, QUICK_FIX_TYPE, static_cast<double>(2));
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);
@@ -1263,7 +1257,7 @@ HWTEST_F(QuickFixManagerApplyTaskTest, ExtractQuickFixDataFromJson_1100, TestSiz
     cJSON_AddBoolToObject(jsonData, QUICK_FIX_IS_SO_CONTAINED, false);
     cJSON_AddStringToObject(jsonData, QUICK_FIX_TYPE, "invalid");
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, appMgr_,
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr_,
         quickFixMs_->eventHandler_, quickFixMs_);
     bool ret = applyTask->ExtractQuickFixDataFromJson(jsonData);
     EXPECT_FALSE(ret);

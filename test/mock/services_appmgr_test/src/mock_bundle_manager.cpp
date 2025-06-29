@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -361,18 +361,6 @@ void BundleMgrService::MakingResidentProcData()
 
     bundleInfos_.emplace_back(bundleInfo);
     bundleInfos_.emplace_back(bundleInfo1);
-}
-
-sptr<IQuickFixManager> BundleMgrService::GetQuickFixManagerProxy()
-{
-    if (quickFixManager_ == nullptr) {
-        quickFixManager_ = new (std::nothrow) QuickFixManagerHostImpl();
-        if (quickFixManager_ == nullptr) {
-            GTEST_LOG_(ERROR) << "new quick fix manager failed.";
-            return nullptr;
-        }
-    }
-    return quickFixManager_;
 }
 
 ErrCode BundleMgrService::GetBundleInfoForSelf(int32_t flags, BundleInfo &bundleInfo)
