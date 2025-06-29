@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,9 +20,10 @@
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
+#include "quick_fix/quick_fix_manager_client.h"
+#include "quick_fix/quick_fix_manager_proxy.h"
 #include "quick_fix_error_utils.h"
 #include "quick_fix_load_callback.h"
-#include "quick_fix_manager_proxy.h"
 #include "quick_fix_utils.h"
 #include "system_ability_definition.h"
 
@@ -44,14 +45,9 @@ int32_t QuickFixManagerClient::ApplyQuickFix(const std::vector<std::string> &qui
         return QUICK_FIX_CONNECT_FAILED;
     }
 
-    auto bundleQuickFixMgr = QuickFixUtil::GetBundleQuickFixMgrProxy();
-    if (bundleQuickFixMgr == nullptr) {
-        return QUICK_FIX_CONNECT_FAILED;
-    }
-
     TAG_LOGD(AAFwkTag::QUICKFIX, "hqf file number need to apply: %{public}zu", quickFixFiles.size());
     std::vector<std::string> destFiles;
-    auto copyRet = bundleQuickFixMgr->CopyFiles(quickFixFiles, destFiles);
+    auto copyRet = AppExecFwk::QuickFixManagerClient::GetInstance().CopyFiles(quickFixFiles, destFiles);
     if (copyRet != 0) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "Copy files failed.");
         return (copyRet == ERR_BUNDLEMANAGER_QUICK_FIX_PERMISSION_DENIED) ? QUICK_FIX_VERIFY_PERMISSION_FAILED :
