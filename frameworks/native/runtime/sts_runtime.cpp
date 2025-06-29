@@ -909,6 +909,12 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod loadClass failed");
         return std::make_unique<STSNativeReference>();
     }
+    ani_class contextCls {};
+    if (aniEnv->FindClass("std.interop.InteropContext", &contextCls) == ANI_OK) {
+        TAG_LOGD(AAFwkTag::STSRUNTIME, "setDefaultInteropLinker");
+        aniEnv->Class_CallStaticMethodByName_Void(contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:",
+            object);
+    }
     std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
     ani_string entryClassStr;
     aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
