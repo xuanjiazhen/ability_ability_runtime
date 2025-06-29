@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,11 +18,11 @@
 
 #include <mutex>
 
+#include "appexecfwk_core/iquick_fix_manager.h"
 #include "event_runner.h"
 #include "event_handler.h"
-#include "quick_fix/quick_fix_manager_interface.h"
+#include "quick_fix/quick_fix_manager_stub.h"
 #include "quick_fix_manager_apply_task.h"
-#include "quick_fix_manager_stub.h"
 
 namespace OHOS {
 namespace AAFwk {

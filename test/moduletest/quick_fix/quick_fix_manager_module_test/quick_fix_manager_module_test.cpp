@@ -20,7 +20,7 @@
 #include "mock_quick_fix_util.h"
 #include "quick_fix_error_utils.h"
 #define private public
-#include "quick_fix_manager_client.h"
+#include "include/quick_fix_manager_client.h"
 #include "quick_fix_manager_service.h"
 #undef private
 #include "system_ability_definition.h"
