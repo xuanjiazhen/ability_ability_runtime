@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include "ability_info.h"
 #include "ams_mgr_interface.h"
 #include "app_foreground_state_observer_interface.h"
+#include "app_jsheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
@@ -32,26 +33,25 @@
 #include "child_process_request.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "fault_data.h"
-#include "kia_interceptor_interface.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "ikia_interceptor.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "irender_state_observer.h"
 #include "killed_process_info.h"
 #include "memory_level_info.h"
+#include "native_child_notify_interface.h"
 #include "page_state_data.h"
 #include "process_memory_state.h"
 #include "render_process_info.h"
+#include "running_multi_info.h"
 #include "running_process_info.h"
 #include "system_memory_attr.h"
 #include "want.h"
-#include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
-#include "running_multi_info.h"
-#include "native_child_notify_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {

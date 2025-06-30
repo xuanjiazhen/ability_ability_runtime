@@ -68,6 +68,9 @@ ohos_unittest("app_exit_reason_helper_fourth_test") {
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
+  configs =
+      [ "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config" ]
+
   external_deps = [
     "ability_base:session_info",
     "ability_base:want",
