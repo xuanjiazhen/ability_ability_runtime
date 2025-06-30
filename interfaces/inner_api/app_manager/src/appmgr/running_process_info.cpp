@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,9 @@
 
 #include "running_process_info.h"
 
-#include "nlohmann/json.hpp"
-#include "string_ex.h"
-
 #include "hilog_tag_wrapper.h"
 #include "parcel_macro_base.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -49,6 +47,7 @@ bool RunningProcessInfo::ReadFromParcel(Parcel &parcel)
     isAbilityForegrounding = parcel.ReadBool();
     isTestMode = parcel.ReadBool();
     isDebugApp = parcel.ReadBool();
+    isExiting = parcel.ReadBool();
     int32_t bundleTypeData;
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, bundleTypeData);
     bundleType = static_cast<int32_t>(bundleTypeData);
@@ -73,6 +72,7 @@ bool RunningProcessInfo::ReadFromParcel(Parcel &parcel)
     int32_t pssData;
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, pssData);
     pssValue = static_cast<int32_t>(pssData);
+    isCached = parcel.ReadBool();
     return true;
 }
 
@@ -100,6 +100,7 @@ bool RunningProcessInfo::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isAbilityForegrounding);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isTestMode);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isDebugApp);
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isExiting);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(bundleType));
     if (!parcel.WriteStringVector(bundleNames)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write bundleNames failed.");
@@ -112,6 +113,7 @@ bool RunningProcessInfo::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(appMode));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(rssValue));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(pssValue));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isCached);
     return true;
 }
 

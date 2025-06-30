@@ -355,6 +355,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetNativeStart(isNativeStart_);
     launchData.SetAppRunningUniqueId(std::to_string(startTimeMillis_));
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
+    launchData.SetAppPreloadMode(preloadMode_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
@@ -1352,6 +1353,11 @@ bool AppRunningRecord::IsKeepAliveDkv() const
     return isKeepAliveDkv_;
 }
 
+bool AppRunningRecord::IsKeepAliveAppService() const
+{
+    return isKeepAliveAppService_;
+}
+
 void AppRunningRecord::SetKeepAliveEnableState(bool isKeepAliveEnable)
 {
     isKeepAliveRdb_ = isKeepAliveEnable;
@@ -1360,6 +1366,11 @@ void AppRunningRecord::SetKeepAliveEnableState(bool isKeepAliveEnable)
 void AppRunningRecord::SetKeepAliveDkv(bool isKeepAliveDkv)
 {
     isKeepAliveDkv_ = isKeepAliveDkv;
+}
+
+void AppRunningRecord::SetKeepAliveAppService(bool isKeepAliveAppService)
+{
+    isKeepAliveAppService_ = isKeepAliveAppService;
 }
 
 void AppRunningRecord::SetKeepAliveBundle(bool isKeepAliveBundle)

@@ -400,6 +400,17 @@ public:
     {
         return 0;
     }
+
+    ErrCode PromoteCurrentToCandidateMasterProcess(
+        bool isInsertToHead)
+    {
+        return 0;
+    }
+
+    ErrCode DemoteCurrentFromCandidateMasterProcess()
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

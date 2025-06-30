@@ -172,4 +172,6 @@ interface OHOS.AppExecFwk.IAppMgr{
     void UpdateProcessMemoryState([in] ProcessMemoryState[] procMemState);
     void GetKilledProcessInfo([in] int pid, [in] int uid, [out] KilledProcessInfo info);
     void LaunchAbility([in] IRemoteObject token);
+    void PromoteCurrentToCandidateMasterProcess([in] boolean isInsertToHead);
+    void DemoteCurrentFromCandidateMasterProcess();
 }

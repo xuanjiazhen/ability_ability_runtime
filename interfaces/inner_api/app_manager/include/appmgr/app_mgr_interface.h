@@ -18,4 +18,4 @@
 
 #include "iapp_mgr.h"
 
-#endif  // OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
+#endif  // OHOS_ABILITY_RUNTIME_APP_MGR_INTERFACE_H

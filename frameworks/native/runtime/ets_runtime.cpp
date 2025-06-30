@@ -15,41 +15,18 @@
 
 #include "ets_runtime.h"
 
-#include <atomic>
-#include <cerrno>
-#include <climits>
-#include <cstdlib>
+#include <cstddef>
 #include <dlfcn.h>
 #include <filesystem>
 #include <fstream>
-#include <mutex>
 #include <nlohmann/json.hpp>
 #include <regex>
-#include <sys/epoll.h>
 #include <unistd.h>
-#include <uv.h>
 
-#include "accesstoken_kit.h"
-#include "config_policy_utils.h"
-#include "connect_server_manager.h"
 #include "constants.h"
-#include "extract_resource_manager.h"
-#include "extractor.h"
-#include "file_ex.h"
-#include "file_mapper.h"
+#include "ets_interface.h"
 #include "file_path_utils.h"
-#include "hdc_register.h"
 #include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
-#include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "module_checker_delegate.h"
-#include "parameters.h"
-#include "source_map.h"
-#include "source_map_operator.h"
-#include "ets_environment.h"
-#include "syscap_ts.h"
-#include "system_ability_definition.h"
 
 #ifdef SUPPORT_SCREEN
 #include "ace_forward_compatibility.h"
@@ -195,11 +172,34 @@ private:
 
     std::map<std::string, std::string> entryPathMap_ {};
 };
+
+const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
+const char *ETS_ENV_REGISTER_FUNCS = "OHOS_ETS_ENV_RegisterFuncs";
+ETSEnvFuncs *g_etsEnvFuncs = nullptr;
+
+bool RegisterETSEnvFuncs()
+{
+    if (g_etsEnvFuncs != nullptr) {
+        return true;
+    }
+    auto handle = dlopen(ETS_ENV_LIBNAME, RTLD_NOW);
+    if (!handle) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "dlopen failed %{public}s, %{public}s", ETS_ENV_LIBNAME, dlerror());
+        return false;
+    }
+    auto symbol = dlsym(handle, ETS_ENV_REGISTER_FUNCS);
+    if (!symbol) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "dlsym failed %{public}s, %{public}s", ETS_ENV_REGISTER_FUNCS, dlerror());
+        dlclose(handle);
+        return false;
+    }
+    auto func = reinterpret_cast<ETSEnvFuncs* (*)()>(symbol);
+    g_etsEnvFuncs = func();
+    return true;
+}
 } // namespace
 
-AppLibPathVec ETSRuntime::appLibPaths_;
-
-std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, Runtime *jsRuntime)
+std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
     if (jsRuntime == nullptr) {
@@ -235,11 +235,30 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, Runtime *
 void ETSRuntime::SetAppLibPath(const AppLibPathMap &appLibPaths)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "SetAppLibPath called");
-    EtsEnv::ETSEnvironment::InitETSSDKNS(ETS_RT_PATH);
-    EtsEnv::ETSEnvironment::InitETSSysNS(ETS_SYSLIB_PATH);
+    if (!RegisterETSEnvFuncs()) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
+        return;
+    }
+
+    if (g_etsEnvFuncs == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs");
+        return;
+    }
+
+    if (g_etsEnvFuncs->InitETSSDKNS == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null InitETSSDKNS");
+        return;
+    }
+    g_etsEnvFuncs->InitETSSDKNS(ETS_RT_PATH);
+
+    if (g_etsEnvFuncs->InitETSSysNS == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null InitETSSysNS");
+        return;
+    }
+    g_etsEnvFuncs->InitETSSysNS(ETS_SYSLIB_PATH);
 }
 
-bool ETSRuntime::Initialize(const Options &options, Runtime *jsRuntime)
+bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");
     if (options.lang != GetLanguage()) {
@@ -247,33 +266,25 @@ bool ETSRuntime::Initialize(const Options &options, Runtime *jsRuntime)
         return false;
     }
 
-    if (!CreateEtsEnv(options, jsRuntime)) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Create etsEnv failed");
+    jsRuntime_ = std::move(jsRuntime);
+    if (!CreateEtsEnv(options, jsRuntime_.get())) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateEtsEnv failed");
         return false;
     }
 
     apiTargetVersion_ = options.apiTargetVersion;
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
-
     return true;
 }
 
-void ETSRuntime::RegisterUncaughtExceptionHandler(void *uncaughtExceptionInfo)
+void ETSRuntime::RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo)
 {
-    if (etsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null etsEnv_");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->RegisterUncaughtExceptionHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or RegisterUncaughtExceptionHandler");
         return;
     }
-
-    if (uncaughtExceptionInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null uncaughtExceptionInfo");
-        return;
-    }
-
-    auto handle = static_cast<EtsEnv::ETSUncaughtExceptionInfo *>(uncaughtExceptionInfo);
-    if (handle != nullptr) {
-        etsEnv_->RegisterUncaughtExceptionHandler(*handle);
-    }
+    g_etsEnvFuncs->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
 }
 
 ETSRuntime::~ETSRuntime()
@@ -290,58 +301,56 @@ void ETSRuntime::Deinitialize()
 bool ETSRuntime::CreateEtsEnv(const Options &options, Runtime *jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "CreateEtsEnv called");
-    etsEnv_ = std::make_shared<EtsEnv::ETSEnvironment>();
-    std::vector<ani_option> aniOptions;
-    std::string aotFileString = "";
-    if (!options.arkNativeFilePath.empty()) {
-        std::string aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
-        aotFileString = "--ext:--aot-file=" + aotFilePath;
-        aniOptions.push_back(ani_option { aotFileString.c_str(), nullptr });
-        TAG_LOGI(AAFwkTag::ETSRUNTIME, "aotFileString: %{public}s", aotFileString.c_str());
-        aniOptions.push_back(ani_option { "--ext:--enable-an", nullptr });
-    }
-
-    if (!etsEnv_->Initialize(static_cast<AbilityRuntime::JsRuntime *>(jsRuntime)->GetNapiEnv(), aniOptions)) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Init EtsEnv failed");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->Initialize == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or Initialize");
         return false;
     }
 
+    std::string aotFilePath = "";
+    if (!options.arkNativeFilePath.empty()) {
+        aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
+    }
+    napi_env napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime)->GetNapiEnv();
+    if (!g_etsEnvFuncs->Initialize(reinterpret_cast<void *>(napiEnv), aotFilePath)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
+        return false;
+    }
     return true;
 }
 
 ani_env *ETSRuntime::GetAniEnv()
 {
-    if (etsEnv_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null etsEnv_");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->GetAniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or GetAniEnv");
         return nullptr;
     }
-    return etsEnv_->GetAniEnv();
+    return g_etsEnvFuncs->GetAniEnv();
 }
 
 void ETSRuntime::PreloadModule(const std::string &moduleName, const std::string &hapPath,
     bool isEsMode, bool useCommonTrunk)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "moduleName: %{public}s", moduleName.c_str());
-    ani_env *aniEnv = GetAniEnv();
-    if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->PreloadModule == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PreloadModule");
         return;
     }
 
-    ani_class cls = nullptr;
-    ani_object object = nullptr;
-    if (!LoadAbcLinker(aniEnv, moduleName, cls, object)) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadAbcLinker failed");
-        return;
+    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    if (!g_etsEnvFuncs->PreloadModule(modulePath)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "PreloadModule failed");
     }
     return;
 }
 
-std::unique_ptr<ETSNativeReference> ETSRuntime::LoadModule(const std::string &moduleName,
+std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadModule(const std::string &moduleName,
     const std::string &modulePath, const std::string &hapPath, bool esmodule, bool useCommonChunk,
     const std::string &srcEntrance)
 {
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Load module(%{public}s, %{public}s, %{public}s, %{public}s)",
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "LoadModule(%{public}s, %{public}s, %{public}s, %{public}s)",
         moduleName.c_str(), modulePath.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
     std::string path = moduleName;
@@ -364,118 +373,51 @@ std::unique_ptr<ETSNativeReference> ETSRuntime::LoadModule(const std::string &mo
             return nullptr;
         }
     }
-    std::unique_ptr<ETSNativeReference> etsNativeReference = LoadEtsModule(moduleName, fileName, hapPath, srcEntrance);
+    std::unique_ptr<AppExecFwk::ETSNativeReference> etsNativeReference = LoadEtsModule(moduleName, fileName,
+        hapPath, srcEntrance);
     return etsNativeReference;
 }
 
-bool ETSRuntime::LoadAbcLinker(ani_env *env, const std::string &moduleName, ani_class &abcCls, ani_object &abcObj)
+std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const std::string &moduleName,
+    const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance)
 {
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->LoadModule == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or LoadModule");
+        return std::unique_ptr<AppExecFwk::ETSNativeReference>();
+    }
+
+    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
+    void *cls = nullptr;
+    void *obj = nullptr;
+    void *ref = nullptr;
+    if (!g_etsEnvFuncs->LoadModule(modulePath, entryPath, cls, obj, ref)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadModule failed");
+        return std::unique_ptr<AppExecFwk::ETSNativeReference>();
+    }
+    auto etsNativeReference = std::make_unique<AppExecFwk::ETSNativeReference>();
+    etsNativeReference->aniCls = reinterpret_cast<ani_class>(cls);
+    etsNativeReference->aniObj = reinterpret_cast<ani_object>(obj);
+    etsNativeReference->aniRef = reinterpret_cast<ani_ref>(ref);
+    return etsNativeReference;
+}
+
+bool ETSRuntime::HandleUncaughtError()
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "HandleUncaughtError called");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->HandleUncaughtError == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or HandleUncaughtError");
         return false;
     }
-    ani_class stringCls = nullptr;
-    if (env->FindClass("Lstd/core/String;", &stringCls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass Lstd/core/String Failed");
-        return false;
-    }
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
-    ani_string aniStr;
-    if (env->String_NewUTF8(modulePath.c_str(), modulePath.size(), &aniStr) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 modulePath Failed");
-        return false;
-    }
-    ani_ref undefinedRef;
-    if (env->GetUndefined(&undefinedRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed");
-        return false;
-    }
-    ani_array_ref refArray;
-    if (env->Array_New_Ref(stringCls, 1, undefinedRef, &refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref Failed");
-        return false;
-    }
-    if (env->Array_Set_Ref(refArray, 0, aniStr) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed");
-        return false;
-    }
-    if (env->FindClass("Lstd/core/AbcRuntimeLinker;", &abcCls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass AbcRuntimeLinker failed");
-        return false;
-    }
-    ani_method method = nullptr;
-    if (env->Class_FindMethod(abcCls, "<ctor>", "Lstd/core/RuntimeLinker;[Lstd/core/String;:V", &method) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed");
-        return false;
-    }
-    env->ResetError();
-    if (env->Object_New(abcCls, method, &abcObj, undefinedRef, refArray) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed");
-        HandleUncaughtError();
-        return false;
-    }
+    g_etsEnvFuncs->HandleUncaughtError();
     return true;
 }
 
-std::unique_ptr<ETSNativeReference> ETSRuntime::LoadEtsModule(const std::string &moduleName,
-    const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance)
+const std::unique_ptr<AbilityRuntime::Runtime> &ETSRuntime::GetJsRuntime() const
 {
-    auto etsNativeReference = std::make_unique<ETSNativeReference>();
-    ani_env *aniEnv = GetAniEnv();
-    if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    ani_class cls = nullptr;
-    ani_object object = nullptr;
-    if (!LoadAbcLinker(aniEnv, moduleName_, cls, object)) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadAbcLinker failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    ani_method loadClassMethod = nullptr;
-    if (aniEnv->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod loadClass failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
-    ani_string entryClassStr;
-    aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
-    ani_class entryClass = nullptr;
-    ani_ref entryClassRef = nullptr;
-    if (aniEnv->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, false) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethod_Ref loadClassMethod failed");
-        return std::make_unique<ETSNativeReference>();
-    } else {
-        entryClass = static_cast<ani_class>(entryClassRef);
-    }
-    ani_method entryMethod = nullptr;
-    if (aniEnv->Class_FindMethod(entryClass, "<ctor>", ":V", &entryMethod) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    ani_object entryObject = nullptr;
-    if (aniEnv->Object_New(entryClass, entryMethod, &entryObject) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    ani_ref entryObjectRef = nullptr;
-    if (aniEnv->GlobalReference_Create(entryObject, &entryObjectRef) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed");
-        return std::make_unique<ETSNativeReference>();
-    }
-    etsNativeReference->aniCls = entryClass;
-    etsNativeReference->aniObj = entryObject;
-    etsNativeReference->aniRef = entryObjectRef;
-    return etsNativeReference;
-}
-
-void ETSRuntime::HandleUncaughtError()
-{
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "HandleUncaughtError called");
-    if (etsEnv_ == nullptr) {
-        return;
-    }
-    etsEnv_->HandleUncaughtError();
+    return jsRuntime_;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

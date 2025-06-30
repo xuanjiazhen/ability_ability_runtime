@@ -824,6 +824,11 @@ enum {
     ERR_NO_U1 = 2097338,
 
     /**
+     * Result (2097339) for kill foreground apps.
+     */
+    ERR_KILL_APP_WHILE_FOREGROUND = 2097339,
+
+    /**
      * Result (2097340-2097350) for uri permission error result.
      */
     ERR_UPMS_GET_FILE_URIS_BY_KEY_FAILED = 2097340,
@@ -902,6 +907,21 @@ enum {
      * Result(2097361) for sa interceptor read ipc params failed.
      */
     ERR_SA_INTERCEPTOR_READ_PARAMS_FAILED = 2097361,
+
+    /*
+     * Result(2097364) Current process is not running a component configured with "isolationProcess".
+     */
+    ERR_NOT_ISOLATION_PROCESS = 2097364,
+
+    /*
+     * Result(2097365) Current process is already a master process, revocation is not supported.
+     */
+    ERR_ALREADY_MASTER_PROCESS = 2097365,
+
+     /*
+     * Result(2097366) Current process is not a candidate master process, no need to revocation.
+     */
+    ERR_NOT_CANDIDATE_MASTER_PROCESS = 2097366,
 
     /**
      * Native error(3000000) for target bundle not exist.

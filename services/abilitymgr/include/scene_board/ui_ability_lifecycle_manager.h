@@ -144,17 +144,8 @@ public:
     int32_t BackToCallerAbilityWithResult(std::shared_ptr<AbilityRecord> abilityRecord,
         int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
-    /**
-     * CloseUIAbility, close the special ability by scb.
-     *
-     * @param abilityRecord, the ability to close.
-     * @param resultCode, the resultCode of the ability to terminate.
-     * @param resultWant, the Want of the ability to return.
-     * @param isClearSession Indicates whether to close UIAbility because the session is cleared.
-     * @return Returns ERR_OK on success, others on failure.
-     */
     int CloseUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
-        int resultCode, const Want *resultWant, bool isClearSession);
+        int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery);
 
     /**
      * Set rootSceneSession by SCB.
@@ -490,14 +481,6 @@ private:
     bool HasAbilityRequest(const AbilityRequest &abilityRequest);
     void AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId);
     void RemoveAbilityRequest(int32_t requestId);
-    inline int32_t GetRequestId()
-    {
-        if (requestId_ == 0 || requestId_ == INT32_MAX) {
-            requestId_ = 1;
-        }
-        return requestId_++;
-    }
-
     void AddSpecifiedRequest(std::shared_ptr<SpecifiedRequest> request);
     void StartSpecifiedRequest(SpecifiedRequest &specifiedRequest);
     std::shared_ptr<SpecifiedRequest> PopAndGetNextSpecified(int32_t requestId);
@@ -531,7 +514,6 @@ private:
     std::unordered_map<std::shared_ptr<AbilityRecord>, std::list<AbilityRequest>> callRequestCache_;
     std::list<std::shared_ptr<AbilityRecord>> terminateAbilityList_;
     sptr<IRemoteObject> rootSceneSession_;
-    int32_t requestId_ = 0;
     sptr<ISessionHandler> handler_;
     ffrt::mutex statusBarDelegateManagerLock_;
     std::shared_ptr<StatusBarDelegateManager> statusBarDelegateManager_;

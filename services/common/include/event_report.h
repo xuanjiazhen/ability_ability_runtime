@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ namespace OHOS {
 namespace AAFwk {
 struct EventInfo {
     bool isPreload = false;
+    bool shouldKillForeground = true;
     int32_t pid = -1;
     int32_t userId = -1;
     int32_t extensionType = -1;
@@ -66,6 +67,12 @@ struct EventInfo {
     std::string lifeCycle;
     std::string intentName;
     std::string errMsg;
+    std::string componentName;
+    std::string partitionName;
+    std::string exitMsg = "";
+    uint64_t remainPartitionSize;
+    std::vector<std::string> fileOfFolderPath;
+    std::vector<uint64_t> fileOfFolderSize;
 };
 
 enum class EventName {
@@ -91,6 +98,7 @@ enum class EventName {
     ABILITY_ONACTIVE,
     ABILITY_ONINACTIVE,
     START_ABILITY_BY_APP_LINKING,
+    KILL_PROCESS_WITH_REASON,
 
     // serviceExtensionAbility behavior event
     START_SERVICE,
@@ -123,7 +131,10 @@ enum class EventName {
     ATOMIC_SERVICE_DRAWN_COMPLETE,
     
     // uri permission
-    SHARE_UNPRIVILEGED_FILE_URI
+    SHARE_UNPRIVILEGED_FILE_URI,
+
+    // report data
+    USER_DATA_SIZE
 };
 
 class EventReport {
@@ -147,6 +158,8 @@ public:
     static void SendGrantUriPermissionEvent(const EventName &eventName, const EventInfo &eventInfo);
     static void SendExecuteIntentEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
     static void SendLaunchFrameworkEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo);
+    static void SendReportDataPartitionUsageEvent(const EventName &eventName, HiSysEventType type,
+        const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
@@ -162,6 +175,7 @@ private:
     static void LogUIExtensionErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogUIServiceExtErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
     static void LogSystemErrorEvent(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
+    static void LogKillProcessWithReason(const std::string &name, HiSysEventType type, const EventInfo &eventInfo);
 };
 }  // namespace AAFWK
 }  // namespace OHOS

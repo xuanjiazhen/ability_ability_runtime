@@ -24,6 +24,7 @@
 #include "ets_ability_monitor.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "shell_cmd_result.h"
 
@@ -32,8 +33,8 @@ namespace AbilityDelegatorEts {
 
 using namespace OHOS::AbilityRuntime;
 
-std::map<std::shared_ptr<ETSNativeReference>, std::shared_ptr<EtsAbilityMonitor>> g_monitorRecord;
-std::map<std::weak_ptr<ETSNativeReference>, sptr<IRemoteObject>, std::owner_less<>> g_abilityRecord;
+std::map<std::shared_ptr<AppExecFwk::ETSNativeReference>, std::shared_ptr<EtsAbilityMonitor>> g_monitorRecord;
+std::map<std::weak_ptr<AppExecFwk::ETSNativeReference>, sptr<IRemoteObject>, std::owner_less<>> g_abilityRecord;
 std::mutex g_mtxMonitorRecord;
 std::mutex g_mutexAbilityRecord;
 
@@ -228,13 +229,13 @@ void EtsAbilityDelegator::ExecuteShellCommand(ani_env *env, [[maybe_unused]]ani_
     std::string stdCmd = "";
     if (!OHOS::AppExecFwk::GetStdString(env, cmd, stdCmd)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "GetStdString Failed");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return;
     }
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (!delegator) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "delegator is nullptr");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
     int resultCode = 0;
@@ -261,11 +262,11 @@ void EtsAbilityDelegator::ExecuteShellCommand(ani_env *env, [[maybe_unused]]ani_
     ani_status createStatus = env->GlobalReference_Create(callback, &callbackRef);
     if (createStatus != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Create Gloabl ref for delegator failed %{public}d", createStatus);
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
     OHOS::AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        OHOS::AbilityRuntime::CreateEtsErrorByNativeErr(env, resultCode),
+        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
         objValue);
     return;
 }
@@ -281,7 +282,7 @@ void EtsAbilityDelegator::FinishTest(ani_env* env, [[maybe_unused]]ani_object ob
     std::string stdMsg = "";
     if (!OHOS::AppExecFwk::GetStdString(env, msg, stdMsg)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "GetStdString Failed");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return;
     }
     int resultCode = 0;
@@ -296,11 +297,11 @@ void EtsAbilityDelegator::FinishTest(ani_env* env, [[maybe_unused]]ani_object ob
     auto status = env->GlobalReference_Create(callback, &callbackRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Create Gloabl ref for delegator failed %{public}d", status);
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
     OHOS::AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        OHOS::AbilityRuntime::CreateEtsErrorByNativeErr(env, resultCode),
+        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
         nullptr);
     TAG_LOGD(AAFwkTag::DELEGATOR, "FinishTest END");
     return;
@@ -360,7 +361,7 @@ void EtsAbilityDelegator::AddAbilityMonitor(ani_env *env, [[maybe_unused]]ani_cl
     std::shared_ptr<EtsAbilityMonitor> monitorImpl = nullptr;
     if (!GetInstance().ParseMonitorPara(env, monitorObj, monitorImpl)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "ParseMonitorPara failed");
-        AbilityRuntime::ThrowEtsError(env, INCORRECT_PARAMETERS,
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, INCORRECT_PARAMETERS,
             "Parse param monitor failed, monitor must be Monitor.");
         return;
     }
@@ -376,11 +377,11 @@ void EtsAbilityDelegator::AddAbilityMonitor(ani_env *env, [[maybe_unused]]ani_cl
     ani_status status = env->GlobalReference_Create(callback, &callbackRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Create Gloabl ref for delegator failed %{public}d", status);
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
     OHOS::AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        OHOS::AbilityRuntime::CreateEtsErrorByNativeErr(env, resultCode),
+        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
         nullptr);
     return;
 }
@@ -395,14 +396,15 @@ void EtsAbilityDelegator::StartAbility(ani_env* env, [[maybe_unused]]ani_object 
     AAFwk::Want want;
     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "UnwrapWant  failed");
-        AbilityRuntime::ThrowEtsError(env, (int32_t)AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM,
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
             "Parse want failed, want must be Want.");
         return;
     }
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
     if (delegator == nullptr) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
-        AbilityRuntime::ThrowEtsError(env, COMMON_FAILED);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, COMMON_FAILED);
         return;
     }
     int resultCode = 0;
@@ -415,11 +417,11 @@ void EtsAbilityDelegator::StartAbility(ani_env* env, [[maybe_unused]]ani_object 
     auto status = env->GlobalReference_Create(callback, &callbackRef);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Create Gloabl ref for delegator failed %{public}d", status);
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return;
     }
     OHOS::AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        OHOS::AbilityRuntime::CreateEtsErrorByNativeErr(env, resultCode),
+        OHOS::AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode),
         nullptr);
     return;
 }
@@ -434,8 +436,8 @@ bool EtsAbilityDelegator::ParseMonitorPara(ani_env *env, ani_object monitorObj,
     {
         std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
         for (auto iter = g_monitorRecord.begin(); iter != g_monitorRecord.end(); ++iter) {
-            std::shared_ptr<ETSNativeReference> etsMonitor = iter->first;
-            ani_boolean result = false;
+            std::shared_ptr<AppExecFwk::ETSNativeReference> etsMonitor = iter->first;
+            ani_boolean result = ANI_FALSE;
             ani_status status = env->Reference_StrictEquals(reinterpret_cast<ani_ref>(monitorObj),
                 reinterpret_cast<ani_ref>(etsMonitor->aniObj), &result);
             if (status != ANI_OK) {
@@ -471,7 +473,7 @@ bool EtsAbilityDelegator::ParseMonitorParaInner(ani_env *env, ani_object monitor
     status = env->Object_GetPropertyByName_Ref(monitorObj, "moduleName", &moduleNameRef);
     if (ANI_OK != status) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_GetField_Ref ");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return false;
     }
     std::string strModuleName;
@@ -481,7 +483,7 @@ bool EtsAbilityDelegator::ParseMonitorParaInner(ani_env *env, ani_object monitor
     status = env->Object_GetPropertyByName_Ref(monitorObj, "abilityName", &abilityNameRef);
     if (ANI_OK != status) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Object_GetField_Ref ");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return false;
     }
     std::string strAbilityName;
@@ -497,7 +499,7 @@ bool EtsAbilityDelegator::ParseMonitorParaInner(ani_env *env, ani_object monitor
         abilityMonitor->SetEtsAbilityMonitor(env, monitorObj);
     }
     monitorImpl = abilityMonitor;
-    std::shared_ptr<ETSNativeReference> reference = std::make_shared<ETSNativeReference>();
+    std::shared_ptr<AppExecFwk::ETSNativeReference> reference = std::make_shared<AppExecFwk::ETSNativeReference>();
     if (reference != nullptr) {
         reference->aniObj = monitorObj;
     }

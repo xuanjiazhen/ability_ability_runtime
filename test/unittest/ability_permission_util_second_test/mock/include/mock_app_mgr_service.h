@@ -463,7 +463,17 @@ public:
     {
         return 0;
     }
+    
+    ErrCode PromoteCurrentToCandidateMasterProcess(
+        bool isInsertToHead)
+    {
+        return 0;
+    }
 
+    ErrCode DemoteCurrentFromCandidateMasterProcess()
+    {
+        return 0;
+    }
     static int32_t retCode_;
     static RunningMultiAppInfo retInfo_;
 

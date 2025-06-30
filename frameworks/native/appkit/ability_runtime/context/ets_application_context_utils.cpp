@@ -16,6 +16,7 @@
 #include "ani_enum_convert.h"
 #include "application_context_manager.h"
 #include "ets_application_context_utils.h"
+#include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -35,14 +36,15 @@ void EtsApplicationContextUtils::SetSupportedProcessCacheSync([[maybe_unused]]an
     auto applicationContext = GeApplicationContext(env, aniObj);
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return;
     }
     int32_t errCode = applicationContext->SetSupportedProcessCacheSelf(value);
     if (errCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
     } else if (errCode != ERR_OK) {
-        AbilityRuntime::ThrowEtsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
     }
 }
 
@@ -158,7 +160,7 @@ ani_object EtsApplicationContextUtils::CreateEtsApplicationContext(ani_env* aniE
         TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create failed status: %{public}d", status);
         return nullptr;
     }
-    auto etsReference = std::make_shared<AbilityRuntime::ETSNativeReference>();
+    auto etsReference = std::make_shared<AppExecFwk::ETSNativeReference>();
     etsReference->aniObj = applicationContextObject;
     AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().SetEtsGlobalObject(etsReference);
     BindApplicationContextFunc(aniEnv);

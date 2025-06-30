@@ -279,21 +279,15 @@ HWTEST_F(InsightIntentUtilsTest, GetSrcEntry_0400, TestSize.Level1)
         .WillRepeatedly(DoAll(SetArgReferee<3>(TEST_JSON_STR_ARRAY), Return(ERR_OK)));
     AbilityRuntime::InsightIntentUtils utils;
     AppExecFwk::ElementName element1("", TEST_BUNDLE_NAME, "ability1", TEST_MODULE_NAME);
-    auto result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_ABILITY_FOREGROUND,
-        TEST_SRC_ENTRY);
+    auto result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_ABILITY_FOREGROUND, TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_OK);
-
-    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_ABILITY_BACKGROUND,
-        TEST_SRC_ENTRY);
+    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_ABILITY_BACKGROUND, TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_OK);
-    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_EXTENSION_ABILITY,
-        TEST_SRC_ENTRY);
+    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::UI_EXTENSION_ABILITY, TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_OK);
-    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::SERVICE_EXTENSION_ABILITY,
-        TEST_SRC_ENTRY);
+    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, ExecuteMode::SERVICE_EXTENSION_ABILITY, TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_OK);
-    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, static_cast<ExecuteMode>(INT_MAX),
-        TEST_SRC_ENTRY);
+    result = utils.GetSrcEntry(element1, TEST_INTENT_NAME, static_cast<ExecuteMode>(INT_MAX), TEST_SRC_ENTRY);
     EXPECT_EQ(result, ERR_INSIGHT_INTENT_START_INVALID_COMPONENT);
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
@@ -313,6 +307,7 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentGenericInfo_0100, Te
     TEST_INSIGHT_INTENT_GENERIC_INFO.decoratorType = "@InsightIntentLink";
     auto result = utils.ConvertExtractInsightIntentGenericInfo(TEST_INSIGHT_INTENT_GENERIC_INFO, insightIntentInfoForQuery);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(insightIntentInfoForQuery.intentType, "@InsightIntentLink");
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);
     TAG_LOGI(AAFwkTag::TEST, "InsightIntentUtilsTest ConvertExtractInsightIntentGenericInfo_0100 end.");
@@ -471,6 +466,9 @@ HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentInfo_0300, TestSize.
     bool getEntity = true;
     auto result = utils.ConvertExtractInsightIntentInfo(TEST_INSIGHT_INTENT_INFO, insightIntentInfoForQuery, getEntity);
     EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(TEST_INSIGHT_INTENT_INFO.genericInfo.bundleName, insightIntentInfoForQuery.bundleName);
+    EXPECT_EQ(TEST_INSIGHT_INTENT_INFO.genericInfo.moduleName, insightIntentInfoForQuery.moduleName);
+    EXPECT_EQ(TEST_INSIGHT_INTENT_INFO.genericInfo.intentName, insightIntentInfoForQuery.intentName);
     EXPECT_EQ(TEST_INSIGHT_INTENT_INFO.entities[0].className, insightIntentInfoForQuery.entities[0].className);
     Mock::VerifyAndClear(mockBundleMgr);
     testing::Mock::AllowLeak(mockBundleMgr);

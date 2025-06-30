@@ -432,13 +432,15 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
     Want want;
-    if (hasLastWant && lastWant_ != nullptr) {
-        want = *lastWant_;
-        lifeCycleStateInfo_.isNewWant = true;
-        lastWant_ = nullptr;
-    } else {
-        want = GetWant();
+    if (hasLastWant) {
+        if (HasLastWant()) {
+            SetWant(*lastWant_);
+            lifeCycleStateInfo_.isNewWant = true;
+            lastWant_ = nullptr;
+        }
+        SetBackgroundDrivenFlag(false);
     }
+    want = GetWant();
     UpdateDmsCallerInfo(want);
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,
         reinterpret_cast<uintptr_t>(GetScheduler().GetRefPtr()), "ScheduleAbilityTransaction");
@@ -3860,10 +3862,15 @@ void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, co
     const std::string &message)
 {
     CHECK_POINTER(lifecycleDeal_);
-    nlohmann::json jsonObject = nlohmann::json {
-        { JSON_KEY_ERR_MSG, message },
-    };
-    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump());
+    cJSON *jsonObject = cJSON_CreateObject();
+    if (jsonObject == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "create json object failed");
+        return;
+    }
+    cJSON_AddStringToObject(jsonObject, JSON_KEY_ERR_MSG.c_str(), message.c_str());
+    std::string jsonStr = AAFwk::JsonUtils::GetInstance().ToString(jsonObject);
+    cJSON_Delete(jsonObject);
+    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonStr);
 }
 
 void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)

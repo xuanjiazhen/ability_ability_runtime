@@ -40,7 +40,6 @@
 #include "resource_manager.h"
 #include "runtime.h"
 #include "watchdog.h"
-#include "ets_exception_callback.h"
 
 #ifdef CJ_FRONTEND
 #include "cj_envsetup.h"
@@ -58,6 +57,9 @@ namespace JsEnv {
 struct ErrorObject;
 using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
 }  // namespace JsEnv
+namespace EtsEnv {
+struct ETSUncaughtExceptionInfo;
+} // namespace EtsEnv
 namespace AppExecFwk {
 using namespace OHOS::Global;
 using OHOS::AbilityRuntime::Runtime;
@@ -801,10 +803,8 @@ private:
     void SetAppDebug(uint32_t modeFlag, bool isDebug);
     void GetPluginNativeLibPath(std::vector<AppExecFwk::PluginBundleInfo> &pluginBundleInfos,
         AppLibPathMap &appLibPaths);
-    void AddRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
-    bool IsNeedEtsInit(const ApplicationInfo &appInfo);
-    const std::unique_ptr<AbilityRuntime::Runtime> &GetVerOneRuntime(
-        const ApplicationInfo &appInfo, const std::vector<std::unique_ptr<Runtime>> &runtimes);
+    void SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
+    bool IsEtsAPP(const ApplicationInfo &appInfo);
     void SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpApplication,
         const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 

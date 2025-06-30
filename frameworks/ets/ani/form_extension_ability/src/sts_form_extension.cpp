@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "ability_info.h"
-#include "ani.h"
 #include "ani_common_want.h"
+#include "ets_runtime.h"
 #include "form_provider_data.h"
 #include "form_runtime/form_extension_provider_client.h"
 #include "hilog_tag_wrapper.h"
@@ -374,7 +374,7 @@ bool STSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
         return true;
     }
 
-    ani_boolean isUndefined = true;
+    ani_boolean isUndefined = ANI_TRUE;
     if ((status = env->Reference_IsUndefined(proxiesRef, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Reference_IsUndefined status: %{public}d", status);
     }

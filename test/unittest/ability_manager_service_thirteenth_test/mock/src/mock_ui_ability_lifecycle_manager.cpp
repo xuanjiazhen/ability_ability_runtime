@@ -16,7 +16,7 @@
 #include "mock_ui_ability_lifecycle_manager.h"
 #include "mock_my_status.h"
 
-
+constexpr int32_t LOW_MEMORY_KILL_WHILE_STARTING = 1111;
 namespace OHOS {
 namespace AAFwk {
 
@@ -30,6 +30,9 @@ bool UIAbilityLifecycleManager::ProcessColdStartBranch(AbilityRequest &abilityRe
 
 bool UIAbilityLifecycleManager::IsBundleStarting(pid_t pid)
 {
+    if (pid == LOW_MEMORY_KILL_WHILE_STARTING) {
+        return true;
+    }
     return false;
 }
 
@@ -303,7 +306,7 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
 }
 
 int UIAbilityLifecycleManager::CloseUIAbility(const std::shared_ptr<AbilityRecord> &abilityRecord,
-    int resultCode, const Want *resultWant, bool isClearSession)
+    int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery)
 {
     return ERR_OK;
 }

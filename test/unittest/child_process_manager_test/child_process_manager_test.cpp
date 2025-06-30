@@ -23,6 +23,7 @@
 #include "js_runtime.h"
 #include "mock_app_mgr_service.h"
 #include "mock_bundle_manager.h"
+#include "parameters.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 #include "hilog_tag_wrapper.h"
@@ -522,12 +523,77 @@ HWTEST_F(ChildProcessManagerTest, IsMultiProcessFeatureApp_0400, TestSize.Level2
 
     std::vector<std::string> deviceFeatures;
     deviceFeatures.push_back("multi_process");
-    moduleInfo.deviceFeatures = deviceFeatures;
+    std::map<std::string, std::vector<std::string>> requiredDeviceFeatures;
+    auto deviceType = OHOS::system::GetDeviceType();
+    requiredDeviceFeatures[deviceType] = deviceFeatures;
+    moduleInfo.requiredDeviceFeatures = requiredDeviceFeatures;
 
     hapModuleInfos.push_back(moduleInfo);
     bundleInfo.hapModuleInfos = hapModuleInfos;
     bool ret = ChildProcessManager::GetInstance().IsMultiProcessFeatureApp(bundleInfo);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.number: IsMultiProcessFeatureApp_0500
+ * @tc.desc: Test IsMultiProcessFeatureApp works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsMultiProcessFeatureApp_0500, TestSize.Level2)
+{
+    TAG_LOGD(AAFwkTag::TEST, "IsMultiProcessFeatureApp_0500 called.");
+
+    AppExecFwk::BundleInfo bundleInfo;
+    std::vector<AppExecFwk::HapModuleInfo> hapModuleInfos;
+    AppExecFwk::HapModuleInfo moduleInfo;
+    moduleInfo.name = "entry";
+    moduleInfo.moduleName = "entry";
+    moduleInfo.moduleType = AppExecFwk::ModuleType::ENTRY;
+
+    std::vector<std::string> deviceFeatures;
+    deviceFeatures.push_back("multi_process");
+    std::map<std::string, std::vector<std::string>> requiredDeviceFeatures;
+    requiredDeviceFeatures["invalid_type"] = deviceFeatures;
+    moduleInfo.requiredDeviceFeatures = requiredDeviceFeatures;
+
+    hapModuleInfos.push_back(moduleInfo);
+    bundleInfo.hapModuleInfos = hapModuleInfos;
+    bool ret = ChildProcessManager::GetInstance().IsMultiProcessFeatureApp(bundleInfo);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.number: GetErrorCodeCompat
+ * @tc.desc: Test GetErrorCodeCompat works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, GetErrorCodeCompat_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetErrorCodeCompat_0100 start.");
+
+    auto &childProcessManager = ChildProcessManager::GetInstance();
+    
+    auto ret = AAFwk::ERR_NOT_SUPPORT_CHILD_PROCESS;
+    auto childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_JS;
+    auto errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
+    EXPECT_EQ(errCode, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
+
+    ret = AAFwk::ERR_NOT_SUPPORT_CHILD_PROCESS;
+    childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
+    errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
+    EXPECT_NE(errCode, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
+    
+    ret = AAFwk::INNER_ERR;
+    childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_JS;
+    errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
+    EXPECT_NE(errCode, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
+
+    ret = AAFwk::INNER_ERR;
+    childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
+    errCode = childProcessManager.GetErrorCodeCompat(ret, childProcessType);
+    EXPECT_NE(errCode, ChildProcessManagerErrorCode::ERR_MULTI_PROCESS_MODEL_DISABLED);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetErrorCodeCompat_0100 end.");
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

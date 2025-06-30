@@ -22,6 +22,7 @@
 #include "common_fun_ani.h"
 #include "ets_application_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "resourceManager.h"
 
@@ -30,8 +31,58 @@ namespace AbilityRuntime {
 namespace ContextUtil {
 namespace {
 constexpr const char* CONTEXT_CLASS_NAME = "Lapplication/Context/Context;";
+constexpr const char* AREA_MODE_ENUM_NAME = "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;";
+
+void BindContextDir(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Context> context)
+{
+    if (aniEnv == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "aniEnv or context is nullptr");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    auto preferencesDir = context->GetPreferencesDir();
+    ani_string preferencesDirString = nullptr;
+    aniEnv->String_NewUTF8(preferencesDir.c_str(), preferencesDir.size(), &preferencesDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "preferencesDir", preferencesDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "preferencesDir SetField status: %{public}d", status);
+        return;
+    }
+
+    auto databaseDir = context->GetDatabaseDir();
+    ani_string databaseDirString = nullptr;
+    aniEnv->String_NewUTF8(databaseDir.c_str(), databaseDir.size(), &databaseDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "databaseDir", databaseDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "databaseDir SetField status: %{public}d", status);
+        return;
+    }
+
+    auto cacheDir = context->GetCacheDir();
+    ani_string cacheDirString = nullptr;
+    aniEnv->String_NewUTF8(cacheDir.c_str(), cacheDir.size(), &cacheDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "cacheDir", cacheDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "cacheDir SetField status: %{public}d", status);
+        return;
+    }
+
+    auto filesDir = context->GetFilesDir();
+    ani_string filesDirString = nullptr;
+    aniEnv->String_NewUTF8(filesDir.c_str(), filesDir.size(), &filesDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "filesDir", filesDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "filesDir SetField status: %{public}d", status);
+        return;
+    }
+
+    auto tempDir = context->GetTempDir();
+    ani_string tempDirString = nullptr;
+    aniEnv->String_NewUTF8(tempDir.c_str(), tempDir.size(), &tempDirString);
+    if ((status = aniEnv->Object_SetFieldByName_Ref(contextObj, "tempDir", tempDirString)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "tempDir SetField status: %{public}d", status);
+        return;
+    }
 }
-void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+} // namespace
+
+void BindApplicationInfo(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
     if (aniEnv == nullptr || context ==  nullptr) {
@@ -51,7 +102,7 @@ void BindApplicationInfo(ani_env* aniEnv, ani_class contextClass, ani_object con
     }
 }
 
-void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+void BindResourceManager(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
     if (aniEnv == nullptr || context ==  nullptr) {
@@ -71,7 +122,7 @@ void BindResourceManager(ani_env* aniEnv, ani_class contextClass, ani_object con
     }
 }
 
-void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+void BindParentProperty(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
     if (aniEnv == nullptr || context ==  nullptr) {
@@ -79,6 +130,7 @@ void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object cont
     }
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
+    BindContextDir(aniEnv, contextObj, context);
 
     ani_field areaField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "area", &areaField)) {
@@ -86,40 +138,16 @@ void BindParentProperty(ani_env* aniEnv, ani_class contextClass, ani_object cont
         return;
     }
     auto area = context->GetArea();
-    ani_enum_item areaModeItem {};
+    ani_enum_item areaModeItem = nullptr;
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
         aniEnv, "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;", area, areaModeItem);
     if (aniEnv->Object_SetField_Ref(contextObj, areaField, (ani_ref)areaModeItem) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Int failed");
         return;
     }
-    ani_field filesDirField;
-    if (ANI_OK != aniEnv->Class_FindField(contextClass, "filesDir", &filesDirField)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "find filesDir failed");
-        return;
-    }
-    auto filesDir = context->GetFilesDir();
-    ani_string filesDirString{};
-    aniEnv->String_NewUTF8(filesDir.c_str(), filesDir.size(), &filesDirString);
-    if (aniEnv->Object_SetField_Ref(contextObj, filesDirField, reinterpret_cast<ani_ref>(filesDirString)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
-        return;
-    }
-    ani_field tempDirField;
-    if (ANI_OK != aniEnv->Class_FindField(contextClass, "tempDir", &tempDirField)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "find find tempDir failed");
-        return;
-    }
-    auto tempDir = context->GetTempDir();
-    ani_string tempDirString{};
-    aniEnv->String_NewUTF8(tempDir.c_str(), tempDir.size(), &tempDirString);
-    if (aniEnv->Object_SetField_Ref(contextObj, tempDirField, reinterpret_cast<ani_ref>(tempDirString)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed");
-        return;
-    }
 }
 
-void BindNativeFunction(ani_env* aniEnv)
+void BindNativeFunction(ani_env *aniEnv)
 {
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "env is null");
@@ -132,7 +160,11 @@ void BindNativeFunction(ani_env* aniEnv)
     }
     std::array contextFunctions = {
         ani_native_function {"getApplicationContextSync", ":Lapplication/ApplicationContext/ApplicationContext;",
-            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)}
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetApplicationContextSync)},
+        ani_native_function {"switchArea", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchArea)},
+        ani_native_function {"getArea", nullptr,
+            reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetArea)}
     };
     ani_status status = aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
         contextFunctions.size());
@@ -141,7 +173,7 @@ void BindNativeFunction(ani_env* aniEnv)
     }
 }
 
-void CreateEtsBaseContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
     if (aniEnv == nullptr) {
@@ -158,7 +190,7 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
     }
-    ani_class cls {};
+    ani_class cls = nullptr;
     if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return nullptr;
@@ -177,7 +209,7 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
-ani_object GetApplicationContext(ani_env* env, const std::shared_ptr<ApplicationContext> applicationContext)
+ani_object GetApplicationContext(ani_env *env, const std::shared_ptr<ApplicationContext> applicationContext)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
@@ -193,7 +225,7 @@ ani_object GetApplicationContext(ani_env* env, const std::shared_ptr<Application
     return applicationContextObject;
 }
 
-ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj)
+ani_object GetApplicationContextSync(ani_env *env, ani_object aniObj)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
@@ -201,13 +233,13 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
     auto context = GetBaseContext(env, aniObj);
     if (!context) {
         TAG_LOGW(AAFwkTag::APPKIT, "null context");
-        ThrowEtsError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        EtsErrorUtil::ThrowError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return {};
     }
     auto applicationContext = context->GetApplicationContext();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        ThrowEtsError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        EtsErrorUtil::ThrowError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return {};
     }
     if (!applicationContext->GetApplicationInfoUpdateFlag()) {
@@ -218,6 +250,38 @@ ani_object GetApplicationContextSync([[maybe_unused]]ani_env *env, [[maybe_unuse
         }
     }
     return GetApplicationContext(env, applicationContext);
+}
+
+void SwitchArea(ani_env *env, ani_object obj, ani_enum_item areaModeItem)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+    }
+    int32_t areaMode = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, areaModeItem, areaMode)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse area failed");
+        return;
+    }
+    auto context = GetBaseContext(env, obj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        return;
+    }
+    context->SwitchArea(areaMode);
+    BindContextDir(env, obj, context);
+}
+
+ani_enum_item GetArea(ani_env *env, ani_object obj)
+{
+    ani_enum_item areaModeItem = nullptr;
+    auto context = GetBaseContext(env, obj);
+    if (env == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env or context is null");
+        return areaModeItem;
+    }
+    int32_t areaMode = static_cast<int32_t>(context->GetArea());
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, AREA_MODE_ENUM_NAME, areaMode, areaModeItem);
+    return areaModeItem;
 }
 }
 } // namespace AbilityRuntime

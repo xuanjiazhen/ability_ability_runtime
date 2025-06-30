@@ -162,6 +162,7 @@ ohos_shared_library("app_manager") {
     "${ability_runtime_services_path}/appdfr/src/appfreeze_cpu_freq_manager.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_manager.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_util.cpp",
+    "${ability_runtime_services_path}/appdfr/src/cpu_data_processor.cpp",
     "src/appmgr/ability_controller_proxy.cpp",
     "src/appmgr/ability_controller_stub.cpp",
     "src/appmgr/ability_debug_response_proxy.cpp",
@@ -266,7 +267,6 @@ ohos_shared_library("app_manager") {
     "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
     "samgr:samgr_proxy",
   ]
   public_external_deps = [
