@@ -196,10 +196,6 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::uniq
     if (instance != nullptr && !options.preload) {
         instance->PostFork(options, jsRuntime);
     }
-<<<<<<< HEAD
-=======
-    EntryPathManager::GetInstance().Init();
->>>>>>> dab746d5c9 (Description: add hybrid js module reader)
     return instance;
 }
 
