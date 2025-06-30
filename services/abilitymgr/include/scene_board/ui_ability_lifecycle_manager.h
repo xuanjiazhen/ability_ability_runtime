@@ -477,6 +477,7 @@ private:
     std::shared_ptr<AbilityRecord> FindRecordFromTmpMap(const AbilityRequest &abilityRequest);
     void PostCallTimeoutTask(std::shared_ptr<AbilityRecord> abilityRecord);
     bool AddStartCallerTimestamp(int32_t callerUid);
+    void RemoveStartCallerTimestamp(int32_t uid);
     std::shared_ptr<AbilityRecord> FindRecordFromSessionMap(const AbilityRequest &abilityRequest);
     bool HasAbilityRequest(const AbilityRequest &abilityRequest);
     void AddAbilityRequest(const AbilityRequest &abilityRequest, int32_t requestId);

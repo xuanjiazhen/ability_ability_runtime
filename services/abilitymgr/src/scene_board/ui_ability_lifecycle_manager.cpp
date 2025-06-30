@@ -544,6 +544,12 @@ int UIAbilityLifecycleManager::AbilityWindowConfigTransactionDone(const sptr<IRe
     return ERR_OK;
 }
 
+void UIAbilityLifecycleManager::RemoveStartCallerTimestamp(int32_t uid)
+{
+    std::lock_guard<ffrt::mutex> guard(startUIAbilityCallerTimestampsLock_);
+    startUIAbilityCallerTimestamps_.erase(uid);
+}
+
 bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
 {
     int64_t curTimeNs = AbilityUtil::GetSysTimeNs();
@@ -2030,12 +2036,10 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call OnAbilityDied");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER(abilityRecord);
     CancelPrepareTerminate(abilityRecord);
+    RemoveStartCallerTimestamp(abilityRecord->GetUid());
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
-        return;
-    }
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER_LOG(handler, "Fail to get AbilityEventHandler.");
     if (abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
