@@ -28,11 +28,13 @@ idl_gen_interface("quickfix_manager_interface") {
   log_tag = "QuickFixManagerService"
 }
 
+gen_parent_dir = get_path_info(target_gen_dir, "dir") 
 config("quickfix_config") {
   visibility = [ ":*" ]
   include_dirs = [
+    ".",
+    "${gen_parent_dir}",
     "include",
-    "${target_gen_dir}",
   ]
   cflags = []
   if (target_cpu == "arm") {

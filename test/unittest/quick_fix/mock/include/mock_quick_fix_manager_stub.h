@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_MOCK_QUICK_FIX_MANAGER_STUB_H
 
 #include "gmock/gmock.h"
-#include "quick_fix_manager_stub.h"
+#include "quick_fix/quick_fix_manager_stub.h"
 
 namespace OHOS {
 namespace AAFwk {

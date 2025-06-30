@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -161,27 +161,21 @@ private:
     sptr<IQuickFixManager> quickFixManager_ = nullptr;
 };
 
-class QuickFixManagerHost : public IRemoteStub<IQuickFixManager> {
+class QuickFixManagerStub : public IRemoteStub<IQuickFixManager> {
 public:
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 };
 
-class QuickFixManagerHostImpl : public QuickFixManagerHost {
+class QuickFixManagerHostImpl : public QuickFixManagerStub {
 public:
-    MOCK_METHOD5(DeployQuickFix, ErrCode(const std::vector<std::string>& bundleFilePaths,
+    MOCK_METHOD6(DeployQuickFix, ErrCode(const std::vector<std::string>& bundleFilePaths,
         const sptr<IQuickFixStatusCallback>& statusCallback, bool isDebug, const std::string& targetPath,
-        bool isReplace));
-    MOCK_METHOD3(SwitchQuickFix, ErrCode(const std::string& bundleName, bool enable,
-        const sptr<IQuickFixStatusCallback>& statusCallback));
-    MOCK_METHOD2(DeleteQuickFix, ErrCode(const std::string& bundleName,
-        const sptr<IQuickFixStatusCallback>& statusCallback));
-    MOCK_METHOD3(CreateFd, ErrCode(const std::string& fileName, int32_t& fd, std::string& path));
-
-    virtual ErrCode CopyFiles(const std::vector<std::string>& sourceFiles, std::vector<std::string>& destFiles) override
-    {
-        destFiles = sourceFiles;
-        return 0;
-    }
+        bool isReplace, int32_t& funcResult));
+    MOCK_METHOD4(SwitchQuickFix, ErrCode(const std::string& bundleName, bool enable,
+        const sptr<IQuickFixStatusCallback>& statusCallback, int32_t& funcResult));
+    MOCK_METHOD3(DeleteQuickFix, ErrCode(const std::string& bundleName,
+        const sptr<IQuickFixStatusCallback>& statusCallback, int32_t& funcResult));
+    MOCK_METHOD4(CreateFd, ErrCode(const std::string& fileName, int32_t& fd, std::string& path, int32_t& funcResult));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
