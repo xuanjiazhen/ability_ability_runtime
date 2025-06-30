@@ -14,7 +14,7 @@
  */
 
 #include "app_running_manager.h"
-
+#include "app_mem_info.h"
 #include "app_mgr_service_inner.h"
 #include "datetime_ex.h"
 #include "iremote_object.h"
@@ -1328,7 +1328,7 @@ int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLev
             TAG_LOGW(AAFwkTag::APPMGR, "proc[pid=%{public}d] is not found", pid);
         } else {
             TAG_LOGD(AAFwkTag::APPMGR, "proc[pid=%{public}d] memory level = %{public}d", pid, it->second);
-            appRecord->ScheduleMemoryLevel(it->second);
+            appRecord->ScheduleMemoryLevel(static_cast<int32_t>(it->second));
         }
     }
     return ERR_OK;
@@ -1358,7 +1358,7 @@ int32_t AppRunningManager::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::M
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+int32_t AppRunningManager::DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     int32_t pid = static_cast<int32_t>(info.pid);
     auto appRecord = GetAppRunningRecordByPid(pid);
@@ -1370,7 +1370,7 @@ int32_t AppRunningManager::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+int32_t AppRunningManager::DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto appRecord = GetAppRunningRecordByPid(info.pid);
     if (appRecord == nullptr) {
@@ -2176,7 +2176,7 @@ bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRun
     return true;
 }
 
-void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey)
 {
     auto appRunningMap = GetAppRunningRecordMap();
     for (const auto& item : appRunningMap) {

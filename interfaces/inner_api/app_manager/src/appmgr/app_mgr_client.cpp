@@ -164,7 +164,8 @@ AppMgrResultCode AppMgrClient::LoadAbility(const AbilityInfo &abilityInfo, const
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             // From here, separate AbilityInfo and ApplicationInfo from AA.
             std::shared_ptr<AbilityInfo> abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
@@ -182,7 +183,8 @@ AppMgrResultCode AppMgrClient::TerminateAbility(const sptr<IRemoteObject> &token
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->TerminateAbility(token, clearMissionFlag);
             return AppMgrResultCode::RESULT_OK;
@@ -195,7 +197,8 @@ AppMgrResultCode AppMgrClient::UpdateAbilityState(const sptr<IRemoteObject> &tok
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->UpdateAbilityState(token, state);
             return AppMgrResultCode::RESULT_OK;
@@ -208,7 +211,8 @@ AppMgrResultCode AppMgrClient::UpdateExtensionState(const sptr<IRemoteObject> &t
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->UpdateExtensionState(token, state);
             return AppMgrResultCode::RESULT_OK;
@@ -221,7 +225,8 @@ AppMgrResultCode AppMgrClient::RegisterAppStateCallback(const sptr<IAppStateCall
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->RegisterAppStateCallback(callback);
             return AppMgrResultCode::RESULT_OK;
@@ -234,7 +239,8 @@ AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObjec
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->KillProcessByAbilityToken(token);
             return AppMgrResultCode::RESULT_OK;
@@ -248,7 +254,8 @@ AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId, bool isNeed
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
             return AppMgrResultCode::RESULT_OK;
@@ -266,7 +273,8 @@ AppMgrResultCode AppMgrClient::KillProcessesByPids(const std::vector<int32_t> &p
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t ret = amsService->KillProcessesByPids(pids, reason, subProcess);
             if (ret == ERR_OK) {
@@ -283,7 +291,8 @@ AppMgrResultCode AppMgrClient::AttachPidToParent(const sptr<IRemoteObject> &toke
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->AttachPidToParent(token, callerToken);
             return AppMgrResultCode::RESULT_OK;
@@ -297,7 +306,8 @@ AppMgrResultCode AppMgrClient::UpdateApplicationInfoInstalled(const std::string 
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
             if (result == ERR_OK) {
@@ -313,7 +323,8 @@ AppMgrResultCode AppMgrClient::KillApplication(const std::string &bundleName, bo
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->KillApplication(bundleName, clearPageStack, appIndex);
             if (result == ERR_OK) {
@@ -330,7 +341,8 @@ AppMgrResultCode AppMgrClient::ForceKillApplication(const std::string &bundleNam
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->ForceKillApplication(bundleName, userId, appIndex);
             if (result == ERR_OK) {
@@ -346,7 +358,8 @@ AppMgrResultCode AppMgrClient::KillProcessesByAccessTokenId(const uint32_t acces
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->KillProcessesByAccessTokenId(accessTokenId);
             if (result == ERR_OK) {
@@ -363,7 +376,8 @@ AppMgrResultCode AppMgrClient::KillApplicationByUid(const std::string &bundleNam
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->KillApplicationByUid(bundleName, uid, reason);
             if (result == ERR_OK) {
@@ -379,7 +393,8 @@ AppMgrResultCode AppMgrClient::KillApplicationSelf(const bool clearPageStack, co
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             int32_t result = amsService->KillApplicationSelf(clearPageStack, reason);
             if (result == ERR_OK) {
@@ -536,7 +551,7 @@ AppMgrResultCode AppMgrClient::NotifyMemoryLevel(MemoryLevel level)
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return AppMgrResultCode(service->NotifyMemoryLevel(level));
+    return AppMgrResultCode(service->NotifyMemoryLevel(static_cast<int32_t>(level)));
 }
 
 AppMgrResultCode AppMgrClient::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap) const
@@ -547,7 +562,8 @@ AppMgrResultCode AppMgrClient::NotifyProcMemoryLevel(const std::map<pid_t, Memor
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return AppMgrResultCode(service->NotifyProcMemoryLevel(procLevelMap));
+    MemoryLevelInfo memoryLevelInfo(procLevelMap);
+    return AppMgrResultCode(service->NotifyProcMemoryLevel(memoryLevelInfo));
 }
 
 AppMgrResultCode AppMgrClient::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo)
@@ -619,7 +635,8 @@ bool AppMgrClient::IsProcessContainsOnlyUIAbility(const pid_t pid)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             return amsService->IsProcessContainsOnlyUIAbility(pid);
         }
@@ -641,7 +658,8 @@ void AppMgrClient::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -654,7 +672,8 @@ void AppMgrClient::PrepareTerminate(const sptr<IRemoteObject> &token, bool clear
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -666,7 +685,8 @@ void AppMgrClient::GetRunningProcessInfoByToken(const sptr<IRemoteObject> &token
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->GetRunningProcessInfoByToken(token, info);
         }
@@ -698,7 +718,8 @@ void AppMgrClient::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+        service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->SetAbilityForegroundingFlagToAppRecord(pid);
         }
@@ -755,7 +776,8 @@ void AppMgrClient::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -770,7 +792,8 @@ void AppMgrClient::PrepareTerminateApp(const pid_t pid, const std::string &modul
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
         return;
@@ -810,7 +833,8 @@ void AppMgrClient::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecF
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -823,7 +847,8 @@ void AppMgrClient::RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecif
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -909,7 +934,8 @@ int AppMgrClient::GetApplicationInfoByProcessID(const int pid, AppExecFwk::Appli
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
@@ -924,7 +950,8 @@ int32_t AppMgrClient::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, 
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
@@ -1000,7 +1027,8 @@ void AppMgrClient::SetCurrentUserId(const int32_t userId)
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -1013,7 +1041,8 @@ void AppMgrClient::SetEnableStartProcessFlagByUserId(int32_t userId, bool enable
     if (service == nullptr) {
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return;
     }
@@ -1027,7 +1056,8 @@ int32_t AppMgrClient::GetBundleNameByPid(const int pid, std::string &bundleName,
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
 
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService != nullptr) {
         return amsService->GetBundleNameByPid(pid, bundleName, uid);
     }
@@ -1058,7 +1088,9 @@ bool AppMgrClient::SetAppFreezeFilter(int32_t pid)
     if (service == nullptr) {
         return false;
     }
-    return service->SetAppFreezeFilter(pid);
+    bool result = false;
+    service->SetAppFreezeFilter(pid, result);
+    return result;
 }
 
 int32_t AppMgrClient::ChangeAppGcState(pid_t pid, int32_t state, uint64_t tid)
@@ -1180,7 +1212,7 @@ bool AppMgrClient::IsAmsServiceReady()
         return false;
     }
 
-    amsService_ = service->GetAmsMgr();
+    service->GetAmsMgr(amsService_);
     if (amsService_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService_ is nullptr.");
         return false;
@@ -1280,7 +1312,8 @@ void AppMgrClient::ClearProcessByToken(sptr<IRemoteObject> token) const
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return;
@@ -1295,7 +1328,9 @@ bool AppMgrClient::IsFinalAppProcess()
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return false;
     }
-    return service->IsFinalAppProcess();
+    bool result = false;
+    service->IsFinalAppProcess(result);
+    return result;
 }
 
 int32_t AppMgrClient::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)
@@ -1372,7 +1407,8 @@ bool AppMgrClient::IsMemorySizeSufficent() const
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return true;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return true;
@@ -1387,7 +1423,8 @@ bool AppMgrClient::IsNoRequireBigMemory() const
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return true;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return true;
@@ -1480,7 +1517,8 @@ AppMgrResultCode AppMgrClient::AttachedToStatusBar(const sptr<IRemoteObject> &to
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+            sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->AttachedToStatusBar(token);
             return AppMgrResultCode::RESULT_OK;
@@ -1516,7 +1554,8 @@ AppMgrResultCode AppMgrClient::BlockProcessCacheByPids(const std::vector<int32_t
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+            sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
         if (amsService != nullptr) {
             amsService->BlockProcessCacheByPids(pids);
             return AppMgrResultCode::RESULT_OK;
@@ -1532,7 +1571,8 @@ bool AppMgrClient::IsKilledForUpgradeWeb(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
         return false;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
         return false;
@@ -1548,7 +1588,8 @@ bool AppMgrClient::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
         TAG_LOGE(AAFwkTag::APPMGR, "get appmgrservice is nullptr.");
         return false;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "get abilityms service is nullptr.");
         return false;
@@ -1563,7 +1604,8 @@ bool AppMgrClient::IsProcessAttached(sptr<IRemoteObject> token) const
     if (service == nullptr) {
         return false;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return false;
     }
@@ -1576,7 +1618,8 @@ bool AppMgrClient::IsCallerKilling(const std::string& callerKey) const
     if (service == nullptr) {
         return false;
     }
-    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        sptr<IAmsMgr> amsService = nullptr;
+    service->GetAmsMgr(amsService);
     if (amsService == nullptr) {
         return false;
     }

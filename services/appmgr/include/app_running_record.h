@@ -444,7 +444,7 @@ public:
      *
      * @return
      */
-    void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+    void ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
      * ScheduleCjHeapMemory, triggerGC and dump the application's cjheap memory info.
@@ -453,7 +453,7 @@ public:
      *
      * @return
      */
-    void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+    void ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
      * GetAbilityRunningRecordByToken, Obtaining the ability record through token.

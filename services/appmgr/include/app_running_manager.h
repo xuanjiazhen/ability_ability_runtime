@@ -289,7 +289,7 @@ public:
      * @param info, pid, tid, needGc, needSnapshot
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+    int32_t DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
@@ -298,7 +298,7 @@ public:
      * @param info The information to be dumped
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+    int32_t DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
      * Set AbilityForegroundingFlag of an app-record to true.
@@ -428,7 +428,7 @@ public:
 
     bool CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord);
 
-    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
+    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey);
     std::shared_ptr<AppRunningRecord> QueryAppRecordPlus(int32_t pid, int32_t uid);
     int32_t AddUIExtensionBindItem(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);
     int32_t QueryUIExtensionBindItemById(int32_t uiExtensionBindAbilityId, UIExtensionProcessBindInfo &bindInfo);

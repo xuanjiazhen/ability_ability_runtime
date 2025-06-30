@@ -15,14 +15,9 @@
 
 #ifndef OHOS_ABILITY_RUNTIME_APP_MEM_INFO_H
 #define OHOS_ABILITY_RUNTIME_APP_MEM_INFO_H
-
+#include "iapp_mem_info.h"
 namespace OHOS {
 namespace AppExecFwk {
-enum MemoryLevel {
-    MEMORY_LEVEL_MODERATE = 0,
-    MEMORY_LEVEL_LOW = 1,
-    MEMORY_LEVEL_CRITICAL = 2,
-};
 
 enum MemoryState : int {
     LOW_MEMORY = 0,

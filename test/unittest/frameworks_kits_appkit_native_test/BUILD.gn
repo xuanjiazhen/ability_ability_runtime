@@ -982,7 +982,10 @@ ohos_unittest("idle_time_test") {
     "idle_time_test.cpp",
   ]
 
-  configs = [ ":module_context_config" ]
+  configs = [
+    ":module_context_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    ]
 
   deps = [ "${ability_runtime_native_path}/appkit:appkit_native" ]
 

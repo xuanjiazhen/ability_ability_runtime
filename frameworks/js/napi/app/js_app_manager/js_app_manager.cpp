@@ -926,7 +926,7 @@ private:
                 delete task;
                 return;
             }
-            auto ret = appManager->ClearUpApplicationData(bundleName, 0);
+            auto ret = appManager->ClearUpApplicationData(bundleName, 0, -1);
             if (ret == 0) {
                 task->ResolveWithNoError(env, CreateJsUndefined(env));
             } else if (ret == AAFwk::CHECK_PERMISSION_FAILED || ret == AAFwk::ERR_NOT_SYSTEM_APP) {
@@ -977,7 +977,7 @@ private:
                 delete task;
                 return;
             }
-            auto ret = appManager->ClearUpApplicationData(bundleName, appCloneIndex);
+            auto ret = appManager->ClearUpApplicationData(bundleName, appCloneIndex, -1);
             if (ret == 0) {
                 task->ResolveWithNoError(env, CreateJsUndefined(env));
             } else {
@@ -1067,7 +1067,8 @@ private:
                 delete task;
                 return;
             }
-            bool ret = appManager->IsSharedBundleRunning(bundleName, versionCode);
+            bool ret = false;
+            appManager->IsSharedBundleRunning(bundleName, versionCode, ret);
             TAG_LOGI(AAFwkTag::APPMGR, "result:%{public}d", ret);
             task->ResolveWithNoError(env, CreateJsValue(env, ret));
             delete task;
@@ -1119,13 +1120,21 @@ private:
         std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
         auto asyncTask = [appManager = appManager_, bundleName, appIndex, accountId, clearPageStack,
             env, task = napiAsyncTask.get()]() {
-            if (appManager == nullptr || appManager->GetAmsMgr() == nullptr) {
+            if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr or amsMgr");
                 task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
                 delete task;
                 return;
             }
-            auto ret = appManager->GetAmsMgr()->KillProcessWithAccount(bundleName, accountId, clearPageStack, appIndex);
+            sptr<IAmsMgr> appMgr;
+            appManager->GetAmsMgr(appMgr);
+            if (appMgr == nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "null appMgr or amsMgr");
+                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                delete task;
+                return;
+            }
+            auto ret = appMgr->KillProcessWithAccount(bundleName, accountId, clearPageStack, appIndex);
             if (ret == 0) {
                 task->ResolveWithNoError(env, CreateJsUndefined(env));
             } else {
@@ -1158,12 +1167,19 @@ private:
         }
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [pids, appManager = appManager_, innerErrorCode]() {
-            if (appManager == nullptr || appManager->GetAmsMgr() == nullptr) {
+            if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appManager or amsMgr");
                 *innerErrorCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
                 return;
             }
-            *innerErrorCode = appManager->GetAmsMgr()->KillProcessesInBatch(pids);
+            sptr<IAmsMgr> appMgr;
+            appManager->GetAmsMgr(appMgr);
+            if (appMgr == nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "null appManager or amsMgr");
+                *innerErrorCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+                return;
+            }
+            *innerErrorCode = appMgr->KillProcessesInBatch(pids);
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {

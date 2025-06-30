@@ -103,7 +103,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) = 0;
+    virtual void ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info) = 0;
 
     /**
      * ScheduleCjHeapMemory, call ScheduleCjHeapMemory() through proxy project,
@@ -113,7 +113,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) = 0;
+    virtual void ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info) = 0;
 
     /**
      * ScheduleLaunchApplication, call ScheduleLaunchApplication() through proxy project,

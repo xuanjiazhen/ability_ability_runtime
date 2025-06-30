@@ -152,7 +152,7 @@ void AppSchedulerProxy::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::
     mallocInfo = *info;
 }
 
-void AppSchedulerProxy::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+void AppSchedulerProxy::ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy::ScheduleJsHeapMemory start");
     uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_JSHEAP_MEMORY_APPLICATION_TRANSACTION);
@@ -174,7 +174,7 @@ void AppSchedulerProxy::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
     }
 }
 
-void AppSchedulerProxy::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+void AppSchedulerProxy::ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy::ScheduleCjHeapMemory start");
     uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CJHEAP_MEMORY_APPLICATION_TRANSACTION);

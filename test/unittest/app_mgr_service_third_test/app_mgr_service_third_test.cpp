@@ -285,7 +285,7 @@ HWTEST_F(AppMgrServiceThirdTest, NotifyMemoryLevel_001, TestSize.Level1)
     auto appMgrService = std::make_shared<AppMgrService>();
     ASSERT_NE(appMgrService, nullptr);
     appMgrService->SetInnerService(nullptr);
-    int32_t level = OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE;
+    int32_t level = static_cast<int32_t>(MemoryLevel::MEMORY_LEVEL_MODERATE);
     int32_t res = appMgrService->NotifyMemoryLevel(level);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 

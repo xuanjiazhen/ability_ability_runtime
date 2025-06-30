@@ -185,12 +185,12 @@ ErrCode AppMgrService::Init()
     return ERR_OK;
 }
 
-void AppMgrService::AttachApplication(const sptr<IRemoteObject> &app)
+ErrCode AppMgrService::AttachApplication(const sptr<IRemoteObject> &app)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AttachApplication failed");
-        return;
+        return ERR_OK;
     }
 
     AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(IPCSkeleton::GetCallingPid(),
@@ -207,6 +207,7 @@ void AppMgrService::AttachApplication(const sptr<IRemoteObject> &app)
         .taskName_ = TASK_ATTACH_APPLICATION,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+        return ERR_OK;
 }
 
 int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t userId,
@@ -221,13 +222,13 @@ int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t
     return appMgrServiceInner_->PreloadApplication(bundleName, userId, preloadMode, appIndex);
 }
 
-void AppMgrService::ApplicationForegrounded(const int32_t recordId)
+int AppMgrService::ApplicationForegrounded(const int32_t recordId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
     }
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
     AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(IPCSkeleton::GetCallingPid(),
         "AppMgrService::AppForegrounded");
@@ -238,16 +239,19 @@ void AppMgrService::ApplicationForegrounded(const int32_t recordId)
         .taskName_ = TASK_APPLICATION_FOREGROUNDED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AppMgrService::ApplicationBackgrounded(const int32_t recordId)
+int AppMgrService::ApplicationBackgrounded(const int32_t recordId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
     }
+
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
+
     AbilityRuntime::FreezeUtil::GetInstance().AddAppLifecycleEvent(IPCSkeleton::GetCallingPid(),
         "AppMgrService::AppBackgrounded");
     taskHandler_->CancelTask("appbackground_" + std::to_string(recordId));
@@ -258,15 +262,16 @@ void AppMgrService::ApplicationBackgrounded(const int32_t recordId)
         .taskName_ = TASK_APPLICATION_BACKGROUNDED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+        return ERR_OK;
 }
 
-void AppMgrService::ApplicationTerminated(const int32_t recordId)
+int AppMgrService::ApplicationTerminated(const int32_t recordId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
     }
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
     std::function<void()> applicationTerminatedFunc = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->ApplicationTerminated(recordId);
@@ -275,19 +280,21 @@ void AppMgrService::ApplicationTerminated(const int32_t recordId)
         .taskName_ = TASK_APPLICATION_TERMINATED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+        return ERR_OK;
 }
 
-void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
+int AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
+
     }
 
     auto callerUid = IPCSkeleton::GetCallingUid();
     auto appRecord = appMgrServiceInner_->GetTerminatingAppRunningRecord(token);
     if (!appRecord || appRecord->GetUid() != callerUid) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_OK;
     }
 
     std::function<void()> abilityCleanedFunc = [appMgrServiceInner = appMgrServiceInner_, token]() {
@@ -297,6 +304,7 @@ void AppMgrService::AbilityCleaned(const sptr<IRemoteObject> &token)
         .taskName_ = TASK_ABILITY_CLEANED,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
 bool AppMgrService::IsReady() const
@@ -309,16 +317,16 @@ bool AppMgrService::IsReady() const
     return false;
 }
 
-void AppMgrService::StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+int AppMgrService::StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
     }
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     pid_t pid = getprocpid();
     if (callingPid != pid) {
         TAG_LOGE(AAFwkTag::APPMGR, "not process call");
-        return;
+        return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "start process");
     std::function <void()> startupResidentProcess = [appMgrServiceInner = appMgrServiceInner_, bundleInfos]() {
@@ -328,11 +336,14 @@ void AppMgrService::StartupResidentProcess(const std::vector<AppExecFwk::BundleI
         .taskName_ = TASK_STARTUP_RESIDENT_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+        return ERR_OK;
+
 }
 
-sptr<IAmsMgr> AppMgrService::GetAmsMgr()
+int AppMgrService::GetAmsMgr(sptr<IAmsMgr>& funcResult)
 {
-    return amsMgrScheduler_;
+    funcResult = amsMgrScheduler_;
+    return ERR_OK;
 }
 
 int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, int32_t userId)
@@ -522,12 +533,12 @@ int32_t AppMgrService::NotifyMemoryLevel(int32_t level)
     return appMgrServiceInner_->NotifyMemoryLevel(level);
 }
 
-int32_t AppMgrService::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap)
+int32_t AppMgrService::NotifyProcMemoryLevel(const MemoryLevelInfo& memoryLevelInfo)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->NotifyProcMemoryLevel(procLevelMap);
+    return appMgrServiceInner_->NotifyProcMemoryLevel(memoryLevelInfo.GetProcLevelMap());
 }
 
 int32_t AppMgrService::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo)
@@ -539,28 +550,32 @@ int32_t AppMgrService::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::Mallo
 }
 
 // Authenticate dump permissions
-bool AppMgrService::HasDumpPermission() const
+ErrCode AppMgrService::HasDumpPermission(bool& funcResult)
 {
     uint32_t callingTokenID = IPCSkeleton::GetCallingTokenID();
     int res = Security::AccessToken::AccessTokenKit::VerifyAccessToken(callingTokenID, "ohos.permission.DUMP");
     if (res != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::APPMGR, "no permission");
-        return false;
+        return ERR_INVALID_VALUE;
     }
-    return true;
+    return ERR_OK;
 }
 
-int32_t AppMgrService::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+int32_t AppMgrService::DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
-    if (!IsReady() || !HasDumpPermission()) {
+    bool funcResult = false;
+    HasDumpPermission(funcResult);
+    if (!IsReady() || !funcResult) {
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->DumpJsHeapMemory(info);
 }
 
-int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+int32_t AppMgrService::DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
-    if (!IsReady() || !HasDumpPermission()) {
+    bool funcResult = false;
+    HasDumpPermission(funcResult);
+    if (!IsReady() || !funcResult) {
         return ERR_INVALID_OPERATION;
     }
     static std::mutex mutex_;
@@ -568,13 +583,13 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return appMgrServiceInner_->DumpCjHeapMemory(info);
 }
 
-void AppMgrService::AddAbilityStageDone(const int32_t recordId)
+int AppMgrService::AddAbilityStageDone(const int32_t recordId)
 {
     if (!IsReady()) {
-        return;
+        return ERR_OK;
     }
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
     std::function <void()> addAbilityStageDone = [appMgrServiceInner = appMgrServiceInner_, recordId]() {
         appMgrServiceInner->AddAbilityStageDone(recordId);
@@ -583,6 +598,7 @@ void AppMgrService::AddAbilityStageDone(const int32_t recordId)
         .taskName_ = TASK_ADD_ABILITY_STAGE_DONE,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
 int32_t AppMgrService::RegisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer,
@@ -606,7 +622,7 @@ int32_t AppMgrService::UnregisterApplicationStateObserver(const sptr<IApplicatio
     return appMgrServiceInner_->UnregisterApplicationStateObserver(observer);
 }
 
-int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNotify>& notify)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "begin");
     if (!IsReady()) {
@@ -616,7 +632,7 @@ int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNoti
     return appMgrServiceInner_->RegisterNativeChildExitNotify(notify);
 }
 
-int32_t AppMgrService::UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
+int32_t AppMgrService::UnregisterNativeChildExitNotify(const sptr<INativeChildNotify>& notify)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "begin");
     if (!IsReady()) {
@@ -676,7 +692,7 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
     return ERR_OK;
 }
 
-int AppMgrService::FinishUserTest(const std::string &msg, const int64_t &resultCode, const std::string &bundleName)
+int AppMgrService::FinishUserTest(const std::string &msg, int64_t resultCode, const std::string &bundleName)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
@@ -970,30 +986,31 @@ int AppMgrService::DumpIpcStat(const int32_t pid, std::string& result)
     return appMgrServiceInner_->DumpIpcStat(pid, result);
 }
 
-void AppMgrService::ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag)
+int AppMgrService::ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_OK;
     }
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
     auto task = [appMgrServiceInner = appMgrServiceInner_, recordId, want, flag]() {
         appMgrServiceInner->ScheduleAcceptWantDone(recordId, want, flag);
     };
     taskHandler_->SubmitTask(task, "ScheduleAcceptWantDone");
+    return ERR_OK;
 }
 
-void AppMgrService::ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want &want,
+int AppMgrService::ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want &want,
     const std::string &flag)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_OK;
     }
     if (!JudgeAppSelfCalled(recordId)) {
-        return;
+        return ERR_OK;
     }
     auto task = [appMgrServiceInner = appMgrServiceInner_, recordId, want, flag]() {
         appMgrServiceInner->ScheduleNewProcessRequestDone(recordId, want, flag);
@@ -1002,6 +1019,7 @@ void AppMgrService::ScheduleNewProcessRequestDone(const int32_t recordId, const 
         .taskName_ = "ScheduleNewProcessRequestDone",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
 int AppMgrService::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>> &tokens)
@@ -1046,13 +1064,13 @@ int32_t AppMgrService::StartRenderProcess(const std::string &renderParam, int32_
         std::move(ipcFdGuard), std::move(sharedFdGuard), std::move(crashFdGuard), renderPid, isGPU);
 }
 
-void AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
+int AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "AttachRenderProcess");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_OK;
     }
 
     auto pid = IPCSkeleton::GetCallingPid();
@@ -1063,16 +1081,18 @@ void AppMgrService::AttachRenderProcess(const sptr<IRemoteObject> &scheduler)
         .taskName_ = TASK_ATTACH_RENDER_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AppMgrService::SaveBrowserChannel(sptr<IRemoteObject> browser)
+int AppMgrService::SaveBrowserChannel(const sptr<IRemoteObject>& browser)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_OK;
     }
 
     appMgrServiceInner_->SaveBrowserChannel(IPCSkeleton::GetCallingPid(), browser);
+    return ERR_OK;
 }
 
 int32_t AppMgrService::GetRenderProcessTerminationStatus(pid_t renderPid, int &status)
@@ -1148,13 +1168,12 @@ int32_t AppMgrService::UnregisterConfigurationObserver(const sptr<IConfiguration
     return appMgrServiceInner_->UnregisterConfigurationObserver(observer);
 }
 
-bool AppMgrService::GetAppRunningStateByBundleName(const std::string &bundleName)
+int AppMgrService::GetAppRunningStateByBundleName(const std::string &bundleName, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return false;
     }
-
     return appMgrServiceInner_->GetAppRunningStateByBundleName(bundleName);
 }
 
@@ -1218,12 +1237,13 @@ bool AppMgrService::JudgeAppSelfCalled(int32_t recordId)
     return true;
 }
 
-bool AppMgrService::IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode)
+int AppMgrService::IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode, bool& funcResult)
 {
     if (!IsReady()) {
-        return false;
+        return ERR_OK;
     }
-    return appMgrServiceInner_->IsSharedBundleRunning(bundleName, versionCode);
+    funcResult = appMgrServiceInner_->IsSharedBundleRunning(bundleName, versionCode);
+    return ERR_OK;
 }
 
 int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
@@ -1302,18 +1322,19 @@ int32_t AppMgrService::NotifyAppFaultBySA(const AppFaultDataBySA &faultData)
     return ret;
 }
 
-bool AppMgrService::SetAppFreezeFilter(int32_t pid)
+int32_t AppMgrService::SetAppFreezeFilter(int32_t pid, bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        funcResult = false;
+        return ERR_INVALID_OPERATION;
     }
 
-    auto ret = appMgrServiceInner_->SetAppFreezeFilter(pid);
-    if (!ret) {
+    funcResult = appMgrServiceInner_->SetAppFreezeFilter(pid);
+    if (!funcResult) {
         TAG_LOGE(AAFwkTag::APPMGR, "SetAppFreezeFilter fail");
     }
-    return ret;
+    return ERR_OK;
 }
 
 int32_t AppMgrService::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)
@@ -1503,16 +1524,16 @@ int32_t AppMgrService::GetChildProcessInfoForSelf(ChildProcessInfo &info)
     return appMgrServiceInner_->GetChildProcessInfoForSelf(info);
 }
 
-void AppMgrService::AttachChildProcess(const sptr<IRemoteObject> &childScheduler)
+int AppMgrService::AttachChildProcess(const sptr<IRemoteObject> &childScheduler)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AttachChildProcess.");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     if (!taskHandler_) {
         TAG_LOGE(AAFwkTag::APPMGR, "null taskHandler_");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     pid_t pid = IPCSkeleton::GetCallingPid();
     std::function<void()> task = [appMgrServiceInner = appMgrServiceInner_, pid, childScheduler]() {
@@ -1522,17 +1543,18 @@ void AppMgrService::AttachChildProcess(const sptr<IRemoteObject> &childScheduler
         .taskName_ = TASK_ATTACH_CHILD_PROCESS,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 
-void AppMgrService::ExitChildProcessSafely()
+int AppMgrService::ExitChildProcessSafely()
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     if (!taskHandler_) {
         TAG_LOGE(AAFwkTag::APPMGR, "null taskHandler_");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     pid_t pid = IPCSkeleton::GetCallingPid();
     std::function<void()> task = [appMgrServiceInner = appMgrServiceInner_, pid]() {
@@ -1542,16 +1564,18 @@ void AppMgrService::ExitChildProcessSafely()
         .taskName_ = TASK_EXIT_CHILD_PROCESS_SAFELY,
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
     });
+    return ERR_OK;
 }
 #endif // SUPPORT_CHILD_PROCESS
 
-bool AppMgrService::IsFinalAppProcess()
+int32_t AppMgrService::IsFinalAppProcess(bool& funcResult)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return false;
+        return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->IsFinalAppProcessByBundleName("");
+    funcResult = appMgrServiceInner_->IsFinalAppProcessByBundleName("");
+    return ERR_OK;
 }
 
 int32_t AppMgrService::RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer)
@@ -1699,14 +1723,15 @@ int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
     return appMgrServiceInner_->SetProcessCacheEnable(pid, enable);
 }
 
-void AppMgrService::SetAppAssertionPauseState(bool flag)
+int AppMgrService::SetAppAssertionPauseState(bool flag)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return;
+        return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->SetAppAssertionPauseState(flag);
+    appMgrServiceInner_->SetAppAssertionPauseState(flag);
+    return ERR_OK;
 }
 
 #ifdef SUPPORT_CHILD_PROCESS
@@ -1744,30 +1769,32 @@ int32_t AppMgrService::NotifyProcessDependedOnWeb()
     return appMgrServiceInner_->NotifyProcessDependedOnWeb();
 }
 
-void AppMgrService::KillProcessDependedOnWeb()
+int AppMgrService::KillProcessDependedOnWeb()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!AAFwk::PermissionVerification::GetInstance()->VerifyKillProcessDependedOnWebPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission");
-        return;
+        return ERR_INVALID_OPERATION;
     }
     if (!appMgrServiceInner_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     appMgrServiceInner_->KillProcessDependedOnWeb();
+    return ERR_OK;
 }
 
-void AppMgrService::RestartResidentProcessDependedOnWeb()
+int AppMgrService::RestartResidentProcessDependedOnWeb()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not foundation");
-        return;
+        return ERR_OK;
     }
     if (!appMgrServiceInner_) {
-        return;
+        return ERR_OK;
     }
     appMgrServiceInner_->RestartResidentProcessDependedOnWeb();
+    return ERR_OK;
 }
 
 int32_t AppMgrService::GetSupportedProcessCachePids(const std::string &bundleName,
@@ -1821,17 +1848,18 @@ int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey
     return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
 }
 
-void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+int AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS)) {
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (!appMgrServiceInner_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
     appMgrServiceInner_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
+    return ERR_INVALID_VALUE;
 }
 
 int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
@@ -1893,7 +1921,7 @@ int32_t AppMgrService::GetKilledProcessInfo(int pid, int uid, KilledProcessInfo 
     return appMgrServiceInner_->GetKilledProcessInfo(pid, uid, info);
 }
 
-int32_t AppMgrService::LaunchAbility(sptr<IRemoteObject> token)
+int32_t AppMgrService::LaunchAbility(const sptr<IRemoteObject>& token)
 {
     if (!IsReady()) {
         return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;

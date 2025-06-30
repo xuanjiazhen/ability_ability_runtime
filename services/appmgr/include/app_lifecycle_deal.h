@@ -136,7 +136,7 @@ public:
      *
      * @return
      */
-    void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+    void ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
      * ScheduleCjHeapMemory, call ScheduleCjHeapMemory() through proxy project,
@@ -146,7 +146,7 @@ public:
      *
      * @return
      */
-    void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+    void ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
      * LowMemoryWarning, call ScheduleLowMemory() through proxy project,

@@ -85,7 +85,7 @@ HWTEST_F(AmsIpcAppMgrInterfaceTest, Interface_001, TestSize.Level1)
     sptr<MockApplication> app(new MockApplication());
 
     EXPECT_CALL(*mockAppMgr, AttachApplication(_))
-        .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+        .WillOnce(Return(OHOS::NO_ERROR));
     appMgrClient->AttachApplication(app);
     mockAppMgr->Wait();
     TAG_LOGD(AAFwkTag::TEST, "AppMgrIpcInterfaceTest_AppMgr_001 end");
@@ -105,7 +105,7 @@ HWTEST_F(AmsIpcAppMgrInterfaceTest, Interface_002, TestSize.Level1)
     sptr<IAppMgr> appMgrClient = iface_cast<IAppMgr>(mockAppMgr);
 
     EXPECT_CALL(*mockAppMgr, ApplicationForegrounded(_))
-        .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+        .WillOnce(Return(OHOS::NO_ERROR));
     auto recordId = AppRecordId::Create();
     appMgrClient->ApplicationForegrounded(recordId);
     mockAppMgr->Wait();
@@ -126,7 +126,7 @@ HWTEST_F(AmsIpcAppMgrInterfaceTest, Interface_003, TestSize.Level1)
     sptr<IAppMgr> appMgrClient = iface_cast<IAppMgr>(mockAppMgr);
 
     EXPECT_CALL(*mockAppMgr, ApplicationBackgrounded(_))
-        .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+        .WillOnce(Return(OHOS::NO_ERROR));
     auto recordId = AppRecordId::Create();
     appMgrClient->ApplicationBackgrounded(recordId);
     mockAppMgr->Wait();
@@ -147,7 +147,7 @@ HWTEST_F(AmsIpcAppMgrInterfaceTest, Interface_004, TestSize.Level1)
     sptr<IAppMgr> appMgrClient = iface_cast<IAppMgr>(mockAppMgr);
 
     EXPECT_CALL(*mockAppMgr, ApplicationTerminated(_))
-        .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+        .WillOnce(Return(OHOS::NO_ERROR));
     auto recordId = AppRecordId::Create();
     appMgrClient->ApplicationTerminated(recordId);
     mockAppMgr->Wait();
@@ -170,7 +170,7 @@ HWTEST_F(AmsIpcAppMgrInterfaceTest, ClearUpApplicationData_008, TestSize.Level1)
 
     EXPECT_CALL(*mockAppMgr, ClearUpApplicationData(_, _, _)).Times(1);
 
-    appMgrClient->ClearUpApplicationData("PROCESS", 0);
+    appMgrClient->ClearUpApplicationData("PROCESS", 0, -1);
 
     TAG_LOGD(AAFwkTag::TEST, "ClearUpApplicationData_008 end");
 }

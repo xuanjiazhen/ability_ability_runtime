@@ -621,7 +621,7 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
  *
  * @param info, pid, tid, needGC, needSnapshot.
  */
-void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+void MainThread::ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
         "needLeakobj: %{public}d, needBinary: %{public}d",
@@ -646,7 +646,7 @@ void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
  *
  * @param info, pid, tid, needGC, needSnapshot.
  */
-void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+void MainThread::ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d",
         info.pid, info.needGc, info.needSnapshot);
@@ -3820,7 +3820,8 @@ bool MainThread::NotifyDeviceDisConnect()
         TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");
         return false;
     }
-    bool isLastProcess = appMgr_->IsFinalAppProcess();
+    bool isLastProcess = false;
+    appMgr_->IsFinalAppProcess(isLastProcess);
     ScheduleTerminateApplication(isLastProcess);
     return true;
 }

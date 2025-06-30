@@ -183,7 +183,7 @@ void AppLifeCycleDeal::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::M
     appThread->ScheduleHeapMemory(pid, mallocInfo);
 }
 
-void AppLifeCycleDeal::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+void AppLifeCycleDeal::ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     auto appThread = GetApplicationClient();
     if (!appThread) {
@@ -194,7 +194,7 @@ void AppLifeCycleDeal::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     appThread->ScheduleJsHeapMemory(info);
 }
 
-void AppLifeCycleDeal::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+void AppLifeCycleDeal::ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto appThread = GetApplicationClient();
     if (!appThread) {

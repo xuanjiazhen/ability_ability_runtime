@@ -201,7 +201,7 @@ public:
      *
      * @param info, pid, tid, needGc, needSnapshot.
      */
-    void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
+    void ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
 
     /**
      *
@@ -209,7 +209,7 @@ public:
      *
      * @param info, pid, needGc, needSnapshot.
      */
-    void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
+    void ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
      *

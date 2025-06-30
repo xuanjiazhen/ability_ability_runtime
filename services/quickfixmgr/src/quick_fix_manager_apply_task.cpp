@@ -617,9 +617,11 @@ bool QuickFixManagerApplyTask::GetRunningState()
         return false;
     }
 
-    auto ret = appMgr_->GetAppRunningStateByBundleName(bundleName_);
-    TAG_LOGI(AAFwkTag::QUICKFIX, "process running state of [%{public}s]: %{public}d", bundleName_.c_str(), ret);
-    return ret;
+    bool result = false;
+    appMgr_->GetAppRunningStateByBundleName(bundleName_, result);
+    
+    TAG_LOGI(AAFwkTag::QUICKFIX, "process running state of [%{public}s]: %{public}d", bundleName_.c_str(), result);
+    return result;
 }
 
 void QuickFixManagerApplyTask::NotifyApplyStatus(int32_t resultCode)

@@ -2597,9 +2597,9 @@ int32_t AppMgrServiceInner::NotifyMemoryLevel(int32_t level)
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not %{public}s", MEMMGR_PROC_NAME);
         return ERR_INVALID_VALUE;
     }
-    if (!(level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE ||
-        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL ||
-        level == OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_LOW)) {
+    if (!(level == static_cast<int32_t>(MemoryLevel::MEMORY_LEVEL_MODERATE) ||
+        level == static_cast<int32_t>(MemoryLevel::MEMORY_LEVEL_CRITICAL) ||
+        level == static_cast<int32_t>(MemoryLevel::MEMORY_LEVEL_LOW))) {
         TAG_LOGE(AAFwkTag::APPMGR, "level value error");
         return ERR_INVALID_VALUE;
     }
@@ -2650,7 +2650,7 @@ int32_t AppMgrServiceInner::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::
     return appRunningManager_->DumpHeapMemory(pid, mallocInfo);
 }
 
-int32_t AppMgrServiceInner::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+int32_t AppMgrServiceInner::DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
@@ -2668,7 +2668,7 @@ int32_t AppMgrServiceInner::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
     return appRunningManager_->DumpJsHeapMemory(info);
 }
 
-int32_t AppMgrServiceInner::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+int32_t AppMgrServiceInner::DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
@@ -9799,7 +9799,7 @@ int32_t AppMgrServiceInner::CheckIsKiaProcess(pid_t pid, bool &isKia)
     return appRunningManager_->CheckIsKiaProcess(pid, isKia);
 }
 
-void AppMgrServiceInner::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+void AppMgrServiceInner::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey)
 {
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
