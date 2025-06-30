@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dialogsessionmanagerfirst_fuzzer.h"
+#include "dialogsessionmanagerfifth_fuzzer.h"
 #include <cstddef>
 #include <cstdint>
 #include <fuzzer/FuzzedDataProvider.h>
@@ -22,7 +22,6 @@
 #undef private
 #include "ability_record.h"
 #include "dialog_session_manager.h"
-#include "../ability_fuzz_util.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -32,17 +31,16 @@ namespace {} // namespace
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
-    DialogSessionInfo dilogSessionInfo;
-    DialogCallerInfo callerInfo;
+    sptr<DialogSessionInfo> dilogSessionInfo;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo;
     std::string dialogSessionId;
     FuzzedDataProvider fdp(data, size);
     dialogSessionId = fdp.ConsumeRandomLengthString();
-    AbilityFuzzUtil::GetRandomDialogCallerInfo(fdp, callerInfo);
     std::shared_ptr<DialogSessionManager> dialogSessionManager = std::make_shared<DialogSessionManager>();
     if (dialogSessionManager == nullptr) {
         return false;
     }
-    dialogSessionManager->SetDialogSessionInfo(dialogSessionId, dilogSessionInfo, callerInfo);
+    dialogSessionManager->SetDialogSessionInfo(dialogSessionId, dilogSessionInfo, dialogCallerInfo);
     return true;
 }
 } // namespace OHOS

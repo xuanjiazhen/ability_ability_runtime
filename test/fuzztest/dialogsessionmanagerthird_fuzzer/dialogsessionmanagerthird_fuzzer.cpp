@@ -32,7 +32,7 @@ namespace {} // namespace
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
     AbilityRequest info;
-    DialogAbilityInfo targetAbilityInfos;
+    std::vector<DialogAbilityInfo> targetAbilityInfos;
     FuzzedDataProvider fdp(data, size);
     AbilityFuzzUtil::GetRandomAbilityRequestInfo(fdp, info);
     std::shared_ptr<DialogSessionManager> dialogSessionManager = std::make_shared<DialogSessionManager>();

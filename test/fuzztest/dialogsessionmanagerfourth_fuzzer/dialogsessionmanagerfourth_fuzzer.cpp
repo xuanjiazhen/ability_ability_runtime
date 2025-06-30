@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dialogsessionmanagerthird_fuzzer.h"
+#include "dialogsessionmanagerfourth_fuzzer.h"
 #include <cstddef>
 #include <cstdint>
 #include <fuzzer/FuzzedDataProvider.h>

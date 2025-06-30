@@ -491,30 +491,6 @@ void GetRandomAbilityRequestInfo(FuzzedDataProvider& fdp, AbilityRequest& info)
     GetRandomAbilityInfo(fdp, info.abilityInfo);
     GetRandomApplicationInfo(fdp, info.appInfo);
 }
-
-void GetRandomDialogAbilityInfo(FuzzedDataProvider& fdp, DialogAbilityInfo& targetAbilityInfos)
-{
-    targetAbilityInfos.visible = fdp.ConsumeBool();
-    targetAbilityInfos.bundleIconId = fdp.ConsumeIntegral<uint32_t>();
-    targetAbilityInfos.bundleLabelId = fdp.ConsumeIntegral<uint32_t>();
-    targetAbilityInfos.abilityIconId = fdp.ConsumeIntegral<uint32_t>();
-    targetAbilityInfos.abilityLabelId = fdp.ConsumeIntegral<uint32_t>();
-    targetAbilityInfos.appIndex = fdp.ConsumeIntegral<uint32_t>();
-    targetAbilityInfos.bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    targetAbilityInfos.moduleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    targetAbilityInfos.abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-}
-
-void GetRandomDialogCallerInfo(FuzzedDataProvider& fdp, DialogCallerInfo& dialogCallerInfo)
-{
-    dialogCallerInfo.userId = fdp.ConsumeIntegral<uint32_t>();
-    dialogCallerInfo.requestCode = fdp.ConsumeIntegral<uint32_t>();
-    sptr<IRemoteObject> callerToken;
-    Want targetWant;
-    dialogCallerInfo.type = static_cast<SelectorType>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
-    // SelectorType type = SelectorType::WITHOUT_SELECTOR;
-    dialogCallerInfo.needGrantUriPermission = fdp.ConsumeBool();
-}
 }  // namespace AbilityFuzzUtil
 }  // namespace AppExecFwk
 }  // namespace OHOS
