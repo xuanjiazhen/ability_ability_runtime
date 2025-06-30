@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 
 #include "app_running_manager.h"
 #include "app_running_record.h"
-#include "kia_interceptor_interface.h"
+#include "ikia_interceptor.h"
 
 namespace OHOS {
 namespace AppExecFwk {

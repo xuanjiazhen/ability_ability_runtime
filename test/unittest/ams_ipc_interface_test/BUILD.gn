@@ -30,6 +30,8 @@ ohos_unittest("AmsIpcAppSchedulerInterfaceTest") {
   }
   deps = [ "${ability_runtime_test_path}/unittest:appmgr_test_source" ]
 
+  configs =
+      [ "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config" ]
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",

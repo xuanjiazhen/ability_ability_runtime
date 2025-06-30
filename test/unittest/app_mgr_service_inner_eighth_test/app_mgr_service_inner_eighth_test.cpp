@@ -54,9 +54,9 @@ public:
 };
 class MyKiaInterceptor : public IKiaInterceptor {
 public:
-    int OnIntercept(AAFwk::Want &want) override
+    ErrCode OnIntercept(AAFwk::Want &want) override
     {
-        return 0;
+        return ERR_OK;
     }
 
     sptr<IRemoteObject> AsObject() override
@@ -94,8 +94,11 @@ public:
 };
 class MyRenderScheduler : public IRenderScheduler {
 public:
-    void NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd,
-                                    int32_t crashFd, sptr<IRemoteObject> browser) override {}
+    ErrCode NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd,
+                                    int32_t crashFd, const sptr<IRemoteObject>& browser) override
+    {
+        return ERR_OK;
+    }
     sptr<IRemoteObject> AsObject() override
     {
         return nullptr;
