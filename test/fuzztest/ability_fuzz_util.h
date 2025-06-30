@@ -26,8 +26,6 @@
 #include "bundle_user_info.h"
 #include "extract_insight_intent_profile.h"
 #include "keep_alive_process_manager.h"
-#include "want.h"
-#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -517,7 +515,6 @@ void GetRandomDialogCallerInfo(FuzzedDataProvider& fdp, DialogCallerInfo& dialog
     // SelectorType type = SelectorType::WITHOUT_SELECTOR;
     dialogCallerInfo.needGrantUriPermission = fdp.ConsumeBool();
 }
-
 }  // namespace AbilityFuzzUtil
 }  // namespace AppExecFwk
 }  // namespace OHOS
