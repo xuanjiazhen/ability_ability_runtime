@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -133,7 +133,7 @@ class IKiaInterceptorTest : public IKiaInterceptor {
     public:
     IKiaInterceptorTest() = default;
     virtual ~IKiaInterceptorTest() = default;
-    int OnIntercept(AAFwk::Want &want) override { return 0; }
+    ErrCode OnIntercept(AAFwk::Want &want) override { return ERR_OK; }
 };
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,7 +74,7 @@ HWTEST_F(QuickFixCallbackStubTest, OnLoadPatchDone_0100, TestSize.Level1)
     EXPECT_CALL(*mockQuickFixCallback_, OnLoadPatchDone(_, _)).Times(1);
 
     auto result = mockQuickFixCallback_->OnRemoteRequest(
-        IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_LOAD_PATCH, data, reply, option);
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_LOAD_PATCH_DONE), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
@@ -103,7 +103,7 @@ HWTEST_F(QuickFixCallbackStubTest, OnUnloadPatchDone_0100, TestSize.Level1)
     EXPECT_CALL(*mockQuickFixCallback_, OnUnloadPatchDone(_, _)).Times(1);
 
     auto result = mockQuickFixCallback_->OnRemoteRequest(
-        IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_UNLOAD_PATCH, data, reply, option);
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_UNLOAD_PATCH_DONE), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
@@ -132,7 +132,7 @@ HWTEST_F(QuickFixCallbackStubTest, OnReloadPageDone_0100, TestSize.Level1)
     EXPECT_CALL(*mockQuickFixCallback_, OnReloadPageDone(_, _)).Times(1);
 
     auto result = mockQuickFixCallback_->OnRemoteRequest(
-        IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_RELOAD_PAGE, data, reply, option);
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_RELOAD_PAGE_DONE), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
@@ -157,8 +157,8 @@ HWTEST_F(QuickFixCallbackStubTest, OnRemoteRequest_0100, TestSize.Level1)
     data.WriteInt32(resultCode);
 
     auto result = mockQuickFixCallback_->OnRemoteRequest(
-        IQuickFixCallback::QuickFixCallbackCmd::ON_NOTIFY_LOAD_PATCH, data, reply, option);
-    EXPECT_EQ(result, ERR_INVALID_STATE);
+        static_cast<uint32_t>(IQuickFixCallbackIpcCode::COMMAND_ON_LOAD_PATCH_DONE), data, reply, option);
+    EXPECT_EQ(result, ERR_TRANSACTION_FAILED);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
