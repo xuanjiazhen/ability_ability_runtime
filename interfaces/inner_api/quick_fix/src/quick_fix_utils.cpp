@@ -45,23 +45,5 @@ sptr<AppExecFwk::IAppMgr> QuickFixUtil::GetAppManagerProxy()
 {
     return iface_cast<AppExecFwk::IAppMgr>(GetRemoteObjectOfSystemAbility(APP_MGR_SERVICE_ID));
 }
-
-sptr<AppExecFwk::IQuickFixManager> QuickFixUtil::GetBundleQuickFixMgrProxy()
-{
-    TAG_LOGD(AAFwkTag::QUICKFIX, "called");
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "The bundleMgrHelper is nullptr");
-        return nullptr;
-    }
-
-    auto bundleQuickFixMgr = bundleMgrHelper->GetQuickFixManagerProxy();
-    if (bundleQuickFixMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "The bundleQuickFixMgr is nullptr");
-        return nullptr;
-    }
-
-    return bundleQuickFixMgr;
-}
 } // namespace AAFwk
 } // namespace OHOS

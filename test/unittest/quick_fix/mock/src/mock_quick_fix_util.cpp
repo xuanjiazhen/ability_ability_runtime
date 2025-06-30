@@ -60,25 +60,6 @@ sptr<AppExecFwk::IBundleMgr> QuickFixUtil::GetBundleManagerProxy()
     return iface_cast<AppExecFwk::IBundleMgr>(GetRemoteObjectOfSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
 }
 
-sptr<AppExecFwk::IQuickFixManager> QuickFixUtil::GetBundleQuickFixMgrProxy()
-{
-    TAG_LOGD(AAFwkTag::TEST, "function called.");
-    auto bundleMgr = GetBundleManagerProxy();
-    if (bundleMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::TEST, "Failed to get bms.");
-        return nullptr;
-    }
-
-    auto bundleQuickFixMgr = bundleMgr->GetQuickFixManagerProxy();
-    if (bundleQuickFixMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::TEST, "Failed to get bundle quick fix manager.");
-        return nullptr;
-    }
-
-    TAG_LOGD(AAFwkTag::TEST, "function finished.");
-    return bundleQuickFixMgr;
-}
-
 void QuickFixUtil::RegisterSystemAbility(const int32_t systemAbilityId, sptr<IRemoteObject> object)
 {
     std::lock_guard<std::mutex> lock(saMutex_);
