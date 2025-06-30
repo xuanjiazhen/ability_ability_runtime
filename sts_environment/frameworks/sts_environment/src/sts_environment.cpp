@@ -459,9 +459,9 @@ StsEnv::STSErrorObject STSEnvironment::GetSTSErrorObject()
         TAG_LOGE(AAFwkTag::STSRUNTIME, "ResetError failed, status : %{public}d", status);
         return StsEnv::STSErrorObject();
     }
-    std::string errorMsg = GetErrorProperty(aniError, "message");
-    std::string errorName = GetErrorProperty(aniError, "name");
-    std::string errorStack = GetErrorProperty(aniError, "stack");
+    std::string errorMsg = GetErrorProperty(aniError, "<get>message");
+    std::string errorName = GetErrorProperty(aniError, "<get>name");
+    std::string errorStack = GetErrorProperty(aniError, "<get>stack");
     const StsEnv::STSErrorObject errorObj = {
         .name = errorName,
         .message = errorMsg,
@@ -485,9 +485,10 @@ std::string STSEnvironment::GetErrorProperty(ani_error aniError, const char* pro
         TAG_LOGE(AAFwkTag::STSRUNTIME, "Object_GetType failed, status : %{public}d", status);
         return propertyValue;
     }
+    auto errorClass = static_cast<ani_class>(errorType);
     ani_method getterMethod = nullptr;
-    if ((status = aniEnv->Class_FindGetter(static_cast<ani_class>(errorType), property, &getterMethod)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindGetter failed, status : %{public}d", status);
+    if ((status = aniEnv->Class_FindMethod(errorClass, property, nullptr, &getterMethod)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STSRUNTIME, "Class_FindMethod failed, status : %{public}d", status);
         return propertyValue;
     }
     ani_ref aniRef = nullptr;
