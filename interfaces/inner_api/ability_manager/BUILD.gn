@@ -44,6 +44,10 @@ config("ability_manager_public_config") {
 
   defines = []
 
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
+
   if (ability_command_for_test) {
     defines += [ "ABILITY_COMMAND_FOR_TEST" ]
   }

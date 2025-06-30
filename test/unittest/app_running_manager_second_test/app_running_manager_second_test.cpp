@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,14 +48,20 @@ public:
     QuickFixCallbackImpl() = default;
     virtual ~QuickFixCallbackImpl() = default;
 
-    void OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
-    {}
+    ErrCode OnLoadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    {
+        return ERR_OK;
+    }
 
-    void OnUnloadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
-    {}
+    ErrCode OnUnloadPatchDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    {
+        return ERR_OK;
+    }
 
-    void OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
-    {}
+    ErrCode OnReloadPageDone(int32_t resultCode, [[maybe_unused]] int32_t recordId) override
+    {
+        return ERR_OK;
+    }
 };
 }
 

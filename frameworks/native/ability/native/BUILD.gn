@@ -141,6 +141,10 @@ config("abilitykit_utils_public_config") {
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
   ]
 
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
+
   if (ability_runtime_graphics) {
     defines = [ "SUPPORT_GRAPHICS" ]
   }
@@ -545,6 +549,10 @@ config("extensionkit_public_config") {
     "${ability_runtime_services_path}/common/include",
   ]
 
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
+
   if (ability_runtime_graphics) {
     defines = [ "SUPPORT_GRAPHICS" ]
   }
@@ -802,6 +810,10 @@ config("uiability_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
+  ]
+
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
   ]
 
   if (ability_runtime_graphics) {
