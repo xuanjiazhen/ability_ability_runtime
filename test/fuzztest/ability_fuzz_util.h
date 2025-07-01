@@ -407,8 +407,7 @@ void GetRandomAbilityInfo(FuzzedDataProvider& fdp, AbilityInfo& abilityInfo)
     abilityInfo.visible = fdp.ConsumeBool();
     abilityInfo.kind = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     abilityInfo.type = static_cast<AbilityType>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
-    abilityInfo.extensionAbilityType = 
-        static_cast<ExtensionAbilityType>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
+    abilityInfo.extensionAbilityType = static_cast<ExtensionAbilityType>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
     abilityInfo.orientation = static_cast<DisplayOrientation>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
     abilityInfo.launchMode = static_cast<LaunchMode>(fdp.ConsumeIntegralInRange<int32_t>(0, CODE_TWO));
     abilityInfo.srcPath = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
