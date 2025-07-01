@@ -23,11 +23,8 @@
 class NativeReference;
 
 namespace OHOS {
-namespace AbilityRuntime {
-    struct ETSNativeReference;
-}
 namespace AppExecFwk {
-
+struct ETSNativeReference;
 struct BaseDelegatorAbilityProperty {
     // token of ability
     sptr<IRemoteObject> token_;
@@ -44,8 +41,8 @@ struct ADelegatorAbilityProperty : public BaseDelegatorAbilityProperty {
     std::weak_ptr<NativeReference> object_;
 };
 
-struct ETSDelegatorAbilityProperty  : public BaseDelegatorAbilityProperty {
-    std::weak_ptr<AbilityRuntime::ETSNativeReference> object_;
+struct EtsDelegatorAbilityProperty  : public BaseDelegatorAbilityProperty {
+    std::weak_ptr<AppExecFwk::ETSNativeReference> object_;
 };
 
 struct DelegatorAbilityStageProperty {

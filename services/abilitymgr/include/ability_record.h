@@ -284,6 +284,7 @@ struct AbilityRequest {
     Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;
+    StartOptions startOptions;
     std::pair<bool, LaunchReason> IsContinuation() const
     {
         auto flags = want.GetFlags();
@@ -1224,6 +1225,16 @@ public:
         return lastWant_ != nullptr;
     }
 
+    inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
+    {
+        isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
+    }
+
+    inline bool IsLastWantBackgroundDriven() const
+    {
+        return isLastWantBackgroundDriven_.load();
+    }
+
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
@@ -1461,6 +1472,7 @@ private:
     std::string killReason_ = "";
     std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<Want> lastWant_ = nullptr;
+    std::atomic_bool isLastWantBackgroundDriven_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -16,9 +16,11 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
 #define OHOS_ABILITY_RUNTIME_ETS_UI_ABILITY_H
 
-#include "ability_delegator_infos.h"
-#include "ets_runtime.h"
 #include "ui_ability.h"
+
+#include "ability_delegator_infos.h"
+#include "ets_native_reference.h"
+#include "ets_runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -145,14 +147,13 @@ private:
     void AbilityContinuationOrRecover(const Want &want);
     void UpdateEtsWindowStage(ani_ref windowStage);
     
-    std::shared_ptr<ETSNativeReference> etsWindowStageObj_;
+    std::shared_ptr<AppExecFwk::ETSNativeReference> etsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif
 
 private:
     bool CallObjectMethod(bool withResult, const char *name, const char *signature, ...);
     ani_object CreateAppWindowStage();
-    std::shared_ptr<AppExecFwk::ETSDelegatorAbilityProperty> CreateADelegatorAbilityProperty();
     void SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<Want> want,
         const std::string &moduleName, const std::string &srcPath, const std::shared_ptr<OHOSApplication> &application);
     void DoOnForegroundForSceneIsNull(const Want &want);
@@ -162,8 +163,8 @@ private:
     bool BindNativeMethods();
 
     ETSRuntime &etsRuntime_;
-    std::shared_ptr<ETSNativeReference> shellContextRef_;
-    std::shared_ptr<ETSNativeReference> etsAbilityObj_;
+    std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_;
+    std::shared_ptr<AppExecFwk::ETSNativeReference> etsAbilityObj_;
     static std::once_flag singletonFlag_;
 };
 } // namespace AbilityRuntime

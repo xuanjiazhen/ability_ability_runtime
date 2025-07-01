@@ -507,7 +507,8 @@ void UIAbilityLifecycleManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
         }
         std::string element = abilityRecord->GetElementName().GetURI();
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Ability is %{public}s, start to foreground.", element.c_str());
-        abilityRecord->ForegroundAbility(abilityRecord->lifeCycleStateInfo_.sceneFlagBak);
+        bool hasLastWant = abilityRecord->IsLastWantBackgroundDriven();
+        abilityRecord->ForegroundAbility(abilityRecord->lifeCycleStateInfo_.sceneFlagBak, hasLastWant);
     }
 }
 
@@ -1369,6 +1370,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     std::string backgroundColor =
         hasStartWindowOption ? sessionInfo->startWindowOption->startWindowBackgroundColor : "";
     sessionInfo->hideStartWindow = abilityRequest.hideStartWindow;
+    sessionInfo->animationOptions = abilityRequest.startOptions.animationOptions_;
+    sessionInfo->animationSystemOptions = abilityRequest.startOptions.animationSystemOptions_;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, "
         "hasStartWindow:%{public}d, backgroundColor:%{public}s, hideStartWindow: %{public}d",
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
@@ -1563,6 +1566,7 @@ void UIAbilityLifecycleManager::CompleteBackground(const std::shared_ptr<Ability
     if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
         abilityRecord->PostForegroundTimeoutTask();
         abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+        abilityRecord->SetBackgroundDrivenFlag(abilityRecord->HasLastWant());
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
     } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not continuous startup.");
@@ -2266,7 +2270,8 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     const auto &abilityInfo = abilityRequest.abilityInfo;
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    if (abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
+    if (AppUtils::GetInstance().InOnNewProcessEnableList(abilityRequest.abilityInfo.bundleName) &&
+        abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
         isCreating && sceneSessionManager != nullptr) {
         std::string instanceKey;
         Rosen::WMError ret = sceneSessionManager->CreateNewInstanceKey(abilityRequest.want.GetBundle(), instanceKey);
@@ -3729,7 +3734,6 @@ bool UIAbilityLifecycleManager::HandleColdAcceptWantDone(const AAFwk::Want &want
     UpdateSpecifiedFlag(uiAbilityRecord, flag);
     uiAbilityRecord->SetSpecifiedFlag(flag);
     auto isShellCall = specifiedRequest.abilityRequest.want.GetBoolParam(IS_SHELL_CALL, false);
-    uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     uiAbilityRecord->ProcessForegroundAbility(specifiedRequest.callingTokenId,
         specifiedRequest.sceneFlag, isShellCall);
     SendKeyEvent(specifiedRequest.abilityRequest);

@@ -309,7 +309,7 @@ constexpr int32_t PC_MAX_CHILD_PROCESS_NUM = 50;
 constexpr int32_t USER100 = 100;
 constexpr const char* LIFE_CYCLE_STATE_START_FOREGROUND = "start foreground";
 constexpr const char* LIFE_CYCLE_STATE_START_BACKGROUND = "start background";
-const std::string MULTI_PROCESS = "multi_process";
+const std::string LARGE_SCREEN = "large_screen";
 
 int32_t GetUserIdByUid(int32_t uid)
 {
@@ -498,14 +498,11 @@ void AppMgrServiceInner::StartSpecifiedProcess(const AAFwk::Want &want, const Ap
         masterAppRecord->ScheduleNewProcessRequest(want, hapModuleInfo.moduleName);
         return;
     }
-    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     TAG_LOGI(AAFwkTag::APPMGR, "main process do not exists.");
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         appRecord =
             appRunningManager_->CheckAppRunningRecordForSpecifiedProcess(appInfo->uid, instanceKey, customProcessFlag);
-    } else {
-        appRecord =
-            appRunningManager_->CheckAppRunningRecordForUIExtension(appInfo->uid, instanceKey, customProcessFlag);
     }
     if (appRecord != nullptr) {
         TAG_LOGI(AAFwkTag::APPMGR, "starting process [%{public}s]", processName.c_str());
@@ -2717,6 +2714,7 @@ void AppMgrServiceInner::GetRunningProcess(const std::shared_ptr<AppRunningRecor
     info.isDebugApp  = appRecord->IsDebug();
     info.isExiting = appRecord->IsTerminating() || appRecord->IsKilling()
         || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning();
+    info.isCached = DelayedSingleton<CacheProcessManager>::GetInstance()->IsCachedProcess(appRecord);
     if (appRecord->GetUserTestInfo() != nullptr && system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
         info.isTestMode = true;
     }
@@ -7013,8 +7011,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         }
     }
     if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT || eventName == AppFreezeType::APP_INPUT_BLOCK ||
-        eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::THREAD_BLOCK_3S ||
-        eventName == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
+        eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::THREAD_BLOCK_3S) {
         if (AppExecFwk::AppfreezeManager::GetInstance()->IsNeedIgnoreFreezeEvent(pid, eventName)) {
             TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happend, pid:%{public}d, eventName:%{public}s",
                 pid, eventName.c_str());
@@ -7080,8 +7077,7 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     const std::string& bundleName, const std::string& processName, const FaultData &faultData)
 {
     bool isNeedExit = (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) ||
-        (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT) ||
-        (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING);
+        (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT);
 #ifdef APP_NO_RESPONSE_DIALOG
     bool isDialogExist = appRunningManager_ ?
         appRunningManager_->CheckAppRunningRecordIsExist(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY) :
@@ -8285,9 +8281,14 @@ bool AppMgrServiceInner::AllowChildProcessInMultiProcessFeatureApp(std::shared_p
         if (info.moduleType != AppExecFwk::ModuleType::ENTRY) {
             continue;
         }
-        auto &deviceFeatures = info.deviceFeatures;
+        auto deviceType = OHOS::system::GetDeviceType();
+        auto it = info.requiredDeviceFeatures.find(deviceType);
+        if (it == info.requiredDeviceFeatures.end()) {
+            return false;
+        }
+        auto &deviceFeatures = it->second;
         auto supportMultiProcess =
-            std::find(deviceFeatures.begin(), deviceFeatures.end(), MULTI_PROCESS) != deviceFeatures.end();
+            std::find(deviceFeatures.begin(), deviceFeatures.end(), LARGE_SCREEN) != deviceFeatures.end();
         appRecord->SetSupportMultiProcessDeviceFeature(supportMultiProcess);
         return supportMultiProcess;
     }

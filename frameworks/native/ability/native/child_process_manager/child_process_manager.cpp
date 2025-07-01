@@ -49,7 +49,7 @@ namespace AbilityRuntime {
 namespace {
     bool g_jitEnabled = false;
     AbilityRuntime::Runtime::DebugOption g_debugOption;
-    const std::string MULTI_PROCESS = "multi_process";
+    const std::string LARGE_SCREEN = "large_screen";
     constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 }
 bool ChildProcessManager::signalRegistered_ = false;
@@ -112,8 +112,13 @@ bool ChildProcessManager::IsMultiProcessFeatureApp(const AppExecFwk::BundleInfo 
         if (info.moduleType != AppExecFwk::ModuleType::ENTRY) {
             continue;
         }
-        auto &deviceFeatures = info.deviceFeatures;
-        return std::find(deviceFeatures.begin(), deviceFeatures.end(), MULTI_PROCESS) != deviceFeatures.end();
+        auto deviceType = OHOS::system::GetDeviceType();
+        auto it = info.requiredDeviceFeatures.find(deviceType);
+        if (it == info.requiredDeviceFeatures.end()) {
+            return false;
+        }
+        auto &deviceFeatures = it->second;
+        return std::find(deviceFeatures.begin(), deviceFeatures.end(), LARGE_SCREEN) != deviceFeatures.end();
     }
     return false;
 }

@@ -480,21 +480,31 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         if (isCreatedByConnect) {
             targetService->SetCreateByConnectMode();
         }
-        if (abilityRequest.abilityInfo.name == AbilityConfig::LAUNCHER_ABILITY_NAME) {
-            targetService->SetLauncherRoot();
-            targetService->SetRestartTime(abilityRequest.restartTime);
-            targetService->SetRestartCount(abilityRequest.restartCount);
-        } else if (IsAbilityNeedKeepAlive(targetService)) {
-            targetService->SetRestartTime(abilityRequest.restartTime);
-            targetService->SetRestartCount(abilityRequest.restartCount);
-        }
-        if (MultiInstanceUtils::IsMultiInstanceApp(abilityRequest.appInfo)) {
-            targetService->SetInstanceKey(MultiInstanceUtils::GetValidExtensionInstanceKey(abilityRequest));
-        }
+        SetServiceAfterNewCreate(abilityRequest, *targetService);
         AddToServiceMap(serviceKey, targetService);
         isLoadedAbility = false;
     }
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
+}
+
+void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abilityRequest,
+    AbilityRecord &targetService)
+{
+    if (abilityRequest.abilityInfo.name == AbilityConfig::LAUNCHER_ABILITY_NAME) {
+        targetService.SetLauncherRoot();
+        targetService.SetRestartTime(abilityRequest.restartTime);
+        targetService.SetRestartCount(abilityRequest.restartCount);
+    } else if (IsAbilityNeedKeepAlive(targetService.shared_from_this())) {
+        targetService.SetRestartTime(abilityRequest.restartTime);
+        targetService.SetRestartCount(abilityRequest.restartCount);
+    }
+    if (MultiInstanceUtils::IsMultiInstanceApp(abilityRequest.appInfo)) {
+        targetService.SetInstanceKey(MultiInstanceUtils::GetValidExtensionInstanceKey(abilityRequest));
+    }
+    if (targetService.IsSceneBoard()) {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "create sceneboard");
+        sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
+    }
 }
 
 void AbilityConnectManager::RemoveServiceFromMapSafe(const std::string &serviceKey)
@@ -973,10 +983,6 @@ int AbilityConnectManager::AttachAbilityThreadLocked(
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "ability:%{public}s", element.c_str());
     abilityRecord->RemoveLoadTimeoutTask();
     AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
-    if (abilityRecord->IsSceneBoard()) {
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "attach Ability: %{public}s", element.c_str());
-        sceneBoardTokenId_ = abilityRecord->GetAbilityInfo().applicationInfo.accessTokenId;
-    }
     abilityRecord->SetScheduler(scheduler);
     abilityRecord->RemoveSpecifiedWantParam(UIEXTENSION_ABILITY_ID);
     abilityRecord->RemoveSpecifiedWantParam(UIEXTENSION_ROOT_HOST_PID);
@@ -1676,11 +1682,6 @@ void AbilityConnectManager::OnStartSpecifiedProcessTimeoutResponse(int32_t reque
 {
     std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeoutResponse requestId: %{public}d", requestId);
-
-    if (!loadAbilityQueue_.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "OnStartSpecifiedProcessTimeout pop_front");
-        loadAbilityQueue_.pop_front();
-    }
 
     if (!loadAbilityQueue_.empty()) {
         auto &front = loadAbilityQueue_.front();
@@ -3718,7 +3719,7 @@ int32_t AbilityConnectManager::ReportAbilityStartInfoToRSS(const AppExecFwk::Abi
         }
     }
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "ReportAbilityStartInfoToRSS, abilityName:%{public}s", abilityInfo.name.c_str());
-    ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid, isColdStart, -1); // -1代表与预加载无关
+    ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid, isColdStart, false);
     return ERR_OK;
 }
 
