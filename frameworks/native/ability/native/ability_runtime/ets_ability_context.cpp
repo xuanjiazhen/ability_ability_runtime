@@ -23,6 +23,7 @@
 #include "common_fun_ani.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "ets_caller_complex.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "want.h"
@@ -34,6 +35,51 @@ namespace {
 static std::once_flag g_bindNativeMethodsFlag;
 constexpr const char *UI_ABILITY_CONTEXT_CLASS_NAME = "Lapplication/UIAbilityContext/UIAbilityContext;";
 constexpr const char *CLASSNAME_ASYNC_CALLBACK_WRAPPER = "Lutils/AbilityUtils/AsyncCallbackWrapper;";
+
+constexpr int32_t CALLER_TIME_OUT = 10; // 10s
+struct StartAbilityByCallData {
+    sptr<IRemoteObject> remoteCallee;
+    std::mutex mutexlock;
+    std::condition_variable condition;
+};
+
+void GenerateCallerCallBack(std::shared_ptr<StartAbilityByCallData> calls,
+    std::shared_ptr<CallerCallBack> callerCallBack)
+{
+    if (calls == nullptr || callerCallBack == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null calls or null callerCallBack");
+        return;
+    }
+    auto callBackDone = [weakData = std::weak_ptr<StartAbilityByCallData>(calls)] (const sptr<IRemoteObject> &obj) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "callBackDone called start");
+        auto calldata = weakData.lock();
+        if (calldata == nullptr) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "calldata released");
+            return;
+        }
+        std::lock_guard lock(calldata->mutexlock);
+        calldata->remoteCallee = obj;
+        calldata->condition.notify_all();
+    };
+
+    callerCallBack->SetCallBack(callBackDone);
+}
+
+void WaitForCalleeObj(std::shared_ptr<StartAbilityByCallData> callData)
+{
+    if (callData == nullptr) {
+        return;
+    }
+    if (callData->remoteCallee == nullptr) {
+        std::unique_lock lock(callData->mutexlock);
+        if (callData->remoteCallee != nullptr) {
+            return;
+        }
+        if (callData->condition.wait_for(lock, std::chrono::seconds(CALLER_TIME_OUT)) == std::cv_status::timeout) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "callExecute waiting callee timeout");
+        }
+    }
+}
 } // namespace
 
 std::shared_ptr<AbilityContext> EtsAbilityContext::GetAbilityContext(ani_env *env, ani_object aniObj)
@@ -119,6 +165,53 @@ void EtsAbilityContext::StartAbilityForResultWithOptions(
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityForResultWithOptions called");
     GetInstance().OnStartAbilityForResult(env, aniObj, wantObj, startOptionsObj, callback);
+}
+
+ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj, ani_object wantObj)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByCall");
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext is nullptr");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return nullptr;
+    }
+
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "parse want failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return nullptr;
+    }
+    auto callData = std::make_shared<StartAbilityByCallData>();
+    auto callerCallBack = std::make_shared<CallerCallBack>();
+    GenerateCallerCallBack(callData, callerCallBack);
+    auto ret = context->StartAbilityByCall(want, callerCallBack, -1);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "startAbility failed");
+        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
+        return nullptr;
+    }
+    WaitForCalleeObj(callData);
+
+    if (callData->remoteCallee == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+
+    std::weak_ptr<AbilityContext> abilityContext(context);
+    auto releaseCallFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
+        auto contextForRelease = abilityContext.lock();
+        if (contextForRelease == nullptr) {
+            return -1;
+        }
+        return contextForRelease->ReleaseCall(callback);
+    };
+    auto caller = CreateEtsCaller(env, releaseCallFunc, callData->remoteCallee, callerCallBack);
+    if (caller == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    return caller;
 }
 
 void EtsAbilityContext::TerminateSelf(ani_env *env, ani_object aniObj, ani_object callback)

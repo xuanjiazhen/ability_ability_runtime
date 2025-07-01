@@ -715,6 +715,34 @@ void EtsUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &
     TAG_LOGD(AAFwkTag::UIABILITY, "OnAbilityResult end");
 }
 
+sptr<IRemoteObject> EtsUIAbility::CallRequest()
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "CallRequest");
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
+        return nullptr;
+    }
+
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return nullptr;
+    }
+    auto obj = etsAbilityObj_->aniObj;
+    ani_status status = ANI_ERROR;
+    ani_ref calleeRef = nullptr;
+    status = env->Object_GetFieldByName_Ref(obj, "callee", &calleeRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "get callee: %{public}d", status);
+        return nullptr;
+    }
+    auto remoteObj = AniGetNativeRemoteObject(env, reinterpret_cast<ani_object>(calleeRef));
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
+    }
+    return remoteObj;
+}
+
 bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
