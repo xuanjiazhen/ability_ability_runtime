@@ -27,6 +27,7 @@ import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import image from '@ohos.multimedia.image';
 
 // remove local declaration after Any type is supported
 type Any = Object | null | undefined
@@ -74,6 +75,7 @@ export default class UIAbilityContext extends Context {
   private native nativeIsTerminating(): boolean;
   private native nativeMoveAbilityToBackground(callback: AsyncCallbackWrapper<void>): void;
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -341,5 +343,21 @@ export default class UIAbilityContext extends Context {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
       });
     });
+  }
+
+  setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
+    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
+      });
+    });
+    return p;
   }
 }
