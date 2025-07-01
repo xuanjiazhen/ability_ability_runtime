@@ -45,7 +45,10 @@ ohos_unittest("AppMgrServiceInnerFifthTest") {
     "app_mgr_service_inner_fifth_test.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_services_path}/appmgr:appmgr_config",
+  ]
 
   deps = [
     "${ability_runtime_path}/utils/server/startup:startup_util",

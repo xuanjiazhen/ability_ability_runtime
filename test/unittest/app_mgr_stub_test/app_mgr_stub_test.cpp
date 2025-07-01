@@ -41,8 +41,10 @@ class AppForegroundStateObserverMock : public AppForegroundStateObserverStub {
 public:
     AppForegroundStateObserverMock() = default;
     virtual ~AppForegroundStateObserverMock() = default;
-    void OnAppStateChanged(const AppStateData &appStateData) override
-    {}
+    ErrCode OnAppStateChanged(const AppStateData &appStateData) override
+    {
+        return ERR_OK;
+    }
 };
 
 class RenderStateObserverMock : public RenderStateObserverStub {
