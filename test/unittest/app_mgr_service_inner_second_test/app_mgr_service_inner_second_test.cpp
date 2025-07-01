@@ -54,6 +54,8 @@ constexpr int32_t USER_SCALE = 200000;
 constexpr int32_t TEST_PID_100 = 100;
 constexpr int32_t PID_1000 = 1000;
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t UID_ONE = 1;
+constexpr int32_t UID_TWO = 2;
 const std::string PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 const std::string TEST_FLAG = "testFlag";
 const std::string TEST_PROCESS_NAME = "testProcessName";
@@ -2522,5 +2524,119 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
     IPCSkeleton::SetCallingUid(0);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_SetKeepAliveAppService_0100 end");
 }
+
+/**
+ * @tc.name: PreCheckStartProcess_001
+ * @tc.desc: Test PreCheckStartProcess
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, PreCheckStartProcess_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto ret = appMgrServiceInner->PreCheckStartProcess(nullptr);
+    EXPECT_EQ(ret, AAFwk::ERR_NULL_APP_RUNNING_MANAGER);
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_001 end");
+}
+
+/**
+ * @tc.name: PreCheckStartProcess_002
+ * @tc.desc: Test PreCheckStartProcess
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, PreCheckStartProcess_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    applicationInfo->name = "test.bundle.name";
+    applicationInfo->bundleName = "test.bundle.name";
+    const int32_t testRecordId = 1234;
+    const std::string processName = "test_process";
+    auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo, testRecordId, processName);
+    appRecord->SetUid(UID_ONE);
+    auto ret = appMgrServiceInner->PreCheckStartProcess(appRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_002 end");
+}
+
+/**
+ * @tc.name: PreCheckStartProcess_003
+ * @tc.desc: Test PreCheckStartProcess
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, PreCheckStartProcess_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    applicationInfo->name = "test.bundle.name";
+    applicationInfo->bundleName = "test.bundle.name";
+    const int32_t testRecordId = 1234;
+    const std::string processName = "test_process";
+    auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo, testRecordId, processName);
+    appMgrServiceInner->InsertUninstallOrUpgradeUidSet(UID_ONE);
+    bool flag = appMgrServiceInner->IsUninstallingOrUpgrading(UID_ONE);
+    EXPECT_EQ(flag, true);
+    appRecord->SetUid(UID_ONE);
+    auto ret = appMgrServiceInner->PreCheckStartProcess(appRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "PreCheckStartProcess_003 end");
+}
+
+/**
+ * @tc.name: RemoveUninstallOrUpgradeUidSet_001
+ * @tc.desc: Test RemoveUninstallOrUpgradeUidSet
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, RemoveUninstallOrUpgradeUidSet_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveUninstallOrUpgradeUidSet_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->InsertUninstallOrUpgradeUidSet(UID_ONE);
+    appMgrServiceInner->InsertUninstallOrUpgradeUidSet(UID_TWO);
+    auto ret = appMgrServiceInner->IsUninstallingOrUpgrading(UID_ONE);
+    EXPECT_EQ(ret, true);
+    appMgrServiceInner->RemoveUninstallOrUpgradeUidSet(UID_TWO);
+    ret = appMgrServiceInner->IsUninstallingOrUpgrading(UID_ONE);
+    EXPECT_EQ(ret, true);
+    appMgrServiceInner->RemoveUninstallOrUpgradeUidSet(UID_ONE);
+    ret = appMgrServiceInner->IsUninstallingOrUpgrading(UID_ONE);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveUninstallOrUpgradeUidSet_001 end");
+}
+
+/**
+ * @tc.name: NotifyUninstallOrUpgradeApp_001
+ * @tc.desc: Test NotifyUninstallOrUpgradeApp
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTenthTest, NotifyUninstallOrUpgradeApp_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyUninstallOrUpgradeApp_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    std::string bundleName = "test.bundle.name";
+    int32_t uid = UID_ONE;
+    bool isUpgrade = true;
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    auto ret = appMgrServiceInner->NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
+    EXPECT_EQ(ret, ERR_NO_INIT); //appRunningManager_ null
+
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    MyFlag::flag_ = 0;
+    auto ret = appMgrServiceInner->NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED); //permission verification fail
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    appMgrServiceInner->remoteClientManager_ = nullptr;
+    auto ret = appMgrServiceInner->NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
+    EXPECT_EQ(ret, ERR_OK); //remoteClientManager_ null
+
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    auto ret = appMgrServiceInner->NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
+    EXPECT_EQ(ret, ERR_OK); //unstart
+    TAG_LOGI(AAFwkTag::TEST, "NotifyUninstallOrUpgradeApp_001 end");
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
