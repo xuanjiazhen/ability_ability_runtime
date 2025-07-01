@@ -20,7 +20,6 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 import { AbilityRunningInfo as _AbilityRunningInfo } from 'application.AbilityRunningInfo';
 import { ExtensionRunningInfo as _ExtensionRunningInfo } from 'application.ExtensionRunningInfo';
 import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
-import _AbilityStateData from 'application.AbilityStateData';
 
 export default namespace abilityManager {
   loadLibrary("ability_ability_manager_ani_kit.z")
@@ -54,10 +53,10 @@ export default namespace abilityManager {
   }
 
   export function getTopAbility():Promise<ElementName> {
-    let p = new Promise<ElementName>((resolve: (data: ElementName)=>void, reject:(err: BusinessError<void>)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<ElementName>((err: BusinessError<void>, data: ElementName)=>{
-        if (err.code == 0) {
-          resolve(data);
+    let p = new Promise<ElementName>((resolve: (data: ElementName)=>void, reject:(err: BusinessError)=>void):void => {
+      let myCall = new AsyncCallbackWrapper<ElementName>((err: BusinessError | null, data: ElementName | undefined)=>{
+        if (err == null || err.code == 0) {
+          resolve(data as ElementName);
         } else {
           reject(err);
         }
@@ -78,11 +77,11 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {
     return new Promise<Array<AbilityRunningInfo>>((resolve: (data: Array<AbilityRunningInfo>) => void,
-      reject: (err: BusinessError<void>) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>((err: BusinessError<void>,
-        data: Array<AbilityRunningInfo>) => {
-        if (err.code == 0) {
-          resolve(data);
+      reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>((err: BusinessError | null,
+        data: Array<AbilityRunningInfo> | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as Array<AbilityRunningInfo>);
         } else {
           reject(err);
         }
@@ -116,8 +115,6 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
   }
 
   export type AbilityRunningInfo = _AbilityRunningInfo;
-
-  export type AbilityStateData = _AbilityStateData;
 
   export type ExtensionRunningInfo = _ExtensionRunningInfo;
 
