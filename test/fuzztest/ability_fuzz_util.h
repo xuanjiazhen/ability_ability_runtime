@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "ability_ecological_rule_mgr_service_param.h"
 #include "auto_startup_info.h"
 #include "bundle_info.h"
 #include "bundle_user_info.h"
@@ -165,6 +166,28 @@ void GenerateSignatureInfo(FuzzedDataProvider& fdp, SignatureInfo &signatureInfo
     signatureInfo.fingerprint = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     signatureInfo.appIdentifier = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     signatureInfo.certificate = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
+void GetRandomAbilityInfo(FuzzedDataProvider& fdp, AbilityInfo& info)
+{
+    info.name = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.label = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.description = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.iconPath = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.labelId = fdp.ConsumeIntegral<int32_t>();
+    info.descriptionId = fdp.ConsumeIntegral<int32_t>();
+    info.iconId = fdp.ConsumeIntegral<int32_t>();
+    info.theme = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    info.visible = fdp.ConsumeBool();
+    info.kind = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+}
+
+void GetRandomAbilityExperienceRule(FuzzedDataProvider& fdp, AbilityExperienceRule& rule)
+{
+    rule.resultCode = fdp.ConsumeIntegral<int32_t>();
+    rule.sceneCode = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    rule.isBackSkuExempt = fdp.ConsumeBool();
+    rule.embedResultCode = fdp.ConsumeIntegral<int32_t>();
 }
 
 void GetRandomAutoStartupInfo(FuzzedDataProvider& fdp, AutoStartupInfo& info)
