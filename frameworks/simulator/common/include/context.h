@@ -20,13 +20,14 @@
 #include <mutex>
 
 #include "application_info.h"
+#include "bindable.h"
 #include "configuration.h"
 #include "hap_module_info.h"
 #include "options.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class Context {
+class Context : public Bindable, public std::enable_shared_from_this<Context> {
 public:
     Context() = default;
     ~Context() = default;
