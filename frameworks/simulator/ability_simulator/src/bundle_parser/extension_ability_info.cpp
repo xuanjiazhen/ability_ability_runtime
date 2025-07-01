@@ -278,6 +278,14 @@ void from_json(const nlohmann::json &jsonObject, ExtensionAbilityInfo &extension
         false,
         parseResult,
         ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject,
+        jsonObjectEnd,
+        Constants::CODE_LANGUAGE,
+        extensionInfo.codeLanguage,
+        JsonType::STRING,
+        false,
+        parseResult,
+        ArrayType::NOT_ARRAY);
     if (parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "ExtensionAbilityInfo error:%{public}d", parseResult);
     }

@@ -21,6 +21,10 @@
 #include <memory>
 #include <string>
 
+#if defined(LINUX_PLATFORM)
+#include "ani.h"
+#include "window_scene.h"
+#endif
 #include "configuration.h"
 #include "options.h"
 
@@ -53,6 +57,12 @@ public:
     virtual void UpdateConfiguration(const AppExecFwk::Configuration &config) = 0;
     virtual void SetMockList(const std::map<std::string, std::string> &mockList) = 0;
     virtual void SetHostResolveBufferTracker(ResolveBufferTrackerCallback cb) = 0;
+    virtual std::string GetCodeLanguage() = 0;
+private:
+#if defined(LINUX_PLATFORM)
+    virtual ani_object GetAniObj() { return nullptr; }
+    virtual std::shared_ptr<OHOS::Rosen::WindowScene> GetWindowScene() { return nullptr; }
+#endif // LINUX_PLATFORM
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
