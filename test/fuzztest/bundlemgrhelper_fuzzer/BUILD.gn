@@ -67,8 +67,6 @@ ohos_fuzztest("BundleMgrHelperFuzzTest") {
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "safwk:system_ability_fwk",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
