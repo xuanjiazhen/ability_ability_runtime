@@ -984,7 +984,10 @@ ohos_unittest("idle_time_test") {
 
   configs = [ ":module_context_config" ]
 
-  deps = [ "${ability_runtime_native_path}/appkit:appkit_native" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_native_path}/appkit:appkit_native",
+  ]
 
   external_deps = [
     "ability_runtime:runtime",
