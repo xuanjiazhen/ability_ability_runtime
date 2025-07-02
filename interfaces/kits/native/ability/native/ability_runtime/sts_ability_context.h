@@ -72,6 +72,10 @@ public:
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
     static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
+#ifdef SUPPORT_GRAPHICS
+    static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+#endif
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);

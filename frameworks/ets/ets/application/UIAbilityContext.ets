@@ -28,6 +28,7 @@ import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import image from '@ohos.multimedia.image';
 
 export default class UIAbilityContext extends Context {
   static {
@@ -94,7 +95,7 @@ export default class UIAbilityContext extends Context {
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
-
+  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -388,5 +389,21 @@ export default class UIAbilityContext extends Context {
         this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
       });
     });
+  }
+
+  setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
+    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
+      });
+    });
+    return p;
   }
 }

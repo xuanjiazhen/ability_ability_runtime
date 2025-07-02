@@ -51,6 +51,9 @@
 #include "sts_caller_complex.h"
 #include "sts_context_utils.h"
 #include "sts_error_utils.h"
+#ifdef SUPPORT_GRAPHICS
+#include "pixel_map_taihe_ani.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -859,6 +862,48 @@ void StsAbilityContext::NativeBackToCallerAbilityWithResult(ani_env *env, ani_ob
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
 }
 
+#ifdef SUPPORT_SCREEN
+void StsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "SetAbilityInstanceInfo called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+
+    auto context = GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext is nullptr");
+        ThrowStsInvalidParamError(env, "context null");
+        return;
+    }
+
+    std::string label;
+    if (!AppExecFwk::GetStdString(env, labelObj, label)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to parse label");
+        ThrowStsInvalidParamError(env, "Parse param label failed");
+        return;
+    }
+
+    auto icon = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, iconObj);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to unwrap PixelMap");
+        ThrowStsInvalidParamError(env, "Parse param icon failed");
+        return;
+    }
+
+    ErrCode ret = context->SetAbilityInstanceInfo(label, icon);
+    ani_object errorObj = nullptr;
+    if (ret == ERR_OK) {
+        errorObj = CreateStsError(env, AbilityErrorCode::ERROR_OK);
+    } else {
+        errorObj = CreateStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+    }
+    AppExecFwk::AsyncCallback(env, callback, errorObj, nullptr);
+}
+#endif
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -916,6 +961,11 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeBackToCallerAbilityWithResult",
                 "Lability/abilityResult/AbilityResult;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(StsAbilityContext::NativeBackToCallerAbilityWithResult) },
+#ifdef SUPPORT_GRAPHICS
+            ani_native_function { "nativeSetAbilityInstanceInfo",
+                "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(StsAbilityContext::SetAbilityInstanceInfo) },
+#endif
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
