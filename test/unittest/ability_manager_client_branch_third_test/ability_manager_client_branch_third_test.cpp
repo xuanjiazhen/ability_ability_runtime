@@ -1193,5 +1193,16 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, TerminateMission_0400, TestSize.Le
     auto result = client_->TerminateMission(0);
     EXPECT_EQ(result, static_cast<ErrCode>(WMError::WM_DO_NOTHING));
 }
+
+/**
+ * @tc.name: AbilityManagerClient_SetOnNewWantSkipScenarios_0100
+ * @tc.desc: SetOnNewWantSkipScenarios_0100
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, SetOnNewWantSkipScenarios_0100, TestSize.Level1)
+{
+    auto result = client_->SetOnNewWantSkipScenarios(nullptr, 0);
+    EXPECT_EQ(result, ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

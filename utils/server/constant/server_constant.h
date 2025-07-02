@@ -20,6 +20,10 @@ namespace OHOS::AbilityRuntime {
 namespace ServerConstant {
 constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
 constexpr const char* IS_CALL_BY_SCB = "isCallBySCB";
+constexpr uint32_t SCENARIO_MOVE_MISSION_TO_FRONT = 0x00000001;
+constexpr uint32_t SCENARIO_SHOW_ABILITY = 0x00000002;
+constexpr uint32_t SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT = 0x00000004;
+constexpr uint32_t SCENARIO_CLICK_DESKTOP_ICON = 0x00000008;
 }  // namespace ServerConstant
 }  // namespace OHOS::AbilityRuntime
 #endif  // OHOS_ABILITY_RUNTIME_SERVER_CONSTANT_H
