@@ -28,13 +28,64 @@ namespace OHOS {
 namespace AbilityRuntime {
 StsFreeInstallObserver::StsFreeInstallObserver(ani_vm *etsVm) : etsVm_(etsVm) {}
 
-StsFreeInstallObserver::~StsFreeInstallObserver() = default;
+StsFreeInstallObserver::~StsFreeInstallObserver()
+{
+    ani_env *env = nullptr;
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null etsVm");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_options aniArgs {0, nullptr};
+    if ((etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status : %{public}d", status);
+        return;
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null env");
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(stsObserverObjectListLock_);
+        for (auto it = stsObserverObjectList_.begin(); it != stsObserverObjectList_.end();) {
+            env->GlobalReference_Delete(it->callback);
+        }
+    }
+    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status: %{public}d", status);
+    }
+}
 
 void StsFreeInstallObserver::OnInstallFinished(
     const std::string &bundleName, const std::string &abilityName, const std::string &startTime, const int &resultCode)
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
     HandleOnInstallFinished(bundleName, abilityName, startTime, resultCode);
+}
+
+void StsFreeInstallObserver::OnInstallFinished(const std::string &bundleName, const std::string &abilityName,
+    const std::string &startTime, ani_object abilityResult)
+{
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "OnInstallFinished");
+    std::vector<ani_object> callbacks;
+    {
+        std::unique_lock<std::mutex> lock(stsObserverObjectListLock_);
+        for (auto it = stsObserverObjectList_.begin(); it != stsObserverObjectList_.end();) {
+            if ((it->bundleName != bundleName) || (it->abilityName != abilityName)||
+                (it->startTime != startTime) || (it->callback == nullptr) || (!it->isAbilityResult)) {
+                it++;
+                continue;
+            }
+            callbacks.emplace_back(it->callback);
+            it = stsObserverObjectList_.erase(it);
+            TAG_LOGD(AAFwkTag::FREE_INSTALL, "stsObserverObjectList_ size:%{public}zu", stsObserverObjectList_.size());
+        }
+    }
+
+    for (auto &callback : callbacks) {
+        CallCallback(callback, abilityResult);
+        FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
+    }
 }
 
 void StsFreeInstallObserver::OnInstallFinishedByUrl(const std::string &startTime, const std::string& url,
@@ -52,20 +103,17 @@ void StsFreeInstallObserver::HandleOnInstallFinished(
     {
         std::unique_lock<std::mutex> lock(stsObserverObjectListLock_);
         for (auto it = stsObserverObjectList_.begin(); it != stsObserverObjectList_.end();) {
-            if ((it->bundleName != bundleName) || (it->abilityName != abilityName) || (it->startTime != startTime)) {
+            if ((it->bundleName != bundleName) || (it->abilityName != abilityName) || (it->startTime != startTime)||
+                (it->callback == nullptr) || (it->isAbilityResult && resultCode == ERR_OK)) {
                 it++;
                 continue;
             }
-            if (it->callBack == nullptr) {
-                it++;
-                continue;
-            }
-            callbacks.emplace_back(it->callBack);
+            callbacks.emplace_back(it->callback);
             it = stsObserverObjectList_.erase(it);
         }
     }
 
-    for (auto callback : callbacks) {
+    for (auto &callback : callbacks) {
         CallCallback(callback, resultCode);
         FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     }
@@ -79,20 +127,16 @@ void StsFreeInstallObserver::HandleOnInstallFinishedByUrl(const std::string &sta
     {
         std::unique_lock<std::mutex> lock(stsObserverObjectListLock_);
         for (auto it = stsObserverObjectList_.begin(); it != stsObserverObjectList_.end();) {
-            if ((it->startTime != startTime) || (it->url != url)) {
+            if ((it->startTime != startTime) || (it->url != url) || (it->callback == nullptr)) {
                 it++;
                 continue;
             }
-            if (it->callBack == nullptr) {
-                it++;
-                continue;
-            }
-            callbacks.emplace_back(it->callBack);
+            callbacks.emplace_back(it->callback);
             it = stsObserverObjectList_.erase(it);
         }
     }
 
-    for (auto callback : callbacks) {
+    for (auto &callback : callbacks) {
         CallCallback(callback, resultCode);
         FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     }
@@ -102,19 +146,19 @@ void StsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
     if (callback == nullptr) {
-        TAG_LOGE(AAFwkTag::FREE_INSTALL, "callback is nullptr.");
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null callback");
         return;
     }
     if (etsVm_ == nullptr) {
-        TAG_LOGE(AAFwkTag::FREE_INSTALL, "etsVm_ is nullptr.");
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null etsVm");
         return;
     }
     ani_env *env = nullptr;
     ani_status status = ANI_ERROR;
-    ani_option interopEnabled { "--interop=disable", nullptr };
-    ani_options aniArgs { 1, &interopEnabled };
+    ani_options aniArgs {0, nullptr};
     if ((etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "status : %{public}d", status);
+        return;
     }
     ani_object aniObject = CreateStsError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
@@ -123,10 +167,39 @@ void StsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
 }
 
-void StsFreeInstallObserver::AddStsObserverObject(ani_env *env, const std::string &bundleName,
-    const std::string &abilityName, const std::string &startTime, ani_object callBack)
+void StsFreeInstallObserver::CallCallback(ani_object callback, ani_object abilityResult)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "CallCallback");
+    if (abilityResult == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null abilityResult");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null callback");
+        return;
+    }
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null etsVm");
+        return;
+    }
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "Failed to getEnv, status : %{public}d", status);
+    }
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::FREE_INSTALL, "null env");
+        return;
+    }
+    ani_object aniObject = CreateStsError(env, AbilityErrorCode::ERROR_OK);
+    AppExecFwk::AsyncCallback(env, callback, aniObject, abilityResult);
+    env->GlobalReference_Delete(callback);
+}
+
+void StsFreeInstallObserver::AddStsObserverObject(ani_env *env, const std::string &bundleName,
+    const std::string &abilityName, const std::string &startTime, ani_object callback, bool isAbilityResult)
+{
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddStsObserverObject");
     {
         std::unique_lock<std::mutex> lock(stsObserverObjectListLock_);
         for (auto it = stsObserverObjectList_.begin(); it != stsObserverObjectList_.end(); ++it) {
@@ -141,11 +214,12 @@ void StsFreeInstallObserver::AddStsObserverObject(ani_env *env, const std::strin
     object.bundleName = bundleName;
     object.abilityName = abilityName;
     object.startTime = startTime;
-    AddStsObserverCommon(env, object, callBack);
+    object.isAbilityResult = isAbilityResult;
+    AddStsObserverCommon(env, object, callback);
 }
 
 void StsFreeInstallObserver::AddStsObserverObject(ani_env *env, const std::string &startTime,
-    const std::string &url, ani_object callBack)
+    const std::string &url, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
     {
@@ -161,21 +235,21 @@ void StsFreeInstallObserver::AddStsObserverObject(ani_env *env, const std::strin
     StsFreeInstallObserverObject object;
     object.url = url;
     object.startTime = startTime;
-    AddStsObserverCommon(env, object, callBack);
+    AddStsObserverCommon(env, object, callback);
 }
 
 void StsFreeInstallObserver::AddStsObserverCommon(
-    ani_env *env, StsFreeInstallObserverObject &object, ani_object callBack)
+    ani_env *env, StsFreeInstallObserverObject &object, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
     std::unique_lock<std::mutex> lock(stsObserverObjectListLock_);
     ani_ref global = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->GlobalReference_Create(callBack, &global)) != ANI_OK) {
+    if ((status = env->GlobalReference_Create(callback, &global)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
         return;
     }
-    object.callBack = reinterpret_cast<ani_object>(global);
+    object.callback = reinterpret_cast<ani_object>(global);
     stsObserverObjectList_.emplace_back(object);
 }
 } // namespace AbilityRuntime

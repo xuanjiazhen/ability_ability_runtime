@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ANI_COMMON_START_OPTIONS_H
 
 #include "ani_common_util.h"
+#include "ani_common_want.h"
 #include "start_options.h"
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 #include "pixel_map_ani.h"
@@ -29,6 +30,8 @@ namespace AppExecFwk {
 bool UnwrapStartOptionsWithProcessOption(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions);
 bool UnwrapStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions);
 bool UnwrapProcessOptions(ani_env *env, ani_object param, std::shared_ptr<AAFwk::ProcessOptions> &processOptions);
+bool UnWrapAtomicServiceOptions(ani_env *env, ani_object optionsObj, AAFwk::Want &want,
+    AAFwk::StartOptions &startOptions);
 
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
 bool UnwrapPixelMapByPropertyName(
