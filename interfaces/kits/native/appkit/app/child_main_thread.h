@@ -24,7 +24,7 @@
 #include "base_shared_bundle_info.h"
 #include "bundle_info.h"
 #include "bundle_mgr_interface.h"
-#include "child_scheduler_interface.h"
+#include "ichild_scheduler.h"
 #include "child_scheduler_stub.h"
 #ifdef SUPPORT_CHILD_PROCESS
 #include "child_process_info.h"
@@ -42,9 +42,9 @@ class ChildMainThread : public ChildSchedulerStub {
 public:
     static void Start(const std::map<std::string, int32_t> &fds);
     void SetFds(const std::map<std::string, int32_t> &fds);
-    bool ScheduleLoadChild() override;
-    bool ScheduleExitProcessSafely() override;
-    bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override;
+    ErrCode ScheduleLoadChild(bool& funcResult) override;
+    ErrCode ScheduleExitProcessSafely(bool& funcResult) override;
+    ErrCode ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb, bool& funcResult) override;
 
 private:
     static int32_t GetChildProcessInfo(ChildProcessInfo &info);

@@ -155,16 +155,18 @@ bool ChildMainThread::Attach()
     return true;
 }
 
-bool ChildMainThread::ScheduleLoadChild()
+ErrCode ChildMainThread::ScheduleLoadChild(bool& funcResult)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "ScheduleLoadChild called");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler_");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
     if (processInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null processInfo");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
     auto childProcessType = processInfo_->childProcessType;
     wptr<ChildMainThread> weak = this;
@@ -184,9 +186,11 @@ bool ChildMainThread::ScheduleLoadChild()
     };
     if (!mainHandler_->PostTask(task, "ChildMainThread::HandleLoadJs")) {
         TAG_LOGE(AAFwkTag::APPKIT, "postTask task failed");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
-    return true;
+    funcResult = true;
+    return ERR_OK;
 }
 
 void ChildMainThread::HandleLoadJs()
@@ -310,12 +314,13 @@ void ChildMainThread::ExitProcessSafely()
     appMgr_->ExitChildProcessSafely();
 }
 
-bool ChildMainThread::ScheduleExitProcessSafely()
+ErrCode ChildMainThread::ScheduleExitProcessSafely(bool& funcResult)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ScheduleExitProcessSafely");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler_");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
     wptr<ChildMainThread> weak = this;
     auto task = [weak]() {
@@ -328,9 +333,11 @@ bool ChildMainThread::ScheduleExitProcessSafely()
     };
     if (!mainHandler_->PostTask(task, "ChildMainThread::HandleExitProcessSafely")) {
         TAG_LOGE(AAFwkTag::APPKIT, "ScheduleExitProcessSafely PostTask task failed");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
-    return true;
+    funcResult = true;
+    return ERR_OK;
 }
 
 void ChildMainThread::HandleExitProcessSafely()
@@ -347,17 +354,19 @@ void ChildMainThread::HandleExitProcessSafely()
     }
 }
 
-bool ChildMainThread::ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb)
+ErrCode ChildMainThread::ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb, bool& funcResult)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ScheduleRunNativeProc");
     if (mainProcessCb == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainProcessCb");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
 
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler_");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
 
     auto task = [weak = wptr<ChildMainThread>(this), callback = sptr<IRemoteObject>(mainProcessCb)]() {
@@ -370,9 +379,11 @@ bool ChildMainThread::ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProce
     };
     if (!mainHandler_->PostTask(task, "ChildMainThread::HandleRunNativeProc")) {
         TAG_LOGE(AAFwkTag::APPKIT, "HandleRunNativeProc PostTask task failed");
-        return false;
+        funcResult = false;
+        return AAFwk::INNER_ERR;
     }
-    return true;
+    funcResult = true;
+    return ERR_OK;
 }
 
 void ChildMainThread::HandleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb)

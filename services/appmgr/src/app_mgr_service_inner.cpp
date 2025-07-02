@@ -8467,10 +8467,11 @@ void AppMgrServiceInner::AttachChildProcess(const pid_t pid, const sptr<IChildSc
     childRecord->SetDeathRecipient(appDeathRecipient);
     childRecord->RegisterDeathRecipient();
 
+    bool funcRes = false;
     if (childRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE) {
-        childScheduler->ScheduleLoadChild();
+        childScheduler->ScheduleLoadChild(funcRes);
     } else {
-        childScheduler->ScheduleRunNativeProc(childRecord->GetMainProcessCallback());
+        childScheduler->ScheduleRunNativeProc(childRecord->GetMainProcessCallback(), funcRes);
         childRecord->ClearMainProcessCallback();
     }
 }

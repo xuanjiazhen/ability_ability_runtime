@@ -22,7 +22,7 @@
 
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
-#include "child_scheduler_interface.h"
+#include "ichild_scheduler.h"
 #include "child_process_info.h"
 #include "child_process_request.h"
 

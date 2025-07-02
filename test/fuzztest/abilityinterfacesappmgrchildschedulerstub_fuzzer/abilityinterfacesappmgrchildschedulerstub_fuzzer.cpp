@@ -20,7 +20,7 @@
 
 #define private public
 #include "child_scheduler_stub.h"
-#include "child_scheduler_interface.h"
+#include "ichild_scheduler.h"
 #undef private
 
 #include "securec.h"
@@ -56,9 +56,21 @@ public:
     virtual ~ ChildSchedulerStubFUZZ() {};
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override{ return 0; };
-    bool ScheduleLoadChild() override{ return true; };
-    bool ScheduleExitProcessSafely() override{ return true; };
-    bool ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb) override{ return true; };
+    ErrCode ScheduleLoadChild(bool& funcResult) override
+    {
+        funcResult = true;
+        return ERR_OK;
+    }
+    ErrCode ScheduleExitProcessSafely(bool& funcResult) override
+    {
+        funcResult = true;
+        return ERR_OK;
+    }
+    ErrCode ScheduleRunNativeProc(const sptr<IRemoteObject> &mainProcessCb, bool& funcResult) override
+    {
+        funcResult = true;
+        return ERR_OK;
+    }
 };
 
 sptr<Token> GetFuzzAbilityToken()
@@ -77,7 +89,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_LOAD_JS);
+    uint32_t code = static_cast<uint32_t>(IChildSchedulerIpcCode::COMMAND_SCHEDULE_LOAD_CHILD);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(CHILD_SCHEDULER_TOKEN);
     parcel.WriteBuffer(data, size);
@@ -86,9 +98,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     MessageOption option;
     std::shared_ptr<ChildSchedulerStub> abms = std::make_shared<ChildSchedulerStubFUZZ>();
     abms->OnRemoteRequest(code, parcel, reply, option);
-    code = static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_EXIT_PROCESS_SAFELY);
+    code = static_cast<uint32_t>(IChildSchedulerIpcCode::COMMAND_SCHEDULE_EXIT_PROCESS_SAFELY);
     abms->OnRemoteRequest(code, parcel, reply, option);
-    code = static_cast<uint32_t>(IChildScheduler::Message::SCHEDULE_RUN_NATIVE_PROC);
+    code = static_cast<uint32_t>(IChildSchedulerIpcCode::COMMAND_SCHEDULE_RUN_NATIVE_PROC);
     abms->OnRemoteRequest(code, parcel, reply, option);
     return true;
 }
