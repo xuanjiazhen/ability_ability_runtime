@@ -20,6 +20,7 @@
 #include "ability_connection.h"
 #include "ability_record.h"
 #include "connection_observer_errors.h"
+#include "mock_ability_connect_callback.h"
 #include "data_ability_record.h"
 #ifdef WITH_DLP
 #include "dlp_state_item.h"
@@ -37,6 +38,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    AbilityRequest GenerateAbilityRequest(const std::string& deviceName,
+    const std::string& abilityName, const std::string& appName, const std::string& bundleName,
+    const std::string& moduleName);
     std::shared_ptr<ConnectionStateManager> manager_ {nullptr};
     std::shared_ptr<AbilityRecord> abilityRecord_ {nullptr};
     std::shared_ptr<DataAbilityRecord> dataAbilityRecord_ {nullptr};
@@ -74,6 +78,34 @@ void ConnectionStateManagerTest::SetUp()
     dataAbilityRecord_ = std::make_shared<DataAbilityRecord>(abilityRequest);
     manager_ = std::make_shared<ConnectionStateManager>();
     callback_ = new AbilityConnectionMock();
+}
+
+AbilityRequest ConnectionStateManagerTest::GenerateAbilityRequest(const std::string& deviceName,
+    const std::string& abilityName, const std::string& appName, const std::string& bundleName,
+    const std::string& moduleName)
+{
+    ElementName element(deviceName, bundleName, abilityName, moduleName);
+    Want want;
+    want.SetElement(element);
+
+    AbilityInfo abilityInfo;
+    abilityInfo.visible = true;
+    abilityInfo.applicationName = appName;
+    abilityInfo.type = AbilityType::SERVICE;
+    abilityInfo.name = abilityName;
+    abilityInfo.bundleName = bundleName;
+    abilityInfo.moduleName = moduleName;
+    abilityInfo.deviceId = deviceName;
+    ApplicationInfo appinfo;
+    appinfo.name = appName;
+    abilityInfo.applicationInfo = appinfo;
+    AbilityRequest abilityRequest;
+    abilityRequest.want = want;
+    abilityRequest.abilityInfo = abilityInfo;
+    abilityRequest.appInfo = appinfo;
+    abilityInfo.process = bundleName;
+
+    return abilityRequest;
 }
 
 /*
@@ -191,6 +223,41 @@ HWTEST_F(ConnectionStateManagerTest, AddConnection_003, TestSize.Level1)
     manager_->connectionStates_[0] = std::make_shared<ConnectionStateItem>(callerUid, callerPid, callerName);
     manager_->AddConnection(connectionRecord);
     EXPECT_TRUE(manager_ != nullptr);
+}
+
+/*
+ * Feature: ConnectionStateManager
+ * Function: AddConnection
+ * SubFunction: NA
+ * FunctionPoints: ConnectionStateManager AddConnection
+ * EnvConditions: NA
+ * CaseDescription: Verify AddConnection
+ */
+HWTEST_F(ConnectionStateManagerTest, AddConnection_004, TestSize.Level1)
+{
+    manager_->Init();
+    int32_t callerUid = 0;
+    int32_t callerPid = 0;
+    std::string callerName = "callerName";
+    manager_->connectionStates_[0] = std::make_shared<ConnectionStateItem>(callerUid, callerPid, callerName);
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    auto abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    auto serviceRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto callback = new AbilityConnectCallback();
+    auto connectionRecord = ConnectionRecord::CreateConnectionRecord(serviceRecord->GetToken(),
+        serviceRecord, callback, nullptr);
+    connectionRecord->callerPid_ = 0;
+    manager_->AddConnection(connectionRecord);
+    manager_->SuspendConnection(connectionRecord);
+    auto callback1 = new AbilityConnectCallback();
+    auto connectionRecord1 = ConnectionRecord::CreateConnectionRecord(serviceRecord->GetToken(),
+        serviceRecord, callback1, nullptr);
+    manager_->AddConnection(connectionRecord);
+    EXPECT_FALSE(manager_->connectionStates_.empty());
 }
 
 /*

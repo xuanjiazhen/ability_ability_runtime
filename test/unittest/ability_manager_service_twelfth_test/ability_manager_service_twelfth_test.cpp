@@ -1358,7 +1358,250 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_001, TestSize.
     EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
         [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
             return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(ONE);
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+
+    abilityMs_->subManagersHelper_->currentConnectManager_ = connectManager;
+    std::shared_ptr<AbilityConnectManager> connectManager2 = std::make_shared<AbilityConnectManager>(TWO);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(0, connectManager2));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), ERR_NO_INIT);
+
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager2));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), CONNECTION_NOT_EXIST);
+
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(2, connectManager2));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), CONNECTION_NOT_EXIST);
+
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(RESOURCE_SCHEDULE_UID, connectManager2));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->ResumeExtensionAbilityLocked(connect);}), CONNECTION_NOT_EXIST);
+
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto connect = new AbilityConnectCallback();
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+    auto result = connectManager->ConnectAbilityLocked(abilityRequest, connect, nullptr);
+    EXPECT_EQ(0, result);
+    auto list = connectManager->GetConnectRecordListByCallback(connect);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+    abilityMs_->subManagersHelper_->currentConnectManager_ = connectManager;
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->SuspendExtensionAbilityLocked(connect);}), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto connect = new AbilityConnectCallback();
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+
+    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(ONE);
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+    auto result = connectManager->ConnectAbilityLocked(abilityRequest, connect, nullptr);
+    EXPECT_EQ(0, result);
+    auto list = connectManager->GetConnectRecordListByCallback(connect);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(0, connectManager));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->SuspendExtensionAbilityLocked(connect);}), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto connect = new AbilityConnectCallback();
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+
+    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(ONE);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(
+        std::make_pair(0, std::make_shared<AbilityConnectManager>(0)));
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
+    EXPECT_NE(connectManager, nullptr);
+    auto result = connectManager->ConnectAbilityLocked(abilityRequest, connect, nullptr);
+    EXPECT_EQ(0, result);
+    auto list = connectManager->GetConnectRecordListByCallback(connect);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(1, connectManager));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->SuspendExtensionAbilityLocked(connect);}), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_005 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto connect = new AbilityConnectCallback();
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+
+    IPCSkeleton::SetCallingUid(BASE_USER_RANGE);
+    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(ONE);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(
+        std::make_pair(0, std::make_shared<AbilityConnectManager>(0)));
+    abilityMs_->subManagersHelper_->connectManagers_.insert(
+        std::make_pair(1, std::make_shared<AbilityConnectManager>(1)));
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
+    EXPECT_NE(connectManager, nullptr);
+    auto result = connectManager->ConnectAbilityLocked(abilityRequest, connect, nullptr);
+    EXPECT_EQ(0, result);
+    auto list = connectManager->GetConnectRecordListByCallback(connect);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(2, connectManager));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->SuspendExtensionAbilityLocked(connect);}), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: HandleExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService HandleExtensionAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, HandleExtensionAbility_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_006 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto connect = new AbilityConnectCallback();
+
+    abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+
+    IPCSkeleton::SetCallingUid(RESOURCE_SCHEDULE_UID);
+    abilityMs_->subManagersHelper_->currentConnectManager_ = std::make_shared<AbilityConnectManager>(ONE);
+    abilityMs_->subManagersHelper_->connectManagers_.insert(
+        std::make_pair(0, std::make_shared<AbilityConnectManager>(0)));
+    abilityMs_->subManagersHelper_->connectManagers_.insert(
+        std::make_pair(1, std::make_shared<AbilityConnectManager>(1)));
+    AbilityRequest abilityRequest{};
+    std::string deviceName = "device";
+    std::string abilityName = "ServiceAbility";
+    std::string appName = "hiservcie";
+    std::string bundleName = "com.ix.hiservcie";
+    std::string moduleName = "entry";
+    abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(1);
+    EXPECT_NE(connectManager, nullptr);
+    auto result = connectManager->ConnectAbilityLocked(abilityRequest, connect, nullptr);
+    EXPECT_EQ(0, result);
+    auto list = connectManager->GetConnectRecordListByCallback(connect);
+    EXPECT_EQ(static_cast<int>(list.size()), 1);
+
+    for (auto& it : list) {
+        it->SetConnectState(ConnectionState::CONNECTED);
+    }
+    abilityMs_->subManagersHelper_->connectManagers_.insert(std::make_pair(RESOURCE_SCHEDULE_UID, connectManager));
+    EXPECT_EQ(abilityMs_->HandleExtensionAbility(connect,
+        [](std::shared_ptr<AbilityConnectManager> connectManager, sptr<IAbilityConnection> connect) {
+            return connectManager->SuspendExtensionAbilityLocked(connect);}), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest HandleExtensionAbility_006 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
