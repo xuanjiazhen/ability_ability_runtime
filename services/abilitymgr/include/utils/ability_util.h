@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "ability_config.h"
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
+#include "app_control_client.h"
 #include "app_jump_control_rule.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
@@ -212,17 +213,8 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid inputs");
         return false;
     }
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleManagerHelper failed");
-        return false;
-    }
-    auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
-    if (appControlMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get appControlMgr failed");
-        return false;
-    }
-    int ret = IN_PROCESS_CALL(appControlMgr->ConfirmAppJumpControlRule(callerPkg, targetPkg, userId));
+    int ret = IN_PROCESS_CALL(AppExecFwk::AppControlClient::GetInstance().ConfirmAppJumpControlRule(callerPkg,
+        targetPkg, userId));
     return ret == ERR_OK;
 }
 

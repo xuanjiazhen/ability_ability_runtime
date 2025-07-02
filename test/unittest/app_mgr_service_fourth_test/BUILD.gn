@@ -37,6 +37,7 @@ ohos_unittest("app_mgr_service_fourth_test") {
 
   sources = [
     "app_mgr_service_fourth_test.cpp",
+    "mock/src/app_control_client.cpp",
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_my_status.cpp",
     "mock/src/mock_permission_verification.cpp",
