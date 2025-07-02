@@ -213,18 +213,26 @@ private:
 
 class StsAppLibNamespaceMgr : public std::enable_shared_from_this<StsAppLibNamespaceMgr>, public NoCopyable {
 public:
-    StsAppLibNamespaceMgr(const AppLibPathMap& appLibPaths, bool isSystemApp)
-        : isSystemApp_(isSystemApp), appLibPathMap_(appLibPaths)
+    static StsAppLibNamespaceMgr& GetInstance()
     {
+        static StsAppLibNamespaceMgr manager;
+        return manager;
     }
 
-    bool CreateNamespace(const std::string& bundleModuleName, std::string &nsName)
+    void SetAppLibPathMap(const AppLibPathMap& appLibPaths)
+    {
+        std::lock_guard lock(mutex_);
+        appLibPathMap_ = appLibPaths;
+    }
+
+    bool CreateNamespace(const std::string& bundleModuleName, std::string &nsName, bool isSystemApp)
     {
         TAG_LOGD(AAFwkTag::STSRUNTIME, "Create app ns: %{public}s", bundleModuleName.c_str());
         if (bundleModuleName.empty()) {
             TAG_LOGE(AAFwkTag::STSRUNTIME, "empty bundleModuleName");
             return false;
         }
+        std::lock_guard lock(mutex_);
         auto appLibPath = appLibPathMap_.find(bundleModuleName);
         if (appLibPath == appLibPathMap_.end()) {
             TAG_LOGE(AAFwkTag::STSRUNTIME, "not found app lib path: %{public}s", bundleModuleName.c_str());
@@ -236,15 +244,17 @@ public:
             TAG_LOGE(AAFwkTag::STSRUNTIME, "null moduleManager");
             return false;
         }
-        moduleManager->SetAppLibPath(appLibPath->first, appLibPath->second, isSystemApp_);
+        moduleManager->SetAppLibPath(appLibPath->first, appLibPath->second, isSystemApp);
         return moduleManager->GetLdNamespaceName(appLibPath->first, nsName);
     }
 
 private:
-    bool isSystemApp_ = false;
+    std::mutex mutex_;
     AppLibPathMap appLibPathMap_;
+
+    StsAppLibNamespaceMgr() = default;
+    ~StsAppLibNamespaceMgr() = default;
 };
-std::shared_ptr<StsAppLibNamespaceMgr> g_stsAppLibNamespaceMgr;
 } // namespace
 
 AppLibPathVec STSRuntime::appLibPaths_;
@@ -337,15 +347,9 @@ void STSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths,
     StsEnv::STSEnvironment::InitSTSSDKNS(STS_RT_PATH);
     StsEnv::STSEnvironment::InitSTSSysNS(STS_SYSLIB_PATH);
 
-    g_stsAppLibNamespaceMgr = std::make_shared<StsAppLibNamespaceMgr>(appLibPaths, isSystemApp);
-    CreateNamespaceCallback cb1 = [weak = std::weak_ptr(g_stsAppLibNamespaceMgr)
-        ](const std::string& bundleModuleName, std::string& nsName) {
-        auto appLibNamespaceMgr = weak.lock();
-        if (appLibNamespaceMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "null appLibNamespaceMgr");
-            return false;
-        }
-        return appLibNamespaceMgr->CreateNamespace(bundleModuleName, nsName);
+    StsAppLibNamespaceMgr::GetInstance().SetAppLibPathMap(appLibPaths);
+    CreateNamespaceCallback cb1 = [isSystemApp](const std::string& bundleModuleName, std::string& nsName) {
+        return StsAppLibNamespaceMgr::GetInstance().CreateNamespace(bundleModuleName, nsName, isSystemApp);
     };
     ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb1);
 }
