@@ -20,7 +20,7 @@
 #include <functional>
 #include <vector>
 
-#include "iquick_fix_manager.h"
+#include "quick_fix/iquick_fix_manager.h"
 #include "singleton.h"
 #include "quick_fix_info.h"
 

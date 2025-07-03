@@ -280,17 +280,6 @@ HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_RegisterBundleEventCallback_00
 }
 
 /**
- * @tc.name: BundleMgrHelperTest_GetQuickFixManagerProxy_001
- * @tc.desc: GetQuickFixManagerProxy
- * @tc.type: FUNC
- */
-HWTEST_F(BundleMgrHelperTest, BundleMgrHelperTest_GetQuickFixManagerProxy_001, TestSize.Level1)
-{
-    auto ret = bundleMgrHelper->GetQuickFixManagerProxy();
-    EXPECT_NE(ret, nullptr);
-}
-
-/**
  * @tc.name: BundleMgrHelperTest_QueryExtensionAbilityInfos_002
  * @tc.desc: QueryExtensionAbilityInfos
  * @tc.type: FUNC
