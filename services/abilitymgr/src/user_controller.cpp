@@ -86,13 +86,17 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
 {
     if (userId < 0 || userId == USER_ID_NO_HEAD) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUserId invalid:%{public}d", userId);
-        callback->OnStartUserDone(userId, INVALID_USERID_VALUE);
+        if (callback != nullptr) {
+            callback->OnStartUserDone(userId, INVALID_USERID_VALUE);
+        }
         return INVALID_USERID_VALUE;
     }
 
     if (IsCurrentUser(userId)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "StartUser current:%{public}d", userId);
-        callback->OnStartUserDone(userId, ERR_OK);
+        if (callback != nullptr) {
+            callback->OnStartUserDone(userId, ERR_OK);
+        }
         return ERR_OK;
     }
 
@@ -105,7 +109,9 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
 
     if (!IsExistOsAccount(userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null StartUser account:%{public}d", userId);
-        callback->OnStartUserDone(userId, INVALID_USERID_VALUE);
+        if (callback != nullptr) {
+            callback->OnStartUserDone(userId, INVALID_USERID_VALUE);
+        }
         return INVALID_USERID_VALUE;
     }
 
@@ -120,7 +126,9 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
     auto state = userItem->GetState();
     if (state == STATE_STOPPING || state == STATE_SHUTDOWN) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUser user stop, userId:%{public}d", userId);
-        callback->OnStartUserDone(userId, ERR_DEAD_OBJECT);
+        if (callback != nullptr) {
+            callback->OnStartUserDone(userId, ERR_DEAD_OBJECT);
+        }
         return ERR_DEAD_OBJECT;
     }
 
