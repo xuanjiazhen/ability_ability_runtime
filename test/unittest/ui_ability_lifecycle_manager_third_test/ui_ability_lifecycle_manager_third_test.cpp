@@ -1435,5 +1435,28 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleColdAcceptWantDone_004, TestS
 
     EXPECT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: RemoveStartCallerTimestamp_0001
+ * @tc.desc: RemoveStartCallerTimestamp
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, RemoveStartCallerTimestamp_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(mgr, nullptr);
+
+    int32_t uid = 12345;
+    mgr->startUIAbilityCallerTimestamps_[uid] = { 1234567 };
+
+    mgr->RemoveStartCallerTimestamp(0);
+    EXPECT_EQ(mgr->startUIAbilityCallerTimestamps_[uid].size(), 1);
+
+    AbilityRequest request;
+    auto record = AbilityRecord::CreateAbilityRecord(request);
+    ASSERT_NE(record, nullptr);
+    record->SetUid(uid);
+    mgr->RemoveStartCallerTimestamp(uid);
+    EXPECT_EQ(mgr->startUIAbilityCallerTimestamps_.find(uid), mgr->startUIAbilityCallerTimestamps_.end());
+}
 }  // namespace AAFwk
 }  // namespace OHOS
