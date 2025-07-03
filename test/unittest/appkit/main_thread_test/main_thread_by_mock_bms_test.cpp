@@ -23,7 +23,6 @@
 #include "main_thread.h"
 #include "mock_bundle_installer_service.h"
 #include "mock_bundle_manager.h"
-#include "mock_overlay_manager.h"
 #include "mock_system_ability_manager.h"
 #include "ohos_application.h"
 #include "process_info.h"

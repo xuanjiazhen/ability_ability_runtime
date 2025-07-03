@@ -466,19 +466,6 @@ bool BundleMgrHelper::GetGroupDir(const std::string &dataGroupId, std::string &d
     return bundleMgr->GetGroupDir(dataGroupId, dir);
 }
 
-sptr<IOverlayManager> BundleMgrHelper::GetOverlayManagerProxy()
-{
-    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
-    auto bundleMgr = Connect();
-    if (bundleMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
-        return nullptr;
-    }
-
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    return bundleMgr->GetOverlayManagerProxy();
-}
-
 bool BundleMgrHelper::QueryAbilityInfo(const Want &want, AbilityInfo &abilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
