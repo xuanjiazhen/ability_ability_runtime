@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "bundle_constants.h"
 #include "module_info.h"
 
 namespace OHOS {
@@ -192,6 +193,8 @@ struct ApplicationInfo {
 
     std::string compileSdkVersion;
     std::string compileSdkType = DEFAULT_COMPILE_SDK_TYPE;
+
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

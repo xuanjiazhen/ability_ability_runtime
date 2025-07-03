@@ -20,6 +20,31 @@ config("ability_simulator_public_config") {
   cflags_cc = [ "-Wno-unused-variable" ]
 }
 
+ohos_shared_library("simulator_context_ani") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  sources = [
+    "${ability_runtime_path}/frameworks/ets/ani/native_constructor/context_native_constructor.cpp",
+  ]
+
+  include_dirs = [
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  external_deps = [
+    "runtime_core:ani",
+  ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  output_extension = "so"
+}
+
 ohos_shared_library("ability_simulator_inner") {
   if (is_mingw || is_mac || is_linux) {
     if (is_mingw) {
@@ -45,6 +70,12 @@ ohos_shared_library("ability_simulator_inner") {
       "include/bundle_parser",
       "${resource_management_path}/interfaces/inner_api/include",
     ]
+
+    if (is_linux) {
+      include_dirs += [
+        "${windowmanager_path}/interfaces/kits/ani/window_runtime/window_stage_ani/include/",
+      ]
+    }
 
     sources = [
       "${ability_runtime_native_path}/ability/native/ability_business_error/ability_business_error.cpp",
@@ -72,6 +103,12 @@ ohos_shared_library("ability_simulator_inner") {
       "src/resource_manager_addon.cpp",
       "src/simulator.cpp",
     ]
+
+    if (is_linux) {
+      sources += [
+        "src/dynamic_loader_linux.cpp",
+      ]
+    }
 
     public_configs = [
       ":ability_simulator_public_config",
@@ -122,5 +159,8 @@ ohos_shared_library("ability_simulator_inner") {
 group("ability_simulator") {
   if (is_mingw || is_mac || is_linux) {
     public_deps = [ ":ability_simulator_inner" ]
+  }
+  if (is_linux) {
+      deps = [ ":simulator_context_ani" ]
   }
 }
