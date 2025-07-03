@@ -64,6 +64,9 @@ const std::string APP_LINKING_ONLY = "appLinkingOnly";
 constexpr uint64_t MAX_REQUEST_CODE = (1ULL << 49) - 1;
 constexpr size_t MAX_REQUEST_CODE_LENGTH = 15;
 constexpr int32_t BASE_REQUEST_CODE_NUM = 10;
+constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+    "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
+const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 
 struct StartAbilityByCallData {
     sptr<IRemoteObject> remoteCallee;
@@ -225,7 +228,7 @@ void StsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk
 }
 
 void StsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
-    const std::shared_ptr<AbilityContext> &context, bool isOpenLink)
+    const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
     // adapter free install async return install and start result
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
@@ -238,7 +241,7 @@ void StsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &
         ani_vm *etsVm = nullptr;
         ani_status status = ANI_ERROR;
         if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         }
         freeInstallObserver_ = new StsFreeInstallObserver(etsVm);
         ret = context->AddFreeInstallObserver(freeInstallObserver_);
@@ -256,7 +259,7 @@ void StsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
     freeInstallObserver_->AddStsObserverObject(
-        env, bundleName, abilityName, startTime, callback);
+        env, bundleName, abilityName, startTime, callback, isAbilityResult);
 }
 
 void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
@@ -903,6 +906,41 @@ void StsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNa
     }
 }
 
+void StsAbilityContext::OnOpenAtomicService(
+    ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackobj, ani_object optionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnOpenAtomicService");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_boolean isOptionsUndefined = true;
+    ani_object errorObject = nullptr;
+    if ((status = env->Reference_IsUndefined(optionsObj, &isOptionsUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    std::string appId;
+    if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse appId failed");
+        errorObject = CreateStsInvalidParamError(env, "Parse param label failed, lable must be string.");
+        AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    AAFwk::StartOptions startOptions;
+    if (!isOptionsUndefined) {
+        if (!AppExecFwk::UnWrapAtomicServiceOptions(env, optionsObj, want, startOptions)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "UnWrapAtomicServiceOptions failed");
+            errorObject = CreateStsInvalidParamError(env, "UnWrapAtomicServiceOptions failed.");
+            AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
+            return;
+        }
+    }
+    GetInstance().OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackobj);
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -963,6 +1001,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeSetMissionLabel",
                 "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void *>(StsAbilityContext::OnSetMissionLabel) },
+            ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+                reinterpret_cast<void *>(StsAbilityContext::OnOpenAtomicService) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -1051,12 +1091,12 @@ void StsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     ani_vm *etsVm = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return;
     }
     ani_ref callbackRef = nullptr;
     if ((status = env->GlobalReference_Create(callbackobj, &callbackRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return;
     }
     RuntimeTask task = [etsVm, callbackRef] (int resultCode, const AAFwk::Want &want, bool isInner) {
@@ -1064,7 +1104,7 @@ void StsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     ani_status status = ANI_ERROR;
     ani_env *env = nullptr;
     if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::STSRUNTIME, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return;
     }
     ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
@@ -1079,6 +1119,59 @@ void StsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     };
     requestCode = GenerateRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));
+}
+
+void StsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+    AAFwk::StartOptions &options, std::string appId, ani_object callbackobj)
+{
+    std::string bundleName = ATOMIC_SERVICE_PREFIX + appId;
+    TAG_LOGD(AAFwkTag::CONTEXT, "bundleName: %{public}s", bundleName.c_str());
+    want.SetBundle(bundleName);
+    want.AddFlags(AAFwk::Want::FLAG_INSTALL_ON_DEMAND);
+    std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch()).count());
+    want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    AddFreeInstallObserver(env, want, callbackobj, context, true);
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, &observer = freeInstallObserver_](
+        int resultCode, const AAFwk::Want &want, bool isInner) {
+        ani_env *env = nullptr;
+        if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return;
+        }
+        if (observer == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null observer");
+            return;
+        }
+        std::string bundleName = element.GetBundleName();
+        std::string abilityName = element.GetAbilityName();
+        ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+        if (abilityResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
+            isInner = true;
+            resultCode = ERR_INVALID_VALUE;
+        }
+        isInner ? observer->OnInstallFinished(bundleName, abilityName, startTime, resultCode)
+                : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
+    };
+    want.SetParam(AAFwk::Want::PARAM_RESV_FOR_RESULT, true);
+    auto requestCode = GenerateRequestCode();
+    ErrCode ErrCode = context->OpenAtomicService(want, options, requestCode, std::move(task));
+    if (ErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "OpenAtomicService failed, ErrCode: %{public}d", ErrCode);
+    }
 }
 
 bool StsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
