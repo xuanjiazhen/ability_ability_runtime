@@ -13,12 +13,60 @@
  * limitations under the License.
  */
 
+// eventHub.js
+let etsOnHandler = null;
+let etsOffHandler = null;
+let etsEmitHandler = null;
+
+globalThis.nativeSaveEventHubOnRef = (handler) => {
+  etsOnHandler = handler;
+};
+
+globalThis.nativeSaveEventHubOffRef = (handler) => {
+  etsOffHandler = handler;
+}
+
+globalThis.nativeSaveEventHubEmitRef = (handler) => {
+  etsEmitHandler = handler;
+}
+
 class EventHub {
   constructor() {
     this.eventMap = {};
+    this.initNativeCommunication();
   }
 
-  on(event, callback) {
+  initNativeCommunication() {
+    const onHandler = {
+      handleOn: (event, callback) => {
+        this.on(event, callback, true)
+      }
+    };
+
+    const offHandler = {
+      handleOff: (event, callback) => {
+        this.off(event, callback, true)
+      }
+    };
+
+    const emitHandler = {
+      handleEmit: (event, callback) => {
+        this.emit(event, ...args);
+      }
+    }
+
+    if (globalThis.nativeSaveEventHubOnRef) {
+      globalThis.nativeSaveEventHubOnRef(onHandler);
+    }
+    if (globalThis.nativeSaveEventHubOffRef) {
+      globalThis.nativeSaveEventHubOffRef(offHandler);
+    }
+    if (globalThis.nativeSaveEventHubEmitRef) {
+      globalThis.nativeSaveEventHubEmitRef(emitHandler);
+    }
+  }
+
+  on(event, callback, fromNative = false) {
     if ((typeof (event) !== 'string') || (typeof (callback) !== 'function')) {
       return;
     }
@@ -27,6 +75,14 @@ class EventHub {
     }
     if (this.eventMap[event].indexOf(callback) === -1) {
       this.eventMap[event].push(callback);
+    }
+
+    if (!fromNative && etsOnHandler) {
+      try {
+        etsOnHandler.handleOn(event, callback);
+      } catch (e) {
+        console.error(`Failed to register event '${event}' with Native: `, e);
+      }
     }
   }
 
@@ -48,6 +104,18 @@ class EventHub {
         delete this.eventMap[event];
       }
     }
+
+    if (!fromNative && etsOffHandler) {
+      try {
+        if (callback) {
+          etsOffHandler.handleOff(event, callback);
+        } else {
+          etsOffHandler.handleOff(event);
+        }
+      } catch (e) {
+        console.error(`Failed to unregister event '${event}' with Native:`, e);
+      }
+    }
   }
 
   emit(event, ...args) {
@@ -61,6 +129,18 @@ class EventHub {
         cloneArray[i].apply(this, args);
       }
     }
+
+    if (etsEmitHandler) {
+      try {
+        etsEmitHandler.handleEmit(event, ...args);
+      } catch (e) {
+        console.error(`Failed to emit event '${event}' to Native:`, e);
+      }
+    }
+  }
+
+  dispose() {
+    this.eventMap = {};
   }
 }
 

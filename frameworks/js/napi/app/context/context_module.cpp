@@ -14,6 +14,7 @@
  */
 
 #include "native_engine/native_engine.h"
+#include "event_hub.h"
 
 extern const char _binary_context_js_start[];
 extern const char _binary_context_js_end[];
@@ -23,6 +24,7 @@ extern const char _binary_context_abc_end[];
 static napi_module _module = {
     .nm_version = 0,
     .nm_filename = "application/libcontext_napi.so/context.js",
+    .nm_register_func = OHOS:AbilityRuntim::InitEventHubNapi,
     .nm_modname = "application.Context",
 };
 
