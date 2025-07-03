@@ -20,16 +20,17 @@
 #include <unistd.h>
 
 #include "ani.h"
-#include "ui_extension_context.h"
+#include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ohos_application.h"
+#include "ui_extension_context.h"
 
 ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context);
 
 class EtsUIExtensionContext final {
 public:
-    explicit EtsUIExtensionContext(const std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext>& context)
+    explicit EtsUIExtensionContext(const std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> &context)
         : context_(context) {}
     virtual ~EtsUIExtensionContext() = default;
 

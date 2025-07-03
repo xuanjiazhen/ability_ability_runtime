@@ -12,22 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ability_runtime/context/context.h"
-#include "common_fun_ani.h"
 #include "ets_ability_stage_context.h"
-#include "hilog_tag_wrapper.h"
-#include "ets_runtime.h"
-#include "configuration_convertor.h"
-#include "ohos_application.h"
+
+#include "ability_runtime/context/context.h"
 #include "ani_common_configuration.h"
+#include "common_fun_ani.h"
+#include "configuration_convertor.h"
 #include "ets_context_utils.h"
+#include "ets_runtime.h"
+#include "hilog_tag_wrapper.h"
+#include "ohos_application.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
 ani_ref ETSAbilityStageContext::etsAbilityStageContextObj_ = nullptr;
 
-ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env* env, std::shared_ptr<Context> context)
+ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env *env, std::shared_ptr<Context> context)
 {
     if (env == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "env nullptr or context nullptr");
@@ -56,7 +57,7 @@ ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env* env, st
     }
     etsAbilityStageContextObj_ = reinterpret_cast<ani_ref>(obj);
 
-    //bind context
+    // bind context
     auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "workContext nullptr");
@@ -106,13 +107,9 @@ ani_object ETSAbilityStageContext::CreateHapModuleInfo(ani_env* env, const std::
     return obj;
 }
 
-void ETSAbilityStageContext::SetConfiguration(ani_env* env, ani_class stageCls, ani_object stageCtxObj,
+void ETSAbilityStageContext::SetConfiguration(ani_env *env, ani_class stageCls, ani_object stageCtxObj,
     std::shared_ptr<Context> &context)
 {
-    if (context == nullptr || env == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "env or context null ptr");
-        return;
-    }
     auto configuration = context->GetConfiguration();
     if (configuration == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "configuration null ptr");

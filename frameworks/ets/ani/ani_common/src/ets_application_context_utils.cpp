@@ -25,17 +25,35 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
+constexpr const char* CLEANER_CLASS = "Lapplication/UIAbilityContext/Cleaner;";
 constexpr double FOUNT_SIZE = 0.0;
 }
-void EtsApplicationContextUtils::RestartApp(ani_env *env, ani_object aniObj,
-    ani_object wantObj)
+void EtsApplicationContextUtils::Clean(ani_env *env, ani_object object)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "RestartApp Call");
+    TAG_LOGD(AAFwkTag::APPKIT, "Clean Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    ani_long ptr = 0;
+    ani_status status = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "ptr GetField status: %{public}d", status);
+        return;
+    }
+    if (ptr != 0) {
+        delete reinterpret_cast<EtsApplicationContextUtils *>(ptr);
+    }
+}
+
+void EtsApplicationContextUtils::OnRestartApp(ani_env *env, ani_object aniObj,
+    ani_object wantObj)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
         return;
@@ -43,38 +61,37 @@ void EtsApplicationContextUtils::RestartApp(ani_env *env, ani_object aniObj,
     AAFwk::Want want;
     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse want failed");
-        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
         return;
     }
     auto errCode = applicationContext->RestartApp(want);
     switch (errCode) {
     case ERR_INVALID_VALUE:
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         break;
     case AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY:
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_RESTART_APP_INCORRECT_ABILITY);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_RESTART_APP_INCORRECT_ABILITY);
         break;
     case AAFwk::ERR_RESTART_APP_FREQUENT:
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_RESTART_APP_FREQUENT);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_RESTART_APP_FREQUENT);
         break;
     case AAFwk::NOT_TOP_ABILITY:
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_TOP_ABILITY);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_TOP_ABILITY);
         break;
     default:
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
     }
     TAG_LOGD(AAFwkTag::APPKIT, "RestartApp errCode is %{public}d", errCode);
 }
 
-void EtsApplicationContextUtils::SetFont(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnSetFont(ani_env *env, ani_object aniObj,
     ani_string font)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SetFont Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
         return;
@@ -82,28 +99,27 @@ void EtsApplicationContextUtils::SetFont(ani_env *env, ani_object aniObj,
     std::string stdFont = "";
     if (!AppExecFwk::GetStdString(env, font, stdFont)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse font failed");
-        ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param font failed, font must be string.");
     }
     TAG_LOGD(AAFwkTag::APPKIT, "SetFont font %{public}s", stdFont.c_str());
     applicationContext->SetFont(stdFont);
 }
 
-void EtsApplicationContextUtils::SetColorMode(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnSetColorMode(ani_env *env, ani_object aniObj,
     ani_enum_item colorMode)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SetColorMode Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
         return;
     }
     ani_int mode = 0;
     if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, colorMode, mode)) {
-        ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
         TAG_LOGE(AAFwkTag::APPKIT, "Parse colorMode failed");
         return;
     }
@@ -111,15 +127,14 @@ void EtsApplicationContextUtils::SetColorMode(ani_env *env, ani_object aniObj,
     applicationContext->SetColorMode(static_cast<int32_t>(mode));
 }
 
-void EtsApplicationContextUtils::SetLanguage(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnSetLanguage(ani_env *env, ani_object aniObj,
     ani_string language)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SetLanguage Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
         return;
@@ -127,22 +142,21 @@ void EtsApplicationContextUtils::SetLanguage(ani_env *env, ani_object aniObj,
     std::string stdLanguage = "";
     if (!AppExecFwk::GetStdString(env, language, stdLanguage)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse language failed");
-        ThrowInvalidParamError(env, "Parse param language failed, language must be string.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param language failed, language must be string.");
         return;
     }
     applicationContext->SetLanguage(stdLanguage);
     TAG_LOGD(AAFwkTag::APPKIT, "stdLanguage language %{public}s", stdLanguage.c_str());
 }
 
-void EtsApplicationContextUtils::SetFontSizeScale(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnSetFontSizeScale(ani_env *env, ani_object aniObj,
     ani_double fontSizeScale)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SetFontSizeScale Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
         return;
@@ -152,45 +166,43 @@ void EtsApplicationContextUtils::SetFontSizeScale(ani_env *env, ani_object aniOb
     TAG_LOGD(AAFwkTag::APPKIT, "fontSizeScale: %{public}f", stdFontSizeScale);
     if (fontSizeScale < FOUNT_SIZE) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid size");
-        ThrowInvalidParamError(env, "Invalid font size.");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Invalid font size.");
         return;
     }
     applicationContext->SetFontSizeScale(stdFontSizeScale);
 }
 
-void EtsApplicationContextUtils::ClearUpApplicationData(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnClearUpApplicationData(ani_env *env, ani_object aniObj,
     ani_object callback)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "ClearUpApplicationData Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
-        AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
             (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
             "applicationContext if already released."), nullptr);
         return;
     }
     applicationContext->ClearUpApplicationData();
-    AppExecFwk::AsyncCallback(env, callback, CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
-void EtsApplicationContextUtils::GetRunningProcessInformation(ani_env *env,
+void EtsApplicationContextUtils::OnGetRunningProcessInformation(ani_env *env,
     ani_object aniObj, ani_object callback)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "GetRunningProcessInformation Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
     ani_object emptyArray = AppExecFwk::CreateEmptyArray(env);
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
-        AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
             (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
             "applicationContext if already released."), emptyArray);
         return;
@@ -203,32 +215,30 @@ void EtsApplicationContextUtils::GetRunningProcessInformation(ani_env *env,
         ani_object aniInfosRef = AppExecFwk::CreateRunningProcessInfoArray(env, infos);
         if (aniInfosRef == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null array");
-            AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+            AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
                 (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Initiate array failed."), emptyArray);
         } else {
-            AppExecFwk::AsyncCallback(env, callback, CreateError(env, AbilityErrorCode::ERROR_OK), aniInfosRef);
+            AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), aniInfosRef);
         }
     } else {
-        AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
             (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Get process infos failed."), emptyArray);
     }
 }
 
-void EtsApplicationContextUtils::killAllProcesses(ani_env *env, ani_object aniObj,
+void EtsApplicationContextUtils::OnkillAllProcesses(ani_env *env, ani_object aniObj,
     ani_boolean clearPageStack, ani_object call)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "killAllProcesses Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
         return;
     }
-    ani_object aniObject = AbilityRuntime::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_OK);
-    ErrCode innerErrCode = ERR_OK;
-    auto context = GeApplicationContext(env, aniObj);
+    ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    auto context = applicationContext_.lock();
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "nativeContextLong is nullptr");
-        innerErrCode = AbilityRuntime::ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
-        aniObject = AbilityRuntime::CreateError(env, innerErrCode, "applicationContext is already released.");
+        aniObject = EtsErrorUtil::CreateError(env, (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
+            "applicationContext is already released.");
         AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
         return;
     }
@@ -236,7 +246,7 @@ void EtsApplicationContextUtils::killAllProcesses(ani_env *env, ani_object aniOb
     context->KillProcessBySelf(clearPageStack);
 }
 
-void EtsApplicationContextUtils::PreloadUIExtensionAbility(ani_env *env,
+void EtsApplicationContextUtils::OnPreloadUIExtensionAbility(ani_env *env,
     ani_object aniObj, ani_object wantObj, ani_object call)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "PreloadUIExtensionAbility Call");
@@ -247,75 +257,183 @@ void EtsApplicationContextUtils::PreloadUIExtensionAbility(ani_env *env,
     AAFwk::Want want;
     if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse want failed");
-        AppExecFwk::AsyncCallback(env, call, AbilityRuntime::CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, call, EtsErrorUtil::CreateInvalidParamError(env,
             "Parse param want failed, want must be Want."), nullptr);
         return;
     }
-    auto context = GeApplicationContext(env, aniObj);
+    auto context = applicationContext_.lock();
     if (!context) {
-        AppExecFwk::AsyncCallback(env, call, AbilityRuntime::CreateErrorByNativeErr(env,
-            (int32_t)AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        AppExecFwk::AsyncCallback(env, call, EtsErrorUtil::CreateErrorByNativeErr(env,
+            (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
         return;
     }
     auto hostBundleName = context->GetBundleName();
     TAG_LOGD(AAFwkTag::APPKIT, "HostBundleName is %{public}s", hostBundleName.c_str());
     auto innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->PreloadUIExtensionAbility(want, hostBundleName);
     if (innerErrCode == ERR_OK) {
-        AppExecFwk::AsyncCallback(env, call, AbilityRuntime::CreateError(env,
-            AbilityRuntime::AbilityErrorCode::ERROR_OK), nullptr);
+        AppExecFwk::AsyncCallback(env, call, EtsErrorUtil::CreateError(env,
+            AbilityErrorCode::ERROR_OK), nullptr);
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "OnPreloadUIExtensionAbility failed %{public}d", innerErrCode);
-        AppExecFwk::AsyncCallback(env, call, AbilityRuntime::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+        AppExecFwk::AsyncCallback(env, call, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
     }
 }
 
-void EtsApplicationContextUtils::SetSupportedProcessCacheSync(ani_env *env,
+void EtsApplicationContextUtils::OnSetSupportedProcessCacheSync(ani_env *env,
     ani_object aniObj, ani_boolean value)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync Call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return;
     }
-    auto applicationContext = GeApplicationContext(env, aniObj);
+    auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return;
     }
     int32_t errCode = applicationContext->SetSupportedProcessCacheSelf(value);
     if (errCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT) {
-        AbilityRuntime::EtsErrorUtil::ThrowError(env,
-            AbilityRuntime::AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
+        EtsErrorUtil::ThrowError(env,
+            AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
     } else if (errCode != ERR_OK) {
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
     }
 }
 
-std::shared_ptr<ApplicationContext> EtsApplicationContextUtils::GeApplicationContext(ani_env *env, ani_object aniObj)
+void EtsApplicationContextUtils::RestartApp(ani_env *env, ani_object aniObj,
+    ani_object wantObj)
 {
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+    TAG_LOGD(AAFwkTag::APPKIT, "RestartApp Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnRestartApp(env, aniObj, wantObj);
+}
+
+void EtsApplicationContextUtils::SetFont(ani_env *env, ani_object aniObj,
+    ani_string font)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetFont Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetFont(env, aniObj, font);
+}
+
+void EtsApplicationContextUtils::SetColorMode(ani_env *env, ani_object aniObj,
+    ani_enum_item colorMode)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetColorMode Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetColorMode(env, aniObj, colorMode);
+}
+
+void EtsApplicationContextUtils::SetLanguage(ani_env *env, ani_object aniObj,
+    ani_string language)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetLanguage Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetLanguage(env, aniObj, language);
+}
+
+void EtsApplicationContextUtils::SetFontSizeScale(ani_env *env, ani_object aniObj,
+    ani_double fontSizeScale)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetFontSizeScale Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetFontSizeScale(env, aniObj, fontSizeScale);
+}
+
+void EtsApplicationContextUtils::ClearUpApplicationData(ani_env *env, ani_object aniObj,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "ClearUpApplicationData Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnClearUpApplicationData(env, aniObj, callback);
+}
+
+void EtsApplicationContextUtils::GetRunningProcessInformation(ani_env *env,
+    ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetRunningProcessInformation Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnGetRunningProcessInformation(env, aniObj, callback);
+}
+
+void EtsApplicationContextUtils::killAllProcesses(ani_env *env, ani_object aniObj,
+    ani_boolean clearPageStack, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "killAllProcesses Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnkillAllProcesses(env, aniObj, clearPageStack, call);
+}
+
+void EtsApplicationContextUtils::PreloadUIExtensionAbility(ani_env *env,
+    ani_object aniObj, ani_object wantObj, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "PreloadUIExtensionAbility Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnPreloadUIExtensionAbility(env, aniObj, wantObj, call);
+}
+
+void EtsApplicationContextUtils::SetSupportedProcessCacheSync(ani_env *env, ani_object aniObj, ani_boolean value)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetSupportedProcessCacheSync Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetSupportedProcessCacheSync(env, aniObj, value);
+}
+
+EtsApplicationContextUtils* EtsApplicationContextUtils::GeApplicationContext(ani_env *env, ani_object aniObj)
+{
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or aniObj");
         return nullptr;
     }
-    ani_status status = ANI_ERROR;
-    ani_class cls {};
-    if ((status = env->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+    ani_long etsApplicationContextPtr = 0;
+    ani_status status = env->Object_GetFieldByName_Long(aniObj, "etsApplicationContextPtr", &etsApplicationContextPtr);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "etsAbilityContextPtr GetField status: %{public}d", status);
         return nullptr;
     }
-    ani_field contextField = nullptr;
-    if ((status = env->Class_FindField(cls, "nativeContext", &contextField)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return nullptr;
-    }
-    ani_long nativeContextLong;
-    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return nullptr;
-    }
-    auto weakContext = reinterpret_cast<std::weak_ptr<ApplicationContext>*>(nativeContextLong);
-    return weakContext != nullptr ? weakContext->lock() : nullptr;
+    auto etsContext = reinterpret_cast<EtsApplicationContextUtils *>(etsApplicationContextPtr);
+    return etsContext;
 }
 
 ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env* aniEnv,
@@ -337,28 +455,25 @@ ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env* aniEnv,
         return nullptr;
     }
     ani_method method {};
-    if ((status = aniEnv->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = aniEnv->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return nullptr;
     }
-    ani_object contextObj = nullptr;
-    if ((status = aniEnv->Object_New(cls, method, &contextObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return nullptr;
-    }
-    ani_field field = nullptr;
-    if ((status = aniEnv->Class_FindField(cls, "nativeContext", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
-        return nullptr;
-    }
-    auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
+    auto workContext = new (std::nothrow) EtsApplicationContextUtils(applicationContext);
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "workContext nullptr");
         return nullptr;
     }
-    ani_long nativeContextLong = (ani_long)workContext;
-    if ((status = aniEnv->Object_SetField_Long(contextObj, field, nativeContextLong)) != ANI_OK) {
+    ani_object contextObj = nullptr;
+    if ((status = aniEnv->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(workContext))) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        delete workContext;
+        workContext = nullptr;
+        return nullptr;
+    }
+    ani_long nativeContextLong = reinterpret_cast<ani_long>(workContext->applicationContext_.lock().get());
+    if ((status = aniEnv->Object_SetFieldByName_Long(contextObj, "nativeContext", nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext SetField status: %{public}d", status);
         delete workContext;
         workContext = nullptr;
         return nullptr;
@@ -408,6 +523,19 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env* aniEnv)
         applicationContextFunctions.size());
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Class_BindNativeMethods failed status: %{public}d", status);
+        return;
+    }
+    ani_class cleanerCls = nullptr;
+    if ((status = aniEnv->FindClass(CLEANER_CLASS, &cleanerCls)) != ANI_OK || cleanerCls == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Cleaner FindClass failed status: %{public}d, or null cleanerCls", status);
+        return;
+    }
+    std::array cleanerMethods = {
+        ani_native_function {"clean", nullptr, reinterpret_cast<void *>(EtsApplicationContextUtils::Clean) },
+    };
+    if ((status = aniEnv->Class_BindNativeMethods(cleanerCls, cleanerMethods.data(), cleanerMethods.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_BindNativeMethods failed status: %{public}d", status);
+        return;
     }
 }
 
@@ -428,7 +556,7 @@ ani_object EtsApplicationContextUtils::CreateEtsApplicationContext(ani_env* aniE
     }
     auto etsReference = std::make_shared<AppExecFwk::ETSNativeReference>();
     etsReference->aniObj = applicationContextObject;
-    AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().SetEtsGlobalObject(etsReference);
+    ApplicationContextManager::GetApplicationContextManager().SetEtsGlobalObject(etsReference);
     BindApplicationContextFunc(aniEnv);
     ani_class applicationContextClass = nullptr;
     if ((status = aniEnv->FindClass(ETS_APPLICATION_CONTEXT_CLASS_NAME, &applicationContextClass)) != ANI_OK) {

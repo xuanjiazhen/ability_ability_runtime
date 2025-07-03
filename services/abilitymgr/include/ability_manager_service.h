@@ -1168,7 +1168,8 @@ public:
     void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId);
     void OnStartSpecifiedAbilityTimeoutResponse(int32_t requestId);
 
-    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0);
+    void OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId = 0,
+        const std::string &callerProcessName = "");
     void OnStartSpecifiedProcessTimeoutResponse(int32_t requestId);
     void OnStartSpecifiedFailed(int32_t requestId);
 
@@ -2036,6 +2037,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+
+    virtual int32_t SetOnNewWantSkipScenarios(sptr<IRemoteObject> callerToken, int32_t scenarios) override;
 
     virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
 

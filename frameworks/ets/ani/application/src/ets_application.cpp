@@ -14,7 +14,6 @@
  */
 #include "ets_application.h"
 
-#include "accesstoken_kit.h"
 #include "ani_base_context.h"
 #include "ani_common_util.h"
 #include "application_context.h"
@@ -24,9 +23,7 @@
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "hilog_tag_wrapper.h"
-#include "ipc_skeleton.h"
 #include "permission_verification.h"
-#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -61,7 +58,7 @@ bool CheckIsSystemAppOrPermisson(ani_env *env, ani_object callback)
     auto emptyObject = CreateEmptyContextObject(env);
     if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
         TAG_LOGE(AAFwkTag::APPKIT, "no system app");
-            AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+            AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP),
                 "The application is not system-app, can not use system-api."), emptyObject);
         return false;
@@ -69,7 +66,7 @@ bool CheckIsSystemAppOrPermisson(ani_env *env, ani_object callback)
     if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
         TAG_LOGE(AAFwkTag::APPKIT, "no permission");
         AppExecFwk::AsyncCallback(env, callback,
-        CreateNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO), emptyObject);
+        EtsErrorUtil::CreateNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO), emptyObject);
         return false;
     }
     return true;
@@ -121,7 +118,7 @@ void SetCreateCompleteCallback(ani_env *env, std::shared_ptr<std::shared_ptr<Con
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed to create context");
         auto emptyObject = CreateEmptyContextObject(env);
-        AppExecFwk::AsyncCallback(env, callback, CreateError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
             AbilityErrorCode::ERROR_CODE_INVALID_PARAM), emptyObject);
         return;
     }
@@ -137,7 +134,7 @@ void SetCreateCompleteCallback(ani_env *env, std::shared_ptr<std::shared_ptr<Con
         return;
     }
     ContextUtil::CreateEtsBaseContext(env, cls, contextObj, context);
-    AppExecFwk::AsyncCallback(env, callback, CreateError(env, AbilityErrorCode::ERROR_OK), contextObj);
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), contextObj);
 }
 
 std::shared_ptr<Context> GetContextByStageMode(ani_env *env, ani_object &contextObj,
@@ -147,14 +144,14 @@ std::shared_ptr<Context> GetContextByStageMode(ani_env *env, ani_object &context
     ani_status status = IsStageContext(env, contextObj, stageMode);
     if (status != ANI_OK || !stageMode) {
         TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "Parse param context failed, must be a context of stageMode."), emptyObject);
         return nullptr;
     }
     auto context = GetStageModeContext(env, contextObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "Parse param context failed, must not be nullptr."), emptyObject);
         return nullptr;
     }
@@ -181,7 +178,7 @@ void EtsApplication::CreateModuleContext(ani_env *env,
     auto inputContextPtr = Context::ConvertTo<Context>(context);
     if (inputContextPtr == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "Parse param context failed, must be a context."), emptyObject);
         return;
     }
@@ -189,7 +186,7 @@ void EtsApplication::CreateModuleContext(ani_env *env,
     std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
     if (contextImpl == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "create context failed."), emptyObject);
         return;
     }
@@ -227,7 +224,7 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     auto inputContextPtr = Context::ConvertTo<Context>(context);
     if (inputContextPtr == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "Parse param context failed, must be a context."), emptyObject);
         return;
     }
@@ -235,7 +232,7 @@ void EtsApplication::CreateBundleContext(ani_env *env,
     std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
     if (contextImpl == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
-        AppExecFwk::AsyncCallback(env, callback, CreateInvalidParamError(env,
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
             "create context failed."), emptyObject);
         return;
     }

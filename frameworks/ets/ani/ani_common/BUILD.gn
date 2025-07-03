@@ -45,6 +45,10 @@ ohos_shared_library("ani_common") {
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
+    "src/ets_application_context_utils.cpp",
+    "src/ets_context_utils.cpp",
+    "src/ets_data_struct_converter.cpp",
+    "src/ets_error_utils.cpp",
   ]
 
   cflags = []
@@ -55,8 +59,11 @@ ohos_shared_library("ani_common") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/appkit:application_context_manager",
   ]
 
   external_deps = [
@@ -65,6 +72,7 @@ ohos_shared_library("ani_common") {
     "ability_base:want",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
@@ -73,6 +81,9 @@ ohos_shared_library("ani_common") {
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
+    "resource_management:resmgr_napi_core",
+    "resource_management:resourceManager_ani",
     "runtime_core:ani",
   ]
 

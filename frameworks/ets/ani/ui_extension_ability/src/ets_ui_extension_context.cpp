@@ -12,14 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "common_fun_ani.h"
-#include "ets_extension_context.h"
 #include "ets_ui_extension_context.h"
-#include "ui_extension_context.h"
-#include "ani_common_want.h"
+
 #include "ability_manager_client.h"
+#include "ani_common_want.h"
+#include "common_fun_ani.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_extension_context.h"
+#include "ui_extension_context.h"
 
 const char *INVOKE_METHOD_NAME = "invoke";
 const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext;";

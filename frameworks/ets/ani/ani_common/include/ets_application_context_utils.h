@@ -28,7 +28,10 @@ namespace OHOS {
 namespace AbilityRuntime {
 class EtsApplicationContextUtils {
 public:
-    explicit EtsApplicationContextUtils() {}
+    explicit EtsApplicationContextUtils(std::weak_ptr<ApplicationContext> &&applicationContext)
+        : applicationContext_(std::move(applicationContext))
+    {
+    }
     virtual ~EtsApplicationContextUtils() = default;
     static void RestartApp(ani_env *env, ani_object aniObj,
         ani_object wantObj);
@@ -50,12 +53,36 @@ public:
         ani_object wantObj, ani_object call);
     static void SetSupportedProcessCacheSync(ani_env *env, ani_object aniObj,
         ani_boolean value);
-    static std::shared_ptr<ApplicationContext> GeApplicationContext(ani_env *env, ani_object aniObj);
+    static void Clean(ani_env *env, ani_object object);
+    static EtsApplicationContextUtils* GeApplicationContext(ani_env *env, ani_object aniObj);
     static ani_object SetApplicationContext(ani_env* aniEnv,
         const std::shared_ptr<ApplicationContext> &applicationContext);
     static ani_object CreateEtsApplicationContext(ani_env* aniEnv,
         const std::shared_ptr<ApplicationContext> &applicationContext);
     static void BindApplicationContextFunc(ani_env* aniEnv);
+protected:
+    std::weak_ptr<ApplicationContext> applicationContext_;
+private:
+    void OnRestartApp(ani_env *env, ani_object aniObj,
+        ani_object wantObj);
+    void OnSetFont(ani_env *env, ani_object aniObj,
+        ani_string font);
+    void OnSetColorMode(ani_env *env, ani_object aniObj,
+        ani_enum_item colorMode);
+    void OnSetLanguage(ani_env *env, ani_object aniObj,
+        ani_string language);
+    void OnSetFontSizeScale(ani_env *env, ani_object aniObj,
+        ani_double fontSizeScale);
+    void OnClearUpApplicationData(ani_env *env, ani_object aniObj,
+        ani_object callback);
+    void OnGetRunningProcessInformation(ani_env *env, ani_object aniObj,
+        ani_object callback);
+    void OnkillAllProcesses(ani_env *env, ani_object aniObj,
+        ani_boolean clearPageStack, ani_object call);
+    void OnPreloadUIExtensionAbility(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object call);
+    void OnSetSupportedProcessCacheSync(ani_env *env, ani_object aniObj,
+        ani_boolean value); 
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

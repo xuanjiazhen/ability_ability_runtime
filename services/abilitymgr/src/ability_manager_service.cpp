@@ -5183,8 +5183,9 @@ int AbilityManagerService::StartSyncRemoteMissions(const std::string& devId, boo
     }
     DistributedClient dmsClient;
     int32_t callingUid = IPCSkeleton::GetCallingUid();
+    uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "fixConflict: %{public}d, tag: %{public}" PRId64, fixConflict, tag);
-    return dmsClient.StartSyncRemoteMissions(devId, fixConflict, tag, callingUid);
+    return dmsClient.StartSyncRemoteMissions(devId, fixConflict, tag, callingUid, callingTokenId);
 }
 
 int AbilityManagerService::StopSyncRemoteMissions(const std::string& devId)
@@ -8475,7 +8476,8 @@ void AbilityManagerService::OnStartSpecifiedAbilityTimeoutResponse(int32_t reque
     missionListManager->OnStartSpecifiedAbilityTimeoutResponse();
 }
 
-void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
+void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId,
+    const std::string &callerProcessName)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "flag = %{public}s", flag.c_str());
     auto connectManager = GetCurrentConnectManager();
@@ -8489,7 +8491,7 @@ void AbilityManagerService::OnStartSpecifiedProcessResponse(const std::string &f
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetCurrentUIAbilityManager();
         CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnStartSpecifiedProcessResponse(flag, requestId);
+        uiAbilityManager->OnStartSpecifiedProcessResponse(flag, requestId, callerProcessName);
         return;
     }
 }
@@ -14738,6 +14740,21 @@ int32_t AbilityManagerService::SetAppServiceExtensionKeepAlive(const std::string
 int32_t AbilityManagerService::QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list)
 {
     return KeepAliveProcessManager::GetInstance().QueryKeepAliveAppServiceExtensions(list, false);
+}
+
+int32_t AbilityManagerService::SetOnNewWantSkipScenarios(sptr<IRemoteObject> callerToken, int32_t scenarios)
+{
+    auto record = Token::GetAbilityRecordByToken(callerToken);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "The toke from context is invalid");
+        return ERR_INVALID_CONTEXT;
+    }
+    if (!JudgeSelfCalled(record)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid callerToken");
+        return ERR_INVALID_CALLER;
+    }
+    record->SetOnNewWantSkipScenarios(scenarios);
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -209,6 +209,7 @@ void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object co
 {
     if (aniEnv == nullptr || context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+        return;
     }
     if (!SetHapModuleInfo(aniEnv, contextClass, contextObj, context)) {
         TAG_LOGE(AAFwkTag::APPKIT, "SetHapModuleInfo fail");
@@ -254,28 +255,28 @@ ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
-        return {};
+        return nullptr;
     }
-    std::string bundleName_ = "";
-    AppExecFwk::AniStringToStdString(env, bundleName, bundleName_);
-    std::string moduleName_ = "";
-    AppExecFwk::AniStringToStdString(env, moduleName, moduleName_);
+    std::string stdBundleName = "";
+    AppExecFwk::GetStdString(env, bundleName, stdBundleName);
+    std::string stdModuleName = "";
+    AppExecFwk::GetStdString(env, moduleName, stdModuleName);
     auto context = GetBaseContext(env, aniObj);
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
-        return {};
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return nullptr;
     }
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
-        return {};
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return nullptr;
     }
-    auto resourceManager = context->CreateModuleResourceManager(bundleName_, moduleName_);
+    auto resourceManager = context->CreateModuleResourceManager(stdBundleName, stdModuleName);
     if (resourceManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null resourceManager");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
-        return {};
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return nullptr;
     }
     return Global::Resource::ResMgrAddon::CreateResMgr(env, "", resourceManager, context);
 }

@@ -20,7 +20,42 @@ import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
+class Cleaner {
+  public ptr: long = 0;
+
+  constructor(ptr: long) {
+    this.ptr = ptr;
+  }
+
+  native clean(): void;
+}
+
+export function callback(cleaner: Cleaner): void {
+  cleaner.clean();
+}
+
+let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
+let unregisterToken = new object();
+
 export default class ApplicationContext extends Context {
+  etsApplicationContextPtr: long = 0;
+  private cleaner: Cleaner | null = null;
+
+  constructor(ptr: long) {
+    if (this.etsApplicationContextPtr == 0) {
+      this.etsApplicationContextPtr = ptr;
+    }
+    this.registerCleaner(this.etsApplicationContextPtr);
+  }
+
+  registerCleaner(ptr: long): void {
+    this.cleaner = new Cleaner(ptr);
+    destroyRegister.register(this, this.cleaner!, unregisterToken);
+  }
+
+  unregisterCleaner(): void {
+    destroyRegister.unregister(unregisterToken);
+  }
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported : boolean):void;
