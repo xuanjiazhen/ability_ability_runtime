@@ -1716,5 +1716,14 @@ void JsRuntime::RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo)
     CHECK_POINTER(jsEnv_);
     jsEnv_->RegisterUncaughtExceptionHandler(*static_cast<JsEnv::UncaughtExceptionInfo*>(uncaughtExceptionInfo));
 }
+
+DebuggerPostTask JsRuntime::GetDebuggerPostTask()
+{
+    if (!jsEnv_) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "jsEnv_ is nullptr");
+        return nullptr;
+    }
+    return jsEnv_->GetDebuggerPostTask();
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

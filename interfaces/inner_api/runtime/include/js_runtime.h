@@ -159,6 +159,7 @@ public:
     void UpdatePkgContextInfoJson(const std::string& moduleName, const std::string& hapPath,
         const std::string& packageName);
     void RegisterUncaughtExceptionHandler(void* uncaughtExceptionInfo) override;
+    DebuggerPostTask GetDebuggerPostTask();
 
 private:
     void FinishPreload() override;

@@ -250,6 +250,8 @@ std::shared_ptr<StsAppLibNamespaceMgr> g_stsAppLibNamespaceMgr;
 
 AppLibPathVec STSRuntime::appLibPaths_;
 
+AbilityRuntime::JsRuntime* STSRuntime::jsRuntime_ = nullptr;
+
 std::unique_ptr<STSRuntime> STSRuntime::PreFork(const Options& options)
 {
     TAG_LOGD(AAFwkTag::STSRUNTIME, "PreFork begin");
@@ -300,6 +302,7 @@ void STSRuntime::PostFork(const Options &options, std::vector<ani_option>& aniOp
 
 std::unique_ptr<STSRuntime> STSRuntime::Create(const Options& options, JsRuntime* jsRuntime)
 {
+    STSRuntime::jsRuntime_ = static_cast<AbilityRuntime::JsRuntime*>(jsRuntime);
     TAG_LOGD(AAFwkTag::STSRUNTIME, "create ets runtime");
     std::unique_ptr<STSRuntime> instance;
     auto preloadedInstance = Runtime::GetPreloaded(options.lang);
@@ -457,7 +460,9 @@ void STSRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebu
         TAG_LOGE(AAFwkTag::STSRUNTIME, "null stsEnv");
         return;
     }
-    ark::ArkDebugNativeAPI::NotifyDebugMode(getproctid(), instanceId_, isStartWithDebug);
+    ark::ArkDebugNativeAPI::NotifyDebugMode(getproctid(), instanceId_, isStartWithDebug,
+                                            STSRuntime::jsRuntime_->GetEcmaVm(),
+                                            STSRuntime::jsRuntime_->GetDebuggerPostTask());
 }
 
 void STSRuntime::UnLoadSTSAppLibrary()
@@ -986,7 +991,7 @@ void STSRuntime::StopDebugMode()
     CHECK_POINTER(stsEnv_);
     if (stsEnv_->debugMode_) {
         ConnectServerManager::Get().RemoveInstance(instanceId_);
-        ark::ArkDebugNativeAPI::StopDebugger();
+        ark::ArkDebugNativeAPI::StopDebugger(STSRuntime::jsRuntime_->GetEcmaVm());
     }
 }
 
