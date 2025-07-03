@@ -76,6 +76,9 @@ public:
     static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
         ani_object callback);
 #endif
+    static void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
+    static void ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
+        const std::shared_ptr<AppExecFwk::Configuration> &config);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);

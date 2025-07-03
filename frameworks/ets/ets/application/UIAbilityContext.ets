@@ -31,25 +31,11 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import image from '@ohos.multimedia.image';
 
 export default class UIAbilityContext extends Context {
-  static {
-    loadLibrary("context_ani");
-  }
 
-  config: Configuration;
-  abilityInfo: AbilityInfo;
-  windowStage: window.WindowStage;
-  currentHapModuleInfo: HapModuleInfo;
-
-  native constructor();
-
-  constructor(config: Configuration, abilityInfo: AbilityInfo, windowStage: window.WindowStage,
-    currentHapModuleInfo: HapModuleInfo) {
-    super();
-    this.config = config;
-    this.abilityInfo = abilityInfo;
-    this.windowStage = windowStage;
-    this.currentHapModuleInfo = currentHapModuleInfo;
-  }
+  config!: Configuration;
+  abilityInfo!: AbilityInfo;
+  windowStage!: window.WindowStage;
+  currentHapModuleInfo!: HapModuleInfo;
 
   private static native nativeTransferStatic(input: ESValue): Object;
   private static native nativeTransferDynamic(input: Object): ESValue;
@@ -96,6 +82,9 @@ export default class UIAbilityContext extends Context {
 
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
   private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -371,7 +360,7 @@ export default class UIAbilityContext extends Context {
       });
     });
   }
-    
+
   setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
     this.nativeSetColorMode(colorMode);
   }
@@ -405,5 +394,27 @@ export default class UIAbilityContext extends Context {
       });
     });
     return p;
+  }
+  
+  setMissionLabel(label: string, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeSetMissionLabel(label, syncCall);
+    });
+  }
+
+  setMissionLabel(label: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeSetMissionLabel(label, syncCall);
+      });
+    });
   }
 }

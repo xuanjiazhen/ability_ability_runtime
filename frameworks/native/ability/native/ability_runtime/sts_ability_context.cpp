@@ -267,7 +267,7 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
+    AppExecFwk::UnwrapWant(env, wantObj, want);
     auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "context null");
@@ -285,7 +285,7 @@ void StsAbilityContext::StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe
     ErrCode innerErrCode = ERR_OK;
     if (opt != nullptr) {
         AAFwk::StartOptions startOptions;
-        OHOS::AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
+        AppExecFwk::UnwrapStartOptionsWithProcessOption(env, opt, startOptions);
         innerErrCode = context->StartAbility(want, startOptions, -1);
     } else {
         innerErrCode = context->StartAbility(want, -1);
@@ -341,10 +341,10 @@ void StsAbilityContext::StartAbilityForResultInner(ani_env *env, ani_object aniO
         return;
     }
     AAFwk::Want want;
-    OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
+    AppExecFwk::UnwrapWant(env, wantObj, want);
     AAFwk::StartOptions startOptions;
     if (startOptionsObj) {
-        OHOS::AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
+        AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
     }
     TAG_LOGE(AAFwkTag::UIABILITY, "displayId:%{public}d", startOptions.GetDisplayID());
     std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
@@ -434,7 +434,7 @@ void StsAbilityContext::TerminateSelfWithResult(
     }
     AAFwk::Want want;
     int resultCode = 0;
-    OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
+    AppExecFwk::UnWrapAbilityResult(env, abilityResult, resultCode, want);
     context->SetTerminating(true);
     ErrCode ret = context->TerminateAbilityWithResult(want, resultCode);
     if (ret == static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT) || ret == ERR_OK) {
@@ -526,7 +526,7 @@ void StsAbilityContext::StartServiceExtensionAbilitySync([[maybe_unused]]ani_env
         return;
     }
     AAFwk::Want want;
-    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "UnwrapWant filed");
         errorObject = CreateStsInvalidParamError(env, "UnwrapWant filed");
         AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
@@ -833,7 +833,7 @@ void StsAbilityContext::NativeBackToCallerAbilityWithResult(ani_env *env, ani_ob
     ani_object errorObject = nullptr;
     AAFwk::Want want;
     int resultCode = 0;
-    if (!OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResultObj, resultCode, want)) {
+    if (!AppExecFwk::UnWrapAbilityResult(env, abilityResultObj, resultCode, want)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "UnWrapAbilityResult failed");
         errorObject = CreateStsInvalidParamError(env, "Failed to parse abilityResult.");
         AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
@@ -904,6 +904,50 @@ void StsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, 
 }
 #endif
 
+void StsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj,
+    ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnSetMissionLabel call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_object errorObject = nullptr;
+    std::string label;
+    if (!AppExecFwk::GetStdString(env, labelObj, label)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse label");
+        errorObject = CreateStsInvalidParamError(env, "Failed to parse label.");
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+        return;
+    }
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)), nullptr);
+        return;
+    }
+    auto errCode = context->SetMissionLabel(label);
+    errorObject = CreateStsErrorByNativeErr(env, static_cast<int32_t>(errCode));
+    AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+}
+
+void StsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
+    const std::shared_ptr<AppExecFwk::Configuration> &config)
+{
+    if (env == nullptr || stsContext == nullptr || config == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "env or stsContext or config is null");
+        return;
+    }
+    ani_ref configurationRef = AppExecFwk::WrapConfiguration(env, *config);
+    ani_status status = env->Object_SetFieldByName_Ref(stsContext->aniObj, "config", configurationRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_SetFieldByName_Ref status: %{public}d", status);
+        return;
+    }
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -966,6 +1010,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(StsAbilityContext::SetAbilityInstanceInfo) },
 #endif
+            ani_native_function { "nativeSetMissionLabel",
+                "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(StsAbilityContext::OnSetMissionLabel) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -1137,7 +1184,7 @@ bool SetConfiguration(
     }
     ani_field field = nullptr;
     auto configuration = context->GetConfiguration();
-    ani_ref configurationRef = OHOS::AppExecFwk::WrapConfiguration(env, *configuration);
+    ani_ref configurationRef = AppExecFwk::WrapConfiguration(env, *configuration);
 
     ani_status status = env->Class_FindField(cls, "config", &field);
     if (status != ANI_OK) {
