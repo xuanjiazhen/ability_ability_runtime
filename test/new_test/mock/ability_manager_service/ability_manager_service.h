@@ -22,9 +22,11 @@
 #include "ability_manager_errors.h"
 #include "app_scheduler.h"
 #include "mission_list_manager_interface.h"
+#include "oh_mock_utils.h"
 #include "parameters.h"
 #include "refbase.h"
 #include "singleton.h"
+#include "task_handler_wrap.h"
 #include "user_callback.h"
 
 namespace OHOS {
@@ -32,10 +34,7 @@ namespace AAFwk {
 class AbilityManagerService : public std::enable_shared_from_this<AbilityManagerService> {
     DECLARE_DELAYED_SINGLETON(AbilityManagerService)
 public:
-    std::shared_ptr<TaskHandlerWrap> GetTaskHandler()
-    {
-        return nullptr;
-    }
+    OH_MOCK_METHOD(std::shared_ptr<TaskHandlerWrap>, AbilityManagerService, GetTaskHandler);
 
     void RemoveLauncherDeathRecipient(int32_t userId) {}
     void StartFreezingScreen() {}
