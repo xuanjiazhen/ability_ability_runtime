@@ -83,6 +83,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeOnSetRestoreEnabled(enabled: boolean): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -361,6 +363,10 @@ export default class UIAbilityContext extends Context {
 
   setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
     this.nativeSetColorMode(colorMode);
+  }
+
+  setRestoreEnabled(enabled: boolean): void {
+    return this.nativeOnSetRestoreEnabled(enabled);
   }
 
   backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {

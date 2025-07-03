@@ -75,6 +75,7 @@ public:
     static void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
     static void ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
+    static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
