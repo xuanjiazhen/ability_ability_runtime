@@ -19,6 +19,7 @@
 #include "context.h"
 
 #include "bundle_mgr_interface.h"
+#include "overlay_manager_client.h"
 
 namespace OHOS {
 namespace AppExecFwk {
