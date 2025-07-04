@@ -356,18 +356,6 @@ void BundleMgrService::MakingResidentProcData()
     bundleInfos_.emplace_back(bundleInfo1);
 }
 
-sptr<IQuickFixManager> BundleMgrService::GetQuickFixManagerProxy()
-{
-    if (quickFixManager_ == nullptr) {
-        quickFixManager_ = new (std::nothrow) QuickFixManagerHostImpl();
-        if (quickFixManager_ == nullptr) {
-            GTEST_LOG_(ERROR) << "new quick fix manager failed.";
-            return nullptr;
-        }
-    }
-    return quickFixManager_;
-}
-
 ErrCode BundleMgrService::GetBundleInfoForSelf(int32_t flags, BundleInfo &bundleInfo)
 {
     HapModuleInfo hapModuleInfo;

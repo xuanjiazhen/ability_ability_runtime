@@ -164,11 +164,6 @@ bool BundleMgrHelper::GetBundleInfos(
     return false;
 }
 
-sptr<IQuickFixManager> BundleMgrHelper::GetQuickFixManagerProxy()
-{
-    return nullptr;
-}
-
 bool BundleMgrHelper::ProcessPreload(const Want& want)
 {
     return false;

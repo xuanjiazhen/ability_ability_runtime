@@ -109,7 +109,6 @@ void BundleMgrHelperFuzztest1(bool boolParam, std::string &stringParam, int32_t 
     std::vector<BundleInfo> bundleInfos;
     bmHelper->GetBundleInfos(int32Param, bundleInfos, int32Param);
     bmHelper->GetBundleInfos(static_cast<BundleFlag>(int32Param), bundleInfos, int32Param);
-    bmHelper->GetQuickFixManagerProxy();
     bmHelper->ProcessPreload(want);
     bmHelper->GetAppControlProxy();
     bmHelper->QueryExtensionAbilityInfos(want, int32Param, int32Param, extensionInfos);

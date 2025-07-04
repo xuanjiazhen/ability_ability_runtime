@@ -528,19 +528,6 @@ bool BundleMgrHelper::GetBundleInfos(const BundleFlag flag, std::vector<BundleIn
     return bundleMgr->GetBundleInfos(flag, bundleInfos, userId);
 }
 
-sptr<IQuickFixManager> BundleMgrHelper::GetQuickFixManagerProxy()
-{
-    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
-    auto bundleMgr = Connect();
-    if (bundleMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
-        return nullptr;
-    }
-
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    return bundleMgr->GetQuickFixManagerProxy();
-}
-
 bool BundleMgrHelper::ProcessPreload(const Want &want)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
