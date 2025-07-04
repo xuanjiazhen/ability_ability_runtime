@@ -6724,5 +6724,38 @@ HWTEST_F(UIAbilityLifecycleManagerTest, EnableListForSCBRecovery_001, TestSize.L
     EXPECT_TRUE(mgr->isSCBRecovery_);
     EXPECT_TRUE(mgr->coldStartInSCBRecovery_.empty());
 }
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_StartSpecifiedProcessRequest_001
+ * @tc.desc: StartSpecifiedProcessRequest, test isolationProcess mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSpecifiedProcessRequest_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    auto ret = uiAbilityLifecycleManager->StartSpecifiedProcessRequest(abilityRequest);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_StartSpecifiedProcessRequest_002
+ * @tc.desc: StartSpecifiedProcessRequest, test isolationProcess mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSpecifiedProcessRequest_002, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AppUtils::GetInstance().onNewProcessEnableList_.isLoaded = true;
+    AppUtils::GetInstance().onNewProcessEnableList_.value.emplace_back("com.test.demo");
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
+    abilityRequest.want.SetParam(Want::CREATE_APP_INSTANCE_KEY, false);
+    auto ret = uiAbilityLifecycleManager->StartSpecifiedProcessRequest(abilityRequest);
+    AppUtils::GetInstance().onNewProcessEnableList_.isLoaded = false;
+    EXPECT_EQ(ret, ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
