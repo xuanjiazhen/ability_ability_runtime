@@ -2175,6 +2175,234 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     return ret;
 }
 
+ErrCode AbilityManagerService::StartAbilities(const std::vector<AAFwk::Want> &wantList,
+    const std::string &requestKey, const sptr<IRemoteObject> &callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_DEFAULT(__PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call StartAbilities");
+    std::vector<AbilityRequest> abilityRequestList;
+    int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
+
+    if (!StartAbilityUtils::IsSupportStartAbilities()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities is not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (callerToken == nullptr || !VerificationAllToken(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities %{public}s verificationAllToken failed", __func__);
+        return ERR_INVALID_CALLER;
+    }
+
+    for (const Want &want : wantList) {
+        int32_t ret = StartAbilitiesHandleWant(abilityRequestList, want, callerToken);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities want process block");
+            return ret;
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities ready to NotifySCBToStartUIAbilities");
+    for (AbilityRequest &abilityRequest : abilityRequestList) {
+        auto abilityInfo = abilityRequest.abilityInfo;
+        ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
+        abilityRequest.userId = oriValidUserId;
+        abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList);
+}
+
+int32_t AbilityManagerService::StartAbilitiesHandleWant(std::vector<AbilityRequest> &abilityRequestList,
+    const Want &want, const sptr<IRemoteObject> &callerToken)
+{
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int32_t validUserId = GetValidUserId(userId);
+    uint32_t specifyTokenId = 0;
+    int32_t requestCode = DEFAULT_INVAL_VALUE;
+
+    AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
+
+    //intent openlink do not RemoveInsightIntent action
+    if (!want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) {
+        InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
+    }
+
+#ifdef SUPPORT_SCREEN
+    DmsUtil::GetInstance().UpdateFlagForCollaboration(want);
+#endif
+
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support StartPlugin");
+        return START_ABILITIES_NOT_SUPPORT_START_PLUGIN;
+    }
+
+    AbilityUtil::RemoveWindowModeKey(const_cast<Want &>(want));
+
+    if (want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support CREATE_APP_INSTANCE_KEY");
+        return START_ABILITIES_NOT_SUPPORT_CREATE_APP_INSTANCE_KEY;
+    }
+
+    int32_t ret = StartAbilitiesCheckDlp(want, callerToken);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t appIndex = 0;
+    ret = StartAbilitiesProcessAppIndex(appIndex, const_cast<Want &>(want), callerToken);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(
+        const_cast<Want &>(want), validUserId, appIndex, callerToken, false);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities CheckMultiInstanceAndAppClone failed");
+        return ret;
+    }
+
+    StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
+
+    if (CheckIfOperateRemote(want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support StartRemoteAbility");
+        return START_ABILITIES_NOT_SUPPORT_OPERATE_REMOTE;
+    }
+
+    if (!JudgeMultiUserConcurrency(validUserId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities multi-user non-concurrent unsatisfied");
+        return START_ABILITIES_NOT_SUPPORT_CROSS_USER;
+    }
+#ifdef SUPPORT_SCREEN
+    if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support implicit start");
+        return START_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    }
+#endif
+    AbilityRequest abilityRequest;
+    auto result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error");
+        return result;
+    }
+
+    UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+
+    auto abilityInfo = abilityRequest.abilityInfo;
+    if (abilityInfo.type != AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities only support UIAbility");
+        return START_ABILITIES_ONLY_SUPPORT_UI_ABILITY;
+    }
+
+    result = CheckStaticCfgPermission(abilityRequest, false,
+        abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), false, false, false);
+    if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartAbilities checkStaticCfgPermission error, result:%{public}d", result);
+        return ERR_STATIC_CFG_PERMISSION;
+    }
+    result = CheckCallPermission(want, abilityInfo, abilityRequest, false,
+        false, specifyTokenId, callerBundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartAbilities checkCallPermission error, result:%{public}d", result);
+        return result;
+    }
+
+    result = StartAbilitiesInterceptorCheck(want, abilityRequest, callerToken, appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    Want newWant = abilityRequest.want;
+    bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
+    newWant.RemoveParam("queryWantFromErms");
+
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
+
+    if (!IsAbilityControllerStart(want, abilityInfo.bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartAbilities isAbilityControllerStart failed:%{public}s", abilityInfo.bundleName.c_str());
+        return ERR_WOULD_BLOCK;
+    }
+    abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
+    abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
+    abilityRequestList.emplace_back(abilityRequest);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::StartAbilitiesCheckDlp(const Want &want, const sptr<IRemoteObject> &callerToken)
+{
+#ifdef WITH_DLP
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    if (AbilityUtil::HandleDlpApp(const_cast<Want &>(want))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities not support Dlp");
+        return START_ABILITIES_NOT_SUPPORT_DLP;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "CHECK_DLP");
+    if (!DlpUtils::OtherAppsAccessDlpCheck(callerToken, want) ||
+        VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED ||
+        !DlpUtils::DlpAccessOtherAppsCheck(callerToken, want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "StartAbilities Dlp %{public}s: permission verification failed", __func__);
+        return CHECK_PERMISSION_FAILED;
+    }
+#endif // WITH_DLP
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::StartAbilitiesProcessAppIndex(int32_t &appIndex, Want &want,
+    const sptr<IRemoteObject> &callerToken)
+{
+    SetTargetCloneIndexInSameBundle(want, callerToken);
+    if (!want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    }
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities GetAppIndex failed.");
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::StartAbilitiesInterceptorCheck(const Want &want, AbilityRequest &abilityRequest,
+    const sptr<IRemoteObject> &callerToken,  int32_t appIndex)
+{
+    int32_t requestCode = DEFAULT_INVAL_VALUE;
+    Want newWant = abilityRequest.want;
+    auto abilityInfo = abilityRequest.abilityInfo;
+    auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
+    AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, GetUserId(),
+        true, nullptr, shouldBlockFunc);
+    int32_t result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
+        interceptorExecuter_->DoProcess(interceptorParam);
+    if (result == ERR_CROWDTEST_EXPIRED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities ERR_CROWDTEST_EXPIRED");
+        return result;
+    }
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities interceptorExecuter_ null or DoProcess error");
+        return START_ABILITIES_INTERCEPTOR_CHECK_FAILED;
+    }
+
+    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, requestCode, GetUserId(),
+        true, callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo), false, appIndex);
+    result = afterCheckExecuter_ == nullptr ? ERR_INVALID_VALUE :
+        afterCheckExecuter_->DoProcess(afterCheckParam);
+    if (result == ERR_CROWDTEST_EXPIRED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities ERR_CROWDTEST_EXPIRED");
+        return result;
+    }
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities afterCheckExecuter_ null or DoProcess error");
+        return START_ABILITIES_INTERCEPTOR_CHECK_FAILED;
+    }
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::RequestDialogService(const Want &want, const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

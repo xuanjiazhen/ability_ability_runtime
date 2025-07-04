@@ -70,6 +70,7 @@ constexpr int32_t MAX_FIND_UIEXTENSION_CALLER_TIMES = 10;
 constexpr int32_t START_UI_ABILITY_PER_SECOND_UPPER_LIMIT = 20;
 constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
+constexpr int32_t REQUEST_LIST_ID_INIT = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 
@@ -642,6 +643,140 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
     sessionInfo->want.RemoveAllFd();
     return ret;
+}
+
+int UIAbilityLifecycleManager::NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilities Call NotifySCBToStartUIAbilities");
+    for (AbilityRequest &abilityRequest : abilityRequestList) {
+        if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
+            return ERR_INVALID_VALUE;
+        }
+        abilityRequest.want.SetParam(IS_SHELL_CALL, AAFwk::PermissionVerification::GetInstance()->IsShellCall());
+        std::string callerKey = std::to_string(IPCSkeleton::GetCallingPid()) + ":" +
+            std::to_string(IPCSkeleton::GetCallingUid());
+        bool isCallerKilling = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->IsCallerKilling(callerKey));
+        if (isCallerKilling) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities caller is killing");
+            return ERR_INVALID_VALUE;
+        }
+        abilityRequest.want.SetParam(Want::PARAMS_REAL_CALLER_KEY, callerKey);
+    }
+    int32_t requestListId;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        requestListId = GetRequestId();
+    }
+    std::shared_ptr<AbilitiesRequest> abilitiesRequest = nullptr;       
+    // std::shared_ptr<AbilitiesRequest>
+    abilitiesRequest = std::make_shared<AbilitiesRequest>(abilityRequestList);
+    // 持锁修改abilitiesRequestMap_
+    {
+        std::lock_guard<ffrt::mutex> guard2(startAbilitiesProcessLock_);
+        abilitiesRequestMap_.emplace(requestListId, abilitiesRequest);
+    }
+    // 开始处理分支场景
+    for (AbilityRequest &abilityRequest : abilityRequestList) {
+        if (IsStartSpecifiedProcessRequest(abilityRequest)) {
+            abilitiesRequestMap_.erase(requestListId);
+            return ERR_CAPABILITY_NOT_SUPPORT;
+        }
+        const auto &abilityInfo = abilityRequest.abilityInfo;
+        auto requestId = GetRequestId();
+        auto isSpecified = (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED);
+        if (isSpecified) {
+            abilitiesRequestMap_.erase(requestListId);
+            return ERR_CAPABILITY_NOT_SUPPORT;
+        }
+        auto sessionInfo = CreateSessionInfo(abilityRequest);
+        sessionInfo->requestCode = abilityRequest.requestCode;
+        sessionInfo->requestId = requestId;
+        // isCreating 一定是 false 下方场景确认一下
+        sessionInfo->persistentId = GetPersistentIdByAbilityRequest(abilityRequest, sessionInfo->reuse);
+        sessionInfo->userId = userId_;
+        sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
+            sessionInfo->persistentId, userId_, requestId);
+        // 将初始化完成的sessionInfo插入对应的abilitiesRequest中
+        abilitiesRequest->UnsortedSessionInfoList.emplace_back(sessionInfo);
+    }
+    // 判断是否需要等待Specified
+    if (!abilitiesRequest->waitingRequestIdList.empty()) {
+        // 新增错误码 返回此错误码表示进入等待
+        return START_ABILITIES_WAITTING_SPECIFIED_CODE;
+    }
+    // 进入这个分支，SessionInfoList是有序的，不用重排
+    std::string errMsg;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilities normal start. sessionInfoList size: %{public}zu",
+        abilitiesRequest->UnsortedSessionInfoList.size());
+    // sptr<SessionInfo> sessionInfo0 = &sessionInfoList[0];
+    int ret = BatchNotifySCBPendingActivation(
+        abilitiesRequest->UnsortedSessionInfoList, abilityRequestList, errMsg);
+
+    for (auto sessionInfo : abilitiesRequest->UnsortedSessionInfoList) {
+        sessionInfo->want.RemoveAllFd();
+    }
+    abilitiesRequestMap_.erase(requestListId);
+    return ret;
+}
+
+int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivation(std::vector<sptr<SessionInfo>> &sessionInfoList,
+    const std::vector<AbilityRequest> &abilityRequestList, std::string &errMsg)
+{
+    // process sessionInfoList
+    for (auto sessionInfo : sessionInfoList) {
+        if (sessionInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo is nullptr");
+            errMsg = "sessionInfo is nullptr";
+            return ERR_INVALID_VALUE;
+        }
+        bool hasStartWindowOption = (sessionInfo->startWindowOption != nullptr);
+        bool hasStartWindow = hasStartWindowOption ? sessionInfo->startWindowOption->hasStartWindow : false;
+        std::string backgroundColor =
+            hasStartWindowOption ? sessionInfo->startWindowOption->startWindowBackgroundColor : "";
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, "
+            "hasStartWindow:%{public}d, backgroundColor:%{public}s",
+            (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
+            hasStartWindow, backgroundColor.c_str());
+    }
+    // 获取caller信息
+    std::shared_ptr<AbilityRecord> callerAbilityRecord;
+    callerAbilityRecord = GetAbilityRecordByToken(abilityRequestList[0].callerToken);
+    if (callerAbilityRecord == nullptr || callerAbilityRecord->GetRestartAppFlag())
+    {
+        // 使用rootSession启动 callerRecord存在 callerSession不存在
+        auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+        if (tmpSceneSession == nullptr) {
+            errMsg = "null tmpSceneSession, scb does not exist";
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        for (auto sessionInfo : sessionInfoList) {
+            sessionInfo->canStartAbilityFromBackground = true;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "scb call, StartAbilities NotifySCBPendingActivation for rootSceneSession");
+        return static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfoList[0]));
+    }
+    // 处理caller
+    auto callerSessionInfo = callerAbilityRecord->GetSessionInfo();
+    CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
+    auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
+    for (auto sessionInfo : sessionInfoList) {
+        CheckCallerFromBackground(callerAbilityRecord, sessionInfo);
+    }
+    for (auto abilityRequest : abilityRequestList) {
+        auto requestId = abilityRequest.want.GetStringParam(KEY_REQUEST_ID);
+        if (!requestId.empty()) {
+            callerAbilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
+        }
+        const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartAbilities BatchNotifySCBPendingActivation for callerSession");
+    return static_cast<int>(callerSession->PendingSessionActivation(sessionInfoList[0]));
 }
 
 int32_t UIAbilityLifecycleManager::NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest)

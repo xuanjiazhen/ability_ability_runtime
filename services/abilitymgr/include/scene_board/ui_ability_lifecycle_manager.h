@@ -46,11 +46,20 @@ struct SpecifiedRequest {
     SpecifiedProcessState specifiedProcessState = SpecifiedProcessState::STATE_NONE;
     int32_t requestId = 0;
     int32_t persistentId = 0;
+    int32_t requestListId = -1;
     uint32_t sceneFlag = 0;
     uint32_t callingTokenId = 0;
     AbilityRequest abilityRequest;
 
     SpecifiedRequest(int32_t requestId, AbilityRequest request) : requestId(requestId), abilityRequest(request) {}
+};
+
+struct AbilitiesRequest {
+    std::vector<int32_t> waitingRequestIdList;
+    std::vector<AbilityRequest> abilityRequestList;
+    std::vector<sptr<SessionInfo>> UnsortedSessionInfoList;
+
+    AbilitiesRequest(std::vector<AbilityRequest> abilityRequestList) : abilityRequestList(abilityRequestList) {}
 };
 
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {
@@ -155,6 +164,7 @@ public:
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
+    int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList);
 
     int NotifySCBToPreStartUIAbility(const AbilityRequest &abilityRequest,
         sptr<SessionInfo> &sessionInfo);
@@ -431,6 +441,8 @@ private:
     sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest) const;
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
         const AbilityRequest &abilityRequest, std::string &errMsg);
+    int32_t BatchNotifySCBPendingActivation(std::vector<sptr<SessionInfo>> &sessionInfoList,
+        const std::vector<AbilityRequest> &abilityRequestList, std::string &errMsg);
     bool IsHookModule(const AbilityRequest &abilityRequest) const;
     int ResolveAbility(const std::shared_ptr<AbilityRecord> &targetAbility, const AbilityRequest &abilityRequest) const;
     std::vector<std::shared_ptr<AbilityRecord>> GetAbilityRecordsByNameInner(const AppExecFwk::ElementName &element);
@@ -545,6 +557,8 @@ private:
     std::vector<std::shared_ptr<PrepareTerminateByPidRecord>> prepareTerminateByPidRecords_;
     std::unordered_map<int32_t, std::shared_ptr<AbilityRecord>> hookSpecifiedMap_;
 
+    ffrt::mutex startAbilitiesProcessLock_;
+    std::map<int32_t, std::shared_ptr<AbilitiesRequest>> abilitiesRequestMap_;
     std::mutex startingPidsMutex_;
     std::vector<pid_t> startingPids_;
 };

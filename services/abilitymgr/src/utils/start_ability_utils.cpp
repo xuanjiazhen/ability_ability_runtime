@@ -395,5 +395,15 @@ bool StartAbilityUtils::IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &c
     }
     return false;
 }
+
+bool StartAbilityUtils::IsSupportStartAbilities()
+{
+    if (!AppUtils::GetInstance().IsSupportStartAbilities() ||
+        !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilities is not supported");
+        return false;
+    }
+    return true;
+}
 }
 }
