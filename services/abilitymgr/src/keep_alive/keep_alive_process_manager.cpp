@@ -316,7 +316,7 @@ void KeepAliveProcessManager::OnAppStateChanged(const AppInfo &info)
         IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveDkv(bundleName, localEnable, uid));
     }
     if (localEnableForAppservice) {
-        IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, localEnable, uid));
+        IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, localEnableForAppservice, uid));
     }
 }
 
