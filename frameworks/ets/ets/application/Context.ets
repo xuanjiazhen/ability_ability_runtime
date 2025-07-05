@@ -27,7 +27,6 @@ export class Context extends BaseContext {
     static {
         loadLibrary("context_ani");
     }
-    area: contextConstant.AreaMode = contextConstant.AreaMode.EL1;
     filesDir: string = "";
     tempDir: string = "";
     preferencesDir: string = "";
@@ -47,6 +46,8 @@ export class Context extends BaseContext {
     public native getApplicationContextSync(): ApplicationContext;
     public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
     public native nativeGetGroupDir(dataGroupID: string, callback: AsyncCallbackWrapper<string>): void;
+    private native switchArea(mode: contextConstant.AreaMode): void;
+    private native getArea(): contextConstant.AreaMode;
 
     getApplicationContext(): ApplicationContext {
         return this.getApplicationContextSync();
@@ -76,5 +77,13 @@ export class Context extends BaseContext {
         this.nativeGetGroupDir(dataGroupID, myCall);
       });
     });
+  }
+
+  set area(mode: contextConstant.AreaMode) {
+    this.switchArea(mode);
+  }
+
+  get area(): contextConstant.AreaMode {
+    return this.getArea();
   }
 }
