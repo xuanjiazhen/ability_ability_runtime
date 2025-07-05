@@ -589,7 +589,7 @@ int AbilityConnectManager::PreloadUIExtensionAbilityInner(const AbilityRequest &
 int AbilityConnectManager::UnloadUIExtensionAbility(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
     std::string &hostBundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "UnloadUIExtensionAbility call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UnloadUIExtensionAbility");
     //Get preLoadUIExtensionInfo
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     auto preLoadUIExtensionInfo = std::make_tuple(abilityRecord->GetWant().GetElement().GetAbilityName(),
@@ -718,7 +718,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<AbilityRecord> &targetService,
     std::shared_ptr<ConnectionRecord> &connectRecord)
 {
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "HandleActiveAbility");
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "HandleActiveAbility");
     if (targetService == nullptr) {
         TAG_LOGW(AAFwkTag::SERVICE_EXT, "null targetService");
         return;
@@ -1293,7 +1293,7 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
             AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "don't terminate uiservice");
         } else {
-            TAG_LOGD(AAFwkTag::SERVICE_EXT, "need terminate or cache");
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "need terminate or cache");
             TerminateOrCacheAbility(abilityRecord);
         }
     }
