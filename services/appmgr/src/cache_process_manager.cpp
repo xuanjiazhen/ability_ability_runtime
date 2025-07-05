@@ -319,7 +319,7 @@ void CacheProcessManager::CheckAndSetProcessCacheEnable(const std::shared_ptr<Ap
 bool CacheProcessManager::IsAppSupportProcessCache(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
-        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed");
+        TAG_LOGI(AAFwkTag::APPMGR, "precheck failed1");
         return false;
     }
     if (appRecord->IsAttachedToStatusBar()) {
