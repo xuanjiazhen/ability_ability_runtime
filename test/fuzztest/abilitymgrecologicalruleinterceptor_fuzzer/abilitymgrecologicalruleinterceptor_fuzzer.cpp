@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,12 +79,15 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     const std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;
     AbilityCallerInfo callerInfo;
     int32_t bundleType = static_cast<int32_t>(GetU32Data(data));
+    AtomicServiceStartupRule rule;
+    sptr<Want> replaceWant;
     executer->DoProcess(param);
     executer->DoProcess(want, userId);
     executer->GetEcologicalTargetInfo(want, abilityInfo, callerInfo);
     executer->GetEcologicalCallerInfo(want, callerInfo, userId, token);
     executer->InitErmsCallerInfo(want, abilityInfo, callerInfo, userId, token);
     executer->GetAppTypeByBundleType(bundleType);
+    executer->QueryAtomicServiceStartupRule(want, token, userId, rule, replaceWant);
     return true;
 }
 }  // namespace OHOS
