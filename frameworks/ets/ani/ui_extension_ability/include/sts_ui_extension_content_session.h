@@ -18,8 +18,9 @@
 
 #include "session_info.h"
 #include "start_options.h"
-#include "window.h"
 #include "sts_runtime.h"
+#include "ui_extension_context.h"
+#include "window.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -70,14 +71,14 @@ private:
     class CallbackWrapper;
 public:
     StsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo,
-        sptr<Rosen::Window> uiWindow, std::weak_ptr<AbilityRuntime::Context>& context,
-        std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners);
+        sptr<Rosen::Window> uiWindow, std::weak_ptr<UIExtensionContext> context,
+        std::shared_ptr<StsAbilityResultListeners> abilityResultListeners);
     StsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo,
         sptr<Rosen::Window> uiWindow);
     virtual ~StsUIExtensionContentSession() = default;
     static ani_object CreateStsUIExtensionContentSession(ani_env* env,
         sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-        std::weak_ptr<AbilityRuntime::Context> context,
+        std::weak_ptr<UIExtensionContext> context,
         std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners,
         std::shared_ptr<StsUIExtensionContentSession> contentSessionPtr);
     void SendData(ani_env* env, ani_object object, ani_object data);
@@ -91,6 +92,7 @@ public:
     void SetReceiveDataForResultCallback(ani_env* env, ani_object object);
     static void CallReceiveDataCallbackForResult(ani_vm* vm, ani_ref callbackRef,
         const AAFwk::WantParams& wantParams, AAFwk::WantParams& retWantParams);
+    ani_object StartAbilityByTypeSync(ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
 
 private:
     bool SetReceiveDataCallbackUnRegist(ani_env* env, ani_object functionObj);
@@ -98,7 +100,7 @@ private:
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
-    std::weak_ptr<AbilityRuntime::Context> context_;
+    std::weak_ptr<UIExtensionContext> context_;
     ani_ref receiveDataCallback_ = nullptr;
     bool isRegistered_ = false;
     ani_ref receiveDataForResultCallback_ = nullptr;

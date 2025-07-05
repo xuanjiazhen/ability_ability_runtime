@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1026,8 +1026,8 @@ Ace::UIContent* AbilityContextImpl::GetUIContent()
     return abilityCallback->GetUIContent();
 }
 
-ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
-    AAFwk::WantParams &wantParams, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks)
+ErrCode AbilityContextImpl::StartAbilityByType(
+    const std::string &type, AAFwk::WantParams &wantParams, std::shared_ptr<UIExtensionCallback> uiExtensionCallback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "call");
     auto uiContent = GetUIContent();
@@ -1044,14 +1044,18 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
         wantParams.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
     Ace::ModalUIExtensionCallbacks callback;
-    callback.onError = [uiExtensionCallbacks](int32_t arg, const std::string &str1, const std::string &str2) {
-        uiExtensionCallbacks->OnError(arg);
+    if (uiExtensionCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null uiExtensionCallback");
+        return ERR_INVALID_VALUE;
+    }
+    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1, const std::string &str2) {
+        uiExtensionCallback->OnError(arg);
     };
-    callback.onRelease = [uiExtensionCallbacks](int32_t arg) {
-        uiExtensionCallbacks->OnRelease(arg);
+    callback.onRelease = [uiExtensionCallback](int32_t arg) {
+        uiExtensionCallback->OnRelease(arg);
     };
-    callback.onResult = [uiExtensionCallbacks](int32_t arg1, const OHOS::AAFwk::Want arg2) {
-        uiExtensionCallbacks->OnResult(arg1, arg2);
+    callback.onResult = [uiExtensionCallback](int32_t arg1, const OHOS::AAFwk::Want arg2) {
+        uiExtensionCallback->OnResult(arg1, arg2);
     };
 
     Ace::ModalUIExtensionConfig config;
@@ -1060,8 +1064,8 @@ ErrCode AbilityContextImpl::StartAbilityByType(const std::string &type,
         TAG_LOGE(AAFwkTag::CONTEXT, "createModalUIExtension failed");
         return ERR_INVALID_VALUE;
     }
-    uiExtensionCallbacks->SetUIContent(uiContent);
-    uiExtensionCallbacks->SetSessionId(sessionId);
+    uiExtensionCallback->SetUIContent(uiContent);
+    uiExtensionCallback->SetSessionId(sessionId);
     return ERR_OK;
 }
 

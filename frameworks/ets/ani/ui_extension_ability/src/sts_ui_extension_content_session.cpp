@@ -12,32 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <array>
+
 #include "sts_ui_extension_content_session.h"
-#include "sts_ui_extension_context.h"
+
+#include <array>
+
+#include "ability_manager_client.h"
+#include "ani_common_util.h"
+#include "ani_common_want.h"
+#include "ani_extension_window.h"
+#include "ets_ui_extension_callback.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
+#include "remote_object_wrapper.h"
+#include "sts_error_utils.h"
+#include "sts_ui_extension_context.h"
+#include "tokenid_kit.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"
 #endif // SUPPORT_SCREEN
 #include "want.h"
-#include "window.h"
-#include "ability_manager_client.h"
-
-#include "ani_common_want.h"
-#include "ani_common_util.h"
-#include "ani_extension_window.h"
-#include "hilog_tag_wrapper.h"
-#include "ipc_skeleton.h"
-#include "remote_object_wrapper.h"
-#include "tokenid_kit.h"
 #include "want_params_wrapper.h"
-#include "sts_error_utils.h"
+#include "window.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* UI_SESSION_CLASS_NAME =
     "L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;";
-}
+} // namespace
 
 StsUIExtensionContentSession* GetStsContentSession(ani_env* env, ani_object obj)
 {
@@ -150,10 +153,20 @@ ani_object NativeGetUIExtensionHostWindowProxy(ani_env* env, ani_object obj)
     return object;
 }
 
-StsUIExtensionContentSession::StsUIExtensionContentSession(
-    sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-    std::weak_ptr<AbilityRuntime::Context> &context,
-    std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners)
+static ani_object NativeStartAbilityByTypeSync(
+    ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback)
+{
+    auto stsContentSession = GetStsContentSession(env, obj);
+    if (stsContentSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null stsContentSession");
+        return nullptr;
+    }
+    return stsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
+}
+
+StsUIExtensionContentSession::StsUIExtensionContentSession(sptr<AAFwk::SessionInfo> sessionInfo,
+    sptr<Rosen::Window> uiWindow, std::weak_ptr<UIExtensionContext> context,
+    std::shared_ptr<StsAbilityResultListeners> abilityResultListeners)
     : sessionInfo_(sessionInfo), uiWindow_(uiWindow), context_(context)
 {
     listener_ = std::make_shared<StsUISessionAbilityResultListener>();
@@ -171,7 +184,7 @@ StsUIExtensionContentSession::StsUIExtensionContentSession(sptr<AAFwk::SessionIn
 
 ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_env* env,
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
-    std::weak_ptr<AbilityRuntime::Context> context,
+    std::weak_ptr<UIExtensionContext> context,
     std::shared_ptr<StsAbilityResultListeners>& abilityResultListeners,
     std::shared_ptr<StsUIExtensionContentSession> contentSessionPtr)
 {
@@ -206,7 +219,9 @@ ani_object StsUIExtensionContentSession::CreateStsUIExtensionContentSession(ani_
         ani_native_function {"nativeSetReceiveDataCallback", nullptr,
             reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataCallback)},
         ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
-            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataForResultCallback)}
+            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeSetReceiveDataForResultCallback)},
+        ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
+            reinterpret_cast<void *>(OHOS::AbilityRuntime::NativeStartAbilityByTypeSync) }
     };
     if ((status = env->Class_BindNativeMethods(cls, methods.data(), methods.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
@@ -563,6 +578,52 @@ void StsUIExtensionContentSession::CallReceiveDataCallbackForResult(ani_vm* vm, 
         TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapWantParams failed");
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "CallReceiveDataCallbackForResult end");
+}
+
+ani_object StsUIExtensionContentSession::StartAbilityByTypeSync(
+    ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartAbilityByTypeSync call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return nullptr;
+    }
+    ani_object aniObject = CreateStsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    std::string type;
+    if (!AppExecFwk::GetStdString(env, aniType, type)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "parse type failed");
+        ThrowStsInvalidParamError(env, "Parameter error: Failed to parse type! Type must be a string.");
+        return aniObject;
+    }
+
+    AAFwk::WantParams wantParam;
+    if (!AppExecFwk::UnwrapWantParams(env, aniWantParam, wantParam)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "parse wantParam failed");
+        ThrowStsInvalidParamError(env, "Parameter error: Failed to parse wantParam, must be a Record<string, Object>.");
+        return aniObject;
+    }
+
+    ani_vm *vm = nullptr;
+    if (env->GetVM(&vm) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "get vm failed");
+        ThrowStsInvalidParamError(env, "Get vm failed.");
+        return aniObject;
+    }
+    ErrCode innerErrCode = ERR_OK;
+    std::shared_ptr<EtsUIExtensionCallback> callback = std::make_shared<EtsUIExtensionCallback>(vm);
+    callback->SetEtsCallbackObject(startCallback);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return CreateStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
+#ifdef SUPPORT_SCREEN
+    innerErrCode = context->StartAbilityByType(type, wantParam, callback);
+#endif
+    if (innerErrCode != ERR_OK) {
+        return CreateStsErrorByNativeErr(env, innerErrCode);
+    }
+    return aniObject;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
