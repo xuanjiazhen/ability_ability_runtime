@@ -88,28 +88,6 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestHasHigherPriorityTask_001, TestSize
 }
 
 /**
- * @tc.name: CjEnvironmentTestInitCJChipSDKNS_001
- * @tc.desc: CjEnvironmentTest test for InitCJChipSDKNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJChipSDKNS_001, TestSize.Level2)
-{
-    CJEnvironment::GetInstance()->InitCJChipSDKNS("path/to/hap");
-    EXPECT_NE(CJEnvironment::GetInstance()->cjAppNSName, nullptr);
-}
-
-/**
- * @tc.name: CjEnvironmentTestInitCJAppNS_001
- * @tc.desc: CjEnvironmentTest test for InitCJAppNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJAppNS_001, TestSize.Level2)
-{
-    CJEnvironment::GetInstance()->InitCJAppNS("path/to/hap");
-    EXPECT_NE(CJEnvironment::GetInstance()->cjAppNSName, nullptr);
-}
-
-/**
  * @tc.name: CjEnvironmentTestInitCJSDKNS_001
  * @tc.desc: CjEnvironmentTest test for InitCJSDKNS.
  * @tc.type: FUNC
@@ -117,18 +95,7 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJAppNS_001, TestSize.Level2)
 HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJSDKNS_001, TestSize.Level2)
 {
     CJEnvironment::GetInstance()->InitCJSDKNS("path/to/hap");
-    EXPECT_NE(CJEnvironment::GetInstance()->cjAppNSName, nullptr);
-}
-
-/**
- * @tc.name: CjEnvironmentTestInitCJSysNS_001
- * @tc.desc: CjEnvironmentTest test for InitCJSysNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJSysNS_001, TestSize.Level2)
-{
-    CJEnvironment::GetInstance()->InitCJSysNS("path/to/hap");
-    EXPECT_NE(CJEnvironment::GetInstance()->cjAppNSName, nullptr);
+    EXPECT_NE(CJEnvironment::GetInstance()->cjSDKNSName, nullptr);
 }
 
 /**
@@ -292,7 +259,17 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestSanitizerKindRuntimeVersion_001, Te
     SanitizerKind kind = SanitizerKind::ASAN;
     cjEnv->setSanitizerKindRuntimeVersion(kind);
     EXPECT_NE(OHOS::CJEnvironment::sanitizerKind, SanitizerKind::NONE);
-    kind = SanitizerKind::NONE;
+}
+
+/**
+ * @tc.name: SanitizerKindRuntimeVersion_002
+ * @tc.desc: Test SanitizerKindRuntimeVersion.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestSanitizerKindRuntimeVersion_002, TestSize.Level2)
+{
+    CJEnvMethods* cjEnv = CJEnvironment::CreateEnvMethods();
+    SanitizerKind kind = SanitizerKind::NONE;
     cjEnv->setSanitizerKindRuntimeVersion(kind);
     EXPECT_EQ(OHOS::CJEnvironment::sanitizerKind, SanitizerKind::NONE);
 }
@@ -307,7 +284,89 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestDetectAppNSMode_001, TestSize.Level
     SanitizerKind kind = SanitizerKind::ASAN;
     OHOS::CJEnvironment::SetSanitizerKindRuntimeVersion(kind);
     EXPECT_EQ(OHOS::CJEnvironment::DetectAppNSMode(), OHOS::CJEnvironment::NSMode::APP);
-    kind = SanitizerKind::NONE;
+}
+
+/**
+ * @tc.name: CjEnvironmentTestDetectAppNSMode_002
+ * @tc.desc: Test DetectAppNSMode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestDetectAppNSMode_002, TestSize.Level2)
+{
+    SanitizerKind kind = SanitizerKind::NONE;
     OHOS::CJEnvironment::SetSanitizerKindRuntimeVersion(kind);
     EXPECT_EQ(OHOS::CJEnvironment::DetectAppNSMode(), OHOS::CJEnvironment::NSMode::SINK);
+}
+
+/**
+ * @tc.name: CjEnvironmentTestDynamicInheritNamespace_001
+ * @tc.desc: Test DynamicInheritNamespace.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestDynamicInheritNamespace_001, TestSize.Level2)
+{
+    Dl_namespace ns;
+    int res = dlns_get("cj_test_namespace", &ns);
+    EXPECT_NE(res, 0);
+    DynamicInheritNamespace(&ns, "cj_test_namespace_2", "allow_all_shared_libs");
+}
+
+/**
+ * @tc.name: CjEnvironmentTestDynamicInheritNamespace_002
+ * @tc.desc: Test DynamicInheritNamespace.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestDynamicInheritNamespace_002, TestSize.Level2)
+{
+    Dl_namespace ns;
+    int res = dlns_get("cj_test_namespace", &ns);
+    EXPECT_NE(res, 0);
+    DynamicInheritNamespace(&ns, "default", "allow_all_shared_libs");
+}
+
+/**
+ * @tc.name: CjEnvironmentTestDynamicInheritNamespace_003
+ * @tc.desc: Test DynamicInheritNamespace.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestDynamicInheritNamespace_003, TestSize.Level2)
+{
+    Dl_namespace ns;
+    int res = dlns_get("cj_test_namespace", &ns);
+    EXPECT_NE(res, 0);
+    DynamicInheritNamespace(&ns, nullptr, nullptr);
+}
+
+/**
+ * @tc.name: CjEnvironmentTestInitCJExtensionSDKNS_001
+ * @tc.desc: CjEnvironmentTest test for InitCJExtensionSDKNS.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJExtensionSDKNS_001, TestSize.Level2)
+{
+    CJEnvironment::GetInstance()->InitCJExtensionSDKNS("path/to/hap");
+    EXPECT_NE(CJEnvironment::GetInstance()->cjExtensionSDKNSName, nullptr);
+}
+
+/**
+ * @tc.name: CjEnvironmentTestSetAppPath_001
+ * @tc.desc: CjEnvironmentTest test for SetAppPath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestSetAppPath_001, TestSize.Level2)
+{
+    CJEnvironment::SetAppPath("path/to/hap");
+    EXPECT_NE(CJEnvironment::GetInstance()->cjNewAppNSName, nullptr);
+}
+
+/**
+ * @tc.name: CjEnvironmentTestSetAppPath_002
+ * @tc.desc: CjEnvironmentTest test for SetAppPath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CjEnvironmentTestSetAppPath_002, TestSize.Level2)
+{
+    CJEnvironment::SetSanitizerKindRuntimeVersion(OHOS::SanitizerKind::ASAN);
+    CJEnvironment::SetAppPath("path/to/hap");
+    EXPECT_NE(CJEnvironment::GetInstance()->cjNewAppNSName, nullptr);
 }

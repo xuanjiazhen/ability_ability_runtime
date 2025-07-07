@@ -229,15 +229,13 @@ bool HasHigherPriorityTaskWrapper()
 CJEnvironment* instance_ = nullptr;
 } // namespace
 
-const char *CJEnvironment::cjAppNSName = "cj_app";
 const char *CJEnvironment::cjSDKNSName = "cj_app_sdk";
-const char *CJEnvironment::cjSysNSName = "cj_system";
 const char *CJEnvironment::cjChipSDKNSName = "cj_chipsdk";
 const char *CJEnvironment::cjNewAppNSName = "moduleNs_default";
 const char *CJEnvironment::cjNewSDKNSName = "cj_rom_sdk";
 const char *CJEnvironment::cjNewSysNSName = "default";
-const char *CJEnvironment::cjNDKNSName = "ndk";
 const char *CJEnvironment::cjCompatibilitySDKNSName = "cj_compatibility_sdk";
+const char *CJEnvironment::cjExtensionSDKNSName = "cj_extension_sdk";
 std::string CJEnvironment::appVersion = "5.1.0.0";
 const uint32_t CJEnvironment::majorVersion = 5;
 const uint32_t CJEnvironment::minorVersion = 1;
@@ -493,22 +491,6 @@ bool CJEnvironment::HasHigherPriorityTask()
     return false;
 }
 
-void CJEnvironment::InitCJChipSDKNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJChipSDKNS: %{public}s", path.c_str());
-    Dl_namespace chip_sdk;
-    DynamicInitNamespace(&chip_sdk, nullptr, path.c_str(), CJEnvironment::cjChipSDKNSName);
-
-    Dl_namespace cjnative;
-    Dl_namespace current;
-    dlns_get(nullptr, &current);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_inherit(&chip_sdk, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&chip_sdk, &current, "allow_all_shared_libs");
-#endif
-}
-
 void CJEnvironment::InitNewCJChipSDKNS(const std::string& path)
 {
 #ifdef __OHOS__
@@ -519,44 +501,19 @@ void CJEnvironment::InitNewCJChipSDKNS(const std::string& path)
 }
 
 // Init app namespace
-void CJEnvironment::InitCJAppNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJAppNS: %{public}s", path.c_str());
-    Dl_namespace cjnative;
-    Dl_namespace sdk;
-    Dl_namespace ns;
-    Dl_namespace current;
-    DynamicInitNamespace(&ns, nullptr, path.c_str(), CJEnvironment::cjAppNSName);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_get(nullptr, &current);
-    dlns_get(cjSDKNSName, &sdk);
-    dlns_inherit(&ns, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&cjnative, &current, "allow_all_shared_libs");
-    dlns_inherit(&current, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-#endif
-}
-
 void CJEnvironment::InitNewCJAppNS(const std::string& path)
 {
 #ifdef __OHOS__
     LOGI("InitCJAppNS: %{public}s", path.c_str());
     Dl_namespace ns;
     DynamicInitNewNamespace(&ns, path.c_str(), CJEnvironment::cjNewAppNSName);
-    Dl_namespace sdk;
     if (nsMode_ == NSMode::APP) {
-        Dl_namespace chip_sdk;
-        dlns_get(CJEnvironment::cjSDKNSName, &sdk);
-        dlns_get(CJEnvironment::cjChipSDKNSName, &chip_sdk);
-        dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-        dlns_inherit(&ns, &chip_sdk, "libssl_openssl.z.so");
+        DynamicInheritNamespace(&ns, CJEnvironment::cjSDKNSName, "allow_all_shared_libs");
+        DynamicInheritNamespace(&ns, CJEnvironment::cjChipSDKNSName, "libssl_openssl.z.so");
     } else {
-        Dl_namespace compatibility_sdk;
-        dlns_get(CJEnvironment::cjCompatibilitySDKNSName, &compatibility_sdk);
-        dlns_get(CJEnvironment::cjNewSDKNSName, &sdk);
-        dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-        dlns_inherit(&ns, &compatibility_sdk, "allow_all_shared_libs");
+        DynamicInheritNamespace(&ns, CJEnvironment::cjExtensionSDKNSName, "allow_all_shared_libs");
+        DynamicInheritNamespace(&ns, CJEnvironment::cjNewSDKNSName, "allow_all_shared_libs");
+        DynamicInheritNamespace(&ns, CJEnvironment::cjCompatibilitySDKNSName, "allow_all_shared_libs");
     }
 #endif
 }
@@ -589,18 +546,13 @@ void CJEnvironment::InitCJCompatibilitySDKNS(const std::string& path)
 #endif
 }
 
-// Init cj system namespace
-void CJEnvironment::InitCJSysNS(const std::string& path)
+void CJEnvironment::InitCJExtensionSDKNS(const std::string& path)
 {
 #ifdef __OHOS__
-    LOGI("InitCJSysNS: %{public}s", path.c_str());
-    Dl_namespace cj_sdk;
-    Dl_namespace cjnative;
+    LOGI("InitCJExtensionSDKNS: %{public}s", path.c_str());
     Dl_namespace ns;
-    dlns_get(cjSDKNSName, &cj_sdk);
-    DynamicInitNamespace(&ns, &cj_sdk, path.c_str(), cjSysNSName);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_inherit(&ns, &cjnative, "allow_all_shared_libs");
+    DynamicInitNewNamespace(&ns, path.c_str(), cjExtensionSDKNSName);
+    DynamicInheritNamespace(&ns, CJEnvironment::cjNewSDKNSName, "allow_all_shared_libs");
 #endif
 }
 
@@ -727,10 +679,15 @@ void* CJEnvironment::LoadCJLibrary(OHOS::CJEnvironment::LibraryKind kind, const 
             dlns_get(CJEnvironment::cjNewSysNSName, &ns);
             break;
         case SDK:
-            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSDKNSName : CJEnvironment::cjNewSDKNSName, &ns);
+            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSDKNSName : CJEnvironment::cjExtensionSDKNSName, &ns);
             break;
     }
     auto handle = DynamicLoadLibrary(&ns, dlName, 0);
+    if (!handle && kind == SDK) {
+        Dl_namespace cjRomSdkNs;
+        dlns_get(CJEnvironment::cjNewSDKNSName, &cjRomSdkNs);
+        handle = DynamicLoadLibrary(&cjRomSdkNs, dlName, 0);
+    }
 #else
     auto handle = DynamicLoadLibrary(dlName, 1);
 #endif
@@ -826,7 +783,8 @@ void CJEnvironment::InitRuntimeNS()
         InitCJSDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
     } else {
         InitNewCJSDKNS(CJ_SDK_PATH);
-        InitCJCompatibilitySDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
+        InitCJCompatibilitySDKNS(CJ_RT_PATH);
+        InitCJExtensionSDKNS(CJ_LIB_PATH);
     }
 #endif
 }

@@ -251,4 +251,23 @@ const char* DynamicGetError()
 {
     return g_dlError;
 }
+
+void DynamicInheritNamespace(Dl_namespace* ns, const char* parent, const char* shared)
+{
+    if (!ns || !parent || !shared) {
+        LOGE("Invaild args for inherit namespace.");
+        return;
+    }
+    Dl_namespace parentNamespace;
+    int res = dlns_get(parent, &parentNamespace);
+    if (res != 0) {
+        LOGE("Fail to get ns '%s'.", parent);
+        return;
+    }
+    res = dlns_inherit(ns, &parentNamespace, shared);
+    if (res != 0) {
+        LOGE("ns '%s' failed to inherit ns '%s'.", ns->name ? ns->name : "unknown", parent);
+        return;
+    }
+}
 }

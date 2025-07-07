@@ -32,6 +32,7 @@ void DynamicFreeLibrary(void* so);
 #ifdef __OHOS__
 void DynamicInitNamespace(Dl_namespace* ns, void* parent, const char* entries, const char* name);
 void DynamicInitNewNamespace(Dl_namespace* ns, const char* entries, const char* name);
+void DynamicInheritNamespace(Dl_namespace* ns, const char* parent, const char* libs);
 #endif
 };
 

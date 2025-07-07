@@ -91,14 +91,12 @@ public:
     void SetLazyApis(CJRuntimeAPI* apis) { lazyApis_ = apis; }
 
     void PreloadLibs();
-    void InitCJAppNS(const std::string& path);
     void InitCJSDKNS(const std::string& path);
     void InitNewCJAppNS(const std::string& path);
     void InitNewCJSDKNS(const std::string& path);
     void InitCJCompatibilitySDKNS(const std::string& path);
-    void InitCJSysNS(const std::string& path);
-    void InitCJChipSDKNS(const std::string& path);
     void InitNewCJChipSDKNS(const std::string& path);
+    void InitCJExtensionSDKNS(const std::string& path);
     void InitRuntimeNS();
     void InitCJNS(const std::string& path);
     static NSMode DetectAppNSMode();
@@ -106,15 +104,13 @@ public:
     void DumpHeapSnapshot(int fd);
     void ForceFullGC();
 
-    static const char *cjAppNSName;
     static const char *cjSDKNSName;
-    static const char *cjSysNSName;
     static const char *cjChipSDKNSName;
     static const char *cjNewAppNSName;
     static const char *cjNewSDKNSName;
     static const char *cjNewSysNSName;
-    static const char *cjNDKNSName;
     static const char *cjCompatibilitySDKNSName;
+    static const char *cjExtensionSDKNSName;
     static std::string appVersion;
     static const uint32_t majorVersion;
     static const uint32_t minorVersion;
