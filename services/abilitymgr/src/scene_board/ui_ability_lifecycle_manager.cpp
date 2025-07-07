@@ -72,6 +72,7 @@ constexpr int32_t API_VERSION_MOD = 100;
 constexpr int32_t REQUEST_LIST_ID_INIT = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
+constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -185,6 +186,16 @@ void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRe
     }
 }
 
+bool UIAbilityLifecycleManager::CheckBundleHasAbilityRecordForPreload(
+    const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo) const
+{
+    if (sessionAbilityMap_.find(sessionInfo->persistentId) == sessionAbilityMap_.end()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "already started");
+        return false;
+    }
+    return abilityRequest.want.GetBoolParam(KEY_IS_PRELOAD, false);
+}
+
 int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
     uint32_t sceneFlag, bool &isColdStart)
 {
@@ -193,6 +204,10 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (!CheckSessionInfo(sessionInfo)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo invalid");
         return ERR_INVALID_VALUE;
+    }
+    if (CheckBundleHasAbilityRecordForPreload(abilityRequest, sessionInfo)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "preload check: already has record");
+        return ERR_OK;
     }
     auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
@@ -523,6 +538,11 @@ int UIAbilityLifecycleManager::AbilityTransactionDone(const sptr<IRemoteObject> 
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     auto abilityRecord = GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    if (state == AbilityLifeCycleState::ABILITY_STATE_FOREGROUND_NEW &&
+        abilityRecord->IsPreloadStart()) {
+        auto ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyPreloadAbilityStateChanged(token);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPreloadAbilityStateChanged ret: %{public}d", ret);
+    }
     abilityRecord->RemoveSignatureInfo();
     std::string element = abilityRecord->GetElementName().GetURI();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s, state: %{public}s", element.c_str(), abilityState.c_str());
@@ -1210,6 +1230,11 @@ void UIAbilityLifecycleManager::UpdateAbilityRecordLaunchReason(
 
     if (abilityRequest.IsAcquireShareData()) {
         abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_SHARE);
+        return;
+    }
+
+    if (abilityRequest.want.GetBoolParam(KEY_IS_PRELOAD, false)) {
+        abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_PRELOAD);
         return;
     }
 

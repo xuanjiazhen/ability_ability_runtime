@@ -61,6 +61,7 @@ public:
     std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
     std::string requestId_;
     std::shared_ptr<Rosen::WindowCreateParams> windowCreateParams_ = nullptr;
+    bool isPreloadStart_ = false;
 
     StartOptions() = default;
     ~StartOptions() = default;

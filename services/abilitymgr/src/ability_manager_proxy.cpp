@@ -7011,5 +7011,40 @@ int32_t AbilityManagerProxy::NotifyStartupExceptionBySCB(int32_t requestId)
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write bundleName");
+        return ERR_WRITE_STRING_FAILED;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write userId");
+        return ERR_WRITE_INT_FAILED;
+    }
+
+    if (!data.WriteInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "faled to write appIndex");
+        return ERR_WRITE_INT_FAILED;
+    }
+
+    auto ret = SendRequest(AbilityManagerInterfaceCode::PRELOAD_APPLICATION, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS

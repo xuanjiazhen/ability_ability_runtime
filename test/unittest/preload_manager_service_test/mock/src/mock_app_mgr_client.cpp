@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 
-#include "mock_my_flag.h"
+#include "app_mgr_client.h"
+
+#include "mock_my_status.h"
 
 namespace OHOS {
-namespace AAFwk {
-int MyFlag::flag_ = 0;
-} // namespace AAFwk
-} // namespace OHOS
+namespace AppExecFwk {
+AppMgrClient::AppMgrClient()
+{}
+AppMgrClient::~AppMgrClient()
+{}
+
+bool AppMgrClient::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    return AAFwk::MyStatus::GetInstance().isPreloadApplicationRecordExist_;
+}
+}  // namespace AppExecFwk
+}  // namespace OHOS
