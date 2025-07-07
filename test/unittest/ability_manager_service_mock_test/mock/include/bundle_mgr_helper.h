@@ -45,6 +45,8 @@ public:
     ErrCode GetNameForUid(const int32_t uid, std::string &name);
     bool QueryAppGalleryBundleName(std::string &bundleName);
 
+    bool IsOpenAtomicService = false;
+
 private:
     DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
     bool bmsReady_ = true;
