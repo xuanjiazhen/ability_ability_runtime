@@ -841,7 +841,7 @@ int AbilityManagerService::StartAbilityOnlyUIAbility(const Want &want, const spt
         return ERR_INVALID_CONTINUATION_FLAG;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
         "start, ability: %{public}s, userId: %{public}d, specifyTokenId: %{public}u",
         want.GetElement().GetAbilityName().c_str(), DEFAULT_INVAL_VALUE, specifyTokenId);
 
@@ -4663,7 +4663,7 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::UI_EXT,
+    TAG_LOGD(AAFwkTag::UI_EXT,
         "ConnectUIExtensionAbility bundlename: %{public}s, ability is %{public}s, userId is %{private}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     CheckExtensionRateLimit();
@@ -11865,7 +11865,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (ret != ERR_OK) {
         return ret;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
         "intentName: %{public}s, intentId:%{public}" PRIu64", openLinkExecuteFlag: %{public}d, executeMode: %{public}d",
         param.bundleName_.c_str(), param.moduleName_.c_str(), param.insightIntentName_.c_str(), param.insightIntentId_,
         openLinkExecuteFlag, param.executeMode_);
@@ -11946,7 +11946,7 @@ bool AbilityManagerService::IsAbilityStarted(AbilityRequest &abilityRequest,
 int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,
     std::shared_ptr<AbilityRecord> &targetRecord)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "onExecuteIntent");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "onExecuteIntent");
     if (targetRecord == nullptr || targetRecord->GetScheduler() == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null scheduler");
         return ERR_INVALID_VALUE;
@@ -11985,7 +11985,7 @@ int32_t AbilityManagerService::StartExtensionAbilityWithInsightIntent(const Want
 int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &want,
     const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
     if (connect == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid connect");
@@ -13609,7 +13609,7 @@ int AbilityManagerService::StartUIAbilityByPreInstallInner(sptr<SessionInfo> ses
 void AbilityManagerService::NotifySCBToHandleAtomicServiceException(const std::string& sessionId, int32_t errCode,
     const std::string& reason)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     sptr<SessionInfo> sessionInfo = nullptr;
     {
         std::lock_guard<ffrt::mutex> guard(preStartSessionMapLock_);
@@ -13743,7 +13743,7 @@ ErrCode AbilityManagerService::OpenLinkInner(const Want& want, sptr<IRemoteObjec
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call OpenLink");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call OpenLink");
     AbilityUtil::RemoveInstanceKey(const_cast<Want &>(want));
     std::string callerBundleName;
     Want convertedWant = want;
@@ -14168,7 +14168,7 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
 int AbilityManagerService::StartSelfUIAbility(const Want &want)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
 
     StartSelfUIAbilityParam param;
     param.want = want;
@@ -14178,7 +14178,7 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
 int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
 
     if(options.processOptions != nullptr) {
        options.processOptions->isStartFromNDK = true;
@@ -14316,7 +14316,7 @@ int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteOb
     if (!AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
         return ERR_OK;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "start plugin ability");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start plugin ability");
     // bundleName, abilityName, moduoleName not empty
     auto element = want.GetElement();
     if (element.GetBundleName().empty() || element.GetAbilityName().empty() || element.GetModuleName().empty()) {
@@ -14344,7 +14344,7 @@ int32_t AbilityManagerService::GetAllInsightIntentInfo(
     AbilityRuntime::GetInsightIntentFlag flag,
     std::vector<InsightIntentInfoForQuery> &infos)
 {
-    TAG_LOGI(AAFwkTag::INTENT, "GetAllInsightIntentInfo");
+    TAG_LOGD(AAFwkTag::INTENT, "GetAllInsightIntentInfo");
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
@@ -14406,7 +14406,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
     const std::string &bundleName,
     std::vector<InsightIntentInfoForQuery> &infos)
 {
-    TAG_LOGI(AAFwkTag::INTENT, "GetInsightIntentInfoByBundleName");
+    TAG_LOGD(AAFwkTag::INTENT, "GetInsightIntentInfoByBundleName");
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
@@ -14471,7 +14471,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByIntentName(
     const std::string &intentName,
     InsightIntentInfoForQuery &info)
 {
-    TAG_LOGI(AAFwkTag::INTENT, "GetInsightIntentInfoByIntentName");
+    TAG_LOGD(AAFwkTag::INTENT, "GetInsightIntentInfoByIntentName");
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
