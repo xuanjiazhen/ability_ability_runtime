@@ -16,6 +16,7 @@
 #include "ams_mgr_scheduler.h"
 #include <sys/types.h>
 
+#include "ability_manager_errors.h"
 #include "datetime_ex.h"
 #include "ipc_skeleton.h"
 #include "system_ability_definition.h"
@@ -799,6 +800,46 @@ bool AmsMgrScheduler::IsCallerKilling(const std::string& callerKey)
         return false;
     }
     return amsMgrServiceInner_->IsCallerKilling(callerKey);
+}
+
+int32_t AmsMgrScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    AppExecFwk::PreloadPhase preloadPhase)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner is not ready.");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    if (!amsMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return ERR_PERMISSION_DENIED;
+    }
+    return amsMgrServiceInner_->PreloadApplicationByPhase(bundleName, userId, appIndex, preloadPhase);
+}
+
+int32_t AmsMgrScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner is not ready.");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    if (!amsMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return ERR_PERMISSION_DENIED;
+    }
+    return amsMgrServiceInner_->NotifyPreloadAbilityStateChanged(token);
+}
+
+bool AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner is not ready.");
+        return false;
+    }
+    if (!amsMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return false;
+    }
+    return amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

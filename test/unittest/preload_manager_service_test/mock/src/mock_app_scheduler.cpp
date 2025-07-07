@@ -13,28 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
-#define OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
+#include "app_scheduler.h"
 
-#include <gmock/gmock.h>
-
-#include "ipc_skeleton.h"
-#include "singleton.h"
-#include "want.h"
-#include "mock_my_flag.h"
+#include "mock_my_status.h"
 
 namespace OHOS {
 namespace AAFwk {
+AppScheduler::AppScheduler()
+{}
 
-class PermissionVerification : public DelayedSingleton<PermissionVerification> {
-public:
-    PermissionVerification() = default;
-    ~PermissionVerification() = default;
+AppScheduler::~AppScheduler()
+{}
 
-    bool IsSACall() const;
-
-    bool VerifyStartUIAbilityToHiddenPermission() const;
-};
+int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    AppExecFwk::PreloadPhase preloadPhase)
+{
+    return MyStatus::GetInstance().retPreloadApplicationByPhase_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H

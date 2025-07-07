@@ -1582,6 +1582,52 @@ bool AppMgrClient::IsCallerKilling(const std::string& callerKey) const
     return amsService->IsCallerKilling(callerKey);
 }
 
+int32_t AppMgrClient::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    AppExecFwk::PreloadPhase preloadPhase) const
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return amsService->PreloadApplicationByPhase(bundleName, userId, appIndex, preloadPhase);
+}
+
+int32_t AppMgrClient::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return amsService->NotifyPreloadAbilityStateChanged(token);
+}
+
+bool AppMgrClient::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
+        return false;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return false;
+    }
+    return amsService->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
+}
+
 AppMgrResultCode AppMgrClient::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
     bool &isRunning)
 {
@@ -1613,8 +1659,5 @@ int32_t AppMgrClient::DemoteCurrentFromCandidateMasterProcess()
     }
     return service->DemoteCurrentFromCandidateMasterProcess();
 }
-
-
-
 }  // namespace AppExecFwk
 }  // namespace OHOS

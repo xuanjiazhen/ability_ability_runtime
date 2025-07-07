@@ -724,5 +724,28 @@ void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
     }
     appMgrClient_->SetSupportedProcessCache(pid, isSupport);
 }
+
+int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    AppExecFwk::PreloadPhase preloadPhase)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return INNER_ERR;
+    }
+    return IN_PROCESS_CALL(appMgrClient_->PreloadApplicationByPhase(bundleName, userId, appIndex, preloadPhase));
+}
+
+int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return INNER_ERR;
+    }
+    return IN_PROCESS_CALL(appMgrClient_->NotifyPreloadAbilityStateChanged(token));
+}
 } // namespace AAFwk
 }  // namespace OHOS
