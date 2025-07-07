@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "cJSON.h"
 #define private public
 #define protected public
 #include "extension_config_mgr.h"
@@ -181,112 +180,11 @@ HWTEST_F(ExtensionConfigMgrTest, AddBlockListItem_0200, TestSize.Level1)
 }
 
 /**
- * @tc.name: ParseReplaceModuleLists_0100
- * @tc.desc: ParseReplaceModuleLists fail when blocklist file has no node of replaceModuleList
- * @tc.type: FUNC
- */
-HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_0100, TestSize.Level0)
-{
-    ExtensionConfigMgr mgr;
-    cJSON *extensionBlockListConfig = cJSON_CreateObject();
-    EXPECT_NE(extensionBlockListConfig, nullptr);
-
-    mgr.ParseReplaceModuleLists(extensionBlockListConfig);
-    bool result = (mgr.replaceModuleListConfig_.find(REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY) !=
-        mgr.replaceModuleListConfig_.end());
-    EXPECT_FALSE(result);
-    cJSON_Delete(extensionBlockListConfig);
-}
-
-/**
- * @tc.name: ParseReplaceModuleLists_0200
- * @tc.desc: ParseReplaceModuleLists fail when the node of replaceModuleList has no member
- * @tc.type: FUNC
- */
-HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_0200, TestSize.Level0)
-{
-    ExtensionConfigMgr mgr;
-    cJSON *extensionBlockListConfig = cJSON_CreateObject();
-    EXPECT_NE(extensionBlockListConfig, nullptr);
-
-    // Add REPLACEMODULELIST
-    cJSON *replaceModuleNode = cJSON_CreateObject();
-    if (replaceModuleNode == nullptr) {
-        cJSON_Delete(extensionBlockListConfig);
-        EXPECT_TRUE(false);
-    }
-    cJSON_AddItemToObject(person, ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST, replaceModuleNode);
-    mgr.ParseReplaceModuleLists(extensionBlockListConfig);
-    bool result = (mgr.replaceModuleListConfig_.find(REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY) !=
-        mgr.replaceModuleListConfig_.end());
-    EXPECT_FALSE(result);
-    cJSON_Delete(replaceModuleNode);
-    cJSON_Delete(extensionBlockListConfig);
-}
-
-/**
- * @tc.name: ParseReplaceModuleLists_0300
- * @tc.desc: ParseReplaceModuleLists fail when the value of replaceModuleList node is not string
- * @tc.type: FUNC
- */
-HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_0300, TestSize.Level0)
-{
-    ExtensionConfigMgr mgr;
-    cJSON *extensionBlockListConfig = cJSON_CreateObject();
-    EXPECT_NE(extensionBlockListConfig, nullptr);
-
-    // Add REPLACEMODULELIST
-    cJSON *replaceModuleNode = cJSON_CreateObject();
-    if (replaceModuleNode == nullptr) {
-        cJSON_Delete(extensionBlockListConfig);
-        EXPECT_TRUE(false);
-    }
-    cJSON_AddItemToObject(replaceModuleNode, REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY, cJSON_CreateNumber(25));
-    cJSON_AddItemToObject(person, ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST, replaceModuleNode);
-    mgr.ParseReplaceModuleLists(extensionBlockListConfig);
-    bool result = (mgr.replaceModuleListConfig_.find(REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY) !=
-        mgr.replaceModuleListConfig_.end());
-    EXPECT_FALSE(result);
-
-    cJSON_Delete(replaceModuleNode);
-    cJSON_Delete(extensionBlockListConfig);
-}
-
-/**
- * @tc.name: ParseReplaceModuleLists_0400
- * @tc.desc: ParseReplaceModuleLists success
- * @tc.type: FUNC
- */
-HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_0400, TestSize.Level0)
-{
-    ExtensionConfigMgr mgr;
-    cJSON *extensionBlockListConfig = cJSON_CreateObject();
-    EXPECT_NE(extensionBlockListConfig, nullptr);
-
-    // Add REPLACEMODULELIST
-    cJSON *replaceModuleNode = cJSON_CreateObject();
-    if (replaceModuleNode == nullptr) {
-        cJSON_Delete(extensionBlockListConfig);
-        EXPECT_TRUE(false);
-    }
-    cJSON_AddItemToObject(replaceModuleNode, REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY, cJSON_CreateString("testString"));
-    cJSON_AddItemToObject(person, ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST, replaceModuleNode);
-    mgr.ParseReplaceModuleLists(extensionBlockListConfig);
-    auto iter = mgr.replaceModuleListConfig_.find(REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY);
-    bool result = (iter != mgr.replaceModuleListConfig_.end());
-    EXPECT_TRUE(result);
-    EXPECT_EQ(iter->second, "testString");
-
-    cJSON_Delete(replaceModuleNode);
-    cJSON_Delete(extensionBlockListConfig);
-}
-
-/**
- * @tc.name: ParseReplaceModuleLists_init_0500
+ * @tc.name: ParseReplaceModuleLists_init_0100
  * @tc.desc: Init And parse success.
  * @tc.type: FUNC
  */
-HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_init_0500, TestSize.Level0)
+HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_init_0100, TestSize.Level0)
 {
     ExtensionConfigMgr mgr;
     mgr.Init();
@@ -321,15 +219,17 @@ HWTEST_F(ExtensionConfigMgrTest, GenerateExtensionEtsBlocklists_0100, TestSize.L
 
     mgr.replaceModuleListConfig_.emplace("222", "222_1");
     mgr.extensionBlocklist_.clear();
+    mgr.extensionEtsBlocklist_.clear();
     mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set1);
     mgr.extensionType_ = EXTENSION_TYPE_FORM;
     mgr.GenerateExtensionEtsBlocklists();
     EXPECT_FALSE(mgr.extensionEtsBlocklist_.empty());
-    EXPECT_FLASE(mgr.extensionEtsBlocklist_.find("222") != mgr.extensionEtsBlocklist_.end());
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.find("222") != mgr.extensionEtsBlocklist_.end());
     EXPECT_TRUE(mgr.extensionEtsBlocklist_.find("222_1") != mgr.extensionEtsBlocklist_.end());
 
     std::unordered_set<std::string> set2 = { "BbB" };
     mgr.replaceModuleListConfig_.clear();
+    mgr.extensionEtsBlocklist_.clear();
     mgr.extensionBlocklist_.clear();
     mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set2);
     mgr.extensionType_ = EXTENSION_TYPE_FORM;
@@ -363,6 +263,8 @@ HWTEST_F(ExtensionConfigMgrTest, CheckEtsModuleLoadable_0100, TestSize.Level1)
     EXPECT_TRUE(mgr.CheckEtsModuleLoadable("@hms.app.app.appManager"));
     EXPECT_TRUE(mgr.CheckEtsModuleLoadable("@ohos.app.app.appManager"));
     EXPECT_TRUE(mgr.CheckEtsModuleLoadable("1111"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("bundle.bundleManager"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("app.ability.appManager.manager"));
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

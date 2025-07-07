@@ -28,26 +28,6 @@ namespace {
     constexpr char EXTENSION_BLOCKLIST_FILE_PATH[] = "/system/etc/extension_blocklist_config.json";
 }
 
-void ExtensionConfigMgr::ParseReplaceModuleLists(const cJSON *extensionConfig)
-{
-    cJSON *replaceModuleItem = cJSON_GetObjectItem(extensionConfig, ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST);
-    if (replaceModuleItem == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "extension config file have no replace module list node");
-        return;
-    }
-    cJSON *childItem = replaceModuleItem->child;
-    while (childItem != nullptr) {
-        if (!cJSON_IsString(childItem)) {
-            continue;
-        }
-        std::string key = childItem->string == nullptr ? "" : childItem->string;
-        std::string value = childItem->valuestring;
-        replaceModuleListConfig_.emplace(key, value);
-
-        childItem = childItem->next;
-    }
-}
-
 void ExtensionConfigMgr::Init()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -96,7 +76,21 @@ void ExtensionConfigMgr::Init()
 
         childItem = childItem->next;
     }
-    ParseReplaceModuleLists(extensionConfig);
+    cJSON *replaceModuleItem = cJSON_GetObjectItem(extensionConfig, ExtensionConfigItem::ITEM_NAME_REPLACEMODULELIST);
+    if (replaceModuleItem == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "extension config file have no replace module list node");
+        return;
+    }
+    childItem = replaceModuleItem->child;
+    while (childItem != nullptr) {
+        if (!cJSON_IsString(childItem)) {
+            continue;
+        }
+        std::string key = childItem->string == nullptr ? "" : childItem->string;
+        std::string value = childItem->valuestring;
+        replaceModuleListConfig_.emplace(key, value);
+        childItem = childItem->next;
+    }
     cJSON_Delete(extensionConfig);
     TAG_LOGD(AAFwkTag::EXT, "Init end");
 }
@@ -175,14 +169,20 @@ bool ExtensionConfigMgr::CheckEtsModuleLoadable(const std::string &className)
         classNameAfterRemovePreFix = className;
     }
     std::string lowerClassName;
-    lowerClassName.reserve(className.size());
-    std::transform(className.cbegin(), className.cend(), std::back_inserter(lowerClassName),
-        [](unsigned char c) { return std::tolower(c); });
+    lowerClassName.reserve(classNameAfterRemovePreFix.size());
+    std::transform(classNameAfterRemovePreFix.cbegin(), classNameAfterRemovePreFix.cend(),
+        std::back_inserter(lowerClassName), [](unsigned char c) { return std::tolower(c); });
     TAG_LOGD(AAFwkTag::EXT, "extensionType: %{public}d, className is %{public}s.", extensionType_, className.c_str());
     for (const auto& blockClassName: extensionEtsBlocklist_) {
-        if (lowerClassName.compare(0, blockClassName.length(), blockClassName) == 0) {
-            TAG_LOGD(AAFwkTag::EXT, "className is %{public}s in blocklist.", className.c_str());
-            return false;
+        if (lowerClassName.compare(0, blockClassName.size(), blockClassName) == 0) {
+            size_t pos = blockClassName.size();
+            if (pos == lowerClassName.size()) {
+                TAG_LOGD(AAFwkTag::EXT, "className is %{public}s full match in blocklist.", className.c_str());
+                return false;
+            } else if (lowerClassName[pos] == '.') {
+                TAG_LOGD(AAFwkTag::EXT, "className is %{public}s prefix match in blocklist.", className.c_str());
+                return false;
+            }
         }
     }
     TAG_LOGD(AAFwkTag::EXT, "className is %{public}s in not blocklist.", className.c_str());

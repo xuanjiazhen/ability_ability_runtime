@@ -20,7 +20,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "cJSON.h"
 #include "bundle_info.h"
 #include "extension_ability_info.h"
 #include "native_engine/native_engine.h"
@@ -88,11 +87,6 @@ public:
     bool CheckEtsModuleLoadable(const std::string &className);
 
 private:
-    /**
-     * @brief Parse replace module list from extensionConfig
-     *
-     */
-    void ParseReplaceModuleLists(const cJSON *extensionConfig);
     /**
      * @brief Generate ets blocklist be extension_blocklist_config
      *
