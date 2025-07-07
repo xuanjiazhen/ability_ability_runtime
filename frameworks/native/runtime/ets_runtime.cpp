@@ -258,6 +258,12 @@ void ETSRuntime::SetAppLibPath(const AppLibPathMap &appLibPaths)
     g_etsEnvFuncs->InitETSSysNS(ETS_SYSLIB_PATH);
 }
 
+void ETSRuntime::SetExtensionApiCheckCallback(const std::function<bool(const std::string &className)> &cb)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "called");
+    // ark::ets::EtsNamespaceManager::SetExtensionApiCheckCallback(std::move(cb));
+}
+
 bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");

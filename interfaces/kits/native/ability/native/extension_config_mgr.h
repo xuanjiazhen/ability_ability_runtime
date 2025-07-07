@@ -28,6 +28,11 @@
 namespace OHOS::AbilityRuntime {
 namespace ExtensionConfigItem {
     constexpr char ITEM_NAME_BLOCKLIST[] = "blocklist";
+    constexpr char ITEM_NAME_REPLACEMODULELIST[] = "replaceModuleList";
+    constexpr char ITEM_NAME_OHOSPREFIX[] = "@ohos.";
+    constexpr char ITEM_NAME_HMSPREFIX[] = "@hms.";
+    constexpr size_t ITEM_LENGTH_OHOSPREFIX = sizeof(ITEM_NAME_OHOSPREFIX) - 1;
+    constexpr size_t ITEM_LENGTH_HMSPREFIX = sizeof(ITEM_NAME_HMSPREFIX) - 1;
 }
 namespace {
     constexpr int32_t EXTENSION_TYPE_UNKNOWN = 255;
@@ -36,7 +41,7 @@ namespace {
 /**
  * @brief Manage extension configuration.
  */
-class ExtensionConfigMgr {
+class ExtensionConfigMgr : public std::enable_shared_from_this<ExtensionConfigMgr> {
 public:
     ExtensionConfigMgr() = default;
 
@@ -73,9 +78,30 @@ public:
      */
     void UpdateRuntimeModuleChecker(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 
+    /**
+     * @brief Check Whether the ets module can be loaded
+     *
+     * @param className the className of the ets module
+     * @return Return true if the module can be loaded, false if the module can not be loaded.
+     */
+    bool CheckEtsModuleLoadable(const std::string &className);
+
 private:
+    /**
+     * @brief Generate ets blocklist be extension_blocklist_config
+     *
+     */
+    void GenerateExtensionEtsBlocklists();
+    /**
+     * @brief set ets runtime module checker
+     *
+     * @param runtime the runtime pointer
+     */
+    void SetExtensionEtsCheckCallback(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     std::unordered_map<std::string, std::unordered_set<std::string>> blocklistConfig_;
     std::unordered_map<int32_t, std::unordered_set<std::string>> extensionBlocklist_;
+    std::unordered_map<std::string, std::string> replaceModuleListConfig_;
+    std::unordered_set<std::string> extensionEtsBlocklist_;
     int32_t extensionType_ = EXTENSION_TYPE_UNKNOWN;
 };
 } // namespace OHOS::AbilityRuntime

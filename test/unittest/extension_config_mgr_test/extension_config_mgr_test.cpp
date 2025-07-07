@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "cJSON.h"
 #define private public
 #define protected public
 #include "extension_config_mgr.h"
@@ -39,6 +40,7 @@ namespace {
     constexpr int32_t EXTENSION_TYPE_WINDOW = 10;
     constexpr int32_t EXTENSION_TYPE_ENTERPRISE_ADMIN = 11;
     constexpr int32_t EXTENSION_TYPE_FILE_ACCESS = 12;
+    constexpr int32_t EXTENSION_TYPE_DRIVER = 18;
     constexpr char BLOCK_LIST_ITEM_SERVICE_EXTENSION[] = "ServiceExtension";
     constexpr char BLOCK_LIST_ITEM_FORM_EXTENSION[] = "FormExtension";
     constexpr char BLOCK_LIST_ITEM_FILE_ACCESS_EXTENSION[] = "FileAccessExtension";
@@ -51,6 +53,9 @@ namespace {
     constexpr char BLOCK_LIST_ITEM_INPUT_METHOD_EXTENSION_ABILITY[] = "InputMethodExtensionAbility";
     constexpr char BLOCK_LIST_ITEM_WORK_SCHEDULER_EXTENSION[] = "WorkSchedulerExtension";
     constexpr char BLOCK_LIST_ITEM_DATA_SHARE_EXTENSION[] = "DataShareExtension";
+    constexpr char BLOCK_LIST_ITEM_DRIVER_EXTENSION[] = "DriverExtension";
+    constexpr char REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY[] = "bundle";
+    constexpr char REPLACE_MODULE_LIST_ITEM_BUNDLE_VALUE[] = "bundle.bundle";
     constexpr char INVAILD_BLOCK_LIST_ITEM[] = "InvaildExtension";
 }
 
@@ -173,6 +178,93 @@ HWTEST_F(ExtensionConfigMgrTest, AddBlockListItem_0200, TestSize.Level1)
     mgr.AddBlockListItem(INVAILD_BLOCK_LIST_ITEM, EXTENSION_TYPE_FORM);
     bool result = (mgr.extensionBlocklist_.find(EXTENSION_TYPE_FORM) != mgr.extensionBlocklist_.end());
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ParseReplaceModuleLists_init_0100
+ * @tc.desc: Init And parse success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionConfigMgrTest, ParseReplaceModuleLists_init_0100, TestSize.Level0)
+{
+    ExtensionConfigMgr mgr;
+    mgr.Init();
+    auto iter = mgr.replaceModuleListConfig_.find(REPLACE_MODULE_LIST_ITEM_BUNDLE_KEY);
+    bool result = (iter != mgr.replaceModuleListConfig_.end());
+    EXPECT_TRUE(result);
+
+    EXPECT_EQ(iter->second, REPLACE_MODULE_LIST_ITEM_BUNDLE_VALUE);
+}
+
+/**
+ * @tc.name: GenerateExtensionEtsBlocklists_0100
+ * @tc.desc: Generate Extension ets block list Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionConfigMgrTest, GenerateExtensionEtsBlocklists_0100, TestSize.Level1)
+{
+    ExtensionConfigMgr mgr;
+    std::unordered_set<std::string> set1 = { "111", "222", "333" };
+    mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set1);
+    mgr.extensionType_ = EXTENSION_TYPE_WORK_SCHEDULER;
+    mgr.GenerateExtensionEtsBlocklists();
+    EXPECT_TRUE(mgr.extensionEtsBlocklist_.empty());
+
+    mgr.extensionBlocklist_.clear();
+    mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set1);
+    mgr.extensionType_ = EXTENSION_TYPE_FORM;
+    mgr.GenerateExtensionEtsBlocklists();
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.empty());
+    for (const auto& ele: set1) {
+        EXPECT_TRUE(mgr.extensionEtsBlocklist_.find(ele) != mgr.extensionEtsBlocklist_.end());
+    }
+
+    mgr.replaceModuleListConfig_.emplace("222", "222_1");
+    mgr.extensionBlocklist_.clear();
+    mgr.extensionEtsBlocklist_.clear();
+    mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set1);
+    mgr.extensionType_ = EXTENSION_TYPE_FORM;
+    mgr.GenerateExtensionEtsBlocklists();
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.empty());
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.find("222") != mgr.extensionEtsBlocklist_.end());
+    EXPECT_TRUE(mgr.extensionEtsBlocklist_.find("222_1") != mgr.extensionEtsBlocklist_.end());
+
+    std::unordered_set<std::string> set2 = { "BbB" };
+    mgr.replaceModuleListConfig_.clear();
+    mgr.extensionBlocklist_.clear();
+    mgr.extensionEtsBlocklist_.clear();
+    mgr.extensionBlocklist_.emplace(EXTENSION_TYPE_FORM, set2);
+    mgr.extensionType_ = EXTENSION_TYPE_FORM;
+    mgr.GenerateExtensionEtsBlocklists();
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.empty());
+    EXPECT_FALSE(mgr.extensionEtsBlocklist_.find("BbB") != mgr.extensionEtsBlocklist_.end());
+    EXPECT_TRUE(mgr.extensionEtsBlocklist_.find("bbb") != mgr.extensionEtsBlocklist_.end());
+}
+
+/**
+ * @tc.name: CheckEtsModuleLoadable_0100
+ * @tc.desc: CheckEtsModuleLoadable Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionConfigMgrTest, CheckEtsModuleLoadable_0100, TestSize.Level1)
+{
+    ExtensionConfigMgr mgr;
+    mgr.Init();
+    mgr.AddBlockListItem(BLOCK_LIST_ITEM_DRIVER_EXTENSION, EXTENSION_TYPE_DRIVER);
+    mgr.extensionType_ = EXTENSION_TYPE_DRIVER;
+    mgr.GenerateExtensionEtsBlocklists();
+
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("abilityAccessCtrl"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("ABILITYACCESSCTRL"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("abilityAccessCtrl.XXX"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("bundle"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("bundle.bundle"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("app.ability.appManager"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("@ohos.app.ability.appManager"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("@hms.app.ability.appManager"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("@hms.app.app.appManager"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("@ohos.app.app.appManager"));
+    EXPECT_TRUE(mgr.CheckEtsModuleLoadable("1111"));
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
