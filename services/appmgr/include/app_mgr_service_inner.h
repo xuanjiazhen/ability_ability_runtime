@@ -239,6 +239,11 @@ public:
      */
     virtual void AttachApplication(const pid_t pid, const sptr<IAppScheduler> &appScheduler);
 
+    bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex);
+
+    int32_t PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        AppExecFwk::PreloadPhase preloadPhase);
+
     /**
      * Preload application.
      *
@@ -250,6 +255,8 @@ public:
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex);
+
+    int32_t NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token);
 
     /**
      * ApplicationForegrounded, set the application to Foreground State.
@@ -1924,8 +1931,12 @@ private:
      */
     bool NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRunningRecord> appRecord);
 
+    int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        AppExecFwk::PreloadMode preloadMode, AppExecFwk::PreloadPhase preloadPhase);
     void HandlePreloadApplication(const PreloadRequest &request);
     void SetPreloadDebugApp(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<ApplicationInfo> appInfo);
+    bool CheckAppRecordExistByPreloadRequest(const PreloadRequest &request, std::string &processName,
+        std::string &specifiedProcessFlag);
 
     void reportpreLoadTask(const std::shared_ptr<AppRunningRecord> appRecord);
 
