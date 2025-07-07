@@ -2315,6 +2315,18 @@ public:
     {
         return 0;
     }
+
+    /**
+     * Preload application.
+     * @param bundleName Name of the application.
+     * @param userId user id.
+     * @param appIndex app clone index.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

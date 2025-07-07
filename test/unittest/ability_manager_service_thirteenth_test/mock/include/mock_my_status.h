@@ -18,6 +18,8 @@
 
 #include "ability_record.h"
 
+#include "bundle_mgr_helper.h"
+
 namespace OHOS {
 namespace AAFwk {
 class MyStatus {
@@ -54,6 +56,13 @@ public:
     std::shared_ptr<AbilityRecord> acmGetUIExtensionBySessionFromServiceMap_ = nullptr;
     bool isSupportStartAbilities_ = true;
     bool isSupportMultiInstance_ = true;
+    bool isPreloadApplicationEnabled_ = false;
+    bool retVerifyPreloadApplicationPermission_ = false;
+    std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgrHelper_ = nullptr;
+    int32_t retGetLaunchWantForBundle_ = 0;
+    bool retQueryAbilityInfo_ = false;
+    AppExecFwk::AbilityInfo queryAbilityInfo_;
+    bool isPreloadAppRecordExist_ = false;
 };
 } // namespace AAFwk
 } // namespace OHOS

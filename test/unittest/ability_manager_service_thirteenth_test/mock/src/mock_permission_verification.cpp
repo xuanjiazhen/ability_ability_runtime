@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "mock_permission_verification.h"
+#include "permission_verification.h"
 #include "mock_my_status.h"
 
 namespace OHOS {
@@ -36,10 +36,6 @@ bool PermissionVerification::IsSACall() const
 bool PermissionVerification::IsShellCall() const
 {
     return (MyStatus::GetInstance().permPermission_ & FLAG::IS_SHELL_CALL);
-}
-bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission() const
-{
-    return !!(MyStatus::GetInstance().permPermission_);
 }
 bool PermissionVerification::VerifyRunningInfoPerm() const
 {
@@ -87,10 +83,6 @@ int PermissionVerification::CheckCallServiceAbilityPermission(const Verification
 {
     return MyStatus::GetInstance().permPermission_;
 }
-int PermissionVerification::CheckCallAbilityPermission(const VerificationInfo &verificationInfo) const
-{
-    return MyStatus::GetInstance().permPermission_;
-}
 int PermissionVerification::CheckCallServiceExtensionPermission(const VerificationInfo &verificationInfo) const
 {
     return MyStatus::GetInstance().permPermission_;
@@ -103,10 +95,6 @@ unsigned int PermissionVerification::GetCallingTokenID() const
 {
     return static_cast<unsigned int>(MyStatus::GetInstance().permPermission_);
 }
-bool PermissionVerification::JudgeStartInvisibleAbility(const uint32_t accessTokenId, const bool visible) const
-{
-    return !!(MyStatus::GetInstance().permPermission_);
-}
 bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall) const
 {
     return !!(MyStatus::GetInstance().permPermission_);
@@ -115,10 +103,6 @@ bool PermissionVerification::JudgeAssociatedWakeUp(const uint32_t accessTokenId,
 {
     return !!(MyStatus::GetInstance().permPermission_);
 }
-int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &verificationInfo) const
-{
-    return MyStatus::GetInstance().permPermission_;
-}
 bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
 {
     return MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_;
@@ -126,6 +110,75 @@ bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
 bool PermissionVerification::IsSystemAppCall() const
 {
     return true;
+}
+bool PermissionVerification::VerifyPreloadApplicationPermission() const
+{
+    return MyStatus::GetInstance().retVerifyPreloadApplicationPermission_;
+}
+bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
+{
+    return false;
+}
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const
+{
+    return false;
+}
+bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const
+{
+    return false;
+}
+bool PermissionVerification::CheckObserverCallerPermission() const
+{
+    return false;
+}
+bool PermissionVerification::VerifyPreStartAtomicServicePermission() const
+{
+    return false;
+}
+bool PermissionVerification::VerifyBlockAllAppStartPermission() const
+{
+    return false;
+}
+bool PermissionVerification::VerifyStartUIAbilityToHiddenPermission() const
+{
+    return false;
+}
+bool PermissionVerification::VerifyShellStartExtensionType(int32_t type) const
+{
+    return false;
+}
+int PermissionVerification::CheckCallAbilityPermission(const VerificationInfo &verificationInfo,
+    bool isCallByShortcut) const
+{
+    return 0;
+}
+bool PermissionVerification::IsSACallByTokenId(uint32_t callerTokenId) const
+{
+    return false;
+}
+bool PermissionVerification::IsSystemAppCallByTokenId(uint32_t callerTokenId) const
+{
+    return false;
+}
+bool PermissionVerification::IsShellCallByTokenId(uint32_t callerTokenId) const
+{
+    return false;
+}
+bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
+{
+    return false;
+}
+bool PermissionVerification::VerifyBackgroundCallPermission(const bool isBackgroundCall) const
+{
+    return false;
+}
+bool PermissionVerification::VerifyPrepareTerminatePermission(const int &tokenId) const
+{
+    return false;
+}
+bool PermissionVerification::VerifyStartRecentAbilityPermission() const
+{
+    return false;
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -29,6 +29,7 @@
 #include "app_utils.h"
 #include "app_exit_reason_data_manager.h"
 #include "application_util.h"
+#include "app_mgr_constants.h"
 #include "app_mgr_util.h"
 #include "recovery_info_timer.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -244,6 +245,7 @@ std::atomic<bool> g_isDmsAlive = false;
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
+constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
@@ -1774,12 +1776,14 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int32_t ret = ERR_OK;
 
-    if (HiddenStartUtils::IsHiddenStart(want, options)) {
-        ret = HiddenStartUtils::CheckHiddenStartSupported(want, options);
+    if (HiddenStartUtils::IsHiddenStart(options)) {
+        ret = HiddenStartUtils::CheckHiddenStartSupported(options);
     } else if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility() &&
                options.processOptions != nullptr &&
                options.processOptions->isStartFromNDK) {
         ret = CheckStartSelfUIAbilityStartOptions(want, options);
+    } else if (HiddenStartUtils::IsPreloadStart(options)) {
+        ret = HiddenStartUtils::CheckPreloadStartSupported();
     } else {
         ret = CheckProcessOptions(want, options, userId);
     }
@@ -2104,6 +2108,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         }
     } else {
         abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
+    }
+    if (HiddenStartUtils::IsPreloadStart(startOptions) &&
+        HiddenStartUtils::CheckPreloadStartSupported() == ERR_OK) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "start by preload");
+        abilityRequest.want.SetParam(KEY_IS_PRELOAD, true);
     }
 
     Want newWant = abilityRequest.want;
@@ -14945,6 +14954,57 @@ int32_t AbilityManagerService::NotifyStartupExceptionBySCB(int32_t requestId)
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_NULL_OBJECT, "uiAbilityLifecycleManager nullptr");
     return uiAbilityManager->NotifyStartupExceptionBySCB(requestId);
+}
+
+int32_t AbilityManagerService::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    if (!AppUtils::GetInstance().IsPreloadApplicationEnabled()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "preload application not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no preload permission");
+        return ERR_PERMISSION_DENIED;
+    }
+    userId = GetValidUserId(userId);
+    if (!JudgeMultiUserConcurrency(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied:%{publid}d", ERR_CROSS_USER);
+        return ERR_CROSS_USER;
+    }
+
+    if (DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->CheckPreloadAppRecordExist(
+        bundleName, userId, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "already started");
+        return ERR_ABILITY_ALREADY_RUNNING;
+    }
+
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+
+    Want launchWant;
+    auto errCode = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchWantForBundle(bundleName, launchWant, userId));
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "getLaunchWantForBundle returns %{public}d", errCode);
+        return errCode;
+    }
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(launchWant,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, abilityInfo)),
+        RESOLVE_ABILITY_ERR, "failed to get abilityInfo");
+    AppExecFwk::AppPreloadPhase appPreloadPhase = abilityInfo.applicationInfo.appPreloadPhase;
+    if (appPreloadPhase <= AppExecFwk::AppPreloadPhase::ABILITY_STAGE_CREATED) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "preload to phase:%{public}d", static_cast<int32_t>(appPreloadPhase));
+        AppExecFwk::PreloadPhase preloadPhase = static_cast<AppExecFwk::PreloadPhase>(appPreloadPhase);
+        return DelayedSingleton<AppScheduler>::GetInstance()->PreloadApplicationByPhase(
+            bundleName, userId, appIndex, preloadPhase);
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "preload to window stage create");
+    StartOptions options;
+    options.processOptions = std::make_shared<ProcessOptions>();
+    options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    options.isPreloadStart_ = true;
+    return StartAbility(launchWant, options, nullptr, userId);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

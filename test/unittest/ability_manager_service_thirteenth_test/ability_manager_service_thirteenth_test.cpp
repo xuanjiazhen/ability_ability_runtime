@@ -2611,5 +2611,240 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, AbilityManagerServiceTest_IntentOp
     int res = abilityMs->IntentOpenLinkInner(paramPtr, info, -1);
     EXPECT_NE(res, ERR_OK);
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_001
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_001 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = false;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_002
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_002 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = false;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_003
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_003 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    std::string bundleName = "bundleName";
+    int32_t userId = 102;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, ERR_CROSS_USER);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_004
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_004 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = true;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, ERR_ABILITY_ALREADY_RUNNING);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_005
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_005 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = false;
+    MyStatus::GetInstance().bundleMgrHelper_ = nullptr;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, INNER_ERR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_006
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_006 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = false;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    MyStatus::GetInstance().retGetLaunchWantForBundle_ = -1;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, -1);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_006 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_007
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_007 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = false;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    MyStatus::GetInstance().retGetLaunchWantForBundle_ = 0;
+    MyStatus::GetInstance().retQueryAbilityInfo_ = false;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_007 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_008
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_008 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = false;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    MyStatus::GetInstance().retGetLaunchWantForBundle_ = 0;
+    MyStatus::GetInstance().retQueryAbilityInfo_ = true;
+    MyStatus::GetInstance().queryAbilityInfo_.applicationInfo.appPreloadPhase = AppExecFwk::AppPreloadPhase::ABILITY_STAGE_CREATED;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_008 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: PreloadApplication_009
+ * Function: PreloadApplication
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService PreloadApplication
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, PreloadApplication_009, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_009 start");
+    
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    MyStatus::GetInstance().isPreloadApplicationEnabled_ = true;
+    MyStatus::GetInstance().retVerifyPreloadApplicationPermission_ = true;
+    MyStatus::GetInstance().isPreloadAppRecordExist_ = false;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    MyStatus::GetInstance().retGetLaunchWantForBundle_ = 0;
+    MyStatus::GetInstance().retQueryAbilityInfo_ = true;
+    MyStatus::GetInstance().queryAbilityInfo_.applicationInfo.appPreloadPhase = AppExecFwk::AppPreloadPhase::WINDOW_STAGE_CREATED;
+    std::string bundleName = "bundleName";
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->PreloadApplication(bundleName, userId, appIndex);
+    EXPECT_NE(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest PreloadApplication_009 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

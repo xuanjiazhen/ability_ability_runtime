@@ -1956,7 +1956,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         HandleNWebPreload();
     }
 #endif
-    if (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
+    if (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE ||
+        appLaunchData.IsNeedPreloadModule()) {
         PreloadModule(entryHapModuleInfo, application_->GetRuntime());
     }
 }

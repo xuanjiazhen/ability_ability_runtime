@@ -13,28 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
-#define OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H
+#include "app_mgr_client.h"
 
-#include <gmock/gmock.h>
-
-#include "ipc_skeleton.h"
-#include "singleton.h"
-#include "want.h"
-#include "mock_my_flag.h"
+#include "mock_my_status.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AppExecFwk {
 
-class PermissionVerification : public DelayedSingleton<PermissionVerification> {
-public:
-    PermissionVerification() = default;
-    ~PermissionVerification() = default;
+AppMgrClient::AppMgrClient()
+{}
+AppMgrClient::~AppMgrClient()
+{}
 
-    bool IsSACall() const;
+int32_t AppMgrClient::NotifyAppFaultBySA(const AppFaultDataBySA &faultData)
+{
+    return 0;
+}
 
-    bool VerifyStartUIAbilityToHiddenPermission() const;
-};
-}  // namespace AAFwk
+int32_t AppMgrClient::KillApplicationSelf(const bool clearPageStack, const std::string& reason)
+{
+    return 0;
+}
+
+bool AppMgrClient::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    return MyStatus::GetInstance().isPreloadAppRecordExist_;
+}
+}  // namespace AppExecFwk
 }  // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_PERMISSION_VERIFICATION_H

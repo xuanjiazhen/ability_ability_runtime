@@ -2122,6 +2122,15 @@ public:
 
     virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId) override;
 
+    /**
+     * Preload application.
+     * @param bundleName Name of the application.
+     * @param userId user id.
+     * @param appIndex app clone index.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;

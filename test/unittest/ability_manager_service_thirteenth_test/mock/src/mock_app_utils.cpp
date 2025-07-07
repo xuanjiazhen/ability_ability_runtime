@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "mock_app_utils.h"
+#include "app_utils.h"
 #include "mock_my_status.h"
-
 
 namespace OHOS {
 namespace AAFwk {
@@ -251,6 +250,11 @@ bool AppUtils::IsSupportAppServiceExtension()
 bool AppUtils::IsSupportStartAbilities()
 {
     return MyStatus::GetInstance().isSupportStartAbilities_;
+}
+
+bool AppUtils::IsPreloadApplicationEnabled()
+{
+    return MyStatus::GetInstance().isPreloadApplicationEnabled_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

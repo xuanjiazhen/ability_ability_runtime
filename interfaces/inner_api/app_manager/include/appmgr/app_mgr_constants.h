@@ -110,6 +110,19 @@ enum class PreloadMode {
     PRESS_DOWN = 0,
     PRE_MAKE = 1,
     PRELOAD_MODULE = 2,
+    PRELOAD_BY_PHASE = 3,
+};
+
+enum class PreloadPhase {
+    UNSPECIFIED = 0,
+    PROCESS_CREATED = 1,
+    ABILITY_STAGE_CREATED = 2,
+    WINDOW_STAGE_CREATED = 3
+};
+
+enum class PreloadProcessState {
+    UNSPECIFIED = 0,
+    PRE_FOREGROUND = 1
 };
 
 enum class AppStartReason {
