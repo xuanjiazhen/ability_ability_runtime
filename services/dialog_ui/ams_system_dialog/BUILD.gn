@@ -46,19 +46,18 @@ ohos_resources("ams_system_dialog_resources") {
   hap_profile = "entry/src/main/module.json"
 }
 
-ohos_hap("intent_debug_app_hap") {
-  hap_profile = "feature/src/main/module.json"
+ohos_app("intent_debug_app_hap") {
+  hap_name = "intent_debug_app"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
   deps = [
     ":intent_debug_app_products_js_assets",
     ":intent_debug_app_products_resources"
   ]
-
-  certificate_profile = "signature/openharmony_sx.p7b"
-  hap_name = "intent_debug_app"
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
   module_install_dir = "app/com.ohos.amsdialog"
   publicity_file = "publicity.xml"
+  certificate_profile = "signature/openharmony_sx.p7b"
+
 }
 
 ohos_js_assets("intent_debug_app_products_js_assets") {
