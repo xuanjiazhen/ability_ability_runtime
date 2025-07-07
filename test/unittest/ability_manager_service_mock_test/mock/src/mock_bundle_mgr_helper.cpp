@@ -103,6 +103,9 @@ bool BundleMgrHelper::GetBundleInfo(
 bool BundleMgrHelper::GetBundleInfo(
     const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId)
 {
+    if (isOpenAtomicService_) {
+        bundleInfo.applicationInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;
+    }
     return true;
 }
 

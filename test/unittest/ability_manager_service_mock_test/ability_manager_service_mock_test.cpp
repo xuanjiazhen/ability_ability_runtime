@@ -17,11 +17,13 @@
 #define private public
 #define protected public
 #include "ability_manager_service.h"
+#include "dialog_session_manager.h"
 #include "session_info.h"
 #include "sub_managers_helper.h"
 #undef private
 #undef protected
 #include "ability_manager_errors.h"
+#include "ability_util.h"
 #include "start_ability_utils.h"
 
 using namespace testing;
@@ -325,6 +327,89 @@ HWTEST_F(AbilityManagerServiceMockTest, StartUIExtensionAbility_0200, TestSize.L
     sessionInfo->want = want;
     auto ret = abilityMs->StartUIExtensionAbility(sessionInfo, 1);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetWantElement_001
+ * @tc.desc: test GetWantElement function
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceMockTest, GetWantElement_001, TestSize.Level1)
+{
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    AppExecFwk::ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    AppExecFwk::ElementName result = dialogSessionManager.GetWantElement(want);
+    EXPECT_EQ(result.GetAbilityName(), "MainAbility");
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    bms->isOpenAtomicService_ = true;
+    result = dialogSessionManager.GetWantElement(want);
+    EXPECT_TRUE(result.GetAbilityName().empty());
+    bms->isOpenAtomicService_ = false;
+}
+
+/**
+ * @tc.name: OnStart_001
+ * @tc.desc: test OnStart function
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceMockTest, OnStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest OnStart_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    abilityMs->state_ = ServiceRunningState::STATE_NOT_START;
+    abilityMs->OnStart();
+    EXPECT_EQ(abilityMs->state_, ServiceRunningState::STATE_RUNNING);
+    abilityMs->instance_ = nullptr;
+    abilityMs->OnStart();
+    EXPECT_EQ(abilityMs->instance_, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest OnStart_001 end");
+}
+
+/**
+ * @tc.name: StartAbilityWithSpecifyTokenId_001
+ * @tc.desc: test StartAbilityWithSpecifyTokenId function
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceMockTest, StartAbilityWithSpecifyTokenId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityWithSpecifyTokenId_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    Want want;
+    uint32_t specifyTokenId = 0;
+    int32_t userId = 0;
+    int requestCode = 0;
+    auto ret = abilityMs->StartAbilityWithSpecifyTokenId(want, nullptr, specifyTokenId, userId, requestCode);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityWithSpecifyTokenId_001 end");
+}
+
+/**
+ * @tc.name: StartAbilityWithSpecifyTokenIdInner_001
+ * @tc.desc: test StartAbilityWithSpecifyTokenIdInner function
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceMockTest, StartAbilityWithSpecifyTokenIdInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityWithSpecifyTokenIdInner_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    Want want;
+    uint32_t specifyTokenId = 0;
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isPendingWantCaller = false;
+    auto ret = abilityMs->StartAbilityWithSpecifyTokenIdInner(want, nullptr, specifyTokenId,
+        isPendingWantCaller, userId, requestCode);
+    EXPECT_EQ(ret, ERR_NULL_INTERCEPTOR_EXECUTER);
+    want.SetFlags(Want::FLAG_ABILITY_CONTINUATION);
+    ret = abilityMs->StartAbilityWithSpecifyTokenIdInner(want, nullptr, specifyTokenId,
+        isPendingWantCaller, userId, requestCode);
+    EXPECT_EQ(ret, ERR_INVALID_CONTINUATION_FLAG);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityWithSpecifyTokenIdInner_001 end");
 }
 }
 }
