@@ -63,7 +63,59 @@ ohos_unittest("application_context_test") {
   ]
 }
 
+
+ohos_unittest("application_context_first_test") {
+  module_out_path = "ability_runtime/ability_runtime/service_extension"
+
+  include_dirs = [
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include",
+  ]
+
+  sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/exit_reason.cpp",
+    "${ability_runtime_test_path}/unittest/application_context_test/mock_context_impl.cpp",
+    "application_context_first_test.cpp",
+  ]
+
+  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+
+  cflags = []
+
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_native_path}/ability/native:service_extension",
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:abilitykit_native",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "napi:ace_napi",
+    "resource_management:global_resmgr",
+  ]
+}
+
 group("unittest") {
   testonly = true
-  deps = [ ":application_context_test" ]
+  deps = [
+    ":application_context_test",
+    ":application_context_first_test",
+  ]
 }
