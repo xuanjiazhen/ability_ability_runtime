@@ -1835,7 +1835,8 @@ void AppMgrService::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::str
     appMgrServiceInner_->UpdateInstanceKeyBySpecifiedId(specifiedId, instanceKey);
 }
 
-int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result)
+int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result,
+    bool &isDebug)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -1850,7 +1851,7 @@ int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const Ab
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    result = appMgrServiceInner_->IsSpecifiedModuleLoaded(want, abilityInfo);
+    result = appMgrServiceInner_->IsSpecifiedModuleLoaded(want, abilityInfo, isDebug);
     return ERR_OK;
 }
 

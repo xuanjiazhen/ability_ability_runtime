@@ -9834,7 +9834,8 @@ void AppMgrServiceInner::SendAppSpawnUninstallDebugHapMsg(int32_t userId)
     }
 }
 
-bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo)
+bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo,
+    bool &isDebug)
 {
     if (!CheckRemoteClient() || !appRunningManager_) {
         return false;
@@ -9858,6 +9859,7 @@ bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const 
     if (appRecord == nullptr) {
         return false;
     }
+    isDebug = appRecord->IsDebug();
 
     auto moduleRecord = appRecord->GetModuleRecordByModuleName(appInfo->bundleName, hapModuleInfo.moduleName);
     if (moduleRecord == nullptr) {

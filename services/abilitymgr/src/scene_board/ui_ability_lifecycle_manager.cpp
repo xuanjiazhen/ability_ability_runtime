@@ -3764,6 +3764,8 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest: %{public}d", specifiedRequest.requestId);
     auto &request = specifiedRequest.abilityRequest;
 
+    bool isDebug = false;
+    bool isLoaded = IsSpecifiedModuleLoaded(request, isDebug);
     if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_PROCESS) {
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(request.want,
             request.abilityInfo, specifiedRequest.requestId);
@@ -3776,7 +3778,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             return;
         }
         if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_NONE &&
-            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !IsSpecifiedModuleLoaded(request)) {
+            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
             specifiedRequest.isCold = true;
             auto sessionInfo = CreateSessionInfo(request);
             sessionInfo->requestCode = request.requestCode;
@@ -3796,7 +3798,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
         }
     }
     if (request.want.GetBoolParam("debugApp", false) || request.want.GetBoolParam("nativeDebug", false) ||
-        DelayedSingleton<AppScheduler>::GetInstance()->IsAttachDebug(request.abilityInfo.bundleName)) {
+        !request.want.GetStringParam("perfCmd").empty() || isDebug) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest debug mode");
         return;
     }
@@ -3842,7 +3844,7 @@ std::shared_ptr<SpecifiedRequest> UIAbilityLifecycleManager::PopAndGetNextSpecif
     return nullptr;
 }
 
-bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest)
+bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool &isDebug)
 {
     auto appMgr = AppMgrUtil::GetAppMgr();
     if (appMgr == nullptr) {
@@ -3851,7 +3853,7 @@ bool UIAbilityLifecycleManager::IsSpecifiedModuleLoaded(const AbilityRequest &ab
     }
     bool appExist = false;
     auto ret = IN_PROCESS_CALL(appMgr->IsSpecifiedModuleLoaded(abilityRequest.want,
-        abilityRequest.abilityInfo, appExist));
+        abilityRequest.abilityInfo, appExist, isDebug));
     return ret == ERR_OK && appExist;
 }
 

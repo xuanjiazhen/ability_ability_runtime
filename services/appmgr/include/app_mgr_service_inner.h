@@ -1538,7 +1538,7 @@ public:
 
     void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
 
-    bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
+    bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &isDebug);
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);
 
     std::shared_ptr<AAFwk::TaskHandlerWrap> GetTaskHandler() const
