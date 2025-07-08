@@ -3302,8 +3302,8 @@ int AbilityManagerStub::RegisterWindowManagerServiceHandlerInner(MessageParcel &
     }
     bool animationEnabled = data.ReadBool();
     auto result = RegisterWindowManagerServiceHandler(handler, animationEnabled);
-+   reply.WriteInt32(result);
-+   return result;
+    reply.WriteInt32(result);
+    return result;
 }
 
 int AbilityManagerStub::CompleteFirstFrameDrawingInner(MessageParcel &data, MessageParcel &reply)
