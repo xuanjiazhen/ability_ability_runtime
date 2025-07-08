@@ -3574,7 +3574,8 @@ int AbilityManagerStub::SetSessionManagerServiceInner(MessageParcel &data, Messa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token fail");
         return ERR_NULL_OBJECT;
     }
-    SetSessionManagerService(sessionManagerService);
+    auto result = SetSessionManagerService(sessionManagerService);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 
@@ -4250,7 +4251,7 @@ int32_t AbilityManagerStub::IsEmbeddedOpenAllowedInner(MessageParcel &data, Mess
 
     std::string appId = data.ReadString();
     auto result = IsEmbeddedOpenAllowed(callerToken, appId);
-    if (!reply.WriteInt32(result)) {
+    if (!reply.WriteBool(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
     }
