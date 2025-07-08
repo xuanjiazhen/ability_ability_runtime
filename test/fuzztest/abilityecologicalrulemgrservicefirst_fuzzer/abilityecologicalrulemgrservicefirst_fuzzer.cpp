@@ -34,6 +34,7 @@ constexpr size_t STRING_MAX_LENGTH = 128;
 }
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
+    sptr<AbilityEcologicalRuleMgrServiceClient> instanceClient = AbilityEcologicalRuleMgrServiceClient::GetInstance();
     auto client = std::make_shared<AbilityEcologicalRuleMgrServiceClient>();
     wptr<IRemoteObject> object;
     Want want;
