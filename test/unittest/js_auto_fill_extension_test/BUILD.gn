@@ -34,6 +34,7 @@ ohos_unittest("js_auto_fill_extension_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:ui_extension",
   ]
 

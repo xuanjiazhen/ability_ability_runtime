@@ -35,6 +35,7 @@ ohos_unittest("authorization_result_test") {
     "googletest:gtest_main",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
   ]
 }
 

@@ -35,8 +35,11 @@ ohos_unittest("js_service_extension_test") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
+    "${ability_runtime_path}/services/abilitymgr:abilityms_target",
   ]
 
   external_deps = [

@@ -79,6 +79,7 @@ ohos_unittest("application_test") {
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -97,6 +98,7 @@ ohos_unittest("application_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -150,6 +152,7 @@ ohos_unittest("context_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -163,6 +166,7 @@ ohos_unittest("context_impl_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -210,6 +214,7 @@ ohos_unittest("context_impl_second_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -223,6 +228,7 @@ ohos_unittest("context_impl_second_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -270,6 +276,7 @@ ohos_unittest("context_impl_third_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -283,6 +290,7 @@ ohos_unittest("context_impl_third_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -323,6 +331,7 @@ ohos_unittest("context_container_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -335,6 +344,7 @@ ohos_unittest("context_container_test") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -388,6 +398,7 @@ ohos_unittest("overlay_event_subscriber_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -521,6 +532,8 @@ ohos_unittest("context_deal_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
   ]
 
   external_deps = [
@@ -581,6 +594,7 @@ ohos_unittest("application_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -592,6 +606,7 @@ ohos_unittest("application_impl_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -672,6 +687,7 @@ ohos_unittest("ability_stage_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
   ]
 
   external_deps = [
@@ -723,6 +739,9 @@ ohos_unittest("form_extension_context_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
   ]
 
   external_deps = [
@@ -833,6 +852,7 @@ ohos_unittest("context_container_by_mock_bms_test") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "form_fwk:fmskit_native",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -841,6 +861,7 @@ ohos_unittest("context_container_by_mock_bms_test") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",
+    "window_manager:sms",
   ]
 }
 
@@ -957,6 +978,7 @@ ohos_unittest("extension_plugin_info_test") {
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
   ]
 
   external_deps = [
