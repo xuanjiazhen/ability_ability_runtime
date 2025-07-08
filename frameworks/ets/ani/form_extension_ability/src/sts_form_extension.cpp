@@ -20,6 +20,7 @@
 
 #include "ability_info.h"
 #include "ani.h"
+#include "ani_common_util.h"
 #include "ani_common_want.h"
 #include "form_provider_data.h"
 #include "form_runtime/form_extension_provider_client.h"
@@ -590,7 +591,7 @@ bool STSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     }
 
     ani_method recordSetMethod;
-    status = env->Class_FindMethod(recordCls, "$_set", "Lstd/core/Object;Lstd/core/Object;:V", &recordSetMethod);
+    status = env->Class_FindMethod(recordCls, "$_set", GetRecordSetSignature(), &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod set failed: %{public}d", status);
         return false;

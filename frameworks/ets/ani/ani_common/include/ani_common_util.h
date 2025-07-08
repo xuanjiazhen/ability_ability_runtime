@@ -22,6 +22,16 @@
 namespace OHOS {
 namespace AppExecFwk {
 
+inline constexpr const char *GetRecordGetSignature()
+{
+    return "X{C{std.core.Numeric}C{std.core.String}}:C{std.core.Object}";
+}
+
+inline constexpr const char *GetRecordSetSignature()
+{
+    return "X{C{std.core.Numeric}C{std.core.String}}C{std.core.Object}:";
+}
+
 bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_double &value);
 bool GetBoolOrUndefined(ani_env *env, ani_object param, const char *name);
 bool GetStringOrUndefined(ani_env *env, ani_object param, const char *name, std::string &res);

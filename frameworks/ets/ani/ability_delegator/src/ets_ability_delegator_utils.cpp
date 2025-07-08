@@ -16,6 +16,7 @@
 #include "ets_ability_delegator_utils.h"
 
 #include <map>
+#include "ani_common_util.h"
 #include "ets_ability_delegator.h"
 #include "hilog_tag_wrapper.h"
 
@@ -170,13 +171,13 @@ void SetParameters(ani_env *aniEnv, ani_class arguments, ani_object argumentObje
         return;
     }
     ani_method recordGetMethod;
-    status = aniEnv->Class_FindMethod(recordCls, "$_get", "Lstd/core/Object;:Lstd/core/Object;", &recordGetMethod);
+    status = aniEnv->Class_FindMethod(recordCls, "$_get", GetRecordGetSignature(), &recordGetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
         return;
     }
     ani_method recordSetMethod;
-    status = aniEnv->Class_FindMethod(recordCls, "$_set", "Lstd/core/Object;Lstd/core/Object;:V", &recordSetMethod);
+    status = aniEnv->Class_FindMethod(recordCls, "$_set", GetRecordSetSignature(), &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "Class_FindMethod failed status: %{public}d", status);
         return;
