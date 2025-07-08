@@ -201,6 +201,6 @@ private:
     sptr<EtsUIExtensionAbilityDisplayListener> etsUIExtensionAbilityDisplayListener_ = nullptr;
 #endif
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
+} // namespace AbilityRuntime
+} // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ETS_UI_EXTENSION_H

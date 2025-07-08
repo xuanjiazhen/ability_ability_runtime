@@ -16,6 +16,7 @@
 #define OHOS_ABILITY_RUNTIME_ETS_UI_EXTENSION_CONTEXT_H
 
 #include <array>
+#include "ets_free_install_observer.h"
 #include <iostream>
 #include <unistd.h>
 
@@ -27,12 +28,19 @@
 #include "ohos_application.h"
 #include "ui_extension_context.h"
 
-ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context);
+namespace OHOS {
+namespace AbilityRuntime {
+ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<UIExtensionContext> context);
+bool BindNativeMethods(ani_env *env, ani_class &cls);
 
 class EtsUIExtensionContext final {
 public:
-    explicit EtsUIExtensionContext(const std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> &context)
-        : context_(context) {}
+    static EtsUIExtensionContext &GetInstance()
+    {
+        static EtsUIExtensionContext instance;
+        return instance;
+    }
+    explicit EtsUIExtensionContext(const std::shared_ptr<UIExtensionContext>& context): context_(context) {}
     virtual ~EtsUIExtensionContext() = default;
 
     static void TerminateSelfSync(ani_env *env, ani_object obj, ani_object callback);
@@ -46,5 +54,15 @@ private:
 
 protected:
     std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
+private:
+    static void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
+        std::shared_ptr<Context> context, std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo);
+    void StartAbilityInner(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object opt, ani_object call);
+    static UIExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
+    void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
+        ani_object callback, UIExtensionContext* context);
 };
+} // namespace AbilityRuntime
+} // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_UI_EXTENSION_CONTEXT_H
