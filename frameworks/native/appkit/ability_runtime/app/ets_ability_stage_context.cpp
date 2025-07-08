@@ -16,6 +16,7 @@
 
 #include "ability_runtime/context/context.h"
 #include "ani_common_configuration.h"
+#include "common_fun_ani.h"
 #include "configuration_convertor.h"
 #include "ets_context_utils.h"
 #include "ets_runtime.h"
@@ -76,8 +77,33 @@ ani_object ETSAbilityStageContext::CreateEtsAbilityStageContext(ani_env *env, st
     }
 
     ContextUtil::CreateEtsBaseContext(env, abilityStageCtxCls, obj, context);
-    // set Config class
     SetConfiguration(env, abilityStageCtxCls, obj, context);
+    ani_object moduleInfoObj = CreateHapModuleInfo(env, context);
+    if (moduleInfoObj != nullptr) {
+        ani_field moduleInfoField;
+        status = env->Class_FindField(abilityStageCtxCls, "currentHapModuleInfo", &moduleInfoField);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Class_FindField currentHapModuleInfo failed");
+        }
+        status = env->Object_SetField_Ref(obj, moduleInfoField, reinterpret_cast<ani_ref>(moduleInfoObj));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Object_SetField_Ref moduleInfoField failed");
+        }
+    }
+    return obj;
+}
+
+ani_object ETSAbilityStageContext::CreateHapModuleInfo(ani_env* env, const std::shared_ptr<Context> &context)
+{
+    if (env == nullptr || context == nullptr) {
+        return nullptr;
+    }
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (hapModuleInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "hapModuleInfo is nullptr");
+        return nullptr;
+    }
+    ani_object obj = AppExecFwk::CommonFunAni::ConvertHapModuleInfo(env, *hapModuleInfo);
     return obj;
 }
 

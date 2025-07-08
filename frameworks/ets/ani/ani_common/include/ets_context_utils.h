@@ -31,6 +31,8 @@ void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object co
 ani_object GetApplicationContextSync(ani_env *env, ani_object aniObj);
 void SwitchArea(ani_env *env, ani_object obj, ani_enum_item areaModeItem);
 ani_enum_item GetArea(ani_env *env, ani_object obj);
+ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
+    ani_string bundleName, ani_string moduleName);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

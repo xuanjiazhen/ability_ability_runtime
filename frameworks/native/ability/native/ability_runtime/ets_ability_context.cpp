@@ -488,6 +488,30 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
 }
 } // namespace
 
+bool SetHapModuleInfo(
+    ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<AbilityContext> &context)
+{
+    if (env == nullptr || context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env or context");
+        return false;
+    }
+    ani_status status = ANI_OK;
+    auto hapModuleInfo = context->GetHapModuleInfo();
+    if (hapModuleInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "hapModuleInfo is nullptr");
+        return false;
+    }
+    ani_ref hapModuleInfoRef = AppExecFwk::CommonFunAni::ConvertHapModuleInfo(env, *hapModuleInfo);
+    if (hapModuleInfoRef != nullptr) {
+        status = env->Object_SetPropertyByName_Ref(contextObj, "currentHapModuleInfo", hapModuleInfoRef);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Object_SetPropertyByName_Ref failed, status : %{public}d", status);
+            return false;
+        }
+    }
+    return true;
+}
+
 ani_object CreateEtsAbilityContext(
     ani_env *env, const std::shared_ptr<AbilityContext> &context, const std::shared_ptr<OHOSApplication> &application)
 {
@@ -527,6 +551,10 @@ ani_object CreateEtsAbilityContext(
     ani_object configurationObj = OHOS::AppExecFwk::WrapConfiguration(env, *configuration);
     if ((status = env->Object_SetFieldByName_Ref(contextObj, "config", configurationObj)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "Object_SetFieldByName_Ref status: %{public}d", status);
+        return nullptr;
+    }
+    if (!SetHapModuleInfo(env, cls, contextObj, context)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "SetHapModuleInfo failed");
         return nullptr;
     }
     return contextObj;
