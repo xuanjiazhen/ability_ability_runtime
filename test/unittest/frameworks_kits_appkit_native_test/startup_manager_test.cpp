@@ -845,10 +845,13 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTask_0100, Function | 
     startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson0, preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
+    startupManager->preloadSystemSoAllowlist_.insert("@ohos:testUrl");
+    startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson0, preloadSoStartupTasks);
+    EXPECT_TRUE(preloadSoStartupTasks.empty());
+
     nlohmann::json preloadHintStartupTasksJson1 = R"(
         {"systemPreloadHintStartupTasks":""}
     )"_json;
-    startupManager->preloadSystemSoAllowlist_.insert("@ohos:testUrl");
     startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson1, preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
@@ -1045,44 +1048,32 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTaskInner_0100, Functi
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     startupManager->preloadSystemSoAllowlist_.clear();
 
-    nlohmann::json preloadSoStartupTaskInnerJson0 = R"(
-        {"name":"testName"}
-    )"_json;
-    startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson0.at("name"),
+    nlohmann::json preloadSoStartupTaskInnerJson0 = "testName";
+    startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson0,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson1 = R"(
-        {}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson1 = R"({})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson1,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson2 = R"(
-        {"name":[]}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson2 = R"({"name":[]})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson2,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson3 = R"(
-        {"name":"testName"}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson3 = R"({"name":"testName"})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson3,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson4 = R"(
-        {"name":"testName", "ohmurl":"[]"}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson4 = R"({"name":"testName", "ohmurl":[]})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson4,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson5 = R"(
-        {"name":"testName", "ohmurl":"testUrl"}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson5 = R"({"name":"testName", "ohmurl":"testUrl"})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson5,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
@@ -1147,6 +1138,21 @@ HWTEST_F(StartupManagerTest, GetModuleConfig_0100, Function | MediumTest | Level
     std::string moduleName = "application";
     startupManager->SetModuleConfig(nullptr, moduleName, false);
     EXPECT_EQ(startupManager->moduleConfigs_[moduleName], nullptr);
+}
+
+/**
+ * @tc.name: GetModuleConfig_0200
+ * @tc.type: FUNC
+ * @tc.Function: GetModuleConfig
+ */
+HWTEST_F(StartupManagerTest, GetModuleConfig_0200, Function | MediumTest | Level1)
+{
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    EXPECT_TRUE(startupManager != nullptr);
+    std::string moduleName = "application";
+    auto config = std::make_shared<StartupConfig>();
+    startupManager->SetModuleConfig(config, moduleName, true);
+    EXPECT_EQ(startupManager->defaultConfig_, config);
 }
 
 /**
