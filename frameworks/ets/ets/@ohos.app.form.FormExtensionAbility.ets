@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,46 +13,377 @@
  * limitations under the License.
  */
 
-import formBindingData from '@ohos.app.form.formBindingData';
-import FormExtensionContext from './application/FormExtensionContext';
-import Want from '@ohos.app.ability.Want';
+/**
+ * @file
+ * @kit FormKit
+ */
 
+import formBindingData from './@ohos.app.form.formBindingData';
+/*** if arkts 1.1 */
+import formInfo from './@ohos.app.form.formInfo';
+/*** endif */
+import FormExtensionContext from './application/FormExtensionContext';
+import Want from './@ohos.app.ability.Want';
+/*** if arkts 1.1 */
+import { Configuration } from './@ohos.app.ability.Configuration';
+/*** endif */
+
+/**
+ * Called to return a {@link FormState} object.
+ * <p>You must override this callback if you want this ability to return the actual form state. Otherwise,
+ * this method returns {@link FormState#DEFAULT} by default.</p>
+ *
+ * @typedef { function }
+ * @param { Want } want - Indicates the description of the form for which the {@link formInfo#FormState}
+ *                        is obtained. The description covers the bundle name, ability name, module name,
+ *                        form name, and form dimensions.
+ * @returns { formInfo.FormState } Returns the {@link formInfo#FormState} object.
+ * @syscap SystemCapability.Ability.Form
+ * @stagemodelonly
+ * @atomicservice
+ * @since 20
+ * @arkts 1.2
+ */
+type OnAcquireFormStateFn = (want: Want) => formInfo.FormState;
+
+/**
+ * Called when this ability breaks the last link, notifying the provider that the provider process is about to stop.
+ *
+ * @typedef { function }
+ * @syscap SystemCapability.Ability.Form
+ * @stagemodelonly
+ * @atomicservice
+ * @since 20
+ * @arkts 1.2
+ */
 type OnStopFn = () => void;
 
-export default class FormExtensionAbility {
-  public context: FormExtensionContext = new FormExtensionContext();
+/**
+ * class of form extension.
+ *
+ * @syscap SystemCapability.Ability.Form
+ * @stagemodelonly
+ * @since 9
+ */
+/**
+ * class of form extension.
+ *
+ * @syscap SystemCapability.Ability.Form
+ * @stagemodelonly
+ * @atomicservice
+ * @since arkts {'1.1':'11', '1.2':'20'}
+ * @arkts 1.1&1.2
+ */
+declare class FormExtensionAbility {
+  /**
+   * Indicates form extension context.
+   *
+   * @type { FormExtensionContext }
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Indicates form extension context.
+   *
+   * @type { FormExtensionContext }
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  context: FormExtensionContext;
 
-  onAddForm(want: Want): formBindingData.FormBindingData {
-    console.log('FormExtensionAbility onAddForm');
-    let dataObj1: Record<string, string> = {
-      'temperature': '11c',
-      'time': '11:00'
-    };
+  /**
+   * Called to return a {@link formBindingData#FormBindingData} object.
+   *
+   * @param { Want } want - Indicates the detailed information for creating a {@link formBindingData#FormBindingData}.
+   *                        The {@code Want} object must include the form ID, form name, and grid style of the form.
+   *                        Such form information must be managed as persistent data for further form
+   *                        acquisition, update, and deletion.
+   * @returns { formBindingData.FormBindingData } Returns the created {@link formBindingData#FormBindingData} object.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called to return a {@link formBindingData#FormBindingData} object.
+   *
+   * @param { Want } want - Indicates the detailed information for creating a {@link formBindingData#FormBindingData}.
+   *                        The {@code Want} object must include the form ID, form name, and grid style of the form.
+   *                        Such form information must be managed as persistent data for further form
+   *                        acquisition, update, and deletion.
+   * @returns { formBindingData.FormBindingData } Returns the created {@link formBindingData#FormBindingData} object.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onAddForm(want: Want): formBindingData.FormBindingData;
 
-    let obj1: formBindingData.FormBindingData = formBindingData.createFormBindingData(dataObj1);
-    return obj1;
-  }
+  /**
+   * Called when the form provider is notified that a temporary form is successfully converted to a normal form.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called when the form provider is notified that a temporary form is successfully converted to a normal form.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onCastToNormalForm(formId: string): void;
 
-  onCastToNormalForm(formId: string): void {
-    console.log(`FormExtensionAbility onCastToNormalForm, formId: ${formId}`);
-  }
+  /**
+   * Called to notify the form provider to update a specified form.
+   *
+   * @param { string } formId - Indicates the ID of the form to update.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called to notify the form provider to update a specified form.
+   *
+   * @param { string } formId - Indicates the ID of the form to update.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since 11
+   */
+  /**
+   * Called to notify the form provider to update a specified form.
+   *
+   * @param { string } formId - Indicates the ID of the form to update.
+   * @param { Record<string, Object> } [wantParams] - Indicates the detailed information for updating the form.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'12', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onUpdateForm(formId: string, wantParams?: Record<string, Object>): void;
 
-  onUpdateForm(formId: string, wantParams?: Record<string, Object>): void {
-    console.log(`FormExtensionAbility onUpdateForm, formId: ${formId},
-        wantPara: ${wantParams?.['ohos.extra.param.key.host_bg_inverse_color']}`);
-  }
+  /**
+   * Called when the form provider receives form events from the system.
+   *
+   * @param { object } newStatus - Indicates the form events occurred. The key in the {@code Map}
+   *                               object indicates the form ID, and the value indicates the event
+   *                               type, which can be either
+   *                               {@link formInfo#VisibilityType#FORM_VISIBLE} or
+   *                               {@link formInfo#VisibilityType#FORM_INVISIBLE}.
+   *                               {@link formInfo#VisibilityType#FORM_VISIBLE} means that the form becomes visible,
+   *                               {@link formInfo#VisibilityType#FORM_INVISIBLE} means that the form becomes
+   *                               invisible.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called when the form provider receives form events from the system.
+   *
+   * @param { Record<string, int> } newStatus - Indicates the form events occurred. The key in the {@code Map}
+   *                                               object indicates the form ID, and the value indicates the event
+   *                                               type, which can be either
+   *                                               {@link formInfo#VisibilityType#FORM_VISIBLE} or
+   *                                               {@link formInfo#VisibilityType#FORM_INVISIBLE}.
+   *                                               {@link formInfo#VisibilityType#FORM_VISIBLE}
+   *                                               means that the form becomes visible,
+   *                                               {@link formInfo#VisibilityType#FORM_INVISIBLE} means that the form
+   *                                               becomes invisible.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onChangeFormVisibility(newStatus: Record<string, int>): void;
 
-  onChangeFormVisibility(newStatus: Record<string, number>): void {
-    console.log(`FormExtensionAbility onChangeFormVisibility, newStatus: ${newStatus}`);
-  }
+  /**
+   * Called when a specified message event defined by the form provider is triggered. This method is valid only for
+   * JS forms.
+   *
+   * @param { string } formId - Indicates the ID of the form on which the message event is triggered, which is
+   *                            provided by the client to the form provider.
+   * @param { string } message - Indicates the value of the {@code params} field of the message event. This parameter
+   *                             is used to identify the specific component on which the event is triggered.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called when a specified message event defined by the form provider is triggered. This method is valid only for
+   * JS forms.
+   *
+   * @param { string } formId - Indicates the ID of the form on which the message event is triggered, which is
+   *                            provided by the client to the form provider.
+   * @param { string } message - Indicates the value of the {@code params} field of the message event. This parameter
+   *                             is used to identify the specific component on which the event is triggered.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onFormEvent(formId: string, message: string): void;
 
-  onFormEvent(formId: string, message: string): void {
-    console.log(`FormExtensionAbility onFormEvent, formId: ${formId}, message: ${message}`);
-  }
+  /**
+   * Called to notify the form provider that a specified form has been destroyed. Override this method if
+   * you want your application, as the form provider, to be notified of form deletion.
+   *
+   * @param { string } formId - Indicates the ID of the destroyed form.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called to notify the form provider that a specified form has been destroyed. Override this method if
+   * you want your application, as the form provider, to be notified of form deletion.
+   *
+   * @param { string } formId - Indicates the ID of the destroyed form.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts {'1.1':'11', '1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onRemoveForm(formId: string): void;
 
-  onRemoveForm(formId: string): void {
-    console.log(`FormExtensionAbility onRemoveForm, formId: ${formId}`);
-  }
-  
-  public onStop?: OnStopFn;
+  /**
+   * Called when the system configuration is updated.
+   *
+   * @param { Configuration } newConfig - Indicates the system configuration, such as language and color mode.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called when the system configuration is updated.
+   *
+   * @param { Configuration } newConfig - Indicates the system configuration, such as language and color mode.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since arkts{ '1.1':'11','1.2':'20'}
+   * @arkts 1.1&1.2
+   */
+  onConfigurationUpdate(newConfig: Configuration): void;
+
+  /**
+   * Called to return a {@link FormState} object.
+   * <p>You must override this callback if you want this ability to return the actual form state. Otherwise,
+   * this method returns {@link FormState#DEFAULT} by default.</p>
+   *
+   * @param { Want } want - Indicates the description of the form for which the {@link formInfo#FormState}
+   *                        is obtained. The description covers the bundle name, ability name, module name,
+   *                        form name, and form dimensions.
+   * @returns { formInfo.FormState } Returns the {@link formInfo#FormState} object.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called to return a {@link FormState} object.
+   * <p>You must override this callback if you want this ability to return the actual form state. Otherwise,
+   * this method returns {@link FormState#DEFAULT} by default.</p>
+   *
+   * @param { Want } want - Indicates the description of the form for which the {@link formInfo#FormState}
+   *                        is obtained. The description covers the bundle name, ability name, module name,
+   *                        form name, and form dimensions.
+   * @returns { formInfo.FormState } Returns the {@link formInfo#FormState} object.
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since 11
+   */
+  onAcquireFormState?(want: Want): formInfo.FormState;
+
+  /**
+   * Called when the system shares the form.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @returns { object } Returns the wantParams object.
+   * @syscap SystemCapability.Ability.Form
+   * @systemapi
+   * @stagemodelonly
+   * @since 9
+   */
+  /**
+   * Called when the system shares the form.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @returns { Record<string, Object> } Returns the wantParams object.
+   * @syscap SystemCapability.Ability.Form
+   * @systemapi
+   * @stagemodelonly
+   * @since 11
+   */
+  onShareForm?(formId: string): Record<string, Object>;
+
+  /**
+   * Called when the system acquire the form data.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @returns { object } Returns the wantParams object.
+   * @syscap SystemCapability.Ability.Form
+   * @systemapi
+   * @stagemodelonly
+   * @since 10
+   */
+  /**
+   * Called when the system acquire the form data.
+   *
+   * @param { string } formId - Indicates the ID of the form.
+   * @returns { Record<string, Object> } Returns the wantParams object.
+   * @syscap SystemCapability.Ability.Form
+   * @systemapi
+   * @stagemodelonly
+   * @since 11
+   */
+  onAcquireFormData?(formId: string): Record<string, Object>;
+
+    /**
+   * Called to return a {@link FormState} object.
+   * <p>You must override this callback if you want this ability to return the actual form state. Otherwise,
+   * this method returns {@link FormState#DEFAULT} by default.</p>
+   *
+   * @type { ?OnAcquireFormStateFn }
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since 20
+   * @arkts 1.2
+   */
+    onAcquireFormState?: OnAcquireFormStateFn;
+
+  /**
+   * Called when this ability breaks the last link, notifying the provider that the provider process is about to stop.
+   *
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since 12
+   */
+  onStop?(): void;
+
+  /**
+   * Called when this ability breaks the last link, notifying the provider that the provider process is about to stop.
+   *
+   * @type { ?OnStopFn }
+   * @syscap SystemCapability.Ability.Form
+   * @stagemodelonly
+   * @atomicservice
+   * @since 20
+   * @arkts 1.2
+   */
+  onStop?: OnStopFn;
 }
+export default FormExtensionAbility;
