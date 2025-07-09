@@ -2702,6 +2702,7 @@ int AbilityManagerStub::RegisterRemoteOnListenerInner(MessageParcel &data, Messa
         return ERR_NULL_OBJECT;
     }
     int32_t result = RegisterOnListener(type, listener);
+    reply.WriteInt32(result);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d", result);
     return result;
 }
@@ -2719,6 +2720,7 @@ int AbilityManagerStub::RegisterRemoteOffListenerInner(MessageParcel &data, Mess
         return ERR_NULL_OBJECT;
     }
     int32_t result = RegisterOffListener(type, listener);
+    reply.WriteInt32(result);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d", result);
     return result;
 }
@@ -3574,8 +3576,7 @@ int AbilityManagerStub::SetSessionManagerServiceInner(MessageParcel &data, Messa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read ability token fail");
         return ERR_NULL_OBJECT;
     }
-    auto result = SetSessionManagerService(sessionManagerService);
-    reply.WriteInt32(result);
+    SetSessionManagerService(sessionManagerService);
     return NO_ERROR;
 }
 
