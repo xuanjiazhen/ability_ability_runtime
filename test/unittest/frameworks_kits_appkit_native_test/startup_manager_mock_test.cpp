@@ -12,12 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <fstream>
 #include <gtest/gtest.h>
 #define private public
 #define protected public
 #include "startup_manager.h"
 #include "js_startup_task.h"
 #include "js_insight_intent_executor.h"
+#include "mock_config_policy_utils.h"
 #undef private
 #undef protected
 
@@ -101,6 +103,208 @@ HWTEST_F(StartupManagerMockTest, js_insight_intent_executor_0100, Function | Med
     JsInsightIntentExecutor::ReplyFailed(callback);
     EXPECT_TRUE(callback != nullptr);
     callback = nullptr;
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0100
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0100, Function | MediumTest | Level1)
+{
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePathIsNull();
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    startupManager->preloadSystemSoAllowlist_.clear();
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0200
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0200, Function | MediumTest | Level1)
+{
+    std::string preloadSystemSoAllowlistFileName = "";
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePath(preloadSystemSoAllowlistFileName);
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    startupManager->preloadSystemSoAllowlist_.clear();
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0300
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0300, Function | MediumTest | Level1)
+{
+    std::string fileName = "ability_runtime_test_";
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    fileName.append(fileName).append(fileName).append(fileName).append(fileName);
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePath(fileName);
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    startupManager->preloadSystemSoAllowlist_.clear();
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0400
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0400, Function | MediumTest | Level1)
+{
+    std::string preloadSystemSoAllowlistFileName = "ability_runtime_app_startup.json";
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePath(preloadSystemSoAllowlistFileName);
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetRealPathIsNull(true);
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    startupManager->preloadSystemSoAllowlist_.clear();
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0500
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0500, Function | MediumTest | Level1)
+{
+    std::string preloadSystemSoAllowlistFileName = "ability_runtime_app_startup.json";
+    std::unordered_set<std::string> preloadSystemSoAllowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+
+    // root path test
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePath(
+        preloadSystemSoAllowlistFileName, false, true);
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetRealPathIsNull(false);
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, preloadSystemSoAllowlist)) {
+        preloadSystemSoAllowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(preloadSystemSoAllowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    startupManager->preloadSystemSoAllowlist_.clear();
+}
+
+/**
+ * @tc.name: InitPreloadSystemSoAllowlist_0600
+ * @tc.type: FUNC
+ * @tc.Function: InitPreloadSystemSoAllowlist
+ */
+HWTEST_F(StartupManagerMockTest, InitPreloadSystemSoAllowlist_0600, Function | MediumTest | Level1)
+{
+    std::string preloadSystemSoAllowlistFileName = "ability_runtime_app_startup.json";
+    std::unordered_set<std::string> allowlist;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    startupManager->preloadSystemSoAllowlist_.clear();
+    std::string jsonData = R"({"systemPreloadSoAllowList":["@ohos:testUrl"]})";
+
+    // work path test
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetOneCfgFilePath(
+        preloadSystemSoAllowlistFileName, true);
+    OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().SetRealPathIsNull(false);
+
+    // Write json file
+    auto jsonPath = OHOS::AbilityRuntime::MockConfigPolicyUtils::GetInstance().GetOneCfgFilePath();
+    GTEST_LOG_(INFO) << "InitPreloadSystemSoAllowlist_0600 jsonPath is " << jsonPath;
+    std::ofstream outFile(jsonPath, std::ios::out | std::ios::trunc);
+    if (outFile.is_open()) {
+        outFile << jsonData;
+        EXPECT_TRUE(outFile.good());
+        outFile.close();
+        GTEST_LOG_(INFO) << "InitPreloadSystemSoAllowlist_0600 outFile.is_open() success";
+    } else {
+        GTEST_LOG_(INFO) << "InitPreloadSystemSoAllowlist_0600 outFile.is_open() false";
+    }
+
+    nlohmann::json parseResult;
+    if (!startupManager->ReadPreloadSystemSoAllowlistFile(parseResult)) {
+        allowlist.clear();
+        GTEST_LOG_(INFO) << "LoadConfiguration failed, using default preloadSystemSoAllowlist";
+    }
+
+    if (!startupManager->ParsePreloadSystemSoAllowlist(parseResult, allowlist)) {
+        allowlist.clear();
+        GTEST_LOG_(INFO) << "ParsePreloadSystemSoAllowlist failed, using default preloadSystemSoAllowlist";
+    }
+
+    startupManager->InitPreloadSystemSoAllowlist();
+    EXPECT_EQ(allowlist.size(), startupManager->preloadSystemSoAllowlist_.size());
+    EXPECT_TRUE(std::all_of(
+        startupManager->preloadSystemSoAllowlist_.begin(),
+        startupManager->preloadSystemSoAllowlist_.end(),
+        [&allowlist](const std::string &elem) {
+            return allowlist.find(elem) != allowlist.end();
+        }));
+    startupManager->preloadSystemSoAllowlist_.clear();
 }
 }
 }
