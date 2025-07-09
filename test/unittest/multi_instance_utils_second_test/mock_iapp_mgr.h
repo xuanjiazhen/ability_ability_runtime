@@ -52,19 +52,35 @@ namespace OHOS {
 namespace AppExecFwk {
 class MockIAppMgr : public AppExecFwk::IAppMgr {
 public:
-    virtual void AttachApplication(const sptr<IRemoteObject>& app) {}
-
-    virtual void ApplicationForegrounded(const int32_t recordId) {}
-
-    virtual void ApplicationBackgrounded(const int32_t recordId) {}
-
-    virtual void ApplicationTerminated(const int32_t recordId) {}
-
-    virtual void AbilityCleaned(const sptr<IRemoteObject>& token) {}
-
-    virtual sptr<IAmsMgr> GetAmsMgr()
+    virtual ErrCode AttachApplication(const sptr<IRemoteObject>& app)
     {
-        return nullptr;
+        return 0;
+    }
+
+    virtual ErrCode ApplicationForegrounded(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode ApplicationBackgrounded(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode ApplicationTerminated(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode AbilityCleaned(const sptr<IRemoteObject>& token)
+    {
+        return 0;
+    }
+
+    ErrCode GetAmsMgr(sptr<IAmsMgr>& funcResult)
+    {
+        funcResult = nullptr;
+        return 0;
     }
 
     virtual int32_t ClearUpApplicationData(const std::string& bundleName, int32_t appCloneIndex, int32_t userId = -1)
@@ -78,11 +94,6 @@ public:
     }
 
     virtual int GetAllRunningProcesses(std::vector<RunningProcessInfo>& info)
-    {
-        return 0;
-    }
-
-    virtual int32_t GetRunningMultiAppInfoByBundleName(const std::string& bundleName, RunningMultiAppInfo& info)
     {
         return 0;
     }
@@ -127,11 +138,6 @@ public:
         return 0;
     }
 
-    virtual int32_t IsTerminatingByPid(pid_t pid, bool& isTerminating)
-    {
-        return 0;
-    }
-
     virtual int GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo>& info, int32_t userId)
     {
         return 0;
@@ -159,11 +165,6 @@ public:
 
     virtual void AddAbilityStageDone(const int32_t recordId) {}
 
-    virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo& info)
-    {
-        return 0;
-    }
-
     virtual void StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo>& bundleInfos) {}
 
     virtual int32_t RegisterApplicationStateObserver(
@@ -187,18 +188,8 @@ public:
         return 0;
     }
 
-    virtual int32_t GetForegroundApplications(std::vector<AppStateData>& list)
-    {
-        return 0;
-    }
-
     virtual int StartUserTestProcess(
         const AAFwk::Want& want, const sptr<IRemoteObject>& observer, const BundleInfo& bundleInfo, int32_t userId)
-    {
-        return 0;
-    }
-
-    virtual int FinishUserTest(const std::string& msg, const int64_t& resultCode, const std::string& bundleName)
     {
         return 0;
     }
@@ -286,11 +277,6 @@ public:
         return 0;
     }
 
-    virtual bool SetAppFreezeFilter(int32_t pid)
-    {
-        return false;
-    }
-
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
 
     virtual int32_t SetContinuousTaskProcess(int32_t pid, bool isContinuousTask)
@@ -314,17 +300,6 @@ public:
         return 0;
     }
 
-    virtual int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo& info)
-    {
-        return 0;
-    }
-
-    virtual int32_t GetRunningProcessInfoByChildProcessPid(
-        const pid_t childPid, OHOS::AppExecFwk::RunningProcessInfo& info)
-    {
-        return 0;
-    }
-
     virtual int32_t GetProcessMemoryByPid(const int32_t pid, int32_t& memorySize)
     {
         return 0;
@@ -332,16 +307,6 @@ public:
 
     virtual int32_t GetRunningProcessInformation(
         const std::string& bundleName, int32_t userId, std::vector<RunningProcessInfo>& info)
-    {
-        return 0;
-    }
-
-    virtual int32_t NotifyPageShow(const sptr<IRemoteObject>& token, const PageStateData& pageStateData)
-    {
-        return 0;
-    }
-
-    virtual int32_t NotifyPageHide(const sptr<IRemoteObject>& token, const PageStateData& pageStateData)
     {
         return 0;
     }
@@ -403,11 +368,6 @@ public:
     virtual void ExitChildProcessSafely() {}
 #endif // SUPPORT_CHILD_PROCESS
 
-    virtual bool IsFinalAppProcess()
-    {
-        return false;
-    }
-
     virtual int32_t RegisterRenderStateObserver(const sptr<IRenderStateObserver>& observer)
     {
         return 0;
@@ -433,31 +393,6 @@ public:
         return 0;
     }
 
-    virtual int32_t SignRestartAppFlag(int32_t uid, const std::string& instanceKey)
-    {
-        return 0;
-    }
-
-    virtual int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string& appRunningUniqueId)
-    {
-        return 0;
-    }
-
-    virtual int32_t GetAllUIExtensionRootHostPid(pid_t pid, std::vector<pid_t>& hostPids)
-    {
-        return 0;
-    }
-
-    virtual int32_t GetAllUIExtensionProviderPid(pid_t hostPid, std::vector<pid_t>& providerPids)
-    {
-        return 0;
-    }
-
-    virtual int32_t NotifyMemorySizeStateChanged(int32_t memorySizeState)
-    {
-        return 0;
-    }
-
     virtual int32_t SetSupportedProcessCacheSelf(bool isSupport)
     {
         return 0;
@@ -478,15 +413,6 @@ public:
         return 0;
     }
 
-    virtual void SetAppAssertionPauseState(bool flag) {}
-
-    virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) {}
-
-    virtual int32_t CheckCallingIsUserTestMode(const pid_t pid, bool& isUserTest)
-    {
-        return 0;
-    }
-
 #ifdef SUPPORT_CHILD_PROCESS
 
     virtual int32_t StartNativeChildProcess(const std::string& libName, int32_t childProcessCount,
@@ -501,16 +427,6 @@ public:
         return 0;
     }
 
-    virtual void KillProcessDependedOnWeb()
-    {
-        return;
-    }
-
-    virtual void RestartResidentProcessDependedOnWeb()
-    {
-        return;
-    }
-
     virtual int32_t GetSupportedProcessCachePids(const std::string& bundleName, std::vector<int32_t>& pidList)
     {
         return 0;
@@ -518,13 +434,6 @@ public:
 
     virtual int32_t KillAppSelfWithInstanceKey(
         const std::string& instanceKey, bool clearPageStack, const std::string& reason)
-    {
-        return 0;
-    }
-
-    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string& instanceKey) {}
-
-    virtual int32_t IsSpecifiedModuleLoaded(const AAFwk::Want& want, const AbilityInfo& abilityInfo, bool& result)
     {
         return 0;
     }
@@ -541,6 +450,172 @@ public:
         } else {
             return 0;
         }
+    }
+    int32_t GetRunningMultiAppInfoByBundleName(const std::string &bundleName,
+        RunningMultiAppInfo &info)
+    {
+        return 0;
+    }
+    ErrCode PreloadApplication(
+        const std::string& bundleName, int32_t userId, PreloadMode preloadMode, int32_t appIndex)
+    {
+        return 0;
+    }
+    ErrCode IsTerminatingByPid(int32_t pid, bool& isTerminating)
+    {
+        return 0;
+    }
+    ErrCode HasDumpPermission(bool& funcResult)
+    {
+        return 0;
+    }
+    ErrCode DumpJsHeapMemory(const JsHeapDumpInfo& info)
+    {
+        return 0;
+    }
+    ErrCode DumpCjHeapMemory(const CjHeapDumpInfo& info)
+    {
+        return 0;
+    }
+    ErrCode GetForegroundApplications(
+        std::vector<AppStateData>& list)
+    {
+        return 0;
+    }
+    ErrCode FinishUserTest(
+        const std::string& msg,
+        int64_t resultCode,
+        const std::string& bundleName)
+    {
+        return 0;
+    }
+    ErrCode SetAppFreezeFilter(
+        int32_t pid,
+        bool& funcResult)
+    {
+        funcResult = false;
+        return 0;
+    }
+
+    ErrCode GetRunningProcessInfoByPid(
+        int32_t pid,
+        RunningProcessInfo& info)
+    {
+        return 0;
+    }
+    ErrCode GetRunningProcessInfoByChildProcessPid(
+        int32_t childPid,
+        RunningProcessInfo& info)
+    {
+        return 0;
+    }
+    ErrCode NotifyPageShow(
+        const sptr<IRemoteObject>& token,
+        const PageStateData& pageStateData)
+    {
+        return 0;
+    }
+    ErrCode NotifyPageHide(
+        const sptr<IRemoteObject>& token,
+        const PageStateData& pageStateData)
+    {
+        return 0;
+    }
+    ErrCode IsFinalAppProcess(
+        bool& funcResult)
+    {
+        return 0;
+    }
+    ErrCode SignRestartAppFlag(
+        int32_t uid,
+        const std::string& instanceKey)
+    {
+        return 0;
+    }
+    ErrCode GetAppRunningUniqueIdByPid(
+        int32_t pid,
+        std::string& appRunningUniqueId)
+    {
+        return 0;
+    }
+    ErrCode GetAllUIExtensionRootHostPid(
+        int32_t pid,
+        std::vector<int32_t>& hostPids)
+    {
+        return 0;
+    }
+    ErrCode GetAllUIExtensionProviderPid(
+        int32_t hostPid,
+        std::vector<int32_t>& providerPids)
+    {
+        return 0;
+    }
+    ErrCode NotifyMemorySizeStateChanged(
+        int32_t memorySizeState)
+    {
+        return 0;
+    }
+    ErrCode SaveBrowserChannel(
+        const sptr<IRemoteObject>& browser)
+    {
+        return 0;
+    }
+    ErrCode CheckCallingIsUserTestMode(
+        int32_t pid,
+        bool& isUserTest)
+    {
+        return 0;
+    }
+    ErrCode SetAppAssertionPauseState(
+        bool flag)
+    {
+        return 0;
+    }
+
+    ErrCode KillProcessDependedOnWeb()
+    {
+        return 0;
+    }
+    ErrCode RestartResidentProcessDependedOnWeb()
+    {
+        return 0;
+    }
+
+    ErrCode UpdateInstanceKeyBySpecifiedId(
+        int32_t specifiedId,
+        const std::string& instanceKey)
+    {
+        return 0;
+    }
+    ErrCode IsSpecifiedModuleLoaded(
+        const Want& want,
+        const AbilityInfo& abilityInfo,
+        bool& funcResult)
+    {
+        return 0;
+    }
+
+    ErrCode LaunchAbility(
+        const sptr<IRemoteObject>& token)
+    {
+        return 0;
+    }
+    ErrCode UpdateConfigurationForBackgroundApp(
+        const std::vector<BackgroundAppInfo>& appInfos,
+        const ConfigurationPolicy& policy,
+        int32_t userId)
+    {
+        return 0;
+    }
+    ErrCode RegisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
+    }
+    ErrCode UnregisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
     }
 };
 } // namespace AppExecFwk

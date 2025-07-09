@@ -20,8 +20,8 @@ namespace AppExecFwk {
 int32_t MockAppMgrService::retCode_ = 0;
 RunningMultiAppInfo MockAppMgrService::retInfo_;
 
-int32_t MockAppMgrService::GetRunningMultiAppInfoByBundleName(const std::string &bundleName,
-    RunningMultiAppInfo &info)
+ErrCode MockAppMgrService::GetRunningMultiAppInfoByBundleName(const std::string& bundleName,
+    RunningMultiAppInfo& info)
 {
     if (retCode_ != 0) {
         return retCode_;

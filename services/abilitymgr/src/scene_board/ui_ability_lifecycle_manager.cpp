@@ -2479,6 +2479,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedAbilityBySCB(AbilityRequest &ab
     if (IsStartSpecifiedProcessRequest(abilityRequest)) {
         return StartSpecifiedProcessRequest(abilityRequest, nullptr);
     }
+
     AddSpecifiedRequest(std::make_shared<SpecifiedRequest>(RequestIdUtil::GetRequestId(), abilityRequest));
     return ERR_OK;
 }

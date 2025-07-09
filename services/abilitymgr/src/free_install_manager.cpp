@@ -696,8 +696,9 @@ int FreeInstallManager::SetAppRunningState(Want &want)
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null appMgr");
         return ERR_INVALID_VALUE;
     }
-
-    bool isAppRunning = appMgr->GetAppRunningStateByBundleName(want.GetElement().GetBundleName());
+    
+    bool isAppRunning = false;
+    appMgr->GetAppRunningStateByBundleName(want.GetElement().GetBundleName(), isAppRunning);
     TAG_LOGI(AAFwkTag::FREE_INSTALL, "isAppRunning:%{public}d", static_cast<int>(isAppRunning));
     want.SetParam(KEY_IS_APP_RUNNING, isAppRunning);
     return ERR_OK;

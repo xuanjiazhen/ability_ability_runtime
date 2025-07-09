@@ -834,8 +834,8 @@ int32_t PendingWantManager::GetAllRunningInstanceKeysByBundleName(
         TAG_LOGE(AAFwkTag::WANTAGENT, "app mgr is null");
         return OBJECT_NULL;
     }
-
-    return IN_PROCESS_CALL(appMgr->GetAllRunningInstanceKeysByBundleName(bundleName, appKeyVec));
+    int32_t userId = -1;
+    return IN_PROCESS_CALL(appMgr->GetAllRunningInstanceKeysByBundleName(bundleName, appKeyVec, userId));
 }
 }  // namespace AAFwk
 }  // namespace OHOS

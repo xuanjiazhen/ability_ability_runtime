@@ -53,19 +53,35 @@ namespace OHOS {
 namespace AppExecFwk {
 class MockIAppMgr : public AppExecFwk::IAppMgr {
 public:
-    virtual void AttachApplication(const sptr<IRemoteObject>& app) {}
-
-    virtual void ApplicationForegrounded(const int32_t recordId) {}
-
-    virtual void ApplicationBackgrounded(const int32_t recordId) {}
-
-    virtual void ApplicationTerminated(const int32_t recordId) {}
-
-    virtual void AbilityCleaned(const sptr<IRemoteObject>& token) {}
-
-    virtual sptr<IAmsMgr> GetAmsMgr()
+    virtual ErrCode AttachApplication(const sptr<IRemoteObject>& app)
     {
-        return nullptr;
+        return 0;
+    }
+    
+    virtual ErrCode ApplicationForegrounded(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode ApplicationBackgrounded(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode ApplicationTerminated(const int32_t recordId)
+    {
+        return 0;
+    }
+
+    virtual ErrCode AbilityCleaned(const sptr<IRemoteObject>& token)
+    {
+        return 0;
+    }
+
+    virtual ErrCode GetAmsMgr(sptr<IAmsMgr>& funcResult)
+    {
+        funcResult = nullptr;
+        return 0;
     }
 
     virtual int32_t ClearUpApplicationData(const std::string& bundleName, int32_t appCloneIndex, int32_t userId = -1)
@@ -144,7 +160,7 @@ public:
         return 0;
     }
 
-    virtual int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel>& procLevelMap)
+    virtual ErrCode NotifyProcMemoryLevel(const MemoryLevelInfo& memoryLevelInfo)
     {
         return 0;
     }
@@ -154,19 +170,25 @@ public:
         return 0;
     }
 
-    virtual void AddAbilityStageDone(const int32_t recordId) {}
-
-    virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo& info)
+    virtual ErrCode AddAbilityStageDone(const int32_t recordId)
     {
         return 0;
     }
 
-    virtual int DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo& info)
+    virtual ErrCode DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo& info)
     {
         return 0;
     }
 
-    virtual void StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo>& bundleInfos) {}
+    virtual ErrCode DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo& info)
+    {
+        return 0;
+    }
+
+    virtual ErrCode StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo>& bundleInfos)
+    {
+        return 0;
+    }
 
     virtual int32_t RegisterApplicationStateObserver(
         const sptr<IApplicationStateObserver>& observer, const std::vector<std::string>& bundleNameList = {})
@@ -200,14 +222,20 @@ public:
         return 0;
     }
 
-    virtual int FinishUserTest(const std::string& msg, const int64_t& resultCode, const std::string& bundleName)
+    virtual int FinishUserTest(const std::string& msg, int64_t resultCode, const std::string& bundleName)
     {
         return 0;
     }
 
-    virtual void ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want& want, const std::string& flag) {}
-    virtual void ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want& want, const std::string& flag)
-    {}
+    virtual ErrCode ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want& want, const std::string& flag)
+    {
+        return 0;
+    }
+    virtual ErrCode ScheduleNewProcessRequestDone(
+        const int32_t recordId, const AAFwk::Want& want, const std::string& flag)
+    {
+        return 0;
+    }
 
     virtual int GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>>& tokens)
     {
@@ -225,7 +253,10 @@ public:
         return 0;
     }
 
-    virtual void AttachRenderProcess(const sptr<IRemoteObject>& renderScheduler) {}
+    virtual ErrCode AttachRenderProcess(const sptr<IRemoteObject>& renderScheduler)
+    {
+        return 0;
+    }
 
     virtual int GetRenderProcessTerminationStatus(pid_t renderPid, int& status)
     {
@@ -258,9 +289,10 @@ public:
         return 0;
     }
 
-    virtual bool GetAppRunningStateByBundleName(const std::string& bundleName)
+    virtual int32_t GetAppRunningStateByBundleName(const std::string& bundleName, bool& funcResult)
     {
-        return false;
+        funcResult = false;
+        return 0;
     }
 
     virtual int32_t NotifyLoadRepairPatch(const std::string& bundleName, const sptr<IQuickFixCallback>& callback)
@@ -288,9 +320,9 @@ public:
         return 0;
     }
 
-    virtual bool SetAppFreezeFilter(int32_t pid)
+    virtual int32_t SetAppFreezeFilter(int32_t pid, bool& funcResult)
     {
-        return false;
+        return 0;
     }
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
@@ -301,9 +333,9 @@ public:
     };
 #endif
 
-    virtual bool IsSharedBundleRunning(const std::string& bundleName, uint32_t versionCode)
+    virtual int32_t IsSharedBundleRunning(const std::string& bundleName, uint32_t versionCode, bool& funcResult)
     {
-        return false;
+        return 0;
     }
 
     virtual int32_t StartNativeProcessForDebugger(const AAFwk::Want& want)
@@ -400,14 +432,20 @@ public:
         return 0;
     }
 
-    virtual void AttachChildProcess(const sptr<IRemoteObject>& childScheduler) {}
+    virtual ErrCode AttachChildProcess(const sptr<IRemoteObject>& childScheduler)
+    {
+        return 0;
+    }
 
-    virtual void ExitChildProcessSafely() {}
+    virtual ErrCode ExitChildProcessSafely()
+    {
+        return 0;
+    }
 #endif // SUPPORT_CHILD_PROCESS
 
-    virtual bool IsFinalAppProcess()
+    virtual int32_t IsFinalAppProcess(bool& funcResult)
     {
-        return false;
+        return 0;
     }
 
     virtual int32_t RegisterRenderStateObserver(const sptr<IRenderStateObserver>& observer)
@@ -480,9 +518,15 @@ public:
         return 0;
     }
 
-    virtual void SetAppAssertionPauseState(bool flag) {}
+    virtual ErrCode SetAppAssertionPauseState(bool flag)
+    {
+        return 0;
+    }
 
-    virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) {}
+    virtual ErrCode SaveBrowserChannel(const sptr<IRemoteObject>& browser)
+    {
+        return 0;
+    }
 
     virtual int32_t CheckCallingIsUserTestMode(const pid_t pid, bool& isUserTest)
     {
@@ -503,14 +547,14 @@ public:
         return 0;
     }
 
-    virtual void KillProcessDependedOnWeb()
+    virtual ErrCode KillProcessDependedOnWeb()
     {
-        return;
+        return 0;
     }
 
-    virtual void RestartResidentProcessDependedOnWeb()
+    virtual ErrCode RestartResidentProcessDependedOnWeb()
     {
-        return;
+        return 0;
     }
 
     virtual int32_t GetSupportedProcessCachePids(const std::string& bundleName, std::vector<int32_t>& pidList)
@@ -524,7 +568,10 @@ public:
         return 0;
     }
 
-    virtual void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string& instanceKey) {}
+    virtual int32_t UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string& instanceKey)
+    {
+        return 0;
+    }
 
     virtual int32_t IsSpecifiedModuleLoaded(const AAFwk::Want& want, const AbilityInfo& abilityInfo, bool& result)
     {
@@ -543,6 +590,42 @@ public:
         } else {
             return 0;
         }
+    }
+
+    ErrCode PreloadApplication(
+        const std::string& bundleName, int32_t userId, PreloadMode preloadMode, int32_t appIndex)
+    {
+        return 0;
+    }
+
+    ErrCode HasDumpPermission(bool& funcResult)
+    {
+        return 0;
+    }
+
+    ErrCode UpdateConfigurationForBackgroundApp(
+        const std::vector<BackgroundAppInfo>& appInfos,
+        const ConfigurationPolicy& policy,
+        int32_t userId)
+    {
+        return 0;
+    }
+
+    ErrCode RegisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
+    }
+    ErrCode UnregisterNativeChildExitNotify(
+        const sptr<INativeChildNotify>& notify)
+    {
+        return 0;
+    }
+
+    ErrCode LaunchAbility(
+        const sptr<IRemoteObject>& token)
+    {
+        return 0;
     }
 };
 } // namespace AppExecFwk

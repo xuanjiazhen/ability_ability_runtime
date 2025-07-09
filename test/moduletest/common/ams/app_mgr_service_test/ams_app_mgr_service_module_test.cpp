@@ -220,7 +220,8 @@ HWTEST_F(AppMgrServiceModuleTest, GetAmsMgr_001, TestSize.Level1)
 {
     EXPECT_TRUE(appMgrService_);
 
-    auto amsMgr = appMgrService_->GetAmsMgr();
+    sptr<IAmsMgr> amsMgr;
+    appMgrService_->GetAmsMgr(amsMgr);
 
     EXPECT_TRUE(amsMgr);
 }
@@ -367,7 +368,7 @@ HWTEST_F(AppMgrServiceModuleTest, ClearUpApplicationData_001, TestSize.Level1)
     std::string bundleName = "bundleName";
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->ClearUpApplicationData(bundleName, 0);
+    int32_t res = appMgrService->ClearUpApplicationData(bundleName, 0, -1);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -450,7 +451,7 @@ HWTEST_F(AppMgrServiceModuleTest, GetAllRunningInstanceKeysByBundleName_001, Tes
     EXPECT_CALL(*mockAppMgrServiceInner_, GetAllRunningInstanceKeysByBundleName(_, _, _))
         .Times(1).WillOnce(Return(ERR_OK));
 
-    auto result = appMgrService_->GetAllRunningInstanceKeysByBundleName(testBundleName, testInstanceKeys);
+    auto result = appMgrService_->GetAllRunningInstanceKeysByBundleName(testBundleName, testInstanceKeys, -1);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -482,7 +483,9 @@ HWTEST_F(AppMgrServiceModuleTest, KillApplication_001, TestSize.Level1)
 
         EXPECT_CALL(*mockAppMgrServiceInner_, KillApplication(_, _, _)).Times(1).WillOnce(Invoke(mockHandler));
 
-        int ret = appMgrService_->GetAmsMgr()->KillApplication(testBundleName);
+        sptr<IAmsMgr> appMgr;
+        appMgrService_->GetAmsMgr(appMgr);
+        int ret = appMgr->KillApplication(testBundleName);
 
         sem.Wait();
 

@@ -57,7 +57,7 @@ void AmsIpcAppmgrModuleTest::TearDown()
 
 class MockMockAppMgrService : public MockAppMgrService {
 public:
-    MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
+    MOCK_METHOD1(GetAmsMgr, ErrCode(sptr<IAmsMgr>&));
     MOCK_METHOD3(ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& bundleName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>&));
@@ -79,7 +79,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_001, TestSize.Level3)
         sptr<MockApplication> app(new MockApplication());
 
         EXPECT_CALL(*mockAppMgr, AttachApplication(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+            .WillOnce(Return(0));
         appMgrClient->AttachApplication(app);
         mockAppMgr->Wait();
     }
@@ -101,7 +101,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_002, TestSize.Level3)
         auto recordId = AppRecordId::Create();
 
         EXPECT_CALL(*mockAppMgr, ApplicationForegrounded(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+            .WillOnce(Return(0));
         appMgrClient->ApplicationForegrounded(recordId);
         mockAppMgr->Wait();
     }
@@ -123,7 +123,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_003, TestSize.Level3)
         auto recordId = AppRecordId::Create();
 
         EXPECT_CALL(*mockAppMgr, ApplicationBackgrounded(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+            .WillOnce(Return(0));
         appMgrClient->ApplicationBackgrounded(recordId);
         mockAppMgr->Wait();
     }
@@ -145,7 +145,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_004, TestSize.Level3)
         auto recordId = AppRecordId::Create();
 
         EXPECT_CALL(*mockAppMgr, ApplicationTerminated(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+            .WillOnce(IReturn(0));
         appMgrClient->ApplicationTerminated(recordId);
         mockAppMgr->Wait();
     }
@@ -167,7 +167,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_005, TestSize.Level3)
         sptr<MockAbilityToken> token = new MockAbilityToken;
 
         EXPECT_CALL(*mockAppMgr, AbilityCleaned(_))
-            .WillOnce(InvokeWithoutArgs(mockAppMgr.GetRefPtr(), &MockAppMgrService::Post));
+            .WillOnce(Return(0));
         appMgrClient->AbilityCleaned(token);
         mockAppMgr->Wait();
     }
@@ -194,7 +194,8 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_006, TestSize.Level3)
 
         EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
 
-        appMgrClient->GetAmsMgr();
+        sptr<IAmsMgr> appMgr;
+        appMgrClient->GetAmsMgr(appMgr);
 
         mockMockAppMgr->Wait();
     }
@@ -224,7 +225,7 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_007, TestSize.Level3)
 
         EXPECT_CALL(*mockMockAppMgr, ClearUpApplicationData(_, _, _)).WillOnce(Invoke(mockHandler));
 
-        appMgrClient->ClearUpApplicationData(testBundleName, 0);
+        appMgrClient->ClearUpApplicationData(testBundleName, 0, -1);
         mockMockAppMgr->Wait();
 
         EXPECT_TRUE(testResult);

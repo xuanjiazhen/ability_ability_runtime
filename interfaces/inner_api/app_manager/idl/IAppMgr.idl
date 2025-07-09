@@ -1,0 +1,177 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+sequenceable OHOS.IRemoteObject;
+sequenceable running_process_info..OHOS.AppExecFwk.RunningProcessInfo;
+sequenceable running_process_info..OHOS.AppExecFwk.RunningProcessInfoVec;
+sequenceable running_multi_info..OHOS.AppExecFwk.RunningMultiAppInfo;
+sequenceable render_process_info..OHOS.AppExecFwk.RenderProcessInfo;
+sequenceable child_process_info..OHOS.AppExecFwk.ChildProcessInfo;
+sequenceable app_malloc_info..OHOS.AppExecFwk.MallocInfo;
+sequenceable app_jsheap_mem_info..OHOS.AppExecFwk.JsHeapDumpInfo;
+sequenceable app_cjheap_mem_info..OHOS.AppExecFwk.CjHeapDumpInfo;
+sequenceable bundle_info..OHOS.AppExecFwk.BundleInfo;
+sequenceable app_state_data..OHOS.AppExecFwk.AppStateData;
+sequenceable want..OHOS.AAFwk.Want;
+sequenceable OHOS.AppExecFwk.Configuration;
+sequenceable background_app_info..OHOS.AppExecFwk.BackgroundAppInfo;
+sequenceable configuration_policy..OHOS.AppExecFwk.ConfigurationPolicy;
+sequenceable fault_data..OHOS.AppExecFwk.FaultData;
+sequenceable fault_data..OHOS.AppExecFwk.AppFaultDataBySA;
+sequenceable page_state_data..OHOS.AppExecFwk.PageStateData;
+sequenceable child_process_request..OHOS.AppExecFwk.ChildProcessRequest;
+sequenceable OHOS.AppExecFwk.AbilityInfo;
+sequenceable process_memory_state..OHOS.AppExecFwk.ProcessMemoryState;
+sequenceable killed_process_info..OHOS.AppExecFwk.KilledProcessInfo;
+sequenceable memory_level_info..OHOS.AppExecFwk.MemoryLevelInfo;
+
+interface OHOS.AppExecFwk.IAbilityForegroundStateObserver;
+interface OHOS.AppExecFwk.IConfigurationObserver;
+interface OHOS.AppExecFwk.IQuickFixCallback;
+interface OHOS.AppExecFwk.IApplicationStateObserver;
+interface OHOS.AppExecFwk.IAmsMgr;
+interface OHOS.AppExecFwk.IAppForegroundStateObserver;
+interface OHOS.AppExecFwk.IRenderStateObserver;
+interface OHOS.AppExecFwk.IKiaInterceptor;
+interface OHOS.AppExecFwk.INativeChildNotify;
+
+import IAppMgrConstants;
+import IApplicationInfo;
+import IAppMemInfo;
+
+interface OHOS.AppExecFwk.IAppMgr{
+    void AttachApplication([in] IRemoteObject app);
+    void PreloadApplication([in] String bundleName, [in] int userId,
+        [in] PreloadMode preloadMode, [in] int appIndex);
+    void ApplicationForegrounded([in] int recordId);
+    void ApplicationBackgrounded([in] int recordId);
+    void ApplicationTerminated([in] int recordId);
+    void AbilityCleaned([in] IRemoteObject token);
+    IAmsMgr GetAmsMgr();
+    void ClearUpApplicationData([in] String bundleName, [in] int appCloneIndex,
+        [in] int userId);
+    void ClearUpApplicationDataBySelf([in] int userId);
+    void GetAllRunningProcesses([out] RunningProcessInfo[] info);
+    void GetRunningMultiAppInfoByBundleName([in] String bundleName,
+        [out]RunningMultiAppInfo info);
+    void GetAllRunningInstanceKeysBySelf([out] String[] instanceKeys);
+    void GetAllRunningInstanceKeysByBundleName([in] String bundleName,
+        [out] String[] instanceKeys, [in] int userId);
+    void GetRunningProcessesByBundleType([in] BundleType bundleType,
+        [out] RunningProcessInfo[] info);
+    void GetAllRenderProcesses([out] RenderProcessInfo[] info);
+    void GetAllChildrenProcesses([out] ChildProcessInfo[] info);
+    void JudgeSandboxByPid([in] int pid, [out] boolean isSandbox);  
+    void IsTerminatingByPid([in] int pid, [out] boolean isTerminating);
+    void GetProcessRunningInfosByUserId([out] RunningProcessInfo[] info, [in] int userId);
+    void GetProcessRunningInformation([out] RunningProcessInfo info);
+    void NotifyMemoryLevel([in] int level);
+    //void NotifyProcMemoryLevel([in] Map<int, MemoryLevel> procLevelMap);
+    void NotifyProcMemoryLevel([in] MemoryLevelInfo memoryLevelInfo);
+    void DumpHeapMemory([in] int pid, [out] MallocInfo mallocInfo);
+    boolean HasDumpPermission();
+    void AddAbilityStageDone([in] int recordId);
+    void DumpJsHeapMemory([in] JsHeapDumpInfo info);
+    void DumpCjHeapMemory([in] CjHeapDumpInfo info);
+    void StartupResidentProcess([in] BundleInfo[] bundleInfos);
+    void RegisterApplicationStateObserver([in] IApplicationStateObserver observer, [in] String[] bundleNameList);
+    void UnregisterApplicationStateObserver([in] IApplicationStateObserver observer);
+    void RegisterAbilityForegroundStateObserver([in] IAbilityForegroundStateObserver observer);
+    void UnregisterAbilityForegroundStateObserver([in] IAbilityForegroundStateObserver observer);
+    void GetForegroundApplications([out] AppStateData[] list);
+    void StartUserTestProcess(
+        [in] Want want, [in] IRemoteObject observer, [in] BundleInfo bundleInfo, [in] int userId);
+    void FinishUserTest([in] String msg, [in] long resultCode, [in] String bundleName);
+    void ScheduleAcceptWantDone([in] int recordId, [in] Want want, [in] String flag);
+    void ScheduleNewProcessRequestDone([in] int recordId, [in] Want want, [in] String flag);
+    void GetAbilityRecordsByProcessID([in] int pid, [out] IRemoteObject[] tokens);
+    void PreStartNWebSpawnProcess();
+    void StartRenderProcess([in] String renderParam,
+       [in] FileDescriptor ipcFd, [in] FileDescriptor sharedFd,
+       [in] FileDescriptor crashFd, [out] int renderPid, [in] boolean isGPU);
+    void AttachRenderProcess([in] IRemoteObject renderScheduler);
+    void GetRenderProcessTerminationStatus([in] int renderPid, [out] int status);
+    void GetConfiguration([out] Configuration config);
+    void UpdateConfiguration([in] Configuration config, [in] int userId);
+    void UpdateConfigurationForBackgroundApp([in] BackgroundAppInfo[] appInfos,
+        [in] ConfigurationPolicy policy, [in] int userId);
+    void UpdateConfigurationByBundleName([in] Configuration config, [in] String name, [in] int appIndex);
+    void RegisterConfigurationObserver([in] IConfigurationObserver observer);
+    void UnregisterConfigurationObserver([in] IConfigurationObserver observer);
+    boolean GetAppRunningStateByBundleName([in] String bundleName);
+    void NotifyLoadRepairPatch([in] String bundleName, [in] IQuickFixCallback callBack);
+    void NotifyHotReloadPage([in] String bundleName, [in] IQuickFixCallback callBack);
+    void NotifyUnLoadRepairPatch([in] String bundleName, [in] IQuickFixCallback callBack);
+    void NotifyAppFault([in] FaultData faultData);
+    void NotifyAppFaultBySA([in] AppFaultDataBySA faultData);
+    boolean SetAppFreezeFilter([in] int pid);
+    [macrodef BGTASKMGR_CONTINUOUS_TASK_ENABLE]void SetContinuousTaskProcess(
+        [in] int pid, [in] boolean isContinuousTask);
+    boolean IsSharedBundleRunning([in] String bundleName, [in] unsigned int versionCode);
+    void StartNativeProcessForDebugger([in] Want want);
+    void GetBundleNameByPid([in] int pid, [out] String bundleName, [out] int uid);
+    void GetRunningProcessInfoByPid([in] int pid, [out] RunningProcessInfo info);
+    void GetRunningProcessInfoByChildProcessPid([in] int childPid, [out] RunningProcessInfo info);
+    void GetProcessMemoryByPid([in] int  pid, [out] int memorySize);
+    void GetRunningProcessInformation(
+        [in] String bundleName, [in] int userId, [out] RunningProcessInfo[] info);
+    [oneway]void NotifyPageShow([in] IRemoteObject token, [in] PageStateData pageStateData);
+    [oneway]void NotifyPageHide([in] IRemoteObject token, [in] PageStateData pageStateData);
+    [oneway]void ChangeAppGcState([in] int pid, [in] int state, [in] unsigned long tid);
+    void RegisterAppRunningStatusListener([in] IRemoteObject listener);
+    void UnregisterAppRunningStatusListener([in] IRemoteObject listener);
+    void RegisterAppForegroundStateObserver([in] IAppForegroundStateObserver observer);
+    void UnregisterAppForegroundStateObserver([in] IAppForegroundStateObserver observer);
+    void IsApplicationRunning([in] String bundleName, [out] boolean isRunning);
+    void IsAppRunning([in] String bundleName, [in] int appCloneIndex, [out] boolean isRunning);
+    void IsAppRunningByBundleNameAndUserId([in] String bundleName, [in] int userId, [out] boolean isRunning);
+    [macrodef SUPPORT_CHILD_PROCESS]void StartChildProcess([out] int childPid, [in] ChildProcessRequest request);
+    [macrodef SUPPORT_CHILD_PROCESS]void GetChildProcessInfoForSelf([out] ChildProcessInfo info);
+    [macrodef SUPPORT_CHILD_PROCESS]void AttachChildProcess([in] IRemoteObject childScheduler);
+    [macrodef SUPPORT_CHILD_PROCESS]void ExitChildProcessSafely();
+    boolean IsFinalAppProcess();
+    void RegisterRenderStateObserver([in] IRenderStateObserver observer);
+    void UnregisterRenderStateObserver([in] IRenderStateObserver observer);
+    void RegisterKiaInterceptor([in] IKiaInterceptor interceptor);
+    void CheckIsKiaProcess([in] int pid, [out] boolean isKia);
+    void UpdateRenderState([in] int renderPid, [in] int state);
+    void SignRestartAppFlag([in] int uid, [in] String instanceKey);
+    void GetAppRunningUniqueIdByPid([in] int pid, [out] String appRunningUniqueId);
+    void GetAllUIExtensionRootHostPid([in] int pid, [out] int[] hostPids);
+    void GetAllUIExtensionProviderPid([in] int hostPid, [out] int[] providerPids);
+    void NotifyMemorySizeStateChanged([in] int memorySizeState);
+    void SetSupportedProcessCacheSelf([in] boolean isSupport);
+    void SetSupportedProcessCache([in] int pid, [in] boolean isSupport);
+    void IsProcessCacheSupported([in] int pid, [out] boolean isSupported);
+    void SetProcessCacheEnable([in] int pid, [in] boolean enable);
+    void SaveBrowserChannel([in] IRemoteObject browser);
+    void CheckCallingIsUserTestMode([in] int pid, [out] boolean isUserTest);
+    void SetAppAssertionPauseState([in] boolean flag);
+    [macrodef SUPPORT_CHILD_PROCESS]void StartNativeChildProcess([in] String libName, [in] int childProcessCount,
+        [in] IRemoteObject callBack, [in] String customProcessName);
+    void RegisterNativeChildExitNotify([in] INativeChildNotify notify);
+    void UnregisterNativeChildExitNotify([in] INativeChildNotify notify);
+    void NotifyProcessDependedOnWeb();
+    void KillProcessDependedOnWeb();
+    [oneway]void RestartResidentProcessDependedOnWeb();
+    void GetSupportedProcessCachePids([in] String bundleName, [out] int[] pidList);
+    void KillAppSelfWithInstanceKey([in] String instanceKey, [in] boolean clearPageStack, [in] String reason);
+    void UpdateInstanceKeyBySpecifiedId([in] int specifiedId, [in] String instanceKey);
+    void IsSpecifiedModuleLoaded([in] Want want, [in] AbilityInfo abilityInfo, [out] boolean funcResult);
+    void UpdateProcessMemoryState([in] ProcessMemoryState[] procMemState);
+    void GetKilledProcessInfo([in] int pid, [in] int uid, [out] KilledProcessInfo info);
+    void LaunchAbility([in] IRemoteObject token);
+    void PromoteCurrentToCandidateMasterProcess([in] boolean isInsertToHead);
+    void DemoteCurrentFromCandidateMasterProcess();
+}

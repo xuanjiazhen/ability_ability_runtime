@@ -74,7 +74,7 @@ protected:
 
 class MockMockAppMgrService : public MockAppMgrService {
 public:
-    MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
+    MOCK_METHOD1(GetAmsMgr, ErrCode(sptr<IAmsMgr>&));
     MOCK_METHOD3(ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& appName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>&));
@@ -153,9 +153,10 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_002, TestSize.Level3)
         return sptr<IAmsMgr>(amsMgrScheduler.get());
     };
 
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
+    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr(_)).Times(1).WillOnce(testing::Return(0));
 
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
+    sptr<IAmsMgr> amsMgrScheduler_;
+    appMgrClient->GetAmsMgr(amsMgrScheduler_);
     mockMockAppMgr->Wait();
     sptr<OHOS::IRemoteObject> token = new MockAbilityToken();
 
@@ -192,9 +193,10 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_003, TestSize.Level3)
         return sptr<IAmsMgr>(amsMgrScheduler.get());
     };
 
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
+    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr(_)).Times(1).WillOnce(testing::Return(0));
 
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
+    sptr<IAmsMgr> amsMgrScheduler_;
+    appMgrClient->GetAmsMgr(amsMgrScheduler_);
     mockMockAppMgr->Wait();
 
     sptr<OHOS::IRemoteObject> token = new MockAbilityToken();
@@ -234,9 +236,10 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_004, TestSize.Level3)
         return sptr<IAmsMgr>(amsMgrScheduler.get());
     };
 
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
+    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr(_)).Times(1).WillOnce(testing::Return(0));
 
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
+    sptr<IAmsMgr> amsMgrScheduler_;
+    appMgrClient->GetAmsMgr(amsMgrScheduler_);
     mockMockAppMgr->Wait();
 
     for (int i = 0; i < COUNT; i++) {
@@ -273,9 +276,10 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_006, TestSize.Level3)
         return sptr<IAmsMgr>(amsMgrScheduler.get());
     };
 
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
+    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr(_)).Times(1).WillOnce(testing::Return(0));
 
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
+    sptr<IAmsMgr> amsMgrScheduler_;
+    appMgrClient->GetAmsMgr(amsMgrScheduler_);
     mockMockAppMgr->Wait();
 
     for (int i = 0; i < COUNT; i++) {
@@ -311,9 +315,10 @@ HWTEST_F(AmsIpcAmsmgrModuleTest, ExcuteAmsmgrIPCInterface_007, TestSize.Level3)
         return sptr<IAmsMgr>(amsMgrScheduler.get());
     };
 
-    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr()).Times(1).WillOnce(Invoke(mockHandler));
+    EXPECT_CALL(*mockMockAppMgr, GetAmsMgr(_)).Times(1).WillOnce(testing::Return(0));
 
-    auto amsMgrScheduler_ = appMgrClient->GetAmsMgr();
+    sptr<IAmsMgr> amsMgrScheduler_;
+    appMgrClient->GetAmsMgr(amsMgrScheduler_);
     mockMockAppMgr->Wait();
     sptr<OHOS::IRemoteObject> token = new MockAbilityToken();
 

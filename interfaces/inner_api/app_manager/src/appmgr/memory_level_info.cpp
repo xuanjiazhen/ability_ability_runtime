@@ -36,7 +36,7 @@ bool MemoryLevelInfo::Marshalling(Parcel &parcel) const
         if (!parcel.WriteInt32(it->first)) {
             return false;
         }
-        if (!parcel.WriteInt32(it->second)) {
+        if (!parcel.WriteInt32(static_cast<int>(it->second))) {
             return false;
         }
     }
@@ -71,11 +71,11 @@ bool MemoryLevelInfo::ReadFromParcel(Parcel &parcel)
     for (uint32_t i = 0; i < count; ++i) {
         pid_t pid = parcel.ReadInt32();
         int32_t tempLevel = parcel.ReadInt32();
-        MemoryLevel level = MEMORY_LEVEL_MODERATE;
+        MemoryLevel level = MemoryLevel::MEMORY_LEVEL_MODERATE;
         switch (tempLevel) {
-            case MEMORY_LEVEL_MODERATE:
-            case MEMORY_LEVEL_LOW:
-            case MEMORY_LEVEL_CRITICAL:
+            case static_cast<int>(MemoryLevel::MEMORY_LEVEL_MODERATE):
+            case static_cast<int>(MemoryLevel::MEMORY_LEVEL_LOW):
+            case static_cast<int>(MemoryLevel::MEMORY_LEVEL_CRITICAL):
                 level = static_cast<MemoryLevel>(tempLevel);
                 break;
             default:

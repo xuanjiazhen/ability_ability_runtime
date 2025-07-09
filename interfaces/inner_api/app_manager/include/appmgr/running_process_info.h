@@ -81,6 +81,17 @@ struct RunningProcessInfo : public Parcelable {
     ExtensionAbilityType extensionType_ = ExtensionAbilityType::UNSPECIFIED;
     bool isCached = false;
 };
+
+struct RunningProcessInfoVec : public Parcelable {
+    RunningProcessInfoVec() = default;
+    RunningProcessInfoVec(std::vector<RunningProcessInfo> info);
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static RunningProcessInfoVec *Unmarshalling(Parcel &parcel);
+    const std::vector<RunningProcessInfo> &GetRunningProcessInfoVetor() const;
+private:
+    std::vector<RunningProcessInfo> infos_;
+};
 }  // namespace AppExecFwk
 }  // namespace OHOS
 

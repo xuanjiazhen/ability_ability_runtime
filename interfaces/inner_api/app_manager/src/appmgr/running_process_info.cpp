@@ -27,6 +27,7 @@ namespace {
 const std::string JSON_KEY_PROCESSNAME = "processName";
 const std::string JSON_KEY_PID = "pid";
 const std::string JSON_KEY_STATE = "state";
+constexpr int32_t CYCLE_LIMIT = 1000;
 }  // namespace
 
 bool RunningProcessInfo::ReadFromParcel(Parcel &parcel)
@@ -116,6 +117,49 @@ bool RunningProcessInfo::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(pssValue));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isCached);
     return true;
+}
+
+bool RunningProcessInfoVec::ReadFromParcel(Parcel &parcel)
+{
+    int32_t infoSize = parcel.ReadInt32();
+    if (infoSize > CYCLE_LIMIT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        return false;
+    }
+    for (int32_t i = 0; i < infoSize; i++) {
+        std::unique_ptr<RunningProcessInfo> info(parcel.ReadParcelable<RunningProcessInfo>());
+        if (!info) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Read Parcelable infos failed");
+            return false;
+        }
+        infos_.emplace_back(*info);
+    }
+    return true;
+}
+bool RunningProcessInfoVec::Marshalling(Parcel &parcel) const
+{
+    parcel.WriteInt32(infos_.size());
+    for (auto &it : infos_) {
+        if (!parcel.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return true;
+}
+RunningProcessInfoVec *RunningProcessInfoVec::Unmarshalling(Parcel &parcel)
+{
+    RunningProcessInfoVec *infos = new (std::nothrow) RunningProcessInfoVec();
+    if (infos && !infos->ReadFromParcel(parcel)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "read from parcel failed");
+        delete infos;
+        infos = nullptr;
+    }
+    return infos;
+}
+
+const std::vector<RunningProcessInfo> &RunningProcessInfoVec::GetRunningProcessInfoVetor() const
+{
+    return infos_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
