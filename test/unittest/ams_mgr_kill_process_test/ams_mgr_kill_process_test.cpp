@@ -121,6 +121,8 @@ HWTEST_F(AmsMgrKillProcessTest, KillProcess_0200, TestSize.Level0)
     auto proxy = GetAppMgrProxy();
     EXPECT_NE(proxy, nullptr);
 
-    ErrCode result = proxy->GetAmsMgr()->KillProcessWithAccount(STRING_BUNDLE_NAME, ACCOUNT_ID);
+    sptr<IAmsMgr> appMgr;
+    proxy->GetAmsMgr(appMgr);
+    ErrCode result = appMgr->KillProcessWithAccount(STRING_BUNDLE_NAME, ACCOUNT_ID);
     EXPECT_NE(result, ERR_OK);
 }

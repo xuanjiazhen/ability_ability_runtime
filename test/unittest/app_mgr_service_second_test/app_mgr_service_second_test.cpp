@@ -216,11 +216,12 @@ HWTEST_F(AppMgrServiceSecondTest, IsSharedBundleRunning_0100, TestSize.Level2)
 
     std::string bundleName = "com.example.test";
     uint32_t versionCode = 1;
-    bool ret = appMgrService->IsSharedBundleRunning(bundleName, versionCode);
+    bool ret = false;
+    appMgrService->IsSharedBundleRunning(bundleName, versionCode, ret);
     EXPECT_FALSE(ret);
 
     ReadyToRun(appMgrService);
-    ret = appMgrService->IsSharedBundleRunning(bundleName, versionCode);
+    appMgrService->IsSharedBundleRunning(bundleName, versionCode, ret);
     EXPECT_FALSE(ret);
 }
 
@@ -293,10 +294,11 @@ HWTEST_F(AppMgrServiceSecondTest, SetAppFreezeFilter_0100, TestSize.Level2)
     EXPECT_NE(appMgrService, nullptr);
 
     int32_t pid = 1;
-    bool ret = appMgrService->SetAppFreezeFilter(pid);
+    bool ret = false;
+    appMgrService->SetAppFreezeFilter(pid, ret);
     EXPECT_FALSE(ret);
     ReadyToRun(appMgrService);
-    ret = appMgrService->SetAppFreezeFilter(pid);
+    appMgrService->SetAppFreezeFilter(pid, ret);
     EXPECT_FALSE(ret);
 }
 

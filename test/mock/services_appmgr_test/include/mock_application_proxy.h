@@ -61,7 +61,7 @@ public:
     MOCK_METHOD1(ScheduleDumpIpcStop, int32_t(std::string &result));
     MOCK_METHOD1(ScheduleDumpIpcStat, int32_t(std::string &result));
     MOCK_METHOD0(IsMemorySizeSufficent, bool());
-    MOCK_METHOD1(ScheduleJsHeapMemory, void(OHOS::AppExecFwk::JsHeapDumpInfo &info));
+    MOCK_METHOD1(ScheduleJsHeapMemory, void(const OHOS::AppExecFwk::JsHeapDumpInfo &info));
     MOCK_METHOD1(ScheduleDumpFfrt, int32_t(std::string& result));
     MOCK_METHOD0(ScheduleClearPageStack, void());
     MOCK_METHOD0(ScheduleCacheProcess, void());

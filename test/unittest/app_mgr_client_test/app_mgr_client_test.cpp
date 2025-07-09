@@ -738,7 +738,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_DumpCjHeapMemory_001, TestSize.Level2)
 HWTEST_F(AppMgrClientTest, NotifyMemoryLevel_001, TestSize.Level2)
 {
     auto appMgrClient = std::make_unique<AppMgrClient>();
-    MemoryLevel level = MEMORY_LEVEL_MODERATE;
+    MemoryLevel level = MemoryLevel::MEMORY_LEVEL_MODERATE;
     appMgrClient->NotifyMemoryLevel(level);
     EXPECT_NE(appMgrClient, nullptr);
 }

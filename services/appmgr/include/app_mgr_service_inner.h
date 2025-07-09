@@ -24,6 +24,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "memory_level_info.h"
 #include "ability_debug_response_interface.h"
 #include "ability_foreground_state_observer_interface.h"
 #include "ability_info.h"
@@ -518,7 +519,7 @@ public:
      * @param info, pid, tid, needGc, needSnapshot
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+    virtual int32_t DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
@@ -527,7 +528,7 @@ public:
      * @param info, pid, needGc, needSnapshot
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+    virtual int32_t DumpCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
      * @brief Check whether the shared bundle is running.
@@ -1536,7 +1537,7 @@ public:
      */
     virtual int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
-    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey);
+    void UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey);
 
     bool IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo);
     int32_t GetKilledProcessInfo(int pid, int uid, KilledProcessInfo &info);

@@ -292,7 +292,8 @@ HWTEST_F(AppMgrServiceTest, ClearUpApplicationData_001, TestSize.Level1)
     std::string bundleName = "bundleName";
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->ClearUpApplicationData(bundleName, 0);
+    int32_t userId = -1;
+    int32_t res = appMgrService->ClearUpApplicationData(bundleName, 0, userId);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -897,7 +898,7 @@ HWTEST_F(AppMgrServiceTest, UpdateConfiguration_001, TestSize.Level2)
     auto appMgrService = std::make_shared<AppMgrService>();
     Configuration config;
     appMgrService->SetInnerService(nullptr);
-    int32_t res = appMgrService->UpdateConfiguration(config);
+    int32_t res = appMgrService->UpdateConfiguration(config, -1);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -916,7 +917,7 @@ HWTEST_F(AppMgrServiceTest, UpdateConfiguration_002, TestSize.Level2)
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->UpdateConfiguration(config);
+    int32_t res = appMgrService->UpdateConfiguration(config, -1);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
 }
 
@@ -933,7 +934,7 @@ HWTEST_F(AppMgrServiceTest, UpdateConfigurationByBundleName_001, TestSize.Level2
     auto appMgrService = std::make_shared<AppMgrService>();
     Configuration config;
     appMgrService->SetInnerService(nullptr);
-    int32_t res = appMgrService->UpdateConfigurationByBundleName(config, "");
+    int32_t res = appMgrService->UpdateConfigurationByBundleName(config, "", 0);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -952,7 +953,7 @@ HWTEST_F(AppMgrServiceTest, UpdateConfigurationByBundleName_002, TestSize.Level2
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->UpdateConfigurationByBundleName(config, "");
+    int32_t res = appMgrService->UpdateConfigurationByBundleName(config, "", 0);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
 }
 
@@ -1041,7 +1042,8 @@ HWTEST_F(AppMgrServiceTest, GetAppRunningStateByBundleName_001, TestSize.Level2)
     auto appMgrService = std::make_shared<AppMgrService>();
     std::string bundleName = "bundleName";
     appMgrService->SetInnerService(nullptr);
-    bool res = appMgrService->GetAppRunningStateByBundleName(bundleName);
+    bool res = false;
+    appMgrService->GetAppRunningStateByBundleName(bundleName, res);
     EXPECT_FALSE(res);
 }
 
@@ -1060,7 +1062,8 @@ HWTEST_F(AppMgrServiceTest, GetAppRunningStateByBundleName_002, TestSize.Level2)
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    bool res = appMgrService->GetAppRunningStateByBundleName(bundleName);
+    bool res = false;
+    appMgrService->GetAppRunningStateByBundleName(bundleName, res);
     EXPECT_FALSE(res);
 }
 
@@ -1367,7 +1370,7 @@ HWTEST_F(AppMgrServiceTest, ChangeAppGcState_001, TestSize.Level1)
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    int32_t res = appMgrService->ChangeAppGcState(0, 0);
+    int32_t res = appMgrService->ChangeAppGcState(0, 0, 0);
     EXPECT_EQ(ERR_INVALID_VALUE, res);
     appMgrService->appMgrServiceInner_ = nullptr;
 }
@@ -1889,7 +1892,7 @@ HWTEST_F(AppMgrServiceTest, GetAllRunningInstanceKeysByBundleName_001, TestSize.
 
     std::string bundleName = "testBundle";
     std::vector<std::string> instanceKeys;
-    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys);
+    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, -1);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -1911,7 +1914,7 @@ HWTEST_F(AppMgrServiceTest, GetAllRunningInstanceKeysByBundleName_002, TestSize.
 
     std::string bundleName = "testBundle";
     std::vector<std::string> instanceKeys;
-    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys);
+    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, -1);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 }
 
@@ -1936,7 +1939,7 @@ HWTEST_F(AppMgrServiceTest, GetAllRunningInstanceKeysByBundleName_003, TestSize.
 
     std::string bundleName = "testBundle";
     std::vector<std::string> instanceKeys;
-    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys);
+    int32_t res = appMgrService->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, -1);
     EXPECT_EQ(res, ERR_OK);
 }
 
@@ -2188,7 +2191,7 @@ HWTEST_F(AppMgrServiceTest, NotifyProcMemoryLevel_0100, TestSize.Level1)
 
     std::map<pid_t, MemoryLevel> procLevelMap;
     procLevelMap.insert(std::make_pair(getpid(),
-        AppExecFwk::MemoryLevel::MEMORY_LEVEL_CRITICAL));
+        MemoryLevel::MEMORY_LEVEL_CRITICAL));
 
     EXPECT_CALL(*mockAppMgrServiceInner_, NotifyProcMemoryLevel(_))
         .Times(1)

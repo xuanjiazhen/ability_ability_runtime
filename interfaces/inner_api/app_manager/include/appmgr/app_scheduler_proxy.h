@@ -98,7 +98,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
+    virtual void ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
 
     /**
      * ScheduleCjHeapMemory, call ScheduleCjHeapMemory() through proxy project,
@@ -108,7 +108,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
+    virtual void ScheduleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
      * ScheduleLaunchApplication, call ScheduleLaunchApplication() through proxy project,

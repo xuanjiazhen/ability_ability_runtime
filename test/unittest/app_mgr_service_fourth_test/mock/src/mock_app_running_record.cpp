@@ -257,7 +257,7 @@ void AppRunningRecord::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::M
 {
 }
 
-void AppRunningRecord::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+void AppRunningRecord::ScheduleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
 }
 

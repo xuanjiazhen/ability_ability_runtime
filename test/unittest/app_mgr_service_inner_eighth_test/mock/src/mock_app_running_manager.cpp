@@ -276,7 +276,7 @@ int32_t AppRunningManager::DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::M
     return AAFwk::MyStatus::GetInstance().dumpHeapMemory_;
 }
 
-int32_t AppRunningManager::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
+int32_t AppRunningManager::DumpJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     return AAFwk::MyStatus::GetInstance().dumpJsHeapMemory_;
 }
@@ -470,7 +470,7 @@ bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRun
     return true;
 }
 
-void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, std::string &instanceKey)
+void AppRunningManager::UpdateInstanceKeyBySpecifiedId(int32_t specifiedId, const std::string &instanceKey)
 {
 }
 

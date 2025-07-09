@@ -37,8 +37,6 @@ ohos_source_set("appmgr_test_source") {
 
   sources = [
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_launch_data.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_mgr_proxy.cpp",
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_mgr_stub.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_process_data.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_record_id.cpp",
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_scheduler_host.cpp",
@@ -55,7 +53,10 @@ ohos_source_set("appmgr_test_source") {
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/running_process_info.cpp",
   ]
 
-  public_configs = [ ":appmgr_test_config" ]
+  public_configs = [ 
+      ":appmgr_test_config",
+      "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

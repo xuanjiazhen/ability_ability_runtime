@@ -58,18 +58,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     dataParcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
     dataParcel.WriteBuffer(data, size);
     dataParcel.RewindRead(0);
-    appMgrStub->HandleApplicationForegrounded(dataParcel, reply);
-    appMgrStub->HandleApplicationTerminated(dataParcel, reply);
-    appMgrStub->HandleClearUpApplicationData(dataParcel, reply);
-    appMgrStub->HandleGetProcessRunningInfosByUserId(dataParcel, reply);
-    appMgrStub->HandleAddAbilityStageDone(dataParcel, reply);
-    appMgrStub->HandleUnregisterApplicationStateObserver(dataParcel, reply);
-    appMgrStub->HandleGetForegroundApplications(dataParcel, reply);
-    appMgrStub->HandleAttachRenderProcess(dataParcel, reply);
-    appMgrStub->HandleJudgeSandboxByPid(dataParcel, reply);
-    appMgrStub->HandleDumpHeapMemory(dataParcel, reply);
-    appMgrStub->HandleRegisterNativeChildExitNotify(dataParcel, reply);
-    appMgrStub->HandleUnregisterNativeChildExitNotify(dataParcel, reply);
     return true;
 }
 }

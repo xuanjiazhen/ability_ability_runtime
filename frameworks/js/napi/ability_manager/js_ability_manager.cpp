@@ -418,7 +418,8 @@ private:
             }
 
             complete = [changeConfig](napi_env env, NapiAsyncTask& task, int32_t status) {
-                auto errcode = GetAppManagerInstance()->UpdateConfiguration(changeConfig);
+                int32_t userId = -1;
+                auto errcode = GetAppManagerInstance()->UpdateConfiguration(changeConfig, userId);
                 if (errcode == 0) {
 #ifdef ENABLE_ERRCODE
                     task.ResolveWithNoError(env, CreateJsUndefined(env));
