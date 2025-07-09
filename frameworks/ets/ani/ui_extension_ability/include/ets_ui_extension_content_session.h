@@ -101,7 +101,7 @@ private:
     ani_ref receiveDataCallback_ = nullptr;
     bool isRegistered_ = false;
     std::shared_ptr<CallbackWrapper> receiveDataForResultCallback_;
-    bool isSyncRegistered = false;
+    bool isSyncRegistered_ = false;
     std::shared_ptr<EtsUISessionAbilityResultListener> listener_;
     bool isFirstTriggerBindModal_ = true;
 };

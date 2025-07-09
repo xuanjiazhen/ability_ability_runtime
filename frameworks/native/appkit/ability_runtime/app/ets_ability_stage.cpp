@@ -42,7 +42,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 AbilityStage *ETSAbilityStage::Create(
-    const std::unique_ptr<Runtime>& runtime, const AppExecFwk::HapModuleInfo& hapModuleInfo)
+    const std::unique_ptr<Runtime> &runtime, const AppExecFwk::HapModuleInfo &hapModuleInfo)
 {
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");

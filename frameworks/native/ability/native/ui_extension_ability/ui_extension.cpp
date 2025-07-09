@@ -15,6 +15,10 @@
 
 #include "ui_extension.h"
 
+#include "ability_manager_client.h"
+#include "array_wrapper.h"
+#include "connection_manager.h"
+#include "ets_ui_extension.h"
 #include "ets_ui_extension_instance.h"
 #include "ability_manager_client.h"
 #include "array_wrapper.h"
