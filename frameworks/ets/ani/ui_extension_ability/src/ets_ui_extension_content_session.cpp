@@ -325,6 +325,7 @@ void EtsUIExtensionContentSession::SetWindowBackgroundColor(ani_env *env, ani_st
     env->String_GetUTF8Size(color, &sz);
     strColor.resize(sz + 1);
     env->String_GetUTF8SubString(color, 0, sz, strColor.data(), strColor.size(), &sz);
+    strColor.resize(sz);
     if (uiWindow_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow_ is nullptr");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
