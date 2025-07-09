@@ -3787,20 +3787,20 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
     auto &request = specifiedRequest.abilityRequest;
 
     bool isDebug = false;
-    bool isLoaded = IsSpecifiedModuleLoaded(request, isDebug);
     if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_PROCESS) {
+        IsSpecifiedModuleLoaded(request, isDebug);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(request.want,
             request.abilityInfo, specifiedRequest.requestId);
     } else {
         if (specifiedRequest.preCreateProcessName) {
             PreCreateProcessName(request);
         }
-        auto isHookModule = IsHookModule(request);
-        if (TryProcessHookModule(specifiedRequest, isHookModule)) {
+        if (TryProcessHookModule(specifiedRequest, IsHookModule(request))) {
             return;
         }
-        if (specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_NONE &&
-            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT && !isLoaded) {
+        if (IsSpecifiedModuleLoaded(request, isDebug) &&
+            specifiedRequest.specifiedProcessState == SpecifiedProcessState::STATE_NONE &&
+            specifiedRequest.requestListId == REQUEST_LIST_ID_INIT) {
             specifiedRequest.isCold = true;
             auto sessionInfo = CreateSessionInfo(request);
             sessionInfo->requestCode = request.requestCode;
