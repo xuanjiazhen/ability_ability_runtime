@@ -106,19 +106,22 @@ class MockIAppStateCallback : public IAppStateCallback {
 public:
     MockIAppStateCallback() = default;
     virtual ~MockIAppStateCallback() = default;
-    MOCK_METHOD1(OnAppStateChanged, void(const AppProcessData &appProcessData));
-    MOCK_METHOD2(OnAbilityRequestDone, void(const sptr<IRemoteObject> &token, const AbilityState state));
-    void NotifyAppPreCache(int32_t pid, int32_t userId) override
+    MOCK_METHOD1(OnAppStateChanged, ErrCode(const AppProcessData &appProcessData));
+    MOCK_METHOD2(OnAbilityRequestDone, ErrCode(const sptr<IRemoteObject> &token, const AbilityState state));
+    ErrCode NotifyAppPreCache(int32_t pid, int32_t userId) override
     {
         AAFwk::MyStatus::GetInstance().notifyAppPreCacheCalled_ = true;
+        return ERR_OK;
     }
-    void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override
+    ErrCode NotifyStartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override
     {
         AAFwk::MyStatus::GetInstance().notifyStartResidentProcessCalled_ = true;
+        return ERR_OK;
     }
-    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override
+    ErrCode NotifyStartKeepAliveProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) override
     {
         AAFwk::MyStatus::GetInstance().notifyStartKeepAliveProcessCalled_ = true;
+        return ERR_OK;
     }
     sptr<IRemoteObject> AsObject() override
     {

@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable OHOS.IRemoteObject;
+sequenceable app_process_data..OHOS.AppExecFwk.AppProcessData;
+sequenceable OHOS.AppExecFwk.Configuration;
+sequenceable bundle_info..OHOS.AppExecFwk.BundleInfo;
+sequenceable running_process_info..OHOS.AppExecFwk.RunningProcessInfo;
+
+import IAppMgrConstants;
+
+interface OHOS.AppExecFwk.IAppStateCallback {
+    [oneway] void OnAppStateChanged([in] AppProcessData appProcessData);
+    [oneway] void OnAbilityRequestDone([in] IRemoteObject token, [in] AbilityState state);
+    [oneway] void NotifyConfigurationChange([in] Configuration config, [in] int userId);
+    [oneway] void NotifyStartResidentProcess([in] List<BundleInfo> bundleInfos);
+    [oneway] void NotifyStartKeepAliveProcess([in] List<BundleInfo> bundleInfos);
+    [oneway] void OnAppRemoteDied([in] List<IRemoteObject> abilityTokens);
+    [oneway] void OnStartProcessFailed([in] IRemoteObject token);
+    [oneway] void NotifyAppPreCache([in] int pid, [in] int userId);
+    [oneway] void OnCacheExitInfo([in] unsigned int accessTokenId, [in] RunningProcessInfo exitInfo,
+        [in] String bundleName, [in] List<String> abilityNames, [in] List<String> uiExtensionNames);
+}

@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "app_state_callback_host.h"
+#include "app_state_callback_stub.h"
 #include "app_mgr_constants.h"
 #include "iapp_state_callback.h"
 #include "app_process_data.h"
@@ -24,6 +24,58 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace AppExecFwk {
+class MockAppStateCallbackStub : public AppStateCallbackStub {
+public:
+    MockAppStateCallbackStub() = default;
+    ~MockAppStateCallbackStub() = default;
+
+    ErrCode OnAppStateChanged(const AppProcessData& appProcessData)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject>& token, AbilityState state)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyConfigurationChange(const Configuration& config, int32_t userId)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartResidentProcess(const std::vector<BundleInfo>& bundleInfos)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartKeepAliveProcess(const std::vector<BundleInfo>& bundleInfos)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>>& abilityTokens)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnStartProcessFailed(const sptr<IRemoteObject>& token)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyAppPreCache(int32_t pid, int32_t userId)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo& exitInfo,
+        const std::string& bundleName, const std::vector<std::string>& abilityNames,
+        const std::vector<std::string>& uiExtensionNames)
+    {
+        return ERR_OK;
+    }
+};
 class AmsAppStateCallBackTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -51,8 +103,8 @@ void AmsAppStateCallBackTest::TearDown()
  */
 HWTEST_F(AmsAppStateCallBackTest, OnRemoteRequest_001, TestSize.Level1)
 {
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_ASYNC };
@@ -77,8 +129,8 @@ HWTEST_F(AmsAppStateCallBackTest, OnRemoteRequest_001, TestSize.Level1)
  */
 HWTEST_F(AmsAppStateCallBackTest, OnRemoteRequest_002, TestSize.Level1)
 {
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_ASYNC };
@@ -101,9 +153,9 @@ HWTEST_F(AmsAppStateCallBackTest, OnAbilityRequestDone_001, TestSize.Level1)
 {
     sptr<IRemoteObject> token = nullptr;
     AbilityState state = AbilityState::ABILITY_STATE_CREATE;
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
-    host->OnAbilityRequestDone(token, state);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
+    stub->OnAbilityRequestDone(token, state);
 }
 
 /*
@@ -116,10 +168,10 @@ HWTEST_F(AmsAppStateCallBackTest, OnAbilityRequestDone_001, TestSize.Level1)
  */
 HWTEST_F(AmsAppStateCallBackTest, NotifyStartResidentProcess_001, TestSize.Level1)
 {
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
-    host->NotifyStartResidentProcess(bundleInfos);
+    stub->NotifyStartResidentProcess(bundleInfos);
 }
 
 /*
@@ -132,10 +184,10 @@ HWTEST_F(AmsAppStateCallBackTest, NotifyStartResidentProcess_001, TestSize.Level
  */
 HWTEST_F(AmsAppStateCallBackTest, NotifyStartKeepAliveProcess_001, TestSize.Level1)
 {
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
-    host->NotifyStartKeepAliveProcess(bundleInfos);
+    stub->NotifyStartKeepAliveProcess(bundleInfos);
 }
 
 /*
@@ -149,9 +201,9 @@ HWTEST_F(AmsAppStateCallBackTest, NotifyStartKeepAliveProcess_001, TestSize.Leve
 HWTEST_F(AmsAppStateCallBackTest, OnAppStateChanged_001, TestSize.Level1)
 {
     AppProcessData data;
-    sptr<AppStateCallbackHost> host(new AppStateCallbackHost());
-    EXPECT_NE(host, nullptr);
-    host->OnAppStateChanged(data);
+    sptr<MockAppStateCallbackStub> stub(new MockAppStateCallbackStub());
+    EXPECT_NE(stub, nullptr);
+    stub->OnAppStateChanged(data);
 }
 
 /*

@@ -28,7 +28,10 @@ ohos_unittest("AmsIpcAppSchedulerInterfaceTest") {
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
-  deps = [ "${ability_runtime_test_path}/unittest:appmgr_test_source" ]
+  deps = [
+    "${ability_runtime_test_path}/unittest:appmgr_test_source",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+  ]
 
   external_deps = [
     "ability_base:base",

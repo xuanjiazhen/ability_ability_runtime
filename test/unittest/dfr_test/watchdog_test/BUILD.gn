@@ -56,6 +56,8 @@ ohos_unittest("watchdog_test") {
   configs = [
     ":module_context_config",
     ":ability_start_setting_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_innerkits_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
   ]
 
   sources = [

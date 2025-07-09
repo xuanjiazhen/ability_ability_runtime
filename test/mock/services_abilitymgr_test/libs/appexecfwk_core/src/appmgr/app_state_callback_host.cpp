@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "app_state_callback_host.h"
+#include "app_state_callback_stub.h"
 #include "appexecfwk_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"

@@ -19,7 +19,7 @@
 #include "ams_mgr_scheduler.h"
 #undef private
 
-#include "app_state_callback_host.h"
+#include "app_state_callback_stub.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
 #include "mock_app_mgr_service_inner.h"
@@ -36,6 +36,58 @@ using testing::Return;
 
 namespace OHOS {
 namespace AppExecFwk {
+class MockAppStateCallbackStub : public AppStateCallbackStub {
+public:
+    MockAppStateCallbackStub() = default;
+    ~MockAppStateCallbackStub() = default;
+
+    ErrCode OnAppStateChanged(const AppProcessData& appProcessData)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnAbilityRequestDone(const sptr<IRemoteObject>& token, AbilityState state)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyConfigurationChange(const Configuration& config, int32_t userId)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartResidentProcess(const std::vector<BundleInfo>& bundleInfos)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyStartKeepAliveProcess(const std::vector<BundleInfo>& bundleInfos)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnAppRemoteDied(const std::vector<sptr<IRemoteObject>>& abilityTokens)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnStartProcessFailed(const sptr<IRemoteObject>& token)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode NotifyAppPreCache(int32_t pid, int32_t userId)
+    {
+        return ERR_OK;
+    }
+
+    ErrCode OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo& exitInfo,
+        const std::string& bundleName, const std::vector<std::string>& abilityNames,
+        const std::vector<std::string>& uiExtensionNames)
+    {
+        return ERR_OK;
+    }
+};
 class AmsMgrSchedulerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -235,10 +287,10 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_005, TestSize.Level1)
         std::make_unique<AmsMgrScheduler>(mockAppMgrServiceInner, GetAmsTaskHandler());
     ASSERT_NE(amsMgrScheduler, nullptr);
 
-    sptr<AppStateCallbackHost> appStateCallbackHost = new AppStateCallbackHost();
+    sptr<MockAppStateCallbackStub> appStateCallbackstub = new MockAppStateCallbackStub();
     EXPECT_CALL(*mockAppMgrServiceInner, RegisterAppStateCallback(_))
         .WillOnce(InvokeWithoutArgs(mockAppMgrServiceInner.get(), &MockAppMgrServiceInner::Post));
-    amsMgrScheduler->RegisterAppStateCallback(appStateCallbackHost);
+    amsMgrScheduler->RegisterAppStateCallback(appStateCallbackstub);
     mockAppMgrServiceInner->Wait();
 
     TAG_LOGD(AAFwkTag::TEST, "AmsMgrScheduler_005 end.");
