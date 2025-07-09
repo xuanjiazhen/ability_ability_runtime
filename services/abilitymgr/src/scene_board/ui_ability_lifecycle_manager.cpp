@@ -223,7 +223,8 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         ProcessColdStartBranch(abilityRequest, sessionInfo, uiAbilityRecord, isColdStart)) {
         return ERR_OK;
     }
-    auto scenarios = uiAbilityRecord->GetOnNewWantSkipScenarios() & sessionInfo->scenarios;
+    auto scenarios = static_cast<unsigned int>(uiAbilityRecord)->GetOnNewWantSkipScenarios() &
+    static_cast<unsigned int>(sessionInfo->scenarios);
     if (uiAbilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state: FOREGROUND/ BACKGROUND, dropped");
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
