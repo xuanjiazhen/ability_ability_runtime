@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 
+#include "iapp_mgr_constants.h"
 namespace OHOS {
 namespace AppExecFwk {
 namespace Constants {
@@ -50,18 +51,6 @@ enum class ApplicationScheduleState {
     SCHEDULE_READY = 0,
     SCHEDULE_FOREGROUNDING,
     SCHEDULE_BACKGROUNDING,
-};
-
-enum class AbilityState {
-    ABILITY_STATE_CREATE = 0,
-    ABILITY_STATE_READY,
-    ABILITY_STATE_FOREGROUND,
-    ABILITY_STATE_FOCUS,
-    ABILITY_STATE_BACKGROUND,
-    ABILITY_STATE_TERMINATED,
-    ABILITY_STATE_END,
-    ABILITY_STATE_CONNECTED,
-    ABILITY_STATE_DISCONNECTED,
 };
 
 enum class ExtensionState {
