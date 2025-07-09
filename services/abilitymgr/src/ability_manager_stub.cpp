@@ -2684,7 +2684,6 @@ int AbilityManagerStub::RegisterRemoteMissionListenerInner(MessageParcel &data, 
         return ERR_NULL_OBJECT;
     }
     int32_t result = RegisterMissionListener(deviceId, listener);
-    reply.WriteInt32(result);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d",
         result);
     return result;
@@ -2739,7 +2738,6 @@ int AbilityManagerStub::UnRegisterRemoteMissionListenerInner(MessageParcel &data
         return ERR_NULL_OBJECT;
     }
     int32_t result = UnRegisterMissionListener(deviceId, listener);
-    reply.WriteInt32(result);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d",
         result);
     return result;
@@ -3301,9 +3299,7 @@ int AbilityManagerStub::RegisterWindowManagerServiceHandlerInner(MessageParcel &
         return ERR_NULL_OBJECT;
     }
     bool animationEnabled = data.ReadBool();
-    auto result = RegisterWindowManagerServiceHandler(handler, animationEnabled);
-    reply.WriteInt32(result);
-    return result;
+    return RegisterWindowManagerServiceHandler(handler, animationEnabled);
 }
 
 int AbilityManagerStub::CompleteFirstFrameDrawingInner(MessageParcel &data, MessageParcel &reply)
