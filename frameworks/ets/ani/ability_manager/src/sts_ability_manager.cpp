@@ -24,10 +24,12 @@
 #include "hilog_tag_wrapper.h"
 #include "ability_manager_interface.h"
 #include "if_system_ability_manager.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "sts_ability_manager_utils.h"
 #include "sts_error_utils.h"
 #include "system_ability_definition.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityManagerSts {
@@ -83,14 +85,12 @@ static void GetTopAbility(ani_env *env, ani_object callback)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return;
     }
-#ifdef ENABLE_ERRCODE
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
         AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return;
     }
-#endif
     AppExecFwk::ElementName elementName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility();
     int resultCode = 0;
     ani_object elementNameobj = AppExecFwk::WrapElementName(env, elementName);
