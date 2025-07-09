@@ -740,7 +740,7 @@ int32_t AppMgrServiceInner::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject>
     TAG_LOGI(AAFwkTag::APPMGR, "NotifyPreloadAbilityStateChanged bundle:%{public}s, pid:%{public}d",
         appRecord->GetBundleName().c_str(), appRecord->GetPid());
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnPreloadProcessStateChanged(appRecord,
-        PreloadProcessState::PRE_FOREGROUND);
+        ApplicationState::APP_STATE_PRE_FOREGROUND);
     return ERR_OK;
 }
 

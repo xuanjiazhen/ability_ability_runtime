@@ -16,9 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_PRELOAD_PROCESS_DATA_H
 #define OHOS_ABILITY_RUNTIME_PRELOAD_PROCESS_DATA_H
 
+#include <string>
 #include <unistd.h>
 
-#include "app_mgr_constants.h"
 #include "parcel.h"
 
 namespace OHOS {
@@ -32,7 +32,9 @@ struct PreloadProcessData : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
 
     pid_t pid = 0;
-    PreloadProcessState preloadProcessState = PreloadProcessState::UNSPECIFIED;
+    int32_t uid = 0;
+    int32_t state = 0;
+    std::string bundleName = 0;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

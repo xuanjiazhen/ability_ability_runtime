@@ -22,7 +22,9 @@ namespace AppExecFwk {
 bool PreloadProcessData::ReadFromParcel(Parcel &parcel)
 {
     pid = parcel.ReadInt32();
-    preloadProcessState = static_cast<PreloadProcessState>(parcel.ReadInt32());
+    uid = parcel.ReadInt32();
+    state = parcel.ReadInt32();
+    bundleName = parcel.ReadString();
     return true;
 }
 
@@ -32,8 +34,16 @@ bool PreloadProcessData::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::APPMGR, "write pid failed.");
         return false;
     }
-    if (!parcel.WriteInt32(static_cast<int32_t>(preloadProcessState))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write preloadProcessState failed.");
+    if (!parcel.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed.");
+        return false;
+    }
+    if (!parcel.WriteInt32(state)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write state failed.");
+        return false;
+    }
+    if (!parcel.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write bundleName failed.");
         return false;
     }
     return true;

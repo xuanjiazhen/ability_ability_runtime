@@ -32,6 +32,7 @@ enum class ApplicationState {
     APP_STATE_END,
     APP_STATE_SET_COLD_START = 99,
     APP_STATE_CACHED = 100,
+    APP_STATE_PRE_FOREGROUND = 101,
 };
 
 enum class WatchdogVisibilityState {
@@ -118,11 +119,6 @@ enum class PreloadPhase {
     PROCESS_CREATED = 1,
     ABILITY_STAGE_CREATED = 2,
     WINDOW_STAGE_CREATED = 3
-};
-
-enum class PreloadProcessState {
-    UNSPECIFIED = 0,
-    PRE_FOREGROUND = 1
 };
 
 enum class AppStartReason {
