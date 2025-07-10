@@ -21,6 +21,7 @@
 #include "ani_common_configuration.h"
 #include "ani_common_start_options.h"
 #include "ani_common_want.h"
+#include "ani_enum_convert.h"
 #include "ani_remote_object.h"
 #include "app_utils.h"
 #include "common_fun_ani.h"
@@ -398,6 +399,17 @@ void EtsAbilityContext::DisconnectServiceExtensionAbility(ani_env *env, ani_obje
         return;
     }
     etsContext->OnDisconnectServiceExtensionAbility(env, aniObj, connectId, callback);
+}
+
+void EtsAbilityContext::SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetColorMode called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetColorMode(env, aniObj, colorMode);
 }
 
 int32_t EtsAbilityContext::GenerateRequestCode()
@@ -908,6 +920,28 @@ void EtsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_ob
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
+void EtsAbilityContext::OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is already released");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    ani_int mode = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, colorMode, mode)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Parse colorMode failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param colorMode failed, colorMode must be number.");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::CONTEXT, "colorMode is %{public}d", mode);
+    context->SetAbilityColorMode(static_cast<int32_t>(mode));
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1067,6 +1101,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::ConnectServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::DisconnectServiceExtensionAbility) },
+            ani_native_function {"nativeSetColorMode",
+                "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);

@@ -77,6 +77,8 @@ public:
         ani_object connectOptionsObj);
     static void DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object callback);
+    static void SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
+
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
     static EtsAbilityContext *GetEtsAbilityContext(ani_env *env, ani_object aniObj);
@@ -108,6 +110,7 @@ private:
         ani_object connectOptionsObj);
     void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object callback);
+    void OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);

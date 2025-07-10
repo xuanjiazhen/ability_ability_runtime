@@ -25,6 +25,7 @@ import window from '@ohos.window';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 class Cleaner {
   public ptr: long = 0;
@@ -113,6 +114,9 @@ export default class UIAbilityContext extends Context {
   private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
 
   private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -403,5 +407,9 @@ export default class UIAbilityContext extends Context {
         this.nativeDisconnectServiceExtensionAbility(connection, callback);
       })
     });
+  }
+
+  setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
+    this.nativeSetColorMode(colorMode);
   }
 }
