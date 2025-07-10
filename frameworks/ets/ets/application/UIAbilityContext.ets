@@ -26,6 +26,7 @@ import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import AbilityStartCallback from 'application.AbilityStartCallback';
 
 class Cleaner {
   public ptr: long = 0;
@@ -116,6 +117,9 @@ export default class UIAbilityContext extends Context {
   private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
+
+  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>,
+    startCallback: AbilityStartCallback): BusinessError;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -411,5 +415,38 @@ export default class UIAbilityContext extends Context {
 
   setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
     this.nativeSetColorMode(colorMode);
+  }
+
+  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+    callback: AsyncCallback<void>): void {
+    let p1 = taskpool.execute((): BusinessError => {
+      return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+    });
+    p1.then((e: NullishType) => {
+      let retError = e as BusinessError;
+      callback(retError, undefined);
+    }, (err: Error): void => {
+      callback(err as BusinessError, undefined);
+    });
+  }
+
+  startAbilityByType(type: string, wantParam: Record<string, Object>,
+    startCallback: AbilityStartCallback): Promise<void> {
+    let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
+      let p1 = taskpool.execute((): BusinessError => {
+        return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+      });
+      p1.then((e: NullishType) => {
+        let retError = e as BusinessError;
+        if (retError.code === 0) {
+          resolve(undefined);
+        } else {
+          reject(retError);
+        }
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+    return p;
   }
 }

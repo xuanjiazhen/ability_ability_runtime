@@ -733,7 +733,6 @@ ohos_shared_library("insight_intent_executor") {
 }
 
 ohos_shared_library("insight_intent_executor_ani") {
-
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -873,6 +872,7 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
     "${ability_runtime_path}/frameworks/ets/ani/ui_ability/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
@@ -908,6 +908,7 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:event_report",
@@ -1469,7 +1470,7 @@ ohos_shared_library("service_extension_ani") {
   sources = [
     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/src/ets_service_extension.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_context.cpp",
-    ]
+  ]
 
   deps = [
     ":abilitykit_native",
@@ -1493,6 +1494,7 @@ ohos_shared_library("service_extension_ani") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bundle_framework:bms_ani_common",
     "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1505,7 +1507,6 @@ ohos_shared_library("service_extension_ani") {
     "runtime_core:ani",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "bundle_framework:bms_ani_common",
   ]
 
   if (ability_runtime_graphics) {
@@ -2096,6 +2097,7 @@ ohos_shared_library("ui_extension_ani") {
 
   include_dirs = [
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback/include",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/include",
     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
     "${ability_runtime_path}/interfaces/inner_api/insight_intent/insight_intent_context",
@@ -2105,6 +2107,7 @@ ohos_shared_library("ui_extension_ani") {
   ]
 
   sources = [
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_extension_common.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_content_session.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_context.cpp",
@@ -2127,6 +2130,7 @@ ohos_shared_library("ui_extension_ani") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    "${ability_runtime_path}/frameworks/ets/ani/ui_extension_callback:ani_ui_extension_callback",
   ]
 
   external_deps = [

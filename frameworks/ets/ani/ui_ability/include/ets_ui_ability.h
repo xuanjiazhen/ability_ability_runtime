@@ -32,6 +32,7 @@ using Want = AppExecFwk::Want;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecutorAsyncCallback = AppExecFwk::InsightIntentExecutorAsyncCallback;
+using Configuration = AppExecFwk::Configuration;
 
 class EtsUIAbility : public UIAbility {
 public:
@@ -83,6 +84,23 @@ public:
      * @brief The callback of OnStop.
      */
     void OnStopCallback() override;
+
+    /**
+     * @brief Update configuration
+     * @param configuration Indicates the updated configuration information.
+     */
+    void OnConfigurationUpdated(const Configuration &configuration) override;
+
+    /**
+     * @brief Update Contextconfiguration
+     */
+    void UpdateContextConfiguration() override;
+
+    /**
+     * @brief Called when the system configuration is updated.
+     * @param level Indicates the memory trim level, which shows the current memory usage status.
+     */
+    void OnMemoryLevel(int level) override;
 
     /**
      * @brief Called when the launch mode of an ability is set to singleInstance. This happens when you re-launch an

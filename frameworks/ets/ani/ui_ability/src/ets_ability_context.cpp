@@ -29,6 +29,7 @@
 #include "hitrace_meter.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_ui_extension_callback.h"
 #include "want.h"
 
 namespace OHOS {
@@ -410,6 +411,18 @@ void EtsAbilityContext::SetColorMode(ani_env *env, ani_object aniObj, ani_enum_i
         return;
     }
     etsContext->OnSetColorMode(env, aniObj, colorMode);
+}
+
+ani_object EtsAbilityContext::StartAbilityByType(
+    ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityByType called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return nullptr;
+    }
+    return etsContext->OnStartAbilityByType(env, aniObj, aniType, aniWantParam, startCallback);
 }
 
 int32_t EtsAbilityContext::GenerateRequestCode()
@@ -942,6 +955,47 @@ void EtsAbilityContext::OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum
     context->SetAbilityColorMode(static_cast<int32_t>(mode));
 }
 
+ani_object EtsAbilityContext::OnStartAbilityByType(
+    ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback)
+{
+    ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    std::string type;
+    if (!AppExecFwk::GetStdString(env, aniType, type)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse type failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param type failed, type must be string.");
+        return aniObject;
+    }
+
+    AAFwk::WantParams wantParam;
+    if (!AppExecFwk::UnwrapWantParams(env, aniWantParam, wantParam)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse wantParam failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return aniObject;
+    }
+
+    ani_vm *vm = nullptr;
+    if (env->GetVM(&vm) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get vm failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Internal error.");
+        return aniObject;
+    }
+    ErrCode innerErrCode = ERR_OK;
+    std::shared_ptr<EtsUIExtensionCallback> callback = std::make_shared<EtsUIExtensionCallback>(vm);
+    callback->SetEtsCallbackObject(startCallback);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    }
+#ifdef SUPPORT_SCREEN
+    innerErrCode = context->StartAbilityByType(type, wantParam, callback);
+#endif
+    if (innerErrCode != ERR_OK) {
+        return EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    }
+    return aniObject;
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1048,6 +1102,21 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     context->InsertResultCallbackTask(requestCode, std::move(task));
 }
 
+void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppExecFwk::ETSNativeReference> &etsContext,
+    const std::shared_ptr<AppExecFwk::Configuration> &config)
+{
+    if (env == nullptr || etsContext == nullptr || config == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "env or etsContext or config is null");
+        return;
+    }
+    ani_ref configurationRef = AppExecFwk::WrapConfiguration(env, *config);
+    ani_status status = env->Object_SetFieldByName_Ref(etsContext->aniObj, "config", configurationRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "config SetField status: %{public}d", status);
+        return;
+    }
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -1104,6 +1173,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function {"nativeSetColorMode",
                 "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
+            ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);

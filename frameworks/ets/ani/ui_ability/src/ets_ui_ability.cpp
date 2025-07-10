@@ -18,7 +18,9 @@
 #include <regex>
 
 #include "ability_delegator_registry.h"
+#include "ani_common_configuration.h"
 #include "ani_common_want.h"
+#include "ani_enum_convert.h"
 #ifdef SUPPORT_SCREEN
 #include "ani_window_stage.h"
 #endif
@@ -52,8 +54,9 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 #endif
-constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
+constexpr const char* UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
 constexpr const char* UI_ABILITY_SIGNATURE_VOID = ":V";
++constexpr const char* MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -876,6 +879,78 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     return true;
 }
 #endif
+
+void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    UIAbility::OnConfigurationUpdated(configuration);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnConfigurationUpdated called");
+    if (abilityContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env null");
+        return;
+    }
+    auto abilityConfig = abilityContext_->GetAbilityConfiguration();
+    auto fullConfig = abilityContext_->GetConfiguration();
+    if (fullConfig == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null fullConfig");
+        return;
+    }
+    auto realConfig = AppExecFwk::Configuration(*fullConfig);
+    if (abilityConfig != nullptr) {
+        std::vector<std::string> changeKeyV;
+        realConfig.CompareDifferent(changeKeyV, *abilityConfig);
+        if (!changeKeyV.empty()) {
+            realConfig.Merge(changeKeyV, *abilityConfig);
+        }
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "realConfig: %{public}s", realConfig.GetName().c_str());
+    ani_object aniConfiguration = AppExecFwk::WrapConfiguration(env, realConfig);
+    CallObjectMethod(false, "onConfigurationUpdated", nullptr, aniConfiguration);
+    CallObjectMethod(false, "onConfigurationUpdate", nullptr, aniConfiguration);
+    auto realConfigPtr = std::make_shared<Configuration>(realConfig);
+    EtsAbilityContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
+}
+
+void EtsUIAbility::OnMemoryLevel(int level)
+{
+    UIAbility::OnMemoryLevel(level);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnMemoryLevel called");
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null etsAbilityObj_");
+        return;
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    ani_enum_item levelEnum {};
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, MEMORY_LEVEL_ENUM_NAME, level, levelEnum)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "levelEnum NativeToEts failed");
+        return;
+    }
+    CallObjectMethod(false, "onMemoryLevel", nullptr, levelEnum);
+}
+
+void EtsUIAbility::UpdateContextConfiguration()
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "UpdateContextConfiguration called");
+    if (abilityContext_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
+        return;
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    EtsAbilityContext::ConfigurationUpdated(env, shellContextRef_, abilityContext_->GetConfiguration());
+}
 
 void EtsUIAbility::OnNewWant(const Want &want)
 {

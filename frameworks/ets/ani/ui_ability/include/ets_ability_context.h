@@ -21,6 +21,7 @@
 #include "ani.h"
 #include "configuration.h"
 #include "ets_free_install_observer.h"
+#include "ets_native_reference.h"
 #include "ets_runtime.h"
 #include "ohos_application.h"
 #include "open_link_options.h"
@@ -78,6 +79,10 @@ public:
     static void DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object callback);
     static void SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
+    static ani_object StartAbilityByType(
+        ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
+    static void ConfigurationUpdated(ani_env *env, std::shared_ptr<AppExecFwk::ETSNativeReference> &etsContext,
+        const std::shared_ptr<AppExecFwk::Configuration> &config);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -111,6 +116,8 @@ private:
     void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object callback);
     void OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
+    ani_object OnStartAbilityByType(
+        ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
