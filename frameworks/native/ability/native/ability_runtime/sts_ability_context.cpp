@@ -786,6 +786,28 @@ void StsAbilityContext::SetColorMode(ani_env *env, ani_object aniObj, ani_enum_i
     TAG_LOGD(AAFwkTag::UIABILITY, "colorMode is %{public}d", mode);
     context->SetAbilityColorMode(static_cast<int32_t>(mode));
 }
+
+void StsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
+    ani_boolean isShow, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        AppExecFwk::AsyncCallback(env, callbackObj, CreateStsError(env,
+            AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    bool showFlag = static_cast<bool>(isShow);
+    ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "failed, errCode: %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callbackObj, CreateStsErrorByNativeErr(env, errCode), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callbackObj, CreateStsErrorByNativeErr(env, ERR_OK), nullptr);
+}
+
 ani_object StsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
@@ -1089,6 +1111,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferStatic) },
             ani_native_function { "nativeTransferDynamic", "Lstd/core/Object;:Lstd/interop/ESValue;",
                 reinterpret_cast<void*>(StsAbilityContext::NativeTransferDynamic) },
+            ani_native_function { "nativeChangeAbilityVisibility", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(StsAbilityContext::NativeChangeAbilityVisibility) },
             ani_native_function { "nativeBackToCallerAbilityWithResult",
                 "Lability/abilityResult/AbilityResult;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(StsAbilityContext::NativeBackToCallerAbilityWithResult) },

@@ -80,6 +80,8 @@ export default class UIAbilityContext extends Context {
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
+  private native nativeChangeAbilityVisibility(isShow: boolean, callback: AsyncCallbackWrapper<void>): void;
+
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
@@ -190,6 +192,40 @@ export default class UIAbilityContext extends Context {
     taskpool.execute((): void => {
       this.nativeTerminateSelfSync(myCall);
     });
+  }
+
+  showAbility(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+      taskpool.execute((): void => {
+        this.nativeChangeAbilityVisibility(true, myCall);
+      });
+    });
+    return p;
+  }
+
+  hideAbility(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+      taskpool.execute((): void => {
+        this.nativeChangeAbilityVisibility(false, myCall);
+      });
+    });
+    return p;
   }
 
   terminateSelf(): Promise<void> {

@@ -88,6 +88,8 @@ public:
     static void SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
     static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
+    static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
+        ani_object callbackObj);
     static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
     static void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
