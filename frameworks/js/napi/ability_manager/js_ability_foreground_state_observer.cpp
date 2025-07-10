@@ -27,11 +27,18 @@ JSAbilityForegroundStateObserver::JSAbilityForegroundStateObserver(napi_env env)
 
 void JSAbilityForegroundStateObserver::CleanUp(void *data)
 {
-    auto observerInstance = reinterpret_cast<JSAbilityForegroundStateObserver*>(data);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "CleanUp");
+    auto observerInstance = reinterpret_cast<wptr<JSAbilityForegroundStateObserver> *>(data);
     if (observerInstance == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
-    observerInstance->RemoveAllJsObserverObject();
+    auto sptr = observerInstance->promote();
+    if (sptr) {
+        sptr->RemoveAllJsObserverObject();
+        sptr->SetValid(false);
+        sptr.env_ = nullptr;
+    }
     delete observerInstance;
 }
 
