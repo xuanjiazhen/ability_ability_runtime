@@ -331,6 +331,7 @@ ohos_shared_library("abilitykit_native") {
   public_configs = [
     ":ability_public_config",
     "${ability_runtime_native_path}/ability:ability_context_public_config",
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits_public_config",
   ]
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ int MockKiaInterceptorImpl::onInterceptRetCode = 0;
 std::string MockKiaInterceptorImpl::kiaWatermarkBusinessName;
 bool MockKiaInterceptorImpl::isWatermarkEnabled = false;
 
-int MockKiaInterceptorImpl::OnIntercept(AAFwk::Want &want)
+ErrCode MockKiaInterceptorImpl::OnIntercept(AAFwk::Want &want)
 {
     if (onInterceptRetCode != 0) {
         return onInterceptRetCode;

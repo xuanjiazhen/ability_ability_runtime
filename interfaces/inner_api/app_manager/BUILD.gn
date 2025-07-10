@@ -11,8 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+config("appmgr_idl_config") {
+  include_dirs = [ "${target_gen_dir}" ]
+}
 
 config("appmgr_sdk_config") {
   include_dirs = [
@@ -40,7 +45,106 @@ config("appmgr_core_config") {
   }
 }
 
+idl_gen_interface("app_mgr_interface") {
+  sources = [
+    "idl/IKiaInterceptor.idl",
+    "idl/IRenderScheduler.idl",
+  ]
+  sources_callback = []
+
+  log_domainid = "0xD001311"
+  log_tag = "AppMgr"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_source_set("app_mgr_idl_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [
+    ":appmgr_core_config",
+    ":appmgr_sdk_config",
+  ]
+
+  public_configs = [
+    ":appmgr_idl_config",
+    "${ability_runtime_path}/utils/server/startup:startup_util_config",
+  ]
+
+  output_values = get_target_outputs(":app_mgr_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+
+  deps = [
+    ":app_mgr_interface",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
+  ]
+  external_deps = [
+    "ability_base:configuration",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_source_set("app_mgr_idl_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  configs = [
+    ":appmgr_core_config",
+    ":appmgr_sdk_config",
+  ]
+
+  public_configs = [
+    ":appmgr_idl_config",
+    "${ability_runtime_path}/utils/server/startup:startup_util_config",
+  ]
+
+  output_values = get_target_outputs(":app_mgr_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+
+  deps = [ ":app_mgr_interface" ]
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "faultloggerd:libbacktrace_local",
+    "faultloggerd:libdfx_dumpcatcher",
+    "faultloggerd:libfaultloggerd",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "relational_store:native_rdb",
+    "samgr:samgr_proxy",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 ohos_shared_library("app_manager") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   branch_protector_ret = "pac_ret"
 
   include_dirs = [
@@ -49,6 +153,7 @@ ohos_shared_library("app_manager") {
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_services_path}/common/include",
+    "${target_gen_dir}",
   ]
 
   sources = [
@@ -99,14 +204,13 @@ ohos_shared_library("app_manager") {
     "src/appmgr/configuration_observer_stub.cpp",
     "src/appmgr/configuration_policy.cpp",
     "src/appmgr/fault_data.cpp",
-    "src/appmgr/kia_interceptor_proxy.cpp",
-    "src/appmgr/kia_interceptor_stub.cpp",
     "src/appmgr/killed_process_info.cpp",
     "src/appmgr/memory_level_info.cpp",
     "src/appmgr/native_child_notify_proxy.cpp",
     "src/appmgr/native_child_notify_stub.cpp",
     "src/appmgr/page_state_data.cpp",
     "src/appmgr/priority_object.cpp",
+    "src/appmgr/process_bind_data.cpp",
     "src/appmgr/process_data.cpp",
     "src/appmgr/process_info.cpp",
     "src/appmgr/process_memory_state.cpp",
@@ -114,8 +218,6 @@ ohos_shared_library("app_manager") {
     "src/appmgr/quick_fix_callback_proxy.cpp",
     "src/appmgr/quick_fix_callback_stub.cpp",
     "src/appmgr/render_process_info.cpp",
-    "src/appmgr/render_scheduler_host.cpp",
-    "src/appmgr/render_scheduler_proxy.cpp",
     "src/appmgr/render_state_data.cpp",
     "src/appmgr/render_state_observer_proxy.cpp",
     "src/appmgr/render_state_observer_stub.cpp",
@@ -124,12 +226,13 @@ ohos_shared_library("app_manager") {
     "src/appmgr/start_specified_ability_response_proxy.cpp",
     "src/appmgr/start_specified_ability_response_stub.cpp",
     "src/appmgr/system_memory_attr.cpp",
-    "src/appmgr/process_bind_data.cpp",
   ]
 
   public_configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
+    ":appmgr_idl_config",
+    "${ability_runtime_path}/utils/server/startup:startup_util_config",
   ]
 
   defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
@@ -139,6 +242,8 @@ ohos_shared_library("app_manager") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    ":app_mgr_idl_proxy",
+    ":app_mgr_idl_stub",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
@@ -167,6 +272,7 @@ ohos_shared_library("app_manager") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "image_framework:image_native",
+    "relational_store:native_dataability",
     "relational_store:native_rdb",
   ]
   if (ability_runtime_child_process) {

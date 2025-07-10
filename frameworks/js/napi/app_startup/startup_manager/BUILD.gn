@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -31,7 +31,10 @@ ohos_shared_library("startupmanager_napi") {
     "startup_manager_module.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_idl_config",
+    "${ability_runtime_services_path}/common:common_config",
+  ]
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/error_utils/include",
