@@ -79,6 +79,15 @@ ETSAbilityStage::ETSAbilityStage(
     : etsRuntime_(etsRuntime), etsAbilityStageObj_(std::move(etsAbilityStageObj))
 {}
 
+ETSAbilityStage::~ETSAbilityStage()
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "destructor");
+    auto context = GetContext();
+    if (context != nullptr) {
+        context->Unbind();
+    }
+}
+
 void ETSAbilityStage::Init(const std::shared_ptr<Context> &context,
     const std::weak_ptr<AppExecFwk::OHOSApplication> application)
 {
@@ -117,6 +126,16 @@ void ETSAbilityStage::OnDestroy() const
     CallObjectMethod(false, "onDestroy", ":V");
 }
 
+std::string STSAbilityStage::OnAcceptWant(const AAFwk::Want &want)
+{
+    return std::string();
+}
+
+std::string STSAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
+{
+    return std::string();
+}
+
 void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnConfigurationUpdated called");
@@ -143,6 +162,10 @@ void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &co
         return;
     }
     CallObjectMethod(false, "onConfigurationUpdate", "L@ohos/app/ability/Configuration/Configuration;:V", configObj);
+}
+
+void STSAbilityStage::OnMemoryLevel(int32_t level)
+{
 }
 
 bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const
@@ -223,6 +246,12 @@ void ETSAbilityStage::SetEtsAbilityStage(const std::shared_ptr<Context> &context
         TAG_LOGE(AAFwkTag::ABILITY, "context nullptr");
         return;
     }
+
+    if (!stsAbilityStageObj_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+        return;
+    }
+
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");

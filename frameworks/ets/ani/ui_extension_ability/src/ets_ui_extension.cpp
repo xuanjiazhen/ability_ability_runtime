@@ -47,6 +47,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 
+constexpr const char* UIEXTENSION_CLASS_NAME = "L@ohos/app/ability/UIExtensionAbility/UIExtensionAbility;";
+
 EtsUIExtension *EtsUIExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
     return new (std::nothrow) EtsUIExtension(static_cast<ETSRuntime&>(*runtime));
@@ -65,7 +67,7 @@ EtsUIExtension::~EtsUIExtension()
     contentSessions_.clear();
 }
 
-void EtsUIExtension::PromiseCallback(ani_env *env, ani_object aniObj)
+void EtsUIExtension::OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
     if (env == nullptr || aniObj == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null env or null aniObj");
@@ -128,21 +130,40 @@ void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
         TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ null");
         return;
     }
-
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null env");
         return;
     }
-    std::array functions = {
-        ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void*>(EtsUIExtension::PromiseCallback) },
-    };
-    ani_status status = ANI_ERROR;
-    if ((status = env->Class_BindNativeMethods(etsObj_->aniCls, functions.data(), functions.size())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+    if (!BindNativeMethods(env)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "BindNativeMethods failed");
+        return;
     }
     BindContext(env, record->GetWant());
     RegisterDisplayInfoChangedListener();
+}
+
+bool EtsUIExtension::BindNativeMethods(ani_env *env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return false;
+    }
+    std::array functions = {
+        ani_native_function { "nativeOnDestroyCallback", ":V",
+        reinterpret_cast<void*>(EtsUIExtension::OnDestroyPromiseCallback) },
+    };
+    ani_class cls {};
+    ani_status status = env->FindClass(UIEXTENSION_CLASS_NAME, &cls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FindClass failed status: %{public}d", status);
+        return false;
+    }
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods status: %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
 ani_object EtsUIExtension::CreateETSContext(

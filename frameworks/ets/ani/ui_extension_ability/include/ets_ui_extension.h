@@ -154,9 +154,10 @@ private:
         sptr<AAFwk::SessionInfo> sessionInfo);
     sptr<Rosen::Window> CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
         const sptr<AAFwk::SessionInfo> &sessionInfo);
-    static void PromiseCallback(ani_env *env, ani_object aniObj);
+    static void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj);
     bool IsEmbeddableStart(int32_t screenMode);
     void ExecuteInsightIntentDone(uint64_t intentId, const InsightIntentExecuteResult &result);
+    bool BindNativeMethods(ani_env *env);
 
     ETSRuntime &etsRuntime_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_ = nullptr;

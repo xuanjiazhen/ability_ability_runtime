@@ -65,6 +65,9 @@ public:
         ani_object connectOptionsObj);
     static void DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
         ani_object callback);
+    static void StartAbilityForResult(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
+    static void StartAbilityForResultWithOptions(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object startOptionsObj, ani_object callback);
 
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
@@ -73,6 +76,8 @@ private:
     void OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback);
     void OnTerminateSelfWithResult(ani_env *env, ani_object obj, ani_object abilityResult, ani_object callback);
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
+    void OnStartAbilityForResult(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptinsObj,
+        ani_object callback);
     void AddFreeInstallObserver(
         ani_env *env, const AAFwk::Want &want, ani_object callbackObj, std::shared_ptr<UIExtensionContext> context);
     ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
