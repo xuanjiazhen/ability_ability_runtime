@@ -53,6 +53,7 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 #endif
 constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
+constexpr const char* UI_ABILITY_SIGNATURE_VOID = ":V";
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -599,11 +600,46 @@ void EtsUIAbility::DoOnForeground(const Want &want)
         TAG_LOGI(AAFwkTag::UIABILITY, "silent foreground, do not show window");
         return;
     }
-
+    OnWillForeground();
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
     scene_->GoForeground(UIAbility::sceneFlag_);
     TAG_LOGD(AAFwkTag::UIABILITY, "DoOnForeground end");
+}
+
+void EtsUIAbility::OnWillForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillForeground ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillForeground();
+    CallObjectMethod(false, "onWillForeground", UI_ABILITY_SIGNATURE_VOID);
+}
+
+void EtsUIAbility::OnDidForeground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidForeground();
+    CallObjectMethod(false, "onDidForeground", UI_ABILITY_SIGNATURE_VOID);
+    if (scene_ != nullptr) {
+        scene_->GoResume();
+    }
+}
+
+void EtsUIAbility::OnWillBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnWillBackground ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnWillBackground();
+    CallObjectMethod(false, "onWillBackground", UI_ABILITY_SIGNATURE_VOID);
+}
+
+void EtsUIAbility::OnDidBackground()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnDidBackground ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnDidBackground();
+    CallObjectMethod(false, "onDidBackground", UI_ABILITY_SIGNATURE_VOID);
 }
 
 void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
