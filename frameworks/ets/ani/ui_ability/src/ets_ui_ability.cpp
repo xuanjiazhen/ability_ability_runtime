@@ -896,6 +896,53 @@ void EtsUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &
     TAG_LOGD(AAFwkTag::UIABILITY, "OnAbilityResult end");
 }
 
+void EtsUIAbility::Dump(const std::vector<std::string> &params, std::vector<std::string> &info)
+{
+    UIAbility::Dump(params, info);
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr || etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or stsAbilityObj");
+        return;
+    }
+    ani_object arrayObj = nullptr;
+    if (!AppExecFwk::WrapArrayString(env, arrayObj, params)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "WrapArrayString failed");
+        return;
+    }
+    if (!etsAbilityObj_->aniObj || !etsAbilityObj_->aniCls) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null aniObj or aniCls");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onDump", nullptr, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Class_FindMethod FAILED: %{public}d", status);
+        return;
+    }
+    if (!method) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "find method onDump failed");
+        return;
+    }
+    ani_ref strArrayRef;
+    if ((status = env->Object_CallMethod_Ref(etsAbilityObj_->aniObj, method, &strArrayRef, arrayObj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "Object_CallMethod_Ref FAILED: %{public}d", status);
+        return;
+    }
+    if (!strArrayRef) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null strArrayRef");
+        return;
+    }
+    std::vector<std::string> dumpInfoStrArray;
+    if (!AppExecFwk::UnwrapArrayString(env, reinterpret_cast<ani_object>(strArrayRef), dumpInfoStrArray)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapArrayString failed");
+        return;
+    }
+    for (auto dumpInfoStr:dumpInfoStrArray) {
+        info.push_back(dumpInfoStr);
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "dump info size: %{public}zu", info.size());
+}
+
 bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);

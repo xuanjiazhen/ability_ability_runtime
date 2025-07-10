@@ -820,6 +820,38 @@ ohos_prebuilt_etc("ability_runtime_application_state_change_callback_abc_etc") {
   deps = [ ":ability_runtime_application_state_change_callback_abc" ]
 }
 
+generate_static_abc("ability_runtime_AbilityRunningInfo_abc") {
+  base_url = "./"
+  files = [ "./application/AbilityRunningInfo.ets" ]
+
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_AbilityRunningInfo_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_AbilityRunningInfo_abc_etc") {
+  source = "$target_out_dir/ability_runtime_AbilityRunningInfo_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_AbilityRunningInfo_abc" ]
+}
+
+generate_static_abc("ability_runtime_connect_options_abc") {
+  base_url = "./"
+  files = [ "./ability/connectOptions.ets" ]
+ 
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/ability_runtime_connect_options_abc.abc"
+}
+
+ohos_prebuilt_etc("ability_runtime_connect_options_abc_etc") {
+  source = "$target_out_dir/ability_runtime_connect_options_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":ability_runtime_connect_options_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_application_abc_etc",
@@ -829,6 +861,7 @@ group("ets_packages") {
     ":ability_delegator_application_testRunner_abc_etc",
     ":ability_delegator_args_abc_etc",
     ":ability_delegator_registry_abc_etc",
+    ":ability_runtime_AbilityRunningInfo_abc_etc",
     ":ability_runtime_ability_constant_abc_etc",
     ":ability_runtime_ability_context_constant_abc_etc",
     ":ability_runtime_ability_result_abc_etc",
@@ -844,6 +877,7 @@ group("ets_packages") {
     ":ability_runtime_base_context_abc_etc",
     ":ability_runtime_configuration_abc_etc",
     ":ability_runtime_configuration_constant_abc_etc",
+    ":ability_runtime_connect_options_abc_etc",
     ":ability_runtime_context_abc_etc",
     ":ability_runtime_environment_callback_abc_etc",
     ":ability_runtime_extension_context_abc_etc",

@@ -19,6 +19,7 @@ import StartOptions from '@ohos.app.ability.StartOptions';
 import { BusinessError, AsyncCallback } from '@ohos.base';
 import { AbilityResult } from 'ability.abilityResult';
 import { Configuration } from '@ohos.app.ability.Configuration';
+import { ConnectOptions } from 'ability.connectOptions';
 import Context from 'application.Context';
 import window from '@ohos.window';
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
@@ -105,6 +106,13 @@ export default class UIAbilityContext extends Context {
 
   private native nativeRequestModalUIExtension(pickerWant: Want, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
+
+  private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -331,6 +339,69 @@ export default class UIAbilityContext extends Context {
       taskpool.execute(() => {
         this.nativeRequestModalUIExtension(pickerWant, syncCall);
       });
+    });
+  }
+
+  backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
+      });
+    });
+  }
+
+  setMissionLabel(label: string, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeSetMissionLabel(label, syncCall);
+    });
+  }
+
+  setMissionLabel(label: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeSetMissionLabel(label, syncCall);
+      });
+    });
+  }
+
+  connectServiceExtensionAbility(want: Want, options: ConnectOptions): number {
+    return this.nativeConnectServiceExtensionAbility(want, options);
+  }
+
+  disconnectServiceExtensionAbility(connection: number, callback: AsyncCallback<void>): void {
+    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeDisconnectServiceExtensionAbility(connection, syncCall);
+    });
+  }
+
+  disconnectServiceExtensionAbility(connection: number): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectServiceExtensionAbility(connection, callback);
+      })
     });
   }
 }

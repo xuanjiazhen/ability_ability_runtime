@@ -105,6 +105,13 @@ public:
      */
     void OnAbilityResult(int requestCode, int resultCode, const Want &resultData) override;
 
+    /**
+     * @brief dump ability info
+     * @param params dump params that indicate different dump targets
+     * @param info dump ability info
+     */
+    void Dump(const std::vector<std::string> &params, std::vector<std::string> &info) override;
+
 #ifdef SUPPORT_SCREEN
 public:
     /**
