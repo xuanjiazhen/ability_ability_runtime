@@ -506,9 +506,10 @@ public:
         return ERR_OK;
     }
 
-    virtual bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+    virtual int32_t CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        bool &isExist)
     {
-        return false;
+        return ERR_OK;
     }
 
     enum class Message {

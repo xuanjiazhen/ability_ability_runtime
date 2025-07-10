@@ -615,7 +615,7 @@ public:
 
     int32_t NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token);
 
-    bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex);
+    int32_t CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex, bool &isExist);
 
 protected:
     /**

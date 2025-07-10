@@ -959,12 +959,7 @@ int32_t AmsMgrStub::HandlePreloadApplicationByPhase(MessageParcel &data, Message
     auto userId = data.ReadInt32();
     auto appIndex = data.ReadInt32();
     auto preloadPhase = data.ReadInt32();
-    auto ret = PreloadApplicationByPhase(bundleName, userId, appIndex,
-        static_cast<AppExecFwk::PreloadPhase>(preloadPhase));
-    if (!reply.WriteInt32(ret)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write ret");
-        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
-    }
+    PreloadApplicationByPhase(bundleName, userId, appIndex, static_cast<AppExecFwk::PreloadPhase>(preloadPhase));
     return NO_ERROR;
 }
 
@@ -990,10 +985,15 @@ int32_t AmsMgrStub::HandleCheckPreloadAppRecordExist(MessageParcel &data, Messag
     auto bundleName = data.ReadString();
     auto userId = data.ReadInt32();
     auto appIndex = data.ReadInt32();
-    auto ret = CheckPreloadAppRecordExist(bundleName, userId, appIndex);
-    if (!reply.WriteBool(ret)) {
+    bool isExist = false;
+    auto ret = CheckPreloadAppRecordExist(bundleName, userId, appIndex, isExist);
+    if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write ret");
         return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    if (ret == NO_ERROR && !reply.WriteBool(isExist)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write isExist");
+        return AAFwk::ERR_WRITE_BOOL_FAILED;
     }
     return NO_ERROR;
 }

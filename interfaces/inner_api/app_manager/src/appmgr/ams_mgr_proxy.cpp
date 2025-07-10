@@ -1543,7 +1543,7 @@ int32_t AmsMgrProxy::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
     }
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
         return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
@@ -1559,17 +1559,18 @@ int32_t AmsMgrProxy::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
         TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, err: %{public}d.", ret);
         return ret;
     }
-    return reply.ReadInt32();
+    return NO_ERROR;
 }
 
-bool AmsMgrProxy::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+int32_t AmsMgrProxy::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    bool &isExist)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "CheckPreloadAppRecordExist start");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!WriteInterfaceToken(data)) {
-        return false;
+        return AAFwk::ERR_WRITE_CALLER_TOKEN_FAILED;
     }
     PARCEL_UTIL_WRITE_RET_BOOL(data, String, bundleName);
     PARCEL_UTIL_WRITE_RET_BOOL(data, Int32, userId);
@@ -1578,10 +1579,15 @@ bool AmsMgrProxy::CheckPreloadAppRecordExist(const std::string &bundleName, int3
     int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::CHECK_PRELOAD_APP_RECORD_EXIST),
         data, reply, option);
     if (ret != NO_ERROR) {
-        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
-        return false;
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed, err: %{public}d.", ret);
+        return ret;
     }
-    return reply.ReadBool();
+    auto replyRet = reply.ReadInt32();
+    if (replyRet != NO_ERROR) {
+        return replyRet;
+    }
+    isExist = reply.ReadBool();
+    return NO_ERROR;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

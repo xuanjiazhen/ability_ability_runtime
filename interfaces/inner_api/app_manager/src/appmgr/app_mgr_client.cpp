@@ -1585,6 +1585,10 @@ bool AppMgrClient::IsCallerKilling(const std::string& callerKey) const
 int32_t AppMgrClient::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
     AppExecFwk::PreloadPhase preloadPhase) const
 {
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
@@ -1600,6 +1604,10 @@ int32_t AppMgrClient::PreloadApplicationByPhase(const std::string &bundleName, i
 
 int32_t AppMgrClient::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
 {
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
@@ -1613,19 +1621,24 @@ int32_t AppMgrClient::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token
     return amsService->NotifyPreloadAbilityStateChanged(token);
 }
 
-bool AppMgrClient::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+int32_t AppMgrClient::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    bool &isExist)
 {
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder is nullptr.");
+        return ERROR_SERVICE_NOT_CONNECTED;
+    }
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr.");
-        return false;
+        return ERROR_SERVICE_NOT_CONNECTED;
     }
     sptr<IAmsMgr> amsService = service->GetAmsMgr();
     if (amsService == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
-        return false;
+        return ERROR_SERVICE_NOT_CONNECTED;
     }
-    return amsService->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
+    return amsService->CheckPreloadAppRecordExist(bundleName, userId, appIndex, isExist);
 }
 
 AppMgrResultCode AppMgrClient::IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,

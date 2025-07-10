@@ -2320,7 +2320,7 @@ public:
      * Preload application.
      * @param bundleName Name of the application.
      * @param userId user id.
-     * @param appIndex app clone index.
+     * @param appIndex app clone index. Reserved field, only appIndex=0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)

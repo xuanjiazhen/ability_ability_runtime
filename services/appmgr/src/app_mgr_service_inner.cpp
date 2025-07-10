@@ -550,6 +550,11 @@ int32_t AppMgrServiceInner::PreloadApplicationByPhase(const std::string &bundleN
 int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, int32_t userId,
     AppExecFwk::PreloadMode preloadMode, int32_t appIndex)
 {
+    CHECK_CALLER_IS_SYSTEM_APP;
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        return ERR_PERMISSION_DENIED;
+    }
     return PreloadApplication(bundleName, userId, appIndex, preloadMode, AppExecFwk::PreloadPhase::UNSPECIFIED);
 }
 
@@ -561,12 +566,6 @@ int32_t AppMgrServiceInner::PreloadApplication(const std::string &bundleName, in
     appIndex:%{public}d, preloadMode:%{public}d, preloadPhase:%{public}d", bundleName.c_str(), userId, appIndex,
         static_cast<int32_t>(preloadMode), static_cast<int32_t>(preloadPhase));
 
-    CHECK_CALLER_IS_SYSTEM_APP;
-    if (preloadMode != AppExecFwk::PreloadMode::PRELOAD_BY_PHASE &&
-        AAFwk::PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
-        return ERR_PERMISSION_DENIED;
-    }
     if (!appPreloader_) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appPreloader");
         return ERR_INVALID_VALUE;

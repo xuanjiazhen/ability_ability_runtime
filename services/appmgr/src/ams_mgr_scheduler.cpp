@@ -829,17 +829,19 @@ int32_t AmsMgrScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> to
     return amsMgrServiceInner_->NotifyPreloadAbilityStateChanged(token);
 }
 
-bool AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+int32_t AmsMgrScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    bool &isExist)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner is not ready.");
-        return false;
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     if (!amsMgrServiceInner_->IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
-        return false;
+        return ERR_PERMISSION_DENIED;
     }
-    return amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
+    isExist = amsMgrServiceInner_->CheckPreloadAppRecordExist(bundleName, userId, appIndex);
+    return ERR_OK;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS

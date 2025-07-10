@@ -54,11 +54,11 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
         return ERR_CROSS_USER;
     }
 
-    if (DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
-        bundleName, userId, appIndex)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "already started");
-        return ERR_PRELOAD_APP_REOCRD_ALREADY_EXIST;
-    }
+    bool isExist = false;
+    int32_t ret = ERR_OK;
+    CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
+        bundleName, userId, appIndex, isExist)) != ERR_OK, ret, "CheckPreloadAppRecordExist failed");
+    CHECK_TRUE_RETURN_RET(isExist, ERR_PRELOAD_APP_REOCRD_ALREADY_EXIST, "already started");
 
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);

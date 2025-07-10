@@ -746,14 +746,15 @@ int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token
     return IN_PROCESS_CALL(appMgrClient_->NotifyPreloadAbilityStateChanged(token));
 }
 
-bool AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    bool &isExist)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (appMgrClient_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
-        return false;
+        return INNER_ERR;
     }
-    return IN_PROCESS_CALL(appMgrClient_->CheckPreloadAppRecordExist(bundleName, userId, appIndex));
+    return IN_PROCESS_CALL(appMgrClient_->CheckPreloadAppRecordExist(bundleName, userId, appIndex, isExist));
 }
 } // namespace AAFwk
 }  // namespace OHOS

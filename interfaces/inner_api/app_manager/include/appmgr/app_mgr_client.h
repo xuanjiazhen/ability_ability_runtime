@@ -981,7 +981,8 @@ public:
 
     int32_t NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token);
 
-    virtual bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex);
+    virtual int32_t CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        bool &isExist);
 
     /**
      * Check whether the process of the application under the specified user exists.
