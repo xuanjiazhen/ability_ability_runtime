@@ -60,7 +60,9 @@ public:
     void RegisterArkVMInRuntime(unsigned long long externalVM);
     void RegisterStackInfoCallbacks(UpdateStackInfoFuncType uFunc);
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
-    bool RegisterCangjieCallback();
+    void RegisterCangjieCallback(void* dso);
+    void RegisterEventHandlerCallbacks();
+    int InitCJRuntime(const struct RuntimeParam* rtParams);
     bool IsUISchedulerStarted()
     {
         return isUISchedulerStarted_;
@@ -90,15 +92,11 @@ public:
     CJRuntimeAPI* GetLazyApis() { return lazyApis_; }
     void SetLazyApis(CJRuntimeAPI* apis) { lazyApis_ = apis; }
 
-    void PreloadLibs();
     void InitCJAppNS(const std::string& path);
-    void InitCJSDKNS(const std::string& path);
-    void InitNewCJAppNS(const std::string& path);
-    void InitNewCJSDKNS(const std::string& path);
+    void InitCJRomSDKNS(const std::string& path);
     void InitCJCompatibilitySDKNS(const std::string& path);
-    void InitCJSysNS(const std::string& path);
     void InitCJChipSDKNS(const std::string& path);
-    void InitNewCJChipSDKNS(const std::string& path);
+    void InitCJRuntimeNS(const std::string& path);
     void InitRuntimeNS();
     void InitCJNS(const std::string& path);
     static NSMode DetectAppNSMode();
@@ -106,15 +104,12 @@ public:
     void DumpHeapSnapshot(int fd);
     void ForceFullGC();
 
-    static const char *cjAppNSName;
-    static const char *cjSDKNSName;
-    static const char *cjSysNSName;
     static const char *cjChipSDKNSName;
-    static const char *cjNewAppNSName;
-    static const char *cjNewSDKNSName;
-    static const char *cjNewSysNSName;
-    static const char *cjNDKNSName;
+    static const char *cjAppNSName;
+    static const char *cjRomSDKNSName;
+    static const char *cjSysNSName;
     static const char *cjCompatibilitySDKNSName;
+    static const char *cjRuntimeNSName;
     static std::string appVersion;
     static const uint32_t majorVersion;
     static const uint32_t minorVersion;
@@ -122,6 +117,7 @@ public:
 
 private:
     bool LoadRuntimeApis();
+    void* LoadRuntimeLib(const char* runtimeLibName);
     bool isRuntimeApiLoaded {false};
     CJRuntimeAPI* lazyApis_ {nullptr};
     bool isRuntimeStarted_{false};
@@ -129,7 +125,6 @@ private:
     bool isUISchedulerStarted_{false};
     void* uiScheduler_ {nullptr};
     NSMode nsMode_ {NSMode::SINK};
-    std::vector<void*> preloadLibs_;
 };
 
 }

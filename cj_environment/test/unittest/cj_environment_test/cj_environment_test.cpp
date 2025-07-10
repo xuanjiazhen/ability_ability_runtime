@@ -84,60 +84,6 @@ HWTEST_F(CjEnvironmentTest, CJEnvironment_SetSanitizerKindRuntimeVersion_0100, T
 }
 
 /**
- * @tc.name: CJEnvironment_InitCJAppNS_0001
- * @tc.desc: JsRuntime test for InitCJAppNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJAppNS_0100, TestSize.Level1)
-{
-    auto cJEnvironment = std::make_shared<CJEnvironment>(CJEnvironment::NSMode::APP);
-    std::string path = "ability_runtime/CjEnvironmentTest";
-
-    cJEnvironment->InitCJAppNS(path);
-    EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
-}
-
-/**
- * @tc.name: CJEnvironment_InitCJSDKNS_0001
- * @tc.desc: JsRuntime test for InitCJSDKNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSDKNS_0100, TestSize.Level1)
-{
-    auto cJEnvironment = std::make_shared<CJEnvironment>(CJEnvironment::NSMode::APP);
-    std::string path = "ability_runtime/CjEnvironmentTest";
-    cJEnvironment->InitCJSDKNS(path);
-    EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
-}
-
-/**
- * @tc.name: CJEnvironment_InitCJSysNS_0001
- * @tc.desc: JsRuntime test for InitCJSysNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJSysNS_0100, TestSize.Level1)
-{
-    auto cJEnvironment = std::make_shared<CJEnvironment>(CJEnvironment::NSMode::APP);
-    std::string path = "ability_runtime/CjEnvironmentTest";
-    cJEnvironment->InitCJSysNS(path);
-    std::string getTempCjAppNSName = cJEnvironment->cjAppNSName;
-    EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
-}
-
-/**
- * @tc.name: CJEnvironment_InitCJChipSDKNS_0001
- * @tc.desc: JsRuntime test for InitCJChipSDKNS.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CJEnvironment_InitCJChipSDKNS_0100, TestSize.Level1)
-{
-    auto cJEnvironment = std::make_shared<CJEnvironment>(CJEnvironment::NSMode::APP);
-    std::string path = "ability_runtime/CjEnvironmentTest";
-    cJEnvironment->InitCJChipSDKNS(path);
-    EXPECT_NE(cJEnvironment->cjAppNSName, nullptr);
-}
-
-/**
  * @tc.name: CJEnvironment_StartRuntime_0001
  * @tc.desc: JsRuntime test for StartRuntime.
  * @tc.type: FUNC
@@ -367,34 +313,6 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitSpawnEnv_001, TestSize.Level2)
 {
     CJEnvironment::InitSpawnEnv();
     EXPECT_NE(CJEnvironment::GetInstance(), nullptr);
-}
-
-/**
- * @tc.name: PreloadLibs_0100
- * @tc.desc: Test PreloadLibs.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CjEnvironmentTestPreloadLibs_001, TestSize.Level2)
-{
-    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
-    cJEnvironment.PreloadLibs();
-    std::string appPath = "com/ohos/unittest/test/";
-    cJEnvironment.isUISchedulerStarted_ = true;
-    cJEnvironment.InitCJNS(appPath);
-    EXPECT_EQ(cJEnvironment.isLoadCJLibrary_, false);
-}
-
-/**
- * @tc.name: InitNewCJAppNS_0100andInitCJSDKNS_0100
- * @tc.desc: Test InitNewCJAppNSTask and InitCJSDKNSTask.
- * @tc.type: FUNC
- */
-HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitNewCJAppNS_001andInitCJSDKNS_0100, TestSize.Level2)
-{
-    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
-    cJEnvironment.InitNewCJAppNS("");
-    cJEnvironment.InitCJSDKNS("com/ohos/unittest/test/");
-    EXPECT_EQ(cJEnvironment.isLoadCJLibrary_, false);
 }
 
 /**

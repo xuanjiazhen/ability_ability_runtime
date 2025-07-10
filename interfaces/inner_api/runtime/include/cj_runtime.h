@@ -75,7 +75,6 @@ public:
     void AllowCrossThreadExecution() override {};
     void GetHeapPrepare() override {};
     void RegisterUncaughtExceptionHandler(const CJUncaughtExceptionInfo& uncaughtExceptionInfo);
-    static bool RegisterCangjieCallback();
 
 private:
     bool StartDebugger();

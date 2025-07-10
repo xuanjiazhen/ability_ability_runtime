@@ -48,6 +48,8 @@ const std::string CJ_LIB_PATH = SANDBOX_LIB_PATH + "/ohos";
 const std::string CJ_SYSLIB_PATH = "/system/lib64:/system/lib64/platformsdk";
 const std::string CJ_CHIPSDK_PATH = "/system/lib64/chipset-pub-sdk:/system/lib64/chipset-sdk";
 const std::string CJ_SDK_PATH = "/system/lib64/platformsdk/cjsdk";
+const std::string CJ_RUNTIME_PATH = "/system/lib64/platformsdk/cjsdk/runtime";
+const std::string CJ_ASAN_PATH = SANDBOX_LIB_PATH + "/asan";
 } // namespace
 
 namespace OHOS {
@@ -229,15 +231,12 @@ bool HasHigherPriorityTaskWrapper()
 CJEnvironment* instance_ = nullptr;
 } // namespace
 
-const char *CJEnvironment::cjAppNSName = "cj_app";
-const char *CJEnvironment::cjSDKNSName = "cj_app_sdk";
-const char *CJEnvironment::cjSysNSName = "cj_system";
 const char *CJEnvironment::cjChipSDKNSName = "cj_chipsdk";
-const char *CJEnvironment::cjNewAppNSName = "moduleNs_default";
-const char *CJEnvironment::cjNewSDKNSName = "cj_rom_sdk";
-const char *CJEnvironment::cjNewSysNSName = "default";
-const char *CJEnvironment::cjNDKNSName = "ndk";
+const char *CJEnvironment::cjAppNSName = "moduleNs_default";
+const char *CJEnvironment::cjRomSDKNSName = "cj_rom_sdk";
+const char *CJEnvironment::cjSysNSName = "default";
 const char *CJEnvironment::cjCompatibilitySDKNSName = "cj_compatibility_sdk";
+const char *CJEnvironment::cjRuntimeNSName = "cj_runtime";
 std::string CJEnvironment::appVersion = "5.1.0.0";
 const uint32_t CJEnvironment::majorVersion = 5;
 const uint32_t CJEnvironment::minorVersion = 1;
@@ -258,25 +257,6 @@ void CJEnvironment::InitSpawnEnv()
 #ifdef WITH_EVENT_HANDLER
     GetGHandler();
 #endif
-    instance_ = new CJEnvironment(NSMode::SINK);
-    instance_->PreloadLibs();
-}
-
-void CJEnvironment::PreloadLibs()
-{
-    LOGI("start Preloadlibs");
-    auto lib = LoadCJLibrary(SDK, "libohos.ability.so");
-    if (lib) {
-        preloadLibs_.emplace_back(lib);
-    }
-    lib = LoadCJLibrary(SDK, "libohos.component.so");
-    if (lib) {
-        preloadLibs_.emplace_back(lib);
-    }
-    lib = LoadCJLibrary(SDK, "libohos.window.so");
-    if (lib) {
-        preloadLibs_.emplace_back(lib);
-    }
 }
 
 void CJEnvironment::SetAppPath(const std::string& appPath)
@@ -311,10 +291,6 @@ CJEnvironment::~CJEnvironment()
     StopRuntime();
 
     delete lazyApis_;
-
-    for (auto lib : preloadLibs_) {
-        dlclose(lib);
-    }
 }
 
 CJEnvironment* CJEnvironment::GetInstance()
@@ -322,13 +298,17 @@ CJEnvironment* CJEnvironment::GetInstance()
     return instance_;
 }
 
-bool CJEnvironment::RegisterCangjieCallback()
+void CJEnvironment::RegisterCangjieCallback(void* dso)
 {
+    if (!dso) {
+        LOGE("cjruntime is null.");
+        return;
+    }
     constexpr char CANGJIE_DEBUGGER_LIB_PATH[] = "libark_connect_inspector.z.so";
     auto handlerConnectServerSo = LoadCJLibrary(CJEnvironment::SYSTEM, CANGJIE_DEBUGGER_LIB_PATH);
     if (handlerConnectServerSo == nullptr) {
         LOGE("null handlerConnectServerSo: %{public}s", dlerror());
-        return false;
+        return;
     }
     using SendMsgCB = const std::function<void(const std::string& message)>;
     using SetCangjieCallback = void(*)(const std::function<void(const std::string& message, SendMsgCB)>);
@@ -337,28 +317,32 @@ bool CJEnvironment::RegisterCangjieCallback()
         DynamicFindSymbol(handlerConnectServerSo, "SetCangjieCallback"));
     if (setCangjieCallback == nullptr) {
         LOGE("null setCangjieCallback: %{public}s", dlerror());
-        return false;
+        return;
     }
-    #define RTLIB_NAME "libcangjie-runtime.so"
-    auto dso = LoadCJLibrary(CJEnvironment::SDK, RTLIB_NAME);
-    if (!dso) {
-        LOGE("load library failed: %{public}s", RTLIB_NAME);
-        return false;
-    }
-    LOGE("load libcangjie-runtime.so success");
     #define PROFILERAGENT "ProfilerAgent"
     CangjieCallback cangjieCallback = reinterpret_cast<CangjieCallback>(DynamicFindSymbol(dso, PROFILERAGENT));
     if (cangjieCallback == nullptr) {
         dlclose(handlerConnectServerSo);
         handlerConnectServerSo = nullptr;
         LOGE("runtime api not found: %{public}s", PROFILERAGENT);
-        return false;
+        return;
     }
-    LOGE("find runtime api success");
+    LOGI("find runtime api success");
     setCangjieCallback(cangjieCallback);
-    dlclose(handlerConnectServerSo);
     handlerConnectServerSo = nullptr;
-    return true;
+}
+
+void* CJEnvironment::LoadRuntimeLib(const char* runtimeLibName) {
+    Dl_namespace compatibilitySDK;
+    Dl_namespace romSDK;
+    dlns_get(cjCompatibilitySDKNSName, &compatibilitySDK);
+    dlns_get(cjRomSDKNSName, &romSDK);
+    auto dso = DynamicLoadLibrary(&compatibilitySDK, runtimeLibName, 1);
+    if (!dso) {
+        LOGE("Failed to load %{public}s in ns compatibility.", runtimeLibName);
+        dso = DynamicLoadLibrary(&romSDK, runtimeLibName, 1);
+    }
+    return dso;
 }
 
 bool CJEnvironment::LoadRuntimeApis()
@@ -373,11 +357,7 @@ bool CJEnvironment::LoadRuntimeApis()
 #define RTLIB_NAME "libcangjie-runtime.so"
 #endif
 #ifdef __OHOS__
-    Dl_namespace ns;
-    dlns_get(nsMode_ == NSMode::APP ? cjSDKNSName : cjNewSDKNSName, &ns);
-    std::string runtimeLibName = "libcangjie-runtime";
-    runtimeLibName += ".so";
-    auto dso = DynamicLoadLibrary(&ns, runtimeLibName.c_str(), 1);
+    auto dso = LoadRuntimeLib(RTLIB_NAME);
 #else
     auto dso = DynamicLoadLibrary(RTLIB_NAME, 1);
 #endif
@@ -386,7 +366,6 @@ bool CJEnvironment::LoadRuntimeApis()
         return false;
     }
 #undef RTLIB_NAME
-    preloadLibs_.emplace_back(dso);
     if (!LoadSymbolInitCJRuntime(dso, *lazyApis_) ||
         !LoadSymbolInitUIScheduler(dso, *lazyApis_) ||
         !LoadSymbolRunUIScheduler(dso, *lazyApis_) ||
@@ -401,6 +380,7 @@ bool CJEnvironment::LoadRuntimeApis()
         DynamicFreeLibrary(dso);
         return false;
     }
+    RegisterCangjieCallback(dso);
 #ifdef __OHOS__
     if (!LoadSymbolRegisterCJUncaughtExceptionHandler(dso, *lazyApis_)) {
         LOGE("load symbol RegisterCJUncaughtExceptionHandler failed");
@@ -443,6 +423,28 @@ void CJEnvironment::RegisterCJUncaughtExceptionHandler(const CJUncaughtException
         return;
     }
     lazyApis_->RegisterCJUncaughtExceptionHandler(handle);
+}
+
+void CJEnvironment::RegisterEventHandlerCallbacks()
+{
+    if (lazyApis_ == nullptr) {
+        return;
+    }
+    if (lazyApis_->RegisterEventHandlerCallbacks == nullptr) {
+        return;
+    }
+    lazyApis_->RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
+}
+
+int CJEnvironment::InitCJRuntime(const struct RuntimeParam* rtParams)
+{
+    if (lazyApis_ == nullptr) {
+        return E_FAILED;
+    }
+    if (lazyApis_->InitCJRuntime == nullptr) {
+        return E_FAILED;
+    }
+    return lazyApis_->InitCJRuntime(rtParams);
 }
 
 void CJEnvironment::DumpHeapSnapshot(int fd)
@@ -498,23 +500,7 @@ void CJEnvironment::InitCJChipSDKNS(const std::string& path)
 #ifdef __OHOS__
     LOGI("InitCJChipSDKNS: %{public}s", path.c_str());
     Dl_namespace chip_sdk;
-    DynamicInitNamespace(&chip_sdk, nullptr, path.c_str(), CJEnvironment::cjChipSDKNSName);
-
-    Dl_namespace cjnative;
-    Dl_namespace current;
-    dlns_get(nullptr, &current);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_inherit(&chip_sdk, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&chip_sdk, &current, "allow_all_shared_libs");
-#endif
-}
-
-void CJEnvironment::InitNewCJChipSDKNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJChipSDKNS: %{public}s", path.c_str());
-    Dl_namespace chip_sdk;
-    DynamicInitNewNamespace(&chip_sdk, path.c_str(), CJEnvironment::cjChipSDKNSName);
+    DynamicInitNamespace(&chip_sdk, path.c_str(), CJEnvironment::cjChipSDKNSName);
 #endif
 }
 
@@ -523,60 +509,24 @@ void CJEnvironment::InitCJAppNS(const std::string& path)
 {
 #ifdef __OHOS__
     LOGI("InitCJAppNS: %{public}s", path.c_str());
-    Dl_namespace cjnative;
-    Dl_namespace sdk;
     Dl_namespace ns;
-    Dl_namespace current;
-    DynamicInitNamespace(&ns, nullptr, path.c_str(), CJEnvironment::cjAppNSName);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_get(nullptr, &current);
-    dlns_get(cjSDKNSName, &sdk);
-    dlns_inherit(&ns, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&cjnative, &current, "allow_all_shared_libs");
-    dlns_inherit(&current, &cjnative, "allow_all_shared_libs");
-    dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-#endif
-}
-
-void CJEnvironment::InitNewCJAppNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJAppNS: %{public}s", path.c_str());
-    Dl_namespace ns;
-    DynamicInitNewNamespace(&ns, path.c_str(), CJEnvironment::cjNewAppNSName);
-    Dl_namespace sdk;
+    DynamicInitNamespace(&ns, path.c_str(), CJEnvironment::cjAppNSName);
+    DynamicInherit(&ns, CJEnvironment::cjRuntimeNSName, "allow_all_shared_libs");
+    DynamicInherit(&ns, CJEnvironment::cjCompatibilitySDKNSName, "allow_all_shared_libs");
+    DynamicInherit(&ns, CJEnvironment::cjRomSDKNSName, "allow_all_shared_libs");
     if (nsMode_ == NSMode::APP) {
-        Dl_namespace chip_sdk;
-        dlns_get(CJEnvironment::cjSDKNSName, &sdk);
-        dlns_get(CJEnvironment::cjChipSDKNSName, &chip_sdk);
-        dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-        dlns_inherit(&ns, &chip_sdk, "libssl_openssl.z.so");
-    } else {
-        Dl_namespace compatibility_sdk;
-        dlns_get(CJEnvironment::cjCompatibilitySDKNSName, &compatibility_sdk);
-        dlns_get(CJEnvironment::cjNewSDKNSName, &sdk);
-        dlns_inherit(&ns, &sdk, "allow_all_shared_libs");
-        dlns_inherit(&ns, &compatibility_sdk, "allow_all_shared_libs");
+        DynamicInherit(&ns, CJEnvironment::cjChipSDKNSName, "libssl_openssl.z.so");
     }
 #endif
 }
 
-// Init cj sdk namespace
-void CJEnvironment::InitCJSDKNS(const std::string& path)
+void CJEnvironment::InitCJRomSDKNS(const std::string& path)
 {
 #ifdef __OHOS__
-    LOGI("InitCJSDKNS: %{public}s", path.c_str());
+    LOGI("InitCJRomSDKNS: %{public}s", path.c_str());
     Dl_namespace ns;
-    DynamicInitNewNamespace(&ns, path.c_str(), cjSDKNSName);
-#endif
-}
-
-void CJEnvironment::InitNewCJSDKNS(const std::string& path)
-{
-#ifdef __OHOS__
-    LOGI("InitCJSDKNS: %{public}s", path.c_str());
-    Dl_namespace ns;
-    DynamicInitNewNamespace(&ns, path.c_str(), cjNewSDKNSName);
+    DynamicInitNamespace(&ns, path.c_str(), CJEnvironment::cjRomSDKNSName);
+    DynamicInherit(&ns, CJEnvironment::cjRuntimeNSName, "allow_all_shared_libs");
 #endif
 }
 
@@ -585,22 +535,17 @@ void CJEnvironment::InitCJCompatibilitySDKNS(const std::string& path)
 #ifdef __OHOS__
     LOGI("InitCJCompatibilitySDKNS: %{public}s", path.c_str());
     Dl_namespace ns;
-    DynamicInitNewNamespace(&ns, path.c_str(), cjCompatibilitySDKNSName);
+    DynamicInitNamespace(&ns, path.c_str(), CJEnvironment::cjCompatibilitySDKNSName);
+    DynamicInherit(&ns, CJEnvironment::cjRuntimeNSName, "allow_all_shared_libs");
 #endif
 }
 
-// Init cj system namespace
-void CJEnvironment::InitCJSysNS(const std::string& path)
+void CJEnvironment::InitCJRuntimeNS(const std::string& path)
 {
 #ifdef __OHOS__
-    LOGI("InitCJSysNS: %{public}s", path.c_str());
-    Dl_namespace cj_sdk;
-    Dl_namespace cjnative;
+    LOGI("InitCJRuntimeNS: %{public}s", path.c_str());
     Dl_namespace ns;
-    dlns_get(cjSDKNSName, &cj_sdk);
-    DynamicInitNamespace(&ns, &cj_sdk, path.c_str(), cjSysNSName);
-    dlns_get(CJEnvironment::cjNDKNSName, &cjnative);
-    dlns_inherit(&ns, &cjnative, "allow_all_shared_libs");
+    DynamicInitNamespace(&ns, path.c_str(), CJEnvironment::cjRuntimeNSName);
 #endif
 }
 
@@ -641,15 +586,12 @@ bool CJEnvironment::StartRuntime()
             .processorNum = 8,
         }
     };
-
-    auto status = lazyApis_->InitCJRuntime(&rtParams);
+    auto status = InitCJRuntime(&rtParams);
     if (status != E_OK) {
         LOGE("init cj runtime failed: %{public}d", status);
         return false;
     }
-
-    lazyApis_->RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
-
+    RegisterEventHandlerCallbacks();
     isRuntimeStarted_ = true;
     return true;
 }
@@ -710,7 +652,6 @@ void* CJEnvironment::LoadCJLibrary(const char* dlName)
         UnLoadCJLibrary(handle);
         return nullptr;
     }
-    CJEnvironment::RegisterCangjieCallback();
     isLoadCJLibrary_ = true;
     return handle;
 }
@@ -719,18 +660,24 @@ void* CJEnvironment::LoadCJLibrary(OHOS::CJEnvironment::LibraryKind kind, const 
 {
 #ifdef __OHOS__
     Dl_namespace ns;
+    Dl_namespace sdk;
     switch (kind) {
         case APP:
-            dlns_get(CJEnvironment::cjNewAppNSName, &ns);
+            dlns_get(CJEnvironment::cjAppNSName, &ns);
             break;
         case SYSTEM:
-            dlns_get(CJEnvironment::cjNewSysNSName, &ns);
+            dlns_get(CJEnvironment::cjSysNSName, &ns);
             break;
         case SDK:
-            dlns_get(nsMode_ == NSMode::APP ? CJEnvironment::cjSDKNSName : CJEnvironment::cjNewSDKNSName, &ns);
+            dlns_get(CJEnvironment::cjCompatibilitySDKNSName, &ns);
+            dlns_get(CJEnvironment::cjRomSDKNSName, &sdk);
             break;
     }
     auto handle = DynamicLoadLibrary(&ns, dlName, 0);
+    if (!handle && kind == SDK) {
+        LOGE("Failed to load %{public}s in ns compatibility.", dlName);
+        handle = DynamicLoadLibrary(&sdk, dlName, 0);
+    }
 #else
     auto handle = DynamicLoadLibrary(dlName, 1);
 #endif
@@ -761,7 +708,7 @@ bool CJEnvironment::StartDebugger()
 {
 #ifdef __OHOS__
     Dl_namespace ns;
-    dlns_get(CJEnvironment::cjNewSysNSName, &ns);
+    dlns_get(CJEnvironment::cjSysNSName, &ns);
     auto handle = DynamicLoadLibrary(&ns, DEBUGGER_LIBNAME, 0);
 #else
     auto handle = DynamicLoadLibrary(DEBUGGER_LIBNAME, 0);
@@ -807,9 +754,6 @@ CJEnvironment::NSMode CJEnvironment::DetectAppNSMode()
     if (tokens.size() <= 1) {
         return NSMode::SINK;
     }
-    if (CJEnvironment::sanitizerKind != SanitizerKind::NONE) {
-        return NSMode::APP;
-    }
     if (tokens[0] > CJEnvironment::majorVersion ||
         (tokens[0] == CJEnvironment::majorVersion && tokens[1] >= CJEnvironment::minorVersion)) {
         return NSMode::SINK;
@@ -821,20 +765,25 @@ CJEnvironment::NSMode CJEnvironment::DetectAppNSMode()
 void CJEnvironment::InitRuntimeNS()
 {
 #ifdef __OHOS__
-    if (nsMode_ == NSMode::APP) {
-        InitNewCJChipSDKNS(CJ_CHIPSDK_PATH);
-        InitCJSDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
-    } else {
-        InitNewCJSDKNS(CJ_SDK_PATH);
-        InitCJCompatibilitySDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
+    switch (CJEnvironment::sanitizerKind) {
+        case SanitizerKind::ASAN:
+            InitCJRuntimeNS(CJ_ASAN_PATH);
+            break;
+        default:
+            InitCJRuntimeNS(CJ_RUNTIME_PATH);
     }
+    if (nsMode_ == NSMode::APP) {
+        InitCJChipSDKNS(CJ_CHIPSDK_PATH);
+    }
+    InitCJRomSDKNS(CJ_SDK_PATH);
+    InitCJCompatibilitySDKNS(CJ_RT_PATH + ":" + CJ_LIB_PATH);
 #endif
 }
 
 void CJEnvironment::InitCJNS(const std::string& appPath)
 {
 #ifdef __OHOS__
-    InitNewCJAppNS(appPath.empty() ? SANDBOX_LIB_PATH : appPath);
+    InitCJAppNS(appPath.empty() ? SANDBOX_LIB_PATH : appPath);
 #endif
     if (!StartRuntime()) {
         LOGE("Failed to start cj runtime.");
