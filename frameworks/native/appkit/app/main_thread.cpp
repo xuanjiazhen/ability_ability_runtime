@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -3675,13 +3675,7 @@ int MainThread::GetOverlayModuleInfos(const std::string &bundleName, const std::
         return ERR_INVALID_VALUE;
     }
 
-    auto overlayMgrProxy = bundleMgrHelper->GetOverlayManagerProxy();
-    if (overlayMgrProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null overlayMgrProxy");
-        return ERR_INVALID_VALUE;
-    }
-
-    auto ret = overlayMgrProxy->GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
+    auto ret = OverlayManagerClient::GetInstance().GetTargetOverlayModuleInfo(moduleName, overlayModuleInfos);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "failed");
         return ret;
