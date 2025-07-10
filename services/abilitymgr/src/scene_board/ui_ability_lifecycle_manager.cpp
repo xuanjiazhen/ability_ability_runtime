@@ -73,7 +73,6 @@ constexpr int32_t API_VERSION_MOD = 100;
 constexpr int32_t REQUEST_LIST_ID_INIT = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
-constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -187,16 +186,6 @@ void UIAbilityLifecycleManager::MarkStartingFlag(const AbilityRequest &abilityRe
     }
 }
 
-bool UIAbilityLifecycleManager::CheckBundleHasAbilityRecordForPreload(
-    const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo) const
-{
-    if (sessionAbilityMap_.find(sessionInfo->persistentId) == sessionAbilityMap_.end()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "already started");
-        return false;
-    }
-    return abilityRequest.want.GetBoolParam(KEY_IS_PRELOAD, false);
-}
-
 int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
     uint32_t sceneFlag, bool &isColdStart)
 {
@@ -206,9 +195,15 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo invalid");
         return ERR_INVALID_VALUE;
     }
-    if (CheckBundleHasAbilityRecordForPreload(abilityRequest, sessionInfo)) {
+    bool preloadStartCheck = sessionInfo->processOptions != nullptr && sessionInfo->processOptions->isPreloadStart;
+    if (sessionAbilityMap_.find(sessionInfo->persistentId) != sessionAbilityMap_.end() && preloadStartCheck) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "preload check: already has record");
         return ERR_OK;
+    }
+
+    if (preloadStartCheck) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, preload start");
+        abilityRequest.processOptions = sessionInfo->processOptions;
     }
     auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
@@ -1236,7 +1231,7 @@ void UIAbilityLifecycleManager::UpdateAbilityRecordLaunchReason(
         return;
     }
 
-    if (abilityRequest.want.GetBoolParam(KEY_IS_PRELOAD, false)) {
+    if (abilityRequest.processOptions != nullptr && abilityRequest.processOptions->isPreloadStart) {
         abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_PRELOAD);
         return;
     }

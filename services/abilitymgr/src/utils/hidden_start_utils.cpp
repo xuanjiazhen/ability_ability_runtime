@@ -55,7 +55,7 @@ bool HiddenStartUtils::IsPreloadStart(const StartOptions &options)
         return false;
     }
 
-    return options.isPreloadStart_;
+    return options.processOptions->isPreloadStart;
 }
 
 int32_t HiddenStartUtils::CheckHiddenStartSupported(const StartOptions &options)

@@ -18,7 +18,6 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
-#include "app_mgr_client.h"
 #include "app_scheduler.h"
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -55,7 +54,7 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
         return ERR_CROSS_USER;
     }
 
-    if (DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->CheckPreloadAppRecordExist(
+    if (DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
         bundleName, userId, appIndex)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "already started");
         return ERR_PRELOAD_APP_REOCRD_ALREADY_EXIST;
@@ -86,7 +85,7 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
     StartOptions options;
     options.processOptions = std::make_shared<ProcessOptions>();
     options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
-    options.isPreloadStart_ = true;
+    options.processOptions->isPreloadStart = true;
     return DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(launchWant, options, nullptr, userId);
 }
 }  // namespace AAFwk
