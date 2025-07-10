@@ -501,7 +501,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetUserScreenUnlockCallback_001, Test
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     abilityMs_->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
     std::string testText = "AbilityManagerServiceTwelfthTest";
-    want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, testText);
+    want.SetParam(Want::PARAM_LAUNCH_REASON_MESSAGE, testText);
     abilityMs_->RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);
     auto ret = abilityMs_->GetUserScreenUnlockCallback();
     if (ret) {
