@@ -120,7 +120,6 @@ const int RESTART_SCENEBOARD_DELAY = 500;
 constexpr int32_t DMS_UID = 5522;
 constexpr int32_t SCHEDULER_DIED_TIMEOUT = 60000;
 const std::string JSON_KEY_ERR_MSG = "errMsg";
-constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 auto g_addLifecycleEventTask = [](sptr<Token> token, std::string &methodName) {
     CHECK_POINTER_LOG(token, "token is nullptr");
@@ -247,7 +246,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->SetAppIndex(appIndex);
     abilityRecord->SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     abilityRecord->SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
-    if (abilityRequest.want.GetBoolParam(KEY_IS_PRELOAD, false)) {
+    if (abilityRequest.processOptions != nullptr && abilityRequest.processOptions->isPreloadStart) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "start by preload");
         abilityRecord->SetPreloadStart(true);
     }
@@ -381,7 +380,6 @@ int AbilityRecord::LoadAbility(bool isShellCall)
         want_.SetParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED, true);
         loadParam.isKeepAlive = true;
     }
-    want_.RemoveParam(KEY_IS_PRELOAD);
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
         loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_);
     want_.RemoveParam(IS_HOOK);

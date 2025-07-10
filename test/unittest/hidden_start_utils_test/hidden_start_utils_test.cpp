@@ -116,7 +116,7 @@ HWTEST_F(HiddenStartUtilsTest, HiddenStartUtils_IsPreloadStart_001, TestSize.Lev
     result = utils->IsPreloadStart(options);
     EXPECT_FALSE(result);
     
-    options.isPreloadStart_ = true;
+    options.processOptions->isPreloadStart = true;
     result = utils->IsPreloadStart(options);
     EXPECT_TRUE(result);
 }

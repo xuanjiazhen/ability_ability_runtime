@@ -29,6 +29,8 @@ class AppScheduler {
 public:
     int32_t PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex,
         AppExecFwk::PreloadPhase preloadPhase);
+
+    bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

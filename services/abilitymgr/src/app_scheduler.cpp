@@ -729,8 +729,7 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
     AppExecFwk::PreloadPhase preloadPhase)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    if (!appMgrClient_) {
+    if (appMgrClient_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
         return INNER_ERR;
     }
@@ -740,12 +739,21 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
-    if (!appMgrClient_) {
+    if (appMgrClient_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
         return INNER_ERR;
     }
     return IN_PROCESS_CALL(appMgrClient_->NotifyPreloadAbilityStateChanged(token));
+}
+
+bool AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (appMgrClient_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return false;
+    }
+    return IN_PROCESS_CALL(appMgrClient_->CheckPreloadAppRecordExist(bundleName, userId, appIndex));
 }
 } // namespace AAFwk
 }  // namespace OHOS

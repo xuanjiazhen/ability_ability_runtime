@@ -615,6 +615,8 @@ public:
 
     int32_t NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token);
 
+    bool CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex);
+
 protected:
     /**
      * OnAbilityRequestDone, app manager service call this interface after ability request done.

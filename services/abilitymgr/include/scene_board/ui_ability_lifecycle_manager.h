@@ -523,8 +523,6 @@ private:
     void HandleAbilitiesNormalSessionInfo(AbilityRequest &abilityRequest,
         std::shared_ptr<AbilitiesRequest> abilitiesRequest, int32_t requestId);
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
-    bool CheckBundleHasAbilityRecordForPreload(const AbilityRequest &abilityRequest,
-        sptr<SessionInfo> sessionInfo) const;
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;

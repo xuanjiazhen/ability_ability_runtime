@@ -246,7 +246,6 @@ std::atomic<bool> g_isDmsAlive = false;
 constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
-constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
@@ -2109,11 +2108,6 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         }
     } else {
         abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
-    }
-    if (HiddenStartUtils::IsPreloadStart(startOptions) &&
-        HiddenStartUtils::CheckPreloadStartSupported() == ERR_OK) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "start by preload");
-        abilityRequest.want.SetParam(KEY_IS_PRELOAD, true);
     }
 
     Want newWant = abilityRequest.want;

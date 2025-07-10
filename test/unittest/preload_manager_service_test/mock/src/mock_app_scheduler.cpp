@@ -30,5 +30,10 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 {
     return MyStatus::GetInstance().retPreloadApplicationByPhase_;
 }
+
+bool AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    return AAFwk::MyStatus::GetInstance().isPreloadApplicationRecordExist_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

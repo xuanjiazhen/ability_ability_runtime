@@ -32,7 +32,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 const std::string JSON_KEY_ERR_MSG = "errMsg";
-constexpr const char* KEY_IS_PRELOAD = "com.ohos.param.isPreload";
 
 void UIAbilityImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record, std::shared_ptr<UIAbility> &ability,
@@ -381,7 +380,7 @@ void UIAbilityImpl::UpdateSilentForeground(const AAFwk::LifeCycleStateInfo &targ
         sessionInfo && sessionInfo->processOptions &&
         (sessionInfo->processOptions->isRestartKeepAlive ||
         AAFwk::ProcessOptions::IsValidProcessMode(sessionInfo->processOptions->processMode) ||
-        sessionInfo->processOptions->isStartFromNDK || sessionInfo->want.GetBoolParam(KEY_IS_PRELOAD, false)) &&
+        sessionInfo->processOptions->isStartFromNDK || sessionInfo->processOptions->isPreloadStart) &&
         sessionInfo->processOptions->startupVisibility == AAFwk::StartupVisibility::STARTUP_HIDE) {
         TAG_LOGI(AAFwkTag::UIABILITY, "set IsSilentForeground to true");
         ability_->SetIsSilentForeground(true);
