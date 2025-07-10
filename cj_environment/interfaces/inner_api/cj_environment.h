@@ -60,7 +60,9 @@ public:
     void RegisterArkVMInRuntime(unsigned long long externalVM);
     void RegisterStackInfoCallbacks(UpdateStackInfoFuncType uFunc);
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
-    bool RegisterCangjieCallback();
+    void RegisterCangjieCallback(void* dso);
+    void RegisterEventHandlerCallbacks();
+    int InitCJRuntime(const struct RuntimeParam* rtParams);
     bool IsUISchedulerStarted()
     {
         return isUISchedulerStarted_;
@@ -87,34 +89,28 @@ public:
     bool StartDebugger();
     bool PostTask(TaskFuncType task);
     bool HasHigherPriorityTask();
-    CJRuntimeAPI* GetLazyApis() { return lazyApis_; }
-    void SetLazyApis(CJRuntimeAPI* apis) { lazyApis_ = apis; }
+    CJRuntimeAPI& GetLazyApis() { return lazyApis_; }
+    void SetLazyApis(CJRuntimeAPI& apis) { lazyApis_ = apis; }
 
-    void PreloadLibs();
     void InitCJAppNS(const std::string& path);
-    void InitCJSDKNS(const std::string& path);
-    void InitNewCJAppNS(const std::string& path);
-    void InitNewCJSDKNS(const std::string& path);
+    void InitCJRomSDKNS(const std::string& path);
     void InitCJCompatibilitySDKNS(const std::string& path);
-    void InitCJSysNS(const std::string& path);
     void InitCJChipSDKNS(const std::string& path);
-    void InitNewCJChipSDKNS(const std::string& path);
+    void InitCJRuntimeNS(const std::string& path);
     void InitRuntimeNS();
     void InitCJNS(const std::string& path);
     static NSMode DetectAppNSMode();
     static void SetAppVersion(std::string& version);
     void DumpHeapSnapshot(int fd);
     void ForceFullGC();
+    void* LoadRuntimeLib(const char* runtimeLibName);
 
-    static const char *cjAppNSName;
-    static const char *cjSDKNSName;
-    static const char *cjSysNSName;
     static const char *cjChipSDKNSName;
-    static const char *cjNewAppNSName;
-    static const char *cjNewSDKNSName;
-    static const char *cjNewSysNSName;
-    static const char *cjNDKNSName;
+    static const char *cjAppNSName;
+    static const char *cjRomSDKNSName;
+    static const char *cjSysNSName;
     static const char *cjCompatibilitySDKNSName;
+    static const char *cjRuntimeNSName;
     static std::string appVersion;
     static const uint32_t majorVersion;
     static const uint32_t minorVersion;
@@ -123,7 +119,7 @@ public:
 private:
     bool LoadRuntimeApis();
     bool isRuntimeApiLoaded {false};
-    CJRuntimeAPI* lazyApis_ {nullptr};
+    CJRuntimeAPI lazyApis_;
     bool isRuntimeStarted_{false};
     bool isLoadCJLibrary_{false};
     bool isUISchedulerStarted_{false};

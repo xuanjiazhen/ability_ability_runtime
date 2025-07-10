@@ -183,48 +183,6 @@ void CJRuntime::SetSanitizerVersion(SanitizerKind kind)
     cjEnv->setSanitizerKindRuntimeVersion(kind);
 }
 
-bool CJRuntime::RegisterCangjieCallback()
-{
-    auto cjEnv = OHOS::CJEnv::LoadInstance();
-    constexpr char CANGJIE_DEBUGGER_LIB_PATH[] = "libark_connect_inspector.z.so";
-    #define LIBARARYKIND_SYS 0
-    auto handlerConnectServerSo = cjEnv->loadLibrary(LIBARARYKIND_SYS, CANGJIE_DEBUGGER_LIB_PATH);
-    if (handlerConnectServerSo == nullptr) {
-        TAG_LOGE(AAFwkTag::CJRUNTIME, "null handlerConnectServerSo: %{public}s", dlerror());
-        return false;
-    }
-    using SendMsgCB = const std::function<void(const std::string& message)>;
-    using SetCangjieCallback = void(*)(const std::function<void(const std::string& message, SendMsgCB)>);
-    using CangjieCallback = void(*)(const std::string& message, SendMsgCB);
-    auto setCangjieCallback = reinterpret_cast<SetCangjieCallback>(
-        cjEnv->getSymbol(handlerConnectServerSo, "SetCangjieCallback"));
-    if (setCangjieCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::CJRUNTIME, "null setCangjieCallback: %{public}s", dlerror());
-        return false;
-    }
-    #define RTLIB_NAME "libcangjie-runtime.so"
-    #define LIBARARYKIND_SDK 1
-    auto dso = cjEnv->loadLibrary(LIBARARYKIND_SDK, RTLIB_NAME);
-    if (!dso) {
-        TAG_LOGE(AAFwkTag::CJRUNTIME, "load library failed: %{public}s", RTLIB_NAME);
-        return false;
-    }
-    TAG_LOGE(AAFwkTag::CJRUNTIME, "load libcangjie-runtime.so success");
-    #define PROFILERAGENT "ProfilerAgent"
-    CangjieCallback cangjieCallback = reinterpret_cast<CangjieCallback>(cjEnv->getSymbol(dso, PROFILERAGENT));
-    if (cangjieCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::CJRUNTIME, "runtime api not found: %{public}s", PROFILERAGENT);
-        dlclose(handlerConnectServerSo);
-        handlerConnectServerSo = nullptr;
-        return false;
-    }
-    TAG_LOGE(AAFwkTag::CJRUNTIME, "find runtime api success");
-    setCangjieCallback(cangjieCallback);
-    dlclose(handlerConnectServerSo);
-    handlerConnectServerSo = nullptr;
-    return true;
-}
-
 void CJRuntime::StartProfiler(const DebugOption dOption)
 {
     if (!dOption.isDebugFromLocal && !dOption.isDeveloperMode) {
@@ -258,7 +216,6 @@ void CJRuntime::StartProfiler(const DebugOption dOption)
                 ConnectServerManager::Get().SendInstanceMessage(instanceId, instanceId, bundleName);
                 ConnectServerManager::Get().SendDebuggerInfo(isStartWithDebug, isDebugApp);
                 ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
-                CJRuntime::RegisterCangjieCallback();
             } else {
                 TAG_LOGE(AAFwkTag::CJRUNTIME, "debugger service unexpected option: %{public}s", option.c_str());
             }
@@ -306,7 +263,6 @@ void CJRuntime::StartDebugMode(const DebugOption dOption)
                 ConnectServerManager::Get().SendInstanceMessage(instanceId, instanceId, bundleName);
                 ConnectServerManager::Get().SendDebuggerInfo(isStartWithDebug, isDebugApp);
                 ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
-                CJRuntime::RegisterCangjieCallback();
             } else {
                 TAG_LOGE(AAFwkTag::CJRUNTIME, "debugger service unexpected option: %{public}s", option.c_str());
             }
