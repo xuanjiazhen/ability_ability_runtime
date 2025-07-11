@@ -1059,7 +1059,7 @@ HWTEST_F(AbilityConnectManagerFourthTest, AAFWK_Kit_ResumeExtensionAbilityLocked
  * EnvConditions: NA
  * CaseDescription: Verify AbilityConnectManager OnTimeOut
  */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnTimeOut_002, TestSize.Level1)
+HWTEST_F(AbilityConnectManagerFourthTest, AAFwk_AbilityMS_OnTimeOut_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_OnTimeOut_002 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
@@ -1087,7 +1087,7 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnTimeOut_002, TestSize.Leve
  * EnvConditions: NA
  * CaseDescription: Verify AbilityConnectManager OnTimeOut
  */
-HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_OnTimeOut_003, TestSize.Level1)
+HWTEST_F(AbilityConnectManagerFourthTest, AAFwk_AbilityMS_OnTimeOut_003, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_OnTimeOut_003 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
