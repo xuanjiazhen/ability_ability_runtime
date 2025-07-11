@@ -105,8 +105,7 @@ public:
      */
     void OnAbilityResult(int requestCode, int resultCode, const Want &resultData) override;
 
-    static void CreateAndBindContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
-        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
+    static void CreateAndBindContext(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
         const std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext,
         const std::unique_ptr<Runtime>& runtime);
 

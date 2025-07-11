@@ -713,16 +713,16 @@ void UIAbility::BindHybridContext(const std::shared_ptr<AppExecFwk::OHOSApplicat
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo");
         return;
     }
-    if (abilityInfo->codeLanguage == APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
-        BindStsContext(application, record);
-    } else if (abilityInfo->codeLanguage == APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+    if (abilityInfo->codeLanguage == AppExecFwk::Constants::CODE_LANGUAGE_1_1) {
+        BindEtsContext(application, record);
+    } else if (abilityInfo->codeLanguage == AppExecFwk::Constants::CODE_LANGUAGE_1_2) {
         BindJsContext(application, record);
     } else {
         TAG_LOGE(AAFwkTag::UIABILITY, "unknown codeLanguage");
     }
 }
 
-void UIAbility::BindStsContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
+void UIAbility::BindEtsContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> record)
 {
     if (abilityContext_ == nullptr) {
@@ -737,11 +737,11 @@ void UIAbility::BindStsContext(const std::shared_ptr<AppExecFwk::OHOSApplication
 
     auto* ptr = bindingObject->Get<ani_ref>();
     if (ptr != nullptr) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "sts context already binded");
+        TAG_LOGD(AAFwkTag::UIABILITY, "ets context already binded");
         return;
     }
-    StsUIAbility::CreateAndBindContext(
-        application, record, abilityContext_, application->GetSpecifiedRuntime(CODE_LANGUAGE_ARKTS_1_2));
+//    EtsUIAbility::CreateAndBindContext(
+//        application, record, abilityContext_, application->GetSpecifiedRuntime(AppExecFwk::Constants::CODE_LANGUAGE_1_2));
 }
 
 void UIAbility::BindJsContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,
@@ -759,11 +759,11 @@ void UIAbility::BindJsContext(const std::shared_ptr<AppExecFwk::OHOSApplication>
 
     auto* ptr = bindingObject->Get<NativeReference>();
     if (ptr != nullptr) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "sts context already binded");
+        TAG_LOGD(AAFwkTag::UIABILITY, "ets context already binded");
         return;
     }
     JsUIAbility::CreateAndBindContext(
-        application, record, abilityContext_, application->GetSpecifiedRuntime(CODE_LANGUAGE_ARKTS_1_1));
+        application, record, abilityContext_, application->GetSpecifiedRuntime(AppExecFwk::Constants::CODE_LANGUAGE_1_1));
 }
 
 bool UIAbility::CheckIsSilentForeground() const
