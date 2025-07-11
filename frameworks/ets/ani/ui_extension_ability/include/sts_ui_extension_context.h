@@ -71,7 +71,7 @@ public:
     static void NativeReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
     static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
-    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
+    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
         ani_object connectOptionsObj);
 
 private:

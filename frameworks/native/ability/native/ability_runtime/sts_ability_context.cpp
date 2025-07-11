@@ -992,7 +992,7 @@ ani_int StsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_ob
     return connectId;
 }
 
-void StsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
+void StsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
     ani_object callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OnDisconnectServiceExtensionAbility call");

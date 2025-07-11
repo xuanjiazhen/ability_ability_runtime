@@ -188,7 +188,7 @@ ani_double StsUIExtensionContext::OnConnectServiceExtensionAbility(ani_env *env,
 }
 
 void StsUIExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
-    ani_int connectId, ani_object callback)
+    ani_double connectId, ani_object callback)
 {
     TAG_LOGE(AAFwkTag::UI_EXT, "OnDisconnectServiceExtensionAbility");
     if (env == nullptr) {
