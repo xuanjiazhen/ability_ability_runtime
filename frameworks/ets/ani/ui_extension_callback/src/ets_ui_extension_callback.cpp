@@ -85,7 +85,7 @@ void EtsUIExtensionCallback::OnError(int32_t number)
         return;
     }
     if ((status = env->Object_CallMethod_Void(reinterpret_cast<ani_object>(callback_),
-        method, number, aniName, aniMsg)) != ANI_OK) {
+        method, (ani_double)number, aniName, aniMsg)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "call onError method failed, status: %{public}d", status);
         return;
     }
