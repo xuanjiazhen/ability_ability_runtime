@@ -276,7 +276,7 @@ bool WrapExtensionRunningInfoInner(
         return false;
     }
     ani_enum_item typeItem = nullptr;
-    OHOS::AAFwk::AniEnumConvertUtil::EnumConvertNativeToSts(
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
         env, EXTENSION_ABILITY_TYPE_ENUM_NAME, info.type, typeItem);
     if ((status = env->Object_SetPropertyByName_Ref(infoObj, "type", typeItem)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "set type failed, status: %{public}d", status);
