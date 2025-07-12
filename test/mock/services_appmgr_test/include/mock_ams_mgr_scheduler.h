@@ -83,6 +83,7 @@ public:
     MOCK_METHOD1(SetCurrentUserId, void(const int32_t userId));
 
     MOCK_METHOD4(SendRequest, int(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
+    MOCK_METHOD4(PreloadApplicationByPhase, int32_t(const std::string&, int32_t, int32_t, AppExecFwk::PreloadPhase));
 
     int InvokeSendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
     {
