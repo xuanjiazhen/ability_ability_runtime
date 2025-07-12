@@ -18,9 +18,12 @@
 
 #include <memory>
 #include "ability_delegator_args.h"
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+const std::string CAPITALTESTRUNNER = "/ets/TestRunner/";
+const std::string LOWERCASETESTRUNNER = "/ets/testrunner/";
 class Runtime;
 }
 
@@ -61,6 +64,7 @@ public:
      * Initialize runtime only fo ace 1.0.
      */
     virtual bool Initialize();
+
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
