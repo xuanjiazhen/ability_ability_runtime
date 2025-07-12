@@ -1094,7 +1094,7 @@ HWTEST_F(AbilityConnectManagerFourthTest, AAFwk_AbilityMS_OnTimeOut_003, TestSiz
     std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
     uint32_t msgId = 111;
     connectManager->terminatingExtensionList_.push_back(abilityRecord);
-    abilityRecordId = abilityRecord->GetAbilityRecordId();
+    int64_t abilityRecordId = abilityRecord->GetAbilityRecordId();
     connectManager->OnTimeOut(msgId, abilityRecordId);
     connectManager->terminatingExtensionList_.clear();
     TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_OnTimeOut_003 end");
