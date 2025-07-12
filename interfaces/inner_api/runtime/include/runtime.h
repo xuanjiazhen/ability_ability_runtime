@@ -28,8 +28,8 @@ class EventRunner;
 } // namespace AppExecFwk
 namespace AbilityRuntime {
 namespace {
-const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_0 = "1.1";
-const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_2 = "1.2";
+const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_0 = "dynamic";
+const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_1_2 = "static";
 const std::string APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID = "hybrid";
 const std::string DEBUGGER = "@Debugger";
 } // namespace
@@ -89,7 +89,7 @@ public:
         bool isStartWithNative = false;
         bool isDebugFromLocal = false;
         bool isDeveloperMode;
-        std::string codeLanguage = APPLICAITON_CODE_LANGUAGE_ARKTS_1_2;
+        std::string tsMode = APPLICAITON_CODE_LANGUAGE_ARKTS_1_2;
     };
 
     static std::vector<std::unique_ptr<Runtime>> CreateRuntimes(Options& options);

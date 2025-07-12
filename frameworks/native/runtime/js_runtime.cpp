@@ -240,7 +240,7 @@ bool JsRuntime::ShouldSkipDebugMode(const DebugOption dOption)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "developer Mode false");
         return false;
     }
-    if (!(dOption.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0)) {
+    if (!(dOption.tsMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "developer register in sts");
         return false;
     }

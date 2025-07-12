@@ -424,7 +424,7 @@ void OHOSApplication::SetAppEnv(const std::vector<AppEnvironment>& appEnvironmen
 
 void OHOSApplication::PreloadHybridModule(const HapModuleInfo &hapModuleInfo) const
 {
-    if (hapModuleInfo.codeLanguage != Constants::CODE_LANGUAGE_HYBRID) {
+    if (hapModuleInfo.moduleArkTSMode != Constants::ARKTS_MODE_HYBRID) {
         TAG_LOGD(AAFwkTag::APPKIT, "not hybrid runtime");
         return;
     }
@@ -470,7 +470,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             return nullptr;
         }
         PreloadHybridModule(*hapModuleInfo);
-        auto& runtime = GetRuntime(abilityInfo->codeLanguage);
+        auto& runtime = GetRuntime(abilityInfo->arkTSMode);
         if (runtime && (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
             static_cast<AbilityRuntime::JsRuntime&>(*runtime).SetPkgContextInfoJson(
                 hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
@@ -483,7 +483,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             stageContext->SetResourceManager(rm);
         }
 
-        auto& runtimeStage = GetRuntime(hapModuleInfo->abilityStageCodeLanguage);
+        auto& runtimeStage = GetRuntime(hapModuleInfo->moduleArkTSMode);
         abilityStage = AbilityRuntime::AbilityStage::Create(runtimeStage, *hapModuleInfo);
         if (abilityStage == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");
@@ -691,7 +691,7 @@ bool OHOSApplication::AddAbilityStage(
         stageContext->SetResourceManager(rm);
     }
 
-    auto& runtime = GetRuntime(moduleInfo->abilityStageCodeLanguage);
+    auto& runtime = GetRuntime(moduleInfo->moduleArkTSMode);
     auto abilityStage = AbilityRuntime::AbilityStage::Create(runtime, *moduleInfo);
     if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");

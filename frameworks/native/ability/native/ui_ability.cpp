@@ -680,7 +680,7 @@ void UIAbility::BindHybridContext(const std::shared_ptr<AppExecFwk::OHOSApplicat
         TAG_LOGE(AAFwkTag::UIABILITY, "null appInfo");
         return;
     }
-    if (appInfo->codeLanguage != AppExecFwk::Constants::CODE_LANGUAGE_HYBRID) {
+    if (appInfo->arkTSMode != AppExecFwk::Constants::ARKTS_MODE_HYBRID) {
         TAG_LOGD(AAFwkTag::UIABILITY, "not hybrid app, no need to create hybrid context");
         return;
     }
@@ -690,12 +690,12 @@ void UIAbility::BindHybridContext(const std::shared_ptr<AppExecFwk::OHOSApplicat
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo");
         return;
     }
-    if (abilityInfo->codeLanguage == APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
+    if (abilityInfo->arkTSMode == APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
         BindStsContext(application, record);
-    } else if (abilityInfo->codeLanguage == APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+    } else if (abilityInfo->arkTSMode == APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
         BindJsContext(application, record);
     } else {
-        TAG_LOGE(AAFwkTag::UIABILITY, "unknown codeLanguage");
+        TAG_LOGE(AAFwkTag::UIABILITY, "unknown arkTSMode");
     }
 }
 

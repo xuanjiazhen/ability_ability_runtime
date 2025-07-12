@@ -733,7 +733,7 @@ std::vector<std::string> STSRuntime::GetHspPathList()
 
     std::vector<std::string> hspPathList;
     for (const auto &it : baseSharedBundleInfos) {
-        if (it.codeLanguage != AppExecFwk::Constants::CODE_LANGUAGE_1_1) {
+        if (it.arkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
             hspPathList.push_back(it.hapPath);
         }
     }

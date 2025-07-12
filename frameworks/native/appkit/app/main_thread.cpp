@@ -1654,7 +1654,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
                 if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
-                    hapModuleInfo.codeLanguage != AppExecFwk::Constants::CODE_LANGUAGE_1_1) {
+                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
                     TAG_LOGI(AAFwkTag::JSRUNTIME, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
                     options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
                 }
@@ -1707,7 +1707,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 });
         }
         AbilityRuntime::Runtime::DebugOption debugOption;
-        debugOption.codeLanguage = appInfo.codeLanguage;
+        debugOption.tsMode = appInfo.arkTSMode;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;
@@ -1786,7 +1786,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         for (auto& runtime : runtimes) {
             application_->AddRuntime(std::move(runtime));
         }
-        if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+        if (appInfo.arkTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
             application_->InitAniApplicationContext();
             application_->InitAniContext();
         }
@@ -1809,14 +1809,14 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 #ifdef CJ_FRONTEND
         if (!isCJApp) {
 #endif
-            auto &runtime = application_->GetRuntime(appInfo.codeLanguage);
+            auto &runtime = application_->GetRuntime(appInfo.arkTSMode);
             if (application_ != nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "main_thread bundleName is %{public}s",
                     appInfo.bundleName.c_str());
-                TAG_LOGE(AAFwkTag::APPKIT, "LoadAllExtensions lan:%{public}s", appInfo.codeLanguage.c_str());
+                TAG_LOGE(AAFwkTag::APPKIT, "LoadAllExtensions lan:%{public}s", appInfo.arkTSMode.c_str());
                 LoadAllExtensions();
             }
-            if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
+            if (appInfo.arkTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
                 auto &jsEngine = (static_cast<AbilityRuntime::JsRuntime &>(*runtime)).GetNativeEngine();
                 IdleTimeCallback callback = [wpApplication](int32_t idleTime) {
                     auto app = wpApplication.lock();
@@ -1851,7 +1851,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     auto usertestInfo = appLaunchData.GetUserTestInfo();
     if (usertestInfo) {
         if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo, bundleInfo.targetVersion,
-            appInfo.codeLanguage)) {
+            appInfo.arkTSMode)) {
             TAG_LOGE(AAFwkTag::APPKIT, "PrepareAbilityDelegator failed");
             return;
         }
@@ -1935,7 +1935,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
     if (appLaunchData.IsNeedPreloadModule()) {
-        PreloadModule(entryHapModuleInfo, application_->GetRuntime(entryHapModuleInfo.codeLanguage));
+        PreloadModule(entryHapModuleInfo, application_->GetRuntime(entryHapModuleInfo.moduleArkTSMode));
     }
 }
 
@@ -2304,7 +2304,7 @@ void MainThread::LoadAllExtensions()
 
 bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
     const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion,
-    const std::string &applicationCodeLanguage)
+    const std::string &applicationTSMode)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "enter, isStageBased = %{public}d", isStageBased);
     if (!record) {
@@ -2314,7 +2314,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     auto args = std::make_shared<AbilityDelegatorArgs>(record->want);
     if (isStageBased) { // Stage model
         TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
-        if (applicationCodeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
+        if (applicationTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0) {
             TAG_LOGI(AAFwkTag::DELEGATOR, "create 1.0 testrunner");
             auto& runtime = application_->GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_0);
             auto testRunner = TestRunner::Create(runtime, args, false);
@@ -2325,7 +2325,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
             delegator->Prepare();
         }
 
-        if (applicationCodeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+        if (applicationTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
             TAG_LOGI(AAFwkTag::DELEGATOR, "create 1.2 testrunner");
             auto& runtime = application_->GetRuntime(AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2);
             auto testRunner = TestRunner::Create(runtime, args, false);
@@ -3923,9 +3923,9 @@ void MainThread::HandleCacheProcess()
 
 void MainThread::AddRuntimeLang(ApplicationInfo& appInfo, AbilityRuntime::Runtime::Options& options)
 {
-    if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
+    if (appInfo.arkTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_1_2) {
         options.langs.emplace(AbilityRuntime::Runtime::Language::STS, true);
-    } else if (appInfo.codeLanguage == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID) {
+    } else if (appInfo.arkTSMode == AbilityRuntime::APPLICAITON_CODE_LANGUAGE_ARKTS_HYBRID) {
         options.langs.emplace(AbilityRuntime::Runtime::Language::STS, true);
     } else {
         options.langs.emplace(AbilityRuntime::Runtime::Language::JS, true);
