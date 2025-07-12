@@ -617,5 +617,113 @@ HWTEST_F(AbilityContextTest, AaFwk_Ability_GetHapModuleInfo_0100, TestSize.Level
     EXPECT_TRUE(context_ != nullptr);
     GTEST_LOG_(INFO) << "AaFwk_Ability_GetHapModuleInfo_0100 end";
 }
+
+/**
+ * @tc.name: ConnectAppServiceExtensionAbility_0100
+ * @tc.desc: Verify ConnectAppServiceExtensionAbility with success case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, ConnectAppServiceExtensionAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ConnectAppServiceExtensionAbility_0100 start";
+
+    // 使用派生类测试虚方法
+    class TestAbilityContext : public AbilityContext {
+    public:
+        ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want, const sptr<IRemoteObject>& connect) override
+        {
+            lastWant_ = want;
+            lastConnect_ = connect;
+            connectCalled_ = true;
+            return connectResult_;
+        }
+
+        // 测试辅助方法
+        void SetConnectResult(ErrCode result) { connectResult_ = result; }
+        const AAFwk::Want& GetLastWant() const { return lastWant_; }
+        const sptr<IRemoteObject>& GetLastConnect() const { return lastConnect_; }
+        bool IsConnectCalled() const { return connectCalled_; }
+
+    private:
+        AAFwk::Want lastWant_;
+        sptr<IRemoteObject> lastConnect_;
+        bool connectCalled_ = false;
+        ErrCode connectResult_ = ERR_OK;
+    };
+
+    TestAbilityContext testContext;
+    testContext.SetConnectResult(ERR_OK);
+    
+    AAFwk::Want want;
+    want.SetAction("action.test.connect");
+    want.SetElementName("com.example.test", "TestAbility");
+    
+    sptr<IRemoteObject> connect = new IRemoteObject(u"test_connect");
+    
+    ErrCode result = testContext.ConnectAppServiceExtensionAbility(want, connect);
+    
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(testContext.IsConnectCalled());
+    EXPECT_EQ(testContext.GetLastWant().GetAction(), want.GetAction());
+    EXPECT_EQ(testContext.GetLastWant().GetElement().GetBundleName(), want.GetElement().GetBundleName());
+    EXPECT_EQ(testContext.GetLastWant().GetElement().GetAbilityName(), want.GetElement().GetAbilityName());
+    EXPECT_EQ(testContext.GetLastConnect(), connect);
+
+    GTEST_LOG_(INFO) << "ConnectAppServiceExtensionAbility_0100 end";
+}
+
+/**
+ * @tc.name: ConnectAppServiceExtensionAbility_0200
+ * @tc.desc: Verify ConnectAppServiceExtensionAbility with failure case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, ConnectAppServiceExtensionAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ConnectAppServiceExtensionAbility_0200 start";
+
+    // 使用派生类测试虚方法
+    class TestAbilityContext : public AbilityContext {
+    public:
+        ErrCode ConnectAppServiceExtensionAbility(const AAFwk::Want& want, const sptr<IRemoteObject>& connect) override
+        {
+            lastWant_ = want;
+            lastConnect_ = connect;
+            connectCalled_ = true;
+            return connectResult_;
+        }
+
+        // 测试辅助方法
+        void SetConnectResult(ErrCode result) { connectResult_ = result; }
+        const AAFwk::Want& GetLastWant() const { return lastWant_; }
+        const sptr<IRemoteObject>& GetLastConnect() const { return lastConnect_; }
+        bool IsConnectCalled() const { return connectCalled_; }
+
+    private:
+        AAFwk::Want lastWant_;
+        sptr<IRemoteObject> lastConnect_;
+        bool connectCalled_ = false;
+        ErrCode connectResult_ = ERR_APPEXECFWK_FAILED;
+    };
+
+    TestAbilityContext testContext;
+    testContext.SetConnectResult(ERR_APPEXECFWK_FAILED);
+    
+    AAFwk::Want want;
+    want.SetAction("action.test.connect");
+    want.SetElementName("com.example.test", "TestAbility");
+    
+    sptr<IRemoteObject> connect = new IRemoteObject(u"test_connect");
+    
+    ErrCode result = testContext.ConnectAppServiceExtensionAbility(want, connect);
+    
+    EXPECT_EQ(result, ERR_APPEXECFWK_FAILED);
+    EXPECT_TRUE(testContext.IsConnectCalled());
+    EXPECT_EQ(testContext.GetLastWant().GetAction(), want.GetAction());
+    EXPECT_EQ(testContext.GetLastWant().GetElement().GetBundleName(), want.GetElement().GetBundleName());
+    EXPECT_EQ(testContext.GetLastWant().GetElement().GetAbilityName(), want.GetElement().GetAbilityName());
+    EXPECT_EQ(testContext.GetLastConnect(), connect);
+
+    GTEST_LOG_(INFO) << "ConnectAppServiceExtensionAbility_0200 end";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
