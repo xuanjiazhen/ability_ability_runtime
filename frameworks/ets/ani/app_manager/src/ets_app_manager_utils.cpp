@@ -26,13 +26,18 @@
 namespace OHOS {
 namespace AppManagerEts {
 namespace {
-constexpr const char* DATA_CLASS_NAME = "Lapplication/AppStateData/AppStateData;";
-constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
-constexpr const char* INFO_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningMultiAppInfoInner;";
-constexpr const char* INSTANCE_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningMultiInstanceInfoInner;";
-constexpr const char* CLONE_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningAppCloneInner;";
+constexpr const char *DATA_CLASS_NAME = "Lapplication/AppStateData/AppStateData;";
+constexpr const char *CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char *INFO_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningMultiAppInfoInner;";
+constexpr const char *INSTANCE_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningMultiInstanceInfoInner;";
+constexpr const char *CLONE_INNER_CLASS_NAME = "Lapplication/RunningMultiAppInfo/RunningAppCloneInner;";
 constexpr const char *PROCESS_DATA_CLASS_NAME = "Lapplication/ProcessData/ProcessData;";
 constexpr const char *MULTI_APP_MODE_ENUM_NAME = "Lapplication/MultiAppMode/MultiAppMode;";
+constexpr const char *KEEP_ALIVE_APP_TYPE_ENUM_NAME = "L@ohos/app/ability/appManager/appManager/KeepAliveAppType;";
+constexpr const char *KEEP_ALIVE_APP_SETTER_ENUM_NAME = "L@ohos/app/ability/appManager/appManager/KeepAliveSetter;";
+constexpr const char *KEEP_ALIVE_BUNDLE_INFO_INNER_CLASS_NAME =
+    "L@ohos/app/ability/appManager/appManager/KeepAliveBundleInfoInner;";
+
 }  // namespace
 
 ani_object WrapAppStateData(ani_env *env, const AppExecFwk::AppStateData &appStateData)
@@ -720,5 +725,150 @@ ani_object CreateDoubleAniArray(ani_env * env, const std::vector<int32_t> &dataA
     }
     return arrayObj;
 }
+
+bool UnWrapArrayDouble(ani_env *env, ani_object arrayObj, std::vector<int32_t> &list)
+{
+    if (env == nullptr || arrayObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null or arrayObj null");
+        return false;
+    }
+    list.clear();
+    ani_size size = 0;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Array_GetLength(reinterpret_cast<ani_array>(arrayObj), &size)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d", status);
+        return false;
+    }
+    ani_ref ref;
+    ani_size idx;
+    for (idx = 0; idx < size; idx++) {
+        if ((status = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(arrayObj), idx, &ref)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d, index: %{public}zu", status, idx);
+            return false;
+        }
+        ani_double dval = 0.0;
+        if ((status = env->Object_CallMethodByName_Double(static_cast<ani_object>(ref),
+            "unboxed", nullptr, &dval)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Double status : %{public}d", status);
+            return false;
+        }
+        list.push_back(static_cast<int32_t>(dval));
+    }
+    return true;
+}
+
+ani_object WrapKeepAliveInfo(ani_env *env, const AbilityRuntime::KeepAliveInfo &keepAliveInfo)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    ani_method method {};
+    ani_object object = nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return nullptr;
+    }
+    if ((status = env->FindClass(KEEP_ALIVE_BUNDLE_INFO_INNER_CLASS_NAME, &cls))
+        != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "find class failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (cls == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null cls");
+        return nullptr;
+    }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "find ctor failed status : %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_New(cls, method, &object)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Object_New failed status : %{public}d", status);
+        return nullptr;
+    }
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null object");
+        return nullptr;
+    }
+    if (!SetKeepAliveInfo(env, object, keepAliveInfo)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SetKeepAliveInfo failed");
+        return nullptr;
+    }
+    return object;
+}
+
+bool SetKeepAliveInfo(ani_env *env, ani_object object, const AbilityRuntime::KeepAliveInfo &keepInfo)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return false;
+    }
+    ani_status status = ANI_OK;
+    if ((env->Object_SetFieldByName_Ref(object, "bundleName",
+        OHOS::AppExecFwk::GetAniString(env, keepInfo.bundleName))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleName failed status:%{public}d", status);
+        return false;
+    }
+    ani_enum_item typeItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, KEEP_ALIVE_APP_TYPE_ENUM_NAME, keepInfo.appType, typeItem);
+    if ((status = env->Object_SetPropertyByName_Ref(object, "type", typeItem)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "state failed status:%{public}d", status);
+        return false;
+    }
+    ani_enum_item setterItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
+        env, KEEP_ALIVE_APP_SETTER_ENUM_NAME, keepInfo.setter, setterItem);
+    if ((status = env->Object_SetPropertyByName_Ref(object, "setter", setterItem)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "state failed status:%{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+ani_object CreateKeepAliveInfoArray(ani_env *env, const std::vector<AbilityRuntime::KeepAliveInfo> &infos)
+{
+    ani_class arrayCls = nullptr;
+    ani_status status = ANI_OK;
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return nullptr;
+    }
+
+    status = env->FindClass(CLASSNAME_ARRAY, &arrayCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "FindClass failed status : %{public}d", status);
+        return nullptr;
+    }
+
+    ani_method arrayCtor;
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "find ctor failed status : %{public}d", status);
+        return nullptr;
+    }
+
+    ani_object arrayObj;
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, infos.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Object_New array status : %{public}d", status);
+        return arrayObj;
+    }
+    ani_size index = 0;
+    for (auto &info : infos) {
+        ani_object ani_info = WrapKeepAliveInfo(env, info);
+        if (ani_info == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "null ani_info");
+            break;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, ani_info);
+        if (status != ANI_OK) {
+            TAG_LOGW(AAFwkTag::APPMGR, "Object_CallMethodByName_Void failed status : %{public}d", status);
+            break;
+        }
+        index++;
+    }
+    return arrayObj;
+}
+
 } // namespace AppManagerEts
 } // namespace OHOS

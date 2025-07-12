@@ -23,6 +23,7 @@
 #include "process_data.h"
 #include "running_multi_info.h"
 #include "running_process_info.h"
+#include "keep_alive_info.h"
 
 namespace OHOS {
 namespace AppManagerEts {
@@ -33,20 +34,24 @@ ani_object CreateAppStateDataArray(ani_env *env, const std::vector<AppExecFwk::A
 ani_object CreateRunningMultiInstanceInfoArray(ani_env *env,
     const std::vector<AppExecFwk::RunningMultiInstanceInfo> &infos);
 ani_object CreateRunningAppCloneArray(ani_env *env, const std::vector<AppExecFwk::RunningAppClone> &infos);
-bool SetRunningMultiAppInfo(
+void SetRunningMultiAppInfo(
     ani_env *env, ani_object object, const AppExecFwk::RunningMultiAppInfo &runningMultiAppInfo);
 ani_object WrapRunningMultiAppInfo(ani_env *env, const AppExecFwk::RunningMultiAppInfo &runningMultiAppInfo);
 ani_object WrapRunningMultiInstanceInfo(ani_env *env, const AppExecFwk::RunningMultiInstanceInfo &instanceInfo);
-bool SetRunningMultiInstanceInfo(
+void SetRunningMultiInstanceInfo(
     ani_env *env, ani_object object, const AppExecFwk::RunningMultiInstanceInfo &instanceInfo);
 ani_object WrapRunningAppClone(ani_env *env, const AppExecFwk::RunningAppClone &runningAppClone);
 bool SetRunningAppClone(ani_env *env, ani_object object, const AppExecFwk::RunningAppClone &runningAppClone);
 ani_object WrapProcessData(ani_env *env, const AppExecFwk::ProcessData &processData);
-bool SetProcessData(ani_env *env, ani_object object, const AppExecFwk::ProcessData &processData);
+void SetProcessData(ani_env *env, ani_object object, const AppExecFwk::ProcessData &processData);
 bool UnWrapArrayString(ani_env *env, ani_object arrayObj, std::vector<std::string> &stringList);
 ani_object CreateEmptyAniArray(ani_env *env);
 ani_object CreateEmptyMultiAppInfo(ani_env *env);
 ani_object CreateDoubleAniArray(ani_env *env, const std::vector<int32_t> &dataArry);
+bool UnWrapArrayDouble(ani_env *env, ani_object arrayObj, std::vector<int32_t> &list);
+ani_object CreateKeepAliveInfoArray(ani_env *env, const std::vector<AbilityRuntime::KeepAliveInfo> &infos);
+ani_object WrapKeepAliveInfo(ani_env *env, const AbilityRuntime::KeepAliveInfo &keepAliveInfo);
+bool SetKeepAliveInfo(ani_env *env, ani_object object, const AbilityRuntime::KeepAliveInfo &keepInfo);
 } // namespace AppManagerEts
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_APP_MANAGER_UTILS_H
