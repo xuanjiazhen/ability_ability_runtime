@@ -32,7 +32,7 @@ constexpr char STS_FORM_EXT_LIB_NAME[] = "libsts_form_extension.dylib";
 constexpr char STS_FORM_EXT_LIB_NAME[] = "libsts_form_extension.z.so";
 #endif
 
-using CreateFunc = FormExtension *(*)();
+using CreateFunc = FormExtension *(*)(void*);
 static constexpr char STS_FORM_EXT_CREATE_FUNC[] = "OHOS_ABILITY_STSFormExtension";
 
 #ifndef STS_EXPORT
@@ -46,6 +46,7 @@ static constexpr char STS_FORM_EXT_CREATE_FUNC[] = "OHOS_ABILITY_STSFormExtensio
 
 FormExtension *CreateSTSFormExtension(const std::unique_ptr<Runtime> &runtime)
 {
+    std::unique_ptr<Runtime>* runtimePtr = const_cast<std::unique_ptr<Runtime>*>(&runtime);
     void *handle = dlopen(STS_FORM_EXT_LIB_NAME, RTLD_LAZY);
     if (handle == nullptr) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "open sts_form_extension library %{public}s failed, reason: %{public}sn",
@@ -61,7 +62,7 @@ FormExtension *CreateSTSFormExtension(const std::unique_ptr<Runtime> &runtime)
         return new FormExtension();
     }
 
-    auto instance = entry();
+    auto instance = entry(reinterpret_cast<void*>(runtimePtr));
     if (instance == nullptr) {
         dlclose(handle);
         TAG_LOGE(AAFwkTag::FORM_EXT, "get sts_form_extension instance in %{public}s failed", STS_FORM_EXT_LIB_NAME);
