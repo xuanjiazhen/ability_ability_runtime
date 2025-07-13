@@ -18,45 +18,6 @@ import { IntentInfo } from './IntentContent'
 @Component
 export struct DetailItem {
   @Prop intentDetail: IntentInfo | null = null;
-  @Prop intentDetailAll: Array<[string, string | string[] | object]> | [] = [];
-  @State intentDetailEntries: Array<[string, string | string[] | object]> | [] = [];
-
-  @Builder
-  DetailBlock(entry: string | string[] | object) {
-    if (entry[0] === 'keywords') {
-      this.DetailBox(entry[0], entry[1].join(','))
-    } else if (entry[0] === 'subIntentInfo') {
-    } else {
-      this.DetailBox(entry[0], entry[1])
-    }
-  }
-
-  @Builder
-  DetailBox(label: string, val: string = '') {
-    Column() {
-      Text(label)
-        .fontSize(16)
-        .fontWeight(500)
-        .fontColor('rgba(0,0,0,0.9)')
-        .fontFamily('HarmonyHeiTi-Medium')
-        .lineHeight(22)
-        .width('100%')
-
-      Text(val)
-        .fontSize(14)
-        .fontWeight(400)
-        .fontColor('rgba(0,0,0,0.6)')
-        .fontFamily('HarmonyHeiTi')
-        .lineHeight(20)
-        .maxLines(1)
-        .constraintSize({ maxWidth: '100%' })
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .width('100%')
-    }
-    .width('100%')
-    .padding({ top: 10, bottom: 10 })
-    .alignItems(HorizontalAlign.Start)
-  }
 
   build() {
     Column() {
@@ -65,7 +26,7 @@ export struct DetailItem {
         .fontFamily('HarmonyHeiTi-Medium')
         .fontSize(14)
         .fontWeight(500)
-        .fontColor('rgba(0,0,0,0.6)')
+        .fontColor($r('app.color.font_color_06'))
         .textAlign(TextAlign.Start)
         .lineHeight(20)
         .width('100%')
@@ -77,10 +38,10 @@ export struct DetailItem {
         })
 
       Column() {
-        Text($r('app.string.Detail_yybm'))
+        Text($r('app.string.Detail_ytbm'))
           .fontSize(16)
           .fontWeight(500)
-          .fontColor('rgba(0,0,0,0.9)')
+          .fontColor($r('app.color.font_color_09'))
           .fontFamily('HarmonyHeiTi-Medium')
           .lineHeight(22)
           .width('100%')
@@ -89,7 +50,7 @@ export struct DetailItem {
         Text(this.intentDetail?.bundleName)
           .fontSize(14)
           .fontWeight(400)
-          .fontColor('rgba(0,0,0,0.6)')
+          .fontColor($r('app.color.font_color_06'))
           .fontFamily('HarmonyHeiTi')
           .lineHeight(20)
           .maxLines(1)
@@ -101,7 +62,7 @@ export struct DetailItem {
         Text($r('app.string.Detail_ytmc'))
           .fontSize(16)
           .fontWeight(500)
-          .fontColor('rgba(0,0,0,0.9)')
+          .fontColor($r('app.color.font_color_09'))
           .fontFamily('HarmonyHeiTi-Medium')
           .lineHeight(22)
           .width('100%')
@@ -110,7 +71,7 @@ export struct DetailItem {
         Text(this.intentDetail?.intentName)
           .fontSize(14)
           .fontWeight(400)
-          .fontColor('rgba(0,0,0,0.6)')
+          .fontColor($r('app.color.font_color_06'))
           .fontFamily('HarmonyHeiTi')
           .lineHeight(20)
           .maxLines(1)
@@ -122,7 +83,7 @@ export struct DetailItem {
         Text($r('app.string.Detail_zxms'))
           .fontSize(16)
           .fontWeight(500)
-          .fontColor('rgba(0,0,0,0.9)')
+          .fontColor($r('app.color.font_color_09'))
           .fontFamily('HarmonyHeiTi-Medium')
           .lineHeight(22)
           .width('100%')
@@ -131,7 +92,7 @@ export struct DetailItem {
         Text(this.intentDetail?.intentType)
           .fontSize(14)
           .fontWeight(400)
-          .fontColor('rgba(0,0,0,0.6)')
+          .fontColor($r('app.color.font_color_06'))
           .fontFamily('HarmonyHeiTi')
           .lineHeight(20)
           .maxLines(1)
@@ -146,7 +107,7 @@ export struct DetailItem {
         bottom: 12,
         left: 12
       })
-      .margin({ left: 18, right: 18})
+      .margin({ left: 18, right: 18 })
       .alignItems(HorizontalAlign.Start)
       .backgroundColor($r('app.color.background_white'))
       .borderRadius(20)

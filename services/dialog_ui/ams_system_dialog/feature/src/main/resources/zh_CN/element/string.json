@@ -1,6 +1,18 @@
 {
   "string": [
     {
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "label"
+    },
+    {
       "name": "page_show",
       "value": "page from package"
     },
@@ -29,7 +41,7 @@
       "value": "执行结果"
     },
     {
-      "name": "Detail_yybm",
+      "name": "Detail_ytbm",
       "value": "意图包名"
     },
     {
@@ -55,6 +67,10 @@
     {
       "name": "Btn_sc",
       "value": "删除"
+    },
+    {
+      "name": "tips_qsbtzd",
+      "value": "缺少必填字段"
     }
   ]
 }

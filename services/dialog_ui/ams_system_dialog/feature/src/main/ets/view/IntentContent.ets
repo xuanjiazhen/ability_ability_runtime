@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import insightIntentDriver from '@ohos.app.ability.insightIntentDriver';
 import base from '@ohos.base'
 import hilog from '@ohos.hilog';
@@ -54,6 +53,7 @@ export struct IntentContent {
     try {
       insightIntentDriver.getAllInsightIntentInfo(insightIntentDriver.GetInsightIntentFlag.GET_FULL_INSIGHT_INTENT)
         .then((data) => {
+          data = []
           this.listMaterial = data as IntentInfo[];
           this.groupMaterial1 = this.listMaterial.reduce((acc, item) => {
             const bundleName: string = item.bundleName;
@@ -80,7 +80,7 @@ export struct IntentContent {
             })
 
             if (index === Object.keys(this.groupMaterial1).length - 1) {
-              this.groupMaterial = jsClone(this.groupMaterial)
+              this.groupMaterial = jsClone(this.groupMaterial);
             }
           })
         })
@@ -121,7 +121,7 @@ export struct IntentContent {
             this.IntentBlockLine(item)
           }
           .onClick(() => {
-            this.articlePathStack.replacePath({ name: 'intentDetail',param: item });
+            this.articlePathStack.replacePath({ name: 'intentDetail', param: item });
           })
         }, (item: IntentInfo, index: number) => item.intentName)
       }
@@ -134,10 +134,10 @@ export struct IntentContent {
         bottom: 4
       })
       .divider({
-        strokeWidth: 1,
+        strokeWidth: 0.5,
         startMargin: 38,
         endMargin: 0,
-        color: 'rgba(0,0,0,.2)'
+        color: $r('app.color.border_color_02')
       })
 
     }
@@ -149,6 +149,7 @@ export struct IntentContent {
   async getAllIntentIcon(icon: string,
     bundleName: string): Promise<PixelMap | ResourceStr | DrawableDescriptor | undefined> {
     let pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
+    let resourceName2:string='';
     if (icon.startsWith('$r')) {
       try {
         let resourceStr: string | undefined = icon.match(/['"](.+)['"]/)?.[1];
@@ -156,6 +157,7 @@ export struct IntentContent {
           return icon;
         }
         let resourceName: string | undefined = resourceStr.split('.').pop();
+        resourceName2 = resourceName as string;
         if (!resourceStr) {
           return icon;
         }
@@ -186,12 +188,13 @@ export struct IntentContent {
   IntentBlockLine(intentDetail: IntentInfo) {
     Row() {
 
-      Image(intentDetail.iconImg)
+      Image(intentDetail.iconImg ?? $r('app.media.defaultIcon'))
         .width(24)
         .height(24)
+        .borderRadius(6)
+        .clip(true)
         .objectFit(ImageFit.Auto)
-        .alt($r('app.media.startIcon'))
-        .backgroundColor('#cfcfcf')
+        .alt($r('app.media.defaultIcon'))
 
       Column() {
         Text(intentDetail.displayName)
@@ -205,9 +208,10 @@ export struct IntentContent {
           .fontSize(14)
           .fontWeight(400)
           .fontColor('#777775')
+          .fontColor(Color.Red)
       }
       .alignItems(HorizontalAlign.Start)
-      .margin({ left: 18 })
+      .margin({ left: 16 })
 
       Blank()
       Image($r('app.media.ic_arrow'))
@@ -227,19 +231,18 @@ export struct IntentContent {
             .width(8.68)
             .height(16.48)
             .opacity(0.6)
-            .id('btn-back')
         }
         .width(40)
         .height(40)
         .borderRadius(20)
-        .backgroundColor('rgba(0,0,0,0.05)')
+        .backgroundColor($r('app.color.btn_bg_005'))
         .justifyContent(FlexAlign.Center)
 
         Text($r('app.string.Cont_title_syyt'))
           .margin({ left: 8 })
           .fontSize(20)
           .fontWeight(700)
-          .fontColor('rgba(0,0,0,0.9)')
+          .fontColor($r('app.color.font_color_09'))
 
       }
       .alignItems(VerticalAlign.Center)
@@ -284,9 +287,12 @@ export struct IntentContent {
       .width('100%')
       .height('100%')
       .backgroundColor($r('app.color.background_cont'))
+      .clip(true)
     }
     .width('100%')
     .height('100%')
+    .padding({top:36})
     .backgroundColor($r('app.color.background_cont'))
   }
 }
+
