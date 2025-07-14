@@ -115,7 +115,7 @@ HWTEST_F(EtsRuntimeTest, Initialize_100, TestSize.Level1)
     options_.lang = Runtime::Language::JS;
     std::unique_ptr<JsRuntime> jsRuntime = nullptr;
     std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
-    bool result = etsRuntime->Initialize(options_, jsRuntime);
+    bool result = etsRuntimeetsRuntime->Initialize(options_, jsRuntime);
     EXPECT_EQ(result, false);
     options_.lang = Runtime::Language::ETS;
 }
@@ -152,6 +152,7 @@ HWTEST_F(EtsRuntimeTest, LoadModule_0100, TestSize.Level1)
     std::string modulePath = "dir.test.module";
     std::string hapPath = "/some/hap";
     std::string srcEntrance = "main.ets";
+    PreloadModule(moduleName, hapPath, false, false);
     auto result = etsRuntime->LoadModule(moduleName, modulePath, hapPath, false, false, srcEntrance);
     EXPECT_EQ(result, nullptr);
 }
