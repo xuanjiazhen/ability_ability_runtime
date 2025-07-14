@@ -46,7 +46,7 @@ namespace AbilityRuntime {
 class ETSRuntime : public Runtime {
 public:
     static std::unique_ptr<ETSRuntime> Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
-    static void SetAppLibPath(const AppLibPathMap &appLibPaths);
+    static void SetAppLibPath(const AppLibPathMap &appLibPaths, const AppLibPathMap& appAbcLibPaths);
     ~ETSRuntime() override;
     Language GetLanguage() const override
     {
