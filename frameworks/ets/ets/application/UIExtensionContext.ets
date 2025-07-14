@@ -215,4 +215,11 @@ export default class UIExtensionContext extends ExtensionContext {
       this.nativeReportDrawnCompleted(myCall);
     });
   }
+
+  reportDrawnCompleted(callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeReportDrawnCompleted(myCall);
+    });
+  }
 }
