@@ -55,6 +55,9 @@ constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/Eleme
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
     "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:D";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
+    "Lstd/core/String;Lescompat/Record;Lapplication/AbilityStartCallback/AbilityStartCallback;:L@ohos/base/"
+    "BusinessError;";
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
@@ -990,10 +993,13 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
 #ifdef SUPPORT_SCREEN
     innerErrCode = context->StartAbilityByType(type, wantParam, callback);
 #endif
-    if (innerErrCode != ERR_OK) {
+    if (innerErrCode == ERR_OK) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    } else if (innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    } else {
         return EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
     }
-    return aniObject;
 }
 
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
@@ -1173,7 +1179,7 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function {"nativeSetColorMode",
                 "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
-            ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
+            ani_native_function { "nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {

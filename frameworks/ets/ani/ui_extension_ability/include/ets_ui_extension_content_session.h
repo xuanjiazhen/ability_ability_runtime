@@ -115,6 +115,9 @@ private:
     bool isSyncRegistered_ = false;
     std::shared_ptr<EtsUISessionAbilityResultListener> listener_;
     bool isFirstTriggerBindModal_ = true;
+#ifdef SUPPORT_SCREEN
+    void InitDisplayId(AAFwk::Want &want);
+#endif
 };
 
 } // namespace AbilityRuntime
