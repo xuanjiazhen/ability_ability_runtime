@@ -19,6 +19,8 @@
 #include <memory>
 #include <mutex>
 
+#include "bindable_sub_thread.h"
+
 class NativeReference;
 typedef class __ani_ref *ani_ref;
 namespace OHOS {
@@ -140,6 +142,10 @@ public:
         if (object_) {
             object_->Unbind();
         }
+
+        if (subThreadObject_) {
+            subThreadObject_->RemoveAllObject();
+        }
     }
 
     template<class T>
@@ -148,6 +154,25 @@ public:
         if (object_) {
             object_->Unbind<T>();
         }
+
+        if (subThreadObject_) {
+            subThreadObject_->RemoveAllObject();
+        }
+    }
+
+    void BindSubThreadObject(void* napiEnv, void* object)
+    {
+        if (subThreadObject_) {
+            subThreadObject_->BindSubThreadObject(napiEnv, object);
+        }
+    }
+
+    void* GetSubThreadObject(void* napiEnv)
+    {
+        if (subThreadObject_) {
+            return subThreadObject_->GetSubThreadObject(napiEnv);
+        }
+        return nullptr;
     }
 
     const std::unique_ptr<BindingObject>& GetBindingObject() const
@@ -160,6 +185,7 @@ protected:
 
 private:
     std::unique_ptr<BindingObject> object_ = std::make_unique<BindingObject>();
+    std::unique_ptr<BindableSubThread> subThreadObject_ = std::make_unique<BindableSubThread>();
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

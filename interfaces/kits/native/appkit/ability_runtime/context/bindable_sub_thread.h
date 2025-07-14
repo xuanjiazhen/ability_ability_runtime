@@ -22,16 +22,18 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-class BindableSubThread {
+class BindableSubThread : public std::enable_shared_from_this<BindableSubThread> {
 public:
     BindableSubThread() = default;
-    virtual ~BindableSubThread() = default;
+    virtual ~BindableSubThread();
 
     void BindSubThreadObject(void* napiEnv, void* object);
 
     void* GetSubThreadObject(void* napiEnv);
 
     void RemoveSubThreadObject(void* napiEnv);
+
+    void RemoveAllObject();
 
     static void StaticRemoveSubThreadObject(void* arg);
 
@@ -42,7 +44,7 @@ private:
     BindableSubThread& operator=(BindableSubThread&&) = delete;
 
     std::mutex objectsMutex_;
-    std::map<void*, std::unique_ptr<void, void (*)(void*)>> objects_;
+    std::map<uintptr_t, std::unique_ptr<void, void (*)(void*)>> objects_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
