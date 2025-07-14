@@ -280,6 +280,15 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<JsRuntime> &
 
     apiTargetVersion_ = options.apiTargetVersion;
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
+
+#ifdef SUPPORT_SCREEN
+    auto aniEngine = GetAniEnv();
+    if (aniEngine == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
+        return false;
+    }
+    OHOS::Ace::ArkTSModulePreloader::Preload(aniEngine);
+#endif
     return true;
 }
 
