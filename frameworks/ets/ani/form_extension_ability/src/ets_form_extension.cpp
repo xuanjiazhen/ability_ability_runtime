@@ -435,7 +435,7 @@ void ETSFormExtension::OnDestroy(const int64_t formId)
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnDestroy End");
 }
 
-void ETETSFormExtension::OnEvent(const int64_t formId, const std::string &message)
+void ETSFormExtension::OnEvent(const int64_t formId, const std::string &message)
 {
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnEvent formId: %{public}" PRId64, formId);
     auto env = etsRuntime_.GetAniEnv();
