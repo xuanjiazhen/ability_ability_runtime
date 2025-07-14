@@ -23,6 +23,7 @@
 
 const char *INVOKE_METHOD_NAME = "invoke";
 const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext;";
+const char *UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext/Cleaner;";
 
 void EtsUIExtensionContext::TerminateSelfSync(ani_env *env, ani_object obj, ani_object callback)
 {
@@ -138,11 +139,46 @@ void EtsUIExtensionContext::BindExtensionInfo(ani_env *aniEnv, ani_class context
     }
 }
 
-void EtsUIExtensionContext::EtsCreatExtensionContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
+void EtsUIExtensionContext::EtsCreateExtensionContext(ani_env* aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<OHOS::AbilityRuntime::ExtensionContext> context)
 {
     OHOS::AbilityRuntime::ContextUtil::CreateEtsBaseContext(aniEnv, contextClass, contextObj, context);
     BindExtensionInfo(aniEnv, contextClass, contextObj, context, context->GetAbilityInfo());
+}
+
+void EtsUIExtensionContext::Clean(ani_env *env, ani_object object)
+{
+    ani_long ptr = 0;
+    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativeExtensionContext", &ptr)) {
+        return;
+    }
+
+    if (ptr != 0) {
+        delete reinterpret_cast<EtsUIExtensionContext*>(ptr);
+        ptr = 0;
+    }
+}
+
+bool EtsUIExtensionContext::BindNativePtrCleaner(ani_env *env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "nullptr env");
+        return false;
+    }
+    ani_class cleanerCls;
+    ani_status status = env->FindClass(UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME, &cleanerCls);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Not found Cleaner. status:%{public}d.", status);
+        return false;
+    }
+    std::array methods = {
+        ani_native_function { "clean", nullptr, reinterpret_cast<void *>(EtsUIExtensionContext::Clean) },
+    };
+    if (ANI_OK != env->Class_BindNativeMethods(cleanerCls, methods.data(), methods.size())) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return false;
+    };
+    return true;
 }
 
 ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context)
@@ -157,6 +193,23 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return nullptr;
+    }
+    ani_long nativeContextLong = (ani_long)context.get();
+    if ((status = env->Object_New(cls, method, &contextObj, nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Class_FindField(cls, "nativeContext", &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = env->Object_SetField_Long(contextObj, field, nativeContextLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        return nullptr;
+    }
     std::array functions = {
         ani_native_function { "terminateSelfSync", nullptr,
             reinterpret_cast<ani_int*>(EtsUIExtensionContext::TerminateSelfSync) },
@@ -167,23 +220,10 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if(!EtsUIExtensionContext::BindNativePtrCleaner(env)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Object_New(cls, method, &contextObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return nullptr;
-    }
-    if ((status = env->Class_FindField(cls, "nativeContext", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return nullptr;
-    }
-    ani_long nativeContextLong = (ani_long)context.get();
-    if ((status = env->Object_SetField_Long(contextObj, field, nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return nullptr;
-    }
-    EtsUIExtensionContext::EtsCreatExtensionContext(env, cls, contextObj, context);
+    EtsUIExtensionContext::EtsCreateExtensionContext(env, cls, contextObj, context);
     return contextObj;
 }
