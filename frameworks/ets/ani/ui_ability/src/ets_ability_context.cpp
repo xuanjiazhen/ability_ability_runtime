@@ -990,10 +990,13 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
 #ifdef SUPPORT_SCREEN
     innerErrCode = context->StartAbilityByType(type, wantParam, callback);
 #endif
-    if (innerErrCode != ERR_OK) {
+    if (innerErrCode == ERR_OK) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    } else if (innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    } else {
         return EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
     }
-    return aniObject;
 }
 
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
