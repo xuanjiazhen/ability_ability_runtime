@@ -996,6 +996,28 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     return aniObject;
 }
 
+void EtsAbilityContext::OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnRevokeDelegator called");
+    ani_object aniObject = nullptr;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "context null");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    ErrCode innerErrCode = ERR_OK;
+    innerErrCode = context->RevokeDelegator();
+    if (innerErrCode == ERR_OK) {
+        aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+
+    } else {
+        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    }
+    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1117,6 +1139,17 @@ void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppEx
     }
 }
 
+void EtsAbilityContext::RevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "RevokeDelegator called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnRevokeDelegator(env, aniObj, callback);
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -1175,6 +1208,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
             ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+            ani_native_function { "nativeRevokeDelegator", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
