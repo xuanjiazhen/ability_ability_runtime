@@ -1646,7 +1646,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     } else {
 #endif
     if (IsEtsAPP(appInfo)) {
-        AbilityRuntime::ETSRuntime::SetAppLibPath(appLibPaths);
+        AbilityRuntime::ETSRuntime::SetAppLibPath(appLibPaths, appAbcLibPaths);
     } else {
         AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
     }

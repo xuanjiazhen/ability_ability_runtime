@@ -232,7 +232,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options, std::uniq
     return instance;
 }
 
-void ETSRuntime::SetAppLibPath(const AppLibPathMap &appLibPaths)
+void ETSRuntime::SetAppLibPath(const AppLibPathMap &appLibPaths, const AppLibPathMap& appAbcLibPaths)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "SetAppLibPath called");
     if (!RegisterETSEnvFuncs()) {
