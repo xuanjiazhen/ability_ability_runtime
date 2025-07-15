@@ -54,7 +54,7 @@ public:
         return Language::ETS;
     }
 
-    void StartDebugMode(const DebugOption debugOption) override {}
+    void StartDebugMode(const DebugOption debugOption) override;
     void DumpHeapSnapshot(bool isPrivate) override {}
     void NotifyApplicationState(bool isBackground) override {}
     bool SuspendVM(uint32_t tid) override { return false; }
@@ -90,6 +90,9 @@ public:
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
     std::unique_ptr<AbilityRuntime::Runtime> MoveJsRuntime();
     static std::unique_ptr<ETSRuntime> PreFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    uint32_t instanceId_ = 0;
+    void DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug);
+    void StopDebugMode();
 
 private:
     bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
@@ -102,6 +105,7 @@ private:
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
+    bool debugMode_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
