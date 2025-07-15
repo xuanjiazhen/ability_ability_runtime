@@ -1674,6 +1674,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.uid = bundleInfo.applicationInfo.uid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
+        options.isStartWithDebug = appLaunchData.GetDebugApp();
         options.allowArkTsLargeHeap = appInfo.allowArkTsLargeHeap;
         options.versionCode = appInfo.versionCode;
 #ifdef CJ_FRONTEND
@@ -1755,6 +1756,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 ResHelper::ReportLoadAbcCompletedInfoToRss(uid, currentPid, bundleName);
             });
         AbilityRuntime::Runtime::DebugOption debugOption;
+        debugOption.codeLanguage = appInfo.codeLanguage;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;
@@ -1763,6 +1765,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugFromLocal = appLaunchData.GetDebugFromLocal();
         debugOption.perfCmd = perfCmd;
         debugOption.isDeveloperMode = isDeveloperMode_;
+        debugOption.bundleName = appInfo.bundleName;
         runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {

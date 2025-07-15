@@ -313,5 +313,37 @@ HWTEST_F(EtsEnvironmentTest, LoadModule_0100, TestSize.Level0)
     bool result = etsEnv->LoadModule("testModule", "testModule", cls, obj, ref);
     EXPECT_FALSE(result);
 }
+
+/**
+ * @tc.name: GetDebuggerPostTask_0100
+ * @tc.desc: Sts environment GetDebuggerPostTask.
+ * @tc.type: FUNC
+ */
+HWTEST_F(StsEnvironmentTest, GetDebuggerPostTask_0100, TestSize.Level0)
+{
+    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(TEST_ABILITY_NAME);
+    auto stsEnv =
+        std::make_shared<STSEnvironment>(std::make_unique<AbilityRuntime::OHOSStsEnvironmentImpl>(eventRunner));
+    stsEnv->GetDebuggerPostTask();
+    ASSERT_NE(stsEnv, nullptr);
+}
+
+/**
+ * @tc.name: GetDebuggerPostTask_0200
+ * @tc.desc: Sts environment GetDebuggerPostTask.
+ * @tc.type: FUNC
+ */
+HWTEST_F(StsEnvironmentTest, GetDebuggerPostTask_0200, TestSize.Level0)
+{
+    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(TEST_ABILITY_NAME);
+    auto stsEnv =
+        std::make_shared<STSEnvironment>(std::make_unique<AbilityRuntime::OHOSStsEnvironmentImpl>(eventRunner));
+    auto poster = stsEnv->GetDebuggerPostTask();
+    ASSERT_NE(stsEnv, nullptr);
+    poster([]() {
+        std::string temp;
+    });
+}
+
 } // namespace StsEnv
 } // namespace OHOS

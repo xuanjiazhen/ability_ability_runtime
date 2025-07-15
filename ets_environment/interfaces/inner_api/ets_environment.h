@@ -41,6 +41,8 @@ struct ETSRuntimeAPI {
     ani_status (*ANI_CreateVM)(const ani_options *options, uint32_t version, ani_vm **result);
 };
 
+using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
+
 class ETSEnvironment final : public std::enable_shared_from_this<ETSEnvironment> {
 public:
     ETSEnvironment() {};
@@ -50,13 +52,23 @@ public:
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
 
-    bool Initialize(void *napiEnv, const std::string &aotPath);
+    bool Initialize(void *napiEnv, const std::string &aotPath,
+        const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
     bool PreloadModule(const std::string &modulePath);
     bool LoadModule(const std::string &modulePath, const std::string &srcEntrance, void *&cls,
         void *&obj, void *&ref);
+    bool debugMode_ = false;
+    void RemoveInstance(uint32_t instanceId);
+    void StopDebugMode(void *jsVm);
+    void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);
+    void NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm);
+    void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime);
+    void BroadcastAndConnect(const std::string& bundleName, int socketFd);
+
+    DebuggerPostTask GetDebuggerPostTask();
 
     struct VMEntry {
         ani_vm *aniVm_;
@@ -77,9 +89,12 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     std::string GetErrorProperty(ani_error aniError, const char *property);
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
+    void InitEventHandler(std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
+    int32_t ParseHdcRegisterOption(std::string& option);
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
 };
 } // namespace EtsEnv
 } // namespace OHOS
