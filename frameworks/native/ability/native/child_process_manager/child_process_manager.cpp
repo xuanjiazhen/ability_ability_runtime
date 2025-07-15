@@ -155,10 +155,12 @@ ChildProcessManagerErrorCode ChildProcessManager::StartChildProcessWithArgs(
     request.isStartWithDebug = g_debugOption.isStartWithDebug;
     request.args = args;
     request.options = options;
-    std::lock_guard<std::mutex> lock(childProcessCountLock_);
-    request.childProcessCount = childProcessCount_;
+    {
+        std::lock_guard<std::mutex> lock(childProcessCountLock_);
+        request.childProcessCount = childProcessCount_;
+        childProcessCount_++;
+    }
     auto ret = appMgr->StartChildProcess(pid, request);
-    childProcessCount_++;
     TAG_LOGD(AAFwkTag::PROCESSMGR, "AppMgr StartChildProcess ret:%{public}d", ret);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "StartChildProcess error:%{public}d", ret);
@@ -190,16 +192,20 @@ ChildProcessManagerErrorCode ChildProcessManager::StartNativeChildProcessByAppSp
         return ChildProcessManagerErrorCode::ERR_GET_APP_MGR_FAILED;
     }
 
-    std::lock_guard<std::mutex> lock(childProcessCountLock_);
-    auto ret = appMgr->StartNativeChildProcess(libName, childProcessCount_, callbackStub, customProcessName);
-    TAG_LOGD(AAFwkTag::PROCESSMGR, "StartNativeChildProcess ret:%{public}d", ret);
+    int32_t childProcessCount;
+    {
+        std::lock_guard<std::mutex> lock(childProcessCountLock_);
+        childProcessCount = childProcessCount_;
+        ++childProcessCount_;
+    }
+    auto ret = appMgr->CreateNativeChildProcess(libName, childProcessCount, callbackStub, customProcessName);
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "CreateNativeChildProcess ret:%{public}d", ret);
 
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "StartNativeChildProcess error:%{public}d", ret);
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "CreateNativeChildProcess error:%{public}d", ret);
         return ChildProcessManagerErrorUtil::GetChildProcessManagerErrorCode(ret);
     }
 
-    ++childProcessCount_;
     return ChildProcessManagerErrorCode::ERR_OK;
 }
 
