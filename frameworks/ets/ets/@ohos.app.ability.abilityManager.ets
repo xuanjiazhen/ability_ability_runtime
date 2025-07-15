@@ -113,7 +113,7 @@ export default namespace abilityManager {
   }
 
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
-    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
+    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: Error)=>void):void => {
       let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
         if (err == null || err.code == 0) {
           resolve(data as boolean);
