@@ -44,14 +44,13 @@ static constexpr char ETS_FORM_EXT_CREATE_FUNC[] = "OHOS_ABILITY_ETSFormExtensio
 #endif
 } // namespace
 
-FormExtension *CreateETSFormExtension(const std::unique_ptr<Runtime> &runtime)
+std::unique_ptr<FormExtension> CreateETSFormExtension(const std::unique_ptr<Runtime> &runtime)
 {
-    std::unique_ptr<Runtime>* runtimePtr = const_cast<std::unique_ptr<Runtime>*>(&runtime);
     void *handle = dlopen(ETS_FORM_EXT_LIB_NAME, RTLD_LAZY);
     if (handle == nullptr) {
-        TAG_LOGE(AAFwkTag::FORM_EXT, "open ets_form_extension library %{public}s failed, reason: %{public}sn",
+        TAG_LOGE(AAFwkTag::FORM_EXT, "open ets_form_extension library %{public}s failed, reason: %{public}s",
                  ETS_FORM_EXT_LIB_NAME, dlerror());
-        return new FormExtension();
+        return nullptr;
     }
 
     auto entry = reinterpret_cast<CreateFunc>(dlsym(handle, ETS_FORM_EXT_CREATE_FUNC));
@@ -59,14 +58,14 @@ FormExtension *CreateETSFormExtension(const std::unique_ptr<Runtime> &runtime)
         dlclose(handle);
         TAG_LOGE(AAFwkTag::FORM_EXT, "get ets_form_extension symbol %{public}s in %{public}s failed",
                  ETS_FORM_EXT_CREATE_FUNC, ETS_FORM_EXT_LIB_NAME);
-        return new FormExtension();
+        return nullptr;
     }
 
-    auto instance = entry(reinterpret_cast<void*>(runtimePtr));
+    auto instance = entry(runtime.get());
     if (instance == nullptr) {
         dlclose(handle);
         TAG_LOGE(AAFwkTag::FORM_EXT, "get ets_form_extension instance in %{public}s failed", ETS_FORM_EXT_LIB_NAME);
-        return new FormExtension();
+        return nullptr;
     }
 
     return instance;

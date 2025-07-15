@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 class FormExtension;
 
-FormExtension *CreateETSFormExtension(const std::unique_ptr<Runtime> &runtime);
+std::unique_ptr<FormExtension> CreateETSFormExtension(const std::unique_ptr<Runtime> &runtime);
 
 } // namespace AbilityRuntime
 } // namespace OHOS
