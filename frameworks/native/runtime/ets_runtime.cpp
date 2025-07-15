@@ -318,7 +318,8 @@ bool ETSRuntime::CreateEtsEnv(const Options &options, Runtime *jsRuntime)
         aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
     }
     napi_env napiEnv = static_cast<AbilityRuntime::JsRuntime *>(jsRuntime)->GetNapiEnv();
-    if (!g_etsEnvFuncs->Initialize(reinterpret_cast<void *>(napiEnv), aotFilePath)) {
+    if (!g_etsEnvFuncs->Initialize(reinterpret_cast<void *>(napiEnv), aotFilePath,
+        reinterpret_cast<void *>(&options.eventRunner))) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
         return false;
     }
