@@ -55,6 +55,9 @@ constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/Eleme
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
     "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+    "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
+const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
@@ -423,6 +426,18 @@ ani_object EtsAbilityContext::StartAbilityByType(
         return nullptr;
     }
     return etsContext->OnStartAbilityByType(env, aniObj, aniType, aniWantParam, startCallback);
+}
+
+void EtsAbilityContext::OpenAtomicService(
+    ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OpenAtomicService called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
 }
 
 int32_t EtsAbilityContext::GenerateRequestCode()
@@ -996,6 +1011,37 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     return aniObject;
 }
 
+void EtsAbilityContext::OnOpenAtomicService(
+    ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnOpenAtomicService");
+    ani_status status = ANI_ERROR;
+    ani_boolean isOptionsUndefined = true;
+    ani_object errorObject = nullptr;
+    if ((status = env->Reference_IsUndefined(optionsObj, &isOptionsUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    std::string appId;
+    if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse appId failed");
+        errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param appId failed, appId must be string.");
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    AAFwk::StartOptions startOptions;
+    if (!isOptionsUndefined) {
+        if (!AppExecFwk::UnwrapAtomicServiceOptions(env, optionsObj, want, startOptions)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "UnwrapAtomicServiceOptions failed");
+            errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapAtomicServiceOptions failed.");
+            AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+            return;
+        }
+    }
+    OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1117,6 +1163,158 @@ void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppEx
     }
 }
 
+ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
+    void *unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "failed to unwrap");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null unwrapResult");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto context = reinterpret_cast<std::weak_ptr<AbilityContext> *>(unwrapResult)->lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto &bindingObj = abilityContext->GetBindingObject();
+    if (bindingObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto staticContext = bindingObj->Get<ani_ref>();
+    if (staticContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null staticContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    return reinterpret_cast<ani_object>(*staticContext);
+}
+
+ani_object EtsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, ani_object input)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "transfer dynamic UIAbilityContext");
+    if (!IsInstanceOf(env, input)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "not UIAbilityContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto context = ContextUtil::GetBaseContext(env, input);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto &bindingObj = abilityContext->GetBindingObject();
+    if (bindingObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    auto dynamicContext = bindingObj->Get<NativeReference>();
+    if (dynamicContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null dynamicContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(env);
+        return nullptr;
+    }
+    // Not support yet
+    EtsErrorUtil::ThrowEtsTransferClassError(env);
+    return nullptr;
+}
+
+bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return false;
+    }
+    if ((status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    ani_boolean isInstanceOf = false;
+    if ((status = env->Object_InstanceOf(aniObj, cls, &isInstanceOf)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    return isInstanceOf;
+}
+
+void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+    AAFwk::StartOptions &options, std::string appId, ani_object callbackObj)
+{
+    std::string bundleName = ATOMIC_SERVICE_PREFIX + appId;
+    TAG_LOGD(AAFwkTag::CONTEXT, "bundleName: %{public}s", bundleName.c_str());
+    want.SetBundle(bundleName);
+    want.AddFlags(AAFwk::Want::FLAG_INSTALL_ON_DEMAND);
+    std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch()).count());
+    want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    AddFreeInstallObserver(env, want, callbackObj, context, true);
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, observer = freeInstallObserver_](
+        int resultCode, const AAFwk::Want &want, bool isInner) {
+        ani_env *env = nullptr;
+        if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return;
+        }
+        if (observer == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null observer");
+            return;
+        }
+        std::string bundleName = element.GetBundleName();
+        std::string abilityName = element.GetAbilityName();
+        ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+        if (abilityResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
+            isInner = true;
+            resultCode = ERR_INVALID_VALUE;
+        }
+        isInner ? observer->OnInstallFinished(bundleName, abilityName, startTime, resultCode)
+                : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
+    };
+    want.SetParam(AAFwk::Want::PARAM_RESV_FOR_RESULT, true);
+    auto requestCode = GenerateRequestCode();
+    ErrCode ErrCode = context->OpenAtomicService(want, options, requestCode, std::move(task));
+    if (ErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "OpenAtomicService failed, ErrCode: %{public}d", ErrCode);
+    }
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -1175,6 +1373,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
             ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+            ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+                reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
