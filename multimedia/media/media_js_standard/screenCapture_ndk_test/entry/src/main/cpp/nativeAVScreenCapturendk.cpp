@@ -1481,7 +1481,7 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     }
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
-    if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
+    if (startResult == AV_SCREEN_CAPTURE_ERR_OK) {
         result = AV_SCREEN_CAPTURE_ERR_OK;
     } else {
         result = AV_SCREEN_CAPTURE_ERR_INVALID_VAL;
@@ -1502,9 +1502,9 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     usleep(g_recordTimeHalf);
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(nullptr);
-    OH_LOG_INFO(LOG_APP, "StopScreenCapture startResult = %{public}d", startResult);
-    if (startResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
+    if (stopResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
     }
     stopResult = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
@@ -1518,7 +1518,7 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect releaseResult is 3");
     }
-    OH_AVSCREEN_CAPTURE_ErrCode releaseResult = OH_AVScreenCapture_Release(screenCaptureNormal);
+    releaseResult = OH_AVScreenCapture_Release(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Release releaseResult = %{public}d", releaseResult);
     if (releaseResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect releaseResult is 0");

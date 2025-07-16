@@ -961,7 +961,6 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
 {
     g_userSelectedType = -1;
     g_userSelectedDisplayId = -1;
-    screenCaptureEnv = env;
     OH_AVSCREEN_CAPTURE_ErrCode result0 = AV_SCREEN_CAPTURE_ERR_OK;
     screenCaptureNormal = OH_AVScreenCapture_Create();
     if (screenCaptureNormal == nullptr) {
@@ -971,16 +970,6 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     SetConfig(config_);
 	
     bool isMicrophone = false;
-    result0 = OH_AVScreenCapture_SetSelectionCallback(nullptr, OnUserSelectedError, nullptr);
-    OH_LOG_INFO(LOG_APP, "SetSelectionCallback result0 = %{public}d", result0);
-    if (result0 != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect result0 is 3");
-    }
-    result0 = OH_AVScreenCapture_SetSelectionCallback(screenCaptureNormal, OnUserSelectedError, nullptr);
-    OH_LOG_INFO(LOG_APP, "SetSelectionCallback result0 = %{public}d", result0);
-    if (result0 != AV_SCREEN_CAPTURE_ERR_OK) {
-        napi_throw_error((env), nullptr, "error : expect result0 is 0");
-    }
 
     //测试错误码：OH_AVScreenCapture_SkipPrivacyMode
     vector<int> windowidsExclude = { -111 };
@@ -1006,7 +995,7 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     OH_AVScreenCaptureConfig configNull_;
     initResult = OH_AVScreenCapture_Init(screenCaptureNormal, configNull_);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init initResult = %{public}d", initResult);
-    if (result0 != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+    if (initResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
         napi_throw_error((env), nullptr, "error : expect initResult is 2");
     }
     initResult = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
@@ -1028,7 +1017,7 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     }
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
-    if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
+    if (startResult == AV_SCREEN_CAPTURE_ERR_OK) {
         result = AV_SCREEN_CAPTURE_ERR_OK;
     } else {
         result = AV_SCREEN_CAPTURE_ERR_INVALID_VAL;
@@ -1049,9 +1038,9 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     usleep(g_recordTimeHalf);
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(nullptr);
-    OH_LOG_INFO(LOG_APP, "StopScreenCapture startResult = %{public}d", startResult);
-    if (startResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
+    if (stopResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
     }
     stopResult = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
@@ -1065,7 +1054,7 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect releaseResult is 3");
     }
-    OH_AVSCREEN_CAPTURE_ErrCode releaseResult = OH_AVScreenCapture_Release(screenCaptureNormal);
+    releaseResult = OH_AVScreenCapture_Release(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Release releaseResult = %{public}d", releaseResult);
     if (releaseResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect releaseResult is 0");
