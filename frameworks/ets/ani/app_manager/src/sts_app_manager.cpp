@@ -19,6 +19,8 @@
 #include "ability_manager_interface.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_interface.h"
+#include "ets_ability_first_frame_state_observer.h"
+#include "ets_app_foreground_state_observer.h"
 #include "ipc_skeleton.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -38,16 +40,27 @@ namespace OHOS {
 namespace AppManagerSts {
 
 constexpr int32_t ERR_FAILURE = -1;
+constexpr const char* ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE = "abilityFirstFrameState";
+constexpr const char* ON_OFF_TYPE_APP_FOREGROUND_STATE = "appForegroundState";
 
 static const char* ON_SIGNATURE_FIRST
     = "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;Lescompat/Array;:D";
 static const char* ON_SIGNATURE_SECOND
     = "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;:D";
-
-
+static const char* ON_SIGNATURE_THIRD
+    = "Lstd/core/String;Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;\
+    Lstd/core/String;:V";
+static const char* ON_SIGNATURE_FORTH
+    = "Lstd/core/String;Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
 static const char* OFF_SIGNATURE_FIRST
     = "Lstd/core/String;DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+static const char* OFF_SIGNATURE_SECOND
+    = "Lstd/core/String;Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;:V";
+static const char* OFF_SIGNATURE_THIRD
+    = "Lstd/core/String;Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
+
 class StsAppManager final {
+    static sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> observerForeground_;
 public:
     static OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
     {
@@ -329,35 +342,35 @@ public:
         GetRunningProcessInfoByBundleNameAndUserId(env, stsBundleName, static_cast<double>(userId), callback);
     }
 
-static ani_double OnOnApplicationStateInner(ani_env *env, ani_string type,
-    ani_object observer, ani_object stsBundleNameList)
-{
-    TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner called");
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
-        return ANI_ERROR;
-    }
-    std::string strType;
-    if (!OHOS::AppExecFwk::GetStdString(env, type, strType)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
-        AbilityRuntime::ThrowStsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
-        return ANI_ERROR;
-    }
-    auto appManager = GetAppManagerInstance();
-    if (appManager == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
-        AbilityRuntime::ThrowStsErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
-        return ANI_ERROR;
-    }
+    static ani_double OnOnApplicationStateInner(ani_env *env, ani_string type,
+        ani_object observer, ani_object stsBundleNameList)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return ANI_ERROR;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            AbilityRuntime::ThrowStsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+            return ANI_ERROR;
+        }
+        auto appManager = GetAppManagerInstance();
+        if (appManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
+            AbilityRuntime::ThrowStsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            return ANI_ERROR;
+        }
 
-    std::vector<std::string> bundleNameList;
-    if (stsBundleNameList != nullptr) {
-        UnWrapArrayString(env, stsBundleNameList, bundleNameList);
+        std::vector<std::string> bundleNameList;
+        if (stsBundleNameList != nullptr) {
+            UnWrapArrayString(env, stsBundleNameList, bundleNameList);
+        }
+        return ANI_OK;
     }
-    return ANI_OK;
-}
 
     static ani_double OnOnApplicationStateFirst(ani_env *env, ani_string type,
         ani_object observer, ani_object stsBundleNameList)
@@ -370,9 +383,10 @@ static ani_double OnOnApplicationStateInner(ani_env *env, ani_string type,
         return OnOnApplicationStateInner(env, type, observer, nullptr);
     }
 
-static void OnOff(ani_env *env, [[maybe_unused]]ani_class aniClss)
-{
-}
+    static void OnOff(ani_env *env, [[maybe_unused]]ani_class aniClss)
+    {
+    }
+
     static void GetAppMemorySize(ani_env *env, ani_object callback)
     {
         TAG_LOGD(AAFwkTag::APPMGR, "GetAppMemorySize called");
@@ -898,7 +912,233 @@ static void OnOff(ani_env *env, [[maybe_unused]]ani_class aniClss)
         }
         TAG_LOGD(AAFwkTag::APPMGR, "NativeGetKeepAliveBundles end");
     }
+
+    static void OnOnAbilityFirstFrameStateInner(ani_env *env, ani_object aniObserver, const std::string& strBundleName)
+    {
+#ifdef SUPPORT_SCREEN
+        ani_vm *aniVM = nullptr;
+        if (env->GetVM(&aniVM) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env, "Get aniVm failed.");
+            return;
+        }
+        auto abilityManager = GetAbilityManagerInstance();
+        if (abilityManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "abilityManager null ptr");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        sptr<AbilityRuntime::ETSAbilityFirstFrameStateObserver> observer =
+            new (std::nothrow) AbilityRuntime::ETSAbilityFirstFrameStateObserver(aniVM);
+        if (observer == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null abilityMgr_ or observer");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        if (AbilityRuntime::ETSAbilityFirstFrameStateObserverManager::GetInstance()
+            ->IsObserverObjectExist(aniObserver)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "observer exist");
+            return;
+        }
+        int32_t ret = abilityManager->RegisterAbilityFirstFrameStateObserver(observer, strBundleName);
+        TAG_LOGD(AAFwkTag::APPMGR, "ret: %{public}d", ret);
+        if (ret != NO_ERROR) {
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        observer->SetEtsObserverObject(aniObserver);
+        AbilityRuntime::ETSAbilityFirstFrameStateObserverManager::GetInstance()
+            ->AddEtsAbilityFirstFrameStateObserver(observer);
+#endif
+    }
+
+    static void OnOnAbilityFirstFrameState(ani_env *env, ani_string type, ani_object aniObserver,
+        ani_object aniBundleName)
+    {
+#ifdef SUPPORT_SCREEN
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnAbilityFirstFrameState called");
+        if (!CheckCallerIsSystemApp()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+            return;
+        }
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
+            && strType == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env,
+                "Parse param observer failed, must be a AbilityFirstFrameStateObserver.");
+            return;
+        }
+        ani_status status = ANI_OK;
+        std::string strBundleName;
+        ani_boolean isUndefined;
+        if ((status = env->Reference_IsUndefined(aniBundleName, &isUndefined)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+            return;
+        }
+        if (!isUndefined && !OHOS::AppExecFwk::GetStdString(env,
+            reinterpret_cast<ani_string>(aniBundleName), strBundleName)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env, "Parse param bundleName failed, must be a string.");
+            return;
+        }
+        OnOnAbilityFirstFrameStateInner(env, aniObserver, strBundleName);
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnAbilityFirstFrameState end");
+#endif
+    }
+
+    static void OnOnAppForegroundState(ani_env *env, ani_string type, ani_object observer)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnAppForegroundState called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return;
+        }
+        ani_vm *aniVM = nullptr;
+        if (env->GetVM(&aniVM) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env, "Get aniVm failed.");
+            return;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
+            && strType == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env,
+                "Parse param observer failed, must be a AppForegroundStateObserver.");
+            return;
+        }
+
+        sptr<OHOS::AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
+        if (appMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        //Create Observer
+        if (observerForeground_ == nullptr) {
+            observerForeground_ = new (std::nothrow) AbilityRuntime::ETSAppForegroundStateObserver(aniVM);
+        }
+        if (observerForeground_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        if (observerForeground_->IsEmpty()) {
+            int32_t ret = appMgr->RegisterAppForegroundStateObserver(observerForeground_);
+            TAG_LOGD(AAFwkTag::APPMGR, "RegisterAppForegroundStateObserver ret: %{public}d", ret);
+            if (ret != NO_ERROR) {
+                AbilityRuntime::ThrowStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+                return;
+            }
+        }
+        observerForeground_->AddEtsObserverObject(observer);
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnAppForegroundState end");
+    }
+
+    static void OnOffAbilityFirstFrameState(ani_env *env, ani_string type, ani_object aniObserver)
+    {
+#ifdef SUPPORT_SCREEN
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOffAbilityFirstFrameState called");
+        if (!CheckCallerIsSystemApp()) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Non-system app");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+            return;
+        }
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return;
+        }
+        ani_vm *aniVM = nullptr;
+        if (env->GetVM(&aniVM) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env, "Get aniVm failed.");
+            return;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
+            && strType == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env,
+                "Parse param observer failed, must be a AbilityFirstFrameStateObserver.");
+            return;
+        }
+        ani_status status = ANI_OK;
+        ani_boolean isUndefined = false;
+        if ((status = env->Reference_IsUndefined(aniObserver, &isUndefined)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+            return;
+        }
+        auto abilityManager = GetAbilityManagerInstance();
+        if (abilityManager == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "abilityManager null ptr");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        if (isUndefined) {
+            AbilityRuntime::ETSAbilityFirstFrameStateObserverManager::GetInstance()
+                ->RemoveAllEtsObserverObjects(abilityManager);
+        } else {
+            AbilityRuntime::ETSAbilityFirstFrameStateObserverManager::GetInstance()
+                ->RemoveEtsObserverObject(abilityManager, aniObserver);
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOffAbilityFirstFrameState end");
+#endif
+    }
+
+    static void OnOffAppForegroundState(ani_env *env, ani_string type, ani_object observer)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOffAppForegroundState called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+            return;
+        }
+        std::string strType;
+        if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
+            && strType == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+            AbilityRuntime::ThrowStsInvalidParamError(env,
+                "Parse param observer failed, must be a AppForegroundStateObserver.");
+            return;
+        }
+        sptr<OHOS::AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
+        if (appMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        if (observerForeground_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
+            AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        ani_status status = ANI_OK;
+        ani_boolean isUndefined = false;
+        if ((status = env->Reference_IsUndefined(observer, &isUndefined)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+            return;
+        }
+        if (isUndefined) {
+            observerForeground_->RemoveAllEtsObserverObjects();
+        } else {
+            observerForeground_->RemoveEtsObserverObject(observer);
+        }
+        if (observerForeground_->IsEmpty()) {
+            int32_t ret = appMgr->UnregisterAppForegroundStateObserver(observerForeground_);
+            TAG_LOGD(AAFwkTag::APPMGR, "ret: %{public}d.", ret);
+            if (ret != NO_ERROR) {
+                AbilityRuntime::ThrowStsErrorByNativeErr(env, static_cast<int32_t>(ret));
+            }
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOffAppForegroundState end");
+    }
 }; //StsAppManager
+sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> StsAppManager::observerForeground_ = nullptr;
 
 void StsAppManagerRegistryInit(ani_env *env)
 {
@@ -961,7 +1201,15 @@ void StsAppManagerRegistryInit(ani_env *env)
         ani_native_function {"nativeSetKeepAliveForBundle", nullptr,
             reinterpret_cast<void *>(StsAppManager::NativeSetKeepAliveForBundle)},
         ani_native_function {"nativeGetKeepAliveBundles", nullptr,
-            reinterpret_cast<void *>(StsAppManager::NativeGetKeepAliveBundles)}
+            reinterpret_cast<void *>(StsAppManager::NativeGetKeepAliveBundles)},
+        ani_native_function {"nativeOnAbilityFirstFrameState", ON_SIGNATURE_THIRD,
+            reinterpret_cast<void *>(StsAppManager::OnOnAbilityFirstFrameState)},
+        ani_native_function {"nativeOnAppForeGroundState", ON_SIGNATURE_FORTH,
+            reinterpret_cast<void *>(StsAppManager::OnOnAppForegroundState)},
+        ani_native_function {"nativeOffAbilityFirstFrameState", OFF_SIGNATURE_SECOND,
+            reinterpret_cast<void *>(StsAppManager::OnOffAbilityFirstFrameState)},
+        ani_native_function {"nativeOffAppForeGroundState", OFF_SIGNATURE_THIRD,
+            reinterpret_cast<void *>(StsAppManager::OnOffAppForegroundState)}
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
