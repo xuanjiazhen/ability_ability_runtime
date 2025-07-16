@@ -485,6 +485,7 @@ void EtsAbilityContext::OnStartAbility(
             TAG_LOGE(AAFwkTag::CONTEXT, "invalid options");
             return;
         }
+        UnwrapCompletionHandlerInStartOptions(env, opt, startOptions);
         innerErrCode = context->StartAbility(want, startOptions, -1);
     } else {
         innerErrCode = context->StartAbility(want, -1);
@@ -516,6 +517,7 @@ void EtsAbilityContext::OnStartAbilityForResult(
     AAFwk::StartOptions startOptions;
     if (startOptionsObj) {
         AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
+        UnwrapCompletionHandlerInStartOptions(env, startOptionsObj, startOptions);
     }
     TAG_LOGE(AAFwkTag::CONTEXT, "displayId:%{public}d", startOptions.GetDisplayID());
     StartAbilityForResultInner(env, startOptions, want, context, startOptionsObj, callback);
@@ -1371,6 +1373,113 @@ void ETSAbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName
     if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
     }
+}
+
+void EtsAbilityContext::UnwrapCompletionHandlerInStartOptions(ani_env* env,
+    ani_object param, AAFwk::StartOptions& options)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "UnwrapCompletionHandlerInStartOptions called");
+    ani_ref completionHandler;
+    if (env->Object_GetPropertyByName_Ref(param, "completionHandler", &completionHandler) != ANI_OK ||
+        !completionHandler) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "null completionHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CONTEXT, "completionHandler exists");
+    ani_ref onRequestSuccObj;
+    ani_object completionHandlerObj = reinterpret_cast<ani_object>(completionHandler);
+    if (env->Object_GetPropertyByName_Ref(completionHandlerObj, "onRequestSuccess", &onRequestSuccObj) != ANI_OK ||
+        !onRequestSuccObj) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestSuccess");
+        return;
+    }
+    ani_ref onRequestFailObj;
+    if (env->Object_GetPropertyByName_Ref(completionHandlerObj, "onRequestFailure", &onRequestFailObj) != ANI_OK ||
+        !onRequestFailObj) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null onRequestFailure");
+        return;
+    }
+    ani_ref globalOnRequestSucc = nullptr;
+    ani_ref globalOnRequestFail = nullptr;
+    if (env->GlobalReference_Create(onRequestSuccObj, &globalOnRequestSucc) != ANI_OK || !globalOnRequestSucc) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to create global ref for onRequestSuccess");
+        return;
+    }
+    if (env->GlobalReference_Create(onRequestFailObj, &globalOnRequestFail) != ANI_OK || !globalOnRequestFail) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to create global ref for onRequestFailure");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        return;
+    }
+    OnRequestResult onRequestSucc = [env, globalOnRequestSucc](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        ani_class cls = nullptr;
+        if (env->FindClass("Lohos/app/ElementName;", &cls) != ANI_OK || !cls) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "FindClass failed");
+            return;
+        }
+        ani_method method = nullptr;
+        if (env->Class_FindMethod(cls, "onRequestSuccess",
+                "(Lohos/app/ElementName;Lstd/core/String;)V", &method) != ANI_OK || !method) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "Find method onRequestSuccess failed");
+            return;
+        }
+        ani_object globalOnRequestSuccObj = reinterpret_cast<ani_object>(globalOnRequestSucc);
+        env->Object_CallMethod_Void(globalOnRequestSuccObj, method, elementObj, messageStr);
+    };
+    OnRequestResult onRequestFail = [env, globalOnRequestFail](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        ani_class cls = nullptr;
+        if (env->FindClass("Lohos/app/ElementName;", &cls) != ANI_OK || !cls) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "FindClass failed");
+            return;
+        }
+        ani_method method = nullptr;
+        if (env->Class_FindMethod(cls, "onRequestFailure",
+                "(Lohos/app/ElementName;Lstd/core/String;)V", &method) != ANI_OK || !method) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "Find method onRequestFailure failed");
+            return;
+        }
+        ani_object globalOnRequestFailObj = reinterpret_cast<ani_object>(globalOnRequestFail);
+        env->Object_CallMethod_Void(globalOnRequestFailObj, method, elementObj, messageStr);
+    };
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        env->GlobalReference_Delete(globalOnRequestFail);
+        return;
+    }
+    uint64_t time = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add completionHandler failed");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        env->GlobalReference_Delete(globalOnRequestFail);
+        return;
+    }
+    options.requestId_ = requestId;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
