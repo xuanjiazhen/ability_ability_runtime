@@ -31,15 +31,15 @@ namespace AbilityRuntime {
 static std::mutex g_connectsMutex;
 int32_t g_serialNumber = 0;
 static std::map<EtsUIExtensionConnectionKey, sptr<EtsUIExtensionConnection>, Etskey_compare> g_connects;
-const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "Lapplication/UIExtensionContext/UIExtensionContext;";
-const char *UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "Lapplication/UIExtensionContext/Cleaner;";
+const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "C{application.UIExtensionContext.UIExtensionContext}";
+const char *UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "C{application.UIExtensionContext.Cleaner}";
 constexpr const int FAILED_CODE = -1;
-constexpr const char *CONNECT_OPTIONS_CLASS_NAME = "Lability/connectOptions/ConnectOptionsInner;";
-constexpr const char *SIGNATURE_ONCONNECT = "LbundleManager/ElementName/ElementName;L@ohos/rpc/rpc/IRemoteObject;:V";
-constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/ElementName;:V";
+constexpr const char *CONNECT_OPTIONS_CLASS_NAME = "C{ability.connectOptions.ConnectOptionsInner}";
+constexpr const char *SIGNATURE_ONCONNECT = "C{bundleManager.ElementName.ElementName}C{@ohos.rpc.rpc.IRemoteObject}:";
+constexpr const char *SIGNATURE_ONDISCONNECT = "C{bundleManager.ElementName.ElementName}:";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
 
 void EtsUIExtensionContext::TerminateSelfSync(ani_env *env, ani_object obj, ani_object callback)
 {
