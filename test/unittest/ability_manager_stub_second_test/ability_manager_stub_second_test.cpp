@@ -116,7 +116,6 @@ HWTEST_F(AbilityManagerStubSecondTest, OnRemoteRequestInnerSecond_0100, TestSize
         static_cast<uint32_t>(AbilityManagerInterfaceCode::UPGRADE_APP),
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY),
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_ADD_CALLER),
-        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_WITH_SPECIFY_TOKENID),
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_AS_CALLER_BY_TOKEN),
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_AS_CALLER_FOR_OPTIONS),
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_SESSION_ABILITY_ADD_CALLER),

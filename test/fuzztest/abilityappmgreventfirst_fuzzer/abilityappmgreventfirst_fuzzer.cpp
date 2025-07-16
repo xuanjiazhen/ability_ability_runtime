@@ -45,7 +45,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::shared_ptr<RenderRecord> renderRecord;
     AAFwk::EventInfo eventInfo;
     std::string stringParam;
-    EventFwk::CommonEventData eventData;
     int32_t subReason;
     FuzzedDataProvider fdp(data, size);
     stringParam = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
