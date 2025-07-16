@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -105,7 +105,7 @@ void ApplicationContext::RegisterApplicationStateChangeCallback(
     applicationStateCallback_.push_back(applicationStateChangeCallback);
 }
 
-void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeReference> &ability)
+void ApplicationContext::DispatchOnAbilityCreate(std::shared_ptr<NativeReference> ability)
 {
     if (!ability) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability");
@@ -119,7 +119,21 @@ void ApplicationContext::DispatchOnAbilityCreate(const std::shared_ptr<NativeRef
     }
 }
 
-void ApplicationContext::DispatchOnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
+void ApplicationContext::DispatchOnAbilityCreate(std::shared_ptr<STSNativeReference> ability)
+{
+    if (!ability) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ability");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityCreate(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnWindowStageCreate(std::shared_ptr<NativeReference> ability,
     const std::shared_ptr<NativeReference> &windowStage)
 {
     if (!ability || !windowStage) {
@@ -134,7 +148,22 @@ void ApplicationContext::DispatchOnWindowStageCreate(const std::shared_ptr<Nativ
     }
 }
 
-void ApplicationContext::DispatchOnWindowStageDestroy(const std::shared_ptr<NativeReference> &ability,
+void ApplicationContext::DispatchOnWindowStageCreate(std::shared_ptr<STSNativeReference> ability,
+    std::shared_ptr<STSNativeReference> windowStage)
+{
+    if (!ability || !windowStage) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null ability or windowStage");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
+        if (callback != nullptr) {
+            callback->OnWindowStageCreate(ability, windowStage);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnWindowStageDestroy(std::shared_ptr<NativeReference> ability,
     const std::shared_ptr<NativeReference> &windowStage)
 {
     if (!ability || !windowStage) {
@@ -143,6 +172,21 @@ void ApplicationContext::DispatchOnWindowStageDestroy(const std::shared_ptr<Nati
     }
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
     for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnWindowStageDestroy(ability, windowStage);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnWindowStageDestroy(std::shared_ptr<STSNativeReference> ability,
+    std::shared_ptr<STSNativeReference> windowStage)
+{
+    if (ability == nullptr || windowStage == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or ability or windowStage");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
         if (callback != nullptr) {
             callback->OnWindowStageDestroy(ability, windowStage);
         }
@@ -181,7 +225,7 @@ void ApplicationContext::DispatchWindowStageUnfocus(const std::shared_ptr<Native
     }
 }
 
-void ApplicationContext::DispatchOnAbilityDestroy(const std::shared_ptr<NativeReference> &ability)
+void ApplicationContext::DispatchOnAbilityDestroy(std::shared_ptr<NativeReference> ability)
 {
     if (!ability) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability");
@@ -195,7 +239,21 @@ void ApplicationContext::DispatchOnAbilityDestroy(const std::shared_ptr<NativeRe
     }
 }
 
-void ApplicationContext::DispatchOnAbilityForeground(const std::shared_ptr<NativeReference> &ability)
+void ApplicationContext::DispatchOnAbilityDestroy(std::shared_ptr<STSNativeReference> ability)
+{
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or ability");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityDestroy(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityForeground(std::shared_ptr<NativeReference> ability)
 {
     if (!ability) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability");
@@ -209,7 +267,21 @@ void ApplicationContext::DispatchOnAbilityForeground(const std::shared_ptr<Nativ
     }
 }
 
-void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<NativeReference> &ability)
+void ApplicationContext::DispatchOnAbilityForeground(std::shared_ptr<STSNativeReference> ability)
+{
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or ability");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityForeground(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityBackground(std::shared_ptr<NativeReference> ability)
 {
     if (!ability) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability");
@@ -217,6 +289,20 @@ void ApplicationContext::DispatchOnAbilityBackground(const std::shared_ptr<Nativ
     }
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
     for (auto callback : callbacks_) {
+        if (callback != nullptr) {
+            callback->OnAbilityBackground(ability);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnAbilityBackground(std::shared_ptr<STSNativeReference> ability)
+{
+    if (ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or ability");
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(dynamicCallbackLock_);
+    for (auto callback : dynamicCallbacks_) {
         if (callback != nullptr) {
             callback->OnAbilityBackground(ability);
         }

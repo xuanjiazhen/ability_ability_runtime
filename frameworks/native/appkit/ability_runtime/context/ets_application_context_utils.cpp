@@ -14,7 +14,9 @@
  */
 
 #include "ets_application_context_utils.h"
+#include "ani_enum_convert.h"
 #include "application_context_manager.h"
+#include "ets_ability_lifecycle_callback.h"
 #include "hilog_tag_wrapper.h"
 #include "sts_app_manager_utils.h"
 #include "ani_enum_convert.h"
@@ -23,12 +25,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-    constexpr const char* STS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
-    constexpr double FOUNT_SIZE = 0.0;
+constexpr const char* STS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
+constexpr double FOUNT_SIZE = 0.0;
+constexpr double ERROR_CODE_NULL_ENV = -1;
+constexpr double ERROR_CODE_NULL_CALLBACK = -2;
+constexpr double ERROR_CODE_NULL_CONTEXT = -3;
+constexpr double ERROR_CODE_INVALID_PARAM = -4;
+const std::string TYPE_ABILITY_LIFECYCLE = "abilityLifecycle";
 }
 std::weak_ptr<ApplicationContext> applicationContext_;
 std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_ = nullptr;
 std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_ = nullptr;
+std::shared_ptr<EtsAbilityLifecycleCallback> abilityLifecycleCallback_ = nullptr;
+
 
 void EtsApplicationContextUtils::RestartApp([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_object wantObj)
@@ -320,6 +329,103 @@ void EtsApplicationContextUtils::NativeOffSync([[maybe_unused]]ani_env *env, [[m
     AppExecFwk::AsyncCallback(env, call, CreateStsError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
+ani_double EtsApplicationContextUtils::NativeOnLifecycleCallbackSync([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_string type, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeOnLifecycleCallbackSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
+        return ani_double(ERROR_CODE_NULL_ENV);
+    }
+    std::string stdType;
+    if (!AppExecFwk::GetStdString(env, type, stdType)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "parse type failed");
+        ThrowStsInvalidParamError(env, "Failed to parse param type. Type must be a string.");
+        return ani_double(ERROR_CODE_INVALID_PARAM);
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "type=%{public}s", stdType.c_str());
+    if (stdType == TYPE_ABILITY_LIFECYCLE) {
+        return RegisterAbilityLifecycleCallback(env, callback);
+    }
+    ThrowStsInvalidParamError(env, "Unknown type.");
+    return ani_double(ERROR_CODE_INVALID_PARAM);
+}
+
+ani_double EtsApplicationContextUtils::RegisterAbilityLifecycleCallback(ani_env *env, ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "call RegisterAbilityLifecycleCallback");
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "applicationContext is null");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return ani_double(ERROR_CODE_NULL_CONTEXT);
+    }
+    if (abilityLifecycleCallback_ != nullptr) {
+        return ani_double(abilityLifecycleCallback_->Register(callback));
+    }
+
+    abilityLifecycleCallback_ = std::make_shared<EtsAbilityLifecycleCallback>(env);
+    int32_t callbackId = abilityLifecycleCallback_->Register(callback);
+    if (callbackId >= 0) {
+        applicationContext->RegisterAbilityLifecycleCallback(abilityLifecycleCallback_);
+        return ani_double(callbackId);
+    }
+    if (callbackId == static_cast<int32_t>(ERROR_CODE_NULL_ENV) ||
+        callbackId == static_cast<int32_t>(ERROR_CODE_NULL_CALLBACK)) {
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return ani_double(ERROR_CODE_INVALID_PARAM);
+    }
+
+    AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+    return ani_double(callbackId);
+}
+
+void EtsApplicationContextUtils::NativeOffLifecycleCallbackSync([[maybe_unused]]ani_env *env,
+    [[maybe_unused]]ani_object aniObj, ani_string type, ani_double callbackId)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeOffLifecycleCallbackSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
+        return;
+    }
+
+    std::string stdType;
+    if (!AppExecFwk::GetStdString(env, type, stdType)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "parse type failed");
+        ThrowStsInvalidParamError(env, "Failed to parse param type. Type must be a string.");
+        return;
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "type=%{public}s", stdType.c_str());
+    if (stdType == TYPE_ABILITY_LIFECYCLE) {
+        UnregisterAbilityLifecycleCallback(env, callbackId);
+        return;
+    }
+    ThrowStsInvalidParamError(env, "Unknown type.");
+}
+
+void EtsApplicationContextUtils::UnregisterAbilityLifecycleCallback(ani_env *env, int32_t callbackId)
+{
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "applicationContext is null");
+        AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+
+    if (abilityLifecycleCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "abilityLifecycleCallback_ is null");
+        ThrowStsInvalidParamError(env, "Callback does not exist.");
+        return;
+    }
+
+    if (abilityLifecycleCallback_->Unregister(callbackId)) {
+        applicationContext->UnregisterAbilityLifecycleCallback(abilityLifecycleCallback_);
+        return;
+    }
+    TAG_LOGE(AAFwkTag::APPKIT, "failed to unregister");
+    AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+}
+
 void EtsApplicationContextUtils::killAllProcesses([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_boolean clearPageStack, ani_object call)
 {
@@ -508,6 +614,12 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env* aniEnv, ani
         ani_native_function {"nativeOffSync",
             "Lstd/core/String;DLutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffSync)},
+        ani_native_function {"nativeOnLifecycleCallbackSync",
+            "Lstd/core/String;Lstd/core/Object;:D",
+            reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnLifecycleCallbackSync)},
+        ani_native_function {"nativeOffLifecycleCallbackSync",
+            "Lstd/core/String;D:V",
+            reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffLifecycleCallbackSync)},
         ani_native_function {"nativegetRunningProcessInformation",
             "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(EtsApplicationContextUtils::GetRunningProcessInformation)},
