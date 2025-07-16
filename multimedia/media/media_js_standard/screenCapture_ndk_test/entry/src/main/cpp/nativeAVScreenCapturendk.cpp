@@ -1404,13 +1404,13 @@ void OnUserSelectedError(OH_AVScreenCapture* capture, OH_AVScreenCapture_UserSel
     result0 = OH_AVScreenCapture_GetCaptureTypeSelected(selectionsnull, selectType);
     OH_LOG_INFO(LOG_APP, "GetCaptureTypeSelected result0 = %{public}d", result0);
     if (result0 != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect GetCaptureTypeSelected is not nullptr");
+        napi_throw_error((screenCaptureEnv), nullptr, "error : expect GetCaptureTypeSelected is not nullptr");
     }
     
     result0 = OH_AVScreenCapture_GetDisplayIdSelected(selectionsnull, displayId);
     OH_LOG_INFO(LOG_APP, "GetDisplayIdSelected result0 = %{public}d", result0);
     if (result0 != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect GetDisplayIdSelected is not nullptr");
+        napi_throw_error((screenCaptureEnv), nullptr, "error : expect GetDisplayIdSelected is not nullptr");
     }
     g_userSelectedType = *selectType;
     g_userSelectedDisplayId = *displayId;
