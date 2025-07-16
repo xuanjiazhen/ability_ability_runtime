@@ -21,6 +21,7 @@ group("multimedia") {
     deps += [
       "media/media_js_standard/avScreenCaptureRecorder:av_screen_capture_recorder_js_hap",
       "media/media_js_standard/screenCapture_ndk_test:ActsNativeAVScreenCaptureTest",
+      "media/media_js_standard/screenCapture_ndk_api19_test:ActsNativeAVScreenCaptureApi19Test",
     ]
   }
   if (is_standard_system) {
