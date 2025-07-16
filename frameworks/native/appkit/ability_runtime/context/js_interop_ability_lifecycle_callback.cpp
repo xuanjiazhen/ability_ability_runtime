@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-#include "js_static_ability_lifecycle_callback.h"
+#include "js_interop_ability_lifecycle_callback.h"
 
 #include "hilog_tag_wrapper.h"
-#include "interop_guard.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"
-#include "sts_runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -31,22 +29,21 @@ constexpr const int32_t ERROR_CODE_NULL_ENV = -1;
 constexpr const int32_t ERROR_CODE_NULL_CALLBACK = -2;
 }
 
-JsStaticAbilityLifecycleCallback::JsStaticAbilityLifecycleCallback(napi_env env)
+JsInteropAbilityLifecycleCallback::JsInteropAbilityLifecycleCallback(napi_env env)
     : env_(env)
 {
 }
 
-int32_t JsStaticAbilityLifecycleCallback::serialNumber_ = 0;
+int32_t JsInteropAbilityLifecycleCallback::serialNumber_ = 0;
 
-void JsStaticAbilityLifecycleCallback::CallObjectMethod(ani_env *env, const char *methodName,
-    std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::CallObjectMethod(const char *methodName,
+    std::shared_ptr<InteropObject> ability)
 {
-    if (env == nullptr || ability == nullptr) {
+    if (ability == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env or ability");
         return;
     }
-    InteropGuard guard(env, ability->aniRef);
-    napi_value nativeAbilityObj = guard.GetNapiValue(env_);
+    napi_value nativeAbilityObj = ability->GetNapiValue(env_);
     if (nativeAbilityObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null nativeAbilityObj");
         return;
@@ -76,21 +73,20 @@ void JsStaticAbilityLifecycleCallback::CallObjectMethod(ani_env *env, const char
     }
 }
 
-void JsStaticAbilityLifecycleCallback::CallObjectMethod(ani_env *env, const char *methodName,
-    std::shared_ptr<STSNativeReference> ability, std::shared_ptr<STSNativeReference> windowStage)
+#ifdef SUPPORT_SCREEN
+void JsInteropAbilityLifecycleCallback::CallObjectMethodWithWindowStage(const char *methodName,
+    std::shared_ptr<InteropObject> ability)
 {
-    if (env == nullptr || ability == nullptr || windowStage == nullptr) {
+    if (ability == nullptr || windowStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env or ability");
         return;
     }
-    InteropGuard abilityGuard(env, ability->aniRef);
-    napi_value nativeAbilityObj = abilityGuard.GetNapiValue(env_);
+    napi_value nativeAbilityObj = ability->GetNapiValue(env_);
     if (nativeAbilityObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null nativeAbilityObj");
         return;
     }
-    InteropGuard windowStageGuard(env, windowStage->aniRef);
-    napi_value nativeWindowStageObj = windowStageGuard.GetNapiValue(env_);
+    napi_value nativeWindowStageObj = windowStage->GetNapiValue(env_);
     if (nativeWindowStageObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null nativeWindowStageObj");
         return;
@@ -119,53 +115,57 @@ void JsStaticAbilityLifecycleCallback::CallObjectMethod(ani_env *env, const char
         napi_call_function(env_, obj, method, ARGC_TWO, argv, nullptr);
     }
 }
+#endif
 
-void JsStaticAbilityLifecycleCallback::OnAbilityCreate(ani_env *env, std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::OnAbilityCreate(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onAbilityCreate", ability);
+    CallObjectMethod("onAbilityCreate", ability);
 }
 
-void JsStaticAbilityLifecycleCallback::OnWindowStageCreate(ani_env *env, std::shared_ptr<STSNativeReference> ability,
-    std::shared_ptr<STSNativeReference> windowStage)
+void JsInteropAbilityLifecycleCallback::OnWindowStageCreate(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onWindowStageCreate", ability, windowStage);
+#ifdef SUPPORT_SCREEN
+    CallObjectMethodWithWindowStage("onWindowStageCreate", ability, windowStage);
+#endif
 }
 
-void JsStaticAbilityLifecycleCallback::OnAbilityWillCreate(ani_env *env, std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::OnAbilityWillCreate(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onAbilityWillCreate", ability);
+    CallObjectMethod("onAbilityWillCreate", ability);
 }
 
-void JsStaticAbilityLifecycleCallback::OnWindowStageWillCreate(ani_env *env,
-    std::shared_ptr<STSNativeReference> ability, std::shared_ptr<STSNativeReference> windowStage)
+void JsInteropAbilityLifecycleCallback::OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onWindowStageWillCreate", ability, windowStage);
+#ifdef SUPPORT_SCREEN
+    CallObjectMethodWithWindowStage("onWindowStageWillCreate", ability, windowStage);
+#endif
 }
 
-void JsStaticAbilityLifecycleCallback::OnAbilityDestroy(ani_env *env, std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::OnAbilityDestroy(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onAbilityDestroy", ability);
+    CallObjectMethod("onAbilityDestroy", ability);
 }
 
-void JsStaticAbilityLifecycleCallback::OnWindowStageDestroy(ani_env *env,
-    std::shared_ptr<STSNativeReference> ability, std::shared_ptr<STSNativeReference> windowStage)
+void JsInteropAbilityLifecycleCallback::OnWindowStageDestroy(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onWindowStageDestroy", ability, windowStage);
+#ifdef SUPPORT_SCREEN
+    CallObjectMethodWithWindowStage("onWindowStageDestroy", ability, windowStage);
+#endif
 }
 
-void JsStaticAbilityLifecycleCallback::OnAbilityForeground(ani_env *env, std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::OnAbilityForeground(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onAbilityForeground", ability);
+    CallObjectMethod("onAbilityForeground", ability);
 }
 
-void JsStaticAbilityLifecycleCallback::OnAbilityBackground(ani_env *env, std::shared_ptr<STSNativeReference> ability)
+void JsInteropAbilityLifecycleCallback::OnAbilityBackground(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectMethod(env, "onAbilityBackground", ability);
+    CallObjectMethod("onAbilityBackground", ability);
 }
 
-int32_t JsStaticAbilityLifecycleCallback::Register(napi_value callback)
+int32_t JsInteropAbilityLifecycleCallback::Register(napi_value callback)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "enter JsStaticAbilityLifecycleCallback::Register");
+    TAG_LOGD(AAFwkTag::APPKIT, "enter JsInteropAbilityLifecycleCallback::Register");
     if (env_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return ERROR_CODE_NULL_ENV;
@@ -186,7 +186,7 @@ int32_t JsStaticAbilityLifecycleCallback::Register(napi_value callback)
     return callbackId;
 }
 
-bool JsStaticAbilityLifecycleCallback::Unregister(int32_t callbackId)
+bool JsInteropAbilityLifecycleCallback::Unregister(int32_t callbackId)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "Unregister callbackId : %{public}d", callbackId);
     return callbacks_.erase(callbackId);

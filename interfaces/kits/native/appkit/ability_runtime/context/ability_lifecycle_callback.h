@@ -20,18 +20,15 @@
 #include <memory>
 
 class NativeReference;
-typedef struct napi_env__* napi_env;
-typedef struct napi_value__* napi_value;
-typedef struct __ani_env ani_env;
-typedef class __ani_object *ani_object;
-typedef class __ani_ref *ani_ref;
 
 namespace OHOS {
 namespace AbilityRuntime {
+struct STSNativeReference;
+
 class AbilityLifecycleCallback {
 public:
     virtual ~AbilityLifecycleCallback() {}
-/*----------------------------------for arkts 1.1------------------------------------------------*/
+/*----------------------------------for arkts 1.1 listening UIAbility 1.1------------------------------------------------*/
     virtual void OnAbilityCreate(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
         const std::shared_ptr<NativeReference> &windowStage) {}
@@ -67,41 +64,41 @@ public:
     virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability) {}
 
-/*----------------------------------for arkts 1.2------------------------------------------------*/
-    virtual void OnAbilityCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnWindowStageCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnWindowStageDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnWindowStageActive([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnWindowStageInactive([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnAbilityDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnNewWant([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability){}
-    virtual void OnWillNewWant([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability){}
-    virtual void OnAbilityWillCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability){}
-    virtual void OnWindowStageWillCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnWindowStageWillDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnAbilityWillDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityWillForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityWillBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityContinue([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilityWillContinue([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnWindowStageWillRestore([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnWindowStageRestore([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) {}
-    virtual void OnAbilityWillSaveState([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnAbilitySaveState([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnWillForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnDidForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnWillBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
-    virtual void OnDidBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) {}
+/*----------------------------------for arkts 1.2 listening UIAbility 1.2------------------------------------------------*/
+    virtual void OnAbilityCreate(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnWindowStageCreate(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnWindowStageDestroy(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnWindowStageActive(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnWindowStageInactive(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnAbilityDestroy(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnNewWant(std::shared_ptr<STSNativeReference> ability){}
+    virtual void OnWillNewWant(std::shared_ptr<STSNativeReference> ability){}
+    virtual void OnAbilityWillCreate(std::shared_ptr<STSNativeReference> ability){}
+    virtual void OnWindowStageWillCreate(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnWindowStageWillDestroy(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnAbilityWillDestroy(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityWillForeground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityWillBackground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityForeground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityBackground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityContinue(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilityWillContinue(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnWindowStageWillRestore(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnWindowStageRestore(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) {}
+    virtual void OnAbilityWillSaveState(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnAbilitySaveState(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnWillForeground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnDidForeground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnWillBackground(std::shared_ptr<STSNativeReference> ability) {}
+    virtual void OnDidBackground(std::shared_ptr<STSNativeReference> ability) {}
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

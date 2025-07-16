@@ -25,7 +25,7 @@
 #include "js_ability_lifecycle_callback.h"
 #include "native_engine/native_engine.h"
 #include "running_process_info.h"
-#include "js_static_ability_lifecycle_callback.h"
+#include "js_interop_ability_lifecycle_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -158,7 +158,7 @@ private:
     static JsAppProcessState ConvertToJsAppProcessState(
         const AppExecFwk::AppProcessState &appProcessState, const bool &isFocused);
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
-    std::shared_ptr<JsStaticAbilityLifecycleCallback> staticCallback_;
+    std::shared_ptr<JsInteropAbilityLifecycleCallback> staticCallback_;
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;

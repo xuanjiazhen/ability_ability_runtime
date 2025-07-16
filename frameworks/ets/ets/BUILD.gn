@@ -1068,7 +1068,7 @@ ohos_prebuilt_etc("ability_runtime_ability_lifecycle_callback_abc_etc") {
 
 generate_static_abc("ability_runtime_static_ability_lifecycle_callback_abc") {
   base_url = "./"
-  files = [ "./@ohos.app.ability.StaticAbilityLifecycleCallback.ets" ]
+  files = [ "./@ohos.app.ability.InteropAbilityLifecycleCallback.ets" ]
 
   is_boot_abc = "True"
   device_dst_file =

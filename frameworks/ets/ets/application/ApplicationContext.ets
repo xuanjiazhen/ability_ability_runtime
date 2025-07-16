@@ -22,7 +22,7 @@ import type ApplicationStateChangeCallback from '@ohos.app.ability.ApplicationSt
 import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
-import StaticAbilityLifecycleCallback from '@ohos.app.ability.StaticAbilityLifecycleCallback';
+import InteropAbilityLifecycleCallback from '@ohos.app.ability.InteropAbilityLifecycleCallback';
 
 export default class ApplicationContext extends Context {
   static {
@@ -262,7 +262,7 @@ export default class ApplicationContext extends Context {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 
-  on(type: 'staticAbilityLifecycle', callback: StaticAbilityLifecycleCallback): number {
+  on(type: 'staticAbilityLifecycle', callback: InteropAbilityLifecycleCallback): number {
     return this.nativeOnLifecycleCallbackSync(type, callback);
   }
 
