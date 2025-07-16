@@ -94,7 +94,7 @@ void OnSendFinishedCallback(TriggerReceiveDataWorker *dataWorker)
     }
     env->Object_SetPropertyByName_Ref(object, "info", WrapWantAgent(env, dataWorker->wantAgent));
     env->Object_SetPropertyByName_Ref(object, "want", AppExecFwk::WrapWant(env, dataWorker->want));
-    env->Object_SetPropertyByName_Double(object, "finalCode", static_cast<ani_double>(dataWorker->resultCode));
+    env->Object_SetPropertyByName_Int(object, "finalCode", static_cast<ani_int>(dataWorker->resultCode));
     env->Object_SetPropertyByName_Ref(object, "finalData", GetAniString(env, dataWorker->resultData));
     env->Object_SetPropertyByName_Ref(object, "extraInfo", AppExecFwk::WrapWantParams(env, dataWorker->resultExtras));
 
@@ -234,7 +234,7 @@ void EtsWantAgent::OnGetUid(ani_env *env, ani_object agent, ani_object call)
         ThrowStsInvalidParamError(env, "Parse pWantAgent failed. Agent must be a WantAgent.");
         return;
 #else
-        AsyncCallback(env, call, aniObject, createDouble(env, ERR_NOT_OK));
+        AsyncCallback(env, call, aniObject, createInt(env, ERR_NOT_OK));
         return;
 #endif
     }
@@ -244,7 +244,7 @@ void EtsWantAgent::OnGetUid(ani_env *env, ani_object agent, ani_object call)
     if (resultCode != ERR_OK) {
         aniObject = CreateStsErrorByNativeErr(env, resultCode);
     }
-    AsyncCallback(env, call, aniObject, createDouble(env, static_cast<ani_double>(uid)));
+    AsyncCallback(env, call, aniObject, createInt(env, uid));
 }
 
 void EtsWantAgent::OnCancel(ani_env *env, ani_object agent, ani_object call)
@@ -372,13 +372,13 @@ void EtsWantAgent::OnGetOperationType(ani_env *env, ani_object agent, ani_object
         ThrowStsInvalidParamError(env, "Parse pWantAgent failed. Agent must be a WantAgent.");
         return;
 #else
-        AsyncCallback(env, call, aniObject, createDouble(env, ERR_NOT_OK));
+        AsyncCallback(env, call, aniObject, createInt(env, ERR_NOT_OK));
         return;
 #endif
     }
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(*pWantAgent);
     auto ret = WantAgentHelper::GetType(wantAgent);
-    AsyncCallback(env, call, aniObject, createDouble(env, static_cast<ani_double>(ret)));
+    AsyncCallback(env, call, aniObject, createInt(env, static_cast<ani_int>(ret)));
 }
 
 int32_t EtsWantAgent::GetWantAgentParam(ani_env *env, ani_object info, WantAgentWantsParas &paras)

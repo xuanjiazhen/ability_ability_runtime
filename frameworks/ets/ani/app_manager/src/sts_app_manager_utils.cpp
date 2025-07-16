@@ -73,12 +73,12 @@ bool SetAppStateData(ani_env *env, ani_object object, const AppExecFwk::AppState
         TAG_LOGE(AAFwkTag::APPMGR, "bundleName failed status:%{public}d", status);
         return false;
     }
-    status = env->Object_SetFieldByName_Double(object, "uid", static_cast<double>(appStateData.uid));
+    status = env->Object_SetFieldByName_Int(object, "uid", appStateData.uid);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "uid failed status:%{public}d", status);
         return false;
     }
-    status = env->Object_SetFieldByName_Double(object, "state", static_cast<double>(appStateData.state));
+    status = env->Object_SetFieldByName_Int(object, "state", appStateData.state);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "state failed status:%{public}d", status);
         return false;
@@ -796,7 +796,7 @@ bool UnWrapArrayString(ani_env *env, ani_object arrayObj, std::vector<std::strin
     return true;
 }
 
-ani_object CreateDoubleAniArray(ani_env * env, const std::vector<int32_t> &dataArry)
+ani_object CreateIntAniArray(ani_env * env, const std::vector<int32_t> &dataArry)
 {
     ani_class arrayCls = nullptr;
     ani_status status = ANI_OK;
@@ -827,7 +827,7 @@ ani_object CreateDoubleAniArray(ani_env * env, const std::vector<int32_t> &dataA
     }
 
     for (size_t i = 0; i < dataArry.size(); i++) {
-        ani_object intObj = AppExecFwk::createDouble(env, static_cast<double>(dataArry[i]));
+        ani_object intObj = AppExecFwk::createInt(env, dataArry[i]);
         if (intObj == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "intObj nullptr");
             return nullptr;
@@ -841,7 +841,7 @@ ani_object CreateDoubleAniArray(ani_env * env, const std::vector<int32_t> &dataA
     return arrayObj;
 }
 
-bool UnWrapArrayDouble(ani_env *env, ani_object arrayObj, std::vector<int32_t> &list)
+bool UnWrapArrayInt(ani_env *env, ani_object arrayObj, std::vector<int32_t> &list)
 {
     if (env == nullptr || arrayObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "env null or arrayObj null");
@@ -861,13 +861,13 @@ bool UnWrapArrayDouble(ani_env *env, ani_object arrayObj, std::vector<int32_t> &
             TAG_LOGE(AAFwkTag::APPMGR, "status : %{public}d, index: %{public}zu", status, idx);
             return false;
         }
-        ani_double dval = 0.0;
-        if ((status = env->Object_CallMethodByName_Double(static_cast<ani_object>(ref),
-            "unboxed", nullptr, &dval)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Double status : %{public}d", status);
+        ani_int ival = 0;
+        if ((status = env->Object_CallMethodByName_Int(static_cast<ani_object>(ref),
+            "unboxed", nullptr, &ival)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Int status : %{public}d", status);
             return false;
         }
-        list.push_back(static_cast<int32_t>(dval));
+        list.push_back(ival);
     }
     return true;
 }

@@ -53,7 +53,7 @@ void SwitchArea(ani_env *env, ani_object obj, ani_enum_item areaModeItem);
 
 ani_enum_item GetArea(ani_env *env, ani_object obj);
 
-ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId);
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long displayId);
 
 ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_object areaModeObj);
 

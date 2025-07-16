@@ -1090,5 +1090,170 @@ bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldNam
     }
     return true;
 }
+
+bool GetFieldLongByName(ani_env *env, ani_object object, const char *name, int64_t &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_long aniLong = 0;
+    if ((status = env->Object_GetFieldByName_Long(object, name, &aniLong)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    value = static_cast<int64_t>(aniLong);
+    return true;
+}
+
+bool SetFieldLongByName(ani_env *env, ani_class cls, ani_object object, const char *name, int64_t value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_field field = nullptr;
+    if ((status = env->Class_FindField(cls, name, &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetField_Long(object, field, value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool GetFieldIntByName(ani_env *env, ani_object object, const char *name, int32_t &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_int aniInt = 0;
+    if ((status = env->Object_GetFieldByName_Int(object, name, &aniInt)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    value = static_cast<int>(aniInt);
+    return true;
+}
+
+bool SetFieldIntByName(ani_env *env, ani_class cls, ani_object object, const char *name, int32_t value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_field field = nullptr;
+    if ((status = env->Class_FindField(cls, name, &field)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    if ((status = env->Object_SetField_Int(object, field, value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool GetLongPropertyObject(ani_env *env, ani_object param, const char *name, ani_long &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_ref obj = nullptr;
+    ani_status status = ANI_ERROR;
+    if (!GetRefProperty(env, param, name, obj)) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        return false;
+    }
+    if ((status = env->Object_CallMethodByName_Long(
+        reinterpret_cast<ani_object>(obj), "longValue", nullptr, &value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, ani_int &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_ref obj = nullptr;
+    ani_status status = ANI_ERROR;
+    if (!GetRefProperty(env, param, name, obj)) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        return false;
+    }
+    if ((status = env->Object_CallMethodByName_Int(
+        reinterpret_cast<ani_object>(obj), "intValue", nullptr, &value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool GetIntPropertyValue(ani_env *env, ani_object param, const char *name, int32_t &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    ani_int res = 0;
+    if ((status = env->Object_GetPropertyByName_Int(param, name, &res)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    value = res;
+    return true;
+}
+
+bool SetIntPropertyObject(ani_env *env, ani_object param, const char *name, int32_t value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_object obj = createInt(env, value);
+    if (obj == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_SetPropertyByName_Ref(param, name, obj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool SetIntPropertyValue(ani_env *env, ani_object param, const char *name, int32_t value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_SetPropertyByName_Int(param, name, value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -89,7 +89,7 @@ ani_object WrapWant(ani_env *env, const AAFwk::Want &want)
     env->Object_SetFieldByName_Ref(object, "moduleName", GetAniString(env, elementName.GetModuleName()));
     env->Object_SetFieldByName_Ref(object, "uri", GetAniString(env, want.GetUriString()));
     env->Object_SetFieldByName_Ref(object, "type", GetAniString(env, want.GetType()));
-    env->Object_SetFieldByName_Ref(object, "flags", createDouble(env, want.GetFlags()));
+    env->Object_SetFieldByName_Ref(object, "flags", createInt(env, want.GetFlags()));
     env->Object_SetFieldByName_Ref(object, "action", GetAniString(env, want.GetAction()));
     InnerWrapWantParams(env, cls, object, want.GetParams());
     SetFieldArrayString(env, cls, object, "entities", want.GetEntities());
@@ -226,10 +226,10 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
         want.SetUri(uri);
     }
 
-    ani_double flags = 0.0;
-    if (GetDoubleOrUndefined(env, param, "flags", flags)) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "flags %{public}f", flags);
-        want.SetFlags(static_cast<int>(flags));
+    int32_t flags = 0;
+    if (GetFieldIntByName(env, param, "flags", flags)) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "flags %{public}d", flags);
+        want.SetFlags(flags);
     }
 
     std::string type = "";
@@ -323,13 +323,13 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
     }
-    ani_double dResultCode = 0.0;
-    status = env->Object_CallMethod_Double(param, method, &dResultCode);
+    ani_int iResultCode = 0;
+    status = env->Object_CallMethod_Int(param, method, &iResultCode);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
     }
-    resultCode = static_cast<int>(dResultCode);
+    resultCode = static_cast<int>(iResultCode);
     return true;
 }
 

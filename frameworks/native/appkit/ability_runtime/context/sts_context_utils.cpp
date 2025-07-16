@@ -384,7 +384,7 @@ ani_enum_item GetArea(ani_env *env, ani_object obj)
     return areaModeItem;
 }
 
-ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId)
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long displayId)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateDisplayContext");
     if (env == nullptr) {
