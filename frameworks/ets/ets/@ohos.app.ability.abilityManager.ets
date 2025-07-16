@@ -99,6 +99,17 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
     });
   }
 
+export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
+function on(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void
+{
+  nativeOn('abilityForegroundState', observer);
+}
+
+export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
+function off(type: 'abilityForegroundState', observer?: AbilityForegroundStateObserver): void {
+  nativeOff('abilityForegroundState', observer);
+}
+
   export enum AbilityState {
     INITIAL = 0,
     FOCUS = 2,
