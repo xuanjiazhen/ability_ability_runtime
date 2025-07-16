@@ -1122,6 +1122,7 @@ sptr<IRemoteObject> EtsUIAbility::CallRequest()
         return nullptr;
     }
     auto obj = etsAbilityObj_->aniObj;
+    // need call onCallRequest to check callable
     ani_status status = ANI_ERROR;
     ani_ref calleeRef = nullptr;
     status = env->Object_GetFieldByName_Ref(obj, "callee", &calleeRef);
@@ -1129,6 +1130,8 @@ sptr<IRemoteObject> EtsUIAbility::CallRequest()
         TAG_LOGE(AAFwkTag::UIABILITY, "get callee: %{public}d", status);
         return nullptr;
     }
+    env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(calleeRef), "setNewRuleFlag",
+        "Z:V", ani_boolean(IsUseNewStartUpRule()));
     auto remoteObj = AniGetNativeRemoteObject(env, reinterpret_cast<ani_object>(calleeRef));
     if (remoteObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
