@@ -28,7 +28,18 @@ using ReleaseCallFunc = std::function<ErrCode(std::shared_ptr<CallerCallBack>)>;
 
 ani_object CreateEtsCaller(ani_env *env, ReleaseCallFunc releaseCallFunc,
     sptr<IRemoteObject> callee, std::shared_ptr<CallerCallBack> callback);
-ani_object CreateEtsCallee(ani_env *env);
+
+struct CallbackWrap {
+    CallbackWrap(ani_env *env, ani_object callerObj, const std::string &callbackName);
+    CallbackWrap(CallbackWrap &) = delete;
+    void operator=(CallbackWrap &) = delete;
+    ~CallbackWrap();
+    void Invoke(const std::string &msg);
+private:
+    ani_vm *aniVM = nullptr;
+    ani_ref callbackRef = nullptr;
+    std::string name;
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_SIMULATOR_STS_CALLER_COMPLEX_H

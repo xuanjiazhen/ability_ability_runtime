@@ -20,19 +20,15 @@ import Want from '@ohos.app.ability.Want';
 import rpc from '@ohos.rpc';
 import window from '@ohos.window';
 import { AbilityUtils } from './utils/AbilityUtils';
+import { CalleeImpl } from './application/Callee'
 
 export type OnReleaseCallback = (msg: string) => void;
-
 export type CalleeCallback = (indata: rpc.MessageSequence) => rpc.Parcelable;
-
 export interface Caller {
   call(method: string, data: rpc.Parcelable): Promise<void>;
-
   onRelease(callback: OnReleaseCallback): void;
-
   release(): void;
 }
-
 export interface Callee {
   on(method: string, callback: CalleeCallback): void;
 }
@@ -64,7 +60,7 @@ export default class UIAbility extends Ability {
   context: UIAbilityContext = new UIAbilityContext();
   launchWant: Want = new Want();
   lastRequestWant: Want = new Want();
-  callee: Callee | null = null;
+  callee: Callee = new CalleeImpl() as Callee;
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
   }

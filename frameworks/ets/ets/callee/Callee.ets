@@ -21,11 +21,6 @@ import { Callee, CalleeCallback } from '@ohos.app.ability.UIAbility';
 const domainID = 0x0000;
 const TAG = 'UIAbility';
 
-const EVENT_CALL_NOTIFY = 1;
-const REQUEST_SUCCESS = 0;
-const REQUEST_FAILED = 1;
-const PERMISSION_ABILITY_BACKGROUND_COMMUNICATION = 'ohos.permission.ABILITY_BACKGROUND_COMMUNICATION';
-
 const ERROR_CODE_INVALID_PARAM = 401;
 const ERROR_CODE_FUNC_REGISTERED = 16200004;
 const ERROR_CODE_FUNC_NOT_EXIST = 16200005;
