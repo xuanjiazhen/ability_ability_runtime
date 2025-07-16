@@ -193,6 +193,14 @@ static napi_value normalAVScreenCaptureTestStop(napi_env env, napi_callback_info
     double exceedPercentage = 1.2;
     int32_t width = 768;
     int32_t height = 1280;
+    //测试错误码：OH_AVScreenCapture_SkipPrivacyMode
+    vector<int> windowidsExclude = { -111 };
+    OH_AVSCREEN_CAPTURE_ErrCode skipResult = OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
+        &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
+    OH_LOG_INFO(LOG_APP, "SkipPrivacyMode initResult = %{public}d", skipResult);
+    if (skipResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect skipResult is 0");
+    }
     OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, width, height); // 768 width 1280 height
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, maxFrameRate);
     frameNum.store(0);
