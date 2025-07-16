@@ -4256,7 +4256,7 @@ int32_t AbilityManagerStub::IsEmbeddedOpenAllowedInner(MessageParcel &data, Mess
 
     std::string appId = data.ReadString();
     auto result = IsEmbeddedOpenAllowed(callerToken, appId);
-    if (!reply.WriteInt32(result)) {
+    if (!reply.WriteBool(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
     }
