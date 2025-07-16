@@ -29,6 +29,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 const size_t ApplicationContext::CONTEXT_TYPE_ID(std::hash<const char*> {} ("ApplicationContext"));
 std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callbacks_;
+std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::dynamicCallbacks_;
 std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 std::vector<std::weak_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
 
@@ -134,7 +135,7 @@ void ApplicationContext::DispatchOnAbilityCreate(std::shared_ptr<STSNativeRefere
 }
 
 void ApplicationContext::DispatchOnWindowStageCreate(std::shared_ptr<NativeReference> ability,
-    const std::shared_ptr<NativeReference> &windowStage)
+    std::shared_ptr<NativeReference> windowStage)
 {
     if (!ability || !windowStage) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability or windowStage");
@@ -164,7 +165,7 @@ void ApplicationContext::DispatchOnWindowStageCreate(std::shared_ptr<STSNativeRe
 }
 
 void ApplicationContext::DispatchOnWindowStageDestroy(std::shared_ptr<NativeReference> ability,
-    const std::shared_ptr<NativeReference> &windowStage)
+    std::shared_ptr<NativeReference> windowStage)
 {
     if (!ability || !windowStage) {
         TAG_LOGE(AAFwkTag::APPKIT, "null ability or windowStage");

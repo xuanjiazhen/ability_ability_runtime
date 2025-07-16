@@ -32,7 +32,7 @@ export default class ApplicationContext extends Context {
   public native nativeOnSync(type: 'environment', callback: EnvironmentCallback): number;
   public native nativeOffSync(type: 'environment', callbackId: number, callback: AsyncCallbackWrapper<void>): void;
   public native nativeOnLifecycleCallbackSync(type: string, callback: Object): number;
-  public native nativeOffLifecycleCallbackSync(type: stirng, callbackId: number): void;
+  public native nativeOffLifecycleCallbackSync(type: string, callbackId: number): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported: boolean): void;
   public native nativegetRunningProcessInformation(callback: AsyncCallbackWrapper<Array<ProcessInformation>>): void;

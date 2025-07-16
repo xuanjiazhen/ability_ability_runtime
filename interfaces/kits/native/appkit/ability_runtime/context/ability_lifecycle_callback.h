@@ -28,7 +28,7 @@ struct STSNativeReference;
 class AbilityLifecycleCallback {
 public:
     virtual ~AbilityLifecycleCallback() {}
-/*----------------------------------for arkts 1.1 listening UIAbility 1.1------------------------------------------------*/
+/*----------------------------------for arkts 1.1 listening UIAbility 1.1--------------------------------------------*/
     virtual void OnAbilityCreate(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnWindowStageCreate(const std::shared_ptr<NativeReference> &ability,
         const std::shared_ptr<NativeReference> &windowStage) {}
@@ -64,7 +64,7 @@ public:
     virtual void OnWillBackground(const std::shared_ptr<NativeReference> &ability) {}
     virtual void OnDidBackground(const std::shared_ptr<NativeReference> &ability) {}
 
-/*----------------------------------for arkts 1.2 listening UIAbility 1.2------------------------------------------------*/
+/*----------------------------------for arkts 1.2 listening UIAbility 1.2--------------------------------------------*/
     virtual void OnAbilityCreate(std::shared_ptr<STSNativeReference> ability) {}
     virtual void OnWindowStageCreate(std::shared_ptr<STSNativeReference> ability,
         std::shared_ptr<STSNativeReference> windowStage) {}

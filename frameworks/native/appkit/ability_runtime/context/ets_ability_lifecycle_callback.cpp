@@ -19,6 +19,7 @@
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"
+#include "sts_runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
