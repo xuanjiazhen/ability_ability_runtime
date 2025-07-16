@@ -64,6 +64,26 @@ void MainElementUtils::UpdateMainElement(const std::string &bundleName, const st
     }
 }
 
+bool MainElementUtils::IsMainUIAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_LOG(bms, false, "bms nullptr");
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!IN_PROCESS_CALL(bms->GetBundleInfoV9(bundleName,
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) |
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE, bundleInfo, userId)))) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "IsMainUIAbility get bundleInfo failed");
+        return false;
+    }
+    for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
+            continue;
+        }
+        return abilityName == hapModuleInfo.mainElementName;
+    }
+    return false;
+}
+
 bool MainElementUtils::CheckMainElement(const AppExecFwk::HapModuleInfo &hapModuleInfo,
     const std::string &processName, std::string &mainElement, bool &isDataAbility,
     std::string &uriStr, int32_t userId)

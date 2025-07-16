@@ -196,6 +196,23 @@ HWTEST_F(MainElementUtilsTest, CheckMainElement_006, TestSize.Level1)
 
 /*
  * Feature: MainElementUtils
+ * Function: IsMainUIAbility
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify IsMainUIAbility
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_001, TestSize.Level1)
+{
+    std::string bundleName = "bundleName";
+    std::string abilityName = "abilityName";
+    int32_t userId = 100;
+    bool res = MainElementUtils::IsMainUIAbility(bundleName, abilityName, userId);
+    EXPECT_FALSE(res);
+}
+
+/*
+ * Feature: MainElementUtils
  * Function: CheckMainUIAbility
  * SubFunction: NA
  * FunctionPoints:MainElementUtils CheckMainUIAbility

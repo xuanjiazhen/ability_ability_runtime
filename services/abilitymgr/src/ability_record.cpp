@@ -35,6 +35,7 @@
 #include "json_utils.h"
 #include "keep_alive_process_manager.h"
 #include "last_exit_detail_info.h"
+#include "main_element_utils.h"
 #include "multi_instance_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
@@ -375,9 +376,9 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     loadParam.instanceKey = instanceKey_;
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
-    want_.RemoveParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED);
-    if (KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1)) {
-        want_.SetParam(Want::PARAM_APP_KEEP_ALIVE_ENABLED, true);
+    auto userId = abilityInfo_.applicationInfo.uid / BASE_USER_RANGE;
+    if (KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1) &&
+        MainElementUtils::IsMainUIAbility(abilityInfo_.applicationInfo.bundleName, abilityInfo_.name, userId)) {
         loadParam.isKeepAlive = true;
     }
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
