@@ -349,8 +349,6 @@ public:
     Want want_;
     bool startAbility = false;
     bool commonMockResultFlag_ = true;
-    MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        uint32_t specifyTokenId, int32_t userId, int requestCode));
 };
 } // namespace AAFwk
 } // namespace OHOS

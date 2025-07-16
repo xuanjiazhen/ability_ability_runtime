@@ -273,36 +273,6 @@ HWTEST_F(AbilityManagerProxyTest, StartAbility_0400, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartAbilityWithSpecifyTokenId_0500
- * @tc.desc: StartAbilityWithSpecifyTokenId
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerProxyTest, StartAbilityWithSpecifyTokenId_0500, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "StartAbilityWithSpecifyTokenId_0500 start";
-
-    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
-        .Times(1)
-        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
-    Want want;
-    sptr<IRemoteObject> callerToken = nullptr;
-    int32_t result = proxy_->StartAbilityWithSpecifyTokenId(want, callerToken, 1, 1, 1);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_WITH_SPECIFY_TOKENID), mock_->code_);
-    EXPECT_NE(result, NO_ERROR);
-
-    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
-        .Times(1)
-        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
-    callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
-    EXPECT_NE(callerToken, nullptr);
-    result = proxy_->StartAbilityWithSpecifyTokenId(want, callerToken, 1, 1, 1);
-    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_WITH_SPECIFY_TOKENID), mock_->code_);
-    EXPECT_EQ(result, NO_ERROR);
-
-    GTEST_LOG_(INFO) << "StartAbilityWithSpecifyTokenId_0500 end";
-}
-
-/**
  * @tc.name: StartAbilityByInsightIntent_0600
  * @tc.desc: StartAbilityByInsightIntent
  * @tc.type: FUNC

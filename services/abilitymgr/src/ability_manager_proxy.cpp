@@ -248,52 +248,6 @@ int AbilityManagerProxy::StartAbility(
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::StartAbilityWithSpecifyTokenId(
-    const Want &want, const sptr<IRemoteObject> &callerToken, uint32_t specifyTokenId, int32_t userId, int requestCode)
-{
-    int error;
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!WriteInterfaceToken(data)) {
-        return INNER_ERR;
-    }
-    if (!data.WriteParcelable(&want)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
-    }
-    if (callerToken) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken and flag write fail");
-            return INNER_ERR;
-        }
-    } else {
-        if (!data.WriteBool(false)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
-            return INNER_ERR;
-        }
-    }
-    if (!data.WriteInt32(specifyTokenId)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifyTokenId write fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteInt32(userId)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
-        return INNER_ERR;
-    }
-    if (!data.WriteInt32(requestCode)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "requestCode write fail");
-        return INNER_ERR;
-    }
-    error = SendRequest(AbilityManagerInterfaceCode::START_ABILITY_WITH_SPECIFY_TOKENID, data, reply, option);
-    if (error != NO_ERROR) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
-        return error;
-    }
-    return reply.ReadInt32();
-}
-
 int32_t AbilityManagerProxy::StartAbilityByInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
     uint64_t intentId, int32_t userId)
 {

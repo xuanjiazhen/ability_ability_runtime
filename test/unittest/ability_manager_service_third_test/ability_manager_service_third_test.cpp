@@ -1299,23 +1299,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityByFreeInstall_002, TestSize
 
 /*
  * Feature: AbilityManagerService
- * Function: StartAbilityWithSpecifyTokenId
- * FunctionPoints: AbilityManagerService StartAbilityWithSpecifyTokenId
- */
-HWTEST_F(AbilityManagerServiceThirdTest, StartAbilityWithSpecifyTokenId_001, TestSize.Level1)
-{
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    Want want;
-    sptr<IRemoteObject> callerToken;
-    uint32_t specifyTokenId = 0;
-    int32_t userId = 0;
-    int32_t requestCode = 0;
-    auto result = abilityMs->StartAbilityWithSpecifyTokenId(want, callerToken, specifyTokenId, userId, requestCode);
-    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: StartAbilityByInsightIntent
  * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
  */

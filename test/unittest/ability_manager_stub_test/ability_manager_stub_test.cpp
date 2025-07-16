@@ -868,22 +868,6 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartAbilityInner_001, TestS
 
 /*
  * Feature: AbilityManagerService
- * Function: StartAbilityInnerSpecifyTokenId
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService StartAbilityInnerSpecifyTokenId
- * EnvConditions: NA
- * CaseDescription: Verify the function StartAbilityInnerSpecifyTokenId is normal flow.
- */
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartAbilityInnerSpecifyTokenId_001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    auto res = stub_->StartAbilityInnerSpecifyTokenId(data, reply);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: StartAbilityByUIContentSessionAddCallerInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartAbilityByUIContentSessionAddCallerInner
