@@ -13,15 +13,19 @@
  * limitations under the License.
  */
 
-#include "interop_guard.h"
+#include "interop_object.h"
 
+
+#include <node_api.h>
+
+#include "ani.h"
 #include "hilog_tag_wrapper.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-InteropGuard::InteropGuard(ani_env *env, ani_ref ref)
+InteropObject::InteropObject(ani_env *env, ani_ref ref)
 {
     if (env == nullptr || ref == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid args");
@@ -37,7 +41,7 @@ InteropGuard::InteropGuard(ani_env *env, ani_ref ref)
 }
 
 
-InteropGuard::InteropGuard(napi_env env, napi_value value)
+InteropObject::InteropObject(napi_env env, napi_value value)
 {
     if (env == nullptr || value == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid args");
@@ -47,7 +51,7 @@ InteropGuard::InteropGuard(napi_env env, napi_value value)
     hybridgref_create_from_napi(env, value, &ref_);
 }
 
-InteropGuard::~InteropGuard()
+InteropObject::~InteropObject()
 {
     if (ref_ == nullptr) {
         return;
@@ -65,7 +69,7 @@ InteropGuard::~InteropGuard()
     }
 }
 
-ani_env *InteropGuard::GetAniEnv()
+ani_env *InteropObject::GetAniEnv()
 {
     if (vm_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null vm_");
@@ -79,14 +83,14 @@ ani_env *InteropGuard::GetAniEnv()
     return env;
 }
 
-ani_object InteropGuard::GetAniValue(ani_env *env)
+ani_object InteropObject::GetAniValue(ani_env *env)
 {
     ani_object result = nullptr;
     hybridgref_get_esvalue(env, ref_, &result);
     return result;
 }
 
-napi_value InteropGuard::GetNapiValue(napi_env env)
+napi_value InteropObject::GetNapiValue(napi_env env)
 {
     napi_value result = nullptr;
     if (!hybridgref_get_napi_value(env, ref_, &result)) {

@@ -16,19 +16,22 @@
 #ifndef OHOS_ABILITY_RUNTIME_INTEROP_GUARD_H
 #define OHOS_ABILITY_RUNTIME_INTEROP_GUARD_H
 
-#include <node_api.h>
-
-#include "ani.h"
-
 typedef struct __hybridgref *hybridgref;
+typedef struct __ani_env ani_env;
+typedef struct __ani_vm ani_vm;
+typedef class __ani_object *ani_object;
+typedef class __ani_ref *ani_ref;
+
+typedef struct napi_env__* napi_env;
+typedef struct napi_value__* napi_value;
 
 namespace OHOS {
 namespace AbilityRuntime {
-class InteropGuard {
+class InteropObject {
 public:
-    InteropGuard(ani_env *env, ani_ref ref);
-    InteropGuard(napi_env env, napi_value value);
-    ~InteropGuard();
+    InteropObject(ani_env *env, ani_ref ref);
+    InteropObject(napi_env env, napi_value value);
+    ~InteropObject();
 
     ani_object GetAniValue(ani_env *env);
     napi_value GetNapiValue(napi_env env);

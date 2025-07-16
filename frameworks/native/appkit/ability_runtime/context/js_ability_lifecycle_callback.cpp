@@ -16,7 +16,7 @@
 #include "js_ability_lifecycle_callback.h"
 
 #include "hilog_tag_wrapper.h"
-#include "interop_guard.h"
+#include "interop_object.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"

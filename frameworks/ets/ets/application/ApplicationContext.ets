@@ -22,7 +22,7 @@ import type ApplicationStateChangeCallback from '@ohos.app.ability.ApplicationSt
 import Want from '@ohos.app.ability.Want';
 import { ProcessInformation } from 'application.ProcessInformation';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
-import StaticAbilityLifecycleCallback from '@ohos.app.ability.StaticAbilityLifecycleCallback';
+import InteropAbilityLifecycleCallback from '@ohos.app.ability.InteropAbilityLifecycleCallback';
 
 export default class ApplicationContext extends Context {
   static {
@@ -262,7 +262,7 @@ export default class ApplicationContext extends Context {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 
-  on(type: 'staticAbilityLifecycle', callback: StaticAbilityLifecycleCallback): number {
+  on(type: 'interopAbilityLifecycle', callback: InteropAbilityLifecycleCallback): number {
     return this.nativeOnLifecycleCallbackSync(type, callback);
   }
 
@@ -270,7 +270,7 @@ export default class ApplicationContext extends Context {
     return this.nativeOnLifecycleCallbackSync(type, callback);
   }
 
-  off(type: 'abilityLifecycle' | 'staticAbilityLifecycle', callbackId: number): Promise<void> {
+  off(type: 'abilityLifecycle' | 'interopAbilityLifecycle', callbackId: number): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError<void>) => void): void => {
         taskpool.execute((): void => {

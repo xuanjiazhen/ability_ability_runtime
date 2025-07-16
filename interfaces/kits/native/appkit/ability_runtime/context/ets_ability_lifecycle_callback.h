@@ -21,8 +21,6 @@
 
 #include "ability_lifecycle_callback.h"
 
-class NativeReference;
-typedef struct napi_env__* napi_env;
 typedef struct __ani_env ani_env;
 typedef struct __ani_vm ani_vm;
 typedef class __ani_object *ani_object;
@@ -30,44 +28,46 @@ typedef class __ani_ref *ani_ref;
 
 namespace OHOS {
 namespace AbilityRuntime {
-class StsAbilityLifecycleCallback : public AbilityLifecycleCallback,
-                                   public std::enable_shared_from_this<StsAbilityLifecycleCallback> {
+struct STSNativeReference;
+
+class EtsAbilityLifecycleCallback : public AbilityLifecycleCallback,
+                                   public std::enable_shared_from_this<EtsAbilityLifecycleCallback> {
 public:
-    explicit StsAbilityLifecycleCallback(ani_env *env);
-    void OnAbilityCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWindowStageCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnWindowStageDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnWindowStageActive([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnWindowStageInactive([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnAbilityWillCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWindowStageWillCreate([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnWindowStageWillDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnAbilityWillDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityWillForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityWillBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnNewWant([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWillNewWant([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityDestroy([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityContinue([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilityWillContinue([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWindowStageWillRestore([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnWindowStageRestore([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability,
-        std::shared_ptr<NativeReference> windowStage) override;
-    void OnAbilityWillSaveState([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnAbilitySaveState([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWillForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnDidForeground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnWillBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
-    void OnDidBackground([[maybe_unused]]napi_env env, std::shared_ptr<NativeReference> ability) override;
+    explicit EtsAbilityLifecycleCallback(ani_env *env);
+    void OnAbilityCreate(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWindowStageCreate(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnWindowStageDestroy(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnWindowStageActive(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnWindowStageInactive(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnAbilityWillCreate(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWindowStageWillCreate(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnWindowStageWillDestroy(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnAbilityWillDestroy(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityWillForeground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityWillBackground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnNewWant(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWillNewWant(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityDestroy(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityForeground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityBackground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityContinue(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilityWillContinue(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWindowStageWillRestore(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnWindowStageRestore(std::shared_ptr<STSNativeReference> ability,
+        std::shared_ptr<STSNativeReference> windowStage) override;
+    void OnAbilityWillSaveState(std::shared_ptr<STSNativeReference> ability) override;
+    void OnAbilitySaveState(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWillForeground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnDidForeground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnWillBackground(std::shared_ptr<STSNativeReference> ability) override;
+    void OnDidBackground(std::shared_ptr<STSNativeReference> ability) override;
 
     int32_t Register(ani_object callback);
     bool Unregister(int32_t callbackId);
@@ -75,10 +75,10 @@ public:
 
 private:
     ani_env *GetAniEnv();
-    void CallObjectMethod(napi_env env, const char *methodName, const char *signature,
-        std::shared_ptr<NativeReference> ability);
-    void CallObjectMethod(napi_env env, const char *methodName, const char *signature,
-        std::shared_ptr<NativeReference> ability, std::shared_ptr<NativeReference> windowStage);
+    void CallObjectMethod(const char *methodName, const char *signature,
+        std::shared_ptr<STSNativeReference> ability);
+    void CallObjectMethod(const char *methodName, const char *signature,
+        std::shared_ptr<STSNativeReference> ability, std::shared_ptr<STSNativeReference> windowStage);
 
 private:
     static int32_t serialNumber_;

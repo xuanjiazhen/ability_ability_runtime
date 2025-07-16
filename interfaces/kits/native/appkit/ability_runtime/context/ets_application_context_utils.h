@@ -78,8 +78,8 @@ public:
         std::shared_ptr<ApplicationContext> applicationContext);
 
 private:
-    static ani_double RegisterStaticAbilityLifecycleCallback(ani_env *env, ani_object callback);
-    static void UnregisterStaticAbilityLifecycleCallback(ani_env *env, int32_t callbackId);
+    static ani_double RegisterInteropAbilityLifecycleCallback(ani_env *env, ani_object callback);
+    static void UnregisterInteropAbilityLifecycleCallback(ani_env *env, int32_t callbackId);
     static ani_double RegisterAbilityLifecycleCallback(ani_env *env, ani_object callback);
     static void UnregisterAbilityLifecycleCallback(ani_env *env, int32_t callbackId);
 };

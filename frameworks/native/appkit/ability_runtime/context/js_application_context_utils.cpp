@@ -1370,8 +1370,8 @@ napi_value JsApplicationContextUtils::OnOn(napi_env env, NapiCallbackInfo& info)
     if (type == "applicationStateChange") {
         return OnOnApplicationStateChange(env, info);
     }
-    if (type == "staticAbilityLifecycle") {
-        return OnOnStaticAbilityLifecycle(env, info);
+    if (type == "interopAbilityLifecycle") {
+        return OnOnInteropAbilityLifecycle(env, info);
     }
     TAG_LOGE(AAFwkTag::APPKIT, "on function type not match");
     ThrowInvalidParamError(env, "Parse param callback failed, callback must be function.");
@@ -1490,7 +1490,7 @@ napi_value JsApplicationContextUtils::OnOffAbilityLifecycle(
     return result;
 }
 
-napi_value JsApplicationContextUtils::OnOnStaticAbilityLifecycle(napi_env env, NapiCallbackInfo& info)
+napi_value JsApplicationContextUtils::OnOnInteropAbilityLifecycle(napi_env env, NapiCallbackInfo& info)
 {
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
@@ -1503,9 +1503,9 @@ napi_value JsApplicationContextUtils::OnOnStaticAbilityLifecycle(napi_env env, N
         TAG_LOGD(AAFwkTag::APPKIT, "staticCallback_ is not nullptr");
         return CreateJsValue(env, staticCallback_->Register(info.argv[INDEX_ONE]));
     }
-    staticCallback_ = std::make_shared<JsStaticAbilityLifecycleCallback>(env);
+    staticCallback_ = std::make_shared<JsInteropAbilityLifecycleCallback>(env);
     int32_t callbackId = staticCallback_->Register(info.argv[INDEX_ONE]);
-    applicationContext->RegisterStaticAbilityLifecycleCallback(staticCallback_);
+    applicationContext->RegisterInteropAbilityLifecycleCallback(staticCallback_);
     return CreateJsValue(env, callbackId);
 }
 
@@ -1513,7 +1513,7 @@ napi_value JsApplicationContextUtils::OnOffStaticAbilityLifecycle(
     napi_env env, NapiCallbackInfo& info, int32_t callbackId)
 {
     auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-    std::weak_ptr<JsStaticAbilityLifecycleCallback> callbackWeak(staticCallback_);
+    std::weak_ptr<JsInteropAbilityLifecycleCallback> callbackWeak(staticCallback_);
     NapiAsyncTask::ExecuteCallback execute =
         [applicationContext = applicationContext_, innerErrCode, callbackId, callbackWeak]() {
             auto context = applicationContext.lock();

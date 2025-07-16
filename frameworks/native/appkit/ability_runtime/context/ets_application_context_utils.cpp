@@ -18,7 +18,7 @@
 #include "ani_enum_convert.h"
 #include "application_context_manager.h"
 #include "ets_ability_lifecycle_callback.h"
-#include "ets_static_ability_lifecycle_callback.h"
+#include "ets_interop_ability_lifecycle_callback.h"
 #include "hilog_tag_wrapper.h"
 #include "sts_app_manager_utils.h"
 #include "sts_context_utils.h"
@@ -32,14 +32,14 @@ constexpr double ERROR_CODE_NULL_ENV = -1;
 constexpr double ERROR_CODE_NULL_CALLBACK = -2;
 constexpr double ERROR_CODE_NULL_CONTEXT = -3;
 constexpr double ERROR_CODE_INVALID_PARAM = -4;
-const std::string TYPE_STATIC_ABILITY_LIFECYCLE = "staticAbilityLifecycle";
+const std::string TYPE_INTEROP_ABILITY_LIFECYCLE = "interopAbilityLifecycle";
 const std::string TYPE_ABILITY_LIFECYCLE = "abilityLifecycle";
 }
 std::weak_ptr<ApplicationContext> applicationContext_;
 std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_ = nullptr;
 std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_ = nullptr;
-std::shared_ptr<StsStaticAbilityLifecycleCallback> staticAbilityLifecycleCallback_ = nullptr;
-std::shared_ptr<StsAbilityLifecycleCallback> abilityLifecycleCallback_ = nullptr;
+std::shared_ptr<EtsInteropAbilityLifecycleCallback> interopAbilityLifecycleCallback_ = nullptr;
+std::shared_ptr<EtsAbilityLifecycleCallback> abilityLifecycleCallback_ = nullptr;
 
 void EtsApplicationContextUtils::RestartApp([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
     ani_object wantObj)
@@ -346,8 +346,8 @@ ani_double EtsApplicationContextUtils::NativeOnLifecycleCallbackSync([[maybe_unu
         return ani_double(ERROR_CODE_INVALID_PARAM);
     }
     TAG_LOGD(AAFwkTag::APPKIT, "type=%{public}s", stdType.c_str());
-    if (stdType == TYPE_STATIC_ABILITY_LIFECYCLE) {
-        return RegisterStaticAbilityLifecycleCallback(env, callback);
+    if (stdType == TYPE_INTEROP_ABILITY_LIFECYCLE) {
+        return RegisterInteropAbilityLifecycleCallback(env, callback);
     }
     if (stdType == TYPE_ABILITY_LIFECYCLE) {
         return RegisterAbilityLifecycleCallback(env, callback);
@@ -356,23 +356,23 @@ ani_double EtsApplicationContextUtils::NativeOnLifecycleCallbackSync([[maybe_unu
     return ani_double(ERROR_CODE_INVALID_PARAM);
 }
 
-ani_double EtsApplicationContextUtils::RegisterStaticAbilityLifecycleCallback(ani_env *env, ani_object callback)
+ani_double EtsApplicationContextUtils::RegisterInteropAbilityLifecycleCallback(ani_env *env, ani_object callback)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "call RegisterStaticAbilityLifecycleCallback");
+    TAG_LOGI(AAFwkTag::APPKIT, "call RegisterInteropAbilityLifecycleCallback");
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "applicationContext is null");
         AbilityRuntime::ThrowStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return ani_double(ERROR_CODE_NULL_CONTEXT);
     }
-    if (staticAbilityLifecycleCallback_ != nullptr) {
-        return ani_double(staticAbilityLifecycleCallback_->Register(env, callback));
+    if (interopAbilityLifecycleCallback_ != nullptr) {
+        return ani_double(interopAbilityLifecycleCallback_->Register(callback));
     }
 
-    staticAbilityLifecycleCallback_ = std::make_shared<StsStaticAbilityLifecycleCallback>();
-    int32_t callbackId = staticAbilityLifecycleCallback_->Register(env, callback);
+    interopAbilityLifecycleCallback_ = std::make_shared<EtsInteropAbilityLifecycleCallback>(env);
+    int32_t callbackId = interopAbilityLifecycleCallback_->Register(callback);
     if (callbackId >= 0) {
-        applicationContext->RegisterStaticAbilityLifecycleCallback(staticAbilityLifecycleCallback_);
+        applicationContext->RegisterInteropAbilityLifecycleCallback(interopAbilityLifecycleCallback_);
         return ani_double(callbackId);
     }
     if (callbackId == static_cast<int32_t>(ERROR_CODE_NULL_ENV) ||
@@ -398,7 +398,7 @@ ani_double EtsApplicationContextUtils::RegisterAbilityLifecycleCallback(ani_env 
         return ani_double(abilityLifecycleCallback_->Register(callback));
     }
 
-    abilityLifecycleCallback_ = std::make_shared<StsAbilityLifecycleCallback>(env);
+    abilityLifecycleCallback_ = std::make_shared<EtsAbilityLifecycleCallback>(env);
     int32_t callbackId = abilityLifecycleCallback_->Register(callback);
     if (callbackId >= 0) {
         applicationContext->RegisterAbilityLifecycleCallback(abilityLifecycleCallback_);
@@ -430,8 +430,8 @@ void EtsApplicationContextUtils::NativeOffLifecycleCallbackSync([[maybe_unused]]
         return;
     }
     TAG_LOGD(AAFwkTag::APPKIT, "type=%{public}s", stdType.c_str());
-    if (stdType == TYPE_STATIC_ABILITY_LIFECYCLE) {
-        UnregisterStaticAbilityLifecycleCallback(env, callbackId);
+    if (stdType == TYPE_INTEROP_ABILITY_LIFECYCLE) {
+        UnregisterInteropAbilityLifecycleCallback(env, callbackId);
         return;
     }
     if (stdType == TYPE_ABILITY_LIFECYCLE) {
@@ -441,7 +441,7 @@ void EtsApplicationContextUtils::NativeOffLifecycleCallbackSync([[maybe_unused]]
     ThrowStsInvalidParamError(env, "Unknown type.");
 }
 
-void EtsApplicationContextUtils::UnregisterStaticAbilityLifecycleCallback(ani_env *env, int32_t callbackId)
+void EtsApplicationContextUtils::UnregisterInteropAbilityLifecycleCallback(ani_env *env, int32_t callbackId)
 {
     auto applicationContext = applicationContext_.lock();
     if (applicationContext == nullptr) {
@@ -450,14 +450,14 @@ void EtsApplicationContextUtils::UnregisterStaticAbilityLifecycleCallback(ani_en
         return;
     }
 
-    if (staticAbilityLifecycleCallback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "staticAbilityLifecycleCallback_ is null");
+    if (interopAbilityLifecycleCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "interopAbilityLifecycleCallback_ is null");
         ThrowStsInvalidParamError(env, "Callback does not exist.");
         return;
     }
 
-    if (staticAbilityLifecycleCallback_->Unregister(callbackId)) {
-        applicationContext->UnregisterStaticAbilityLifecycleCallback(staticAbilityLifecycleCallback_);
+    if (interopAbilityLifecycleCallback_->Unregister(callbackId)) {
+        applicationContext->UnregisterInteropAbilityLifecycleCallback(interopAbilityLifecycleCallback_);
         return;
     }
     TAG_LOGE(AAFwkTag::APPKIT, "failed to unregister");
