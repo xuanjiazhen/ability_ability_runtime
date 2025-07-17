@@ -16,6 +16,7 @@
 import contextConstant from '@ohos.app.ability.contextConstant';
 import image from '@ohos.multimedia.image';
 import bundleManager from '@ohos.bundle.bundleManager';
+import CompletionHandler from '@ohos.app.ability.CompletionHandler';
 
 export default class StartOptions {
   windowMode?: number;
@@ -35,4 +36,6 @@ export default class StartOptions {
   minWindowHeight?: number;
   maxWindowWidth?: number;
   maxWindowHeight?: number;
+  completionHandler?: CompletionHandler;
+  hideStartWindow?: boolean;
 }
