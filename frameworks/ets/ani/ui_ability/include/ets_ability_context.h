@@ -136,6 +136,14 @@ private:
     int32_t GenerateRequestCode();
     void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
         AAFwk::StartOptions &options, std::string appId, ani_object callbackObj);
+    void UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions& options);
+    bool ExtractCompletionHandler(ani_env* env, ani_object param, ani_ref& completionHandler,
+        ani_ref& onRequestSuccObj, ani_ref& onRequestFailObj);
+    bool CreateAndRegisterCallback(ani_env* env, ani_ref completionHandler, ani_ref onRequestSuccObj,
+        ani_ref onRequestFailObj, AAFwk::StartOptions& options);
+    void CreateCallbacks(ani_env* env, const std::shared_ptr<ani_ref>& globalOnRequestSuccPtr,
+        const std::shared_ptr<ani_ref>& globalOnRequestFailPtr, OnRequestResult& onRequestSucc,
+        OnRequestResult& onRequestFail);
 
     std::weak_ptr<AbilityContext> context_;
     static std::mutex requestCodeMutex_;
