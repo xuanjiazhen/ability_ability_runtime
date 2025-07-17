@@ -63,7 +63,7 @@ export class Context extends BaseContext {
 
   private native getArea(): contextConstant.AreaMode;
 
-  public native nativeCreateDisplayContext(displayId: number): Context;
+  public native nativeCreateDisplayContext(displayId: long): Context;
 
   public native nativeCreateAreaModeContext(areaMode: contextConstant.AreaMode): Context;
 
@@ -122,7 +122,7 @@ export class Context extends BaseContext {
     return this.getArea();
   }
 
-  createDisplayContext(displayId: number): Context {
+  createDisplayContext(displayId: long): Context {
     return this.nativeCreateDisplayContext(displayId);
   }
 

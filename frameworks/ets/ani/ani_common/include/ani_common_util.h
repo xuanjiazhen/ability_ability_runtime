@@ -58,16 +58,26 @@ bool IsExistsProperty(ani_env *env, ani_object param, const char *name);
 bool GetStringProperty(ani_env *env, ani_object param, const char *name, std::string &value);
 bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
 bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value);
+bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, ani_int &value);
+bool GetLongPropertyObject(ani_env *env, ani_object param, const char *name, ani_long &value);
 bool GetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double &value);
+bool GetIntPropertyValue(ani_env *env, ani_object param, const char *name, int32_t &value);
 bool GetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref &value);
 
 bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double value);
 bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double value);
+bool SetIntPropertyObject(ani_env *env, ani_object param, const char *name, int32_t value);
+bool SetIntPropertyValue(ani_env *env, ani_object param, const char *name, int32_t value);
 bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, const std::vector<std::string> &values);
 bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref value);
 bool WrapArrayString(ani_env *env, ani_object &arrayObj, const std::vector<std::string> &values);
 bool UnwrapArrayString(ani_env *env, const ani_object &arrayObj, std::vector<std::string> &stringList);
 ani_object CreateEmptyArray(ani_env *env);
+
+bool GetFieldLongByName(ani_env *env, ani_object object, const char *name, int64_t &value);
+bool SetFieldLongByName(ani_env *env, ani_class cls, ani_object object, const char *name, int64_t value);
+bool GetFieldIntByName(ani_env *env, ani_object object, const char *name, int32_t &value);
+bool SetFieldIntByName(ani_env *env, ani_class cls, ani_object object, const char *name, int32_t value);
 
 bool GetStaticFieldString(ani_env *env, ani_class classObj, const char *fieldName, std::string &value);
 }  // namespace AppExecFwk

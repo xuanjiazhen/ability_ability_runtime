@@ -250,7 +250,7 @@ void OHOSApplication::InitAniContext()
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::SwitchArea)},
         ani_native_function {"getArea", nullptr,
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::GetArea)},
-        ani_native_function {"nativeCreateDisplayContext", "D:Lapplication/Context/Context;",
+        ani_native_function {"nativeCreateDisplayContext", "J:Lapplication/Context/Context;",
             reinterpret_cast<void *>(AbilityRuntime::ContextUtil::NativeCreateDisplayContext)},
         ani_native_function {"nativeCreateAreaModeContext",
             "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;:Lapplication/Context/Context;",
