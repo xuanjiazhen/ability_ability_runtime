@@ -48,6 +48,23 @@ bool GetIntByName(ani_env *env, ani_object param, const char *name, int &value)
     return true;
 }
 
+bool GetIntOrUndefined(ani_env *env, ani_object param, const char *name, ani_int &value)
+{
+    ani_ref obj = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_boolean hasValue = true;
+    if (GetPropertyRef(env, param, name, obj, hasValue) && hasValue) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        return false;
+    }
+    if ((status = env->Object_CallMethodByName_Int(
+        reinterpret_cast<ani_object>(obj), "toInt", nullptr, &value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status : %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_double &value)
 {
     ani_ref obj = nullptr;
@@ -780,6 +797,28 @@ bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, st
     return true;
 }
 
+bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, int &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_ref obj = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_boolean hasValue = true;
+    if (GetPropertyRef(env, param, name, obj, hasValue) && hasValue) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "%{public}s : undefined", name);
+        return false;
+    }
+    if ((status = env->Object_CallMethodByName_Int(
+        reinterpret_cast<ani_object>(obj), "toInt", nullptr, &value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value)
 {
     if (env == nullptr) {
@@ -801,6 +840,24 @@ bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, d
     }
     return true;
 }
+
+bool GetIntPropertyValue(ani_env *env, ani_object param, const char *name, int &value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    ani_int res = 0;
+    if ((status = env->Object_GetPropertyByName_Int(param, name, &res)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    value = static_cast<int>(res);
+    return true;
+}
+
 bool GetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double &value)
 {
     if (env == nullptr) {
@@ -863,6 +920,27 @@ bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, d
     return true;
 }
 
+bool SetIntPropertyObject(ani_env *env, ani_object param, const char *name, int value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_object obj = createInt(env, static_cast<ani_int>(value));
+    if (obj == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_SetPropertyByName_Ref(param, name, obj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double value)
 {
     if (env == nullptr) {
@@ -872,6 +950,21 @@ bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, do
 
     ani_status status = ANI_ERROR;
     if ((status = env->Object_SetPropertyByName_Double(param, name, value)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool SetIntPropertyValue(ani_env *env, ani_object param, const char *name, int value)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_SetPropertyByName_Int(param, name, value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::JSNAPI, "status: %{public}d", status);
         return false;
     }

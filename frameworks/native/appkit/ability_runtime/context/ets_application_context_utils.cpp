@@ -278,18 +278,18 @@ ani_double EtsApplicationContextUtils::NativeOnSync([[maybe_unused]]ani_env *env
         return ANI_ERROR;
     }
     if (etsEnviromentCallback_ != nullptr) {
-        return ani_double(etsEnviromentCallback_->Register(envCallback));
+        return ani_int(etsEnviromentCallback_->Register(envCallback));
     }
 
     etsEnviromentCallback_ = std::make_shared<EtsEnviromentCallback>(env);
     int32_t callbackId = etsEnviromentCallback_->Register(envCallback);
     applicationContext->RegisterEnvironmentCallback(etsEnviromentCallback_);
 
-    return ani_double(callbackId);
+    return ani_int(callbackId);
 }
 
 void EtsApplicationContextUtils::NativeOffSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
-    ani_string type, ani_double callbackId, ani_object call)
+    ani_string type, ani_int callbackId, ani_object call)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "NativeOffSync Call");
     if (env == nullptr) {

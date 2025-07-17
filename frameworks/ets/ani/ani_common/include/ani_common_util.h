@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 
+bool GetIntOrUndefined(ani_env *env, ani_object param, const char *name, ani_int &value);
 bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_double &value);
 bool GetBoolOrUndefined(ani_env *env, ani_object param, const char *name);
 bool GetStringOrUndefined(ani_env *env, ani_object param, const char *name, std::string &res);
@@ -57,12 +58,16 @@ ani_object GetPropertyValueByName(ani_env *env, ani_object param, const char *pr
 bool IsExistsProperty(ani_env *env, ani_object param, const char *name);
 bool GetStringProperty(ani_env *env, ani_object param, const char *name, std::string &value);
 bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, std::vector<std::string> &value);
+bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, int &value);
 bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double &value);
 bool GetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double &value);
+bool GetIntPropertyValue(ani_env *env, ani_object param, const char *name, int &value);
 bool GetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref &value);
 
 bool SetDoublePropertyObject(ani_env *env, ani_object param, const char *name, double value);
+bool SetIntPropertyObject(ani_env *env, ani_object param, const char *name, int value);
 bool SetDoublePropertyValue(ani_env *env, ani_object param, const char *name, double value);
+bool SetIntPropertyValue(ani_env *env, ani_object param, const char *name, int value);
 bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, const std::vector<std::string> &values);
 bool SetRefProperty(ani_env *env, ani_object param, const char *name, ani_ref value);
 bool WrapArrayString(ani_env *env, ani_object &arrayObj, const std::vector<std::string> &values);

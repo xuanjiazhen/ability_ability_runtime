@@ -28,14 +28,14 @@ export default class ApplicationContext extends Context {
   }
 
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
-  public native nativeOnSync(type: 'environment', callback: EnvironmentCallback): number;
-  public native nativeOffSync(type: 'environment', callbackId: number, callback: AsyncCallbackWrapper<void>): void;
+  public native nativeOnSync(type: 'environment', callback: EnvironmentCallback): int;
+  public native nativeOffSync(type: 'environment', callbackId: int, callback: AsyncCallbackWrapper<void>): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported: boolean): void;
   public native nativegetRunningProcessInformation(callback: AsyncCallbackWrapper<Array<ProcessInformation>>): void;
   public native nativeclearUpApplicationData(callback: AsyncCallbackWrapper<void>): void;
   public native nativesetLanguage(language: string): void;
-  public native nativesetFontSizeScale(fontSizeScale: number): void;
+  public native nativesetFontSizeScale(fontSizeScale: double): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
   public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
@@ -62,18 +62,18 @@ export default class ApplicationContext extends Context {
     this.nativeOffApplicationStateChangeSync(callback);
   }
 
-  on(type: 'environment', callback: EnvironmentCallback): number {
+  on(type: 'environment', callback: EnvironmentCallback): int {
     return this.nativeOnSync(type, callback);
   }
 
-  off(type: 'environment', callbackId: number, callback: AsyncCallback<void>): void {
+  off(type: 'environment', callbackId: int, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeOffSync(type, callbackId, myCall);
     });
   }
 
-  off(type: 'environment', callbackId: number): Promise<void> {
+  off(type: 'environment', callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -219,7 +219,7 @@ export default class ApplicationContext extends Context {
     this.nativesetLanguage(language);
   }
 
-  setFontSizeScale(fontSizeScale: number): void {
+  setFontSizeScale(fontSizeScale: double): void {
     this.nativesetFontSizeScale(fontSizeScale);
   }
 

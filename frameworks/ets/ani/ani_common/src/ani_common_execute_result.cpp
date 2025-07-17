@@ -65,8 +65,8 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
         return false;
     }
 
-    ani_double code = 0;
-    if (!GetDoublePropertyValue(env, param, "code", code)) {
+    ani_int code = 0;
+    if (!GetIntPropertyValue(env, param, "code", code)) {
         TAG_LOGE(AAFwkTag::INTENT, "parse code fail");
         return false;
     }
@@ -89,8 +89,8 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
     }
 
     if (IsExistsProperty(env, param, "flags")) {
-        double flags = 0.0;
-        if (!GetDoublePropertyObject(env, param, "flags", flags)) {
+        ani_int flags = 0;
+        if (!GetIntPropertyObject(env, param, "flags", flags)) {
             TAG_LOGE(AAFwkTag::INTENT, "unwrap flags is null");
             return false;
         }
@@ -128,8 +128,8 @@ ani_object WrapExecuteResult(ani_env *env, AppExecFwk::InsightIntentExecuteResul
         return nullptr;
     }
 
-    if (!SetDoublePropertyValue(env, objValue, "code", static_cast<double>(executeResult.code))) {
-        TAG_LOGE(AAFwkTag::INTENT, "SetDoubleProperty failded");
+    if (!SetIntPropertyValue(env, objValue, "code", static_cast<int>(executeResult.code))) {
+        TAG_LOGE(AAFwkTag::INTENT, "SetIntProperty failded");
         return nullptr;
     }
     if (executeResult.result != nullptr) {
@@ -138,7 +138,7 @@ ani_object WrapExecuteResult(ani_env *env, AppExecFwk::InsightIntentExecuteResul
     if (executeResult.uris.size() > 0) {
         SetStringArrayProperty(env, objValue, "uris", executeResult.uris);
     }
-    SetDoublePropertyObject(env, objValue, "flags", static_cast<double>(executeResult.flags));
+    SetIntPropertyObject(env, objValue, "flags", static_cast<int>(executeResult.flags));
 
     return objValue;
 }

@@ -54,7 +54,7 @@ public:
     static void GetAllRunningInstanceKeys([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_object callback);
     static ani_double NativeOnSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
-        ani_string type, ani_object envCallback);
+        ani_string type, ani_int envCallback);
     static void NativeOffSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
         ani_string type, ani_double callbackId, ani_object call);
     static void NativeOnApplicationStateChangeSync([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object aniObj,
