@@ -20,6 +20,8 @@
 #include "configuration_convertor.h"
 #include "sts_ability_stage_context.h"
 #include "ani_common_configuration.h"
+#include "ani_common_want.h"
+#include "ani_enum_convert.h"
 #include "ohos_application.h"
 #include "startup_manager.h"
 #include "hitrace_meter.h"
@@ -44,6 +46,8 @@ constexpr const char* WAIT_ON_MAIN_THREAD = "waitOnMainThread";
 constexpr const char* CONFIG_ENTRY = "configEntry";
 constexpr const char *TASKPOOL = "taskPool";
 constexpr const char *TASKPOOL_LOWER = "taskpool";
+constexpr const char* MEMORY_LEVEL_ENUM_NAME =
+    "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
 
 namespace {
 void RegisterStopPreloadSoCallback(STSRuntime& stsRuntime)
@@ -141,10 +145,10 @@ void STSAbilityStage::Init(const std::shared_ptr<Context> &context,
 
 void STSAbilityStage::OnCreate(const AAFwk::Want &want) const
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "OnCreate called");
     AbilityStage::OnCreate(want);
-
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnCreate begin");
     CallObjectMethod(false, "onCreate", ":V");
-
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "STSAbilityStage::OnCreate end");
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::STS);
     if (delegator) {
@@ -154,18 +158,53 @@ void STSAbilityStage::OnCreate(const AAFwk::Want &want) const
 
 void STSAbilityStage::OnDestroy() const
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "OnDestroy called");
     AbilityStage::OnDestroy();
     CallObjectMethod(false, "onDestroy", ":V");
 }
 
 std::string STSAbilityStage::OnAcceptWant(const AAFwk::Want &want)
 {
-    return std::string();
+    TAG_LOGD(AAFwkTag::APPKIT, "OnAcceptWant called");
+    AbilityStage::OnAcceptWant(want);
+
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env nullptr");
+        return "";
+    }
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+    std::string strResult;
+    ani_object resObj = CallObjectMethod("onAcceptWant", "L@ohos/app/ability/Want/Want;:Lstd/core/String;", wantRef);
+    ani_string ani_result = reinterpret_cast<ani_string>(resObj);
+    if (!OHOS::AppExecFwk::GetStdString(env, ani_result, strResult)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ani_result GetStdString failed");
+    }
+    return strResult;
 }
 
 std::string STSAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
 {
-    return std::string();
+    TAG_LOGD(AAFwkTag::APPKIT, "OnNewProcessRequest called");
+    AbilityStage::OnNewProcessRequest(want);
+
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env nullptr");
+        return "";
+    }
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+
+    std::string strResult;
+    ani_object resObj = CallObjectMethod("onNewProcessRequest",
+        "L@ohos/app/ability/Want/Want;:Lstd/core/String;", wantRef);
+
+    ani_string ani_result = reinterpret_cast<ani_string>(resObj);
+
+    if (!OHOS::AppExecFwk::GetStdString(env, ani_result, strResult)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ani_result GetStdString failed");
+    }
+    return strResult;
 }
 
 void STSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
@@ -187,6 +226,21 @@ void STSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& co
 
 void STSAbilityStage::OnMemoryLevel(int32_t level)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "OnMemoryLevel called");
+    AbilityStage::OnMemoryLevel(level);
+
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
+        return;
+    }
+    ani_enum_item memoryLevelItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvertNativeToSts(env,
+        MEMORY_LEVEL_ENUM_NAME, level, memoryLevelItem);
+
+    CallObjectMethod(false, "onMemoryLevel", "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;:V",
+        memoryLevelItem);
+    TAG_LOGD(AAFwkTag::APPKIT, "end");
 }
 
 int32_t STSAbilityStage::RunAutoStartupTask(const std::function<void()> &callback, bool &isAsyncCallback,
@@ -229,7 +283,6 @@ bool STSAbilityStage::CallObjectMethod(bool withResult, const char *name, const 
         TAG_LOGE(AAFwkTag::ABILITY, "stsAbilityStageObj_ nullptr");
         return false;
     }
-
     auto env = stsRuntime_.GetAniEnv();
     STSAbilityStageContext::ResetEnv(env);
     ani_status status = ANI_OK;
@@ -259,6 +312,41 @@ bool STSAbilityStage::CallObjectMethod(bool withResult, const char *name, const 
     }
     va_end(args);
     return false;
+}
+
+ani_object STSAbilityStage::CallObjectMethod(const char *name, const char *signature, ...)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
+    TAG_LOGD(AAFwkTag::UIABILITY, "StsUIAbility call sts, name: %{public}s", name);
+    if (stsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj");
+        return nullptr;
+    }
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return nullptr;
+    }
+    auto obj = stsAbilityStageObj_->aniObj;
+    auto cls = stsAbilityStageObj_->aniCls;
+    ani_status status = ANI_ERROR;
+
+    ani_method method {};
+    if ((status = env->Class_FindMethod(cls, name, signature, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        env->ResetError();
+        return nullptr;
+    }
+    ani_ref res {};
+    va_list args;
+    va_start(args, signature);
+    if ((status = env->Object_CallMethod_Ref(obj, method, &res, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        stsRuntime_.HandleUncaughtError();
+        return nullptr;
+    }
+    va_end(args);
+    return reinterpret_cast<ani_object>(res);
 }
 
 std::shared_ptr<AppExecFwk::ETSDelegatorAbilityStageProperty> STSAbilityStage::CreateStageProperty() const
