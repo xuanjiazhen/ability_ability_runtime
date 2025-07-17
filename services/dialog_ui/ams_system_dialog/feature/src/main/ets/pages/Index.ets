@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-import { IntentContent, IntentInfo } from '../view/IntentContent'
-import { IntentDetailPage } from '../view/IntentDetailPage'
-import common from '@ohos.app.ability.common';
+import { IntentContent, IntentInfo } from '../view/IntentContent';
+import { IntentDetailPage } from '../view/IntentDetailPage';
+import { common } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+const DOMAIN = 0x1323;
 
 @Entry
 @Component
@@ -24,8 +26,13 @@ struct Index {
   scroller: Scroller = new Scroller();
 
   onBackPress() {
-      let context = AppStorage.get('context') as common.UIAbilityContext;
+    try {
+      let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
       context.terminateSelf();
+      } catch (err) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Failed to context.terminateSelf.', JSON.stringify(err));
+    }
+    return true;
   }
 
   @Builder

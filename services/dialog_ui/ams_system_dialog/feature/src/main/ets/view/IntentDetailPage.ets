@@ -15,10 +15,8 @@
 
 import { IntentInfo } from './IntentContent';
 import { DetailItem } from './DetailItem';
-import insightIntentDriver from '@ohos.app.ability.insightIntentDriver';
-import insightIntent from '@ohos.app.ability.insightIntent';
+import { insightIntent, insightIntentDriver } from '@kit.AbilityKit';
 import { format, jsClone, addArrayParams, removeArrayParams, romoveFormData } from './format';
-import common from '@ohos.app.ability.common';
 
 interface propertiesInfo {
   name: string
@@ -140,8 +138,8 @@ export struct IntentDetailPage {
   }
 
   onBackPress() {
-    let context = AppStorage.get('context') as common.UIAbilityContext;
-    context.terminateSelf();
+    this.articlePathStack.pop();
+    return true;
   }
 
   @Provide InputTypeData: Record<string, InputType> = {
@@ -485,8 +483,8 @@ export struct IntentDetailPage {
         .maxLines(1)
       Column() {
         Select(field.options?.map(option => {
-          const opt: SelectOption = { value: option.toString() }
-          return opt
+          const opt: SelectOption = { value: option.toString() };
+          return opt;
         }))
           .width('100%')
           .height(40)
@@ -665,7 +663,7 @@ export struct IntentDetailPage {
       .position({ top: 0, left: 0 })
       .zIndex(100)
       .onClick(() => {
-        this.articlePathStack.pop()
+        this.articlePathStack.pop();
       })
 
       Scroll(this.scroller) {
@@ -826,7 +824,7 @@ export struct IntentDetailPage {
           .borderRadius(20)
           .height(40)
           .onClick(() => {
-            this.submitForm()
+            this.submitForm();
           })
           .bindSheet($$this.isShow, this.resultModule(), {
             height: SheetSize.MEDIUM,
