@@ -44,6 +44,7 @@ ohos_shared_library("ani_common") {
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
+    "src/ani_task.cpp",
   ]
 
   cflags = []
@@ -64,6 +65,7 @@ ohos_shared_library("ani_common") {
     "ability_base:base",
     "ability_base:want",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "image_framework:image_ani",
     "json:nlohmann_json_static",
