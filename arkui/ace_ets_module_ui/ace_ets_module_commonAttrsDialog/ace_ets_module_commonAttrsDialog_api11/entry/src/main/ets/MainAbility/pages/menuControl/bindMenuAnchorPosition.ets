@@ -25,7 +25,7 @@ struct BindMenuAnchorPosition {
   @Builder
   MenuBuilder() {
     Column() {
-      Text('Options')
+      Text('Options').id('Options')
       Divider().strokeWidth(2).margin(5).color('#F0F0F0')
       Text('Hide')
       Divider().strokeWidth(2).margin(5).color('#F0F0F0')

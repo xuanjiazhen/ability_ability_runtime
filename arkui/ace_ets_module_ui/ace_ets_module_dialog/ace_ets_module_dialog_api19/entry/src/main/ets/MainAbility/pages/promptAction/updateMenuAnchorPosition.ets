@@ -23,7 +23,7 @@ let innerEvent: emitter.InnerEvent = {
 function buildText() {
   Column() {
     Menu(){
-      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' })
+      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' }).id('menuItem')
       MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项2' })
     }
   }
@@ -87,7 +87,7 @@ struct Index {
             promptAction.updateMenu(contentNode, {
               anchorPosition:{x:20, y:20},
             })
-          }, 4000);
+          }, 2000);
         })
 
       Button('updateMenu2')
@@ -114,7 +114,7 @@ struct Index {
             promptAction.updateMenu(contentNode, {
               anchorPosition:{x:10, y:20},
             })
-          }, 4000);
+          }, 2000);
         })
 
       Button('updateMenu3')
@@ -141,7 +141,7 @@ struct Index {
             promptAction.updateMenu(contentNode, {
               anchorPosition:{x:-20, y:20},
             })
-          }, 4000);
+          }, 2000);
         })
 
     }

@@ -23,7 +23,7 @@ let innerEvent: emitter.InnerEvent = {
 function buildText() {
   Column() {
     Menu(){
-      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' })
+      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' }).id('menuItem')
       MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项2' })
     }
   }
