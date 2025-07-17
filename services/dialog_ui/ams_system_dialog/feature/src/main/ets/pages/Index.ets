@@ -12,10 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IntentContent, IntentInfo } from '../view/IntentContent';
+import { IntentDetailPage } from '../view/IntentDetailPage';
+import { common } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
-import { IntentContent, IntentInfo } from '../view/IntentContent'
-import { IntentDetailPage } from '../view/IntentDetailPage'
-import common from '@ohos.app.ability.common';
+const DOMAIN = 0x1323;
 
 @Entry
 @Component
@@ -24,26 +26,31 @@ struct Index {
   scroller: Scroller = new Scroller();
 
   onBackPress() {
-      let context = AppStorage.get('context') as common.UIAbilityContext;
+    try {
+      let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
       context.terminateSelf();
+    } catch (err) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Failed to context.terminateSelf.', JSON.stringify(err));
+    }
+    return true;
   }
 
   @Builder
   intentRouter(name: string, param?: IntentInfo) {
     if (name === 'intentDetail') {
       IntentDetailPage()
-    }else {
+    } else {
       IntentContent()
     }
   }
 
   build() {
-      Navigation(this.articlePathStack) {
-        IntentContent()
-      }
-      .navDestination(this.intentRouter)
-      .hideTitleBar(true)
-      .mode(NavigationMode.Stack)
+    Navigation(this.articlePathStack) {
+      IntentContent()
+    }
+    .navDestination(this.intentRouter)
+    .hideTitleBar(true)
+    .mode(NavigationMode.Stack)
 
   }
 }

@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import insightIntentDriver from '@ohos.app.ability.insightIntentDriver';
-import base from '@ohos.base'
-import hilog from '@ohos.hilog';
-import application from '@ohos.app.ability.application';
+import { application, common, insightIntentDriver } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { image } from '@kit.ImageKit';
 import { jsClone } from './format';
-import bundle from '@ohos.bundle.bundleManager'
-import image from '@ohos.multimedia.image';
-import common from '@ohos.app.ability.common';
+import bundle from '@ohos.bundle.bundleManager';
+
+const DOMAIN = 0x1323;
 
 export interface ItemInfo {
   title: string,
@@ -40,19 +40,24 @@ export interface IntentGrout {
 export struct IntentContent {
   @Consume('articlePathStack') articlePathStack: NavPathStack;
   scroller: Scroller = new Scroller();
-  @State listMaterial: IntentInfo[] | null = null
-  @State groupMaterial1: Record<string, IntentInfo[]> = {}
-  @State groupMaterial: Record<string, IntentInfo[]> = {}
+  @State listMaterial: IntentInfo[] | null = null;
+  @State groupMaterial1: Record<string, IntentInfo[]> = {};
+  @State groupMaterial: Record<string, IntentInfo[]> = {};
   context = this.getUIContext().getHostContext();
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
 
   aboutToAppear() {
-    this.getInfos()
+    this.getInfos();
   }
 
   onBackPress() {
-    let context = AppStorage.get('context') as common.UIAbilityContext;
-    context.terminateSelf();
+    try {
+      let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      context.terminateSelf();
+    } catch (err) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Failed to context.terminateSelf.', JSON.stringify(err));
+    }
+    return true;
   }
 
   async getInfos() {
@@ -77,7 +82,7 @@ export struct IntentContent {
                   this.getAllIntentIcon(this.groupMaterial1[bundleName][key]['icon'], bundleName).then((value) => {
                     this.groupMaterial1[bundleName][key]['iconImg'] = value;
                     this.setAppName(this.groupMaterial1[bundleName][0]).then((value) => {
-                      this.groupMaterial[value] = this.groupMaterial1[bundleName]
+                      this.groupMaterial[value] = this.groupMaterial1[bundleName];
                     })
                   })
                 })
@@ -89,12 +94,12 @@ export struct IntentContent {
             }
           })
         })
-        .catch((err: base.BusinessError) => {
-          hilog.info(0x0000, 'testTag', 'getAllInsightIntentInfo errCode: %{public}d', err.code);
-          hilog.info(0x0000, 'testTag', 'getAllInsightIntentInfo errMessage: %{public}s', err.message);
+        .catch((err: BusinessError) => {
+          hilog.error(DOMAIN, 'InsightIntents', 'getAllInsightIntentInfo errCode: %{public}d', err.code);
+          hilog.error(DOMAIN, 'InsightIntents', 'getAllInsightIntentInfo errMessage: %{public}s', err.message);
         });
     } catch (error) {
-      hilog.error(0x0000, 'testTag', 'getAllInsightIntentInfo error caught %{public}s', JSON.stringify(error));
+      hilog.error(DOMAIN, 'InsightIntents', 'getAllInsightIntentInfo error caught %{public}s', JSON.stringify(error));
     }
   }
 
@@ -154,7 +159,7 @@ export struct IntentContent {
   async getAllIntentIcon(icon: string,
     bundleName: string): Promise<PixelMap | ResourceStr | DrawableDescriptor | undefined> {
     let pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
-    let resourceName2:string='';
+    let resourceName2: string = '';
     if (icon.startsWith('$r')) {
       try {
         let resourceStr: string | undefined = icon.match(/['"](.+)['"]/)?.[1];
@@ -171,9 +176,10 @@ export struct IntentContent {
         const bundleContext = await application.createBundleContext(context, bundleName);
         const valuePromise: Promise<Uint8Array> = bundleContext.resourceManager.getMediaByName(resourceName);
         const value: Uint8Array = await valuePromise;
-        pixelMap = await this.uint8ArrayToImage(value);
+        pixelMap = await this.uint8ArrayToImage(value) ?? undefined;
 
       } catch (err) {
+        hilog.error(DOMAIN, 'InsightIntents', 'Failed to getAllIntentIcon', JSON.stringify(err));
         return pixelMap;
       }
     } else {
@@ -182,17 +188,29 @@ export struct IntentContent {
     return pixelMap;
   }
 
-  async uint8ArrayToImage(buffer: Uint8Array): Promise<PixelMap> {
-    const imageSource = image.createImageSource(buffer.buffer);
-    const imgIcon = await this.getUint8Array(imageSource);
-    imageSource.release();
+  async uint8ArrayToImage(buffer: Uint8Array): Promise<PixelMap | null> {
+    let imgIcon: image.PixelMap | null = null;
+    try {
+      const imageSource = image.createImageSource(buffer.buffer);
+      const imgIcon = await this.getUint8Array(imageSource);
+      imageSource.release();
+      return imgIcon;
+    } catch (error) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Error in uint8ArrayToImage', JSON.stringify(error));
+    }
     return imgIcon;
   }
 
-  async getUint8Array(imageSource: image.ImageSource): Promise<PixelMap> {
-    const imageIcon = await imageSource.createPixelMap({
-      desiredSize: { width: 24, height: 24 }
-    });
+  async getUint8Array(imageSource: image.ImageSource): Promise<PixelMap | null> {
+    let imageIcon: image.PixelMap | null = null;
+    try {
+      const imageIcon = await imageSource.createPixelMap({
+        desiredSize: { width: 24, height: 24 }
+      });
+      return imageIcon;
+    } catch (error) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Error in getUint8Array', JSON.stringify(error));
+    }
     return imageIcon;
   }
 
@@ -269,8 +287,12 @@ export struct IntentContent {
       .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
       .onClick(() => {
-        let context = AppStorage.get('context') as common.UIAbilityContext;
-        context.terminateSelf();
+        try {
+          let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+          context.terminateSelf();
+        } catch (err) {
+          hilog.error(DOMAIN, 'InsightIntents', 'Failed to context.terminateSelf.', JSON.stringify(err));
+        }
       })
 
       Scroll(this.scroller) {
@@ -302,8 +324,7 @@ export struct IntentContent {
     }
     .width('100%')
     .height('100%')
-    .padding({top:36})
+    .padding({ top: 36 })
     .backgroundColor($r('app.color.background_cont'))
   }
 }
-
