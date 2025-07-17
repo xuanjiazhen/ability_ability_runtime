@@ -333,11 +333,7 @@ public:
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
 
-    /**
-     * @brief Called when distributed system trying to collaborate remote ability.
-     * @param want want with collaborative info.
-     */
-    void HandleCollaboration(const Want &want) override;
+    int32_t OnCollaborate(WantParams &wantParams) override;
 
 protected:
     void DoOnForeground(const Want &want) override;
@@ -352,8 +348,7 @@ private:
     inline bool GetInsightIntentExecutorInfo(const Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         InsightIntentExecutorInfo& executeInfo);
-    int32_t OnCollaborate(WantParams &wantParams);
-    
+
     std::shared_ptr<NativeReference> jsWindowStageObj_;
     int32_t windowMode_ = 0;
 #endif

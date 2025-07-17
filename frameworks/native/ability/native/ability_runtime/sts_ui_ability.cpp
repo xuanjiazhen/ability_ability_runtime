@@ -64,18 +64,6 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 // Numerical base (radix) that determines the valid characters and their interpretation.
 #ifdef SUPPORT_SCREEN
 const int32_t BASE_DISPLAY_ID_NUM(10);
-enum CollaborateResult {
-    ACCEPT = 0,
-    REJECT,
-};
-[[maybe_unused]] static CollaborateResult CollaborateResult_ConvertStsToNative(const int32_t index)
-{
-    return static_cast<CollaborateResult>(index);
-}
-[[maybe_unused]] static int32_t CollaborateResult_ConvertNativeToSts(const CollaborateResult value)
-{
-    return value;
-}
 #endif
 constexpr const int32_t API12 = 12;
 constexpr const int32_t API_VERSION_MOD = 100;
@@ -633,6 +621,7 @@ void StsUIAbility::OnForeground(const Want &want)
     }
 
     UIAbility::OnForeground(want);
+    HandleCollaboration(want);
 
     if (CheckIsSilentForeground()) {
         TAG_LOGD(AAFwkTag::UIABILITY, "silent foreground, do not call 'onForeground'");
@@ -711,6 +700,10 @@ void StsUIAbility::OnBackground()
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+    }
+    auto want = GetWant();
+    if (want != nullptr) {
+        HandleCollaboration(*want);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1163,9 +1156,37 @@ int32_t StsUIAbility::OnCollaborate(WantParams &wantParam)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "OnCollaborate: %{public}s", GetAbilityName().c_str());
     int32_t ret = CollaborateResult::REJECT;
-
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return ret;
+    }
     if (stsAbilityObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj_");
+        return ret;
+    }
+    ani_method method {};
+    ani_status status = env->Class_FindMethod(stsAbilityObj_->aniCls, "onCollaborate", nullptr, &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Class_FindMethod status: %{public}d", status);
+        env->ResetError();
+        return ret;
+    }
+    ani_value args[1] = {};
+    ani_ref wantParamsRef = OHOS::AppExecFwk::WrapWantParams(env, wantParam);
+    if (wantParamsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamsRef");
+        return ret;
+    }
+    args[0].r = wantParamsRef;
+    ani_ref result {};
+    if ((status = env->Object_CallMethod_Ref_A(stsAbilityObj_->aniObj, method, &result, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_CallMethod_Ref_A status: %{public}d", status);
+        return ret;
+    }
+    OHOS::AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParam);
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(env, reinterpret_cast<ani_enum_item>(result), ret)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvertStsToNative failed");
         return ret;
     }
     ret = (ret == CollaborateResult::ACCEPT) ? CollaborateResult::ACCEPT : CollaborateResult::REJECT;
@@ -1276,6 +1297,7 @@ void StsUIAbility::OnNewWant(const Want &want)
     if (scene_) {
         scene_->OnNewWant(want);
     }
+    HandleCollaboration(want);
 #endif
     auto env = stsRuntime_.GetAniEnv();
     if (env == nullptr) {

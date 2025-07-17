@@ -379,6 +379,11 @@ private:
 public:
     uint32_t sceneFlag_ = 0;
 
+    enum CollaborateResult {
+        ACCEPT = 0,
+        REJECT,
+    };
+
     /**
      * @brief Called after instantiating WindowScene.
      * You can override this function to implement your own processing logic.
@@ -606,7 +611,9 @@ public:
      * @brief Called when distributed system trying to collaborate remote ability.
      * @param want want with collaborative info.
      */
-    virtual void HandleCollaboration(const AAFwk::Want &want);
+    void HandleCollaboration(const AAFwk::Want &want);
+
+    virtual int32_t OnCollaborate(WantParams &wantParams);
 
 protected:
     class UIAbilityDisplayListener : public OHOS::Rosen::IDisplayInfoChangedListener {
