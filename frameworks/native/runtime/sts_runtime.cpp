@@ -927,6 +927,7 @@ std::unique_ptr<STSNativeReference> STSRuntime::LoadStsModule(const std::string&
         return std::make_unique<STSNativeReference>();
     }
     std::string entryPath = EntryPathManager::GetInstance().GetEntryPath(srcEntrance);
+    std::replace(entryPath.begin(), entryPath.end(), '/', '.');
     ani_string entryClassStr;
     aniEnv->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
     ani_class entryClass = nullptr;
