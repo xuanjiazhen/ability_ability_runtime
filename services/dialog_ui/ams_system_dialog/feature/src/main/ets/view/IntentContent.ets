@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
-import insightIntentDriver from '@ohos.app.ability.insightIntentDriver';
-import base from '@ohos.base'
-import hilog from '@ohos.hilog';
-import application from '@ohos.app.ability.application';
+import { application, common, insightIntentDriver } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { image } from '@kit.ImageKit';
 import { jsClone } from './format';
-import bundle from '@ohos.bundle.bundleManager'
-import image from '@ohos.multimedia.image';
-import common from '@ohos.app.ability.common';
+import bundle from '@ohos.bundle.bundleManager';
+const DOMAIN = 0x1323;
 
 export interface ItemInfo {
   title: string,
@@ -40,19 +39,24 @@ export interface IntentGrout {
 export struct IntentContent {
   @Consume('articlePathStack') articlePathStack: NavPathStack;
   scroller: Scroller = new Scroller();
-  @State listMaterial: IntentInfo[] | null = null
-  @State groupMaterial1: Record<string, IntentInfo[]> = {}
-  @State groupMaterial: Record<string, IntentInfo[]> = {}
+  @State listMaterial: IntentInfo[] | null = null;
+  @State groupMaterial1: Record<string, IntentInfo[]> = {};
+  @State groupMaterial: Record<string, IntentInfo[]> = {};
   context = this.getUIContext().getHostContext();
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
 
   aboutToAppear() {
-    this.getInfos()
+    this.getInfos();
   }
 
   onBackPress() {
-    let context = AppStorage.get('context') as common.UIAbilityContext;
-    context.terminateSelf();
+    try {
+      let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      context.terminateSelf();
+    } catch (err) {
+      hilog.error(DOMAIN, 'InsightIntents', 'Failed to context.terminateSelf.', JSON.stringify(err));
+    }
+    return true;
   }
 
   async getInfos() {
@@ -77,7 +81,7 @@ export struct IntentContent {
                   this.getAllIntentIcon(this.groupMaterial1[bundleName][key]['icon'], bundleName).then((value) => {
                     this.groupMaterial1[bundleName][key]['iconImg'] = value;
                     this.setAppName(this.groupMaterial1[bundleName][0]).then((value) => {
-                      this.groupMaterial[value] = this.groupMaterial1[bundleName]
+                      this.groupMaterial[value] = this.groupMaterial1[bundleName];
                     })
                   })
                 })
@@ -89,7 +93,7 @@ export struct IntentContent {
             }
           })
         })
-        .catch((err: base.BusinessError) => {
+        .catch((err: BusinessError) => {
           hilog.info(0x0000, 'testTag', 'getAllInsightIntentInfo errCode: %{public}d', err.code);
           hilog.info(0x0000, 'testTag', 'getAllInsightIntentInfo errMessage: %{public}s', err.message);
         });
@@ -269,7 +273,7 @@ export struct IntentContent {
       .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
       .onClick(() => {
-        let context = AppStorage.get('context') as common.UIAbilityContext;
+        let context = this.getUIContext().getHostContext() as common.UIAbilityContext;
         context.terminateSelf();
       })
 

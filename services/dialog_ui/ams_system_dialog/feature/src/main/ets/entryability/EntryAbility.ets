@@ -13,24 +13,56 @@
  * limitations under the License.
  */
 
-import Want from '@ohos.app.ability.Want';
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
-import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
-import UIAbility from '@ohos.app.ability.UIAbility';
-import hilog from '@ohos.hilog';
-import window from '@ohos.window';
+import { AbilityConstant, ConfigurationConstant, errorManager, UIAbility, Want } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { window } from '@kit.ArkUI';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const DOMAIN = 0x1323;
+
+function errorFunc(observer: errorManager.GlobalError) {
+  console.info('result name :' + observer.name);
+  console.info('result message :' + observer.message);
+  console.info('result stack :' + observer.stack);
+  console.info('result instanceName :' + observer.instanceName);
+  console.info('result instanceType :' + observer.instanceType);
+}
+function promiseFunc(observer: errorManager.GlobalError) {
+  console.info('result name :' + observer.name);
+  console.info('result message :' + observer.message);
+  console.info('result stack :' + observer.stack);
+  console.info('result instanceName :' + observer.instanceName);
+  console.info('result instanceType :' + observer.instanceType);
+}
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    AppStorage.setAndLink('context', this.context);
     hilog.info(DOMAIN, 'InsightIntents', '%{public}s', 'Ability onCreate');
+
+    try {
+      errorManager.on('globalErrorOccurred', errorFunc);
+    } catch (paramError) {
+      let code = (paramError as BusinessError).code;
+      let message = (paramError as BusinessError).message;
+      console.error(`error: ${code}, ${message}`);
+    }
+
+    errorManager.on('globalUnhandledRejectionDetected', promiseFunc);
   }
 
   onDestroy(): void {
     hilog.info(DOMAIN, 'InsightIntents', '%{public}s', 'Ability onDestroy');
+
+    try {
+      errorManager.off('globalErrorOccurred', errorFunc)
+    } catch (paramError) {
+      let code = (paramError as BusinessError).code;
+      let message = (paramError as BusinessError).message;
+      console.error(`error: ${code}, ${message}`);
+    }
+    
+    errorManager.off('globalUnhandledRejectionDetected', promiseFunc);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
@@ -41,17 +73,6 @@ export default class EntryAbility extends UIAbility {
       windowClass.setWindowLayoutFullScreen(true).then(() => {
         hilog.info(DOMAIN, 'InsightIntents', 'Set Window Layout Full Screen.');
       })
-
-      try {
-        const top = windowClass.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).topRect
-        let navigationHeight = windowClass.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).bottomRect.height
-        PersistentStorage.PersistProps([{
-          key: 'navigationHeight', defaultValue: navigationHeight
-        }])
-      } catch (err){
-        hilog.error(DOMAIN, 'InsightIntents', 'Failed to getWindowAvoidArea.', JSON.stringify(err));
-      }
-
 
       windowStage.loadContent('pages/Index', (err) => {
         if (err.code) {
