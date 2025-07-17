@@ -19,6 +19,8 @@
 #include "ability_running_info.h"
 #include "extension_running_info.h"
 #include "sts_runtime.h"
+#include "ability_business.h"
+#include "ani_enum_convert.h"
 
 namespace OHOS {
 namespace AbilityManagerSts {
