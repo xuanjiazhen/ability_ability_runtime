@@ -89,6 +89,15 @@ private:
         ani_object callback);
     static bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
+    void UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions& options);
+    bool ExtractCompletionHandler(ani_env* env, ani_object param, ani_ref& completionHandler,
+        ani_ref& onRequestSuccObj, ani_ref& onRequestFailObj);
+    bool CreateAndRegisterCallback(ani_env* env, ani_ref completionHandler, ani_ref onRequestSuccObj,
+        ani_ref onRequestFailObj, AAFwk::StartOptions& options);
+    void CreateOnRequestSuccessCallback(ani_env* env, const std::shared_ptr<ani_ref>& globalOnRequestSuccPtr,
+        OnRequestResult& onRequestSucc);
+    void CreateOnRequestFailCallback(ani_env* env, const std::shared_ptr<ani_ref>& globalOnRequestFailPtr,
+        OnRequestResult& onRequestFail);
 
 protected:
     std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
