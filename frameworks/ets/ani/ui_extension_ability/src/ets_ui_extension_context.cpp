@@ -786,5 +786,114 @@ void EtsUIExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::Element
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
 }
+
+void EtsUIExtensionContext::UnwrapCompletionHandlerInStartOptions(ani_env* env,
+    ani_object param, AAFwk::StartOptions& options)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "UnwrapCompletionHandlerInStartOptions called");
+    ani_ref completionHandler;
+    if (env->Object_GetPropertyByName_Ref(param, "completionHandler", &completionHandler) != ANI_OK ||
+        !completionHandler) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "null completionHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UI_EXT, "completionHandler exists");
+    ani_ref onRequestSuccObj;
+    ani_object completionHandlerObj = reinterpret_cast<ani_object>(completionHandler);
+    if (env->Object_GetPropertyByName_Ref(completionHandlerObj, "onRequestSuccess", &onRequestSuccObj) != ANI_OK ||
+        !onRequestSuccObj) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null onRequestSuccess");
+        return;
+    }
+    ani_ref onRequestFailObj;
+    if (env->Object_GetPropertyByName_Ref(completionHandlerObj, "onRequestFailure", &onRequestFailObj) != ANI_OK ||
+        !onRequestFailObj) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null onRequestFailure");
+        return;
+    }
+    ani_ref globalOnRequestSucc = nullptr;
+    ani_ref globalOnRequestFail = nullptr;
+    if (env->GlobalReference_Create(onRequestSuccObj, &globalOnRequestSucc) != ANI_OK || !globalOnRequestSucc) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create global ref for onRequestSuccess");
+        return;
+    }
+    if (env->GlobalReference_Create(onRequestFailObj, &globalOnRequestFail) != ANI_OK || !globalOnRequestFail) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create global ref for onRequestFailure");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        return;
+    }
+    auto globalOnRequestSuccPtr = std::make_shared<ani_ref>(globalOnRequestSucc);
+    auto globalOnRequestFailPtr = std::make_shared<ani_ref>(globalOnRequestFail);
+    OnRequestResult onRequestSucc = [env, globalOnRequestSuccPtr](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        ani_class cls = nullptr;
+        if (env->FindClass("Lohos/app/ElementName;", &cls) != ANI_OK || !cls) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "FindClass failed");
+            return;
+        }
+        ani_method method = nullptr;
+        if (env->Class_FindMethod(cls, "onRequestSuccess",
+                "(Lohos/app/ElementName;Lstd/core/String;)V", &method) != ANI_OK || !method) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Find method onRequestSuccess failed");
+            return;
+        }
+        ani_object globalOnRequestSuccObj = reinterpret_cast<ani_object>(*globalOnRequestSuccPtr);
+        env->Object_CallMethod_Void(globalOnRequestSuccObj, method, elementObj, messageStr);
+    };
+    OnRequestResult onRequestFail = [env, globalOnRequestFailPtr](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        ani_class cls = nullptr;
+        if (env->FindClass("Lohos/app/ElementName;", &cls) != ANI_OK || !cls) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "FindClass failed");
+            return;
+        }
+        ani_method method = nullptr;
+        if (env->Class_FindMethod(cls, "onRequestFailure",
+                "(Lohos/app/ElementName;Lstd/core/String;)V", &method) != ANI_OK || !method) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Find method onRequestFailure failed");
+            return;
+        }
+        ani_object globalOnRequestFailObj = reinterpret_cast<ani_object>(*globalOnRequestFailPtr);
+        env->Object_CallMethod_Void(globalOnRequestFailObj, method, elementObj, messageStr);
+    };
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        env->GlobalReference_Delete(globalOnRequestFail);
+        return;
+    }
+    uint64_t time = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
+        env->GlobalReference_Delete(globalOnRequestSucc);
+        env->GlobalReference_Delete(globalOnRequestFail);
+        return;
+    }
+    options.requestId_ = requestId;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

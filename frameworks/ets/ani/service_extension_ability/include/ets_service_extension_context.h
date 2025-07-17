@@ -56,6 +56,7 @@ private:
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want,
         ani_object callbackObj, std::shared_ptr<ServiceExtensionContext> context);
+    void UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions& options);
 
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;

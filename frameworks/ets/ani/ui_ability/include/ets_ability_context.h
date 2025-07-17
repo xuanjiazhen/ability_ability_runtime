@@ -124,6 +124,7 @@ private:
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     int32_t GenerateRequestCode();
+    void UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions& options);
 
     std::weak_ptr<AbilityContext> context_;
     static std::mutex requestCodeMutex_;

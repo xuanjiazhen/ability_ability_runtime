@@ -86,6 +86,7 @@ private:
         ani_object callback);
     static bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
+    void UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param, AAFwk::StartOptions& options);
 
 protected:
     std::weak_ptr<OHOS::AbilityRuntime::UIExtensionContext> context_;
