@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,9 @@
 #include <gtest/gtest.h>
 
 #include "ability_manager_service.h"
+#include "ability_manager_errors.h"
+#include "mock_my_status.h"
+#include "hilog_tag_wrapper.h"
 #include "main_element_utils.h"
 
 using namespace testing;
@@ -24,6 +27,9 @@ using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace AAFwk {
+const std::string FOUND_TARGET_ABILITY = "FOUND_TARGET_ABILITY";
+const std::string NOT_ENTRY_MODULE = "NOT_ENTRY_MODULE";
+const std::string NOT_FOUND_TARGET_BUNDLE = "NOT_FOUND_TARGET_BUNDLE";
 class MainElementUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -192,6 +198,86 @@ HWTEST_F(MainElementUtilsTest, CheckMainElement_006, TestSize.Level1)
     bool res = MainElementUtils::CheckMainElement(hapModuleInfo,
         processName, mainElement, isDataAbility, uriStr);
     EXPECT_FALSE(res);
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: bundleMgr nullptr
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_001 start");
+    std::string bundleName = "bundleName";
+    std::string abilityName = "abilityName";
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = nullptr;
+    bool res = MainElementUtils::IsMainUIAbility(bundleName, abilityName, userId);
+    EXPECT_FALSE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_001 end");
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: NOT_FOUND_TARGET_BUNDLE
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_002 start");
+    std::string bundleName = NOT_FOUND_TARGET_BUNDLE;
+    std::string abilityName = "abilityName";
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(bundleName, abilityName, userId);
+    EXPECT_FALSE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_002 end");
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: NOT_ENTRY_MODULE
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_003 start");
+    std::string bundleName = NOT_ENTRY_MODULE;
+    std::string abilityName = "abilityName";
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(bundleName, abilityName, userId);
+    EXPECT_FALSE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_003 end");
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: FOUND_TARGET_ABILITY
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_004 start");
+    std::string bundleName = FOUND_TARGET_ABILITY;
+    std::string abilityName = FOUND_TARGET_ABILITY;
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(bundleName, abilityName, userId);
+    EXPECT_TRUE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_004 end");
 }
 
 /*

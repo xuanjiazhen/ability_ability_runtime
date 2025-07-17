@@ -983,6 +983,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
     } else {
         TAG_LOGI(AAFwkTag::APPMGR, "have apprecord");
+        appRecord->SetKeepAliveDkv(loadParam->isKeepAlive);
         ReportEventToRSS(*abilityInfo, appRecord);
         appRunningManager_->UpdateConfigurationDelayed(appRecord);
         if (!isProcCache) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,6 +62,28 @@ void MainElementUtils::UpdateMainElement(const std::string &bundleName, const st
             "update keepAlive fail,bundle:%{public}s,mainElement:%{public}s,enable:%{public}d,userId:%{public}d",
             bundleName.c_str(), mainElement.c_str(), updateEnable, userId);
     }
+}
+
+bool MainElementUtils::IsMainUIAbility(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_LOG(bms, false, "bms nullptr");
+    AppExecFwk::BundleInfo bundleInfo;
+    if (IN_PROCESS_CALL(bms->GetBundleInfoV9(bundleName,
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) |
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
+        bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "IsMainUIAbility get bundleInfo failed");
+        return false;
+    }
+    for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
+            continue;
+        }
+        return abilityName == hapModuleInfo.mainElementName;
+    }
+    return false;
 }
 
 bool MainElementUtils::CheckMainElement(const AppExecFwk::HapModuleInfo &hapModuleInfo,
