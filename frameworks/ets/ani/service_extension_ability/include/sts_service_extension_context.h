@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
-#define OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
+#ifndef OHOS_ABILITY_RUNTIME_STS_SERVICE_EXTENSION_CONTEXT_H
+#define OHOS_ABILITY_RUNTIME_STS_SERVICE_EXTENSION_CONTEXT_H
 
 #include "sts_runtime.h"
 #include <array>
@@ -67,4 +67,4 @@ private:
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_STS_UI_EXTENSION_CONTEXT_H
+#endif // OHOS_ABILITY_RUNTIME_STS_SERVICE_EXTENSION_CONTEXT_H
