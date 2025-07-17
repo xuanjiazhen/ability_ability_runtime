@@ -778,5 +778,91 @@ void EtsUIExtensionConnection::DetachCurrentThread()
         isAttachThread_ = false;
     }
 }
+
+void EtsUIExtensionContext::UnwrapCompletionHandlerInStartOptions(ani_env* env, ani_object param,
+    AAFwk::StartOptions& options)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "UnwrapCompletionHandlerInStartOptions called");
+    ani_ref completionHandler;
+    TAG_LOGI(AAFwkTag::UI_EXT, "completionHandler exists");
+    if (env->Object_GetPropertyByName_Ref(param, "completionHandler", &completionHandler) != ANI_OK ||
+        !completionHandler) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null completionHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UI_EXT, "CreateAndRegisterCallback called");
+    ani_ref globalCompletionHandler = nullptr;
+    if (env->GlobalReference_Create(completionHandler, &globalCompletionHandler)
+        != ANI_OK || !globalCompletionHandler) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create global ref for completionHandler");
+        return;
+    }
+    auto globalCompletionHandlerPtr = std::make_shared<ani_ref>(globalCompletionHandler);
+    OnRequestResult onRequestSucc;
+    OnRequestResult onRequestFail;
+    CreateOnRequestSuccessCallback(env, globalCompletionHandlerPtr, onRequestSucc);
+    CreateOnRequestFailCallback(env, globalCompletionHandlerPtr, onRequestFail);
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        env->GlobalReference_Delete(globalCompletionHandler);
+        return;
+    }
+    uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddCompletionHandler(requestId, onRequestSucc, onRequestFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "add completionHandler failed");
+        env->GlobalReference_Delete(globalCompletionHandler);
+        return;
+    }
+    options.requestId_ = requestId;
+}
+
+void EtsUIExtensionContext::CreateOnRequestSuccessCallback(ani_env* env,
+    const std::shared_ptr<ani_ref>& globalCompletionHandlerPtr, OnRequestResult& onRequestSucc)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "CreateOnRequestSuccessCallback called");
+    onRequestSucc = [env, globalCompletionHandlerPtr](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::UI_EXT, "onRequestSucc called");
+        ani_object globalCompletionHandlerObj = reinterpret_cast<ani_object>(*globalCompletionHandlerPtr);
+        env->Object_CallMethodByName_Void(globalCompletionHandlerObj, "onRequestSuccess",
+            "LbundleManager/ElementName/ElementName;Lstd/core/String;:V", elementObj, messageStr);
+    };
+}
+
+void EtsUIExtensionContext::CreateOnRequestFailCallback(ani_env* env,
+    const std::shared_ptr<ani_ref>& globalCompletionHandlerPtr, OnRequestResult& onRequestFail)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "CreateOnRequestFailCallback called");
+    onRequestFail = [env, globalCompletionHandlerPtr](const AppExecFwk::ElementName& element,
+        const std::string& message) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "onRequestFail called");
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "WrapElementName failed");
+            return;
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "String_NewUTF8 for message failed");
+            return;
+        }
+        ani_object globalCompletionHandlerObj = reinterpret_cast<ani_object>(*globalCompletionHandlerPtr);
+        env->Object_CallMethodByName_Void(globalCompletionHandlerObj, "onRequestFailure",
+            "LbundleManager/ElementName/ElementName;Lstd/core/String;:V", elementObj, messageStr);
+    };
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
