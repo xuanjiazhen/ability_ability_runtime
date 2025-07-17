@@ -96,7 +96,7 @@ public:
     static ani_int OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_object connectOptionsObj);
     static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
-        ani_int connectId, ani_object connectOptionsObj);
+        ani_double connectId, ani_object connectOptionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
