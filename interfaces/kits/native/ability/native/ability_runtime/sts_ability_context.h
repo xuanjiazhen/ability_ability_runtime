@@ -90,6 +90,10 @@ public:
     static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
     static void NativeBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
+#ifdef SUPPORT_GRAPHICS
+    static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+#endif
     static void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
     static void ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
