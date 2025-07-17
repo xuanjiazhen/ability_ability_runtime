@@ -1065,6 +1065,21 @@ ohos_prebuilt_etc("ability_runtime_connect_options_abc_etc") {
   deps = [ ":ability_runtime_connect_options_abc" ]
 }
 
+generate_static_abc("appRecovery_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.appRecovery.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/appRecovery_abc.abc"
+}
+
+ohos_prebuilt_etc("appRecovery_abc_etc") {
+  source = "$target_out_dir/appRecovery_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":appRecovery_abc" ]
+}
+
 group("ets_packages") {
   deps = [
     ":ability_ability_application_abc_etc",
@@ -1130,5 +1145,6 @@ group("ets_packages") {
     ":uri_permission_manager_abc_etc",
     ":ability_runtime_OpenLink_Options_abc_etc",
     ":ability_runtime_AbilityRunningInfo_abc_etc",
+    ":appRecovery_abc_etc",
   ]
 }
