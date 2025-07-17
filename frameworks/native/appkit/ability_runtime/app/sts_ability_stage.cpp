@@ -30,6 +30,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include "ani_enum_convert.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -44,6 +45,7 @@ constexpr const char* WAIT_ON_MAIN_THREAD = "waitOnMainThread";
 constexpr const char* CONFIG_ENTRY = "configEntry";
 constexpr const char *TASKPOOL = "taskPool";
 constexpr const char *TASKPOOL_LOWER = "taskpool";
+constexpr const char* ABILITY_STAGE_CLASS_NAME = "L@ohos/app/ability/AbilityStage/AbilityStage;";
 
 namespace {
 void RegisterStopPreloadSoCallback(STSRuntime& stsRuntime)
@@ -54,8 +56,54 @@ void RegisterStopPreloadSoCallback(STSRuntime& stsRuntime)
         return;
     }
 }
-} // namespace
 
+void OnPrepareTerminationPromiseCallback(ani_env* env, ani_object aniObj, ani_object dataObj)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnDestroyPromiseCallback called");
+
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env or null aniObj");
+        return;
+    }
+    ani_long callbackPoint = 0;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_GetFieldByName_Long(aniObj, "prepareTerminationCallbackPoint", &callbackPoint)) !=
+        ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
+        return;
+    }
+    auto *callbackInfo =
+        reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *>(
+            callbackPoint);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null callbackInfo");
+        return;
+    }
+    ani_boolean isUndefined = false;
+    if ((status = env->Reference_IsUndefined(dataObj, &isUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to check undefined status : %{public}d", status);
+        return;
+    }
+    if (isUndefined) {
+        TAG_LOGE(AAFwkTag::APPKIT, "onPrepareTermination unimplemented");
+        return;
+    }
+    ani_int result = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(env, dataObj, result)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "EnumConvertStsToNative param err");
+        return;
+    }
+    AppExecFwk::OnPrepareTerminationResult prepareTerminationResult = { result, true };
+    callbackInfo->Call(prepareTerminationResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>::Destroy(callbackInfo);
+
+    if ((status = env->Object_SetFieldByName_Long(aniObj, "prepareTerminationCallbackPoint",
+        static_cast<ani_long>(0))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status : %{public}d", status);
+        return;
+    }
+}
+} // namespace
 
 bool STSAbilityStage::UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleInfo)
 {
@@ -69,6 +117,30 @@ bool STSAbilityStage::UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleI
         }
     }
     return false;
+}
+
+bool STSAbilityStage::BindNativeMethods()
+{
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return false;
+    }
+    std::array functions = {
+        ani_native_function{
+            "nativeOnPrepareTerminationCallback", ":V", reinterpret_cast<void *>(OnPrepareTerminationPromiseCallback)},
+    };
+    ani_class cls {};
+    ani_status status = env->FindClass(ABILITY_STAGE_CLASS_NAME, &cls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass failed status: %{public}d", status);
+        return false;
+    }
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_BindNativeMethods status: %{public}d", status);
+        return false;
+    }
+    return true;
 }
 
 std::shared_ptr<AbilityStage> STSAbilityStage::Create(
@@ -125,17 +197,17 @@ void STSAbilityStage::Init(const std::shared_ptr<Context> &context,
     const std::weak_ptr<AppExecFwk::OHOSApplication> application)
 {
     AbilityStage::Init(context, application);
-
     if (!context) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         return;
     }
-
     if (!stsAbilityStageObj_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null stage");
         return;
     }
-
+    if(!BindNativeMethods()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "BindNativeMethods failed");
+    }
     SetJsAbilityStage(context);
 }
 
@@ -317,6 +389,101 @@ void STSAbilityStage::SetJsAbilityStage(const std::shared_ptr<Context> &context)
         TAG_LOGE(AAFwkTag::ABILITY, "Object_SetField_Ref stageCtxObj failed");
         STSAbilityStageContext::ResetEnv(env);
     }
+}
+
+bool STSAbilityStage::OnPrepareTerminate(
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
+    bool &isAsync) const
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnPrepareTerminate called");
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "callbackInfo nullptr");
+        return false;
+    }
+    if (CallOnPrepareTerminateAsync(callbackInfo, isAsync)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "onPrepareTerminationAsync is implemented");
+        return true;
+    }
+    isAsync = false;
+    return CallOnPrepareTerminate(callbackInfo);
+}
+
+bool STSAbilityStage::CallOnPrepareTerminateAsync(
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
+    bool &isAsync) const
+{
+    isAsync = false;
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
+        return false;
+    }
+    isAsync = CallObjectMethod(true, "callOnPrepareTermination", ":Z");
+    return isAsync;
+}
+
+ani_object STSAbilityStage::CallObjectMethod(const char *name, const char *signature, ...) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
+    TAG_LOGD(AAFwkTag::APPKIT, "StsUIAbility call sts, name: %{public}s", name);
+    if (stsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null stsAbilityObj");
+        return nullptr;
+    }
+    auto env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    auto obj = stsAbilityStageObj_->aniObj;
+    auto cls = stsAbilityStageObj_->aniCls;
+    ani_status status = ANI_ERROR;
+
+    ani_method method {};
+    if ((status = env->Class_FindMethod(cls, name, signature, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status : %{public}d", status);
+        env->ResetError();
+        return nullptr;
+    }
+    ani_ref res {};
+    va_list args;
+    va_start(args, signature);
+    if ((status = env->Object_CallMethod_Ref(obj, method, &res, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "status : %{public}d", status);
+        stsRuntime_.HandleUncaughtError();
+        return nullptr;
+    }
+    va_end(args);
+    return reinterpret_cast<ani_object>(res);
+}
+
+bool STSAbilityStage::CallOnPrepareTerminate(
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo) const
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "CallOnPrepareTerminate call");
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
+        return false;
+    }
+    ani_env *env = stsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return false;
+    }
+    ani_object resObj =
+        CallObjectMethod("onPrepareTermination", ":L@ohos/app/ability/AbilityConstant/PrepareTermination;");
+    if (resObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "onPrepareTermination unimplemented");
+        return false;
+    }
+    ani_int result = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvertStsToNative(env, resObj, result)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "EnumConvertStsToNative param err");
+        return false;
+    }
+    AppExecFwk::OnPrepareTerminationResult prepareTerminationResult = { result, true };
+    callbackInfo->Call(prepareTerminationResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>::Destroy(callbackInfo);
+    return true;
 }
 
 }  // namespace AbilityRuntime

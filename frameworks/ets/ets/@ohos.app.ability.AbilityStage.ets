@@ -15,9 +15,28 @@
 
 import { Configuration } from '@ohos.app.ability.Configuration'
 import AbilityStageContext from 'application.AbilityStageContext'
+import { AbilityUtils } from './utils/AbilityUtils';
+import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
 export default class AbilityStage {
     context: AbilityStageContext = new AbilityStageContext();
+    private prepareTerminationCallbackPoint: long;
+    private native nativeOnPrepareTerminationCallback(): void;
+    private callOnPrepareTermination(): boolean {
+        const derivedClassType = AbilityUtils.getClassType(this);
+        if (derivedClassType === undefined) {
+            return false;
+        }
+        const classType = AbilityUtils.getClassType(new AbilityStage());
+        if (classType === undefined) {
+            return false;
+        }
+        if (AbilityUtils.isOverride(derivedClassType, "onPrepareTerminationAsync", classType)) {
+            this.onPrepareTerminationAsync().then((data:AbilityConstant.PrepareTermination) => this.nativeOnPrepareTerminationCallback());
+            return true;
+        }
+        return false;
+    }
 
     onConfigurationUpdate(newConfig: Configuration): void {
     }
@@ -26,5 +45,10 @@ export default class AbilityStage {
     }
 
     onDestroy(): void {
+    }
+
+    onPrepareTerminationAsync(): Promise<AbilityConstant.PrepareTermination>
+    {
+        return new Promise<AbilityConstant.PrepareTermination>((resolve: (a: AbilityConstant.PrepareTermination)=>void, reject: (err: Error)=>void): void => {});
     }
 }
