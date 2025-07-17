@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,7 @@
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
 #include "js_uiservice_ability_connection.h"
+#include "js_ui_extension_callback.h"
 #include "js_ui_service_proxy.h"
 #include "mission_info.h"
 #include "napi_common_ability.h"
