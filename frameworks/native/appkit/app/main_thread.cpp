@@ -2320,7 +2320,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
             auto testRunner = TestRunner::Create(runtime, args, false);
             auto delegator = IAbilityDelegator::Create(runtime, application_->GetAppContext(),
                 std::move(testRunner), record->observer);
-            AbilityDelegatorRegistry::RegisterInstance(delegator, args, AbilityRuntime::Runtime::Language::JS);
+            AbilityDelegatorRegistry::RegisterInstance(delegator, args, runtime->GetLanguage());
 			delegator->SetApiTargetVersion(targetVersion);
             delegator->Prepare();
         }
@@ -2331,7 +2331,7 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
             auto testRunner = TestRunner::Create(runtime, args, false);
             auto delegator = IAbilityDelegator::Create(runtime, application_->GetAppContext(),
                 std::move(testRunner), record->observer);
-            AbilityDelegatorRegistry::RegisterInstance(delegator, args, AbilityRuntime::Runtime::Language::STS);
+            AbilityDelegatorRegistry::RegisterInstance(delegator, args, runtime->GetLanguage());
 			delegator->SetApiTargetVersion(targetVersion);
             delegator->Prepare();
         }
