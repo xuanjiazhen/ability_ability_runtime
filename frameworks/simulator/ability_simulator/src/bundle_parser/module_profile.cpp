@@ -199,6 +199,7 @@ struct Ability {
     bool excludeFromMissions = false;
     bool recoverable = false;
     bool unclearableMission = false;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 
 struct Extension {
@@ -278,6 +279,7 @@ struct Module {
     std::string buildHash;
     std::string isolationMode;
     bool compressNativeLibs = true;
+    std::string codeLanguage = Constants::CODE_LANGUAGE_1_1;
 };
 
 struct ModuleJson {
@@ -588,6 +590,15 @@ void from_json(const nlohmann::json &jsonObject, Ability &ability)
         false,
         g_parseResult,
         ArrayType::NOT_ARRAY);
+    GetValueIfFindKey<std::string>(jsonObject,
+        jsonObjectEnd,
+	Constants::CODE_LANGUAGE,
+        ability.codeLanguage,
+        JsonType::STRING,
+        false,
+        g_parseResult,
+        ArrayType::NOT_ARRAY);
+
 }
 
 void from_json(const nlohmann::json &jsonObject, Extension &extension)
@@ -1613,6 +1624,7 @@ bool ToAbilityInfo(
     abilityInfo.minWindowWidth = ability.minWindowWidth;
     abilityInfo.maxWindowHeight = ability.maxWindowHeight;
     abilityInfo.minWindowHeight = ability.minWindowHeight;
+    abilityInfo.codeLanguage = ability.codeLanguage;
     return true;
 }
 
