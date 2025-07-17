@@ -81,6 +81,7 @@ group("ability_runtime") {
       "actssetfonttest:ActsSetFontTest",
       "actsshareacquiresharedata:ActsShareAcquireShareData",
       "actsshellcommandfunctionalitytest:actsshellcommandfunctionalitytest",
+      "actsspecifiedprocess:actsspecifiedprocess",
       "actsstartabilityforresult:actsstartabilityforresulttest",
       "actsstartAndTerminatetest:ActsStartAndTerminate",
       "actsstartabilitygetdisplayidtest:actsstartabilitygetdisplayidtest",
