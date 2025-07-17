@@ -31,6 +31,8 @@ namespace AbilityRuntime {
     [[maybe_unused]] ani_object abilityResult, [[maybe_unused]] ani_object callback);
 [[maybe_unused]] static void NativeSetReceiveDataCallback(ani_env* env, ani_object clsObj, ani_object funcObj);
 [[maybe_unused]] static void NativeSetReceiveDataForResultCallback(ani_env* env, ani_object clsObj, ani_object funcObj);
+[[maybe_unused]] static ani_object NativeStartAbilityByTypeSync(
+    ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback);
 
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 
@@ -91,10 +93,13 @@ public:
     void SetReceiveDataForResultCallback(ani_env* env, ani_object object);
     static void CallReceiveDataCallbackForResult(ani_vm* vm, ani_ref callbackRef,
         const AAFwk::WantParams& wantParams, AAFwk::WantParams& retWantParams);
+    ani_object StartAbilityByTypeSync(ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
 
 private:
     bool SetReceiveDataCallbackUnRegist(ani_env* env, ani_object functionObj);
     bool SetReceiveDataForResultCallbackUnRegist(ani_env* env, ani_object funcObj);
+    bool CheckStartAbilityByTypeParam(
+        ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam);
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
@@ -105,6 +110,9 @@ private:
     bool isSyncRegistered_ = false;
     std::shared_ptr<StsUISessionAbilityResultListener> listener_;
     bool isFirstTriggerBindModal_ = true;
+#ifdef SUPPORT_SCREEN
+    void InitDisplayId(AAFwk::Want &want);
+#endif
 };
 
 StsUIExtensionContentSession* GetStsContentSession(ani_env* env, ani_object obj);
