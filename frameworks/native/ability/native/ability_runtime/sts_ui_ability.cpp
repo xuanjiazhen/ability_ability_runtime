@@ -218,16 +218,6 @@ void StsUIAbility::UpdateAbilityObj(
         TAG_LOGE(AAFwkTag::UIABILITY, "BindNativeMethods failed");
         return;
     }
-    ani_status status = ANI_ERROR;
-    auto env = stsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
-        return;
-    }
-    auto callee = CreateEtsCallee(env);
-    if ((status = env->Object_SetFieldByName_Ref(stsAbilityObj_->aniObj, "callee", callee)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "set callee status : %{public}d", status);
-    }
 }
 
 void StsUIAbility::CreateAndBindContext(const std::shared_ptr<AppExecFwk::OHOSApplication> application,

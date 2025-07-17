@@ -64,13 +64,6 @@ void ReleaseNativeRemote(ani_env *env, ani_ref aniObj)
     TAG_LOGI(AAFwkTag::ABILITY, "ReleaseNativeRemote");
 }
 
-ani_object AniCreateRemoteObj(ani_env *env, sptr<IRemoteObject> callee)
-{
-    TAG_LOGI(AAFwkTag::ABILITY, "AniCreateRemoteObj");
-    ani_object etsRemoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, callee);
-    return etsRemoteObj;
-}
-
 class EtsCallerComplex {
 public:
     explicit EtsCallerComplex(ReleaseCallFunc releaseCallFunc, std::shared_ptr<CallerCallBack> callerCallBack)
@@ -89,51 +82,7 @@ public:
 
         auto etsRemoteObj = GetEtsRemoteObj(env, aniObj);
         ReleaseNativeRemote(env, etsRemoteObj);
-    }
-
-    static void SetOnRelease(ani_env *env, ani_object aniObj, ani_object callback)
-    {
-        TAG_LOGI(AAFwkTag::ABILITY, "SetOnRelease");
-        auto ptr = GetComplexPtrFrom(env, aniObj);
-        if (ptr == nullptr || ptr->callerCallBack_ == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITY, "SetOnRelease null");
-            return;
-        }
-        ani_vm *aniVM = nullptr;
-        if (env->GetVM(&aniVM) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ABILITY, "get aniVM failed");
-            return;
-        }
-        ani_ref callbackRef = nullptr;
-        ani_status status = ANI_ERROR;
-        if ((status = env->GlobalReference_Create(callback, &callbackRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ABILITY, "callbackRef: %{public}d", status);
-            return;
-        }
-        ptr->callerCallBack_->SetOnRelease([aniVM, callbackRef](const std::string &msg) {
-            ani_string aniMsg = nullptr;
-            ani_status status = ANI_ERROR;
-            ani_env *aniEnv = nullptr;
-            if ((status = aniVM->GetEnv(ANI_VERSION_1, &aniEnv)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::ABILITY, "GetEnv failed, status : %{public}d", status);
-                return;
-            }
-            if ((status = aniEnv->String_NewUTF8(msg.c_str(), msg.size(), &aniMsg)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::ABILITY, "String_NewUTF8 failed %{public}d", status);
-                return;
-            }
-            status = aniEnv->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(callbackRef), "invoke",
-                "Lstd/core/String;:V", aniMsg);
-            if (status != ANI_OK) {
-                TAG_LOGE(AAFwkTag::ABILITY, "OnRelease call failed %{public}d", status);
-            }
-            aniEnv->GlobalReference_Delete(callbackRef);
-            });
-    }
-
-    static void SetOnRemoteStateChange(ani_env *env, ani_object aniObj, ani_object callback)
-    {
-        TAG_LOGI(AAFwkTag::ABILITY, "SetOnRemoteStateChange");
+        delete ptr;
     }
 
 private:
@@ -176,10 +125,6 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
         std::array functions = {
             ani_native_function { "nativeReleaseSync", nullptr,
                 reinterpret_cast<void*>(EtsCallerComplex::ReleaseCall) },
-            ani_native_function { "nativeOnReleaseSync", "Lcaller/Caller/ReleaseCallback;:V",
-                reinterpret_cast<void*>(EtsCallerComplex::SetOnRelease) },
-            ani_native_function { "nativeOnRemoteStateChangeSync", "Lstd/core/Function1;:V",
-                reinterpret_cast<void*>(EtsCallerComplex::SetOnRemoteStateChange) },
         };
 
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
@@ -209,54 +154,78 @@ ani_object CreateEtsCaller(ani_env *env, ReleaseCallFunc releaseCallFunc,
     if (!BindNativeMethods(env, cls)) {
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "l:", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Object_New(cls, method, &callerObj)) != ANI_OK) {
+    auto etsCaller = std::make_unique<EtsCallerComplex>(releaseCallFunc, callback);
+    if ((status = env->Object_New(cls, method, &callerObj, (ani_long)(etsCaller.get()))) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "status : %{public}d", status);
         return nullptr;
     }
-    auto etsCaller = new (std::nothrow) EtsCallerComplex(releaseCallFunc, callback);
-    if (etsCaller == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "etsCaller is null");
-        return nullptr;
-    }
-    ani_long nativeCaller = (ani_long)(etsCaller);
-    if ((status = env->Object_SetFieldByName_Long(callerObj, "nativeCaller", nativeCaller)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "status : %{public}d", status);
-        delete etsCaller;
-        return nullptr;
-    }
-    auto remoteObj = AniCreateRemoteObj(env, callee);
+
+    auto remoteObj = ANI_ohos_rpc_CreateJsRemoteObject(env, callee);
     if ((status = env->Object_SetFieldByName_Ref(callerObj, "callee", remoteObj)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "status : %{public}d", status);
-        delete etsCaller;
         return nullptr;
     }
+    SetCallerCallback(callback, env, callerObj);
+    etsCaller.release();
     return callerObj;
 }
 
-ani_object CreateEtsCallee(ani_env *env)
+CallbackWrap::CallbackWrap(ani_env *env, ani_object callerObj, const std::string &callbackName)
 {
-    ani_class cls {};
-    ani_status status = ANI_ERROR;
-    ani_object calleeObj = nullptr;
-    ani_method method {};
+    if (env->GetVM(&aniVM) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "get aniVM failed");
+        return;
+    }
 
-    if ((status = env->FindClass("Lcallee/Callee/CalleeImpl;", &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "CalleeImpl: %{public}d", status);
-        return nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GlobalReference_Create(callerObj, &callbackRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "callbackRef: %{public}d", status);
+        return;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "callee ctor : %{public}d", status);
-        return nullptr;
+    name = callbackName;
+}
+
+CallbackWrap::~CallbackWrap()
+{
+    if (callbackRef == nullptr) {
+        return;
     }
-    if ((status = env->Object_New(cls, method, &calleeObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "create callee: %{public}d", status);
-        return nullptr;
+    ani_status status = ANI_ERROR;
+    ani_env *aniEnv = nullptr;
+    if ((status = aniVM->GetEnv(ANI_VERSION_1, &aniEnv)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetEnv failed, status : %{public}d", status);
+        return;
     }
-    return calleeObj;
+    aniEnv->GlobalReference_Delete(callbackRef);
+    callbackRef = nullptr;
+}
+
+void CallbackWrap::Invoke(const std::string &msg)
+{
+    if (callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "callbackRef null");
+        return;
+    }
+    ani_string aniMsg = nullptr;
+    ani_status status = ANI_ERROR;
+    ani_env *aniEnv = nullptr;
+    if ((status = aniVM->GetEnv(ANI_VERSION_1, &aniEnv)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetEnv failed, status : %{public}d", status);
+        return;
+    }
+    if ((status = aniEnv->String_NewUTF8(msg.c_str(), msg.size(), &aniMsg)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "String_NewUTF8 failed %{public}d", status);
+        return;
+    }
+    status = aniEnv->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(callbackRef), name.c_str(),
+        "Lstd/core/String;:V", aniMsg);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "OnRelease call failed %{public}d", status);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

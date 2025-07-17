@@ -21,9 +21,6 @@ import { Caller, OnReleaseCallback, OnRemoteStateChangeCallback } from '@ohos.ap
 const domainID = 0x0000;
 const TAG = 'UIAbility';
 
-const EVENT_CALL_NOTIFY = 1;
-const REQUEST_SUCCESS = 0;
-
 const ERROR_CODE_INVALID_PARAM = 401;
 const ERROR_CODE_CALLER_RELEASED = 16200001;
 const ERROR_CODE_CLAAEE_INVALID = 16200002;
@@ -44,32 +41,32 @@ function buildError(code: number): BusinessError {
   return new BusinessError(code, new Error(errMap.get(code) as string));
 }
 
-export class ReleaseCallback {
-  private myFun_: OnReleaseCallback = (msg: string) => {}
-  constructor(myFun: OnReleaseCallback) {
-    this.myFun_ = myFun;
-  }
-  invoke(msg: string): void {
-    this.myFun_(msg);
-  }
-}
-
 export class CallerImpl implements Caller {
-  nativeCaller: long;
+  private nativeCaller: long = 0;
   private callee: rpc.IRemoteObject | null = null;
-  native nativeReleaseSync(): void;
-  native nativeOnReleaseSync(callback: ReleaseCallback): void;
-  native nativeOnRemoteStateChangeSync(callback: OnRemoteStateChangeCallback): void;
   private releaseState = false;
+  private releaseCb: OnReleaseCallback = (msg: String) => {};
 
-  constructor() {
+  private native nativeReleaseSync(): void;
+
+  constructor(nativeCaller: long) {
+    this.nativeCaller = nativeCaller;
     hilog.info(domainID, TAG, 'Caller::constructor');
   }
 
   call(method: string, data: rpc.Parcelable): Promise<void> {
-    return new Promise<void>((resolve: (data: undefined)=>void, reject: (error: Error) => void): void => {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (error: Error) => void): void => {
       hilog.info(domainID, TAG, 'Caller call');
       resolve(undefined);
+      return;
+    });
+  }
+
+  callWithResult(method: string, data: rpc.Parcelable): Promise<rpc.MessageSequence> {
+    return new Promise<rpc.MessageSequence>((resolve: (data: rpc.MessageSequence )=> void,
+      reject: (error: Error) => void): void => {
+      hilog.info(domainID, TAG, 'Caller callWithResult');
+      resolve(rpc.MessageSequence.create());
       return;
     });
   }
@@ -89,10 +86,28 @@ export class CallerImpl implements Caller {
     this.releaseState = true;
     this.callee = null;
     this.nativeReleaseSync();
+    this.nativeCaller = 0;
   }
 
   onRelease(callback: OnReleaseCallback): void {
     hilog.info(domainID, TAG, 'onRelease called');
-    this.nativeOnReleaseSync(new ReleaseCallback(callback));
+    this.releaseCb = callback;
+  }
+  private onReleaseCb(msg: string): void {
+    this.releaseCb(msg);
+  }
+
+  onRemoteStateChange(callback: OnRemoteStateChangeCallback): void {
+    hilog.info(domainID, TAG, 'onRemoteStateChange called');
+  }
+
+  on(type: string, callback: OnReleaseCallback): void {
+    hilog.info(domainID, TAG, 'on called');
+  }
+  off(type: string, callback: OnReleaseCallback): void {
+    hilog.info(domainID, TAG, 'off called');
+  }
+  off(type: string): void {
+    hilog.info(domainID, TAG, 'off called');
   }
 }
