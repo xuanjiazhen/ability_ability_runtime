@@ -41,15 +41,15 @@ constexpr const int32_t ERR_OK = 0;
 constexpr const int32_t ERR_FAILURE = -1;
 constexpr const char* NOT_SYSTEM_APP = "The application is not system-app, can not use system-api.";
 
-ani_object CreateDouble(ani_env *env, int32_t res)
+ani_object CreateInt(ani_env *env, int32_t res)
 {
     if (env == nullptr) {
         return nullptr;
     }
-    static const char *className = "Lstd/core/Double;";
+    static const char *className = "Lstd/core/Int;";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "create double error");
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "create int error");
         return nullptr;
     }
 
@@ -57,12 +57,12 @@ ani_object CreateDouble(ani_env *env, int32_t res)
         return nullptr;
     }
     ani_method ctor;
-    env->Class_FindMethod(cls, "<ctor>", "D:V", &ctor);
+    env->Class_FindMethod(cls, "<ctor>", "I:V", &ctor);
     if (ctor == nullptr) {
         return nullptr;
     }
     ani_object obj;
-    env->Object_New(cls, ctor, &obj, ani_double(res));
+    env->Object_New(cls, ctor, &obj, res);
     return obj;
 }
 
@@ -83,7 +83,7 @@ static std::string GetStdString(ani_env* env, ani_string str)
 }
 
 static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
-    ani_string uri, ani_enum_item flagEnum, ani_string targetName, ani_double appCloneIndex, ani_object callback)
+    ani_string uri, ani_enum_item flagEnum, ani_string targetName, ani_int appCloneIndex, ani_object callback)
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "grantUriPermissionCallbackSync run");
     if (env == nullptr) {
@@ -96,7 +96,7 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
         TAG_LOGE(AAFwkTag::URIPERMMGR, "app not system-app");
         etsErrCode = EtsErrorUtil::CreateError(env,
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), NOT_SYSTEM_APP);
-        AsyncCallback(env, callback, etsErrCode, CreateDouble(env, ERR_FAILURE));
+        AsyncCallback(env, callback, etsErrCode, CreateInt(env, ERR_FAILURE));
         return;
     }
     std::string uriStr = GetStdString(env, uri);
@@ -105,20 +105,19 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
     AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, flagEnum, flag);
     int32_t flagId = static_cast<int32_t>(flag);
     std::string targetBundleName = GetStdString(env, targetName);
-    int32_t appCloneIndexId = static_cast<int32_t>(appCloneIndex);
     int32_t result = ERR_OK;
     int32_t errCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermission(uriVec, flagId,
-        targetBundleName, appCloneIndexId);
+        targetBundleName, appCloneIndex);
     if (errCode != ERR_OK) {
         result = ERR_FAILURE;
         etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
     }
     
-    AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
+    AsyncCallback(env, callback, etsErrCode, CreateInt(env, result));
 }
 
 static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
-    ani_string uri, ani_string targetName, ani_double appCloneIndex, ani_object callback)
+    ani_string uri, ani_string targetName, ani_int appCloneIndex, ani_object callback)
 {
     TAG_LOGI(AAFwkTag::URIPERMMGR, "revokeUriPermissionCallbackSync run");
     if (env == nullptr) {
@@ -131,7 +130,7 @@ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
         TAG_LOGE(AAFwkTag::URIPERMMGR, "app not system-app");
         etsErrCode = EtsErrorUtil::CreateError(env,
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP), NOT_SYSTEM_APP);
-        AsyncCallback(env, callback, etsErrCode, CreateDouble(env, ERR_FAILURE));
+        AsyncCallback(env, callback, etsErrCode, CreateInt(env, ERR_FAILURE));
         return;
     }
     std::string uriStr = GetStdString(env, uri);
@@ -144,7 +143,7 @@ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
         result = ERR_FAILURE;
         etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
     }
-    AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
+    AsyncCallback(env, callback, etsErrCode, CreateInt(env, result));
 }
 
 void EtsUriPermissionManagerInit(ani_env *env)
@@ -166,13 +165,13 @@ void EtsUriPermissionManagerInit(ani_env *env)
     std::array functions = {
         ani_native_function {
             "grantUriPermissionCallbackSync",
-            "Lstd/core/String;L@ohos/app/ability/wantConstant/wantConstant/Flags;Lstd/core/String;D"
+            "Lstd/core/String;L@ohos/app/ability/wantConstant/wantConstant/Flags;Lstd/core/String;I"
             "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(grantUriPermissionCallbackSync)
         },
         ani_native_function {
             "revokeUriPermissionCallbackSync",
-            "Lstd/core/String;Lstd/core/String;D"
+            "Lstd/core/String;Lstd/core/String;I"
             "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void*>(revokeUriPermissionCallbackSync)
         },
