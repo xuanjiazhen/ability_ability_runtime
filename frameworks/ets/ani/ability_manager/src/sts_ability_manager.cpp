@@ -17,8 +17,10 @@
 
 #include "ability_manager_client.h"
 #include "ability_business_error.h"
+#include "ability_context.h"
 #include "ability_manager_errors.h"
 #include "ability_runtime_error_util.h"
+#include "ani_base_context.h"
 #include "ani_common_ability_state_data.h"
 #include "ani_common_want.h"
 #include "hilog_tag_wrapper.h"
@@ -105,6 +107,36 @@ static void GetTopAbility(ani_env *env, ani_object callback)
     return;
 }
 
+void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedOpenAllowed");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Parse param context failed, must not be nullptr.");
+        return;
+    }
+    auto uiAbilityContext = OHOS::AbilityRuntime::Context::ConvertTo<OHOS::AbilityRuntime::AbilityContext>(context);
+    if (uiAbilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null UIAbilityContext");
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Parse param context failed, must be UIAbilityContext.");
+        return;
+    }
+    std::string appId;
+    if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+        AbilityRuntime::ThrowStsInvalidParamError(env, "Parse param appId failed, must be a string.");
+        return;
+    }
+    auto token = uiAbilityContext->GetToken();
+    ani_boolean ret = AAFwk::AbilityManagerClient::GetInstance()->IsEmbeddedOpenAllowed(token, appId);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        CreateStsError(env, AbilityRuntime::AbilityErrorCode::ERROR_OK),  AppExecFwk::createBoolean(env, ret));
+}
+
 void StsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call StsAbilityManagerRegistryInit");
@@ -131,6 +163,9 @@ void StsAbilityManagerRegistryInit(ani_env *env)
         ani_native_function {"nativeGetTopAbility", nullptr, reinterpret_cast<void *>(GetTopAbility)},
         ani_native_function { "nativeGetAbilityRunningInfos", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
             reinterpret_cast<void *>(StsAbilityManager::GetAbilityRunningInfos) },
+        ani_native_function { "nativeIsEmbeddedOpenAllowed",
+            "Lapplication/Context/Context;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void *>(IsEmbeddedOpenAllowed) },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {

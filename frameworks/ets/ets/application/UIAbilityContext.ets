@@ -29,6 +29,7 @@ import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 
 export default class UIAbilityContext extends Context {
 
@@ -87,6 +88,8 @@ export default class UIAbilityContext extends Context {
   private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
 
   private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -428,6 +431,21 @@ export default class UIAbilityContext extends Context {
       taskpool.execute((): void => {
         this.nativeDisconnectServiceExtensionAbility(connection, callback);
       })
+    });
+  }
+
+  openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
+    return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as AbilityResult);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeOpenAtomicService(appId, asyncCall, options);
+      });
     });
   }
 }

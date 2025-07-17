@@ -20,6 +20,7 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 import { AbilityRunningInfo as _AbilityRunningInfo } from 'application.AbilityRunningInfo';
 import { ExtensionRunningInfo as _ExtensionRunningInfo } from 'application.ExtensionRunningInfo';
 import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
+import Context from 'application.Context';
 
 export default namespace abilityManager {
   loadLibrary("ability_ability_manager_ani_kit.z")
@@ -28,6 +29,7 @@ export default namespace abilityManager {
   export native function getForegroundUIAbilitiesCallback(callback:AsyncCallbackWrapper<Array<AbilityStateData>>) : void;
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
+  export native function nativeIsEmbeddedOpenAllowed(context: Context, appId: string, callback:AsyncCallbackWrapper<boolean>) : void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -96,6 +98,21 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
     let syncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>(callback);
     taskpool.execute((): void => {
       abilityManager.nativeGetAbilityRunningInfos(syncCall);
+    });
+  }
+
+  function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
+    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
+      let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+        if (err == null || err.code == 0) {
+          resolve(data as boolean);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        abilityManager.nativeIsEmbeddedOpenAllowed(context, appId, asyncCall);
+      });
     });
   }
 

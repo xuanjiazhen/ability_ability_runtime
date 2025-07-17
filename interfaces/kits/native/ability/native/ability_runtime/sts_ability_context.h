@@ -97,6 +97,8 @@ public:
         ani_object wantObj, ani_object connectOptionsObj);
     static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_int connectId, ani_object connectOptionsObj);
+    static void OnOpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackobj,
+        ani_object optionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
@@ -106,7 +108,7 @@ private:
         ani_object startOptionsObj, ani_object callback);
     static int32_t GenerateRequestCode();
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
-        const std::shared_ptr<AbilityContext> &context, bool isOpenLink = false);
+        const std::shared_ptr<AbilityContext> &context, bool isAbilityResult = false, bool isOpenLink = false);
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj,
         AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want);
     void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
@@ -114,6 +116,8 @@ private:
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
+    void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+        AAFwk::StartOptions &options, std::string appId, ani_object callbackobj);
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;
