@@ -566,6 +566,40 @@ void STSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
     TAG_LOGI(AAFwkTag::FORM_EXT, "OnVisibilityChange End");
 }
 
+FormState STSFormExtension::OnAcquireFormState(const Want &want) {
+    TAG_LOGI(AAFwkTag::FORM_EXT, "call OnAcquireFormState");
+
+    const char* METHOD_NAME = "onAcquireFormState";
+    const char* ANI_ARG_TYPE = "L@ohos/app/ability/Want/Want;";
+    const char* ANI_RETURN_TYPE = "L@ohos/app/form/formInfo/FormState;";
+    const std::string methodSignature = std::string(ANI_ARG_TYPE) + ":" + std::string(ANI_RETURN_TYPE);
+
+    auto env = stsRuntime_.GetAniEnv();
+    ani_object aniWant = OHOS::AppExecFwk::WrapWant(env, want);
+
+    ani_status status = ANI_OK;
+    ani_method function;
+    if ((status = env->Class_FindMethod(
+        stsAbilityObj_->aniCls, METHOD_NAME, methodSignature.c_str(), &function))) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
+        return FormState::UNKNOWN;
+    }
+
+    ani_ref onAcquireFormStateResult;
+    status = env->Object_CallMethod_Ref(stsAbilityObj_->aniObj, function, &onAcquireFormStateResult, aniWant);
+    if (status != ANI_OK || onAcquireFormStateResult == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Failed to call method or retrieve result: %{public}d", status);
+        return FormState::UNKNOWN;
+    }
+
+    int32_t onAcquireFormStateResult_Int;
+    env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(onAcquireFormStateResult), &onAcquireFormStateResult_Int);
+
+    TAG_LOGI(AAFwkTag::FORM_EXT, "Form state result: %{public}d", onAcquireFormStateResult_Int);
+
+    return static_cast<FormState>(onAcquireFormStateResult_Int);
+}
+
 bool STSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<int64_t, int32_t> &formEventsMap,
     ani_object &recordObject)
 {
