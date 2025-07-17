@@ -542,5 +542,8 @@
             "nfctech",
             "tagSession"
         ]
+    },
+    "replaceModuleList": {
+        "bundle": "bundle.bundle"
     }
 }

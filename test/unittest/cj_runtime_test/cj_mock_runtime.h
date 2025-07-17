@@ -113,6 +113,7 @@ public:
     }
 
     void StartProfiler(const DebugOption debugOption) override {}
+    void SetExtensionApiCheckCallback(const std::function<bool(const std::string &className)> &cb) override {}
 public:
     Language language;
 };
