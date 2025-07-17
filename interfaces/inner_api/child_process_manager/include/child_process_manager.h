@@ -70,13 +70,16 @@ public:
 private:
     ChildProcessManager();
 
-    ChildProcessManagerErrorCode PreCheck();
+    bool AllowChildProcessOnDevice();
+    ChildProcessManagerErrorCode PreCheckSelfFork();
     ChildProcessManagerErrorCode PreCheck(int32_t childProcessType);
     void RegisterSignal();
     void HandleChildProcessBySelfFork(const std::string &srcEntry, const AppExecFwk::BundleInfo &bundleInfo);
     bool HasChildProcessRecord();
     sptr<AppExecFwk::IAppMgr> GetAppMgr();
     void MakeProcessName(const std::string &srcEntry);
+    bool IsMultiProcessFeatureApp(const AppExecFwk::BundleInfo &bundleInfo);
+    ChildProcessManagerErrorCode GetErrorCodeCompat(int32_t ret, int32_t childProcessType);
 
     static bool signalRegistered_;
     bool isChildProcessBySelfFork_ = false;
