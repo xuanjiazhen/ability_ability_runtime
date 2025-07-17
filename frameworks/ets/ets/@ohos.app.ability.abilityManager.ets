@@ -29,7 +29,7 @@ export default namespace abilityManager {
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
 
-  export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
+  export function getForegroundUIAbilities_chinast_1():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
       let executeFunc = (): Array<AbilityStateData> => {
         return nativeGetForegroundUIAbilities();
@@ -45,14 +45,16 @@ export default namespace abilityManager {
     return p;
   }
 
-  export function getForegroundUIAbilities(callback: AsyncCallback<Array<AbilityStateData>, void>): void {
+  export function getForegroundUIAbilities_chinast_2(callback: AsyncCallback<Array<AbilityStateData>, void>): void {
       let myCall = new AsyncCallbackWrapper<Array<AbilityStateData>>(callback);
       taskpool.execute((): void => {
         abilityManager.getForegroundUIAbilitiesCallback(myCall);
       })
   }
 
-  export function getTopAbility():Promise<ElementName> {
+  overload getForegroundUIAbilities { getForegroundUIAbilities_chinast_1, getForegroundUIAbilities_chinast_2 };
+
+  export function getTopAbility_chinast_1():Promise<ElementName> {
     let p = new Promise<ElementName>((resolve: (data: ElementName)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<ElementName>((err: BusinessError | null, data: ElementName | undefined)=>{
         if (err == null || err.code == 0) {
@@ -68,12 +70,14 @@ export default namespace abilityManager {
     return p;
 }
 
-export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
+export function getTopAbility_chinast_2(callback: AsyncCallback<ElementName, void>): void {
     let myCall = new AsyncCallbackWrapper<ElementName>(callback);
     taskpool.execute( (): void => {
         abilityManager.nativeGetTopAbility(myCall);
     });
 }
+
+overload getTopAbility { getTopAbility_chinast_1, getTopAbility_chinast_2 };
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {
     return new Promise<Array<AbilityRunningInfo>>((resolve: (data: Array<AbilityRunningInfo>) => void,

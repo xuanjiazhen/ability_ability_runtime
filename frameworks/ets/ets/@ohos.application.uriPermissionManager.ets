@@ -25,7 +25,7 @@ export default namespace uriPermissionManager {
     export native function revokeUriPermissionCallbackSync(uri: string, targetBundleName: string, appCloneIndex: number,
         callback: AsyncCallbackWrapper<number>): void;
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string): Promise<number> {
+    export function grantUriPermission_chinast_1(uri: string, flag: wantConstant.Flags, targetBundleName: string): Promise<number> {
         let p:Promise<number> = new Promise<number>((resolve: (data: number)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -45,7 +45,7 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string,
+    export function grantUriPermission_chinast_2(uri: string, flag: wantConstant.Flags, targetBundleName: string,
         appCloneIndex: number): Promise<void> {
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
@@ -63,7 +63,7 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string,
+    export function grantUriPermission_chinast_3(uri: string, flag: wantConstant.Flags, targetBundleName: string,
         callback: AsyncCallback<number, void>): void {
         let myCall = new AsyncCallbackWrapper<number>(callback);
         taskpool.execute((): void => {
@@ -71,7 +71,9 @@ export default namespace uriPermissionManager {
         })
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string): Promise<number> {
+    overload  grantUriPermission{ grantUriPermission_chinast_1, grantUriPermission_chinast_2, grantUriPermission_chinast_3 };
+
+    export function revokeUriPermission_chinast_1(uri: string, targetBundleName: string): Promise<number> {
         let p:Promise<number> = new Promise<number>((resolve: (data: number)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -91,7 +93,7 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string, appCloneIndex: number): Promise<void> {
+    export function revokeUriPermission_chinast_2(uri: string, targetBundleName: string, appCloneIndex: number): Promise<void> {
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -107,10 +109,12 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string, callback: AsyncCallback<number, void>): void {
+    export function revokeUriPermission_chinast_3(uri: string, targetBundleName: string, callback: AsyncCallback<number, void>): void {
         let myCall = new AsyncCallbackWrapper<number>(callback);
         taskpool.execute((): void => {
             uriPermissionManager.revokeUriPermissionCallbackSync(uri, targetBundleName, 0, myCall);
         })
     }
+
+    overload  revokeUriPermission { revokeUriPermission_chinast_1, revokeUriPermission_chinast_2, revokeUriPermission_chinast_3 };
 }

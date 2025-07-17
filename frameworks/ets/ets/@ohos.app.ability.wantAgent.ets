@@ -30,13 +30,13 @@ namespace wantAgent {
   native function nativeTrigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallbackWrapper<CompleteData>): void;
   native function nativeGetWant(agent: WantAgent, callback: AsyncCallbackWrapper<Want>): void;
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
-  export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
+  export function getBundleName_chinast_1(agent: WantAgent, callback: AsyncCallback<string>): void {
     let myCall = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void =>{
       nativeGetBundleName(agent, myCall);
     });
   }
-  export function getBundleName(agent: WantAgent): Promise<string> {
+  export function getBundleName_chinast_2(agent: WantAgent): Promise<string> {
     return new Promise<string>((resolve: (data:string)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined)=>{
         if (err == null || err.code == 0) {
@@ -50,6 +50,9 @@ namespace wantAgent {
       });
     });
   }
+
+  overload  getBundleName { getBundleName_chinast_1, getBundleName_chinast_2 };
+
   export function getUid(agent: WantAgent, callback: AsyncCallback<number>): void {
     let myCall = new AsyncCallbackWrapper<number>(callback);
     taskpool.execute((): void =>{
@@ -70,13 +73,13 @@ namespace wantAgent {
     });
     });
   }
-  export function getWant(agent: WantAgent, callback: AsyncCallback<Want>): void {
+  export function getWant_chinast_1(agent: WantAgent, callback: AsyncCallback<Want>): void {
     let myCall = new AsyncCallbackWrapper<Want>(callback);
     taskpool.execute((): void =>{
       nativeGetWant(agent, myCall);
     });
   }
-  export function getWant(agent: WantAgent): Promise<Want> {
+  export function getWant_chinast_2(agent: WantAgent): Promise<Want> {
     return new Promise<Want>((resolve: (data:Want)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<Want>((err: BusinessError | null, data: Want | undefined)=>{
         if (err == null || err.code == 0) {
@@ -90,13 +93,16 @@ namespace wantAgent {
     });
     });
   }
-  export function cancel(agent: WantAgent, callback: AsyncCallback<void>): void {
+
+  overload getWant { getWant_chinast_1, getWant_chinast_2 };
+
+  export function cancel_chinast_1(agent: WantAgent, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void =>{
       nativeCancel(agent, myCall);
     });
   }
-  export function cancel(agent: WantAgent): Promise<void> {
+  export function cancel_chinast_2(agent: WantAgent): Promise<void> {
     return new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
         if (err == null || err.code == 0) {
@@ -110,6 +116,9 @@ namespace wantAgent {
       });
     });
   }
+
+  overload cancel { cancel_chinast_1, cancel_chinast_2 };
+
   export function trigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallback<CompleteData>): void {
     taskpool.execute((): void =>{
       if (callback == undefined) {
@@ -120,13 +129,13 @@ namespace wantAgent {
       }
     });
   }
-  export function equal(agent: WantAgent, otherAgent: WantAgent, callback: AsyncCallback<boolean>): void {
+  export function equal_chinast_1(agent: WantAgent, otherAgent: WantAgent, callback: AsyncCallback<boolean>): void {
     let myCall = new AsyncCallbackWrapper<boolean>(callback);
     taskpool.execute((): void =>{
       nativeEqual(agent, otherAgent, myCall);
     });
   }
-  export function equal(agent: WantAgent, otherAgent: WantAgent): Promise<boolean> {
+  export function equal_chinast_2(agent: WantAgent, otherAgent: WantAgent): Promise<boolean> {
     return new Promise<boolean>((resolve: (data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
         if (err == null || err.code == 0) {
@@ -140,13 +149,16 @@ namespace wantAgent {
     });
     });
   }
-  export function getWantAgent(info: WantAgentInfo, callback: AsyncCallback<WantAgent>): void {
+
+  overload equal { equal_chinast_1, equal_chinast_2 };
+
+  export function getWantAgent_chinast_1(info: WantAgentInfo, callback: AsyncCallback<WantAgent>): void {
     let myCall = new AsyncCallbackWrapper<WantAgent>(callback);
     taskpool.execute((): void =>{
       nativeGetWantAgent(info, myCall);
     });
   }
-  export function getWantAgent(info: WantAgentInfo): Promise<WantAgent> {
+  export function getWantAgent_chinast_2(info: WantAgentInfo): Promise<WantAgent> {
     return new Promise<WantAgent>((resolve: (data:WantAgent)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<WantAgent>((err: BusinessError | null, data: WantAgent | undefined)=>{
         if (err == null || err.code == 0) {
@@ -160,13 +172,16 @@ namespace wantAgent {
       });
     });
   }
-  export function getOperationType(agent: WantAgent, callback: AsyncCallback<number>): void {
+
+  overload getWantAgent { getWantAgent_chinast_1, getWantAgent_chinast_2 };
+
+  export function getOperationType_chinast_1(agent: WantAgent, callback: AsyncCallback<number>): void {
     let myCall = new AsyncCallbackWrapper<number>(callback);
     taskpool.execute((): void =>{
       nativeGetOperationType(agent, myCall);
     });
   }
-  export function getOperationType(agent: WantAgent): Promise<number> {
+  export function getOperationType_chinast_2(agent: WantAgent): Promise<number> {
     return new Promise<number>((resolve: (data:number)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
         if (err == null || err.code == 0) {
@@ -180,6 +195,8 @@ namespace wantAgent {
     });
     });
   }
+
+  overload getOperationType { getOperationType_chinast_1, getOperationType_chinast_2 };
 
   export enum WantAgentFlags {
     ONE_TIME_FLAG = 0,
