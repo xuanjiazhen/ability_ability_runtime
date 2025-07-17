@@ -50,13 +50,14 @@ public:
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
 
-    bool Initialize(void *napiEnv, const std::string &aotPath);
+    bool Initialize(void *napiEnv, const std::string &aotPath, void *eventRunner);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
     bool PreloadModule(const std::string &modulePath);
     bool LoadModule(const std::string &modulePath, const std::string &srcEntrance, void *&cls,
         void *&obj, void *&ref);
+    void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime);
 
     struct VMEntry {
         ani_vm *aniVm_;
@@ -77,9 +78,11 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     std::string GetErrorProperty(ani_error aniError, const char *property);
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
+    void InitEventHandler(std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
 };
 } // namespace EtsEnv
 } // namespace OHOS

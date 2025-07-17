@@ -28,7 +28,7 @@ struct ETSEnvFuncs {
     void (*InitETSSDKNS)(const std::string &path) = nullptr;
     void (*InitETSSysNS)(const std::string &path) = nullptr;
 
-    bool (*Initialize)(void *napiEnv, const std::string &aotPath) = nullptr;
+    bool (*Initialize)(void *napiEnv, const std::string &aotPath, void *eventRunner) = nullptr;
     void (*RegisterUncaughtExceptionHandler)(
         const OHOS::EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo) = nullptr;
     ani_env *(*GetAniEnv)() = nullptr;

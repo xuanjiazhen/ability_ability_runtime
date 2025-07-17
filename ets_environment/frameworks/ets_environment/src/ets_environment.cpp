@@ -208,7 +208,7 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
     dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
 }
 
-bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
+bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath, void *eventRunner)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called");
     if (!LoadRuntimeApis()) {
@@ -221,6 +221,7 @@ bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
         return false;
     }
 
+    InitEventHandler(*reinterpret_cast<std::shared_ptr<AppExecFwk::EventRunner> *>(eventRunner));
     std::vector<ani_option> options;
     std::string aotPathString = "";
     if (!aotPath.empty()) {
@@ -247,6 +248,22 @@ bool ETSEnvironment::Initialize(void *napiEnv, const std::string &aotPath)
         return false;
     }
     return true;
+}
+
+void ETSEnvironment::InitEventHandler(std::shared_ptr<AppExecFwk::EventRunner> &eventRunner)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitEventHandler called");
+    if (eventRunner != nullptr) {
+        eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
+    }
+}
+
+void ETSEnvironment::PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostTask called");
+    if (eventHandler_ != nullptr) {
+        eventHandler_->PostTask(task, name, delayTime);
+    }
 }
 
 ani_env *ETSEnvironment::GetAniEnv()
@@ -502,8 +519,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         .InitETSSysNS = [](const std::string &path) {
             ETSEnvironment::InitETSSysNS(path);
         },
-        .Initialize = [](void *napiEnv, const std::string &aotPath) {
-            return ETSEnvironment::GetInstance()->Initialize(napiEnv, aotPath);
+        .Initialize = [](void *napiEnv, const std::string &aotPath, void *eventRunner) {
+            return ETSEnvironment::GetInstance()->Initialize(napiEnv, aotPath, eventRunner);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
