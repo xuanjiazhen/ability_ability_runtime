@@ -44,10 +44,13 @@ public:
     int32_t GetConnectionId() { return connectionId_; }
     void SetConnectionRef(ani_object connectOptionsObj);
     void RemoveConnectionObject();
+    ani_env *AttachCurrentThread();
+    void DetachCurrentThread();
 protected:
     ani_vm *etsVm_ = nullptr;
     int32_t connectionId_ = -1;
     ani_ref stsConnectionRef_ = nullptr;
+    bool isAttachThread_ = false;
 };
 
 class StsAbilityContext final {
@@ -93,10 +96,10 @@ public:
     static void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
     static void ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
-    static ani_int OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+    static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_object connectOptionsObj);
     static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
-        ani_int connectId, ani_object connectOptionsObj);
+        ani_double connectId, ani_object connectOptionsObj);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
