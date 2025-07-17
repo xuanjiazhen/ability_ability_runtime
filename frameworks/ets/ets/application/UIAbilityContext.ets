@@ -84,6 +84,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeOnSetRestoreEnabled(enabled: boolean): void;
+  
   private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): double;
 
   private native nativeDisconnectServiceExtensionAbility(connection: double, callback: AsyncCallbackWrapper<void>): void;
@@ -366,6 +368,10 @@ export default class UIAbilityContext extends Context {
 
   setColorMode(colorMode: ConfigurationConstant.ColorMode): void {
     this.nativeSetColorMode(colorMode);
+  }
+
+  setRestoreEnabled(enabled: boolean): void {
+    return this.nativeOnSetRestoreEnabled(enabled);
   }
 
   backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {

@@ -936,6 +936,24 @@ void StsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
+void StsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    auto abilityContext = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (abilityContext == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityContext");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    bool enabled = static_cast<bool>(aniEnabled);
+    abilityContext->SetRestoreEnabled(enabled);
+    return;
+}
+
 void StsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<STSNativeReference> &stsContext,
     const std::shared_ptr<AppExecFwk::Configuration> &config)
 {
@@ -1095,6 +1113,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeSetMissionLabel",
                 "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void *>(StsAbilityContext::OnSetMissionLabel) },
+            ani_native_function { "nativeOnSetRestoreEnabled", "Z:V",
+                reinterpret_cast<void*>(StsAbilityContext::NativeOnSetRestoreEnabled) },
             ani_native_function { "nativeConnectServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(StsAbilityContext::OnConnectServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
