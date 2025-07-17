@@ -1035,6 +1035,24 @@ void StsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_ob
     AppExecFwk::AsyncCallback(env, callback, CreateStsError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
+void StsAbilityContext::StartAbilityForResultWithAccount1(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_double stsAccountId, ani_object callback)
+{
+    GetInstance().OnStartAbilityForResultWithAccount(env, aniObj, wantObj, stsAccountId, nullptr, callback);
+}
+
+void StsAbilityContext::StartAbilityForResultWithAccount2(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_double stsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    GetInstance().OnStartAbilityForResultWithAccount(env, aniObj, wantObj, stsAccountId, startOptionsObj, callback);
+}
+
+void StsAbilityContext::StartAbilityForResultWithAccount3(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_double stsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    GetInstance().OnStartAbilityForResultWithAccount(env, aniObj, wantObj, stsAccountId, startOptionsObj, callback);
+}
+
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls);
@@ -1099,6 +1117,17 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(StsAbilityContext::OnConnectServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(StsAbilityContext::OnDisconnectServiceExtensionAbility) },
+            ani_native_function { "nativeStartAbilityForResultWithAccount",
+                "L@ohos/app/ability/Want/Want;DLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResultWithAccount1) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountVoid",
+                "L@ohos/app/ability/Want/Want;DL@ohos/app/ability/StartOptions/StartOptions;"
+                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResultWithAccount2) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountResult",
+                "L@ohos/app/ability/Want/Want;DL@ohos/app/ability/StartOptions/StartOptions;"
+                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(StsAbilityContext::StartAbilityForResultWithAccount3) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -1235,6 +1264,67 @@ bool StsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
         return false;
     }
     return isInstanceOf;
+}
+
+void StsAbilityContext::OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_double stsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "called");
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "non system app forbidden to call");
+        ThrowStsError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return;
+    }
+    AAFwk::Want want;
+    OHOS::AppExecFwk::UnwrapWant(env, wantObj, want);
+    int32_t accountId = static_cast<int32_t>(stsAccountId);
+    AAFwk::StartOptions startOptions;
+    if (startOptionsObj) {
+        OHOS::AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
+    }
+    std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+        system_clock::now().time_since_epoch()).count());
+    ani_ref callbackRef = nullptr;
+    env->GlobalReference_Create(callback, &callbackRef);
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    RuntimeTask task = [etsVm, callbackRef, element = want.GetElement(), flags = want.GetFlags(), startTime]
+        (int resultCode, const AAFwk::Want &want, bool isInner) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "start async callback");
+        ani_status status = ANI_ERROR;
+        ani_env *env = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+            return;
+        }
+        ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+        TAG_LOGD(AAFwkTag::CONTEXT, "resultCode: %{public}d", resultCode);
+        if (abilityResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
+            isInner = true;
+            resultCode = ERR_INVALID_VALUE;
+        }
+        auto errCode = isInner ? resultCode : 0;
+        TAG_LOGD(AAFwkTag::CONTEXT, "errCode: %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+            OHOS::AbilityRuntime::CreateStsErrorByNativeErr(env, errCode), abilityResult);
+    };
+    auto context = StsAbilityContext::GetAbilityContext(env, aniObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callback,
+            OHOS::AbilityRuntime::CreateStsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto requestCode = GenerateRequestCode();
+    (startOptionsObj == nullptr) ? context->StartAbilityForResultWithAccount(want, accountId, requestCode,
+        std::move(task)) : context->StartAbilityForResultWithAccount(want, accountId, startOptions, requestCode,
+            std::move(task));
 }
 
 bool SetAbilityInfo(ani_env *env, ani_class cls, ani_object contextObj, const std::shared_ptr<AbilityContext> &context)

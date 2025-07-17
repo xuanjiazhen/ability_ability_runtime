@@ -97,6 +97,12 @@ public:
         ani_object wantObj, ani_object connectOptionsObj);
     static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_int connectId, ani_object connectOptionsObj);
+    static void StartAbilityForResultWithAccount1(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double stsAccountId, ani_object callback);
+    static void StartAbilityForResultWithAccount2(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double stsAccountId, ani_object startOptionsObj, ani_object callback);
+    static void StartAbilityForResultWithAccount3(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double stsAccountId, ani_object startOptionsObj, ani_object callback);
 
 private:
     static void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
@@ -114,6 +120,8 @@ private:
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
+    void OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double stsAccountId, ani_object startOptionsObj, ani_object callback);
 
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
     static std::mutex requestCodeMutex_;
