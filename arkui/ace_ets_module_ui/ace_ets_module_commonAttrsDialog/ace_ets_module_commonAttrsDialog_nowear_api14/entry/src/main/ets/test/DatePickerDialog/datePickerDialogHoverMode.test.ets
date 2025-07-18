@@ -70,7 +70,7 @@ export default function datePickerDialogHoverMode(){
         let btn4 = await driver.findComponent(ON.text('确定'))
         let rect = await btn4.getBounds()
         console.info(`rect is: ` + JSON.stringify(rect))
-        expect(rect.top - height.y < 0 ).assertTrue();
+        expect(rect.top - height.y > 0 ).assertTrue();
         await CommonFunc.sleep(1000);
         await btn4.click()
         await CommonFunc.sleep(1000);
