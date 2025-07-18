@@ -14,8 +14,10 @@
  */
 import webAttributeTest from './WebAttributeTest.test'
 import webOnBeforeUnload from './WebOnBeforeUnload.test'
+import webAttributeEnhancedTest from './WebAttributeEnhancedTest.test'
 
 export default function testsuite() {
   webAttributeTest()
   webOnBeforeUnload()
+  webAttributeEnhancedTest()
 }
