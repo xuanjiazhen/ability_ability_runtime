@@ -379,6 +379,7 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     auto userId = abilityInfo_.applicationInfo.uid / BASE_USER_RANGE;
     if (KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1) &&
         MainElementUtils::IsMainUIAbility(abilityInfo_.applicationInfo.bundleName, abilityInfo_.name, userId)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "LoadAbility setKeepAlive");
         loadParam.isKeepAlive = true;
     }
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(

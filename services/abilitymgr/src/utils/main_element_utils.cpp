@@ -77,11 +77,11 @@ bool MainElementUtils::IsMainUIAbility(const std::string &bundleName,
         TAG_LOGE(AAFwkTag::KEEP_ALIVE, "IsMainUIAbility get bundleInfo failed");
         return false;
     }
-    for (const auto& hapModuleInfo : bundleInfo.hapModuleInfos) {
-        if (hapModuleInfo.moduleType != AppExecFwk::ModuleType::ENTRY) {
-            continue;
-        }
-        return abilityName == hapModuleInfo.mainElementName;
+    std::string mainElementName;
+    if (CheckMainUIAbility(bundleInfo, mainElementName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "IsMainUIAbility %{public}s::%{public}s",
+            abilityName.c_str(), mainElementName.c_str());
+        return abilityName == mainElementName;
     }
     return false;
 }
