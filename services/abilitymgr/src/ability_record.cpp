@@ -377,8 +377,14 @@ int AbilityRecord::LoadAbility(bool isShellCall)
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
     auto userId = abilityInfo_.applicationInfo.uid / BASE_USER_RANGE;
-    if (KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1) &&
-        MainElementUtils::IsMainUIAbility(abilityInfo_.applicationInfo.bundleName, abilityInfo_.name, userId)) {
+    bool isMainUIAbility =
+        MainElementUtils::IsMainUIAbility(abilityInfo_.applicationInfo.bundleName, abilityInfo_.name, userId);
+    if (isMainUIAbility) {
+        loadParam.isMainElementRunning = true;
+    }
+    if (isMainUIAbility &&
+        KeepAliveProcessManager::GetInstance().IsKeepAliveBundle(abilityInfo_.applicationInfo.bundleName, -1)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "LoadAbility setKeepAlive");
         loadParam.isKeepAlive = true;
     }
     auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(

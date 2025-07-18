@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,9 @@ bool LoadParam::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(isKeepAlive)) {
         return false;
     }
+    if (!parcel.WriteBool(isMainElementRunning)) {
+        return false;
+    }
     if (!parcel.WriteBool(isKeepAliveAppService)) {
         return false;
     }
@@ -84,6 +87,7 @@ bool LoadParam::ReadFromParcel(Parcel &parcel)
         }
     }
     isKeepAlive = parcel.ReadBool();
+    isMainElementRunning = parcel.ReadBool();
     isKeepAliveAppService = parcel.ReadBool();
     extensionProcessMode = parcel.ReadUint32();
     std::unique_ptr<ExtensionLoadParam> extensionParamRead(parcel.ReadParcelable<ExtensionLoadParam>());

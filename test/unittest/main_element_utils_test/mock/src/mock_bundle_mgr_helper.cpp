@@ -56,6 +56,10 @@ ErrCode BundleMgrHelper::GetBundleInfoV9(
         HapModuleInfo hapModuleInfo;
         hapModuleInfo.moduleType = AppExecFwk::ModuleType::ENTRY;
         hapModuleInfo.mainElementName = FOUND_TARGET_ABILITY;
+        AppExecFwk::AbilityInfo abilityInfo;
+        abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+        abilityInfo.name = FOUND_TARGET_ABILITY;
+        hapModuleInfo.abilityInfos.emplace_back(abilityInfo);
         bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
         return ERR_OK;
     }
