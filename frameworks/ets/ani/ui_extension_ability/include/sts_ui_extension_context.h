@@ -46,11 +46,14 @@ public:
     void SetConnectionId(int32_t id);
     int32_t GetConnectionId() { return connectionId_; }
     void SetConnectionRef(ani_object connectOptionsObj);
+    ani_env *AttachCurrentThread();
+    void DetachCurrentThread();
 
 protected:
     ani_vm *etsVm_ = nullptr;
     int32_t connectionId_ = -1;
     ani_ref stsConnectionRef_ = nullptr;
+    bool isAttachThread_ = false;
 };
 
 class StsUIExtensionContext final {
@@ -71,7 +74,7 @@ public:
     static void NativeReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
     static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
-    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_int connectId,
+    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
         ani_object connectOptionsObj);
 
 private:

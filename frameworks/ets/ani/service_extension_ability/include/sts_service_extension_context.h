@@ -50,6 +50,26 @@ void BindExtensionInfo(ani_env* aniEnv, ani_class contextClass, ani_object conte
 void UpdateContextConfiguration(ani_env *env, std::unique_ptr<OHOS::AbilityRuntime::STSNativeReference>& stsObj,
     ani_object aniConfiguration);
 
+class ETSServiceExtensionConnection : public AbilityConnectCallback {
+public:
+    explicit ETSServiceExtensionConnection(ani_vm *etsVm);
+    ~ETSServiceExtensionConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override;
+    void CallEtsFailed(int32_t errorCode);
+    void SetConnectionId(int32_t id);
+    int32_t GetConnectionId() { return connectionId_; }
+    void SetConnectionRef(ani_object connectOptionsObj);
+    void RemoveConnectionObject();
+    ani_env *AttachCurrentThread();
+    void DetachCurrentThread();
+protected:
+    ani_vm *etsVm_ = nullptr;
+    int32_t connectionId_ = -1;
+    ani_ref stsConnectionRef_ = nullptr;
+    bool isAttachThread_ = false;
+};
 class StsServiceExtensionContext final {
 public:
     static StsServiceExtensionContext &GetInstance()
@@ -60,10 +80,27 @@ public:
     void StartAbilityInner([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object aniObj,
         ani_object wantObj, ani_object opt, ani_object call);
     static ServiceExtensionContext* GetAbilityContext(ani_env *env, ani_object obj);
+    static ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object connectOptionsObj);
+    static void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+        ani_double connectId, ani_object connectOptionsObj);
     void AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
         ServiceExtensionContext* context);
 private:
     sptr<StsFreeInstallObserver> freeInstallObserver_ = nullptr;
+};
+
+struct EtsConnectionKey {
+    AAFwk::Want want;
+    int32_t id = 0;
+    int32_t accountId = 0;
+};
+
+struct EtsKeyCompare {
+    bool operator()(const EtsConnectionKey &key1, const EtsConnectionKey &key2) const
+    {
+        return key1.id < key2.id;
+    }
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
