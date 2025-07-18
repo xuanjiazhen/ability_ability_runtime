@@ -189,8 +189,11 @@ std::shared_ptr<AbilityStage> JsAbilityStage::Create(
     srcPath.append("/");
     if (!hapModuleInfo.srcEntrance.empty()) {
         srcPath.append(hapModuleInfo.srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
-        srcPath.append(".abc");
+        auto pos = srcPath.rfind(".");
+        if (pos != std::string::npos) {
+            srcPath.erase(pos);
+            srcPath.append(".abc");
+        }
         moduleObj = jsRuntime.LoadModule(moduleName, srcPath, hapModuleInfo.hapPath,
             hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE, commonChunkFlag);
         TAG_LOGD(AAFwkTag::APPKIT, "srcPath is %{public}s", srcPath.c_str());

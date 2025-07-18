@@ -192,8 +192,11 @@ std::string JsAbility::GenerateSrcPath(std::shared_ptr<AbilityInfo> abilityInfo)
         }
         srcPath.append("/");
         srcPath.append(abilityInfo->srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
-        srcPath.append(".abc");
+        auto pos = srcPath.rfind(".");
+        if (pos != std::string::npos) {
+            srcPath.erase(pos);
+            srcPath.append(".abc");
+        }
         TAG_LOGI(AAFwkTag::ABILITY, "%{public}s", srcPath.c_str());
     }
     return srcPath;
