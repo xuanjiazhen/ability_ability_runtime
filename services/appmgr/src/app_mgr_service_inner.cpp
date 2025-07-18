@@ -2877,7 +2877,7 @@ void AppMgrServiceInner::GetRunningProcess(const std::shared_ptr<AppRunningRecor
     info.processType_ = appRecord->GetProcessType();
     info.extensionType_ = appRecord->GetExtensionType();
     info.preloadMode_ = appRecord->GetPreloadMode();
-    info.isDebugApp  = appRecord->IsDebug();
+    info.isDebugApp  = appRecord->GetApplicationInfo()->debug;
     info.isExiting = appRecord->IsTerminating() || appRecord->IsKilling()
         || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning();
     info.isCached = DelayedSingleton<CacheProcessManager>::GetInstance()->IsCachedProcess(appRecord);
