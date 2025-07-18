@@ -161,6 +161,7 @@ ohos_shared_library("cj_ability_context_native") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",
+    "ipc:ipc_single",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
   ]

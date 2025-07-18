@@ -43,6 +43,7 @@ ohos_shared_library("autofillmanager_napi") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "json:nlohmann_json_static",
     "napi:ace_napi",
   ]

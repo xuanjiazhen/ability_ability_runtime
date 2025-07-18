@@ -35,6 +35,7 @@ ohos_shared_library("dialog_request_info") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "napi:ace_napi",
   ]
 
