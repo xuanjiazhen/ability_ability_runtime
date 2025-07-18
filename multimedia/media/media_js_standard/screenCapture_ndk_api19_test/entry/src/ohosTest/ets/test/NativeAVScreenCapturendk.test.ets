@@ -415,6 +415,21 @@ export default function nativeAVScreenCaptureNdkTest() {
       done();
     });
     /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400
+     * @tc.desc         normalAVScreenCaptureErrorTest 1
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenCaptureErrorTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureErrorTest();
+      console.info(Tag + "normalAVScreenCaptureErrorTest-------------res:" + result);
+      expect(result).assertEqual(2);
+      done();
+    });
+    /**
      * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0700
      * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0700
      * @tc.desc         normalSelectionCallback

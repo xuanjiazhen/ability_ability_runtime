@@ -22,7 +22,7 @@
         "name": "default",
         "signingConfig": "default",
         "compileSdkVersion": 20,
-        "targetSdkVersion": 19,
+        "targetSdkVersion": 19,//测试环境targetSdkVersion最高支持到19
         "compatibleSdkVersion": 14,
       }
     ]

@@ -29,3 +29,6 @@ export const normalAVScreenCaptureShowCursorWithParaNullTrue: () => number;
 export const normalAVScreenCaptureSetDisplayCallbackFail: () => number;
 export const normalAVScreenCaptureDisplayCallbackSuccess: () => number;
 export const multiAVScreenCaptureCreate: () => number;
+export const normalAVScreenCaptureErrorTest: () => number;
+export const normalSelectionCallback: () => number;
+export const normalSelectionCallbackStop: () => number;
