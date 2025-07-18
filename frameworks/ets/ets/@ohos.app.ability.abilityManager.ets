@@ -19,6 +19,7 @@ import { BusinessError, AsyncCallback } from '@ohos.base';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import { AbilityRunningInfo as _AbilityRunningInfo } from 'application.AbilityRunningInfo';
 import _AbilityStateData from 'application.AbilityStateData';
+import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
 
 export default namespace abilityManager {
   loadLibrary("ability_manager_ani_kit.z")
@@ -27,6 +28,8 @@ export default namespace abilityManager {
   export native function getForegroundUIAbilitiesCallback(callback:AsyncCallbackWrapper<Array<AbilityStateData>>) : void;
   export native function nativeGetTopAbility(callback:AsyncCallbackWrapper<ElementName>) : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
+  export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
+  export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -50,6 +53,7 @@ export default namespace abilityManager {
         abilityManager.getForegroundUIAbilitiesCallback(myCall);
       })
   }
+
   export function getTopAbility():Promise<ElementName> {
     let p = new Promise<ElementName>((resolve: (data: ElementName)=>void, reject:(err: BusinessError)=>void):void => {
       let myCall = new AsyncCallbackWrapper<ElementName>((err: BusinessError | null, data: ElementName | undefined)=>{
@@ -64,14 +68,14 @@ export default namespace abilityManager {
       });
     });
     return p;
-}
+  }
 
-export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
-    let myCall = new AsyncCallbackWrapper<ElementName>(callback);
-    taskpool.execute( (): void => {
-        abilityManager.nativeGetTopAbility(myCall);
-    });
-}
+  export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
+      let myCall = new AsyncCallbackWrapper<ElementName>(callback);
+      taskpool.execute( (): void => {
+          abilityManager.nativeGetTopAbility(myCall);
+      });
+  }
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {
     return new Promise<Array<AbilityRunningInfo>>((resolve: (data: Array<AbilityRunningInfo>) => void,
@@ -97,6 +101,14 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
     });
   }
 
+  export function on(type: 'abilityForegroundState', observer: AbilityForegroundStateObserver): void {
+    abilityManager.nativeOn('abilityForegroundState', observer);
+  }
+
+  export function off(type: 'abilityForegroundState', observer?: AbilityForegroundStateObserver): void {
+    abilityManager.nativeOff('abilityForegroundState', observer);
+  }
+
   export enum AbilityState {
     INITIAL = 0,
     FOCUS = 2,
@@ -115,4 +127,6 @@ export function getTopAbility(callback: AsyncCallback<ElementName, void>): void 
   export type AbilityRunningInfo = _AbilityRunningInfo;
 
   export type AbilityStateData = _AbilityStateData;
+   
+  export type AbilityForegroundStateObserver = _AbilityForegroundStateObserver;
 }
