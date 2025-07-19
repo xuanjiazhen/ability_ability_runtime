@@ -42,10 +42,13 @@ public:
     int32_t GetConnectionId() { return connectionId_; }
     void SetConnectionRef(ani_object connectOptionsObj);
     void RemoveConnectionObject();
+    ani_env *AttachCurrentThread();
+    void DetachCurrentThread();
 protected:
     ani_vm *etsVm_ = nullptr;
     int32_t connectionId_ = -1;
     ani_ref stsConnectionRef_ = nullptr;
+    bool isAttachThread_ = false;
 };
 
 class EtsAbilityContext final {
@@ -74,7 +77,7 @@ public:
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
     static void SetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj,
         ani_object callbackObj);
-    static ani_int ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    static ani_double ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
     static void DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
         ani_object callback);
@@ -114,7 +117,7 @@ private:
     void OnBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
     void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
-    ani_int OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_double OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object connectOptionsObj);
     void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
         ani_object callback);
