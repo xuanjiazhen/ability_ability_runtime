@@ -23,7 +23,7 @@ export default function stateChange() {
     beforeEach(async (done: Function) => {
       console.info("stateChange beforeEach start");
       let options: router.RouterOptions = {
-        url: "MainAbility/pages/Scroll/stateChange",
+        url: "MainAbility/pages/Swiper/stateChange",
       }
       try {
         router.clear();

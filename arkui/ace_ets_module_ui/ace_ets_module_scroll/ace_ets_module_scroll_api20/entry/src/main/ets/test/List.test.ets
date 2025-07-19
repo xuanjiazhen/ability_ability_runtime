@@ -32,7 +32,9 @@ import syncLoadGrid from './GridTest/syncLoadGrid.test';
 import syncLoadList from './ListTest/syncLoadList.test';
 import syncLoadGroup from './ListTest/syncLoadGroup.test';
 import syncLoadFlow from './WaterFlowTest/syncLoadFlow.test';
-import stateChange from './ScrollTest/stateChange.test';
+import stateChange from './SwiperTest/stateChange.test';
+import zoomScaleScroll from './ScrollTest/zoomScaleScroll.test';
+import zoomScaleNull from './ScrollTest/zoomScaleNull.test';
 
 export default function testsuite() {
   barHeightNoMinHeightLimit();
@@ -55,4 +57,6 @@ export default function testsuite() {
   syncLoadGroup()
   syncLoadFlow()
   stateChange()
+  zoomScaleScroll()
+  zoomScaleNull()
 }
