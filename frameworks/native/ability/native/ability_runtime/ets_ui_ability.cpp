@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "sts_ui_ability.h"
+#include "ets_ui_ability.h"
 
 #include <cstdlib>
 #include <regex>
@@ -379,6 +379,9 @@ void StsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
     std::string methodName = "OnStart";
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityWillCreate(stsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnAbilityWillCreate(interopObject);
     }
     AddLifecycleEventBeforeETSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod(false, "onCreate", UI_ABILITY_SIGNATURE_WANT_LAUNCH_VOID, wantRef, launchParamRef);
@@ -389,10 +392,12 @@ void StsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         delegator->PostPerformStart(CreateADelegatorAbilityProperty());
     }
-    applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityCreate(stsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
+            stsAbilityObj_->aniRef);
+        applicationContext->DispatchOnAbilityCreate(interopObject);
     }
-    TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
 void StsUIAbility::AddLifecycleEventBeforeETSCall(FreezeUtil::TimeoutState state, const std::string &methodName) const
@@ -509,6 +514,14 @@ void StsUIAbility::OnStopCallback()
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        auto env = stsRuntime_.GetAniEnv();
+        if (env == nullptr || stsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null env or ability");
+            return;
+        }
+        applicationContext->DispatchOnAbilityDestroy(stsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnAbilityDestroy(interopObject);
     }
 }
 
@@ -542,6 +555,9 @@ void StsUIAbility::OnSceneCreated()
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->DispatchOnWindowStageWillCreate(stsAbilityObj_, stsWindowStageObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnWindowStageWillCreate(interopObject);
     }
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
@@ -560,6 +576,9 @@ void StsUIAbility::OnSceneCreated()
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->DispatchOnWindowStageCreate(stsAbilityObj_, stsWindowStageObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnWindowStageCreate(interopObject);
     }
 
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -621,6 +640,14 @@ void StsUIAbility::onSceneDestroyed()
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        auto env = stsRuntime_.GetAniEnv();
+        if (env == nullptr || stsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null env or ability");
+            return;
+        }
+        applicationContext->DispatchOnWindowStageDestroy(stsAbilityObj_, stsWindowStageObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnWindowStageDestroy(interopObject);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -683,6 +710,9 @@ void StsUIAbility::CallOnForegroundFunc(const Want &want)
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        applicationContext->DispatchOnAbilityForeground(stsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnAbilityForeground(interopObject);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -711,6 +741,14 @@ void StsUIAbility::OnBackground()
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        auto env = stsRuntime_.GetAniEnv();
+        if (env == nullptr || stsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null env or ability");
+            return;
+        }
+        applicationContext->DispatchOnAbilityBackground(stsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env, stsAbilityObj_);
+        applicationContext->DispatchOnAbilityBackground(interopObject);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
