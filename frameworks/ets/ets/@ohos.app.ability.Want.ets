@@ -218,6 +218,88 @@ export class RecordSerializeTool {
   }
 }
 
+class NativeWantParamsCleaner {
+  public nativeWantParams: long = 0;
+
+  constructor(nativeWantParams: long) {
+    this.nativeWantParams = nativeWantParams;
+  }
+
+  private static native nativeDestroy(nativeWantParams: long): void;
+
+  public clean(): void {
+    NativeWantParamsCleaner.nativeDestroy(this.nativeWantParams);
+    this.nativeWantParams = 0;
+  }
+}
+
+function nativeWantParamsCleanerCallback(cleaner: NativeWantParamsCleaner): void {
+  cleaner.clean();
+}
+
+let destroyRegister = new FinalizationRegistry<NativeWantParamsCleaner>(nativeWantParamsCleanerCallback);
+
+class NativeWantParams {
+  static {
+    loadLibrary("want_ani_kit.z");
+  }
+
+  private nativeWantParams: long = 0;
+  private cleaner: NativeWantParamsCleaner | null = null;
+
+  constructor(wantParams?: long) {
+    if (wantParams === undefined) {
+      this.nativeWantParams = NativeWantParams.nativeCreate();
+      this.registerCleaner(this.nativeWantParams)
+      return;
+    }
+    this.nativeWantParams = wantParams;
+  }
+
+  private static native nativeCreate(): long;
+  private static native nativeSetStringParam(nativeWantParams: long, key: string,  value: string): boolean;
+  private static native nativeSetNumberParam(nativeWantParams: long, key: string,  value: number): boolean;
+  private static native nativeSetIntParam(nativeWantParams: long, key: string,  value: int): boolean;
+  private static native nativeSetWantParams(nativeWantParams: long, key: string,  value: long): boolean;
+
+  private registerCleaner(nativeWantParams: long): void {
+    this.cleaner = new NativeWantParamsCleaner(nativeWantParams);
+    destroyRegister.register(this, this.cleaner!, this);
+  }
+
+  public setParam(key: string,  value: string): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetStringParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: number): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetNumberParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: int): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetIntParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: NativeWantParams): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetWantParams(this.nativeWantParams, key, value.nativeWantParams);
+  }
+}
+
 export default class Want {
   bundleName?: string;
   abilityName?: string;
