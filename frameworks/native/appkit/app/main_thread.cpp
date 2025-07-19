@@ -1755,7 +1755,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 ResHelper::ReportLoadAbcCompletedInfoToRss(uid, currentPid, bundleName);
             });
         AbilityRuntime::Runtime::DebugOption debugOption;
-        debugOption.codeLanguage = appInfo.codeLanguage;
+        debugOption.arkTSMode = appInfo.arkTSMode;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;

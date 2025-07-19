@@ -212,7 +212,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
             TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
             return;
         }
-         auto callback = [weak, isDebugApp, isStartWithDebug](int32_t tid, const DebuggerPostTask& task) {
+        auto callback = [weak, isDebugApp, isStartWithDebug](int32_t tid, const DebuggerPostTask& task) {
             panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? isStartWithDebug : false};
             if (weak != nullptr) {
                 panda::JSNApi::StoreDebugInfo(tid, weak->GetVM(), debugOption, task, isDebugApp);
@@ -242,7 +242,7 @@ bool JsRuntime::ShouldSkipDebugMode(const DebugOption dOption)
         TAG_LOGE(AAFwkTag::JSRUNTIME, "developer Mode false");
         return false;
     }
-    if (!(dOption.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2)) {
+    if (!(dOption.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "developer register in sts");
         return false;
     }

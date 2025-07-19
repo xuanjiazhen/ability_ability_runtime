@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "static_core/plugins/ets/runtime/ets_namespace_manager.h"
+#include "static_core/runtime/tooling/inspector/debugger_arkapi.h"
 #include "ets_ani_expo.h"
 #ifdef LIKELY
 #undef LIKELY
@@ -32,6 +33,7 @@
 #ifdef UNLIKELY
 #undef UNLIKELY
 #endif
+#include "connect_server_manager.h"
 #include "dynamic_loader.h"
 #include "elf_factory.h"
 #include "event_handler.h"
@@ -54,6 +56,7 @@ static const std::string DEBUGGER = "@Debugger";
 
 using CreateVMETSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
 using ANIGetCreatedVMsType = ani_status (*)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+using DebuggerPostTask = std::function<void(std::function<void()> &&)>;
 
 const char ETS_SDK_NSNAME[] = "ets_sdk";
 const char ETS_SYS_NSNAME[] = "ets_system";
@@ -242,10 +245,10 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string debugLibraryPathMode = "--ext:--debugger-library-path=/system/lib64/libarkinspector.so";
     std::string breadonstartMode = "--ext:--debugger-break-on-start";
     if (isStartWithDebug) {
-        options.push_back(ani_option { interpreerMode, nullptr });
-        options.push_back(ani_option { debugEnalbeMode, nullptr });
-        options.push_back(ani_option { debugLibraryPathMode, nullptr });
-        options.push_back(ani_option { breadonstartMode, nullptr });
+        options.push_back(ani_option { interpreerMode.data(), nullptr });
+        options.push_back(ani_option { debugEnalbeMode.data(), nullptr });
+        options.push_back(ani_option { debugLibraryPathMode.data(), nullptr });
+        options.push_back(ani_option { breadonstartMode.data(), nullptr });
     }
     ani_options optionsPtr = { options.size(), options.data() };
     ani_status status = ANI_ERROR;
@@ -587,20 +590,20 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         .PreloadSystemClass = [](const char *className) {
             ETSEnvironment::GetInstance()->PreloadSystemClass(className);
         }
-        .RemoveInstance = [uint32_t instanceId]() {
+        .RemoveInstance = [](uint32_t instanceId) {
             return ETSEnvironment::GetInstance()->RemoveInstance(instanceId);
-        }
-        .StopDebugMode = [void *jsVm]() {
+        },
+        .StopDebugMode = [](void *jsVm) {
             return ETSEnvironment::GetInstance()->StopDebugMode(jsVm);
-        }
-        .StartDebuggerForSocketPair = [std::string &option, int32_t socketFd]() {
+        },
+        .StartDebuggerForSocketPair = [](std::string &option, int32_t socketFd) {
             return ETSEnvironment::GetInstance()->StartDebuggerForSocketPair(option, socketFd);
-        }
-        .NotifyDebugMode = [uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm]() {
+        },
+        .NotifyDebugMode = [](uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm) {
             return ETSEnvironment::GetInstance()->NotifyDebugMode(tid, instanceId, isStartWithDebug, jsVm);
-        }
-        .BroadcastAndConnect = [const std::string& bundleName, int socketFd, bool isLocalAbstract]() {
-            return ETSEnvironment::GetInstance()->BroadcastAndConnect(bundleName, socketFd, isLocalAbstract);
+        },
+        .BroadcastAndConnect = [](const std::string& bundleName, int socketFd) {
+            return ETSEnvironment::GetInstance()->BroadcastAndConnect(bundleName, socketFd);
         }
     };
     return &funcs;
@@ -609,14 +612,15 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
 void ETSEnvironment::NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Start");
-    ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId_, "Debugger");
-    ark::ArkDebugNativeAPI::NotifyDebugMode(tid, instanceId, isStartWithDebug, jsVm, GetDebuggerPostTask());
+    AbilityRuntime::ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId, "Debugger");
+    auto task = GetDebuggerPostTask();
+    ark::ArkDebugNativeAPI::NotifyDebugMode(tid, instanceId, isStartWithDebug, jsVm, task);
 }
 
 void ETSEnvironment::RemoveInstance(uint32_t instanceId)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Start");
-    ConnectServerManager::Get().RemoveInstance(instanceId_);
+    AbilityRuntime::ConnectServerManager::Get().RemoveInstance(instanceId);
 }
 
 void ETSEnvironment::StopDebugMode(void *jsVm)
@@ -627,7 +631,7 @@ void ETSEnvironment::StopDebugMode(void *jsVm)
     }
 }
 
-bool ETSEnvironment::StartDebuggerForSocketPair(std::string &option, int32_t socketFd)
+void ETSEnvironment::StartDebuggerForSocketPair(std::string &option, int32_t socketFd)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Start");
     int32_t identifierId = ParseHdcRegisterOption(option);
@@ -638,7 +642,7 @@ bool ETSEnvironment::StartDebuggerForSocketPair(std::string &option, int32_t soc
     debugMode_ = ark::ArkDebugNativeAPI::StartDebuggerForSocketPair(ParseHdcRegisterOption(option), socketFd);
 }
 
-DebuggerPostTask STSEnvironment::GetDebuggerPostTask()
+DebuggerPostTask ETSEnvironment::GetDebuggerPostTask()
 {
     auto debuggerPostTask = [weak = weak_from_this()](std::function<void()>&& task) {
         auto etsEnv = weak.lock();
@@ -646,12 +650,12 @@ DebuggerPostTask STSEnvironment::GetDebuggerPostTask()
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "StsEnv is invalid");
             return;
         }
-        etsEnv->PostTask(task, "StsEnvironment:GetDebuggerPostTask");
+        etsEnv->PostTask(task, "ETSEnvironment:GetDebuggerPostTask", 0);
     };
     return debuggerPostTask;
 }
 
-int32_t ConnectServerManager::ParseHdcRegisterOption(std::string& option)
+int32_t ETSEnvironment::ParseHdcRegisterOption(std::string& option)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Start");
     std::size_t pos = option.find_first_of(":");
@@ -690,8 +694,8 @@ void ETSEnvironment::PostTask(const std::function<void()> &task, const std::stri
 void ETSEnvironment::BroadcastAndConnect(const std::string& bundleName, int socketFd)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "BroadcastAndConnect called");
-    ConnectServerManager::Get().SendInstanceMessageAll(nullptr);
-    ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
+    AbilityRuntime::ConnectServerManager::Get().SendInstanceMessageAll(nullptr);
+    AbilityRuntime::ConnectServerManager::Get().StartConnectServer(bundleName, socketFd, false);
 }
 } // namespace EtsEnv
 } // namespace OHOS
