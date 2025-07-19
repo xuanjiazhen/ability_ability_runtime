@@ -271,7 +271,7 @@ void EtsAbilityDelegator::FinishTest(ani_env *env, ani_string msg, ani_double co
     return;
 }
 
-void EtsAbilityDelegator::PrintSync(ani_env *env, ani_string msg)
+void EtsAbilityDelegator::PrintSync(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_string msg)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "PrintSync");
     if (env == nullptr) {

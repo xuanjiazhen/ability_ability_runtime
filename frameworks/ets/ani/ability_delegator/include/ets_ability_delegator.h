@@ -40,7 +40,7 @@ public:
 
     static ani_object GetAppContext(ani_env *env, ani_class clss);
 
-    static void PrintSync(ani_env *env, ani_string msg);
+    static void PrintSync(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_string msg);
 
     static void AddAbilityMonitor(ani_env *env, ani_object monitorObj, ani_object callback);
 
