@@ -61,7 +61,6 @@ public:
         void *&obj, void *&ref);
     void FinishPreload();
     void PostFork(void *napiEnv, const std::string &aotPath);
-    bool debugMode_ = false;
     void RemoveInstance(uint32_t instanceId);
     void StopDebugMode(void *jsVm);
     void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);
@@ -90,12 +89,13 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     std::string GetErrorProperty(ani_error aniError, const char *property);
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
-    void InitEventHandler(std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
+    void InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
     int32_t ParseHdcRegisterOption(std::string& option);
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    bool debugMode_ = false;
 };
 } // namespace EtsEnv
 } // namespace OHOS

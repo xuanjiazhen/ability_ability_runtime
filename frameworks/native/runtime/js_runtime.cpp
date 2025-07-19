@@ -212,7 +212,7 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
             TAG_LOGE(AAFwkTag::JSRUNTIME, "not support release app");
             return;
         }
-         auto callback = [weak, isDebugApp, isStartWithDebug](int32_t tid, const DebuggerPostTask& task) {
+        auto callback = [weak, isDebugApp, isStartWithDebug](int32_t tid, const DebuggerPostTask& task) {
             panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? isStartWithDebug : false};
             if (weak != nullptr) {
                 panda::JSNApi::StoreDebugInfo(tid, weak->GetVM(), debugOption, task, isDebugApp);
