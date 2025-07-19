@@ -71,7 +71,8 @@ bool UPMSUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uin
     }
     for (size_t i = 0; i < resVec.size(); i++) {
         if (resVec[i]) {
-            eventInfo.uri = uriVec[i];
+            Uri uri(uriVec[i]);
+            eventInfo.uri = uri.GetScheme() + ":" + uri.GetAuthority();
             EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
         }
     }
