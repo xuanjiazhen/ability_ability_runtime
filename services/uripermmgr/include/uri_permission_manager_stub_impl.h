@@ -47,13 +47,13 @@ using namespace AccessControl::SandboxManager;
 
 struct GrantInfo {
     unsigned int flag;
-    const uint32_t fromTokenId;
-    const uint32_t targetTokenId;
+    uint32_t fromTokenId;
+    uint32_t targetTokenId;
 };
 
 struct GrantPolicyInfo {
-    const uint32_t callerTokenId;
-    const uint32_t targetTokenId;
+    uint32_t callerTokenId;
+    uint32_t targetTokenId;
     bool Equal(uint32_t cTokenId, uint32_t tTokenId)
     {
         return callerTokenId == cTokenId && targetTokenId == tTokenId;
@@ -192,7 +192,7 @@ private:
 
     bool IsDistributedSubDirUri(const std::string &inputUri, const std::string &cachedUri);
 
-    ErrCode ClearPermissionTokenByMap(const uint32_t tokenId, int32_t& funcResult) override;
+    ErrCode ClearPermissionTokenByMap(uint32_t tokenId, int32_t& funcResult) override;
 
     void BoolVecToCharVec(const std::vector<bool>& boolVector, std::vector<char>& charVector);
 
@@ -203,6 +203,7 @@ private:
 
     ErrCode CheckGrantUriPermissionPrivileged(uint32_t callerTokenId, uint32_t flag, int32_t& funcResult);
 
+#ifdef ABILITY_RUNTIME_UDMF_ENABLE
     int32_t GrantUriPermissionByKeyInner(const std::string &key, uint32_t flag,
         uint32_t callerTokenId, uint32_t targetTokenId);
 
@@ -212,6 +213,7 @@ private:
 
     int32_t CheckGrantUriPermissionByKeyParams(const std::string &key, uint32_t flag,
         UPMSAppInfo &callerAppInfo, UPMSAppInfo &targetAppInfo, std::vector<std::string> &uris);
+#endif
 
     inline int32_t WrapErrorCode(int32_t errorCode, int32_t &funcRet);
 

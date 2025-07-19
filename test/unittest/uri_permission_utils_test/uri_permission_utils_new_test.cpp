@@ -134,18 +134,6 @@ HWTEST_F(UriPermissionUtilsNewTest, Upms_GetTokenIdByBundleName_001, TestSize.Le
 
 /*
  * Feature: UPMSUtils
- * Function: ConnectManagerHelper
- * SubFunction: NA
- * FunctionPoints: UPMSUtils ConnectManagerHelper
- */
-HWTEST_F(UriPermissionUtilsNewTest, Upms_ConnectManagerHelper_001, TestSize.Level1)
-{
-    auto manager = UPMSUtils::ConnectManagerHelper();
-    EXPECT_TRUE(manager != nullptr);
-}
-
-/*
- * Feature: UPMSUtils
  * Function: IsDocsCloudUri
  * SubFunction: NA
  * FunctionPoints: UPMSUtils IsDocsCloudUri
