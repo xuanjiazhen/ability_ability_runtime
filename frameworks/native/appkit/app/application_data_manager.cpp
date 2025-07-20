@@ -61,8 +61,8 @@ bool ApplicationDataManager::NotifyCJUnhandledException(const std::string &errMs
 
 bool ApplicationDataManager::NotifySTSUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    if (stsUnhandledExceptionCallback_) {
+        stsUnhandledExceptionCallback_(errMsg);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::STS_ERROR);
@@ -101,11 +101,32 @@ bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObje
 bool ApplicationDataManager::NotifySTSExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer come");
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    if (stsExceptionObjectCallback_) {
+        stsExceptionObjectCallback_(errorObj);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::STS_ERROR);
 }
+
+void ApplicationDataManager::SetStsExceptionInfo(const ExpectionInfo &info)
+{
+    stsExceptionInfo_ = info;
+}
+
+void ApplicationDataManager::RegisterSTSExceptionObjectCallback(const STSExceptionObjectCallback &callback)
+{
+    stsExceptionObjectCallback_ = callback;
+}
+
+void ApplicationDataManager::RegisterSTSUnhandledExceptionCallback(const STSUnhandledExceptionCallback &callback)
+{
+    stsUnhandledExceptionCallback_ = callback;
+}
+
+void ApplicationDataManager::GetStsExceptionInfo(ExpectionInfo &info)
+{
+    info = stsExceptionInfo_;
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

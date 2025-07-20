@@ -21,8 +21,23 @@
 #include "ierror_observer.h"
 #include "nocopyable.h"
 
+
 namespace OHOS {
 namespace AppExecFwk {
+
+using STSExceptionObjectCallback = std::function<void(const ErrorObject &)>;
+using STSUnhandledExceptionCallback = std::function<void(std::string)>;
+using GetForgroundInfoFunc = std::function<void(bool &)>;
+struct ExpectionInfo {
+    std::string bundleName;
+    int32_t versionCode;
+    std::string hapPath;
+    int32_t appRunningId;
+    int32_t pid;
+    std::string processName;
+    GetForgroundInfoFunc GetForgroundInfo;
+};
+
 class ApplicationDataManager {
 public:
     static ApplicationDataManager &GetInstance();
@@ -34,12 +49,18 @@ public:
     bool NotifyExceptionObject(const AppExecFwk::ErrorObject &errorObj);
     bool NotifyCJExceptionObject(const AppExecFwk::ErrorObject &errorObj);
     bool NotifySTSExceptionObject(const AppExecFwk::ErrorObject &errorObj);
-
+    void SetStsExceptionInfo(const ExpectionInfo &info);
+    void RegisterSTSExceptionObjectCallback(const STSExceptionObjectCallback &callback);
+    void RegisterSTSUnhandledExceptionCallback(const STSUnhandledExceptionCallback &callback);
+    void GetStsExceptionInfo(ExpectionInfo &info);
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
     std::shared_ptr<IErrorObserver> errorObserver_;
+    ExpectionInfo stsExceptionInfo_;
+    STSExceptionObjectCallback stsExceptionObjectCallback_;
+    STSUnhandledExceptionCallback stsUnhandledExceptionCallback_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
