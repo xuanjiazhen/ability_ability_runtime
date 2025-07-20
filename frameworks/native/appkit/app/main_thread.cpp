@@ -1764,6 +1764,29 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 case AbilityRuntime::Runtime::Language::STS: {
                     auto expectionInfo =
                         CreateStsExceptionInfo(bundleName, versionCode, hapPath, appRunningId, pid, processName);
+                    // 
+                    wptr<MainThread> weak = this;
+                    auto GetForgroundInfo = [weak](bool &foreground) {
+                        auto appThread = weak.promote();
+                        if (appThread == nullptr) {
+                            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+                            return;
+                        }
+                        if (appThread->applicationImpl_ &&
+                            appThread->applicationImpl_->GetState() == ApplicationImpl::APP_STATE_FOREGROUND) {
+                            foreground = true;
+                        }
+                    };
+                    ExpectionInfo expectionInfo = {
+                        .bundleName = bundleName,
+                        .versionCode = versionCode,
+                        .hapPath = hapPath,
+                        .appRunningId = appRunningId,
+                        .pid = pid,
+                        .processName = processName,
+                        .GetForgroundInfo = GetForgroundInfo
+                    };
+                    ApplicationDataManager::GetInstance().SetStsExceptionInfo(expectionInfo);
                     runtime->RegisterUncaughtExceptionHandler((void*)&expectionInfo);
                     break;
                 }
