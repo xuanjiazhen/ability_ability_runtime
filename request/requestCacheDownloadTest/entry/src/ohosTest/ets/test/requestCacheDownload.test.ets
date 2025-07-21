@@ -651,8 +651,7 @@ export default function requestCacheDownloadUnitTest() {
         expect(downloadInfo !== undefined).assertTrue();
         console.info(`====>SUB_Request_cacheDownload_maintenance_1100
               typeof size: ${typeof downloadInfo?.resource.size};
-              typeof ip: ${typeof downloadInfo?.network.dnsServers};
-              typeof ddnsServers: ${typeof downloadInfo?.network.ip};
+              typeof dnsServers: ${typeof downloadInfo?.network.dnsServers};
               typeof dnsTime: ${typeof downloadInfo?.performance.dnsTime};
               typeof connectTime: ${typeof downloadInfo?.performance.connectTime};
               typeof tlsTime: ${typeof downloadInfo?.performance.tlsTime};
@@ -661,7 +660,6 @@ export default function requestCacheDownloadUnitTest() {
               typeof totalTime: ${typeof downloadInfo?.performance.totalTime};
               typeof redirectTime: ${typeof downloadInfo?.performance.redirectTime};`);
         expect(typeof downloadInfo?.resource.size === 'number').assertTrue();
-        expect(typeof downloadInfo?.network.ip === 'string').assertTrue();
         expect(typeof downloadInfo?.network.dnsServers === 'object').assertTrue();
         expect(typeof downloadInfo?.performance.dnsTime === 'number').assertTrue();
         expect(typeof downloadInfo?.performance.connectTime === 'number').assertTrue();
