@@ -954,6 +954,7 @@ ohos_shared_library("ui_ability_ani") {
       "icu:shared_icuuc",
       "window_manager:libwsutils",
       "window_manager:windowstage_kit",
+      "access_token:libtokenid_sdk"
     ]
     public_external_deps += [
       "graphic_2d:color_manager",

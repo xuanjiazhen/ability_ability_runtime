@@ -83,6 +83,12 @@ public:
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     static void ConfigurationUpdated(ani_env *env, std::shared_ptr<AppExecFwk::ETSNativeReference> &etsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);
+    static void StartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double etsAccountId, ani_object callback);
+    static void StartAbilityForResultWithAccountVoid(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double etsAccountId, ani_object startOptionsObj, ani_object callback);
+    static void StartAbilityForResultWithAccountResult(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double etsAccountId, ani_object startOptionsObj, ani_object callback);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -121,6 +127,11 @@ private:
     void OnSetColorMode(ani_env *env, ani_object aniObj, ani_enum_item colorMode);
     ani_object OnStartAbilityByType(
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
+    void OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_double etsAccountId, ani_object startOptionsObj, ani_object callback);
+    void OnStartAbilityForResultWithAccountInner(ani_env *env, const AAFwk::StartOptions &startOptions,
+        AAFwk::Want &want, const int accountId, std::shared_ptr<AbilityContext> context, ani_object startOptionsObj,
+        ani_object callback);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
