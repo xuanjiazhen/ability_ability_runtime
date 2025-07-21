@@ -35,7 +35,7 @@ struct ScrollZoomExample {
           .id('zoom_zoomStop')
       }
       Row(){
-        Button('enableZoom false')
+        Button('false')
           .id('enableZoom_false')
           .onClick(() => {
             this.enableZoom = false
