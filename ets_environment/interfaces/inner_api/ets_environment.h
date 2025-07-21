@@ -71,6 +71,10 @@ public:
     };
 
 private:
+    bool GetHspArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos, ani_array_ref &refArray);
+    std::vector<std::string> GetHspPathList();
+    bool GetHspAbcRuntimeLinker(ani_array_ref &refHspLinkerArray, ani_class cls);
+    ani_object CreateRuntimeLinker(ani_env *aniEnv, ani_class cls, ani_ref undefined_ref, ani_array_ref refArray);
     bool LoadRuntimeApis();
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
@@ -82,6 +86,7 @@ private:
     static ETSRuntimeAPI lazyApis_;
     VMEntry vmEntry_;
     ETSUncaughtExceptionInfo uncaughtExceptionInfo_;
+    std::vector<std::string> appInnerHspPathList_;
 };
 } // namespace EtsEnv
 } // namespace OHOS
