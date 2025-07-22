@@ -1302,7 +1302,7 @@ export default function CameraVideoSessionBackTest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('on_error_listen_video_back_001', Level.LEVEL0, async (done: Function) => {
+    it('on_off_error_listen_video_back_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_error_listen_video_back_001';
       console.info(TAG, testName + ' begin.');
       try {

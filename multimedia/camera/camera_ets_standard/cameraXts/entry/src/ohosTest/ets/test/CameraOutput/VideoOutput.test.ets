@@ -627,53 +627,5 @@ export default function VideoOutputTest() {
         done();
       }
     })
-
-    /**
-     * @tc.number    : CAMERA_OUTPUT_VIDEO_011 //TODO no error
-     * @tc.name      : stop_video_output_promise_error_001
-     * @tc.desc      : No start(), only stop() -> error_code
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    /*
-          it('start_video_output_promise_error_001', Level.LEVEL0, async (done: Function) => {
-            const testName = 'start_video_output_callback_001';
-            console.info(TAG, testName + ' begin.');
-            try {
-              if (isEmpty(mCameraManager) && isEmpty(mCameraDeviceArray)) {
-                console.info(TAG, testName + ' cameraManager is null.');
-                expect().assertFail();
-              } else {
-                if (isEmpty(mPreviewProfile)) {
-                  console.info(TAG, testName + ' No preview with the same resolution.');
-                  expect(isEmpty(mPreviewProfile)).assertTrue();
-                } else {
-                  await getVideoSurfaceId();
-                  mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
-                  mPreviewOutput = mCameraManager.createPreviewOutput(mPreviewProfile, indexSurfaceId);
-                  await mVideoOutput.start().then(() => {
-                    console.info(TAG, testName + ' start passed.');
-                    expect(true).assertTrue();
-                  }).catch((error: BusinessError) => {
-                    console.error(TAG, testName + ' failed to start, err: ' + error.code + ', msg: ' + error.message);
-                    expect().assertFail();
-                  });
-                  console.info(TAG, testName + ' start end.');
-                  await getVideoSession(testName, mPreviewOutput, mVideoOutput);
-                  await mPreviewOutput.release();
-                  await mVideoSession.release();
-                  console.info(TAG, testName + ' release session end.');
-                }
-              }
-              done();
-            } catch (error) {
-              console.error(TAG, testName + ' failed. err: ' + error.code + ', msg: ' + error.message);
-              expect().assertFail();
-              await releaseVideoSession();
-              done();
-            }
-          })
-    */
   })
 }

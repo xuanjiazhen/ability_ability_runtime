@@ -949,14 +949,14 @@ export default function PhotoOutputTest() {
 
     /**
      * @tc.number    : CAMERA_OUTPUT_PHOTO_030
-     * @tc.name      : capture_promise_with_setting_undefined_001
+     * @tc.name      : capture_promise_with_setting_abnormal_001
      * @tc.desc      : promise, settings-undefined -> error_code: 7400101
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
     it('capture_promise_with_setting_abnormal_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'capture_promise_with_setting_undefined_001';
+      const testName = 'capture_promise_with_setting_abnormal_001';
       let settings: camera.PhotoCaptureSetting | undefined = undefined;
       await captureWithSettingsPromise(done, testName, settings);
     })
