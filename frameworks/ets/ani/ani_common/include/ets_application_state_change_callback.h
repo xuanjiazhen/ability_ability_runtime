@@ -29,7 +29,7 @@ namespace AbilityRuntime {
 class EtsApplicationStateChangeCallback : public ApplicationStateChangeCallback,
     public std::enable_shared_from_this<EtsApplicationStateChangeCallback> {
 public:
-    explicit EtsApplicationStateChangeCallback(ani_env *env);
+    explicit EtsApplicationStateChangeCallback(ani_vm *etsVm);
     virtual ~EtsApplicationStateChangeCallback() = default;
     void NotifyApplicationForeground() override;
     void NotifyApplicationBackground() override;
@@ -43,11 +43,14 @@ public:
      */
     bool UnRegister(ani_object aniCallback = nullptr);
     bool IsEmpty() const;
+    ani_env *AttachCurrentThread();
+    void DetachCurrentThread();
 private:
     void CallEtsMethod(const std::string &methodName);
-    ani_env *env_ = nullptr;
+    ani_vm *etsVm_ = nullptr;
     std::set<ani_ref> callbacks_;
     mutable std::mutex mutex_;
+    bool isAttachThread_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
