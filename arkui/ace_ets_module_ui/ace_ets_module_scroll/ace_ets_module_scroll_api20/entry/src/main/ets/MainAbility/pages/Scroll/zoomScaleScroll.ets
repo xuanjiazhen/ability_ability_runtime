@@ -51,12 +51,13 @@ struct ScrollZoomExample {
       Scroll() {
         Image($r('app.media.icon'))
           .id('img_enableZoom')
-          .width('100%')
+          .width('70%')
           .height('100%')
       }
       .id('scroll_enableZoom')
       .width('80%')
       .height('50%')
+      .borderWidth(1)
       .scrollable(ScrollDirection.FREE)
       .minZoomScale(1)
       .maxZoomScale(2)
