@@ -14336,7 +14336,7 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
     AppExecFwk::AbilityInfo abilityInfo;
     CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(param.want,
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, GetUserId(), abilityInfo)),
-        ERR_NOT_ALLOW_IMPLICIT_START, "bundle or ability not exist");
+        TARGET_BUNDLE_NOT_EXIST, "bundle or ability not exist");
 
     CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
         RESOLVE_CALL_ABILITY_TYPE_ERR, "not UIAbility");
@@ -14382,7 +14382,6 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
 int AbilityManagerService::StartSelfUIAbility(const Want &want)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
 
     StartSelfUIAbilityParam param;
     param.want = want;
@@ -14392,7 +14391,6 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
 int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
 
     if(options.processOptions != nullptr) {
        options.processOptions->isStartFromNDK = true;
