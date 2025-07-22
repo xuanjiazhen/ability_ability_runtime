@@ -57,6 +57,7 @@ struct ProcessData : public Parcelable {
     bool isContinuousTask = false;
     bool isKeepAlive = false;
     bool isFocused = false;
+    bool isFromWindowFocusChanged = false;
     int32_t requestProcCode = 0;
     int32_t processChangeReason = 0;
     std::string processName;

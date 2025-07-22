@@ -53,6 +53,7 @@ struct AppProcessData : public Parcelable {
     static AppProcessData *Unmarshalling(Parcel &parcel);
 
     bool isFocused = false;
+    bool isFromWindowFocusChanged = false;
     int32_t appIndex = 0;
     ApplicationState appState = ApplicationState::APP_STATE_CREATE;
     pid_t pid = 0;
