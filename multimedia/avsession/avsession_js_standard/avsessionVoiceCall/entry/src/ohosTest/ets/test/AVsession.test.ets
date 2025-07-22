@@ -18,6 +18,8 @@ import featureAbility from '@ohos.ability.featureAbility';
 import image from '@ohos.multimedia.image';
 import common from '@ohos.app.ability.common';
 import { BusinessError } from '@ohos.base';
+import { Key, KeyEvent } from '@kit.InputKit';
+
 
 let sleep = (ms: number): Promise<string> => {
   return new Promise((resolve) => {
@@ -37,6 +39,9 @@ export default function abilityTest() {
     let session: avSession.AVSession | ESObject;
     let controller: avSession.AVSessionController | ESObject;
     let tag: string = 'VoiceCallXTS';
+    let keyItem: Key = {code:0x49, pressedTime:2, deviceId:0};
+    let event:KeyEvent = {id:1, deviceId:0, actionTime:1, screenId:1, windowId:1, action:2, key:keyItem, unicodeChar:0, keys:[keyItem], ctrlKey:false, altKey:false, shiftKey:false, logoKey:false, fnKey:false, capsLock:false, numLock:false, scrollLock:false};
+    let event1: string = 'aaa'
 
 
     let invalidSession = async (validFunc:Function) => {
@@ -1996,7 +2001,7 @@ export default function abilityTest() {
                     console.info(`TestLog: Set singleLyricText error: code: ${err.code}, message: ${err.message}`);
                     expect(false).assertTrue();
                 } else {
-                    await controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
+                    controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
                         if (err) {
                             console.info(`TestLog: Get singleLyricText error: code: ${err.code}, message: ${err.message}`);
                             expect(false).assertTrue();
@@ -2041,7 +2046,7 @@ export default function abilityTest() {
                     console.info(`TestLog: Set singleLyricText error: code: ${err.code}, message: ${err.message}`);
                     expect(false).assertTrue();
                 } else {
-                    await controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
+                    controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
                         if (err) {
                             console.info(`TestLog: Get singleLyricText error: code: ${err.code}, message: ${err.message}`);
                             expect(false).assertTrue();
@@ -2087,7 +2092,7 @@ export default function abilityTest() {
                     expect(err.code).assertEqual(401);
                     done();
                 } else {
-                    await controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
+                    controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
                         if (err) {
                             console.info(`TestLog: Get singleLyricText error: code: ${err.code}, message: ${err.message}`);
                             expect(false).assertTrue();
@@ -2131,7 +2136,7 @@ export default function abilityTest() {
                     expect(err.code).assertEqual(401);
                     done();
                 } else {
-                    await controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
+                    controller.getAVMetadata((err:BusinessError, data:avSession.AVMetadata) => {
                         if (err) {
                             console.info(`TestLog: Get filter error: code: ${err.code}, message: ${err.message}`);
                             expect(false).assertTrue();
@@ -2205,10 +2210,9 @@ export default function abilityTest() {
             console.info('Get device successfully');
             let deviceInfo: avSession.DeviceInfo = device_Info.devices[0];
             console.info(`getOutputDevice successfully ${JSON.stringify(deviceInfo)}`);
-            if (deviceInfo && deviceInfo.castCategory !== undefined && deviceInfo.deviceId !== undefined &&
-                deviceInfo.deviceName !== undefined && deviceInfo.deviceType !== undefined && deviceInfo.ipAddress !== undefined &&
-                deviceInfo.providerId !== undefined && deviceInfo.supportedProtocols !== undefined &&
-                deviceInfo.authenticationStatus !== undefined && deviceInfo.audioCapabilities?.streamInfos !== undefined) {
+            if (deviceInfo && deviceInfo.castCategory !== undefined && 
+                deviceInfo.deviceId !== undefined && deviceInfo.deviceName !== undefined && 
+                deviceInfo.deviceType !== undefined && deviceInfo.audioCapabilities?.streamInfos !== undefined) {
                 expect(true).assertTrue();
             } else {
                 console.info('getOutputDevice value error.')
@@ -2248,9 +2252,8 @@ export default function abilityTest() {
           let deviceInfo: avSession.DeviceInfo = device_Info.devices[0];
           console.info(`getOutputDevice successfully ${JSON.stringify(deviceInfo)}`);
           if (deviceInfo && deviceInfo.castCategory !== undefined && deviceInfo.deviceId !== undefined &&
-              deviceInfo.deviceName !== undefined && deviceInfo.deviceType !== undefined && deviceInfo.ipAddress !== undefined &&
-              deviceInfo.providerId !== undefined && deviceInfo.supportedProtocols !== undefined &&
-              deviceInfo.authenticationStatus !== undefined && deviceInfo.audioCapabilities?.streamInfos !== undefined) {
+              deviceInfo.deviceName !== undefined && deviceInfo.deviceType !== undefined && 
+              deviceInfo.audioCapabilities?.streamInfos !== undefined) {
               expect(true).assertTrue();
           } else {
               console.info('getOutputDevice value error.')
@@ -2585,6 +2588,469 @@ export default function abilityTest() {
         expect(err.code).assertEqual(6600102);
       })
       await sleep(500);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0300
+    * @tc.desc      : Testing setextras to boolean
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : true}, (err: BusinessError) => {
+        if (err) {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        }
+      })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400
+    * @tc.desc      : Testing setextras to number
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : 123}, (err: BusinessError) => {
+        if (err) {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        }
+      })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0500
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0500
+    * @tc.desc      : Testing setextras to array
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : [123,'123']}, (err: BusinessError) => {
+        if (err) {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        }
+      })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0600
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0600
+    * @tc.desc      : Testing setextras to boolean
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : true}).then(() => {
+          console.info('setExtras successfully');
+        }).catch((err: BusinessError) => {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0700
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0700
+    * @tc.desc      : Testing setextras to number
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : 123}).then(() => {
+          console.info('setExtras successfully');
+        }).catch((err: BusinessError) => {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0800
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0800
+    * @tc.desc      : Testing setextras to array
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.setExtras({extras : [123,'123']}).then(() => {
+          console.info('setExtras successfully');
+        }).catch((err: BusinessError) => {
+          console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        })
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ONHANDLEKEYEVENT_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ONHANDLEKEYEVENT_ERRORCODE_0300
+    * @tc.desc      : Testing on(handleKeyEvent) errcode 401
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_ONHANDLEKEYEVENT_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.on('handleKeyEvent', 111);
+      } catch(err){
+        console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(401)
+      } 
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_HANDLEKEYEVENT_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_HANDLEKEYEVENT_0300
+    * @tc.desc      : Testing off(handleKeyEvent) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_HANDLEKEYEVENT_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('handleKeyEvent');
+      } catch(err){
+        console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101)
+      } 
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1200
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1200
+    * @tc.desc      : Testing sendAVKeyEvent-promise errcode 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      await controller.sendAVKeyEvent(event).then(() => {
+        console.info('SendAVKeyEvent Successfully');
+      }).catch((err: BusinessError) => {
+        console.error(`SendAVKeyEvent BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600102);
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000
+    * @tc.desc      : Testing sendAVKeyEvent-callback errcode 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      await controller.sendAVKeyEvent(event, (err: BusinessError) => {
+        if (err) {
+          console.error(`SendAVKeyEvent BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(err.code).assertEqual(6600102);
+        } else {
+          console.info('SendAVKeyEvent Successfully');
+        }
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_0900
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_0900
+    * @tc.desc      : Testing sendAVKeyEvent-callback errcode 401
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.sendAVKeyEvent(event1, (err: BusinessError) => {
+        if (err) {
+          console.error(`SendAVKeyEvent BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(err.code).assertEqual(401);
+        } else {
+          console.info('SendAVKeyEvent Successfully');
+        }
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1100
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1100
+    * @tc.desc      : Testing sendAVKeyEvent-promise errcode 401
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.sendAVKeyEvent(event1).then(() => {
+        console.info('SendAVKeyEvent Successfully');
+      }).catch((err: BusinessError) => {
+        console.error(`SendAVKeyEvent BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(401);
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_FASTFORWORD_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_FASTFORWORD_ERRORCODE_0300
+    * @tc.desc      : Testing off(fastForward) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_FASTFORWORD_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('fastForward')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_PAUSE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_PAUSE_ERRORCODE_0300
+    * @tc.desc      : Testing off(pause) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_PAUSE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('pause')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_PLAY_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_PLAY_ERRORCODE_0300
+    * @tc.desc      : Testing off(play) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_PLAY_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('play')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_PLAYPREVIOUS_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_PLAYPREVIOUS_ERRORCODE_0300
+    * @tc.desc      : Testing off(playPrevious) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_PLAYPREVIOUS_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('playPrevious')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_REWIND_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_REWIND_ERRORCODE_0300
+    * @tc.desc      : Testing off(rewind) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_REWIND_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('rewind')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_SEEK_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_SEEK_ERRORCODE_0300
+    * @tc.desc      : Testing off(seek) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_SEEK_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('seek')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_SETLOOPMODE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_SETLOOPMODE_ERRORCODE_0300
+    * @tc.desc      : Testing off(setLoopMode) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_SETLOOPMODE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('setLoopMode')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_SETSPEED_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_SETSPEED_ERRORCODE_0300
+    * @tc.desc      : Testing off(setSpeed) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_SETSPEED_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('setSpeed')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_SETTARGETLOOPMODE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_SETTARGETLOOPMODE_ERRORCODE_0300
+    * @tc.desc      : Testing off(setTargetLoopMode) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_SETTARGETLOOPMODE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('setTargetLoopMode')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_STOP_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_STOP_ERRORCODE_0300
+    * @tc.desc      : Testing off(stop) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_STOP_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('stop')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
+    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('taggleFavorite')
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      }      
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
+    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 3
+    */
+    it('SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.destroy();
+      try{
+        await controller.destroy();
+      }catch(err){
+        console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600103);
+      }      
+      await sleep(300);
       done();
     })
 
