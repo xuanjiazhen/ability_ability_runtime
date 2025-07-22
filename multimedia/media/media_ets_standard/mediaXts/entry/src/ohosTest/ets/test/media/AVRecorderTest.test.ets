@@ -2837,13 +2837,13 @@ export default function AVRecorderTest() {
 
     /**
      * @tc.number    : AV_RECORDER_FUNC_TEST_127
-     * @tc.name      : stop_callback_normal_009
+     * @tc.name      : stop_callback_normal_010
      * @tc.desc      : Test normal scene of stop avRecord callback.
      * @tc.size      : MediumTest
      * @tc.type      : Function test
      * @tc.level     : Level1
      */
-    it('stop_callback_normal_0010', Level.LEVEL1, async (done: Function) => {
+    it('stop_callback_normal_010', Level.LEVEL1, async (done: Function) => {
       await createAvRecorderPromise();
       await initConfigAndPreparedPromise(media.AudioSourceType.AUDIO_SOURCE_TYPE_VOICE_COMMUNICATION);
       await avRecorderStartPromiseNormal();
@@ -4235,7 +4235,7 @@ export default function AVRecorderTest() {
 
     /**
      * @tc.number    : AV_RECORDER_FUNC_TEST_211
-     * @tc.name      : reset_callback_normal_013
+     * @tc.name      : reset_callback_normal_014
      * @tc.desc      : Test normal scene of reset avRecord callback.
      * @tc.size      : MediumTest
      * @tc.type      : Function test

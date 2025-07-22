@@ -195,10 +195,10 @@ async function fetchAlbumCoverPromise(done: Function, testName: string, descript
   if (mMetadataExtractor) {
     console.info(TAG, testName + ' Succeeded in creating AVMetadataExtractor.');
     mMetadataExtractor.fdSrc = descriptor;
-    console.info(TAG, testName + ' descriptor fd: ' + descriptor.fd + ', offset: ' + descriptor.offset + ', length: ' + descriptor.length);
-    console.info(TAG, testName + ' mMetadataExtractor fdSrc: ' + mMetadataExtractor.fdSrc.fd + ', offset: ' + mMetadataExtractor.fdSrc.offset + ', length: ' + mMetadataExtractor.fdSrc.length);
-    // await mMetadataExtractor.fetchMetadata();
-    // await sleep(SLEEP_TIME_MIN);
+    console.info(TAG, testName + ' descriptor fd: ' + descriptor.fd + ', offset: ' + descriptor.offset + ', length: ' +
+    descriptor.length);
+    console.info(TAG, testName + ' mMetadataExtractor fdSrc: ' + mMetadataExtractor.fdSrc.fd + ', offset: ' +
+    mMetadataExtractor.fdSrc.offset + ', length: ' + mMetadataExtractor.fdSrc.length);
     await mMetadataExtractor.fetchAlbumCover().then(async (pixelMap: image.PixelMap) => {
       if (pixelMap !== undefined) {
         console.info(TAG,
@@ -532,14 +532,14 @@ export default function AVMetadataExtractorTest() {
 
     /**
      * @tc.number    : AV_METADATA_EXTRACTOR_TEST_012
-     * @tc.name      : fetchMetadata_promise_abnormal_001
+     * @tc.name      : fetchMetadata_promise_abnormal_002
      * @tc.desc      : fetch Metadata promise-no fdSrc
      * @tc.size      : MediumTest
      * @tc.type      : Function test
      * @tc.level     : Level0
      */
     it('fetchMetadata_promise_abnormal_002', Level.LEVEL0, async (done: Function) => {
-      const testName = 'fetchMetadata_promise_abnormal_001';
+      const testName = 'fetchMetadata_promise_abnormal_002';
       let fileName: string = '';
       await fetchMetadataPromiseAbnormal(done, testName, fileName);
     })
@@ -616,14 +616,14 @@ export default function AVMetadataExtractorTest() {
 
     /**
      * @tc.number    : AV_METADATA_EXTRACTOR_TEST_018
-     * @tc.name      : fetchAlbumCover_callback_abnormal_001
+     * @tc.name      : fetchAlbumCover_callback_abnormal_002
      * @tc.desc      : fetch AlbumCover callback-no fdSrc
      * @tc.size      : MediumTest
      * @tc.type      : Function test
      * @tc.level     : Level0
      */
     it('fetchAlbumCover_callback_abnormal_002', Level.LEVEL0, async (done: Function) => {
-      const testName = 'fetchAlbumCover_callback_abnormal_001';
+      const testName = 'fetchAlbumCover_callback_abnormal_002';
       let fileName: string = '';
       await fetchAlbumCoverCallbackAbnormal(done, testName, fileName);
     })
@@ -644,14 +644,14 @@ export default function AVMetadataExtractorTest() {
 
     /**
      * @tc.number    : AV_METADATA_EXTRACTOR_TEST_020
-     * @tc.name      : fetchAlbumCover_promise_abnormal_001
+     * @tc.name      : fetchAlbumCover_promise_abnormal_002
      * @tc.desc      : fetch AlbumCover promise-no fdSrc
      * @tc.size      : MediumTest
      * @tc.type      : Function test
      * @tc.level     : Level0
      */
     it('fetchAlbumCover_promise_abnormal_002', Level.LEVEL0, async (done: Function) => {
-      const testName = 'fetchAlbumCover_promise_abnormal_001';
+      const testName = 'fetchAlbumCover_promise_abnormal_002';
       let fileName: string = '';
       await fetchAlbumCoverPromiseAbnormal(done, testName, fileName);
     })

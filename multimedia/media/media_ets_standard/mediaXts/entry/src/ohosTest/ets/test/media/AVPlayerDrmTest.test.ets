@@ -85,7 +85,7 @@ export default function AVPlayerDrmTest() {
     })
 
     /**
-     * @tc.number    : AVPLAYER_DRM_TEST_001
+     * @tc.number    : AVPLAYER_DRM_TEST_002
      * @tc.name      : getMediaKeySystemInfos_001
      * @tc.desc      : create AVPlayer to get MediaKeySystemInfos
      * @tc.size      : MediumTest
