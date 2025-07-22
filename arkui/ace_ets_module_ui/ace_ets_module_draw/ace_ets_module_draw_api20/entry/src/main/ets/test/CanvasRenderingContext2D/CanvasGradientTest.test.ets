@@ -40,9 +40,9 @@ export default function CanvasGradientTest() {
       done();
     });
     /**
-     * @tc.number
+     * @tc.number    CanvasGradientTest_0100
      * @tc.name      CanvasGradientTest_0100
-     * @tc.desc      draw CanvasGradient
+     * @tc.desc      CanvasGradient support p3 color gamut
      * @tc.level:    Level 2
      * @tc.type :
      * @tc.size :

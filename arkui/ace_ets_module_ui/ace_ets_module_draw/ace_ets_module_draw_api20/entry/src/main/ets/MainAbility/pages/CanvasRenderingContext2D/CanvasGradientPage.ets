@@ -34,9 +34,7 @@ struct CanvasGradientPage {
               this.context.reset()
 
               let linearGradSRGB = this.context.createLinearGradient(75,0, 150,100)
-              //linearGradSRGB.addColorStop(0, ColorMetrics.resourceColor($r('app.color.color_red')))
               linearGradSRGB.addColorStop(0, ColorMetrics.rgba(0, 255, 0))
-              //linearGradSRGB.addColorStop(0.5, ColorMetrics.resourceColor($r('app.color.color_white')))
               linearGradSRGB.addColorStop(0.5, ColorMetrics.numeric(0xffffff))
               linearGradSRGB.addColorStop(1.0, ColorMetrics.resourceColor($r('app.color.color_green')))
               this.context.fillStyle = linearGradSRGB
@@ -131,7 +129,6 @@ struct CanvasGradientPage {
           Button('null').key('CanvasGradientPage_color_null')
             .onClick(() => {
               let grad = this.context.createLinearGradient(75, 0, 150, 100)
-              // grad.addColorStop(0.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 1, 1, 1, 1.0))
               grad.addColorStop(0.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 1, 0, 0, 1.0))
               grad.addColorStop(0.5, null)
               grad.addColorStop(1.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 0, 1, 0, 1.0))
@@ -142,7 +139,6 @@ struct CanvasGradientPage {
           Button('undefined').key('CanvasGradientPage_color_undefined')
             .onClick(() => {
               let grad = this.context.createLinearGradient(75, 0, 150, 100)
-              // grad.addColorStop(0.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 1, 1, 1, 1.0))
               grad.addColorStop(0.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 1, 0, 0, 1.0))
               grad.addColorStop(0.5, undefined)
               grad.addColorStop(1.0, ColorMetrics.colorWithSpace(ColorSpace.DISPLAY_P3, 0, 0, 1, 1.0))
