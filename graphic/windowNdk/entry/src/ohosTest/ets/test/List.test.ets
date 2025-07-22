@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import InjectTouchEvent from './InjectTouchEvent.test';
 import windowNdk from './windowNdk.test';
 
 export default function testsuite() {
   windowNdk();
+  InjectTouchEvent();
 }
