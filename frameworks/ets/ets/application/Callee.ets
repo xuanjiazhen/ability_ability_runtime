@@ -25,23 +25,23 @@ const EVENT_CALL_NOTIFY = 1;
 const REQUEST_SUCCESS = 0;
 const REQUEST_FAILED = 1;
 
-const ERROR_CODE_INVALID_PARAM = 401;
-const ERROR_CODE_FUNC_REGISTERED = 16200004;
-const ERROR_CODE_FUNC_NOT_EXIST = 16200005;
-const ERROR_CODE_INNER_ERROR = 16000050;
+const ERROR_CODE_INVALID_PARAM: int = 401;
+const ERROR_CODE_FUNC_REGISTERED: int = 16200004;
+const ERROR_CODE_FUNC_NOT_EXIST: int = 16200005;
+const ERROR_CODE_INNER_ERROR: int = 16000050;
 
 const ERROR_MSG_INVALID_PARAM = 'Invalid input parameter.';
 const ERROR_MSG_FUNC_REGISTERED = 'Method registered. The method has registered.';
 const ERROR_MSG_FUNC_NOT_EXIST = 'The method has not been registered.';
 const ERROR_MSG_INNER_ERROR = 'Inner Error.';
 
-let errMap = new Map<number, string>();
+let errMap = new Map<int, string>();
 errMap.set(ERROR_CODE_INVALID_PARAM, ERROR_MSG_INVALID_PARAM);
 errMap.set(ERROR_CODE_FUNC_REGISTERED, ERROR_MSG_FUNC_REGISTERED);
 errMap.set(ERROR_CODE_FUNC_NOT_EXIST, ERROR_MSG_FUNC_NOT_EXIST);
 errMap.set(ERROR_CODE_INNER_ERROR, ERROR_MSG_INNER_ERROR);
 
-function buildError(code: number): BusinessError {
+function buildError(code: int): BusinessError {
   return new BusinessError(code, new Error(errMap.get(code) as string));
 }
 
@@ -53,6 +53,13 @@ export class CalleeImpl extends rpc.RemoteObject implements Callee {
     hilog.info(domainID, TAG, 'Callee::constructor');
   }
 
+  static transferStatic(input: Any): Object {
+    return ESValue.wrap(input);
+  }
+  static transferDynamic(input: Object): Any {
+    return input;
+  }
+
   private setNewRuleFlag(flag: boolean): void {
     hilog.info(domainID, TAG, 'Callee::setNewRuleFlag: ' + flag);
     this.startUpNewRule = flag;
@@ -61,8 +68,8 @@ export class CalleeImpl extends rpc.RemoteObject implements Callee {
     return true;
   }
 
-  onRemoteMessageRequest(code: number, data: rpc.MessageSequence, reply: rpc.MessageSequence,
-    option: rpc.MessageOption): Boolean | Promise<Boolean> {
+  onRemoteMessageRequest(code: int, data: rpc.MessageSequence, reply: rpc.MessageSequence,
+    option: rpc.MessageOption): boolean {
     hilog.info(domainID, TAG, 'Callee onRemoteMessageRequest code [' + code + ']');
     if (!this.StartUpRuleCheck()) {
       return false;

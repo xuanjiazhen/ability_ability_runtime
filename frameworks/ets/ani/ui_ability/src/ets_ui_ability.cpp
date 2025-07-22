@@ -1135,7 +1135,7 @@ sptr<IRemoteObject> EtsUIAbility::CallRequest()
     ani_long nativePtr = 0;
     env->Object_CallMethodByName_Long(reinterpret_cast<ani_object>(calleeRef), "getNativePtr",
         ":l", &nativePtr);
-    sptr<IRemoteObject> remoteObj(reinterpret_cast<*IRemoteObject>(nativePtr));
+    sptr<IRemoteObject> remoteObj(reinterpret_cast<IRemoteObject*>(nativePtr));
     if (remoteObj == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
     }

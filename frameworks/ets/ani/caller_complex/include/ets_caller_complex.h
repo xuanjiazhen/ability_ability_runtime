@@ -38,11 +38,16 @@ public:
     static ani_ref GetEtsRemoteObj(ani_env *env, ani_object aniObj);
     static bool BindNativeMethods(ani_env *env, ani_class &cls);
     static void SetCallerCallback(std::shared_ptr<CallerCallBack> callback, ani_env *env, ani_object callerObj);
+
+    static ani_object NativeTransferStatic(ani_env *env, ani_object, ani_object input);
+    static ani_object NativeTransferDynamic(ani_env *env, ani_object, ani_object input);
+    static bool IsInstanceOf(ani_env *env, ani_object aniObj);
 protected:
     void ReleaseCallInner(ani_env *env);
 private:
     ReleaseCallFunc releaseCallFunc_;
     std::shared_ptr<CallerCallBack> callerCallBack_;
+    wptr<IRemoteObject> remoteObj_;
 };
 
 struct CallbackWrap {
