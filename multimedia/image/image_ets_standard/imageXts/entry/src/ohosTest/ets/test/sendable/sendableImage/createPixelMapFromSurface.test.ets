@@ -61,7 +61,7 @@ export default function sendableCreatePixelMapFromSurfaceTest() {
     });
 
     /**
-     * @tc.number    : SENDABLE_IMAGE_CREATE_PIXEL_MAP_FROM_PARCEL_001
+     * @tc.number    : SENDABLE_IMAGE_CREATE_PIXEL_MAP_FROM_SURFACE_001
      * @tc.name      : sendableImage_createPixelMapFromSurface_sendable_abnormal_promise_001
      * @tc.desc      : sendableImage_createPixelMapFromSurface_Abnormal
      * @tc.size      : MEDIUM

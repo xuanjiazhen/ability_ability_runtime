@@ -71,7 +71,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     });
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_001
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_001
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_001
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -94,7 +94,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_002
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_002
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_002
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -117,7 +117,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_003
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_003
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_003
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -140,7 +140,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_004
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_004
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_004
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -163,7 +163,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_005
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_005
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_005
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -186,7 +186,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_006
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_006
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_006
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -209,7 +209,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_007
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_007
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_007
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -232,7 +232,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_008
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_008
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_008
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -255,7 +255,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_009
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_009
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_009
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -278,7 +278,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_010
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_010
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_010
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -301,7 +301,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_011
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_011
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_011
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -324,7 +324,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_012
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_012
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_012
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -347,7 +347,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_013
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_013
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_013
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -370,7 +370,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_014
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_014
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_014
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -393,7 +393,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_015
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_015
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_015
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM
@@ -416,7 +416,7 @@ export default function AuxiliaryPictureSetAuxiliaryPictureInfoTest() {
     })
 
     /**
-     * @tc.number    : AUXILIARY_PICTURE_WRITE_PIXELS_FROM_BUFFER_016
+     * @tc.number    : AUXILIARY_PICTURE_SET_AUXILIARY_PICTURE_INFO_016
      * @tc.name      : auxiliaryPicture_setAuxiliaryPictureInfo_promise_016
      * @tc.desc      : setAuxiliaryPictureInfo
      * @tc.size      : MEDIUM

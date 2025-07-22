@@ -80,7 +80,7 @@ export default function ImageCreatorOnTest() {
     });
 
     /**
-     * @tc.number    : IMAGE_CREATOR_QUEUE_IMAGE_001
+     * @tc.number    : IMAGE_CREATOR_ON_001
      * @tc.name      : ImageCreator_on_callback_001
      * @tc.desc      : ImageCreator_on
      * @tc.size      : MEDIUM
@@ -97,7 +97,7 @@ export default function ImageCreatorOnTest() {
     })
 
     /**
-     * @tc.number    : IMAGE_CREATOR_QUEUE_IMAGE_002
+     * @tc.number    : IMAGE_CREATOR_ON_002
      * @tc.name      : ImageCreator_on_callback_002
      * @tc.desc      : ImageCreator_on
      * @tc.size      : MEDIUM

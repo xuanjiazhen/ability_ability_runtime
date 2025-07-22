@@ -94,7 +94,7 @@ export default function PictureSetAuxiliaryPictureTest() {
     });
 
     /**
-     * @tc.number    : PICTURE_GET_AUXILIARY_PICTURE_001
+     * @tc.number    : PICTURE_SET_AUXILIARY_PICTURE_001
      * @tc.name      : picture_setAuxiliaryPicture_promise_001
      * @tc.desc      : setAuxiliaryPicture
      * @tc.size      : MEDIUM
@@ -109,7 +109,7 @@ export default function PictureSetAuxiliaryPictureTest() {
     })
 
     /**
-     * @tc.number    : PICTURE_GET_AUXILIARY_PICTURE_002
+     * @tc.number    : PICTURE_SET_AUXILIARY_PICTURE_002
      * @tc.name      : picture_setAuxiliaryPicture_promise_002
      * @tc.desc      : setAuxiliaryPicture
      * @tc.size      : MEDIUM
@@ -124,7 +124,7 @@ export default function PictureSetAuxiliaryPictureTest() {
     })
 
     /**
-     * @tc.number    : PICTURE_GET_AUXILIARY_PICTURE_003
+     * @tc.number    : PICTURE_SET_AUXILIARY_PICTURE_003
      * @tc.name      : picture_setAuxiliaryPicture_abnormal_promise_001
      * @tc.desc      : setAuxiliaryPicture
      * @tc.size      : MEDIUM
@@ -140,7 +140,7 @@ export default function PictureSetAuxiliaryPictureTest() {
     })
 
     /**
-     * @tc.number    : PICTURE_GET_AUXILIARY_PICTURE_004
+     * @tc.number    : PICTURE_SET_AUXILIARY_PICTURE_004
      * @tc.name      : picture_setAuxiliaryPicture_abnormal_promise_002
      * @tc.desc      : setAuxiliaryPicture
      * @tc.size      : MEDIUM
@@ -156,7 +156,7 @@ export default function PictureSetAuxiliaryPictureTest() {
     })
 
     /**
-     * @tc.number    : PICTURE_GET_AUXILIARY_PICTURE_005
+     * @tc.number    : PICTURE_SET_AUXILIARY_PICTURE_005
      * @tc.name      : picture_setAuxiliaryPicture_abnormal_promise_003
      * @tc.desc      : setAuxiliaryPicture
      * @tc.size      : MEDIUM

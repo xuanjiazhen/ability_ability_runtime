@@ -88,7 +88,7 @@ export default function sendableConvertFromPixelMapTest() {
     })
 
     /**
-     * @tc.number    : SENDABLE_IMAGE_CONVERT_FROM_PIXEL_MAP_003
+     * @tc.number    : SENDABLE_IMAGE_CONVERT_FROM_PIXEL_MAP_002
      * @tc.name      : sendableImage_convertFromPixelMap_sendable_promise_002
      * @tc.desc      : sendableImage_convertFromPixelMap
      * @tc.size      : MEDIUM
