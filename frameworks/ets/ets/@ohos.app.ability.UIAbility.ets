@@ -22,8 +22,11 @@ import { AbilityUtils } from './utils/AbilityUtils';
 
 export default class UIAbility extends Ability {
   private destroyCallbackPoint: long;
+  private prepareToTerminateCallbackPoint: long;
 
   private native nativeOnDestroyCallback(): void;
+
+  private native nativeOnPrepareToTerminateCallback(prepareTermination: boolean): void;
 
   private callOnDestroy(): boolean {
     const derivedClassType = AbilityUtils.getClassType(this);
@@ -41,6 +44,23 @@ export default class UIAbility extends Ability {
       return true;
     }
     this.onDestroy();
+    return false;
+  }
+
+  private callOnPrepareToTerminate(): boolean {
+    const derivedClassType = AbilityUtils.getClassType(this);
+    if (derivedClassType === undefined) {
+      return false;
+    }
+    const uiAbilityClassType = AbilityUtils.getClassType(new UIAbility());
+    if (uiAbilityClassType === undefined) {
+      return false;
+    }
+    if (AbilityUtils.isOverride(derivedClassType, "onPrepareToTerminateAsync", uiAbilityClassType)) {
+      this.onPrepareToTerminateAsync()
+        .then((prepareTermination: boolean) => this.nativeOnPrepareToTerminateCallback(prepareTermination));
+      return true;
+    }
     return false;
   }
 
@@ -91,5 +111,11 @@ export default class UIAbility extends Ability {
 
 
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+  }
+
+  onPrepareToTerminateAsync(): Promise<boolean> {
+    return new Promise<boolean>((resolve: (a: boolean) => void,
+      reject: (err: Error) => void): boolean => {
+    });
   }
 }
