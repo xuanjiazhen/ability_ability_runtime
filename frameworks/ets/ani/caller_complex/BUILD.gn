@@ -39,6 +39,7 @@ ohos_shared_library("caller_complex_ani") {
 
   deps = [
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
   ]
@@ -48,7 +49,9 @@ ohos_shared_library("caller_complex_ani") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "ipc:rpc_ani",
+    "napi:ace_napi",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
   ]
 
   subsystem_name = "ability"
