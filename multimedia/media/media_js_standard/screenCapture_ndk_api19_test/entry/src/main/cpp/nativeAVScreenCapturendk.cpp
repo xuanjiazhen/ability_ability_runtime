@@ -53,6 +53,7 @@ constexpr uint32_t DEFAULT_HEIGHT = 1280;
 constexpr OH_AVPixelFormat DEFAULT_PIXELFORMAT = AV_PIXEL_FORMAT_NV12;
 static int32_t g_aFlag = 0;
 static int32_t g_vFlag = 0;
+static int32_t g_FrameRate = 60;
 const int32_t TEST_PASS = 0;
 const int32_t TEST_FAILED = 1;
 static atomic<double> frameNum;
@@ -63,6 +64,8 @@ static OH_AVScreenCapture *screenCaptureRecording;
 static OH_AVScreenCapture *screenCaptureSurface;
 static OH_AVScreenCapture *screenCaptureContentChange;
 static OH_AVScreenCapture *screenCaptureStrategyForPrivacyMaskMode;
+static OH_AVSCREEN_CAPTURE_ErrCode screenCaptureResult = AV_SCREEN_CAPTURE_ERR_EXTEND_START;
+static OHNativeWindow *nativeWindowTest;
 
 void SetConfig(OH_AVScreenCaptureConfig &config)
 {
@@ -133,18 +136,55 @@ static napi_value NormalAVScreenCaptureTest(napi_env env, napi_callback_info inf
     SetConfig(config_);
 	
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     bool isRotation = true;
-    OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     vector<int> windowidsExclude = { -111 };
     g_contentFilter = OH_AVScreenCapture_CreateContentFilter();
-    OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
-    OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
+    if (g_contentFilter == nullptr) {
+        napi_throw_error((env), nullptr, "error : expect g_contentFilter is not nullptr");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
+        nullptr, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddWindowContent(nullptr,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
-    OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
+        &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     //测试错误码：OH_AVScreenCapture_SkipPrivacyMode
     OH_AVSCREEN_CAPTURE_ErrCode skipResult = OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
@@ -194,14 +234,28 @@ static napi_value normalAVScreenCaptureTestStop(napi_env env, napi_callback_info
     } else {
         napi_throw_error((env), nullptr, "error : expect skipResult is 2 or 0");
     }
-    OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, width, height); // 768 width 1280 height
+    screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, width, height); // 768 width 1280 height
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(nullptr, maxFrameRate);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 3");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, maxFrameRate);
     frameNum.store(0);
     usleep(g_recordTimeOne);
     int32_t totalFrameNum = frameNum.load();
     double averageFrameNum = static_cast<double>(totalFrameNum / (g_recordTimeOne / g_recordTimeOne));
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
-    OH_AVScreenCapture_ReleaseContentFilter(g_contentFilter);
+    screenCaptureResult = OH_AVScreenCapture_ReleaseContentFilter(nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 3");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ReleaseContentFilter(g_contentFilter);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result3 = OH_AVScreenCapture_Release(screenCaptureNormal);
     int32_t result = TEST_FAILED;
     if (result3 == AV_SCREEN_CAPTURE_ERR_OK && ((result1 == AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) ||
@@ -234,10 +288,22 @@ static napi_value NormalAVScreenRecordTest(napi_env env, napi_callback_info info
     config_.recorderInfo = recorderInfo;
 
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureRecord, isMicrophone);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureRecord, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureRecord, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureRecord, OnBufferAvailable, nullptr);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureRecord, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureRecord, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureRecord, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureRecord, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureRecord, config_);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init result1 = %{public}d", result1);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenRecording(screenCaptureRecord);
@@ -273,10 +339,22 @@ static napi_value NormalAVScreenRecordingTest(napi_env env, napi_callback_info i
     config_.recorderInfo = recorderInfo;
 
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureRecording, isMicrophone);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureRecording, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureRecording, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureRecording, OnBufferAvailable, nullptr);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureRecording, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureRecording, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureRecording, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureRecording, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureRecording, config_);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init result1 = %{public}d", result1);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenRecording(screenCaptureRecording);
@@ -344,21 +422,54 @@ static napi_value normalAVScreenCaptureDisplayCallbackSuccess(napi_env env, napi
     SetConfig(config_);
 	
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     bool isRotation = true;
-    OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
-    OH_AVScreenCapture_SetDisplayCallback(screenCaptureNormal, OnDisplaySelected, nullptr);
-    vector<int> windowidsExclude = { -111 };
+    screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDisplayCallback(screenCaptureNormal, OnDisplaySelected, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    vector<int> windowidsExclude = { -111 };a
     g_contentFilter = OH_AVScreenCapture_CreateContentFilter();
-    OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
-    OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
+    if (g_contentFilter == nullptr) {
+        napi_throw_error((env), nullptr, "error : expect g_contentFilter is not nullptr");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
-    OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
-    OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
 
@@ -386,20 +497,50 @@ static napi_value normalAVScreenCaptureSetDisplayCallbackFail(napi_env env, napi
     SetConfig(config_);
 	
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     bool isRotation = true;
-    OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     vector<int> windowidsExclude = { -111 };
     g_contentFilter = OH_AVScreenCapture_CreateContentFilter();
-    OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
-    OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
+    if (g_contentFilter == nullptr) {
+        napi_throw_error((env), nullptr, "error : expect g_contentFilter is not nullptr");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddAudioContent(g_contentFilter, OH_SCREEN_CAPTURE_NOTIFICATION_AUDIO);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ContentFilter_AddWindowContent(g_contentFilter,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
-    OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
-    OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, g_contentFilter);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SkipPrivacyMode(screenCaptureNormal,
         &windowidsExclude[0], static_cast<int32_t>(windowidsExclude.size()));
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
 
@@ -463,8 +604,13 @@ static napi_value NormalAVScreenCaptureSurfaceTest(napi_env env, napi_callback_i
     OH_AVScreenCapture_SetStateCallback(screenCaptureSurface, OnStateChange, nullptr);
     OH_AVScreenCapture_SetDataCallback(screenCaptureSurface, OnBufferAvailable, nullptr);
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureSurface, config_);
-
-
+    // 指定surface开始录屏
+    OH_AVSCREEN_CAPTURE_ErrCode surfaceResult =
+        OH_AVScreenCapture_StartScreenCaptureWithSurface(screenCaptureSurface, nullptr);
+    if (screenCaptureSurface != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect StartScreenCaptureWithSurface is 3");
+    }
+    
     // 获取需要输入的Surface，以进行编码
     OH_AVCapability *capability = OH_AVCodec_GetCapability(OH_AVCODEC_MIMETYPE_VIDEO_AVC, true);
     const char *name = OH_AVCapability_GetName(capability);
@@ -524,6 +670,11 @@ static napi_value NormalAVScreenCaptureSurfaceTest(napi_env env, napi_callback_i
 
     // 启动编码器
     int32_t retEnc = OH_VideoEncoder_Start(g_videoEnc);
+    nativeWindowTest = nativeWindow;
+    surfaceResult = OH_AVScreenCapture_StartScreenCaptureWithSurface(nullptr, nativeWindow);
+    if (screenCaptureSurface != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect StartScreenCaptureWithSurface is 3");
+    }
     // 指定surface开始录屏
     OH_AVSCREEN_CAPTURE_ErrCode result5 =
         OH_AVScreenCapture_StartScreenCaptureWithSurface(screenCaptureSurface, nativeWindow);
@@ -543,6 +694,11 @@ static napi_value NormalAVScreenCaptureSurfaceTest(napi_env env, napi_callback_i
 static napi_value normalAVScreenCaptureSurfaceTestStop(napi_env env, napi_callback_info info)
 {
     usleep(g_recordTimeOne);
+    OH_AVSCREEN_CAPTURE_ErrCode surfaceResult =
+        OH_AVScreenCapture_StartScreenCaptureWithSurface(screenCaptureSurface, nativeWindowTest);
+    if (screenCaptureSurface != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect StartScreenCaptureWithSurface is 2");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(screenCaptureSurface);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureSurface);
 
@@ -747,14 +903,29 @@ static napi_value OriginAVScreenCaptureTest(napi_env env, napi_callback_info inf
     screenCaptureCb = std::make_shared<ScreenCaptureNdkTestCallback>(screenCapture, audioFile, nullptr, nullptr);
 
     bool isMicrophone = true;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCapture, isMicrophone);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCapture, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
 
     SetScreenCaptureCallback(screenCapture, screenCaptureCb);
-    OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCapture, config_);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCapture, config_);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCapture);
-    OH_AVScreenCapture_StopScreenCapture(screenCapture);
+    screenCaptureResult = OH_AVScreenCapture_StopScreenCapture(screenCapture);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     DelCallback(screenCapture);
-    OH_AVScreenCapture_Release(screenCapture);
+    screenCaptureResult = OH_AVScreenCapture_Release(screenCapture);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     CloseFile(audioFile, nullptr);
     screenCaptureCb = nullptr;
     napi_value res;
@@ -779,12 +950,27 @@ static napi_value normalAVScreenCaptureShowCursorTest(napi_env env, napi_callbac
     SetConfig(config_);
 	
     bool isMicrophone = false;
-    OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
-    OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
-    OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
-    OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    screenCaptureResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal, isMicrophone);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetErrorCallback(screenCaptureNormal, OnError, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetStateCallback(screenCaptureNormal, OnStateChange, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetDataCallback(screenCaptureNormal, OnBufferAvailable, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     
-    OH_AVScreenCapture_ShowCursor(screenCaptureNormal, false);
+    screenCaptureResult = OH_AVScreenCapture_ShowCursor(screenCaptureNormal, false);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
@@ -820,9 +1006,15 @@ static napi_value normalAVScreenCaptureShowCursorTestStop(napi_env env, napi_cal
 static napi_value normalAVScreenCaptureShowCursorBeforeTestStop(napi_env env, napi_callback_info info)
 {
     usleep(g_recordTimeOne);
-    OH_AVScreenCapture_ShowCursor(screenCaptureNormal, true);
+    screenCaptureResult = OH_AVScreenCapture_ShowCursor(screenCaptureNormal, true);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     usleep(g_recordTimeOne);
-    OH_AVScreenCapture_ShowCursor(screenCaptureNormal, false);
+    screenCaptureResult = OH_AVScreenCapture_ShowCursor(screenCaptureNormal, false);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
     
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureNormal);
@@ -858,12 +1050,62 @@ static napi_value normalAVScreenCaptureShowCursorWithParaNullFalse(napi_env env,
 
 static napi_value normalAVScreenCaptureShowCursorWithParaNullTrue(napi_env env, napi_callback_info info)
 {
-    bool isMicrophone = false;
+    bool isMicrophone = true;
     screenCaptureNormal = OH_AVScreenCapture_Create();
     if (screenCaptureNormal == nullptr) {
         napi_throw_error((env), nullptr, "error : expect screenCaptureNormal is not nullptr");
     }
     OH_AVSCREEN_CAPTURE_ErrCode result = OH_AVScreenCapture_ShowCursor(nullptr, true);
+    OH_AVSCREEN_CAPTURE_ErrCode setDateResult = OH_AVScreenCapture_SetDataCallback(nullptr,
+        OnBufferAvailable, nullptr);
+    if (setDateResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect setDateResult is 2");
+    }
+    setDateResult = OH_AVScreenCapture_SetDataCallback(screenCaptureNormal,
+        OnBufferAvailable, nullptr);
+    if (setDateResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect setDateResult is 0");
+    }
+    
+    OH_AudioBuffer *audioBuffer = (OH_AudioBuffer *)malloc(sizeof(OH_AudioBuffer));
+    OH_AudioCaptureSourceType type = OH_SOURCE_DEFAULT;
+    if (audioBuffer != nullptr) {
+        OH_LOG_INFO(LOG_APP, "audio buffer is not nullptr");
+        //测试错误码：OH_AVScreenCapture_AcquireAudioBuffer
+        OH_AVSCREEN_CAPTURE_ErrCode audioBufferResult = OH_AVScreenCapture_AcquireAudioBuffer(screenCaptureNormal,
+            &audioBuffer, type);
+        OH_LOG_INFO(LOG_APP, "AcquireAudioBuffer audioBufferResult = %{public}d", audioBufferResult);
+        if (audioBufferResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+            napi_throw_error((env), nullptr, "error : expect audioBufferResult is 2");
+        }
+        
+        //测试错误码：OH_AVScreenCapture_ReleaseAudioBuffer
+        OH_AVSCREEN_CAPTURE_ErrCode relwaseAudioBufferResult = OH_AVScreenCapture_ReleaseAudioBuffer(
+            screenCaptureNormal, type);
+        OH_LOG_INFO(LOG_APP, "ReleaseAudioBuffer relwaseAudioBufferResult = %{public}d", relwaseAudioBufferResult);
+        if (audioBufferResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+            napi_throw_error((env), nullptr, "error : expect relwaseAudioBufferResult is 2");
+        }
+    }
+    
+    //测试错误码：OH_AVScreenCapture_ReleaseVideoBuffer
+    OH_AVSCREEN_CAPTURE_ErrCode releaseBufferResult = OH_AVScreenCapture_ReleaseVideoBuffer(screenCaptureNormal);
+    if (releaseBufferResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect releaseBufferResult is 2");
+    }
+    
+    //测试错误码：OH_AVScreenCapture_ReleaseVideoBuffer
+    OH_AVSCREEN_CAPTURE_ErrCode microResult = OH_AVScreenCapture_SetMicrophoneEnabled(nullptr,
+        isMicrophone);
+    if (microResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect microResult is 3");
+    }
+    microResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal,
+        isMicrophone);
+    if (microResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect microResult is 2");
+    }
+    
     int resCapture = TEST_FAILED;
     if (result == AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         resCapture = TEST_PASS;
@@ -1018,6 +1260,30 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     SetConfig(config_);
 	
     bool isMicrophone = false;
+    //测试错误码：OH_AVScreenCapture_StartScreenRecording
+    OH_AVSCREEN_CAPTURE_ErrCode startingResult = OH_AVScreenCapture_StartScreenRecording(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StartScreenRecording startingResult = %{public}d", startingResult);
+    if (startingResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+    }
+    //测试错误码：OH_AVScreenCapture_StartScreenCapture
+    OH_AVSCREEN_CAPTURE_ErrCode startResult = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StartScreenCapture startResult = %{public}d", startResult);
+    if (startResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+    }
+    //测试错误码：OH_AVScreenCapture_StopScreenRecording
+    OH_AVSCREEN_CAPTURE_ErrCode stopingResult = OH_AVScreenCapture_StopScreenRecording(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StopScreenRecording stopingResult = %{public}d", stopingResult);
+    if (stopingResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
+    }
+    //测试错误码：OH_AVScreenCapture_StopScreenCapture
+    OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
+    if (stopResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
+    }
 
     //测试错误码：OH_AVScreenCapture_SkipPrivacyMode
     vector<int> windowidsExclude = { -111 };
@@ -1034,6 +1300,18 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
         napi_throw_error((env), nullptr, "error : expect skipResult is 3");
     }
 
+    //测试错误码：OH_AVScreenCapture_SetCanvasRotation
+    bool isRotation = true;
+    screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(nullptr, isRotation);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 3");
+    }
+    //测试错误码：OH_AVScreenCapture_ExcludeContent
+    screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 3");
+    }
+    
     //测试错误码：OH_AVScreenCapture_Init
     OH_AVSCREEN_CAPTURE_ErrCode initResult = OH_AVScreenCapture_Init(nullptr, config_);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init initResult = %{public}d", initResult);
@@ -1051,9 +1329,15 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     if (initResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect initResult is 0");
     }
+    //测试错误码：OH_AVScreenCapture_StartScreenRecording
+    startingResult = OH_AVScreenCapture_StartScreenRecording(nullptr);
+    OH_LOG_INFO(LOG_APP, "StartScreenRecording startingResult = %{public}d", startingResult);
+    if (startingResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+    }
     
     //测试错误码：OH_AVScreenCapture_StartScreenCapture
-    OH_AVSCREEN_CAPTURE_ErrCode startResult = OH_AVScreenCapture_StartScreenCapture(nullptr);
+    startResult = OH_AVScreenCapture_StartScreenCapture(nullptr);
     OH_LOG_INFO(LOG_APP, "StartScreenCapture startResult = %{public}d", startResult);
     if (startResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect startResult is 3");
@@ -1063,7 +1347,12 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     if (startResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect startResult is 0");
     }
-
+    
+    initResult = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init initResult = %{public}d", initResult);
+    if (initResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect initResult is 2");
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (startResult == AV_SCREEN_CAPTURE_ERR_OK) {
         result = AV_SCREEN_CAPTURE_ERR_OK;
@@ -1084,6 +1373,54 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
 static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info info)
 {
     usleep(g_recordTimeHalf);
+    OH_AudioBuffer *audioBuffer = (OH_AudioBuffer *)malloc(sizeof(OH_AudioBuffer));
+    OH_AudioCaptureSourceType type = OH_SOURCE_DEFAULT;
+    if (audioBuffer != nullptr) {
+        OH_LOG_INFO(LOG_APP, "audio buffer is not nullptr");
+        //测试错误码：OH_AVScreenCapture_AcquireAudioBuffer
+        OH_AVSCREEN_CAPTURE_ErrCode audioBufferResult = OH_AVScreenCapture_AcquireAudioBuffer(nullptr,
+            &audioBuffer, type);
+        OH_LOG_INFO(LOG_APP, "AcquireAudioBuffer audioBufferResult = %{public}d", audioBufferResult);
+        if (audioBufferResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+            napi_throw_error((env), nullptr, "error : expect audioBufferResult is 3");
+        }
+        
+        //测试错误码：OH_AVScreenCapture_ReleaseAudioBuffer
+        OH_AVSCREEN_CAPTURE_ErrCode relwaseAudioBufferResult = OH_AVScreenCapture_ReleaseAudioBuffer(nullptr, type);
+        OH_LOG_INFO(LOG_APP, "ReleaseAudioBuffer relwaseAudioBufferResult = %{public}d", relwaseAudioBufferResult);
+        if (audioBufferResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+            napi_throw_error((env), nullptr, "error : expect relwaseAudioBufferResult is 3");
+        }
+    }
+    //测试错误码：OH_AVScreenCapture_ReleaseVideoBuffer
+    OH_AVSCREEN_CAPTURE_ErrCode releaseBufferResult = OH_AVScreenCapture_ReleaseVideoBuffer(nullptr);
+    if (releaseBufferResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect releaseBufferResult is 3");
+    }
+    //测试错误码：OH_AVScreenCapture_SetCanvasRotation
+    bool isRotation = true;
+    screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 2");
+    }
+    //测试错误码：OH_AVScreenCapture_ExcludeContent
+    screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, nullptr);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 2");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(nullptr, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, g_aFlag);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 3");
+    }
+    screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, g_FrameRate+);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 2");
+    }
+    
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(nullptr);
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
@@ -1094,6 +1431,10 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
     if (stopResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect stopResult is 0");
+    }
+    screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect screenCaptureResult is 0");
     }
 
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
