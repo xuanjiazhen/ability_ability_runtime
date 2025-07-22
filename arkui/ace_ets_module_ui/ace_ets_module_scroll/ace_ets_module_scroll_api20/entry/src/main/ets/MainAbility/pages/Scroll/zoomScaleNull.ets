@@ -36,12 +36,13 @@ struct ScrollZoomNullExample {
       Scroll() {
         Image($r('app.media.icon'))
           .id('img_nullZoom')
-          .width('100%')
+          .width('70%')
           .height('100%')
       }
       .id('scroll_nullZoom')
       .width('80%')
       .height('50%')
+      .borderWidth(1)
       .scrollable(ScrollDirection.FREE)
       .minZoomScale(null)
       .maxZoomScale(2)
