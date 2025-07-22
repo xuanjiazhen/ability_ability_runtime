@@ -61,7 +61,16 @@ ETSTestRunner::ETSTestRunner(
         std::string srcPath;
         if (bundleInfo.hapModuleInfos.back().isModuleJson) {
             moduleName = args->GetTestModuleName();
-            srcPath.append(args->GetTestRunnerPath());
+            if (!args->GetTestRunnerPath().empty()) {
+                srcPath.append(args->GetTestRunnerPath());
+            } else {
+                srcPath.append(args->GetTestModuleName());
+                if (args->GetTestRunnerClassName().find("/") == std::string::npos) {
+                    srcPath.append(LOWERCASETESTRUNNER);
+                }
+                srcPath.append(args->GetTestRunnerClassName());
+                srcPath.append(".abc");
+            }
         } else {
             srcPath.append(args->GetTestPackageName());
             srcPath.append("/assets/sts/TestRunner/");
