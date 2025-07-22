@@ -288,9 +288,9 @@ HWTEST_F(AppMgrEventTest, SendRenderProcessStartFailedEvent_0100, TestSize.Level
     EXPECT_NE(hostRecord, nullptr);
 
     std::string renderParam = "test_render_param";
-    int32_t ipcFd = 1;
-    int32_t sharedFd = 1;
-    int32_t crashFd = 1;
+    int32_t ipcFd = -1;
+    int32_t sharedFd = -1;
+    int32_t crashFd = -1;
     std::shared_ptr<RenderRecord> renderRecord = RenderRecord::CreateRenderRecord(hostPid, renderParam,
         FdGuard(ipcFd), FdGuard(sharedFd), FdGuard(crashFd), hostRecord);
 
