@@ -61,7 +61,7 @@ export default function MediaAssetManagerLoadMovingPhotoTest() {
     });
 
     /**
-     * @tc.number    : MEDIA_ASSET_MANAGER_CANCEL_REQUEST_001
+     * @tc.number    : MEDIA_ASSET_MANAGER_LOAD_MOVING_PHOTO_001
      * @tc.name      : MediaAssetManager_cancelRequest_promise_001
      * @tc.desc      : cancelRequest
      * @tc.size      : MEDIUM
@@ -80,7 +80,7 @@ export default function MediaAssetManagerLoadMovingPhotoTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_MANAGER_CANCEL_REQUEST_002
+     * @tc.number    : MEDIA_ASSET_MANAGER_LOAD_MOVING_PHOTO_002
      * @tc.name      : MediaAssetManager_cancelRequest_promise_002
      * @tc.desc      : cancelRequest
      * @tc.size      : MEDIUM

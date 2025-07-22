@@ -68,7 +68,7 @@ export default function MediaAssetChangeRequestSaveCameraPhotoTest() {
     });
 
     /**
-     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_ADD_RESOURCE_001
+     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_SAVE_CAMERA_PHOTO_001
      * @tc.name      : MediaAssetChangeRequest_saveCameraPhoto_promise_001
      * @tc.desc      : saveCameraPhoto(imageFileType: ImageFileType): void
      * @tc.size      : MEDIUM
@@ -82,7 +82,7 @@ export default function MediaAssetChangeRequestSaveCameraPhotoTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_ADD_RESOURCE_002
+     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_SAVE_CAMERA_PHOTO_002
      * @tc.name      : MediaAssetChangeRequest_saveCameraPhoto_promise_002
      * @tc.desc      : saveCameraPhoto(imageFileType: ImageFileType): void
      * @tc.size      : MEDIUM
@@ -96,7 +96,7 @@ export default function MediaAssetChangeRequestSaveCameraPhotoTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_ADD_RESOURCE_003
+     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_SAVE_CAMERA_PHOTO_003
      * @tc.name      : MediaAssetChangeRequest_saveCameraPhoto_promise_003
      * @tc.desc      : saveCameraPhoto(): void
      * @tc.size      : MEDIUM

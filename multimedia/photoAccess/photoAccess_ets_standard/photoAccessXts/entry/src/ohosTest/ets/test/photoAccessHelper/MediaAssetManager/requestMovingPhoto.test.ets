@@ -75,15 +75,15 @@ export default function MediaAssetManagerRequestMovingPhotoTest() {
     });
 
     /**
-     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_IMAGE_001
-     * @tc.name      : MediaAssetManager_requestImage_promise_001
-     * @tc.desc      : requestImage
+     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_MOVING_PHOTO_001
+     * @tc.name      : MediaAssetManager_requestMovingPhoto_promise_001
+     * @tc.desc      : requestMovingPhoto
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetManager_requestImage_promise_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'MediaAssetManager_requestImage_promise_001';
+    it('MediaAssetManager_requestMovingPhoto_promise_001', Level.LEVEL0, async (done: Function) => {
+      const testName = 'MediaAssetManager_requestMovingPhoto_promise_001';
       const fetchOptions = fetchAllOption();
       let requestOptions: photoAccessHelper.RequestOptions = {
         deliveryMode: photoAccessHelper.DeliveryMode.HIGH_QUALITY_MODE,
@@ -92,15 +92,15 @@ export default function MediaAssetManagerRequestMovingPhotoTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_IMAGE_002
-     * @tc.name      : MediaAssetManager_requestImage_promise_002
-     * @tc.desc      : requestImage
+     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_MOVING_PHOTO_002
+     * @tc.name      : MediaAssetManager_requestMovingPhoto_promise_002
+     * @tc.desc      : requestMovingPhoto
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetManager_requestImage_promise_002', Level.LEVEL0, async (done: Function) => {
-      const testName = 'MediaAssetManager_requestImage_promise_002';
+    it('MediaAssetManager_requestMovingPhoto_promise_002', Level.LEVEL0, async (done: Function) => {
+      const testName = 'MediaAssetManager_requestMovingPhoto_promise_002';
       const fetchOptions = fetchAllOption();
       let requestOptions: photoAccessHelper.RequestOptions = {
         deliveryMode: photoAccessHelper.DeliveryMode.FAST_MODE,
@@ -109,15 +109,15 @@ export default function MediaAssetManagerRequestMovingPhotoTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_IMAGE_003
-     * @tc.name      : MediaAssetManager_requestImage_promise_003
-     * @tc.desc      : requestImage
+     * @tc.number    : MEDIA_ASSET_MANAGER_REQUEST_MOVING_PHOTO_003
+     * @tc.name      : MediaAssetManager_requestMovingPhoto_promise_003
+     * @tc.desc      : requestMovingPhoto
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetManager_requestImage_promise_003', Level.LEVEL0, async (done: Function) => {
-      const testName = 'MediaAssetManager_requestImage_promise_003';
+    it('MediaAssetManager_requestMovingPhoto_promise_003', Level.LEVEL0, async (done: Function) => {
+      const testName = 'MediaAssetManager_requestMovingPhoto_promise_003';
       const fetchOptions = fetchAllOption();
       let requestOptions: photoAccessHelper.RequestOptions = {
         deliveryMode: photoAccessHelper.DeliveryMode.BALANCE_MODE,

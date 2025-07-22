@@ -991,7 +991,7 @@ export default function albumGetAssetsTest() {
     })
 
     /**
-     * @tc.number    : ALBUM_GET_ASSETS_030
+     * @tc.number    : ALBUM_GET_ASSETS_060
      * @tc.name      : album_getAssets_promise_030
      * @tc.desc      : getAssets
      * @tc.size      : MEDIUM

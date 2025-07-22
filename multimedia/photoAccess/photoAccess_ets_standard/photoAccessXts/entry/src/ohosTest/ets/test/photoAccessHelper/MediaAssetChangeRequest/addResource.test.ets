@@ -206,7 +206,7 @@ export default function MediaAssetChangeRequestAddResourceTest() {
     })
 
     /**
-     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_ADD_RESOURCE_007
+     * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_ADD_RESOURCE_008
      * @tc.name      : MediaAssetChangeRequest_addResource_buffer_promise_003
      * @tc.desc      : addResource(type: ResourceType, data: ArrayBuffer): void
      * @tc.size      : MEDIUM
