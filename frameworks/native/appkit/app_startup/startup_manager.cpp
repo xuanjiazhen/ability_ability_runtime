@@ -575,6 +575,11 @@ std::shared_ptr<NativeStartupTask> StartupManager::CreateAppPreloadSoTask(
     return task;
 }
 
+bool StartupManager::EnableLazyLoadingAppStartupTasks() const
+{
+    return enableLazyLoadingAppStartupTasks_;
+}
+
 void StartupManager::PreloadAppHintStartupTask(std::shared_ptr<AppExecFwk::StartupTaskData> startupTaskData)
 {
     std::map<std::string, std::shared_ptr<StartupTask>> preloadAppHintTasks;
@@ -1197,6 +1202,7 @@ void StartupManager::SetMatchRules(const nlohmann::json &module, StartupTaskMatc
     if (!module.contains(MATCH_RULES) || !module.at(MATCH_RULES).is_object()) {
         return;
     }
+    enableLazyLoadingAppStartupTasks_ = true;
 
     const nlohmann::json &matchRulesJson = module.at(MATCH_RULES);
     ParseJsonStringArray(matchRulesJson, URIS, matchRules.uris);
