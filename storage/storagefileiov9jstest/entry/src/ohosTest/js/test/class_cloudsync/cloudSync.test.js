@@ -38,8 +38,8 @@ describe('cloudSync_test', function () {
     let fpath = await featureAbility.getContext().getFilesDir() + '/test_ChangeData_IsDirectory_001';
     let uri = fileUri.getUriFromPath(fpath);
     try {
-      let onCallback1 = (changeData) => {
-        console.log('test_ChangeData_IsDirectory_001 changedata:' + changeData.isDirectory);
+      let onCallback1 = (ChangeData) => {
+        console.log('test_ChangeData_IsDirectory_001 changedata:' + ChangeData.isDirectory);
       }
       cloudSync.registerChange(uri, false, onCallback1);
       cloudSync.unRegisterChange(uri);
@@ -63,8 +63,8 @@ describe('cloudSync_test', function () {
     fs.mkdirSync(dpath);
     let uri = fileUri.getUriFromPath(dpath);
     try {
-      let onCallback1 = (changeData) => {
-        console.log('test_ChangeData_IsDirectory_002 changedata:' + changeData.isDirectory);
+      let onCallback1 = (ChangeData) => {
+        console.log('test_ChangeData_IsDirectory_002 changedata:' + ChangeData.isDirectory);
       }
       cloudSync.registerChange(uri, false, onCallback1);
       cloudSync.unRegisterChange(uri);
@@ -89,11 +89,11 @@ describe('cloudSync_test', function () {
     let uri = fileUri.getUriFromPath(dpath);
     fs.rmdirSync(dpath);
     try {
-      let onCallback1 = (changeData) => {
-        if (changeData.type == cloudSync.NotifyType.NOTIFY_ADDED) {
-          console.log('test_ChangeData_Uris_003 added changeData:' + changeData.uris);
-        } else if (changeData.type== cloudSync.NotifyType.NOTIFY_DELETED) {
-          console.log('test_ChangeData_Uris_003 removed changeData:' + changeData.uris);
+      let onCallback1 = (ChangeData) => {
+        if (ChangeData.type == cloudSync.NotifyType.NOTIFY_ADDED) {
+          console.log('test_ChangeData_Uris_003 added changeData:' + ChangeData.uris);
+        } else if (ChangeData.type== cloudSync.NotifyType.NOTIFY_DELETED) {
+          console.log('test_ChangeData_Uris_003 removed changeData:' + ChangeData.uris);
         }
       }
       cloudSync.registerChange(uri, false, onCallback1);
@@ -103,5 +103,6 @@ describe('cloudSync_test', function () {
       expect(e.code == 401 && e.message == 'The input parameter is invalid').assertTrue();
     }
   });
+
 });
 }

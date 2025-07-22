@@ -16,6 +16,8 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestT
 import window from '@ohos.window';
 import common from '@ohos.app.ability.common';
 import { BusinessError } from '@ohos.base';
+import { StartOptions, bundleManager } from '@kit.AbilityKit';
+import Want from '@ohos.app.ability.Want';
 
 
 async function sleep(time: number) {
@@ -28,7 +30,15 @@ async function sleep(time: number) {
   await promise;
   clearTimeout(timeoutId)
 }
-
+async function terminateAbility(msgStr: string) {
+  let pageContext = AppStorage.get('contextTest') as common.UIAbilityContext
+  await pageContext.terminateSelf().then(() => {
+    console.log(`${msgStr} terminateSelf success`);
+  }).catch((err: BusinessError) => {
+    console.error(`${msgStr} terminateSelf fail, err: ${JSON.stringify(err)}`);
+  });
+  await sleep(900);
+}
 export default function windowAnimationTest(context: common.UIAbilityContext, windowStage: window.WindowStage) {
   describe('window_animation_test', () => {
     console.log('describe window_animation_test start!!!')
@@ -192,6 +202,54 @@ export default function windowAnimationTest(context: common.UIAbilityContext, wi
       const animationConfig: window.WindowAnimationConfig = {
         duration: 4000,
         curve: window.WindowAnimationCurve.INTERPOLATION_SPRING,
+        param: [100, 10, 20, 5]
+      };
+      const transitionAnimation: window.TransitionAnimation = {
+        opacity: 0.5,
+        config: animationConfig
+      };
+      try {
+        await mainWin.setWindowTransitionAnimation(window.WindowTransitionType.DESTROY, transitionAnimation).then(() => {
+          console.info(msgStr + 'Succeeded in setting window transition animation. Cause:');
+        }).catch((err: BusinessError) => {
+          if (err.code != 801) {
+            console.error(msgStr + `Failed to set window transition animation. Cause code: ${err.code}, message: ${err.message}`);
+            expect().assertFail();
+          } else {
+            console.log(msgStr + 'innner catch 当前设备类型不支持系统能力SystemCapability.Window.SessionManager')
+            console.log(msgStr + JSON.stringify(err))
+            expect(err.code).assertEqual(801);
+          }
+        });
+      } catch (err) {
+        if (err.code != 801) {
+          console.error(msgStr + `Failed to obtain the window status of window. Cause code: ${err.code}, message: ${err.message}`);
+          expect().assertFail();
+        } else {
+          console.log(msgStr + 'out catch 当前设备类型不支持系统能力SystemCapability.Window.SessionManager')
+          console.log(msgStr + JSON.stringify(err))
+          expect(err.code).assertEqual(801);
+        }
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_WINDOWANIMATION_JS_API_0140
+     * @tc.name      : testSetWindowTransitionAnimationCurveBezier
+     * @tc.desc      : Add transition animations to the Windows in specific scenes.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testSetWindowTransitionAnimationCurveBezier', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, async () => {
+      let caseName = 'testSetWindowTransitionAnimationCurveBezier';
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin');
+      let mainWin = windowStage.getMainWindowSync();
+      expect(!!mainWin).assertTrue();
+      console.info(msgStr + 'Succeeded getMainWindowSync.');
+      const animationConfig: window.WindowAnimationConfig = {
+        duration: 4000,
+        curve: window.WindowAnimationCurve.CUBIC_BEZIER,
         param: [100, 10, 20, 5]
       };
       const transitionAnimation: window.TransitionAnimation = {
@@ -659,6 +717,89 @@ export default function windowAnimationTest(context: common.UIAbilityContext, wi
           console.log(msgStr + JSON.stringify(err))
           expect(err.code).assertEqual(801);
         }
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_WINDOWANIMATION_JS_API_0150
+     * @tc.name      : testStartAbilityAnimationNormal
+     * @tc.desc      : Test the application by pulling up the fade-in and fade-out animation effects
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testStartAbilityAnimationNormal', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL1, async () => {
+      let caseName = 'testStartAbilityAnimationNormal';
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin');
+      let wantInfo: Want = {
+        bundleName: 'com.example.myapplication',
+        abilityName: 'StartTestAbility',
+        parameters: {
+          info:'来自StartTestAbility页面'
+        }
+      };
+      let animation_param: window.StartAnimationParams = {
+        type: window.AnimationType.FADE_IN_OUT
+      };
+      let windowParam: window.WindowCreateParams = {
+        animationParams: animation_param
+      };
+      let options: StartOptions = {
+        windowCreateParams : windowParam
+      };
+      try {
+        await context.startAbility(wantInfo, options).then( async() => {
+          console.info(`${msgStr} Succeeded in starting ability.`);
+          await sleep(900);
+          await sleep(900);
+          await terminateAbility(msgStr);
+          console.info(`${msgStr} terminateSelf end.`);
+        }).catch((err: BusinessError) => {
+            console.error(msgStr + `Failed to starting ability. Cause code: ${err.code}, message: ${err.message}`);
+            expect().assertFail();
+        });
+      } catch (err) {
+          console.error(msgStr + `Failed to starting ability. outcatch Cause code: ${err.code}, message: ${err.message}`);
+          expect().assertFail();
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_WINDOWANIMATION_JS_API_0160
+     * @tc.name      : testStartAbilityAnimationDefaultValue
+     * @tc.desc      : Test the application by pulling up the fade-in and fade-out animation effects
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testStartAbilityAnimationDefaultValue', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL1, async () => {
+      let caseName = 'testStartAbilityAnimationDefaultValue';
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin');
+      let wantInfo: Want = {
+        bundleName: 'com.example.myapplication',
+        abilityName: 'StartTestAbility',
+        parameters: {
+          info:'来自StartTestAbility页面'
+        }
+      };
+      let windowParam: window.WindowCreateParams = {};
+      let options: StartOptions = {
+        windowCreateParams : windowParam
+      };
+      try {
+        await context.startAbility(wantInfo, options).then( async() => {
+          console.info(`${msgStr} Succeeded in starting ability.`);
+          await sleep(900);
+          await sleep(900);
+          await terminateAbility(msgStr);
+          console.info(`${msgStr} terminateSelf end.`);
+        }).catch((err: BusinessError) => {
+            console.error(msgStr + `Failed to starting ability. Cause code: ${err.code}, message: ${err.message}`);
+            expect().assertFail();
+        });
+      } catch (err) {
+          console.error(msgStr + `Failed to starting ability. outcatch Cause code: ${err.code}, message: ${err.message}`);
+          expect().assertFail();
       }
     })
   })

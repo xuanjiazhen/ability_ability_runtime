@@ -5199,5 +5199,56 @@ export default function audioCapturer() {
         done();
       });
     })
+
+        /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_FRAMEWORK_LIVE_FUNCTION_TEST_001
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_FRAMEWORK_LIVE_FUNCTION_TEST_001
+     * @tc.desc      : SourceType Live
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_FRAMEWORK_LIVE_FUNCTION_TEST_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let audioCapturerOptions: audio.AudioCapturerOptions = {
+        streamInfo: {
+          samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000, // 采样率。
+          channels: audio.AudioChannel.CHANNEL_2, // 通道。
+          sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE, // 采样格式。
+          encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW // 编码格式。
+        },
+        capturerInfo: {
+          source: audio.SourceType.SOURCE_TYPE_LIVE, // 音源类型
+          capturerFlags: 0 // 音频采集器标志。
+        }
+      };
+
+      let audioManager = audio.getAudioManager().getStreamManager();
+      let isSupportAEC = audioManager.isAcousticEchoCancelerSupported(audio.SourceType.SOURCE_TYPE_LIVE);
+
+      if (isSupportAEC) {
+        audioCapturerOptions.capturerInfo.source = audio.SourceType.SOURCE_TYPE_LIVE;
+      } else {
+        audioCapturerOptions.capturerInfo.source = audio.SourceType.SOURCE_TYPE_MIC;
+      }
+
+      try {
+        audio.createAudioCapturer(audioCapturerOptions, (err, data) => {
+          if (err) {
+            expect(false).assertTrue();
+            done();
+            console.error(`AudioCapturer Created : Error: ${err}`);
+          } else {
+            console.info('AudioCapturer Created : Success : SUCCESS');
+            data.release();
+            expect(true).assertTrue();
+            done();
+          }
+          done();
+        });
+      } catch (err) {
+        expect(false).assertTrue();
+        done();
+      }
+    })
   })
 }

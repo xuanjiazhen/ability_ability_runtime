@@ -542,7 +542,7 @@ export default function tabs() {
     it('ArkUI_Tabs_LabelStyle_0100', Level.LEVEL1, async (done: Function) => {
       console.info("ArkUI_Tabs_LabelStyle_0100 start");
 
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest6');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_LabelStyle_0100] labelStyle:" +  JSON.stringify(defaultObj.$attrs.tabBar.labelStyle));
       let defaultLabelStyleObject: ESObject = defaultObj.$attrs.tabBar.labelStyle;
@@ -651,7 +651,7 @@ export default function tabs() {
     it('ArkUI_Tabs_LabelStyle_0600', Level.LEVEL1, async (done: Function) => {
       console.info("ArkUI_Tabs_LabelStyle_0600 start");
 
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest5');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_LabelStyle_0600] default labelStyle:" +  JSON.stringify(defaultObj.$attrs.tabBar.labelStyle));
       let defaultLabelStyleObject: ESObject = defaultObj.$attrs.tabBar.labelStyle;
@@ -757,7 +757,7 @@ export default function tabs() {
       console.info("ArkUI_Tabs_IndicatorColor_0100 start");
 
       await Utils.sleep(2000);
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest6');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_IndicatorColor_0100] default indicator:" + defaultObj.$attrs.tabBar.indicator);
       let defaultIndicatorColor: string = defaultObj.$attrs.tabBar.indicator.color;
@@ -854,7 +854,7 @@ export default function tabs() {
         console.log("[ArkUI_Tabs_IndicatorColor_0600] change component data error: " + err.message);
       }
       await Utils.sleep(2000);
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest6');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_IndicatorColor_0600] default indicator:" + defaultObj.$attrs.tabBar.indicator);
       let defaultIndicatorColor: string = defaultObj.$attrs.tabBar.indicator.color;
@@ -1433,7 +1433,7 @@ export default function tabs() {
      */
     it('ArkUI_Tabs_SubTabBorderRadius_0100', Level.LEVEL1, async (done: Function) => {
       console.info("ArkUI_Tabs_SubTabBorderRadius_0100 start");
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest6');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_SubTabBorderRadius_0100] default subTabBorderRadius:" + defaultObj.$attrs.tabBar.board.borderRadius);
       let defaultSubTabBorderRadius: string = defaultObj.$attrs.tabBar.board.borderRadius;
@@ -1511,7 +1511,7 @@ export default function tabs() {
         console.log("[ArkUI_Tabs_SubTabBorderRadius_0500] change component data error: " + err.message);
       }
       await Utils.sleep(2000);
-      let defaultStrJson = getInspectorByKey('defaultSubTab');
+      let defaultStrJson = getInspectorByKey('indicatorTest6');
       let defaultObj: ESObject = JSON.parse(defaultStrJson);
       console.info("[ArkUI_Tabs_SubTabBorderRadius_0500] default subTabBorderRadius:" + defaultObj.$attrs.tabBar.board.borderRadius);
       let defaultSubTabBorderRadius: string = defaultObj.$attrs.tabBar.board.borderRadius;

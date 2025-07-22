@@ -17,8 +17,8 @@ group("osAccountAssistApps") {
   testonly = true
   if (is_standard_system) {
     deps = [
-      "actsosaccountassistappone:ActsOsAccountAssistAppOne",
-      "actsosaccountassistapptwo:ActsOsAccountAssistAppTwo",
+      "actsosaccountassistappone:ActsOsAccountAssistAppOneEnterpriseTest",
+      "actsosaccountassistapptwo:ActsOsAccountAssistAppTwoEnterpriseTest",
     ]
   }
 }

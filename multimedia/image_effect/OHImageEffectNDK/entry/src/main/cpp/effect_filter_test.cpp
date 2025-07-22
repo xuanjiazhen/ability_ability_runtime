@@ -21,6 +21,7 @@
 
 #include "utils/common_utils.h"
 #include "utils/pixelmap_helper.h"
+#include "gl_utils.h"
 
 #define KEY_FILTER_INTENSITY "FilterIntensity"
 #define CUSTOM_FILTER "CustomCrop"
@@ -552,6 +553,30 @@ napi_value OHEffectBufferInfoGetTimestamp(napi_env env, napi_callback_info info)
 
     OH_EffectBufferInfo_Release(bufferInfo);
 
+    napi_create_int32(env, code, &ret);
+    return ret;
+}
+
+napi_value OHEffectBufferInfoSetTextureId(napi_env env, napi_callback_info info)
+{
+    OH_EffectBufferInfo *bufferInfo = OH_EffectBufferInfo_Create();
+    ImageEffect_ErrorCode code = OH_EffectBufferInfo_SetTextureId(bufferInfo, 1);
+    OH_EffectBufferInfo_Release(bufferInfo);
+
+    napi_value ret;
+    napi_create_int32(env, code, &ret);
+    return ret;
+}
+
+napi_value OHEffectBufferInfoGetTextureId(napi_env env, napi_callback_info info)
+{
+    OH_EffectBufferInfo *bufferInfo = OH_EffectBufferInfo_Create();
+    int32_t dstTex;
+    ImageEffect_ErrorCode code = OH_EffectBufferInfo_SetTextureId(bufferInfo, 1);
+    code = OH_EffectBufferInfo_GetTextureId(bufferInfo, &dstTex);
+    OH_EffectBufferInfo_Release(bufferInfo);
+
+    napi_value ret;
     napi_create_int32(env, code, &ret);
     return ret;
 }

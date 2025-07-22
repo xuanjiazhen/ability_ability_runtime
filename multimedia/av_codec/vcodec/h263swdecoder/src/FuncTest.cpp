@@ -56,7 +56,7 @@ static string g_codecName263 = "";
 static OH_AVCapability *cap_264 = nullptr;
 static string g_codecName264 = "";
 constexpr uint32_t FRAMESIZE90 = 90;
-
+constexpr uint32_t FRAMESIZE75 = 75;
 } // namespace
 
 void H263SwdecFuncNdkTest::SetUpTestCase()
@@ -143,6 +143,30 @@ HWTEST_F(H263SwdecFuncNdkTest, VIDEO_DECODE_SYNC_SW263_FUNC_0040, TestSize.Level
         vDecSample->WaitForEOS();
         ASSERT_EQ(0, vDecSample->errCount);
         ASSERT_EQ(FRAMESIZE90, vDecSample->outFrameCount);
+    }
+}
+
+/**
+ * @tc.number    : VIDEO_DECODE_SW263_BLANK_FRAME_0010
+ * @tc.name      : VIDEO_DECODE_SW263_BLANK_FRAME_0010
+ * @tc.desc      : function test
+ */
+HWTEST_F(H263SwdecFuncNdkTest, VIDEO_DECODE_SW263_BLANK_FRAME_0010, TestSize.Level0)
+{
+    if (cap_263 != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = "/data/test/media/20x20.h263";
+        vDecSample->DEFAULT_WIDTH = 20;
+        vDecSample->DEFAULT_HEIGHT = 20;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enbleBlankFrame = 1;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->CreateVideoDecoder("OH.Media.Codec.Decoder.Video.H263"));
+        ASSERT_EQ(AV_ERR_OK, vDecSample->ConfigureVideoDecoder());
+        ASSERT_EQ(AV_ERR_OK, vDecSample->SetVideoDecoderCallback());
+        ASSERT_EQ(AV_ERR_OK, vDecSample->StartVideoDecoder());
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(0, vDecSample->errCount);
+        ASSERT_EQ(FRAMESIZE75, vDecSample->outFrameCount);
     }
 }
 } // namespace

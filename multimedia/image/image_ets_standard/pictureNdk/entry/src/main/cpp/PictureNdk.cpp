@@ -2778,6 +2778,45 @@ static napi_value setAllExifKey(napi_env env, napi_callback_info info)
     return result;
 }
 
+
+static napi_value PictureMetadataGetPropertyWithNull(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_value argValue[NUM_2] = {0};
+    size_t argCount = NUM_2;
+
+    napi_get_undefined(env, &result);
+    if (napi_get_cb_info(env, info, &argCount, argValue, nullptr, nullptr) != napi_ok || argCount < NUM_2) {
+        LOGE("PictureMetadataGetPropertyWithNull: failed to get input arguments!");
+        return result;
+    }
+
+    int32_t type = 0;
+    napi_get_value_int32(env, argValue[NUM_0], &type);
+    Image_MetadataType metadataType = static_cast<Image_MetadataType>(type);
+
+    char key[MAX_STRING_SIZE] = {0};
+    size_t keySize = 0;
+    napi_get_value_string_utf8(env, argValue[NUM_1], key, MAX_STRING_SIZE, &keySize);
+
+    IMG_NAPI_CHECK_NULL_PTR(g_ctx.picture, result);
+    OH_PictureMetadata *metadata = nullptr;
+    if (OH_PictureNative_GetMetadata(g_ctx.picture, metadataType, &metadata) != IMAGE_SUCCESS) {
+        napi_throw_error(env, nullptr, "PictureMetadataGetPropertyWithNull get metadata failed");
+        return result;
+    }
+
+    Image_String imageKey = {key, keySize};
+    Image_String imageValue = {nullptr, 1024};
+    if (OH_PictureMetadata_GetPropertyWithNull(metadata, &imageKey, &imageValue) != IMAGE_SUCCESS) {
+        napi_throw_error(env, nullptr, "PictureMetadataGetPropertyWithNull get property failed");
+        return result;
+    }
+
+    napi_create_string_utf8(env, (const char *)imageValue.data, imageValue.size, &result);
+    IMG_NAPI_RELEASE_PTR(metadata, OH_PictureMetadata_Release(metadata));
+    return result;
+}
 namespace GifTestFunction {
 
     napi_value getJsResult(napi_env env, int result)
@@ -3309,6 +3348,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"testPackPictureToFile", nullptr, TestPackPictureToFile, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPackPictureToData", nullptr, TestPackPictureToData, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setAllExifKey", nullptr, setAllExifKey, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"PictureMetadataGetPropertyWithNull", nullptr, PictureMetadataGetPropertyWithNull, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
         {"CreateFromUri", nullptr, GifTestFunction::CreateFromUri, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetImageInfo", nullptr, GifTestFunction::GetImageInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"CreatePictureAtIndexByImageSource", nullptr, GifTestFunction::CreatePictureAtIndexByImageSource, nullptr,

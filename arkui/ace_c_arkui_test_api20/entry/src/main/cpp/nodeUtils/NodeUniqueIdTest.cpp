@@ -18,19 +18,19 @@
 #include <arkui/native_node.h>
 #include <string>
 #include <arkui/native_node_napi.h>
-
+ 
 static ArkUI_NativeNodeAPI_1 *nodeAPI = nullptr;
-static ArkUI_NodeHandle Column = nullptr;
-static ArkUI_NodeHandle image = nullptr;
-static ArkUI_NodeHandle text1 = nullptr;
-static ArkUI_NodeHandle text2 = nullptr;
-static ArkUI_NodeHandle text3 = nullptr;
-static ArkUI_NodeHandle text4 = nullptr;
-static ArkUI_NodeHandle text5 = nullptr;
+static ArkUI_NodeHandle Column = nullptr; 
+static ArkUI_NodeHandle image = nullptr; 
+static ArkUI_NodeHandle text1 = nullptr; 
+static ArkUI_NodeHandle text2 = nullptr; 
+static ArkUI_NodeHandle text3 = nullptr; 
+static ArkUI_NodeHandle text4 = nullptr; 
+static ArkUI_NodeHandle text5 = nullptr; 
 static ArkUI_NodeHandle text6 = nullptr;
-
+ 
 namespace ArkUICapiTest {
-
+ 
 static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
 {
     Column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
@@ -80,8 +80,8 @@ static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
     nodeAPI->addChild(Column, text6);
     return Column;
 }
-
-
+ 
+ 
 static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
 {
     ArkUI_NumberValue background_color_value[] = {{.u32 = COLOR_GREEN}};
@@ -92,7 +92,7 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
     //ARKUI_NODE_COLUMN
     auto errorCode1 = OH_ArkUI_NodeUtils_GetNodeUniqueId(Column, &uniqueId);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
-        "Manager","aaa GetColumnNodeUniqueId1 errCode:%{public}d; uniqueId:%{public}d;", errorCode1, uniqueId);
+        "Manager","aaa GetColumnNodeUniqueId1 errCode:%{public}d;uniqueId:%{public}d;", errorCode1, uniqueId);
     if( errorCode1 == ARKUI_ERROR_CODE_NO_ERROR) {
         nodeAPI->setAttribute(text1, NODE_BACKGROUND_COLOR, &background_color_item);
     }
@@ -100,7 +100,7 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
     ArkUI_NodeHandle node;
     auto errorCode2 = OH_ArkUI_NodeUtils_GetNodeHandleByUniqueId(uniqueId, &node);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
-        "Manager","aaa GetNodeHandle1 errCode:%{public}d; node:%{public}p;", errorCode2, node);
+        "Manager","aaa GetNodeHandle1 errCode:%{public}d;node:%{public}p;", errorCode2, node);
     if( errorCode2 == ARKUI_ERROR_CODE_NO_ERROR) {
         nodeAPI->setAttribute(text4, NODE_BACKGROUND_COLOR, &background_color_item);
     }
@@ -109,7 +109,7 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
     image = nullptr;
     auto errorCode13 = OH_ArkUI_NodeUtils_GetNodeUniqueId(image, &uniqueId);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
-        "Manager","aaa GetNodeUniqueId_setNullptr errCode:%{public}d; uniqueId:%{public}d;", errorCode13, uniqueId);
+        "Manager","aaa GetNodeUniqueId_setNullptr errCode:%{public}d;uniqueId:%{public}d;", errorCode13, uniqueId);
     if( errorCode13 == ARKUI_ERROR_CODE_PARAM_INVALID && uniqueId == -1) {
         nodeAPI->setAttribute(text2, NODE_BACKGROUND_COLOR, &background_color_item);
     }
@@ -117,7 +117,7 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
     //传参nullptr
     auto errorCode14 = OH_ArkUI_NodeUtils_GetNodeUniqueId(nullptr, &uniqueId);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
-        "Manager","aaa GetNodeUniqueId_nullptr errCode:%{public}d; uniqueId:%{public}d;", errorCode14, uniqueId);
+        "Manager","aaa GetNodeUniqueId_nullptr errCode:%{public}d;uniqueId:%{public}d;", errorCode14, uniqueId);
     if( errorCode14 == ARKUI_ERROR_CODE_PARAM_INVALID && uniqueId == -1) {
         nodeAPI->setAttribute(text3, NODE_BACKGROUND_COLOR, &background_color_item);
     }
@@ -131,14 +131,14 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
     }
     
     //UniqueId不存在对应节点
-    auto errorCode24 = OH_ArkUI_NodeUtils_GetNodeHandleByUniqueId(100, &node);
+    auto errorCode24 = OH_ArkUI_NodeUtils_GetNodeHandleByUniqueId(1001, &node);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
         "Manager","aaa GetNodeHandle_100 errCode:%{public}d;node:%{public}p;", errorCode24, node);
     if( errorCode24 == ARKUI_ERROR_CODE_PARAM_INVALID && node == NULL) {
         nodeAPI->setAttribute(text6, NODE_BACKGROUND_COLOR, &background_color_item);
     }
 }
-
+ 
 napi_value NodeUniqueIdTest::testNodeUniqueId001(napi_env env, napi_callback_info info)
 {
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "testAddCustomProperty001", "CreateNativeNode");
@@ -171,5 +171,5 @@ napi_value NodeUniqueIdTest::testNodeUniqueId001(napi_env env, napi_callback_inf
     }
     return exports;
 }
-
+ 
 } // namespace ArkUICapiTest

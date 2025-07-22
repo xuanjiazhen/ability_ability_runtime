@@ -20,7 +20,25 @@ add_library(imageEffect SHARED
     imageEffect.cpp
     utils/common_utils.cpp
     utils/pixelmap_helper.cpp
+    utils/gl_utils.cpp
 )
+
+find_library(
+    # Sets the name of the path variable.
+    EGL-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    EGL
+)
+
+find_library(
+    # Sets the name of the path variable.
+    GLES-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    GLESv3
+)
+
 target_link_libraries(imageEffect PUBLIC
     libace_napi.z.so
     libhilog_ndk.z.so
@@ -32,4 +50,6 @@ target_link_libraries(imageEffect PUBLIC
     libimage_packer.so
     libimage_source.so
     libpicture.so
+    ${EGL-lib}
+    ${GLES-lib}
 )

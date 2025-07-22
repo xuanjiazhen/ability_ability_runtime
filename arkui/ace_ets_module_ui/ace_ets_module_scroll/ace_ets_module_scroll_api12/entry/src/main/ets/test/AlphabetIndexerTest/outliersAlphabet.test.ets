@@ -79,7 +79,11 @@ export default function outliersAlphabet() {
       console.info("[outliersAlphabet_0100] component obj is: " + JSON.stringify(JSON.parse(strJson).$attrs));
       console.info("[outliersAlphabet_0100] selectedFont: " + JSON.stringify(JSON.parse(strJson).$attrs.selectedFont));
       console.info("[outliersAlphabet_0100] fontSize: " + JSON.stringify(JSON.parse(strJson).$attrs.selectedFont.fontSize));
-      expect(JSON.parse(strJson).$attrs.selectedFont.fontSize).assertEqual("10.00vp");
+      
+      let defStrJson = getInspectorByKey('alphabetIndexer_def');
+      console.info("[outliersAlphabet_0100] defStrJson is: " + JSON.stringify(JSON.parse(defStrJson)));
+      console.info("[outliersAlphabet_0100] selectedFont: " + JSON.stringify(JSON.parse(defStrJson).$attrs.selectedFont));
+      expect(JSON.parse(strJson).$attrs.selectedFont.fontSize).assertEqual(JSON.parse(defStrJson).$attrs.selectedFont.fontSize);
       console.info('[outliersAlphabet_0100] END');
       done();
     });

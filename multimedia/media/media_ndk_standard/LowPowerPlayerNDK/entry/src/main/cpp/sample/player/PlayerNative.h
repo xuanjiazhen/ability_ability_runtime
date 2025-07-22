@@ -37,9 +37,12 @@ public:
     static napi_value CreateLppAudioStreamer(napi_env env, napi_callback_info info);
     static napi_value CreateLppVideoStreamer(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerSetParameter(napi_env env, napi_callback_info info);
+    static napi_value AudioStreamerGetParameter(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerConfigure(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerPrepare(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerConfigure(napi_env env, napi_callback_info info);
+    static napi_value VideoStreamerSetParameter(napi_env env, napi_callback_info info);
+    static napi_value VideoStreamerGetParameter(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerSetSurface(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerPrepare(napi_env env, napi_callback_info info);
     static napi_value Flush(napi_env env, napi_callback_info info);

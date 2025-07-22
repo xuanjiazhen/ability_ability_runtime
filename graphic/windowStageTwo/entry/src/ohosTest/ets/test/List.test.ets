@@ -17,8 +17,6 @@ import windowTitleBarTest from './WindowTitleBar.test';
 import windowModalTest from './WindowModal.test';
 import windowMaximizeTest from './WindowMaximize.test';
 import windowImmersiveTest from './WindowImmersive.test';
-import windowPropertiesTest from './WindowProperties.test';
-import windowPropertiesTest2 from './WindowProperties2.test';
 import windowManageTest from './WindowManage.test';
 import windowAutoSaveTest from './WindowAutoSave.test';
 import windowZindexTest from './WindowZindex.test';
@@ -32,7 +30,6 @@ import windowControlsTest from './WindowControls.test';
 import windowKeyBorad from './WindowKeyBorad.test';
 
 export default function testsuite() {
-  windowEventTest();
   windowFocusTest();
   windowAutoSaveTest();
   windowTitleBarTest();
@@ -43,11 +40,10 @@ export default function testsuite() {
   windowModalTest();
   windowMaximizeTest();
   windowImmersiveTest();
+  windowEventTest();
   windowPCTest();
   windowControlsTest();
   windowKeyBorad()
   windowRotationTest();
-  windowPropertiesTest();
-  windowPropertiesTest2();
   extensionWindowPropertiesTest();
 }

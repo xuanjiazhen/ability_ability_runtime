@@ -38,7 +38,9 @@ let STORE_CONFIG = {
     securityLevel: data_relationalStore.SecurityLevel.S1,
     allowRebuild: false,
 }
-
+function sleep(ms) {
+   return new Promise(resolve => setTimeout(resolve, ms));
+}
 export default function rdbStoreCorruptJSunitTest() {
     describe('rdbStoreCorruptJSunitTest', function () {
         
@@ -364,7 +366,38 @@ export default function rdbStoreCorruptJSunitTest() {
             done();
             console.log(TAG + "************* RepairedTest001 end *************");
         })
-
+        /**
+         * @tc.name rebuiltTest002
+         * @tc.number SUB_DistributedData_RelationalStore_SDK_RebuiltEtsAPITest_1000
+         * @tc.desc rebuild the database while corrupt
+         * @tc.size MediumTest
+         * @tc.type Function
+         * @tc.level Level 2
+         */
+        it('rebuiltTest002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+            console.log(TAG + "************* rebuiltTest002 start *************");
+            await Generate();
+            await rdbStore.close();
+            try {
+                data_relationalStore.getRdbStore(context, STORE_CONFIG,async(err,rdbstore)=>{
+                    if(err)
+                    {
+                        console.log(TAG, "rebuiltTest001 open error"+err.code+err.message);
+                        expect(err.code == 14800011).assertTrue();
+                        done()
+                    }else{
+                        console.log(TAG, "rebuiltTest001 success");
+                        expect().assertFail()
+                    }
+                });
+            } catch (e) {
+                console.log(TAG, `open error ${e.code}. ${e.message}`);
+                expect().assertFail()
+                done()
+            }
+            await sleep(1000);
+            console.log(TAG + "************* rebuiltTest002 end *************");
+        })
         console.log(TAG + "*************Unit Test End*************");
     })
 }

@@ -23,6 +23,16 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import display from '@ohos.display';
 import hdrCapability from '@ohos.graphics.hdrCapability';
 
+interface picTypeValue {
+  name:string
+  fileName:string
+  value?:string
+  initValue?:string
+  modifyData?:string
+  compareData?:string
+  errorData?: string
+}
+
 const domain = 0x0000;
 const testTag = 'pictureNdkTest';
 const testFileJpg = 'JPEGISOSingle.jpg';
@@ -85,6 +95,9 @@ const orientationKeyErr = "OrientationErr";
 const orientationValueErr = "-1";
 
 const testAllAuxiliaryPicturesExcludeFragmentJpg = "AllAuxiliaryPictures_exclude_fragment.jpg";
+
+let isSupportHEIFDecode: boolean;
+let fileDir: string | undefined;
 
 enum ErrorCode {
   /** operation success */
@@ -219,6 +232,18 @@ const testCreatePictureByPixelMap = (caseName: string, fileName: string) => {
   ndkTest.createTestPixelmapByImageSource(image.PixelMapFormat.RGBA_8888);
   let result: number = ndkTest.CreatePictureByPixelmap();
   expect(result).assertEqual(ErrorCode.IMAGE_SUCCESS);
+}
+
+const newCreatePictureByPixelMap = (caseName: string, fileName: string, done: Function) => {
+  if((!fileName.toLowerCase().endsWith('.heic')) || (fileName.toLowerCase().endsWith('.heic') && isSupportHEIFDecode)){
+    testCreateImageSource(caseName, fileName)
+    ndkTest.createTestPixelmapByImageSource(image.PixelMapFormat.RGBA_8888);
+    let result: number = ndkTest.CreatePictureByPixelmap();
+    expect(result).assertEqual(ErrorCode.IMAGE_SUCCESS);
+  }else{
+    expect(true).assertTrue()
+    done()
+  }
 }
 
 const testCreatePictureByImageSource = (caseName: string, fileName: string, 
@@ -456,7 +481,10 @@ async function sleep(delay: number): Promise<void> {
 export default function pictureNdkTest() {
   describe('pictureNdkTest', () => {
     let isSupportHdr: boolean = false;
+    fileDir = AppStorage.get('pathDir')
     beforeAll(async () => {
+      isSupportHEIFDecode = 
+        image.createImageSource(fileDir + '/' + 'test.jpg').supportedFormats.includes('image/heic')
       isSupportHdr = await fs.access('/system/lib64/ndk/libvideo_processing_capi_impl.so').then((res: boolean) => {
         if (res) {
           console.info("file exists");
@@ -4225,5 +4253,6495 @@ export default function pictureNdkTest() {
             }
           }
         })
+
+    /*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00100`;
+      let key = 'NewSubfileType'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "3"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00200`;
+      let key = 'SubfileType'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00300`;
+      let key = 'ImageWidth'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3456"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00400`;
+      let key = 'ImageLength'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "4608"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00500`;
+      let key = 'BitsPerSample'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name:"jpeg", fileName:"test_exif_v2.jpg", value:"1, 1, 1"},
+        {name:"webp", fileName:"test_exif_v2.webp", value:"8, 8, 8"},
+        {name:"png", fileName:"test_exif_v2.png", value:"1, 1, 1"},
+        {name:"heif", fileName:"test_exif_v2.heic", value:"1, 1, 1"}
+      ]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00600`;
+      let key = 'Compression'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Uncompressed"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Uncompressed"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Uncompressed"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Uncompressed"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00700`;
+      let key = 'PhotometricInterpretation'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Reversed mono"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Reversed mono"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Reversed mono"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Reversed mono"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00800`;
+      let key = 'ImageDescription'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "_cuva%s\\d"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "cuva"},
+        {name: "png", fileName: "test_exif_v2.png", value: "_cuva%s\\d"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "_cuva%s\\d"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_00900`;
+      let key = 'Make'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "华为"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "华为"},
+        {name: "png", fileName: "test_exif_v2.png", value: "华为"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "华为"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01000`;
+      let key = 'Model'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "TNY-AL00"},
+        {name: "webp", fileName: "test_webp_exif.webp", value: "TNY-AL00"},
+        {name: "png", fileName: "test_exif_v2.png", value: "TNY-AL00"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "TNY-AL00"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01100`;
+      let key = 'StripOffsets'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01200`;
+      let key = 'Orientation'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Top-left"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Top-right"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Top-left"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Top-left"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01300`;
+      let key = 'SamplesPerPixel'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "23"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01400`;
+      let key = 'RowsPerStrip'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01500`;
+      let key = 'StripByteCounts'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01600`;
+      let key = 'XResolution'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: " 0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "72"},
+        {name: "png", fileName: "test_exif_v2.png", value: " 0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: " 0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01700`;
+      let key = 'YResolution'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: " 0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "72"},
+        {name: "png", fileName: "test_exif_v2.png", value: " 0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: " 0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01800`;
+      let key = 'PlanarConfiguration'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Chunky format"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Chunky format"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Chunky format"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Chunky format"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_01900`;
+      let key = 'ResolutionUnit'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Inch"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Inch"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Inch"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Inch"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02000`;
+      let key = 'TransferFunction'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "3 bytes undefined data"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1 bytes undefined data"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3 bytes undefined data"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3 bytes undefined data"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02100`;
+      let key = 'Software'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "华为"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "TNY-AL00"},
+        {name: "png", fileName: "test_exif_v2.png", value: "华为"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "华为"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02200`;
+      let key = 'DateTime'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2024:12:31"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2022:06:02 15:51:35"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2024:12:31"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2024:12:31"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02300`;
+      let key = 'Artist'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "None"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Bogdan Hrastnik"},
+        {name: "png", fileName: "test_exif_v2.png", value: "None"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "None"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02400`;
+      let key = 'WhitePoint'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "252, 0/0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "124, 0/0"},
+        {name: "png", fileName: "test_exif_v2.png", value: "252, 0/0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "252, 0/0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02500`;
+      let key = 'PrimaryChromaticities'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: " 0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "124"},
+        {name: "png", fileName: "test_exif_v2.png", value: " 0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: " 0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02600`;
+      let key = 'PhotoMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "252"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "252"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "252"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02700`;
+      let key = 'JPEGInterchangeFormat'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2798"},
+        {name: "webp", fileName: "test_webp_exif.webp", value: "1252"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2798"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2798"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02800`;
+      let key = 'JPEGInterchangeFormatLength'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "4"},
+        {name: "webp", fileName: "test_webp_exif.webp", value: "24042"},
+        {name: "png", fileName: "test_exif_v2.png", value: "4"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "4"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_02900`;
+      let key = 'YCbCrCoefficients'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0.299, 0.587, 0.114"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "0.299, 0.587, 0.114"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0.299, 0.587, 0.114"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0.299, 0.587, 0.114"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03000`;
+      let key = 'YCbCrSubSampling'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "3, 2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3, 3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3, 2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3, 2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03100`;
+      let key = 'YCbCrPositioning'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Centered"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Centered"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Centered"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Centered"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03200`;
+      let key = 'ReferenceBlackWhite'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "222,  0, 1.5,  0, 25.2, 25.2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "221, 255,  0, 255,  0, 255"},
+        {name: "png", fileName: "test_exif_v2.png", value: "222,  0, 1.5,  0, 25.2, 25.2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "222,  0, 1.5,  0, 25.2, 25.2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03300`;
+      let key = 'Copyright'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "undefined (Photographer) - [None] (Editor)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "ABB (Photographer) - [None] (Editor)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "undefined (Photographer) - [None] (Editor)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "undefined (Photographer) - [None] (Editor)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03400`;
+      let key = 'ExposureTime'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1/34 sec."},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1/33 sec."},
+        {name: "png", fileName: "test_exif_v2.png", value: "1/34 sec."},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1/34 sec."}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03500`;
+      let key = 'FNumber'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "f/1.0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "f/1.8"},
+        {name: "png", fileName: "test_exif_v2.png", value: "f/1.0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "f/1.0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03600`;
+      let key = 'ExposureProgram'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Not defined"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Normal program"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Not defined"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Not defined"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03700`;
+      let key = 'SpectralSensitivity'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "abc"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "sensitivity"},
+        {name: "png", fileName: "test_exif_v2.png", value: "abc"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "abc"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03800`;
+      let key = 'GPSVersionID'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.2.0.0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2.2.0.0"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.2.0.0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.2.0.0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_03900`;
+      let key = 'GPSLatitudeRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "N"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "N"},
+        {name: "png", fileName: "test_exif_v2.png", value: "N"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "N"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04000`;
+      let key = 'GPSLatitude'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "39, 54, 20"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "39, 54, 20"},
+        {name: "png", fileName: "test_exif_v2.png", value: "39, 54, 20"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "39, 54, 20"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04100`;
+      let key = 'GPSLongitudeRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "E"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "W"},
+        {name: "png", fileName: "test_exif_v2.png", value: "E"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "E"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04200`;
+      let key = 'GPSLongitude'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "120, 52, 26"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "120, 52, 26"},
+        {name: "png", fileName: "test_exif_v2.png", value: "120, 52, 26"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "120, 52, 26"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04300`;
+      let key = 'GPSAltitudeRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Sea level"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Sea level reference"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Sea level"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Sea level"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04400`;
+      let key = 'GPSAltitude'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0.00"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "0.00"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0.00"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0.00"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04500`;
+      let key = 'GPSTimeStamp'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "11:37:58.00"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "11:37:58.00"},
+        {name: "png", fileName: "test_exif_v2.png", value: "11:37:58.00"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "11:37:58.00"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04600`;
+      let key = 'GPSSatellites'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "xxx"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "BBA"},
+        {name: "png", fileName: "test_exif_v2.png", value: "xxx"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "xxx"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04700`;
+      let key = 'GPSStatus'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "A"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "A"},
+        {name: "png", fileName: "test_exif_v2.png", value: "A"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "A"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04800`;
+      let key = 'GPSMeasureMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_04900`;
+      let key = 'GPSDOP'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "182"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "182"},
+        {name: "png", fileName: "test_exif_v2.png", value: "182"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "182"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05000`;
+      let key = 'GPSSpeedRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "N"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "K"},
+        {name: "png", fileName: "test_exif_v2.png", value: "N"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "N"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05100`;
+      let key = 'GPSSpeed'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "150"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "150"},
+        {name: "png", fileName: "test_exif_v2.png", value: "150"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "150"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05200`;
+      let key = 'GPSTrackRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "T"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "T"},
+        {name: "png", fileName: "test_exif_v2.png", value: "T"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "T"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05300`;
+      let key = 'GPSTrack'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "38.0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "111"},
+        {name: "png", fileName: "test_exif_v2.png", value: "38.0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "38.0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05400`;
+      let key = 'GPSImgDirectionRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "M"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "M"},
+        {name: "png", fileName: "test_exif_v2.png", value: "M"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "M"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05500`;
+      let key = 'GPSImgDirection'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.23"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2.23"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.23"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.23"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05600`;
+      let key = 'GPSMapDatum'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "xxx"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "TEST"},
+        {name: "png", fileName: "test_exif_v2.png", value: "xxx"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "xxx"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05700`;
+      let key = 'GPSDestLatitudeRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "N"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "S"},
+        {name: "png", fileName: "test_exif_v2.png", value: "N"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "N"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05800`;
+      let key = 'GPSDestLatitude'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "33, 22, 11"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "33, 22, 11"},
+        {name: "png", fileName: "test_exif_v2.png", value: "33, 22, 11"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "33, 22, 11"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_05900`;
+      let key = 'GPSDestLongitudeRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "E"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "W"},
+        {name: "png", fileName: "test_exif_v2.png", value: "E"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "E"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06000`;
+      let key = 'GPSDestLongitude'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "33, 22, 11"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "33, 22, 11"},
+        {name: "png", fileName: "test_exif_v2.png", value: "33, 22, 11"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "33, 22, 11"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06100`;
+      let key = 'GPSDestBearingRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "T"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "M"},
+        {name: "png", fileName: "test_exif_v2.png", value: "T"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "T"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06200`;
+      let key = 'GPSDestBearing'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2.0"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06300`;
+      let key = 'GPSDestDistanceRef'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+       const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "N"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "K"},
+        {name: "png", fileName: "test_exif_v2.png", value: "N"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "N"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06400`;
+      let key = 'GPSDestDistance'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "10"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "10"},
+        {name: "png", fileName: "test_exif_v2.png", value: "10"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "10"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06500`;
+      let key = 'GPSProcessingMethod'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "CELLID"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "CELLID"},
+        {name: "png", fileName: "test_exif_v2.png", value: "CELLID"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "CELLID"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06600`;
+      let key = 'GPSAreaInformation'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "arexxx"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "accxx"},
+        {name: "png", fileName: "test_exif_v2.png", value: "arexxx"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "arexxx"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06700`;
+      let key = 'GPSDateStamp'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2025:01:11"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2022:01:11"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2025:01:11"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2025:01:11"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06800`;
+      let key = 'GPSDifferential'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_06900`;
+      let key = 'GPSHPositioningError'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: " 2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07000`;
+      let key = 'ISOSpeedRatings'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "200"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07100`;
+      let key = 'PhotographicSensitivity'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "200"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07200`;
+      let key = 'OECF'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "4 bytes undefined data"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2 bytes undefined data"},
+        {name: "png", fileName: "test_exif_v2.png", value: "4 bytes undefined data"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "4 bytes undefined data"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07300`;
+      let key = 'SensitivityType'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "Standard output sensitivity (SOS) and ISO speed"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Standard output sensitivity (SOS) and ISO speed"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Standard output sensitivity (SOS) and ISO speed"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Standard output sensitivity (SOS) and ISO speed"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07400`;
+      let key = 'StandardOutputSensitivity'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "5"},
+        {name: "png", fileName: "test_exif_v2.png", value: "5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07500`;
+      let key = 'RecommendedExposureIndex'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "241"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07600`;
+      let key = 'ISOSpeedRatings'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "200"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07700`;
+      let key = 'ISOSpeedLatitudeyyy'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1456"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1456"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1456"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07800`;
+      let key = 'ISOSpeedLatitudezzz'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1456"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1456"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1456"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_07900`;
+      let key = 'ExifVersion'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Exif Version 1.1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Exif Version 1.1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Exif Version 1.1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Exif Version 1.1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08000`;
+      let key = 'DateTimeOriginal'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2024:01:25 05:51:34"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2022:06:02 15:51:35"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2024:01:25 05:51:34"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2024:01:25 05:51:34"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08100`;
+      let key = 'DateTimeDigitized'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2022:06:02 15:51:34"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2022:06:02 15:51:35"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2022:06:02 15:51:34"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2022:06:02 15:51:34"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08200`;
+      let key = 'OffsetTime'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2024:01:25"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "111"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2024:01:25"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2024:01:25"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08300`;
+      let key = 'OffsetTimeOriginal'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "chex"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "00xx"},
+        {name: "png", fileName: "test_exif_v2.png", value: "chex"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "chex"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08400`;
+      let key = 'OffsetTimeDigitized'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "cfh"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "abs"},
+        {name: "png", fileName: "test_exif_v2.png", value: "cfh"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "cfh"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08500`;
+      let key = 'ComponentsConfiguration'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Y R G B"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Y R G B"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Y R G B"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Y R G B"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08600`;
+      let key = 'CompressedBitsPerPixel'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "24"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "0.95"},
+        {name: "png", fileName: "test_exif_v2.png", value: "24"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "24"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08700`;
+      let key = 'ShutterSpeedValue'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.50 EV (1/6 sec.)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "14.00 EV (1/16384 sec.)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.50 EV (1/6 sec.)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.50 EV (1/6 sec.)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08800`;
+      let key = 'ApertureValue'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "4.00 EV (f/4.0)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1.69 EV (f/1.8)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "4.00 EV (f/4.0)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "4.00 EV (f/4.0)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_08900`;
+      let key = 'BrightnessValue'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.50 EV (19.38 cd/m^2)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "0.00 EV (3.43 cd/m^2)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.50 EV (19.38 cd/m^2)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.50 EV (19.38 cd/m^2)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09000`;
+      let key = 'ExposureBiasValue'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "23.00 EV"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "0.00 EV"},
+        {name: "png", fileName: "test_exif_v2.png", value: "23.00 EV"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "23.00 EV"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09100`;
+      let key = 'MaxApertureValue'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.50 EV (f/2.4)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1.69 EV (f/1.8)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.50 EV (f/2.4)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.50 EV (f/2.4)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09200`;
+      let key = 'SubjectDistance'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.5 m"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "25.0 m"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.5 m"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.5 m"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09300`;
+      let key = 'MeteringMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Pattern"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Pattern"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Pattern"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Pattern"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09400`;
+      let key = 'LightSource'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Daylight"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Daylight"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Daylight"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Daylight"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09500`;
+      let key = 'Flash'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "Strobe return light not detected"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Flash did not fire, auto mode"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Strobe return light not detected"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Strobe return light not detected"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09600`;
+      let key = 'FocalLength'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0.0 mm"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "31.0 mm"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0.0 mm"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0.0 mm"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09700`;
+      let key = 'SubjectArea'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "(x,y) = (12,13)"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "(x,y) = (10,20)"},
+        {name: "png", fileName: "test_exif_v2.png", value: "(x,y) = (12,13)"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "(x,y) = (12,13)"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09800`;
+      let key = 'MakerNote'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg",
+        value: 'HwMnoteCaptureMode:1,HwMnoteBurstNumber:2,HwMnoteFrontCamera:3,HwMnoteRollAngle:4,' +
+          'HwMnotePitchAngle:5,HwMnotePhysicalAperture:6,HwMnoteFocusMode:7,HwMnoteFacePointer:122,' +
+          'HwMnoteFaceVersion:1,HwMnoteFaceCount:2,HwMnoteFaceConf:3,HwMnoteFaceSmileScore:1 2 3 4 5 6 7 8,' +
+          'HwMnoteFaceRect:1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8,HwMnoteFaceLeyeCenter:1 2 3 4,HwMnoteFaceReyeCenter:5 6 7 8,' +
+          'HwMnoteFaceMouthCenter:1 2 3 4 5 6 7 8,HwMnoteScenePointer:256,HwMnoteSceneVersion:1,HwMnoteSceneFoodConf:2,' +
+          'HwMnoteSceneStageConf:3,HwMnoteSceneBlueSkyConf:4,HwMnoteSceneGreenPlantConf:5,HwMnoteSceneBeachConf:6,' +
+          'HwMnoteSceneSnowConf:7,HwMnoteSceneSunsetConf:8,HwMnoteSceneFlowersConf:9,HwMnoteSceneNightConf:10,' +
+          'HwMnoteSceneTextConf:11'},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "HwMnoteCaptureMode:1,HwMnoteBurstNumber:2," +
+          "HwMnoteFrontCamera:3,HwMnoteRollAngle:4,HwMnotePitchAngle:5,HwMnotePhysicalAperture:6,HwMnoteFocusMode:7," +
+          "HwMnoteFacePointer:122,HwMnoteFaceVersion:1,HwMnoteFaceCount:2,HwMnoteFaceConf:3," +
+          "HwMnoteFaceSmileScore:1 2 3 4 5 6 7 8,HwMnoteFaceRect:1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8," +
+          "HwMnoteFaceLeyeCenter:1 2 3 4,HwMnoteFaceReyeCenter:5 6 7 8,HwMnoteFaceMouthCenter:1 2 3 4 5 6 7 8," +
+          "HwMnoteScenePointer:256,HwMnoteSceneVersion:1,HwMnoteSceneFoodConf:2,HwMnoteSceneStageConf:3," +
+          "HwMnoteSceneBlueSkyConf:4,HwMnoteSceneGreenPlantConf:5,HwMnoteSceneBeachConf:6,HwMnoteSceneSnowConf:7," +
+          "HwMnoteSceneSunsetConf:8,HwMnoteSceneFlowersConf:9,HwMnoteSceneNightConf:10,HwMnoteSceneTextConf:11"},
+        {name: "png", fileName: "test_exif_v2.png", value: 'HwMnoteCaptureMode:1,HwMnoteBurstNumber:2,' +
+          'HwMnoteFrontCamera:3,HwMnoteRollAngle:4,HwMnotePitchAngle:5,HwMnotePhysicalAperture:6,' +
+          'HwMnoteFocusMode:7,HwMnoteFacePointer:122,' +
+          'HwMnoteFaceVersion:1,HwMnoteFaceCount:2,HwMnoteFaceConf:3,HwMnoteFaceSmileScore:1 2 3 4 5 6 7 8,' +
+          'HwMnoteFaceRect:1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8,HwMnoteFaceLeyeCenter:1 2 3 4,' +
+          'HwMnoteFaceReyeCenter:5 6 7 8,' + 'HwMnoteFaceMouthCenter:1 2 3 4 5 6 7 8,HwMnoteScenePointer:256,' +
+          'HwMnoteSceneVersion:1,HwMnoteSceneFoodConf:2,' +
+          'HwMnoteSceneStageConf:3,HwMnoteSceneBlueSkyConf:4,HwMnoteSceneGreenPlantConf:5,HwMnoteSceneBeachConf:6,' +
+          'HwMnoteSceneSnowConf:7,HwMnoteSceneSunsetConf:8,HwMnoteSceneFlowersConf:9,HwMnoteSceneNightConf:10,' +
+          'HwMnoteSceneTextConf:11'},
+        {name: "heif", fileName: "test_exif_v2.heic", value: 'HwMnoteCaptureMode:1,HwMnoteBurstNumber:2,' +
+          'HwMnoteFrontCamera:3,HwMnoteRollAngle:4,' + 'HwMnotePitchAngle:5,HwMnotePhysicalAperture:6,' +
+          'HwMnoteFocusMode:7,HwMnoteFacePointer:122,' +
+          'HwMnoteFaceVersion:1,HwMnoteFaceCount:2,HwMnoteFaceConf:3,HwMnoteFaceSmileScore:1 2 3 4 5 6 7 8,' +
+          'HwMnoteFaceRect:1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8,HwMnoteFaceLeyeCenter:1 2 3 4,' +
+          'HwMnoteFaceReyeCenter:5 6 7 8,' + 'HwMnoteFaceMouthCenter:1 2 3 4 5 6 7 8,' +
+          'HwMnoteScenePointer:256,HwMnoteSceneVersion:1,HwMnoteSceneFoodConf:2,' + 'HwMnoteSceneStageConf:3,' +
+          'HwMnoteSceneBlueSkyConf:4,HwMnoteSceneGreenPlantConf:5,HwMnoteSceneBeachConf:6,' +
+          'HwMnoteSceneSnowConf:7,HwMnoteSceneSunsetConf:8,HwMnoteSceneFlowersConf:9,HwMnoteSceneNightConf:10,' +
+          'HwMnoteSceneTextConf:11'}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_09900`;
+      let key = 'HwMnoteScenePointer'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "256"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "256"},
+        {name: "png", fileName: "test_exif_v2.png", value: "256"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "256"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10000`;
+      let key = 'HwMnoteSceneVersion'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10100`;
+      let key = 'HwMnoteSceneFoodConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10200`;
+      let key = 'HwMnoteSceneStageConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "3"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10300`;
+      let key = 'HwMnoteSceneBlueSkyConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "4"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "4"},
+        {name: "png", fileName: "test_exif_v2.png", value: "4"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "4"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10400`;
+      let key = 'HwMnoteSceneGreenPlantConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "5"},
+        {name: "png", fileName: "test_exif_v2.png", value: "5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10500`;
+      let key = 'HwMnoteSceneBeachConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "6"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "6"},
+        {name: "png", fileName: "test_exif_v2.png", value: "6"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "6"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10600`;
+      let key = 'HwMnoteSceneSnowConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "7"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "7"},
+        {name: "png", fileName: "test_exif_v2.png", value: "7"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "7"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10700`;
+      let key = 'HwMnoteSceneSunsetConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "8"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "8"},
+        {name: "png", fileName: "test_exif_v2.png", value: "8"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "8"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10800`;
+      let key = 'HwMnoteSceneFlowersConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "9"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "9"},
+        {name: "png", fileName: "test_exif_v2.png", value: "9"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "9"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_10900`;
+      let key = 'HwMnoteSceneNightConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "10"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "10"},
+        {name: "png", fileName: "test_exif_v2.png", value: "10"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "10"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11000`;
+      let key = 'HwMnoteSceneTextConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "11"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "11"},
+        {name: "png", fileName: "test_exif_v2.png", value: "11"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "11"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11100`;
+      let key = 'HwMnoteFacePointer'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "122"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "122"},
+        {name: "png", fileName: "test_exif_v2.png", value: "122"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "122"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11200`;
+      let key = 'HwMnoteFaceVersion'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11300`;
+      let key = 'HwMnoteFaceCount'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11400`;
+      let key = 'HwMnoteFaceConf'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "3"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11500`;
+      let key = 'HwMnoteFaceSmileScore'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1 2 3 4 5 6 7 8"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1 2 3 4 5 6 7 8"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1 2 3 4 5 6 7 8"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1 2 3 4 5 6 7 8"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11600`;
+      let key = 'HwMnoteFaceRect'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11700`;
+      let key = 'HwMnoteFaceLeyeCenter'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1 2 3 4"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1 2 3 4"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1 2 3 4"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1 2 3 4"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11800`;
+      let key = 'HwMnoteFaceReyeCenter'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "5 6 7 8"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "5 6 7 8"},
+        {name: "png", fileName: "test_exif_v2.png", value: "5 6 7 8"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "5 6 7 8"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_11900`;
+      let key = 'HwMnoteFaceMouthCenter'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", errorData: "987654321", value: '1 2 3 4 5 6 7 8'},
+        {name: "png", fileName: "test_exif_v2.png", errorData: "987654321", value: '1 2 3 4 5 6 7 8'},
+        {name: "heif", fileName: "test_exif_v2.heic", errorData: "987654321", value: '1 2 3 4 5 6 7 8'},
+        {name: "webp", fileName: "test_exif_v2.webp", errorData: "987654321", value: '1 2 3 4 5 6 7 8'}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12000`;
+      let key = 'HwMnoteCaptureMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12100`;
+      let key = 'HwMnoteBurstNumber'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+       const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12200`;
+      let key = 'HwMnoteFrontCamera'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "3"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "3"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "3"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12300`;
+      let key = 'HwMnoteRollAngle'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "4"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "4"},
+        {name: "png", fileName: "test_exif_v2.png", value: "4"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "4"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12400`;
+      let key = 'HwMnotePitchAngle'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "5"},
+        {name: "png", fileName: "test_exif_v2.png", value: "5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12500`;
+      let key = 'HwMnotePhysicalAperture'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "6"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "6"},
+        {name: "png", fileName: "test_exif_v2.png", value: "6"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "6"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12600`;
+      let key = 'HwMnoteFocusMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "7"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "7"},
+        {name: "png", fileName: "test_exif_v2.png", value: "7"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "7"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12700`;
+      let key = 'UserComment'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "place for user comments"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "place for user comments."},
+        {name: "png", fileName: "test_exif_v2.png", value: "place for user comments"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "place for user comments"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12800`;
+      let key = 'SubsecTime'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123456"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123456"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123456"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123456"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_12900`;
+      let key = 'SubsecTimeOriginal'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "427000"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "543792"},
+        {name: "png", fileName: "test_exif_v2.png", value: "427000"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "427000"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13000`;
+      let key = 'SubsecTimeDigitized'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "427000"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "427000"},
+        {name: "png", fileName: "test_exif_v2.png", value: "427000"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "427000"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13100`;
+      let key = 'FlashpixVersion'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "FlashPix Version 1.0"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "FlashPix Version 1.0"},
+        {name: "png", fileName: "test_exif_v2.png", value: "FlashPix Version 1.0"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "FlashPix Version 1.0"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13200`;
+      let key = 'ColorSpace'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "sRGB"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "sRGB"},
+        {name: "png", fileName: "test_exif_v2.png", value: "sRGB"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "sRGB"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13300`;
+      let key = 'PixelXDimension'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "123"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "123"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "123"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13400`;
+      let key = 'PixelYDimension'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "234"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "4608"},
+        {name: "png", fileName: "test_exif_v2.png", value: "234"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "234"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13500`;
+      let key = 'RelatedSoundFile'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "/usr/home"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "abb"},
+        {name: "png", fileName: "test_exif_v2.png", value: "/usr/home"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "/usr/home"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13600`;
+      let key = 'FlashEnergy'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "832"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "832"},
+        {name: "png", fileName: "test_exif_v2.png", value: "832"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "832"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13700`;
+      let key = 'SpatialFrequencyResponse'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "13"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "13"},
+        {name: "png", fileName: "test_exif_v2.png", value: "13"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "13"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13800`;
+      let key = 'FocalPlaneXResolution'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1080"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1080"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1080"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1080"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_13900`;
+      let key = 'FocalPlaneYResolution'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "880"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "880"},
+        {name: "png", fileName: "test_exif_v2.png", value: "880"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "880"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14000`;
+      let key = 'FocalPlaneResolutionUnit'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Inch"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Centimeter"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Inch"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Inch"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14100`;
+      let key = 'SubjectLocation'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0, 1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "5, 6"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0, 1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0, 1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14200`;
+      let key = 'ExposureIndex'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1.5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1.5"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1.5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1.5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14300`;
+      let key = 'SensingMethod'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [
+        {name: "jpeg", fileName: "test_exif_v2.jpg", value: "Two-chip color area sensor"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "One-chip color area sensor"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Two-chip color area sensor"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Two-chip color area sensor"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14400`;
+      let key = 'FileSource'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "DSC"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "DSC"},
+        {name: "png", fileName: "test_exif_v2.png", value: "DSC"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "DSC"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14500`;
+      let key = 'SceneType'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Directly photographed"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Directly photographed"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Directly photographed"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Directly photographed"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14600`;
+      let key = 'CFAPattern'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "1 bytes undefined data"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1 bytes undefined data"},
+        {name: "png", fileName: "test_exif_v2.png", value: "1 bytes undefined data"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "1 bytes undefined data"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14700`;
+      let key = 'CustomRendered'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Normal process"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Custom process"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Normal process"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Normal process"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14800`;
+      let key = 'ExposureMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Auto exposure"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Auto exposure"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Auto exposure"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Auto exposure"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_14900`;
+      let key = 'WhiteBalance'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Manual white balance"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Auto white balance"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Manual white balance"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Manual white balance"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15000`;
+      let key = 'DigitalZoomRatio'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "321"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1.00"},
+        {name: "png", fileName: "test_exif_v2.png", value: "321"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "321"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15100`;
+      let key = 'FocalLengthIn35mmFilm'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "27"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15200`;
+      let key = 'SceneCaptureType'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Standard"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Standard"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Standard"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Standard"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15300`;
+      let key = 'GainControl'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Normal"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Normal"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Normal"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Normal"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15400`;
+      let key = 'Contrast'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Normal"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Normal"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Normal"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Normal"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15500`;
+      let key = 'Saturation'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Normal"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Normal"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Normal"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Normal"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15600`;
+      let key = 'Sharpness'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Normal"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Normal"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Normal"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Normal"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15700`;
+      let key = 'DeviceSettingDescription'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2xxx"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2xxx"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2xxx"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15800`;
+      let key = 'SubjectDistanceRange'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "Unknown"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "Unknown"},
+        {name: "png", fileName: "test_exif_v2.png", value: "Unknown"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "Unknown"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_15900`;
+      let key = 'ImageUniqueID'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "FXIC012"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "FXIC012"},
+        {name: "png", fileName: "test_exif_v2.png", value: "FXIC012"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "FXIC012"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16000`;
+      let key = 'CameraOwnerName'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "c.uec"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "c.uec"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "c.uec"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16100`;
+      let key = 'BodySerialNumber'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "exoch"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "x1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "exoch"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "exoch"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16200
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16200
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16200', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16200`;
+      let key = 'LensSpecification'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "0.8, 2.5, 1.5, 0.5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: " 1, 2.5,  3,  2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "0.8, 2.5, 1.5, 0.5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "0.8, 2.5, 1.5, 0.5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16300`;
+      let key = 'LensMake'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "xxwx"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "aaa"},
+        {name: "png", fileName: "test_exif_v2.png", value: "xxwx"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "xxwx"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16400`;
+      let key = 'LensModel'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "txaw"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "xxx"},
+        {name: "png", fileName: "test_exif_v2.png", value: "txaw"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "txaw"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16500`;
+      let key = 'LensSerialNumber'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "qxhc"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "111"},
+        {name: "png", fileName: "test_exif_v2.png", value: "qxhc"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "qxhc"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16600`;
+      let key = 'CompositeImage'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "2"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16700`;
+      let key = 'SourceImageNumberOfCompositeImage'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "23, 34"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1234, 1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "23, 34"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "23, 34"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16800`;
+      let key = 'SourceExposureTimesOfCompositeImage'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "xxxw"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "123"},
+        {name: "png", fileName: "test_exif_v2.png", value: "xxxw"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "xxxw"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_16900`;
+      let key = 'Gamma'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2.5"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1.5"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2.5"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2.5"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17000`;
+      let key = 'DNGVersion'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "2, 2, 3, 1"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "1, 1, 2, 3"},
+        {name: "png", fileName: "test_exif_v2.png", value: "2, 2, 3, 1"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "2, 2, 3, 1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17100
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17100
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17100', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17100`;
+      let key = 'DefaultCropSize'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v2.jpg", value: "153, 841"},
+        {name: "webp", fileName: "test_exif_v2.webp", value: "12, 1"},
+        {name: "png", fileName: "test_exif_v2.png", value: "153, 841"},
+        {name: "heif", fileName: "test_exif_v2.heic", value: "153, 841"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17300
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17300
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17300', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17300`;
+      let key = 'HwMnoteIsXmageSupported'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17400
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17400
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17400', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17400`;
+      let key = 'HwMnoteXmageMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17500
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17500
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17500', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17500`;
+      let key = 'HwMnoteXmageLeft'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17600
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17600
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17600', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17600`;
+      let key = 'HwMnoteXmageTop'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17700
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17700
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17700', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17700`;
+      let key = 'HwMnoteXmageRight'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17800
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17800
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17800', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17800`;
+      let key = 'HwMnoteXmageBottom'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17900
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17900
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17900', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_17900`;
+      let key = 'HwMnoteCloudEnhancementMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+	
+	/*
+     * @tc.number    : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_18000
+     * @tc.name      : SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_18000
+     * @tc.desc      : Test get exif metadata from picture.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_18000', Level.LEVEL0, async (done: Function) => {
+      await sleep(1000);
+      let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GETMETADATA_18000`;
+      let key = 'HwMnoteWindSnapshotMode'
+      let exifType: image.MetadataType = image.MetadataType.EXIF_METADATA;
+      const values:Array<picTypeValue> = [{name: "jpeg", fileName: "test_exif_v4.jpg", value: "1"},
+        {name: "webp", fileName: "test_exif_v4.webp", value: "1"},
+        {name: "png", fileName: "test_exif_v4.png", value: "1"},
+        {name: "heif", fileName: "test_exif_v4.heic", value: "1"}]
+      try {
+        for(let i = 0; i < values.length; i++){
+            newCreatePictureByPixelMap(caseName, values[i].fileName, done);
+            let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, key)
+            if(PropertyValue != values[i].value){
+                console.log("compare value error file:" + values[i].fileName + "get value: " + PropertyValue + "compare value: " + values[i].value);
+                expect.assertFail();
+                done()
+            }
+        }
+        expect(true).assertTrue();
+        done();
+      } catch (err) {
+        hilog.error(domain, testTag, caseName + `: Test exception ` + err);
+        expect().assertFalse();
+        done();
+      }
+    })
+
   })
 }

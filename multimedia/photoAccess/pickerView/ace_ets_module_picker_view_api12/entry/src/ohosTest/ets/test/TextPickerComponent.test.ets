@@ -2179,5 +2179,55 @@ export default function TextPicker() {
       console.info("testPicker40 finish");
       done();
     });
+
+    /**
+     * @tc.number    : testPicker47
+     * @tc.name      : testPicker47
+     * @tc.desc      : Testing setFontSize
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testPicker47', Level.LEVEL0, async (done: Function) => {
+      if (!isExecutePicker) {
+        done();
+        return;
+      }
+      let code: number = EventType.ALBUM_INFO;
+      let pickerOptions: PickerOptions = getDefaultPickerOptions();
+      let albumOptions: AlbumPickerOptions = new AlbumPickerOptions();
+      albumOptions.fontSize = 50;
+      let callback = (event: events_emitter.EventData) => {
+        let result: ItemInfo = event?.data?.msg;
+        console.info('testPicker47 select ItemInfo=:' + JSON.stringify(result));
+        expect(result.uri).not().assertUndefined();
+      }
+      let event: events_emitter.InnerEvent = {
+        eventId: code,
+        priority: events_emitter.EventPriority.LOW
+      }
+      events_emitter.on(event, callback);
+      let options: router.RouterOptions = {
+        url: 'MainAbility/pages/PickerComponent',
+        params: {
+          eventId: code,
+          pickerOptions: pickerOptions,
+          albumOptions: albumOptions,
+        }
+      }
+      await routeToUrl(options);
+
+      console.info('testPicker47 create');
+      await clickAlbumButton(driver);
+
+      let strJson: string = getInspectorByKey('PhotoPickerComponent');
+      console.info("testPicker47 JSON.parse(strJson) is" + strJson);
+      expect(JSON.parse(strJson).$attrs.visibility).assertEqual('Visibility.Visible');
+
+      router.back();
+      console.info("testPicker47 finish");
+      events_emitter.off(event.eventId);
+      done();
+    });
   })
 }

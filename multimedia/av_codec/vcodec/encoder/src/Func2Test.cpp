@@ -88,6 +88,25 @@ void HwEncFunc2NdkTest::TearDown()
     }
 }
 namespace {
+bool IsSupportRgba1010102Format()
+{
+    const int32_t *pixelFormat = nullptr;
+    uint32_t pixelFormatNum = 0;
+    OH_AVCapability *capability = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_HEVC, true, HARDWARE);
+    if (capability == nullptr) {
+        return false;
+    }
+    int32_t ret = OH_AVCapability_GetVideoSupportedPixelFormats(capability, &pixelFormat, &pixelFormatNum);
+    if (pixelFormat == nullptr || pixelFormatNum == 0 || ret != AV_ERR_OK) {
+        return false;
+    }
+    for (int i = 0; i < pixelFormatNum; i++) {
+        if (pixelFormat[i] == static_cast<int32_t>(AV_PIXEL_FORMAT_RGBA1010102)) {
+            return true;
+        }
+    }
+    return false;
+}
 /**
  * @tc.number    : VIDEO_ENCODE_HEVC_CAPABILITY_3100
  * @tc.name      : VIDEO_ENCODE_HEVC_CAPABILITY_3100
@@ -1350,6 +1369,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_SYNC_FUNC_0410, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0010, TestSize.Level1)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/176_144_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0010.h265";
@@ -1375,6 +1397,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0010, TestSize.Level1)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0020, TestSize.Level0)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0020.h265";
@@ -1400,6 +1425,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0020, TestSize.Level0)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0030, TestSize.Level0)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1920_1080_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0030.h265";
@@ -1425,6 +1453,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0030, TestSize.Level0)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0040, TestSize.Level1)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/4096_4096_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0040.h265";
@@ -1450,6 +1481,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0040, TestSize.Level1)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0110, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0110.h265";
@@ -1478,6 +1512,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0110, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0130, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0130.h265";
@@ -1507,6 +1544,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0130, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0150, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->OUT_DIR = "/data/test/media/VIDEO_ENCODE_RGBA1010102_0150.h265";
@@ -1531,6 +1571,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0150, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0170, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->DEFAULT_WIDTH = 1280;
@@ -1554,6 +1597,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0170, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0180, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->DEFAULT_WIDTH = 1280;
@@ -1577,6 +1623,9 @@ HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0180, TestSize.Level2)
 HWTEST_F(HwEncFunc2NdkTest, VIDEO_ENCODE_RGBA1010102_0190, TestSize.Level2)
 {
     if (cap_hevc != nullptr && ! access("/system/lib64/media/", 0)) {
+        if (!IsSupportRgba1010102Format()) {
+            return;
+        }
         auto vEncSample = make_unique<VEncAPI11Sample>();
         vEncSample->INP_DIR = "/data/test/media/1280_720_rgba1010102.yuv";
         vEncSample->DEFAULT_WIDTH = 1280;

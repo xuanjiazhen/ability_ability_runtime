@@ -25,6 +25,7 @@ extern "C" {
 napi_value savePixelMapForPath(napi_env env, napi_callback_info info);
 napi_value creatOutPixeMapForPath(napi_env env, napi_callback_info info);
 napi_value OHEffectFilterRender(napi_env env, napi_callback_info info);
+napi_value OHEffectFilterRenderWithTextureId(napi_env env, napi_callback_info info);
 napi_value OHImageEffectCreate(napi_env env, napi_callback_info info);
 napi_value OHImageEffectConfigure(napi_env env, napi_callback_info info);
 napi_value OHImageEffectAddFilter(napi_env env, napi_callback_info info);
@@ -52,6 +53,8 @@ napi_value OHImageEffectStart(napi_env env, napi_callback_info info);
 napi_value OHImageEffectStop(napi_env env, napi_callback_info info);
 napi_value OHImageEffectSetInputPicture(napi_env env, napi_callback_info info);
 napi_value OHImageEffectSetOutputPicture(napi_env env, napi_callback_info info);
+napi_value OHImageEffectSetInputTexture(napi_env env, napi_callback_info info);
+napi_value OHImageEffectSetOutputTexture(napi_env env, napi_callback_info info);
 
 #ifdef __cplusplus
 }

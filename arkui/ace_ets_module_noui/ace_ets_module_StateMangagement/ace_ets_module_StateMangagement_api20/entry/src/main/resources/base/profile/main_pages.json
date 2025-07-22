@@ -6,6 +6,9 @@
     "MainAbility/pages/consume/Consume0040",
     "MainAbility/pages/consume/Consume0050",
     "MainAbility/pages/consume/Consume0060",
-    "MainAbility/pages/consume/ConsumeDefault0240"
+    "MainAbility/pages/consume/ConsumeDefault0240",
+    "MainAbility/pages/uiutils/AddMonitor001",
+    "MainAbility/pages/uiutils/AddMonitor002",
+    "MainAbility/pages/uiutils/MakeBinding001"
   ]
 }

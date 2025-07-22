@@ -2293,8 +2293,8 @@ export default function UDMFApiDataStructTest() {
     });
     
     /**
-     * @tc.name      : testSUBDistributedDataUDMFSDKUDMFApiDataStructTest3900
-     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_3900
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4000
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4000
      * @tc.desc      : Verify the properties of the contentForm type
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -2355,8 +2355,8 @@ export default function UDMFApiDataStructTest() {
     });
 
     /**
-     * @tc.name      : testSUBDistributedDataUDMFSDKUDMFApiDataStructTest3900
-     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_3900
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4100
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4100
      * @tc.desc      : Verify the properties of the contentForm type
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -2395,6 +2395,8 @@ export default function UDMFApiDataStructTest() {
                 expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
                 expect(imageInfo.size.height).assertEqual(opt.size.height);
                 expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(opt.pixelFormat);
+                expect(imageInfo.alphaType).assertEqual(opt.alphaType);
               }
             }
           }
@@ -2406,6 +2408,1078 @@ export default function UDMFApiDataStructTest() {
         expect().assertFail();
       });
       console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4100 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4200
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4200
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4200 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, pixelFormat: 3, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(opt.pixelFormat);
+                expect(imageInfo.alphaType).assertEqual(2);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4200 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4300
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4300
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4300 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4300 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4400
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4400
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4400 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4400 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4500
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4500
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4500 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4500 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4600
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4600
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4600 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4600 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4700
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4700
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4700 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4700 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4800
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4800
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4800 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(opt.pixelFormat).assertEqual(opt.pixelFormat);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4800 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4900
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4900
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4900 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt : image.InitializationOptions = { editable: true, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(opt.pixelFormat).assertEqual(opt.srcPixelFormat);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_4900 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5000
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5000
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5000 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.OPAQUE, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(1);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5000 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5100
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5100
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5100 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.PREMUL, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5100 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5200
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5200
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5200 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.UNPREMUL, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapSync(arrayBuffer, opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(3);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5200 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5300
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5300
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5300 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.BGRA_8888,  size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(4);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(24);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5300 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5400
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5400
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5400 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.UNPREMUL, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(3);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5400 end");
+    });
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5500
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5500
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5500 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.OPAQUE, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(1);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5500 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5600
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5600
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5600 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let arrayBuffer = new ArrayBuffer(4*200*200);
+      let opt: image.InitializationOptions = { editable: true, pixelFormat: image.PixelMapFormat.RGBA_F16, alphaType: image.AlphaType.PREMUL, size: { height: 4, width: 6 } }
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(7);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(48);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5600 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5700
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5700
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5700 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let opt : image.InitializationOptions = { editable: true,pixelFormat:image.PixelMapFormat.RGBA_8888, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt, image.AllocatorType.AUTO),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(3);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5700 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5800
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5800
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5800 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let opt : image.InitializationOptions = { editable: true,pixelFormat:image.PixelMapFormat.BGRA_8888, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt, image.AllocatorType.DMA),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(4);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5800 end");
+    });
+
+
+    /**
+     * @tc.name      : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5900
+     * @tc.number    : SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5900
+     * @tc.desc      : Verify the properties of the contentForm type
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log('SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5900 start');
+      let options: unifiedDataChannel.Options = {
+        intention: unifiedDataChannel.Intention.DATA_HUB
+      };
+      let opt : image.InitializationOptions = { editable: true,pixelFormat:image.PixelMapFormat.BGRA_8888, size: { height: 200, width: 200 } };
+      let pixelMap : uniformDataStruct.PixelMap = {
+        uniformDataType : 'openharmony.pixel-map',
+        pixelMap : image.createPixelMapUsingAllocatorSync(opt, image.AllocatorType.SHARE_MEMORY),
+      }
+      let unifiedData = new unifiedDataChannel.UnifiedData();
+      let contentFormRecord = new unifiedDataChannel.UnifiedRecord("openharmony.pixel-map", pixelMap);
+      unifiedData.addRecord(contentFormRecord)
+      await unifiedDataChannel.insertData(options, unifiedData).then(async (data) =>{
+        let options1:unifiedDataChannel.Options ={
+          intention: unifiedDataChannel.Intention.DATA_HUB,
+          key:data
+        }
+        await unifiedDataChannel.queryData(options1).then(async (ret) => {
+          let size = ret.length;
+          console.info(`data.size = ${size}`);
+          for (let i = 0; i < size; i++) {
+            let records = ret[i].getRecords();
+            let size = records.length;
+            for (let j = 0; j < size; j++) {
+              let unifiedDataRecord = records[i] as unifiedDataChannel.UnifiedRecord;
+              let record = unifiedDataRecord.getValue() as uniformDataStruct.PixelMap;
+              if (record != undefined) {
+                let imageInfo:image.ImageInfo = await record.pixelMap.getImageInfo();
+                expect(record["uniformDataType"]).assertEqual(pixelMap.uniformDataType);
+                expect(imageInfo.size.height).assertEqual(opt.size.height);
+                expect(imageInfo.size.width).assertEqual(opt.size.width);
+                expect(imageInfo.pixelFormat).assertEqual(4);
+                expect(imageInfo.alphaType).assertEqual(2);
+                expect(imageInfo.density).assertEqual(0);
+                expect(imageInfo.stride).assertEqual(800);
+                expect(imageInfo.mimeType).assertEqual("");
+                expect(imageInfo.isHdr).assertEqual(false);
+              }
+            }
+          }
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+        });
+        await unifiedDataChannel.deleteData(options1);
+      }).catch((err: BusinessError) => {
+        expect().assertFail();
+      });
+      console.log("SUB_DistributedData_UDMF_SDK_UDMFApiDataStructTest_5900 end");
     });
   })
 }

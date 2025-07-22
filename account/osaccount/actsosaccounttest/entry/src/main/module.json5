@@ -51,6 +51,12 @@
             },
             {
                 "name": "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"
+            },
+            {
+                "name": "ohos.permission.MANAGE_DOMAIN_ACCOUNTS"
+            },
+            {
+                "name": "ohos.permission.MANAGE_DOMAIN_ACCOUNT_SERVER_CONFIGS"
             }
         ]
     }

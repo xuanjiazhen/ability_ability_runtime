@@ -1219,6 +1219,182 @@ HWTEST_F(DrawingNativeFontPart2Test, testFontGeSpacingNull, Function | SmallTest
     EXPECT_EQ(OH_Drawing_FontGetSpacing(font, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_FontDestroy(font);
 }
+
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3000
+ * @tc.name: testFontMeasureSingleChaWithFeaturesNormal
+ * @tc.desc: test for testFontMeasureSingleChaWithFeaturesNormal
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 0
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontMeasureSingleChaWithFeaturesNormal, Function | SmallTest | Level0) {
+    const char *str = "H";
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface *fileTypeface = OH_Drawing_TypefaceCreateDefault();
+    OH_Drawing_FontSetTextSize(font, 50.0f);
+    OH_Drawing_FontSetTypeface(font, fileTypeface);
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    float textWidth = 0.0f;
+    OH_Drawing_ErrorCode code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 37.0f);
+    str = "你";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    str = "（";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    str = "｛";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    str = "《";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    str = "8";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 29.0f);
+    str = "乂";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    str = "飛";
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(textWidth, 50.0f);
+    OH_Drawing_CanvasRestore(canvas);
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_FontFeaturesDestroy(features);
+    OH_Drawing_CanvasDestroy(canvas);
+}
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3001
+ * @tc.name: testFontMeasureSingleChaWithFeaturesAbNormal
+ * @tc.desc: test for testFontMeasureSingleChaWithFeaturesAbNormal
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 3
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontMeasureSingleChaWithFeaturesAbNormal, Function | SmallTest | Level3) {
+    const char *str = "（";
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Brush *brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetColor(brush, 0xFF0000FF);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    OH_Drawing_FontSetTextSize(font, 50.0f);
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    float textWidth = 0.0f;
+    OH_Drawing_ErrorCode code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(nullptr, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, nullptr, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, nullptr, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, nullptr);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, "", features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_FontFeaturesDestroy(features);
+    OH_Drawing_CanvasDestroy(canvas);
+}
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3002
+ * @tc.name: testFontMeasureSingleChaWithFeaturesCalls
+ * @tc.desc: test for testFontMeasureSingleChaWithFeaturesCalls
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 2
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontMeasureSingleChaWithFeaturesCalls, Function | SmallTest | Level2) {
+    const char *str = "H";
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface *fileTypeface = OH_Drawing_TypefaceCreateDefault();
+    OH_Drawing_FontSetTextSize(font, 50.0f);
+    OH_Drawing_FontSetTypeface(font, fileTypeface);
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    float textWidth = 0.0f;
+    int count = 10;
+    for (int i = 0; i < count; i++) {
+    OH_Drawing_ErrorCode code = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, features, &textWidth);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    }
+    EXPECT_EQ(textWidth, 37.0f);
+    OH_Drawing_FontDestroy(font);
+    OH_Drawing_FontFeaturesDestroy(features);
+    OH_Drawing_CanvasDestroy(canvas);
+}
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3100
+ * @tc.name: testFontFeaturesAddFeatureNormal
+ * @tc.desc: test for testFontFeaturesAddFeatureNormal
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 2
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontFeaturesAddFeatureNormal, Function | SmallTest | Level2) {
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    OH_Drawing_ErrorCode code = OH_Drawing_FontFeaturesAddFeature(features, "aaaa", 0.1f);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    int count = 10;
+    for (int i = 0; i < count; i++) {
+    code = OH_Drawing_FontFeaturesAddFeature(features, "aaaa", 0.1f);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    }
+    code = OH_Drawing_FontFeaturesAddFeature(features, "aaa", 1.0f);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_FontFeaturesAddFeature(features, "aaaaa", 1.0f);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_FontFeaturesDestroy(features);
+}
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3101
+ * @tc.name: testFontFeaturesAddFeatureAbNormal
+ * @tc.desc: test for testFontFeaturesAddFeatureAbNormal
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 3
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontFeaturesAddFeatureAbNormal, Function | SmallTest | Level3) {
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    OH_Drawing_ErrorCode code = OH_Drawing_FontFeaturesAddFeature(nullptr, "aaaa", 0.1f);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontFeaturesAddFeature(features, nullptr, 0.1f);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_FontFeaturesAddFeature(features, "aaaa", 0.0f);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_FontFeaturesDestroy(features);
+}
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_FONT_3200
+ * @tc.name: testFontFeaturesandFeatureDestroyNULL
+ * @tc.desc: test for testFontFeaturesandFeatureDestroyNULL
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 3
+ */
+HWTEST_F(DrawingNativeFontPart2Test, testFontFeaturesandFeatureDestroyNULL, Function | SmallTest | Level3) {
+    OH_Drawing_FontFeatures* features = OH_Drawing_FontFeaturesCreate();
+    OH_Drawing_ErrorCode code = OH_Drawing_FontFeaturesDestroy(nullptr);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    int count = 10;
+    for (int i = 0; i < count; i++) {
+        OH_Drawing_FontFeatures* features1 = OH_Drawing_FontFeaturesCreate();
+        OH_Drawing_ErrorCode code1 = OH_Drawing_FontFeaturesDestroy(features1);
+        EXPECT_EQ(code1, OH_DRAWING_SUCCESS);
+    }
+    OH_Drawing_FontFeaturesDestroy(features);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

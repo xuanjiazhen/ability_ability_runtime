@@ -125,10 +125,14 @@ void LppCallback::OnRenderStarted(OH_LowPowerVideoSink *streamer, void *userData
 {
     AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSink OnRenderStarted ");
 }
-    
+
 void LppCallback::OnEos(OH_LowPowerVideoSink *streamer, void *userData)
 {
     AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSink OnEos ");
 }
 
+void LppCallback::OnFirstFrameDecoded(OH_LowPowerVideoSink *streamer, void *userData)
+{
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSink OnFirstFrameDecoded ");
+}
 

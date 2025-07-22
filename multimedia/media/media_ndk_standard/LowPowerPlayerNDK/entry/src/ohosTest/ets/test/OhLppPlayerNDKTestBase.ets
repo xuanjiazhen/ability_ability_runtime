@@ -235,10 +235,14 @@ export default class OhLppPlayerNDKTestBase {
           break;
 
         case this.VIDEO_SET_PARAMETER_EVENT:
+          this.result = lpPlayer.videoStreamerSetParameter();
+          expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
         case this.VIDEO_GET_PARAMETER_EVENT:
+          this.result = lpPlayer.videoStreamerGetParameter();
+          expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -249,6 +253,8 @@ export default class OhLppPlayerNDKTestBase {
           break;
 
         case this.AUDIO_GET_PARAMETER_EVENT:
+          this.result = lpPlayer.audioGetParameterNative();
+          expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 

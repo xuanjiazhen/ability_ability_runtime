@@ -97,6 +97,29 @@ export default function MultimodalInputPointerTest() {
     });
 
     /**
+     * @tc.number: SUB_MMI_Input_Api_Pointer_setPointerVisible_0300
+     * @tc.name: SUB_MMI_Input_Api_Pointer_setPointerVisible_0300
+     * @tc.desc: Test promise setPointerVisible interface to set null value.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it("SUB_MMI_Input_Api_Pointer_setPointerVisible_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)=> {
+      let caseName = "SUB_MMI_Input_Api_Pointer_setPointerVisible_0300";
+      try {
+        pointer.setPointerVisible(null).then(() => {
+          console.info(`${caseName} Set pointer visible success`);
+          ExpectFalse(true);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} Set pointer visible failed, error: ${JSON.stringify(error, [`code`, `message`])}`);
+        ExpectTrue(error.code == 401);
+        done();
+      }
+    });
+
+    /**
      * @tc.number: SUB_MMI_Input_Api_Pointer_setPointerVisibleSync_0100
      * @tc.name: SUB_MMI_Input_Api_Pointer_setPointerVisibleSync_0100
      * @tc.desc: Test setPointerVisibleSync interface to show or hide the mouse pointer.
@@ -269,6 +292,29 @@ export default function MultimodalInputPointerTest() {
     });
 
     /**
+     * @tc.number: SUB_MMI_Input_Api_Pointer_getPointerStyle_0300
+     * @tc.name: SUB_MMI_Input_Api_Pointer_getPointerStyle_0300
+     * @tc.desc: Test promise getPointerStyle interface to set null value.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it("SUB_MMI_Input_Api_Pointer_getPointerStyle_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function)=> {
+      let caseName = "SUB_MMI_Input_Api_Pointer_getPointerStyle_0300";
+      try {
+        pointer.getPointerStyle(null).then(() => {
+          console.info(`${caseName} get pointer style success`);
+          ExpectFalse(true);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} get pointer style failed, error: ${JSON.stringify(error, [`code`, `message`])}`);
+        ExpectTrue(error.code == 401);
+        done();
+      }
+    });
+
+    /**
      * @tc.number: SUB_MMI_Input_Api_Pointer_getPointerStyleSync_0100
      * @tc.name: SUB_MMI_Input_Api_Pointer_getPointerStyleSync_0100
      * @tc.desc: Test getPointerStyleSync interface to get the mouse style type.
@@ -364,6 +410,29 @@ export default function MultimodalInputPointerTest() {
           }
         }
       });
+    });
+
+    /**
+     * @tc.number: SUB_MMI_Input_Api_Pointer_setPointerStyle_0300
+     * @tc.name: SUB_MMI_Input_Api_Pointer_setPointerStyle_0300
+     * @tc.desc: Test promise setPointerStyle interface to set null value.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it("SUB_MMI_Input_Api_Pointer_setPointerStyle_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function)=> {
+      let caseName = "SUB_MMI_Input_Api_Pointer_setPointerStyle_0300";
+      try {
+        pointer.setPointerStyle(10, null).then(() => {
+          console.info(`${caseName} set pointer style success`);
+          ExpectFalse(true);
+          done();
+        })
+      } catch (error) {
+        console.info(`${caseName} set pointer style failed, error: ${JSON.stringify(error, [`code`, `message`])}`);
+        ExpectTrue(error.code == 401);
+        done();
+      }
     });
 
     /**

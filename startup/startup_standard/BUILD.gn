@@ -20,6 +20,7 @@ group("startup_standard") {
       "deviceinfo:startup_deviceinfo_js_test",
       "init_ndkTest:ActsInitNdkTest",
       "syscap_ndk:startup_syscapability_js_test",
+      "deviceinfosystem:startup_deviceinfo_js_Enterprisetest",
     ]
   }
 }

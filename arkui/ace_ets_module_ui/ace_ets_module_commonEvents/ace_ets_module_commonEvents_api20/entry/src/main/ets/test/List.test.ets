@@ -18,6 +18,7 @@ import tapLocationTest from './TapGestureTest/tapLocation.test';
 import PanGestureTest from './PanGestureTest/observer.test';
 import colorMetricsTest from './ColorTest/colorMetrics.test';
 import onTouchTestDoneTest from './GestureRecognizerTest/onTouchTestDone.test';
+import nodeRenderStateTest from './NodeRenderStateTest/nodeRenderState.test';
 
 export default function testsuite() {
   getDisplayId();
@@ -25,4 +26,5 @@ export default function testsuite() {
   PanGestureTest();
   colorMetricsTest();
   onTouchTestDoneTest();
+  nodeRenderStateTest();
 }

@@ -171,7 +171,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         } else {
@@ -246,7 +246,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         } else {
@@ -316,7 +316,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -351,7 +351,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -454,7 +454,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow();
           done();
         } else {
@@ -528,7 +528,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -563,7 +563,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }

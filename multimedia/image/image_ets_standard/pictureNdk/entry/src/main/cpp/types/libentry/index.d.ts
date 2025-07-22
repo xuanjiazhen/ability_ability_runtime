@@ -45,6 +45,7 @@ export const GetPixelmapBuffer: (src: ArrayBuffer) => ArrayBuffer;
 export const setNeedsPackPropertiesToTestPackingOptions: (needpackExif: boolean) => void;
 export const compareArrayBuffer: (arrayBuffer1: ArrayBuffer, arrayBuffer2: ArrayBuffer) => boolean;
 export const getTempAuxiliaryPicture: (uri: string, auxType: image.AuxiliaryPictureType) => image.AuxiliaryPicture;
+export const PictureMetadataGetPropertyWithNull: (metadataType: image.MetadataType, key: string) => string;
 
 // Metadata
 export const MetadataCreate: (metadataType: image.MetadataType) => image.Metadata;

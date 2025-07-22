@@ -44,6 +44,7 @@ public:
         void *userData);
     static void OnRenderStarted(OH_LowPowerVideoSink *streamer, void *userData);
     static void OnEos(OH_LowPowerVideoSink *streamer, void *userData);
+    static void OnFirstFrameDecoded(OH_LowPowerVideoSink *streamer, void *userData);
     static void OH_LowPowerVideoSink_OnStreamChanged(OH_LowPowerVideoSink *streamer, OH_AVFormat *format,
         void *userData);
     

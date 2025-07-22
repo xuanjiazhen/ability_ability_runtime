@@ -401,6 +401,29 @@ export default function MultimodalInputDeviceTest() {
     });
 
     /**
+     * @tc.number: SUB_MMI_Input_Api_IptDev_supportKeys_0300
+     * @tc.name: SUB_MMI_Input_Api_IptDev_supportKeys_0300
+     * @tc.desc: Test promise supportKeys interface to set null value.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it("SUB_MMI_Input_Api_IptDev_supportKeys_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function)=> {
+      let caseName = "SUB_MMI_Input_Api_IptDev_supportKeys_0300";
+      try {
+        inputDevice.supportKeys(null, [17, 22, 2055]).then((supportResult: Array<Boolean>) => {
+          console.info(`${caseName} Query result: ${JSON.stringify(supportResult)}`);
+          ExpectFalse(true);
+          done();
+        });
+      } catch (error) {
+        console.info(`${caseName} Query failed, error: ${JSON.stringify(error, [`code`, `message`])}`);
+        ExpectTrue(error.code == 401);
+        done();
+      }
+    });
+
+    /**
      * @tc.number: SUB_MMI_Input_Api_IptDev_supportKeysSync_0100
      * @tc.name: SUB_MMI_Input_Api_IptDev_supportKeysSync_0100
      * @tc.desc: Test supportKeysSync interface to get whether the input device supports the specified key code value.

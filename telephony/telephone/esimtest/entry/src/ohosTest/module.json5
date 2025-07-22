@@ -56,9 +56,6 @@
         "name": "ohos.permission.GET_WIFI_INFO"
       },
       {
-        "name": "ohos.permission.sec.ACCESS_UDID"
-      },
-      {
         "name": "ohos.permission.GET_TELEPHONY_ESIM_STATE"
       },
       {

@@ -9,6 +9,7 @@
     "MainAbility/pages/uiState/UiStatesTest",
     "MainAbility/pages/touchTestDone/OntouchTestDoneTest",
     "MainAbility/pages/nodeUtils/TestNodeUniqueId",
-    "MainAbility/pages/uiInput/UiInputErrorCodeTest"
+    "MainAbility/pages/uiInput/UiInputErrorCodeTest",
+    "MainAbility/pages/scope/TestRunTaskInScope"
   ]
 }

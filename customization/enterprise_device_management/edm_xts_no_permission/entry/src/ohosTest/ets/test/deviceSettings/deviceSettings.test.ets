@@ -18,6 +18,8 @@ import { ENTINFO1, SELFHAPNAME, SELFWANT } from '../commom';
 
 import adminManager from '@ohos.enterprise.adminManager';
 import deviceSettings from '@ohos.enterprise.deviceSettings';
+import fs from '@ohos.file.fs';
+import { BusinessError } from '@ohos.base';
 
 const ITEM_SCREEN_OFF: string = 'screenOff';
 const ITEM_POWER_POLICY: string = 'powerPolicy';
@@ -64,6 +66,48 @@ export default function deviceSettingsTest() {
       } finally {
         await adminManager.disableAdmin(SELFWANT);
       }
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_DEVICE_SETTINGS_SET_HOME_WALL_PAPER_JS_0200
+     * @tc.name      : test_device_settings_set_home_wall_paper_0200
+     * @tc.desc      : test deviceSettings set home wall paper
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_device_settings_set_home_wall_paper_0200", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+      let filePath: string = getContext().resourceDir + '/wallpaper.png';
+      let fd: number = fs.openSync(filePath, fs.OpenMode.READ_ONLY).fd;
+      await deviceSettings.setHomeWallpaper(SELFWANT, fd).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code == 201).assertTrue();
+      }).finally(async () => {
+        await adminManager.disableAdmin(SELFWANT);
+      });
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_DEVICE_SETTINGS_SET_UNLOCK_WALL_PAPER_JS_0200
+     * @tc.name      : test_device_settings_set_unlock_wall_paper_0200
+     * @tc.desc      : test deviceSettings set unlock wall paper
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_device_settings_set_unlock_wall_paper_0200", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+      let filePath: string = getContext().resourceDir + '/wallpaper.png';
+      let fd: number = fs.openSync(filePath, fs.OpenMode.READ_ONLY).fd;
+      await deviceSettings.setUnlockWallpaper(SELFWANT, fd).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code == 201).assertTrue();
+      }).finally(async () => {
+        await adminManager.disableAdmin(SELFWANT);
+      });
       done();
     });
   })

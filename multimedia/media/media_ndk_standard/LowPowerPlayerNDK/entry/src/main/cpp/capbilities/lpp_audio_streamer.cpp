@@ -196,6 +196,15 @@ int32_t LppAudioStreamer::SetParameter(const SampleInfo &sampleInfo)
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
+int32_t LppAudioStreamer::GetParameter(const SampleInfo &sampleInfo)
+{
+    AVCODEC_SAMPLE_LOGI("====== LppAudioStreamer GetParameter ======");
+    OH_AVFormat *format = OH_AVFormat_Create();
+    CHECK_AND_RETURN_RET_LOG(format != nullptr, AVCODEC_SAMPLE_ERR_ERROR, "AVFormat create failed");
+    int ret = OH_LowPowerAudioSink_GetParameter(lppAudioStreamer_, format);
+    CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Configure failed, ret::: %{public}d", ret);
+    return ret;
+}
 int32_t LppAudioStreamer::Prepare()
 {
     AVCODEC_SAMPLE_LOGI("====== lppAudioStreamer_ Prepare ======");

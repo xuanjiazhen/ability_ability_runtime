@@ -17,10 +17,12 @@ import webController from './WebController.test'
 import webAttribute from './WebAttribute.test'
 import webAttributeTest from './WebAttributeTest.test'
 import webInitTest from './WebInitTest.test'
+import webAttributeEnhancedTest from './WebAttributeEnhancedTest.test'
 
 export default function testsuite() {
   webInitTest()
   webAttributeTest()
   webController()
   webAttribute()
+  webAttributeEnhancedTest()
 }

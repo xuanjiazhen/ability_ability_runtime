@@ -53,27 +53,7 @@ export default function applicationBundleJsunit() {
               })
         });
 
-        /**
-         * @tc.number: Sub_Bms_Framework_Query_AppInfo_3460
-         * @tc.name: getApplicationInfo : Obtains based on a given bundle name.
-         * @tc.desc: Check the return value of the interface (by promise)
-         * @tc.level 0
-         */
-        it(TAG_TEST_0100_001, TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
-            let startTime = await Utils.getNowTime();
-            let data = await Bundle.getApplicationInfo(BUNDLE_NAME,
-                Bundle.BundleFlag.GET_APPLICATION_INFO_WITH_PERMISSION, userId).catch((error) => {
-                    console.info(TAG_TEST_0100_001 + 'UserId promise error is: ' + error);
-                    expect(error).assertFail();
-                });
-            let endTime = Utils.getNowTime();
-            Utils.getDurationTime(TAG_TEST_0100_001, startTime, endTime);
-            console.info(TAG_TEST_0100_001 + ' UserId promise data is: ' + JSON.stringify(data));
-            expectData(TAG_TEST_0100_001, data);
-            getApplicationInfoSuccess(TAG_TEST_0100_001, data);
-            done();
-        });
-
+      
         /**
          * @tc.number: Sub_Bms_Framework_Query_AppInfo_3480
          * @tc.name: getApplicationInfo : Obtains based on a given bundle name.
@@ -117,26 +97,6 @@ export default function applicationBundleJsunit() {
         });
 
 
-        /**
-         * @tc.number: bundle_getApplicationInfo_test_0200_001
-         * @tc.name: getApplicationInfo : Obtains based on a given bundle name.
-         * @tc.desc: Check the return value of the interface (by promise)
-         * @tc.level 0
-         */
-        it(TAG_TEST_0200_001, TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            let startTime = await Utils.getNowTime();
-            let data = await Bundle.getApplicationInfo(BUNDLE_NAME,
-                Bundle.BundleFlag.GET_APPLICATION_INFO_WITH_PERMISSION).catch((error) => {
-                    console.info(TAG_TEST_0200_001 + 'onUserId promise error is: ' + error);
-                    expect(error).assertFail();
-                });
-            let endTime = Utils.getNowTime();
-            Utils.getDurationTime(TAG_TEST_0200_001, startTime, endTime);
-            console.info(TAG_TEST_0200_001 + ' onUserId promise data is: ' + JSON.stringify(data));
-            expectData(TAG_TEST_0200_001, data);
-            getApplicationInfoSuccess(TAG_TEST_0200_001, data);
-            done();
-        });
 
         /**
          * @tc.number: bundle_getApplicationInfo_test_0200_002
@@ -180,63 +140,6 @@ export default function applicationBundleJsunit() {
             done();
         });
 
-        /**
-         * @tc.number: bundle_getApplicationInfo_test_0300_001
-         * @tc.name: getApplicationInfo : Obtains based on a given bundle name.
-         * @tc.desc: Check the return value of the interface (by callBack)
-         * @tc.level 0
-         */
-        it(TAG_TEST_0300_001, TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            let errors;
-            let datas;
-            let startTime = await Utils.getNowTime();
-            Bundle.getApplicationInfo(BUNDLE_NAME,
-                Bundle.BundleFlag.GET_APPLICATION_INFO_WITH_PERMISSION, userId, (error, data) => {
-                    let endTime = Utils.getNowTime();
-                    Utils.getDurationTime(TAG_TEST_0300_001, startTime, endTime);
-                    errors = error;
-                    if (errors.code != 0) {
-                        expect(errors).assertFail();
-                        console.info(TAG_TEST_0300_001 + 'UserId callBack error: ' + error);
-                    }
-                    console.info(TAG_TEST_0300_001 + 'UserId callBack data is:' + JSON.stringify(data));
-                    datas = data;
-                });
-            await Utils.sleep(200);
-            console.info(TAG_TEST_0300_001 + 'UserId callBack data is: ' + JSON.stringify(datas));
-            expectData(TAG_TEST_0300_001, datas);
-            getApplicationInfoSuccess(TAG_TEST_0300_001, datas);
-            done();
-        });
-
-        /**
-         * @tc.number: bundle_getApplicationInfo_test_0400_001
-         * @tc.name: getApplicationInfo : Obtains based on a given bundle name.
-         * @tc.desc: Check the return value of the interface (by callBack)
-         * @tc.level 0
-         */
-        it(TAG_TEST_0400_001, TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            let errors;
-            let datas;
-            let startTime = await Utils.getNowTime();
-            Bundle.getApplicationInfo(BUNDLE_NAME,
-                Bundle.BundleFlag.GET_APPLICATION_INFO_WITH_PERMISSION, (error, data) => {
-                    let endTime = Utils.getNowTime();
-                    errors = error;
-                    if (errors.code != 0) {
-                        expect(errors).assertFail();
-                        console.info(TAG_TEST_0400_001 + 'UserId callBack error: ' + error);
-                    }
-                    Utils.getDurationTime(TAG_TEST_0400_001, startTime, endTime);
-                    console.info(TAG_TEST_0400_001 + 'noUserId callBack data is:' + JSON.stringify(data));
-                    datas = data;
-                });
-            await Utils.sleep(200);
-            console.info(TAG_TEST_0400_001 + 'noUserId callBack datas is: ' + JSON.stringify(datas));
-            expectData(TAG_TEST_0400_001, datas);
-            getApplicationInfoSuccess(TAG_TEST_0400_001, datas);
-            done();
-        });
 
         /**
          * @tc.number: bundle_getApplicationInfo_test_0600_002

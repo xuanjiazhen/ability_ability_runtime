@@ -146,7 +146,17 @@
 	"pages/ArkUI/EmbeddedComponentInstanceTest",
     "pages/ArkUI/OnAccessibilityActionIntercept",
     "pages/ArkUI/AccessBilityHoverTransparent",
-    "pages/ArkUI/hoverScaleInterruption"
+    "pages/ArkUI/hoverScaleInterruption",
+    "pages/ArkUI/transform3D",
+    "pages/ArkUI/dragEvent_dataLoad",
+    "pages/ArkUI/dragAction_dataLoad",
+    "pages/ArkUI/TapGestureListener",
+    "pages/ArkUI/SwipeGestureListener",
+    "pages/ArkUI/LongPressGestureListener",
+    "pages/ArkUI/PinchGestureListener",
+    "pages/ArkUI/RotationGestureListener",
+    "pages/ArkUI/PanGestureListener",
+    "pages/ArkUI/AccessibilityShowStepOptions"
   ]
 }
 

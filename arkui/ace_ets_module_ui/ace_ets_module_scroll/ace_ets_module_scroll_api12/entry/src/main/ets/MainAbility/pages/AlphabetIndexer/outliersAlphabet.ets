@@ -21,6 +21,7 @@ struct outliersAlphabetIndexer {
   private arrayL: string[] = ['刘', '李', '梁']
   private value: string[] = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
     'H', 'I', 'J', 'K', 'L', 'M', 'N']
+  private value2: string[] = ['#', '1', '2', '3', '4', '5']
 
   build() {
     Stack({ alignContent: Alignment.Start }) {
@@ -70,7 +71,7 @@ struct outliersAlphabetIndexer {
         .height('100%')
 
         AlphabetIndexer({ arrayValue: this.value, selected: -1 })
-          .key('alphabetIndexer_outliers')
+          .id('alphabetIndexer_outliers')
           .autoCollapse(false) // 关闭自适应折叠模式
           .selectedColor('#FFF0FF0') // 选中项文本颜色
           .selectedBackgroundColor('#FF0F000') // 选中项背景颜色
@@ -99,6 +100,11 @@ struct outliersAlphabetIndexer {
           .onPopupSelect((index: number) => {
             console.info('onPopupSelected:' + index)
           })
+        AlphabetIndexer({ arrayValue: this.value2, selected: 1 })
+          .id('alphabetIndexer_def')
+          .autoCollapse(false)
+          .itemSize(28)
+          .selectedFont({ weight: FontWeight.Bolder })
       }
       .width('100%')
       .height('100%')

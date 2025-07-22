@@ -2161,7 +2161,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_004(napi_env env, napi_callback_info
     OH_UdmfOptions* options1 = OH_UdmfOptions_Create();
     OH_UdmfOptions_SetIntention(options1, testIntention);
     OH_UdmfOptions_SetKey(options1, key);
-    OH_UdmfOptions_Destroy(options1);
+    
     unsigned int dataSize = 0;
     OH_UdmfData* dataArray = nullptr;
     int dateleRes = OH_Udmf_DeleteUnifiedData(options1, &dataArray, &dataSize);
@@ -2174,6 +2174,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_004(napi_env env, napi_callback_info
     OH_UdmfOptions_Destroy(options);
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
+    OH_UdmfOptions_Destroy(options1);
     OH_UdmfData_Destroy(udmfUnifiedData);
     napi_value res;
     napi_create_int32(env, 1, &res);
@@ -2240,7 +2241,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_006(napi_env env, napi_callback_info
     int setRes = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
     NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
     NAPI_ASSERT(env, key[0] != '\0', "OH_Udmf_SetUnifiedDataByOptions is fail.");
-    OH_UdmfOptions_Destroy(options);
+    
     unsigned int dataSize = 0;
     OH_UdmfData* dataArray = nullptr;
     int dateleRes = OH_Udmf_DeleteUnifiedData(options, &dataArray, &dataSize);
@@ -2250,6 +2251,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_006(napi_env env, napi_callback_info
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(udmfUnifiedData);
+    OH_UdmfOptions_Destroy(options);
     napi_value res;
     napi_create_int32(env, 1, &res);
     return res;
@@ -2273,7 +2275,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_008(napi_env env, napi_callback_info
     int setRes = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
     NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
     NAPI_ASSERT(env, key[0] != '\0', "OH_Udmf_SetUnifiedDataByOptions is fail.");
-    OH_UdmfOptions_Destroy(options);
+    
     unsigned int dataSize = 10000;
     OH_UdmfData* dataArray = nullptr;
     int dateleRes = OH_Udmf_DeleteUnifiedData(options, &dataArray, &dataSize);
@@ -2283,6 +2285,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_008(napi_env env, napi_callback_info
     OH_Udmf_DestroyDataArray(&dataArray, dataSize);
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
+    OH_UdmfOptions_Destroy(options);
     OH_UdmfData_Destroy(udmfUnifiedData);
     napi_value res;
     napi_create_int32(env, 1, &res);

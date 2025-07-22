@@ -122,6 +122,12 @@ int32_t Player::AudioStreamerSetParameter()
     AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetParameter ret:::%{public}d", ret);
     return ret;
 }
+int32_t Player::AudioStreamerGetParameter()
+{
+    int32_t ret = lppAudioStreamer_->GetParameter(sampleInfo_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ getParameter ret:::%{public}d", ret);
+    return ret;
+}
 
 int32_t Player::AudioStreamerConfigure()
 {
@@ -162,6 +168,8 @@ int32_t Player::CreateLppVideoStreamer()
     AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetCallback ret:::%{public}d", ret);
     ret = lppVideoStreamer_->SetErrorCallback(lppVideoContext_);
     AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetErrorCallback ret:::%{public}d", ret);
+    ret = lppVideoStreamer_->SetFirstFrameDecodedCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetFirstFrameDecoded ret:::%{public}d", ret);
     AVCODEC_SAMPLE_LOGW("Create OUT");
     return AVCODEC_SAMPLE_ERR_OK;
 }
@@ -170,6 +178,18 @@ int32_t Player::VideoStreamerConfigure()
 {
     int32_t ret = lppVideoStreamer_->Configure(sampleInfo_);
     AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ Configure ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetParameter()
+{
+    int32_t ret = lppVideoStreamer_->SetParameter(sampleInfo_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetParameter ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerGetParameter()
+{
+    int32_t ret = lppVideoStreamer_->GetParameter(sampleInfo_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ GetParameter ret:::%{public}d", ret);
     return ret;
 }
 int32_t Player::VideoStreamerSetSurface()

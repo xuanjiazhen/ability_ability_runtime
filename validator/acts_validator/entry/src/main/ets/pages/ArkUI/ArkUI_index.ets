@@ -121,6 +121,16 @@ struct IndexPage {
     { title: 'OnAccessibilityActionIntercept', uri: 'pages/ArkUI/OnAccessibilityActionIntercept' },
     { title: 'AccessBilityHoverTransparent', uri: 'pages/ArkUI/AccessBilityHoverTransparent' },
     { title: 'hoverScaleInterruption', uri: 'pages/ArkUI/hoverScaleInterruption' },
+    { title: 'transform3D', uri: 'pages/ArkUI/transform3D' },
+    { title: 'dragEvent_dataLoad', uri: 'pages/ArkUI/dragEvent_dataLoad' },
+    { title: 'dragAction_dataLoad', uri: 'pages/ArkUI/dragAction_dataLoad' },
+    { title: 'TapGestureListener', uri: 'pages/ArkUI/TapGestureListener' },
+    { title: 'SwipeGestureListener', uri: 'pages/ArkUI/SwipeGestureListener' },
+    { title: 'LongPressGestureListener', uri: 'pages/ArkUI/LongPressGestureListener' },
+    { title: 'PinchGestureListener', uri: 'pages/ArkUI/PinchGestureListener' },
+    { title: 'RotationGestureListener', uri: 'pages/ArkUI/RotationGestureListener' },
+    { title: 'PanGestureListener', uri: 'pages/ArkUI/PanGestureListener' },
+    { title: 'AccessibilityShowStepOptions', uri: 'pages/ArkUI/AccessibilityShowStepOptions' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];

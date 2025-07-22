@@ -721,6 +721,477 @@ static napi_value OH_Udmf_GetPropertiesExtrasStringParam001(napi_env env, napi_c
     return result;
 }
 
+static napi_value OH_UdmfOptions_GetVisibility001(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = nullptr;
+    Udmf_Visibility getVisibility = OH_UdmfOptions_GetVisibility(options);
+    NAPI_ASSERT(env, getVisibility == UDMF_ALL, "OH_UdmfOptions_GetVisibility is fail.");
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_GetVisibility002(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    OH_UdmfOptions_SetVisibility(options, UDMF_OWN_PROCESS);
+    Udmf_Visibility getVisibility = OH_UdmfOptions_GetVisibility(options);
+    NAPI_ASSERT(env, getVisibility == UDMF_OWN_PROCESS, "OH_UdmfOptions_GetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility001(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility002(napi_env env, napi_callback_info info)
+{
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    OH_UdmfOptions* options = nullptr;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_INVALID_PARAM, "OH_UdmfOptions_SetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility003(napi_env env, napi_callback_info info)
+{
+    Udmf_Visibility testVisibility = Udmf_Visibility::UDMF_OWN_PROCESS;
+    OH_UdmfOptions* options = nullptr;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_INVALID_PARAM, "OH_UdmfOptions_SetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility004(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Visibility testVisibility = Udmf_Visibility::UDMF_OWN_PROCESS;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility005(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx2.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = (Udmf_Visibility) 5;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility015(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    napi_valuetype valuetype0;
+    napi_typeof(env, args[0], &valuetype0);
+    double value0;
+    napi_get_value_double(env, args[0], &value0);
+    Udmf_Visibility testVisibility = (Udmf_Visibility) value0;
+    std::string uri = "https://xxx/xx/xx2.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility016(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx2.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = (Udmf_Visibility) -1;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility017(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    napi_valuetype valuetype0;
+    napi_typeof(env, args[0], &valuetype0);
+    double value0;
+    napi_get_value_double(env, args[0], &value0);
+    Udmf_Visibility testVisibility = (Udmf_Visibility) value0;
+    std::string uri = "https://xxx/xx/xx2.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility006(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Visibility testVisibility = Udmf_Visibility::UDMF_OWN_PROCESS;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_SetVisibility is fail.");
+    Udmf_Visibility getVisibility = OH_UdmfOptions_GetVisibility(options);
+    NAPI_ASSERT(env, getVisibility == testVisibility, "OH_UdmfOptions_GetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility007(napi_env env, napi_callback_info info)
+{
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    Udmf_Visibility getVisibility = OH_UdmfOptions_GetVisibility(options);
+    NAPI_ASSERT(env, getVisibility == testVisibility, "OH_UdmfOptions_GetVisibility is fail.");
+    OH_UdmfOptions_Destroy(options);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility008(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx2.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_OWN_PROCESS;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    NAPI_ASSERT(env, key[0] != '\0', "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    OH_UdmfOptions* options2 = OH_UdmfOptions_Create();
+    OH_UdmfOptions_SetIntention(options2, testIntention);
+    OH_UdmfOptions_SetKey(options2, key);
+    unsigned int dataSize = 0;
+    OH_UdmfData* dataArray = nullptr;
+    int getRes = OH_Udmf_GetUnifiedDataByOptions(options2, &dataArray, &dataSize);
+    NAPI_ASSERT(env, getRes == UDMF_E_OK, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    NAPI_ASSERT(env, dataArray != nullptr, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    OH_UdmfData* OH_UdmfData1 = dataArray;
+    unsigned int recordCount1 = 0;
+    OH_UdmfRecord** getRecords = OH_UdmfData_GetRecords(OH_UdmfData1, &recordCount1);
+    NAPI_ASSERT(env, recordCount1 == 1, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    OH_UdsFileUri *getFileUri = OH_UdsFileUri_Create();
+    OH_UdmfRecord_GetFileUri(getRecords[0], getFileUri);
+    const char *getUri = OH_UdsFileUri_GetFileUri(getFileUri);
+    NAPI_ASSERT(env, strcmp(getUri, uri.c_str()) == 0, "OH_UdsFileUri_GetFileUri is fail.");
+    unsigned int dataSize2 = 0;
+    OH_UdmfData* dataArray2 = nullptr;
+    int deleteRes = OH_Udmf_DeleteUnifiedData(options, &dataArray2, &dataSize2);
+    NAPI_ASSERT(env, deleteRes == UDMF_E_OK, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    NAPI_ASSERT(env, dataArray2 != nullptr, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    OH_Udmf_DestroyDataArray(&dataArray, dataSize);
+    OH_Udmf_DestroyDataArray(&dataArray2, dataSize2);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdsFileUri_Destroy(getFileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfOptions_Destroy(options2);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility009(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DATA_HUB;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    NAPI_ASSERT(env, key[0] != '\0', "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    OH_UdmfOptions* options1 = OH_UdmfOptions_Create();
+    OH_UdmfOptions_SetIntention(options1, testIntention);
+    OH_UdmfOptions_SetKey(options1, key);
+    unsigned int dataSize = 0;
+    OH_UdmfData* dataArray = nullptr;
+    int getRes = OH_Udmf_GetUnifiedDataByOptions(options1, &dataArray, &dataSize);
+    NAPI_ASSERT(env, getRes == UDMF_E_OK, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    NAPI_ASSERT(env, dataArray != nullptr, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    OH_UdmfData *OH_UdmfData1 = dataArray;
+    unsigned int recordCount1 = 0;
+    OH_UdmfRecord** getRecords = OH_UdmfData_GetRecords(OH_UdmfData1, &recordCount1);
+    NAPI_ASSERT(env, recordCount1 == 1, "OH_Udmf_GetUnifiedDataByOptions is fail.");
+    OH_UdsFileUri *getFileUri = OH_UdsFileUri_Create();
+    OH_UdmfRecord_GetFileUri(getRecords[0], getFileUri);
+    const char *getUri = OH_UdsFileUri_GetFileUri(getFileUri);
+    NAPI_ASSERT(env, strcmp(getUri, uri.c_str()) == 0, "OH_UdsFileUri_GetFileUri is fail.");
+    unsigned int dataSize2 = 0;
+    OH_UdmfData* dataArray2 = nullptr;
+    int deleteRes = OH_Udmf_DeleteUnifiedData(options, &dataArray2, &dataSize2);
+    NAPI_ASSERT(env, deleteRes == UDMF_E_OK, "OH_Udmf_DeleteUnifiedData is fail.");
+    NAPI_ASSERT(env, dataArray2 != nullptr, "OH_Udmf_DeleteUnifiedData is fail.");
+    OH_Udmf_DestroyDataArray(&dataArray, dataSize);
+    OH_Udmf_DestroyDataArray(&dataArray2, dataSize2);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdsFileUri_Destroy(getFileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfOptions_Destroy(options1);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility010(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_DRAG;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility011(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_PASTEBOARD;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_INVALID_PARAM, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility012(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_PICKER;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility013(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_MENU;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
+static napi_value OH_UdmfOptions_SetVisibility014(napi_env env, napi_callback_info info)
+{
+    std::string uri = "https://xxx/xx/xx5.jpg";
+    OH_UdmfData *udmfUnifiedData = OH_UdmfData_Create();
+    OH_UdmfRecord *record = OH_UdmfRecord_Create();
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    OH_UdsFileUri_SetFileUri(fileUri, uri.c_str());
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(udmfUnifiedData, record);
+    OH_UdmfOptions* options = OH_UdmfOptions_Create();
+    Udmf_Intention testIntention = UDMF_INTENTION_SYSTEM_SHARE;
+    OH_UdmfOptions_SetIntention(options, testIntention);
+    Udmf_Visibility testVisibility = UDMF_ALL;
+    int setRes = OH_UdmfOptions_SetVisibility(options, testVisibility);
+    NAPI_ASSERT(env, setRes == UDMF_E_OK, "OH_UdmfOptions_GetVisibility is fail.");
+    char key[UDMF_KEY_BUFFER_LEN];
+    int setRes1 = OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, UDMF_KEY_BUFFER_LEN);
+    NAPI_ASSERT(env, setRes1 == UDMF_E_OK, "OH_Udmf_SetUnifiedDataByOptions is fail.");
+    unsigned int dataSize3 = 0;
+    OH_UdmfData* dataArray3 = nullptr;
+    OH_Udmf_DeleteUnifiedData(options, &dataArray3, &dataSize3);
+    OH_Udmf_DestroyDataArray(&dataArray3, dataSize3);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfOptions_Destroy(options);
+    OH_UdmfData_Destroy(udmfUnifiedData);
+    napi_value result;
+    napi_create_int32(env, 1, &result);
+    return result;
+}
+
 static napi_value Init1(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
@@ -830,6 +1301,53 @@ static napi_value Init3(napi_env env, napi_value exports)
          nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OH_Udmf_GetPropertiesExtrasStringParam001", nullptr, OH_Udmf_GetPropertiesExtrasStringParam001,
          nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_GetVisibility001", nullptr, OH_UdmfOptions_GetVisibility001,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_GetVisibility002", nullptr, OH_UdmfOptions_GetVisibility002,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility001", nullptr, OH_UdmfOptions_SetVisibility001,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility002", nullptr, OH_UdmfOptions_SetVisibility002,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility003", nullptr, OH_UdmfOptions_SetVisibility003,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility004", nullptr, OH_UdmfOptions_SetVisibility004,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility005", nullptr, OH_UdmfOptions_SetVisibility005,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility006", nullptr, OH_UdmfOptions_SetVisibility006,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility007", nullptr, OH_UdmfOptions_SetVisibility007,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility008", nullptr, OH_UdmfOptions_SetVisibility008,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility009", nullptr, OH_UdmfOptions_SetVisibility009,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility010", nullptr, OH_UdmfOptions_SetVisibility010,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility011", nullptr, OH_UdmfOptions_SetVisibility011,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility012", nullptr, OH_UdmfOptions_SetVisibility012,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility013", nullptr, OH_UdmfOptions_SetVisibility013,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility014", nullptr, OH_UdmfOptions_SetVisibility014,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        
+    };
+    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    return exports;
+}
+
+static napi_value Init4(napi_env env, napi_value exports)
+{
+    napi_property_descriptor desc[] = {
+        {"OH_UdmfOptions_SetVisibility015", nullptr, OH_UdmfOptions_SetVisibility015,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility016", nullptr, OH_UdmfOptions_SetVisibility016,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OH_UdmfOptions_SetVisibility017", nullptr, OH_UdmfOptions_SetVisibility017,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
@@ -880,6 +1398,7 @@ EXTERN_C_START static napi_value Init(napi_env env, napi_value exports)
     Init1(env, exports);
     Init2(env, exports);
     Init3(env, exports);
+    Init4(env, exports);
     return exports;
 }
 

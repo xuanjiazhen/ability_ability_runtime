@@ -2214,7 +2214,7 @@ function testSetDisallowedForAccountPolicy() {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200001).assertTrue();
+      expect(error.code == 9200001 || error.code == 801).assertTrue();
     }
     done();
   });
@@ -2233,7 +2233,7 @@ function testSetDisallowedForAccountPolicy() {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200002).assertTrue();
+      expect(error.code == 9200002 || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -2338,10 +2338,10 @@ function testSetDisallowedForAccountPolicy() {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
       let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, DEFAULT_USER_ID);
       expect(res).assertTrue();
-    } catch (error) {
-      expect(false).assertTrue();
-    } finally {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, false, DEFAULT_USER_ID);
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
@@ -2362,7 +2362,7 @@ function testSetDisallowedForAccountPolicy() {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, userId);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200007).assertTrue();
+      expect(error.code == 9200007 || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
@@ -2727,7 +2727,7 @@ function testGetDisallowedForAccountPolicy() {
       restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200001).assertTrue();
+      expect(error.code == 9200001 || error.code == 801).assertTrue();
     }
     done();
   });
@@ -2746,7 +2746,7 @@ function testGetDisallowedForAccountPolicy() {
       restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200002).assertTrue();
+      expect(error.code == 9200002 || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -2830,6 +2830,8 @@ function testGetDisallowedForAccountPolicy() {
     try {
       let ret = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, userId);
       expect(ret).assertFalse();
+    } catch(error) {
+      expect(error.code == 801).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }

@@ -18,6 +18,7 @@ import audio from '@ohos.multimedia.audio';
 import fileio from '@ohos.fileio';
 import resourceManager from '@ohos.resourceManager';
 import featureAbility from '@ohos.ability.featureAbility'
+import {BusinessError} from '@ohos.base';
 
 export default function audioRendererTest() {
   describe('audioRendererTest', function () {
@@ -13776,6 +13777,173 @@ export default function audioRendererTest() {
       });
       console.info('afterAll called')
       done();
+    })
+    
+    /**
+     *@tc.number    : SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_ON_0100
+     *@tc.name      : SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_ON_0100
+     *@tc.desc      : on_streamVolumeChange
+     *@tc.size      : MEDIUM
+     *@tc.type      : Function
+     *@tc.level     : Level 0
+     */
+    it("SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_ON_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let TAG:string = 'SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_ON_0100';
+      //define manager
+      let audioManager:audio.AudioManager = audio.getAudioManager();
+      let audioVolumeManager:audio.AudioVolumeManager = audioManager.getVolumeManager();
+
+      //define audiorenderer Parameter
+      let StreamUsage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_MUSIC;
+      let audioStreamInfo:audio.AudioStreamInfo = {
+        samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_48000,
+        channels: audio.AudioChannel.CHANNEL_2, 
+        sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE, 
+        encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW 
+      }
+      let audioRendererInfo:audio.AudioRendererInfo = {
+        usage: audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION,
+        rendererFlags: 0
+      }
+      let audioRendererOptions:audio.AudioRendererOptions = {
+        streamInfo: audioStreamInfo,
+        rendererInfo: audioRendererInfo
+      }
+      let audioRenderer:audio.AudioRenderer = await audio.createAudioRenderer(audioRendererOptions);
+      console.info(`${TAG},createAudioRenderer SUCCESS`);
+      let minStreamVolumeValue:number = audioRenderer.getMinStreamVolumeSync();
+      console.info(`${TAG},getMinStreamVolumeSync SUCCESS,minStreamVolumeValue : ${minStreamVolumeValue}`);
+      try{
+        let streamVolumeChangeCB:Callback<audio.StreamVolumeEvent> = (data:audio.StreamVolumeEvent) =>{
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.streamUsage : ${data.streamUsage}`);
+          expect(data.streamUsage).assertEqual(StreamUsage);
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.volume : ${data.volume}`);
+          expect(data.volume).assertEqual(minStreamVolumeValue);
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.updateUi : ${data.updateUi}`);
+          done();
+        };
+        console.info(`${TAG},streamVolumeChangeCB SUCCESS`);
+
+        audioVolumeManager.on('streamVolumeChange',StreamUsage,streamVolumeChangeCB)
+        console.info(`${TAG},audioVolumeManager_on SUCCESS`);
+        await audioRenderer.setVolume(minStreamVolumeValue).then(() =>{
+          console.info(`${TAG},setVolume SUCCESS`);
+        }).catch((err:BusinessError) =>{
+          console.info(`${TAG},setVolume FAILED : ${err}`);
+        });
+        audioVolumeManager.off('streamVolumeChange',streamVolumeChangeCB);
+        console.info(`${TAG},audioVolumeManager_off SUCCESS`);
+        done();
+      }catch(error){
+        console.info(`${TAG},audioVolumeManager_off FAILED,error.code : ${error.code}, error.message : ${error.message}`);
+        expect(false).assertTrue();
+        done();
+      }
+      await audioRenderer.release().then(() => {
+        console.info(`AudioRenderer release : SUCCESS`);
+      }).catch((err:BusinessError) => {
+        console.info(`AudioRenderer release :ERROR : ${err.message}`);
+        expect(false).assertTrue();
+      });
+      console.info('afterAll called')
+      done();
+    })
+
+    /**
+     *@tc.number    : SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_OFF_0100
+     *@tc.name      : SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_OFF_0100
+     *@tc.desc      : off_streamVolumeChange 
+     *@tc.size      : MEDIUM
+     *@tc.type      : Function
+     *@tc.level     : Level 1
+     */
+    it("SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_OFF_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done:Function) => {
+      let TAG:string = 'SUB_MULTIMEDIA_AUDIO_STREAMVOLUMECHANGE_OFF_0100';
+      //define manager
+      let audioManager:audio.AudioManager = audio.getAudioManager();
+      let audioVolumeManager:audio.AudioVolumeManager = audioManager.getVolumeManager();
+
+      try{
+        let StreamUsage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_MUSIC;
+        let streamVolumeChangeCB:Callback<audio.StreamVolumeEvent> = (data:audio.StreamVolumeEvent) =>{
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.streamUsage : ${data.streamUsage}`);
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.volume : ${data.volume}`);
+          console.info(`${TAG},streamVolumeChangeCB StreamVolumeEvent.updateUi : ${data.updateUi}`);
+          done();
+        };
+        console.info(`${TAG},streamVolumeChangeCB SUCCESS`);
+        
+
+        audioVolumeManager.on('streamVolumeChange',StreamUsage,streamVolumeChangeCB)
+        console.info(`${TAG},audioVolumeManager_on SUCCESS`);
+        audioVolumeManager.off('streamVolumeChange',streamVolumeChangeCB)
+        console.info(`${TAG},audioVolumeManager_off SUCCESS`);
+        expect(true).assertTrue();
+        done();
+      }catch(error){
+        console.error(`${TAG},audioVolumeManager_on FAILED,error.code : ${error.code}, error.message : ${error.message}`);
+        expect(Number(error.code)).assertEqual(6800101);
+        done();
+      }
+    })
+
+
+
+    /**
+     *@tc.number    : SUB_MULTIMEDIA_AUDIO_GETVOLUMEINUNITOFDBBYSTREAM_0100
+     *@tc.name      : SUB_MULTIMEDIA_AUDIO_GETVOLUMEINUNITOFDBBYSTREAM_0100
+     *@tc.desc      : getVolumeInUnitOfDbByStream
+     *@tc.size      : MEDIUM
+     *@tc.type      : Function
+     *@tc.level     : Level 0
+     */
+    it("SUB_MULTIMEDIA_AUDIO_GETVOLUMEINUNITOFDBBYSTREAM_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let TAG:string = 'SUB_MULTIMEDIA_AUDIO_GETVOLUMEINUNITOFDBBYSTREAM_0100';
+      //define manager
+      let audioManager:audio.AudioManager = audio.getAudioManager();
+      let audioVolumeManager:audio.AudioVolumeManager = audioManager.getVolumeManager();
+
+      try{
+        let StreamUsage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_MUSIC;
+        let volumeDb : number = audioVolumeManager.getVolumeInUnitOfDbByStream(StreamUsage,5,audio.DeviceType.SPEAKER)
+        console.error(`Gets the volume db value that system calculate by volume stream,volume level and device type success`);
+        expect(true).assertTrue();
+        done();
+      }catch(error){
+        console.error(`${TagFrmwk},getDevucesSync FAILED,error:${error},ErrorCode:${error.code},${typeof (error.code)}`);
+        expect(Number(error.code)).assertEqual(6800101);
+        done();
+      }
+    })
+    
+
+
+    /**
+     *@tc.number    : SUB_MULTIMEDIA_AUDIO_ISSYSTEMMUTEDFORSTREAM_0100
+     *@tc.name      : SUB_MULTIMEDIA_AUDIO_ISSYSTEMMUTEDFORSTREAM_0100
+     *@tc.desc      : isSystemMutedForStream-6800101
+     *@tc.size      : MEDIUM
+     *@tc.type      : Function
+     *@tc.level     : Level 1
+     */
+    it("SUB_MULTIMEDIA_AUDIO_ISSYSTEMMUTEDFORSTREAM_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done:Function) => {
+      let TAG:string = 'SUB_MULTIMEDIA_AUDIO_ISSYSTEMMUTEDFORSTREAM_0100';
+      //define manager
+      let audioManager:audio.AudioManager = audio.getAudioManager();
+      let audioVolumeManager:audio.AudioVolumeManager = audioManager.getVolumeManager();
+
+      try{
+        let StreamUsage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_MUSIC;
+        let IsSystemMutedForStream : boolean  = audioVolumeManager.isSystemMutedForStream(-1)
+        console.error(`Whether to isSystemMutedForStream: ${audioVolumeManager.isSystemMutedForStream}`);
+        expect(audioVolumeManager.isSystemMutedForStream).assertEqual(false);
+        expect(false).assertTrue();
+        done();
+      }catch(error){
+        console.error(`${TagFrmwk},getDevucesSync FAILED,error:${error},ErrorCode:${error.code},${typeof (error.code)}`);
+        expect(Number(error.code)).assertEqual(6800101);
+        done();
+      }
     })
   })
 }

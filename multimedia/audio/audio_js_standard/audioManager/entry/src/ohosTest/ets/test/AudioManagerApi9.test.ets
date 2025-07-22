@@ -2136,6 +2136,94 @@ export default function audioManagerApi9() {
         done();
       }
     })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_MANAGER_ISRECORDINGAVAILABLE_0100
+     * @tc.name      : TestIsRecordingAvailable0100
+     * @tc.desc      : Test that no recording stream is currently started
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestIsRecordingAvailable0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let capturerInfo: audio.AudioCapturerInfo = {
+        source: audio.SourceType.SOURCE_TYPE_MIC,
+        capturerFlags: 0
+      };
+      try {
+        const isAvailable = streamManager.isRecordingAvailable(capturerInfo);
+        expect(isAvailable).assertTrue();
+      } catch (error) {
+        console.log(`error code: ${error.code} ,message:${error.message}`);
+        expect(false).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_MANAGER_ISRECORDINGAVAILABLE_0200
+     * @tc.name      : TestIsRecordingAvailable0200
+     * @tc.desc      : Test that a recording stream is currently started
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('TestIsRecordingAvailable0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let streamInfo: audio.AudioStreamInfo = {
+        samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_44100,
+        channels: audio.AudioChannel.CHANNEL_2,
+        sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_S16LE,
+        encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
+      };
+      let capturerInfo: audio.AudioCapturerInfo = {
+        source: audio.SourceType.SOURCE_TYPE_MIC,
+        capturerFlags: 0
+      };
+      let capturerOptions: audio.AudioCapturerOptions = {
+        streamInfo: streamInfo,
+        capturerInfo: capturerInfo
+      };
+      let checkCapturerInfo: audio.AudioCapturerInfo = {
+        source: audio.SourceType.SOURCE_TYPE_WAKEUP,
+        capturerFlags: 0
+      };
+      try {
+        let audioCap = await audio.createAudioCapturer(capturerOptions);
+        console.info('AudioCapturer Created : Success : Stream Type: SUCCESS');
+        await audioCap.start();
+        const isAvailable = streamManager.isRecordingAvailable(checkCapturerInfo);
+        expect(isAvailable).assertFalse();
+        await audioCap.stop();
+        await audioCap.release();
+      } catch (error) {
+        console.log(`error code: ${error.code} ,message:${error.message}`);
+        expect(false).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_MANAGER_ISRECORDINGAVAILABLE_0300
+     * @tc.name      : TestIsRecordingAvailable0300
+     * @tc.desc      : Test input parameter sourceType invalid
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('TestIsRecordingAvailable0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let capturerInfo: audio.AudioCapturerInfo = {
+        source: audio.SourceType.SOURCE_TYPE_INVALID,
+        capturerFlags: 0
+      };
+      try {
+        streamManager.isRecordingAvailable(capturerInfo);
+        expect(false).assertTrue();
+      } catch (error) {
+        console.log(`error code: ${error.code} ,message:${error.message}`);
+        expect(Number(error.code) == 6800101).assertTrue();
+      }
+      done();
+    })
   })
 
 }

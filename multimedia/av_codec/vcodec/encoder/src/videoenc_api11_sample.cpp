@@ -1117,12 +1117,9 @@ void VEncAPI11Sample::SyncInputFunc()
     uint32_t last_index = 0;
     while (isRunning_.load()) {
         uint32_t index;
-        cout << "OH_VideoEncoder_QueryInputBuffer start" << endl;
         if (OH_VideoEncoder_QueryInputBuffer(venc_, &index, syncInputWaitTime) != AV_ERR_OK) {
-            cout << "OH_VideoEncoder_QueryInputBuffer fail" << endl;
             continue;
         }
-        cout << "OH_VideoEncoder_QueryInputBuffer succ" << endl;
         OH_AVBuffer *buffer = OH_VideoEncoder_GetInputBuffer(venc_, index);
         if (buffer == nullptr) {
             cout << "OH_VideoEncoder_GetInputBuffer fail" << endl;
@@ -1278,13 +1275,10 @@ void VEncAPI11Sample::SyncOutputFunc()
     while (isRunning_.load()) {
         OH_AVCodecBufferAttr attr;
         uint32_t index = 0;
-        cout << "OH_VideoEncoder_QueryOutputBuffer start" << endl;
         int32_t ret = OH_VideoEncoder_QueryOutputBuffer(venc_, &index, syncOutputWaitTime);
         if (ret != AV_ERR_OK) {
-            cout << "OH_VideoEncoder_QueryOutputBuffer fail, ret = " << ret << endl;
             continue;
         }
-        cout << "OH_VideoEncoder_QueryOutputBuffer succ" << endl;
         OH_AVBuffer *buffer = OH_VideoEncoder_GetOutputBuffer(venc_, index);
         if (buffer == nullptr) {
             cout << "OH_VideoEncoder_GetOutputBuffer fail" << endl;

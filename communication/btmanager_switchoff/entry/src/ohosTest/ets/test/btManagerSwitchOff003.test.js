@@ -2142,5 +2142,25 @@ export default function btManagerError003Test() {
               }
               done();
             })
+
+        /**
+         * @tc.number SUB_COMMUNICATION_BLUETOOTH_CONNECTION_GETREMOTEDEVICETRANSPORT_0100
+         * @tc.name SUB_COMMUNICATION_BLUETOOTH_CONNECTION_GETREMOTEDEVICETRANSPORT_0100
+         * @tc.desc Test getRemoteDeviceTransport
+         * @tc.type Function
+         * @tc.size MediumTest
+         * @tc.level Level 0
+         */
+        it('SUB_COMMUNICATION_BLUETOOTH_CONNECTION_GETREMOTEDEVICETRANSPORT_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
+            try {
+                let transport = connection.getRemoteDeviceTransport("00:11:22:33:44:55");
+                console.info('[bluetooth_js] getRemoteDeviceTransport result:' + transport);
+                expect(true).assertFalse();
+              } catch (e) {
+                console.error( `getRemoteDeviceTransport get error, error code is: ${e.code}, error message is: ${e.message}`);
+                expect(Number(e.code)).assertEqual(2900003);
+              }
+              done();
+            })
 })
 }

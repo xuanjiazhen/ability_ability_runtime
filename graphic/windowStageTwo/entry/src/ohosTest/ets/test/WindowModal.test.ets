@@ -129,7 +129,7 @@ export default function windowModalTest() {
       systemWindowTypeDicArr = Object.keys(systemWindowTypeDic);
       console.log('jsUnittest beforeAll systemWindowTypeDicArr=' + JSON.stringify(systemWindowTypeDicArr) + '   ,length=' + systemWindowTypeDicArr.length);
       systemWindowTypeArr = Object.keys(systemWindowTypeDic);
-      isAutoWindow = settings.getValueSync(context,'window_pcmode_switch_status','',settings.domainName.DEVICE_SHARED);
+      isAutoWindow = settings.getValueSync(context,'window_pcmode_switch_status','',settings.domainName.USER_PROPERTY);
       //isAutoWindow == '' 非PAD设备
       //isAutoWindow == 'true' PAD设备自由多窗模式
       //isAutoWindow == 'false' PAD设备非自由多窗模式
@@ -1438,14 +1438,18 @@ export default function windowModalTest() {
       let btn = await driver.findComponent(ON.id('ModalityText'))
       await sleep(1500)
       let btnPoint = await btn.getBoundsCenter()
+      console.info(`${message} btnPoint = ${JSON.stringify(btnPoint)}`);
       let windowStageStart = await startAbility(message, context)
       try {
         let promise = windowStageStart.setWindowModal(true);
         promise.then(async () => {
           console.info(`${message} Succeeded in setting window modal`);
           let windowClassStart = windowStageStart.getMainWindowSync()
-          await windowClassStart.resizeAsync(700, 200)
-          await windowClassStart.moveWindowToAsync(50, 50)
+          let windowLimits = windowClassStart.getWindowLimits();
+          console.info(`${message} windowLimits = ${JSON.stringify(windowLimits)}`);
+          windowClassStart.resizeAsync(windowLimits.minWidth, windowLimits.minHeight)
+          windowClassStart.moveWindowToAsync(50, 50)
+          await sleep(1000)
           await driver.click(btnPoint.x, btnPoint.y)
           await sleep(1000)
           let btnTest = await btn.getText()
@@ -1459,15 +1463,15 @@ export default function windowModalTest() {
           console.info(`${message} windowPoint = ${JSON.stringify(windowPoint)}`);
           console.info(`${message} window width = ${windowPoint.bottom - windowPoint.top}, expect 800`);
           console.info(`${message} window height = ${windowPoint.right - windowPoint.left}, expect 700`);
-          expect(windowPoint.bottom - windowPoint.top).assertEqual(200)
-          expect(windowPoint.right - windowPoint.left).assertEqual(700)
+          expect(windowPoint.bottom - windowPoint.top).assertEqual(windowLimits.minHeight)
+          expect(windowPoint.right - windowPoint.left).assertEqual(windowLimits.minWidth)
           await sleep(300);
           await terminateAbility(message);
           done()
         }).catch(async (err: BusinessError) => {
           await terminateAbility(message);
           if (err.code == 801) {
-            console.error(`${message}  Capability not supported. Failed to call the API due to limited device capabilities`);
+            console.error(`${message} Capability not supported. Failed to call the API due to limited device capabilities`);
             expect(false).assertFalse();
             done();
           } else {
@@ -1479,7 +1483,7 @@ export default function windowModalTest() {
       } catch (exception) {
         await terminateAbility(message);
         if (exception.code == 801) {
-          console.error(`${message}  Capability not supported. Failed to call the API due to limited device capabilities`);
+          console.error(`${message} Capability not supported. Failed to call the API due to limited device capabilities`);
           expect(false).assertFalse();
           done();
         } else {

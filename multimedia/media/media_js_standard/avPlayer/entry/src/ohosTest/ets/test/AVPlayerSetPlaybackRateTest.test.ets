@@ -121,6 +121,33 @@ async function testSetPlaybackSpeed(fd: media.AVFileDescriptor | string, done: F
 function openFileFailed() {
     console.info('case file fail');
 }
+const createStepRates = (from: number,to: number,step: number = 1): Array<number> => {
+    const steprates: number[] = []
+    const judge1 = Boolean(from < 0 || to < 0) && `params [from] or [to] not allowed to be less than 0`
+    const judge2 = Boolean(step == 0) && `params [step] cannot be 0`
+    const judge3 = Boolean(!(from <= to && step > 0) && !(from > to && step < 0)) && `params [from] is ${step > 0 ? 'less' : 'greater'} than [to],[step] must ${step > 0 ? 'greater' : 'less'} than 0`
+    const info = judge1 || judge2 || judge3
+    if(info){
+        console.warn(info)
+        from = 0.125
+        to = 4
+        step = 0.125
+        console.info(`The parameter has been reset to [ from: ${from}, to:${to}, step:${step} ]`)
+    }
+    const c_from = Math.round(from * 1000) / 1000
+    const c_to = Math.round(to * 1000) / 1000
+    const c_step = Math.round(step * 1000) / 1000
+    if(c_from != from || c_to != to || c_step != step){
+        console.info(`input values: [from] - ${from} [to] - ${to} [step] - ${step}`)
+        console.info(`calculate values: [from] - ${c_from} [to] - ${c_to} [step] - ${c_step}`)
+    }
+    const steps = Array.from({length: Math.floor((c_to - c_from) / step) + 1},(_: undefined,index: number) => {
+        return c_from + index * c_step
+    })
+    steprates.push(...steps)
+    return steprates
+}
+
 export default function AVPlayerSetPlaybackRateTest() {
     describe('AVPlayerSetPlaybackRateTest', () => {
         beforeAll(async () => {
@@ -710,8 +737,8 @@ export default function AVPlayerSetPlaybackRateTest() {
         });
 
         /**
-         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2400
-         * @tc.name      : 024.test setPlaybackRate in playing state
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2300
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2300
          * @tc.desc      : test setPlaybackRate 1.25 in playing state after pausing
          * @tc.size      : MediumTest
          * @tc.type      : Function test
@@ -735,8 +762,8 @@ export default function AVPlayerSetPlaybackRateTest() {
         });
 
         /**
-         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2500
-         * @tc.name      : 025.test setPlaybackRate in playing state
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2400
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2400
          * @tc.desc      : test setPlaybackRate 1.25 in playing state after seeking
          * @tc.size      : MediumTest
          * @tc.type      : Function test
@@ -758,8 +785,8 @@ export default function AVPlayerSetPlaybackRateTest() {
         });
 
         /**
-         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2600
-         * @tc.name      : 026.test setPlaybackRate in playing state
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2500
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2500
          * @tc.desc      : test setPlaybackRate 1.25 in playing state before seeking
          * @tc.size      : MediumTest
          * @tc.type      : Function test
@@ -778,6 +805,326 @@ export default function AVPlayerSetPlaybackRateTest() {
                 done()
             }
             await testSetPlaybackSpeed(avFd, done, callback, operationRecord)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2600
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2600
+         * @tc.desc      : test setPlaybackRate 0.125001 in prepared state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let setrate = 0.125001
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PREPARED] = async () => {
+                avPlayer.setPlaybackRate(setrate)
+                return false
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                expect(Math.abs(setrate - rate) < 0.0000001).assertTrue()
+                done()
+            }
+            await testSetPlaybackSpeed(avFd, done, callback, operationRecord)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2700
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2700
+         * @tc.desc      : test setPlaybackRate 3.999999 in prepared state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let setrate = 3.999999
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PREPARED] = async () => {
+                avPlayer.setPlaybackRate(setrate)
+                return false
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                expect(Math.abs(setrate - rate) < 0.0000001).assertTrue()
+                done()
+            }
+            await testSetPlaybackSpeed(avFd, done, callback, operationRecord)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2800
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2800
+         * @tc.desc      : test setPlaybackRate by step in prepared state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(0.125,4,0.125)
+            let setrate: number
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PREPARED] = async () => {
+                setrate = setrates.shift() as number
+                avPlayer.setPlaybackRate(setrate)
+                console.info(`case operationRecord[PREPARED] call`)
+                return false
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(setrate).assertEqual(rate)
+                if(setrates.length){
+                    setrate = setrates.shift() as number
+                    avPlayer.setPlaybackRate(setrate)
+                }else{
+                    done()
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2800 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done()
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2900
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2900
+         * @tc.desc      : test setPlaybackRate by step in playing state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(0.125,4,0.125).sort(() => Math.random() - 0.5)
+            let setrate: number
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PLAYING] = async () => {
+                setrate = setrates.shift() as number
+                avPlayer.setPlaybackRate(setrate)
+                console.info(`case operationRecord[PLAYING] call`)
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(setrate).assertEqual(rate)
+                if(setrates.length){
+                    setrate = setrates.shift() as number
+                    avPlayer.setPlaybackRate(setrate)
+                }else{
+                    done()
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_2900 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done()
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3000
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3000
+         * @tc.desc      : test setPlaybackRate by step in paused state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(4,0.125,-0.125)
+            let setrate: number
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PLAYING] = async () => {
+                avPlayer.pause()
+                console.info(`case operationRecord[PLAYING] call`)
+            }
+            operationRecord[PAUSED] = async () => {
+                setrate = setrates.shift() as number
+                avPlayer.setPlaybackRate(setrate)
+                console.info(`case operationRecord[PAUSED] call`)
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(setrate).assertEqual(rate)
+                if(setrates.length){
+                    setrate = setrates.shift() as number
+                    avPlayer.setPlaybackRate(setrate)
+                }else{
+                    done()
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3000 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done()
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3100
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3100
+         * @tc.desc      : test setPlaybackRate by step in completed state
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(0.2,4,0.1)
+            let startloop = false
+            let setrate: number = 2
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[PLAYING] = async () => {
+                avPlayer.setPlaybackRate(setrate)
+                console.info(`case operationRecord[PLAYING] call`)
+            }
+            operationRecord[COMPLETED] = async () => {
+                setrate = setrates.shift() as number
+                avPlayer.setPlaybackRate(setrate)
+                console.info(`case operationRecord[COMPLETED] call`)
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(Math.abs(setrate - rate) < 0.0000001).assertTrue()
+                if(!startloop){
+                    startloop = true
+                    return
+                }
+                if(setrates.length){
+                    setrate = setrates.shift() as number
+                    avPlayer.setPlaybackRate(setrate)
+                }else{
+                    done()
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3100 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done()
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3200
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3200
+         * @tc.desc      : test setPlaybackRate in executable state by normal
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(1,3,0.5)
+            let setrate: number = 2
+            let firstPlaying: boolean = true
+            let operationRecord: Record<string, Function> = {};
+            [PREPARED,PLAYING,PAUSED,COMPLETED].forEach(state => {
+                operationRecord[state] = async () => {
+                    setrate = setrates.shift() as number
+                    avPlayer.setPlaybackRate(setrate)
+                    console.info(`case operationRecord[${state}] call`)
+                    if(state == PREPARED) return false
+                    else return true
+                }
+            })
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(setrate).assertEqual(rate)
+                switch(avPlayer.state){
+                    case PREPARED:
+                        avPlayer.play();
+                        break;
+                    case PLAYING:
+                        if(firstPlaying){
+                            avPlayer.pause();
+                            firstPlaying = false;
+                        }
+                        break;
+                    case PAUSED:
+                        avPlayer.play();
+                        break;
+                    case COMPLETED:
+                        done();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3200 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done();
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3300
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3300
+         * @tc.desc      : test setPlaybackRate in executable state by random
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            const setrates = createStepRates(0.125,4,0.125).sort(() => Math.random() - 0.5)
+            let setrate: number
+            let operationRecord: Record<string, Function> = {};
+            [PREPARED,PLAYING,PAUSED,COMPLETED].forEach(state => {
+                operationRecord[state] = async () => {
+                    let item = setrates.shift()
+                    if(item){
+                        setrate = setrates.shift() as number
+                        avPlayer.setPlaybackRate(setrate)
+                    }else{
+                        done()
+                    }
+                    console.info(`case operationRecord[${state}] call`)
+                    if(state == PREPARED) return false
+                    else return true
+                }
+            })
+            operationRecord[STOPPED] = async () => {
+                avPlayer.prepare();
+                console.info(`case operationRecord[STOPPED] call`)
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                console.info(`case OnPlaybackRateDone call: setrate: ${setrate}, rate: ${rate}`)
+                expect(setrate).assertEqual(rate)
+                let num: number
+                switch(avPlayer.state){
+                    case PREPARED:
+                        avPlayer.play();
+                        break;
+                    case PLAYING:
+                        [
+                            avPlayer.pause,
+                            avPlayer.stop,
+                            () => {}
+                        ][Math.floor(Math.random() * 3)].bind(avPlayer)()
+                        break;
+                    case PAUSED:
+                        [
+                            avPlayer.play,
+                            avPlayer.stop
+                        ][Math.floor(Math.random() * 2)].bind(avPlayer)()
+                        break;
+                    case COMPLETED:
+                        [
+                            avPlayer.play,
+                            avPlayer.stop
+                        ][Math.floor(Math.random() * 2)].bind(avPlayer)()
+                        break;
+                    default:
+                        break;
+                }
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_3300 setPlaybackRate error: ' + JSON.stringify(error))
+                expect().assertFail();
+                done();
+            }
+            await testSetPlaybackSpeed(movFd, done, callback, operationRecord, errCallback)
         });
 
         /**
@@ -1021,6 +1368,68 @@ export default function AVPlayerSetPlaybackRateTest() {
             }
             let errCallback: ErrorCallback = (error: BusinessError) => {
                 console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_0900 setPlaybackRate error: ' + JSON.stringify(error))
+                expect(error.code).assertEqual(5400102);
+                done()
+            }
+            await testSetPlaybackSpeed(avFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1000
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1000
+         * @tc.desc      : test setPlaybackRate 1.5 in stopped state, expect error
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let setrate = 1.5
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[STOPPED] = async () => {
+                avPlayer.setPlaybackRate(setrate)
+            }
+            operationRecord[PLAYING] = async () => {
+                await avPlayer.stop().then(() => {
+                    console.info('case stop AVPlayer success');
+                }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                expect().assertFail()
+                done()
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1000 setPlaybackRate error: ' + JSON.stringify(error))
+                expect(error.code).assertEqual(5400102);
+                done()
+            }
+            await testSetPlaybackSpeed(avFd, done, callback, operationRecord, errCallback)
+        });
+
+        /**
+         * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1100
+         * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1100
+         * @tc.desc      : test setPlaybackRate 1.5 in released state, expect error
+         * @tc.size      : MediumTest
+         * @tc.type      : Function test
+         * @tc.level     : Level0
+         */
+        it('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let setrate = 1.5
+            let operationRecord: Record<string, Function> = {}
+            operationRecord[RELEASED] = async () => {
+                avPlayer.setPlaybackRate(setrate)
+            }
+            operationRecord[INITIALIZED] = async () => {
+                await avPlayer.release().then(() => {
+                    console.info('case release AVPlayer success');
+                }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+            }
+            let callback: media.OnPlaybackRateDone = (rate: number) => {
+                expect().assertFail()
+                done()
+            }
+            let errCallback: ErrorCallback = (error: BusinessError) => {
+                console.info('SUB_MULTIMEDIA_MEDIA_AVPLAYER_SETPLAYBACKRATE_ERROR_1100 setPlaybackRate error: ' + JSON.stringify(error))
                 expect(error.code).assertEqual(5400102);
                 done()
             }

@@ -28,8 +28,11 @@ export const createLppAudioNative: () => number
 export const createLppVideoNative: () => number
 export const audioStreamerConfigure: () => number
 export const audioSetParameterNative: () => number
+export const audioGetParameterNative: () => number
 export const audioPrepareNative: () => number
 export const videoConfigureNative: () => number
+export const videoStreamerSetParameter: () => number
+export const videoStreamerGetParameter: () => number
 export const videoSetSurfaceNative: () => number
 export const videoPrepareNative: () => number
 

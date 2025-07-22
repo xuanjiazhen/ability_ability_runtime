@@ -247,24 +247,24 @@ export default function ArcAlphabetIndexer() {
       JSON.stringify(obj.$attrs.selectedFont.size));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] selectedFont.style " +
       JSON.stringify(obj.$attrs.selectedFont.style));
-      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] selectedFont.fontWeight " +
-      JSON.stringify(obj.$attrs.selectedFont.fontWeight));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] selectedFont.weight " +
+      JSON.stringify(obj.$attrs.selectedFont.weight));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] selectedFont.family " +
       JSON.stringify(obj.$attrs.selectedFont.family));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] font.size: " +
       JSON.stringify(obj.$attrs.font.size));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] font.style: " +
       JSON.stringify(obj.$attrs.font.style));
-      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] font.fontWeight: " +
-      JSON.stringify(obj.$attrs.font.fontWeight));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] font.weight: " +
+      JSON.stringify(obj.$attrs.font.weight));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] font.family: " +
       JSON.stringify(obj.$attrs.font.family));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupFont.size: " +
       JSON.stringify(obj.$attrs.popupFont.size));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupFont.style: " +
       JSON.stringify(obj.$attrs.popupFont.style));
-      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupFont.fontWeight: " +
-      JSON.stringify(obj.$attrs.popupFont.fontWeight));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupFont.weight: " +
+      JSON.stringify(obj.$attrs.popupFont.weight));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupFont.family: " +
       JSON.stringify(obj.$attrs.popupFont.family));
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] itemSize: " +
@@ -276,15 +276,23 @@ export default function ArcAlphabetIndexer() {
       console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] popupBackgroundBlurStyle: " +
       JSON.stringify(obj.$attrs.popupBackgroundBlurStyle));
 
-      expect(obj.$attrs.selectedFont.size).assertEqual('10.00vp');
+      let defStrJson = getInspectorByKey('arcAlphabetIndex03_def');
+      let defObj: Record<string, ESObject> = JSON.parse(defStrJson);
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] defObj.selectedFont: " + JSON.stringify(defObj.$attrs.selectedFont));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] defObj.font: " + JSON.stringify(defObj.$attrs.font));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] defObj.popupFont: " + JSON.stringify(defObj.$attrs.popupFont));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] defObj.itemSize: " + JSON.stringify(defObj.$attrs.itemSize));
+      console.info("[ArkUX_Stage_ArcAlphabetIndexer_ComponentTest_0300] defObj.selected: " + JSON.stringify(defObj.$attrs.selected));
+      expect(obj.$attrs.selectedFont.size).assertEqual(defObj.$attrs.selectedFont.size);
+      expect(obj.$attrs.font.size).assertEqual(defObj.$attrs.font.size);
+      expect(obj.$attrs.popupFont.size).assertEqual(defObj.$attrs.popupFont.size);
+
       expect(obj.$attrs.selectedFont.style).assertEqual('FontStyle.Italic');
       expect(obj.$attrs.selectedFont.weight).assertEqual('FontWeight.Normal');
       expect(obj.$attrs.selectedFont.family).assertEqual(expectedFamily);
-      expect(obj.$attrs.font.size).assertEqual('10.00vp');
       expect(obj.$attrs.font.style).assertEqual('FontStyle.Italic');
       expect(obj.$attrs.font.weight).assertEqual('FontWeight.Normal');
       expect(obj.$attrs.font.family).assertEqual(expectedFamily);
-      expect(obj.$attrs.popupFont.size).assertEqual(dataPanelDefaultStrokeWidth($r('sys.float.ohos_id_text_size_headline7')));
       expect(obj.$attrs.popupFont.style).assertEqual('FontStyle.Italic');
       expect(obj.$attrs.popupFont.weight).assertEqual('FontWeight.Normal');
       expect(obj.$attrs.popupFont.family).assertEqual(expectedFamily);

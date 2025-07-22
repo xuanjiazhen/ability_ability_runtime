@@ -20,5 +20,6 @@ group("window") {
     "windowStartAbility:ActsWindowStartAbilityTest",
     "ActsPipWindowNdk:ActsPipWindowNdkTest",
     "FloatingBallTest:ActsFloatingBallTest",
+    "ActsWindowEnterpriseTest:ActsWindowEnterpriseTest",
   ]
 }

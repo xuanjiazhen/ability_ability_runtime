@@ -136,7 +136,7 @@ export default function List_aspectRatio_height() {
       let width: number = column01.right - column01.left;
       let height: number = column01.bottom - column01.top;
 
-      expect(Math.abs(Math.round(List01.right - List01.left) - Math.round(lheight * 2)) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((List01.right - List01.left)/2 - lheight)) <= 1).assertTrue();
       expect(Math.abs(Math.round(List01.bottom - List01.top) - Math.round(height * 0.4)) <= 1).assertTrue();
 
       console.info('[SUB_ACE_List_aspectRatio_height_0300] END');

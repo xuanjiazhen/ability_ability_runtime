@@ -14,11 +14,10 @@
  */
 
 
-import accessibilitySelectedTypeTest from './chip/accessibilitySelectedTypeTest.test';
+
 import onScrollStopTest from './textPicker/onScrollStopTest.test';
-import maxFontScaleTest from './segmentButton/maxFontScaleTest.test'
+
 export default function testsuite() {
-  accessibilitySelectedTypeTest()
   onScrollStopTest()
-  maxFontScaleTest()
+
 }

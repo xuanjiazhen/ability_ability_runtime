@@ -52,30 +52,6 @@
             "teardown": [
                 {
                     "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEgl323xTest.qpa->ActsOpenGlEgl323xTest.qpa"
-                },
-                {
-                    "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEgl324xTest.qpa->ActsOpenGlEgl324xTest.qpa"
-                },
-                {
-                    "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEgl325xTest.qpa->ActsOpenGlEgl325xTest.qpa"
-                },
-                {
-                    "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEgl326xTest.qpa->ActsOpenGlEgl326xTest.qpa"
-                },
-                {
-                    "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEglMainTest.qpa->ActsOpenGlEglMainTest.qpa"
-                },
-                {
-                    "name": "pull",
-                    "value": "/data/local/tmp/ActsOpenGlEglMasterTest.qpa->ActsOpenGlEglMasterTest.qpa"
-                },
-                {
-                    "name": "pull",
                     "value": "/data/local/tmp/ActsOpenGl461xGl45Es3MasterTest.qpa->ActsOpenGl461xGl45Es3MasterTest.qpa"
                 },
                 {

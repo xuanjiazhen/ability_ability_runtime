@@ -162,6 +162,21 @@ struct ArcListAndIndexer {
             .autoCollapse(false)
 
           ArcAlphabetIndexer({ arrayValue: this.singleValue, selected: 0 })
+            .key('arcAlphabetIndex03_def')
+            .selectedFont({
+              style: FontStyle.Italic,
+              family: commonFamily
+            })
+            .font({
+              style: FontStyle.Italic,
+              family: commonFamily
+            })
+            .popupFont({
+              style: FontStyle.Italic,
+              family: commonFamily
+            })
+           .itemSize(null)
+          ArcAlphabetIndexer({ arrayValue: this.singleValue, selected: 0 })
             .key('arcAlphabetIndex03')
             .width('100%')
             .height('100%')

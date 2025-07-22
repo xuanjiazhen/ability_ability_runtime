@@ -11,11 +11,11 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_js_app_suite("ActsNetfirewallTest") {
+ohos_js_app_suite("ActsNetfirewallEnterpriseTest") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsNetfirewallTest"
+  hap_name = "ActsNetfirewallEnterpriseTest"
   part_name = "sms_mms"
   subsystem_name = "telephony"
 }

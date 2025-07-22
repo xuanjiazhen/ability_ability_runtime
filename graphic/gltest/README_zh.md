@@ -17,37 +17,6 @@ gltest测试套件使用VK-GL-CTS三方库内原有的openglcts，通过acts测�
 ├── genlocal.py
 └── src
     ├── common.h
-    ├── egltest
-    │   ├── egltest_323x
-    │   │   ├── ActsOpenGlEgl323xTest.cpp
-    │   │   ├── ActsOpenGlEgl323xTest.h
-    │   │   ├── BUILD.gn
-    │   │   └── Test.json
-    │   ├── egltest_324x
-    │   │   ├── ActsOpenGlEgl324xTest.cpp
-    │   │   ├── ActsOpenGlEgl324xTest.h
-    │   │   ├── BUILD.gn
-    │   │   └── Test.json
-    │   ├── egltest_325x
-    │   │   ├── ActsOpenGlEgl325xTest.cpp
-    │   │   ├── ActsOpenGlEgl325xTest.h
-    │   │   ├── BUILD.gn
-    │   │   └── Test.json
-    │   ├── egltest_326x
-    │   │   ├── ActsOpenGlEgl326xTest.cpp
-    │   │   ├── ActsOpenGlEgl326xTest.h
-    │   │   ├── BUILD.gn
-    │   │   └── Test.json
-    │   ├── egltest_main
-    │   │   ├── ActsOpenGlEglMainTest.cpp
-    │   │   ├── ActsOpenGlEglMainTest.h
-    │   │   ├── BUILD.gn
-    │   │   └── Test.json
-    │   └── egltest_mester
-    │       ├── ActsOpenGlEglMesterTest.cpp
-    │       ├── ActsOpenGlEglMesterTest.h
-    │       ├── BUILD.gn
-    │       └── Test.json
     └── gltest
         ├── gltest_am
         │   ├── gltest_461x
@@ -564,7 +533,6 @@ gltest测试套件使用VK-GL-CTS三方库内原有的openglcts，通过acts测�
 * 测试运行：进入suites/acts目录，执行python -m xdevice，然后在命令框里输入一下命令
 
   ```bash
-  run -l ActsOpenGlEgl323xTest,
   run -l ActsOpenGlMainGl32MesterTest,
   run -l ActsOpenGlMainGl42MesterTest
   ...

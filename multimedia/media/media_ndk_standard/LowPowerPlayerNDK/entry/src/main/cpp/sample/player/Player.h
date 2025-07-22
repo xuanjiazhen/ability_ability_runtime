@@ -55,9 +55,12 @@ public:
     int32_t CreateLppAudioStreamer();
     int32_t AudioStreamerConfigure();
     int32_t AudioStreamerSetParameter();
+    int32_t AudioStreamerGetParameter();
     int32_t AudioStreamerPrepare();
     int32_t CreateLppVideoStreamer();
     int32_t VideoStreamerConfigure();
+    int32_t VideoStreamerSetParameter();
+    int32_t VideoStreamerGetParameter();
     int32_t VideoStreamerSetSurface();
     int32_t VideoStreamerPrepare();
     int32_t VideoSetErrorCallback();

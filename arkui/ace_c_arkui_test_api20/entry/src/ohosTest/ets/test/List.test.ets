@@ -20,6 +20,9 @@ import uiStatesTest from './uiState/UiStatesTest.test'
 import OntouchTestDoneTest from "./touchTestDone/OntouchTestDoneTest.test"
 import NodeUniqueIdTest from "./nodeUtils/NodeUniqueIdTest.test"
 import uiInputErrorCodeTest from './uiInput/UiInputErrorCodeTest.test'
+import SetForceDarkConfigTest from "./darkConfig/TestSetForceDarkConfig.test"
+import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test"
+import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
 
 export default function testsuite() {
   PostOnIdleTest();
@@ -30,4 +33,7 @@ export default function testsuite() {
   OntouchTestDoneTest();
   NodeUniqueIdTest();
   uiInputErrorCodeTest();
+  SetForceDarkConfigTest();
+  TestInitModuleForArkTSEnv();
+  RunTaskInScopeTest();
 }

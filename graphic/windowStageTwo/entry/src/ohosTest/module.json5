@@ -175,9 +175,6 @@
         "name": "ohos.permission.PRIVACY_WINDOW",
       },
       {
-        "name": "ohos.permission.VISIBLE_WINDOW_INFO"
-      },
-      {
         "name": "ohos.permission.SYSTEM_FLOAT_WINDOW"
       },
       {

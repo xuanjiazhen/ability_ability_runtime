@@ -16,6 +16,6 @@ import("//build/ohos_var.gni")
 group("netfirewall") {
   testonly = true
   if (is_standard_system) {
-    deps = [ "netfirewalltest:ActsNetfirewallTest" ]
+    deps = [ "netfirewalltest:ActsNetfirewallEnterpriseTest" ]
   }
 }

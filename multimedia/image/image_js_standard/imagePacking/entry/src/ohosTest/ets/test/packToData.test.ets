@@ -593,5 +593,116 @@ export default function imagePackToData() {
       };
       packToDataimgSourcePromiseFail(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0500", packOpts);
     });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0600
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0600
+     * @tc.desc      : 1.create ImageSource
+     *                 2.call packToData
+     *                 3.call return array
+     *                 4.call return undefined
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0600", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: -1
+      };
+      packToDataimgSourcePromiseFail(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0600", packOpts);
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0700
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0700
+     * @tc.desc      : 1.create ImageSource
+     *                 2.call packToData
+     *                 3.call return array
+     *                 4.call return undefined
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0700", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: 0
+      };
+      packToDataimgSourcePromise(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0700", packOpts);
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0800
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0800
+     * @tc.desc      : 1.create ImageSource
+     *                 2.call packToData
+     *                 3.call return array
+     *                 4.call return undefined
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0800", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: 100
+      };
+      packToDataimgSourcePromise(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_IMAGESOURCE_PROMISE_0800", packOpts);
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1100
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1100
+     * @tc.desc      : 1.create PixelMap
+     *                 2.create ImagePacker
+     *                 3.call packToData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1100", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: -1
+      };
+      packingPromiseFail(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1100", 5, packOpts);
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1200
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1200
+     * @tc.desc      : 1.create PixelMap
+     *                 2.create ImagePacker
+     *                 3.call packToData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1200", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: 0
+      };
+      packToDataPromise(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1200", 5, packOpts);
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1300
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1300
+     * @tc.desc      : 1.create PixelMap
+     *                 2.create ImagePacker
+     *                 3.call packToData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Functional
+     * @tc.level     : level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1300", Level.LEVEL0, async (done: Function) => {
+      let packOpts: packOpts = {
+        format: "image/jpeg",
+        quality: 100
+      };
+      packToDataPromise(done, "SUB_MULTIMEDIA_IMAGE_PACKTODATA_PIXELMAP_PROMISE_1300", 5, packOpts);
+    });
   })
 }

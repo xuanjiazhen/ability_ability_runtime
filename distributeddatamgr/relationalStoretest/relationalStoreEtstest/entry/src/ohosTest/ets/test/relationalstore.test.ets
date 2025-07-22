@@ -366,6 +366,62 @@ export default function relationalStoreInterfaceTest() {
       }
       console.info(TAG + "************* relationalStoreTest009 end *************");
     })
+        /**
+     * @tc.name relationalStoreTest010
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBFGAPITest_1000
+     * @tc.desc querySync success
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest010 start *************");
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": 30,
+      };
+      try {
+        (rdbStore as relationalStore.RdbStore).insertSync("employee", record);
+        let predicates = await new relationalStore.RdbPredicates("employee where age = 30");
+        let resultSet = (rdbStore as relationalStore.RdbStore).querySync(predicates);
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(resultSet.rowCount).assertEqual(1)
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest010 end *************");
+    })
+    /**
+     * @tc.name relationalStoreTest011
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBFGAPITest_1100
+     * @tc.desc query success
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('relationalStoreTest011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* relationalStoreTest011 start *************");
+      const record :relationalStore.ValuesBucket= {
+        "name": "Jim",
+        "age": 30,
+      };
+      try {
+        (rdbStore as relationalStore.RdbStore).insertSync("employee", record);
+        let predicates = await new relationalStore.RdbPredicates("employee where age = 30");
+        let resultSet = await (rdbStore as relationalStore.RdbStore).query(predicates);
+        console.log(TAG+"resultSet.rowCount"+resultSet.rowCount)
+        expect(resultSet.rowCount).assertEqual(1)
+        done()
+      } catch (err) {
+        console.log(TAG + "query failed"+ err.code + err.message);
+        expect().assertFail()
+        done()
+      }
+      console.info(TAG + "************* relationalStoreTest011 end *************");
+    })
 
   })
 }

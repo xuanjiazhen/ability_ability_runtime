@@ -851,6 +851,59 @@ export default function cameraSessionTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200
+     * @tc.desc      : Check capture session commit config
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200', Level.LEVEL2, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200--------------");
+
+      try {
+        if (mCameraNum == 0) {
+          console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 FAILED with NoCamera");
+          expect().assertFail();
+          done();
+        } else {
+          await createInput(0);
+          createOutput(0);
+          if (!isEmpty(mCameraInput)) {
+            console.info(TAG + "Start to addInput");
+            mCameraSession.addInput(mCameraInput);
+          }
+
+          if (!isEmpty(mPreviewOutput)) {
+            console.info(TAG + "Start to addOutput mPreviewOutput");
+            mCameraSession.addOutput(mPreviewOutput);
+          }
+
+          if (!isEmpty(mPhotoOutput)) {
+            console.info(TAG + "Start to addOutput mPhotoOutput");
+            mCameraSession.addOutput(mPhotoOutput);
+          }
+          mCameraSession.commitConfig(async (error: BusinessError) => {
+            if (!error) {
+              console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 success");
+            } else {
+              console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 failed");
+              console.info(TAG + "SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 ERRORCODE: " + error.code);
+              expect().assertFail();
+            }
+          });
+          await sleep(1000);
+          await stopCameraSession();
+          console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 PASSED");
+          done();
+        }
+      } catch (err) {
+        console.log(`SUB_MULTIMEDIA_CAMERA_SESSION_COMMIT_CONFIG_0200 err ${err.code}`);
+        expect().assertFail();
+      }
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_SESSION_RELEASE_PROMISE_0100
      * @tc.name      : Check capture session release with promise or not
      * @tc.desc      : Check capture session release with promise or not

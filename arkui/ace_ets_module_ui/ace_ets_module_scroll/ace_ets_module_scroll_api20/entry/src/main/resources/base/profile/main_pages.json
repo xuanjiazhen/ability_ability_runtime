@@ -7,10 +7,10 @@
         "MainAbility/pages/Scroll/barMarginScroll",
         "MainAbility/pages/Tabs/curvesTabs",
         "MainAbility/pages/Refresh/maxDownRefresh",
+        "MainAbility/pages/Tabs/barHeightNoMinHeightLimit",
         "MainAbility/pages/ScrollBar/scrollBarColor",
         "MainAbility/pages/Grid/canOverGrid",
         "MainAbility/pages/List/canOverList",
-        "MainAbility/pages/Tabs/barHeightNoMinHeightLimit",
         "MainAbility/pages/Scroll/canOverScroll",
         "MainAbility/pages/Grid/gridStopDrag",
         "MainAbility/pages/List/listStopDrag",
@@ -19,6 +19,7 @@
         "MainAbility/pages/Grid/syncLoadGrid",
         "MainAbility/pages/List/syncLoadList",
         "MainAbility/pages/List/syncLoadGroup",
-        "MainAbility/pages/WaterFlow/syncLoadFlow"
+        "MainAbility/pages/WaterFlow/syncLoadFlow",
+        "MainAbility/pages/Scroll/stateChange"
     ]
 }

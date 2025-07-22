@@ -23,6 +23,7 @@ group("startabilitytest") {
       "startabilitycodehelpb:Startabilitycodehelpb",
       "startabilitycodehelpextension:Startabilitycodehelpextension",
       "startabilitycodetest:StartAbilityCodeTest",
+      "startabilitycodeenterprisetest:StartAbilityCodeEnterpriseTest"
     ]
   }
 }

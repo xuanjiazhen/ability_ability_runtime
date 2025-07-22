@@ -120,9 +120,6 @@
         "name": "FMS_TimeChange_commonEvent"
       },
       {
-        "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
-      },
-      {
         "name": "ohos.permission.REQUIRE_FORM"
       }
     ]

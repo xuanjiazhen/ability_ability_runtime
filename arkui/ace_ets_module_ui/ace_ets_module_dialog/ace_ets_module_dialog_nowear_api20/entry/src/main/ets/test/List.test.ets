@@ -14,8 +14,10 @@
  */
 import showDefaultSelectedIconTest from './selectTest/showDefaultSelectedIcon.test.ets';
 import showInSubWindowValueTest from './selectTest/showInSubWindow.test.ets';
+import showAtAnchorTest from './hoverTipsTest/showAtAnchor.test.ets';
 
 export default function testsuite() {
   showDefaultSelectedIconTest();
   showInSubWindowValueTest();
+  showAtAnchorTest();
 }

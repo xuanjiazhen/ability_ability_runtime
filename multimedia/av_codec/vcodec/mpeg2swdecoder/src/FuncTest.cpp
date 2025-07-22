@@ -139,4 +139,24 @@ HWTEST_F(Mpeg2SwdecFuncNdkTest, VIDEO_DECODE_SYNC_SWMPEG2_FUNC_0040, TestSize.Le
         ASSERT_EQ(0, vDecSample->errCount);
     }
 }
+
+/**
+ * @tc.number    : VIDEO_DECODE_BLANK_FRAME_0010
+ * @tc.name      : VIDEO_DECODE_BLANK_FRAME_0010
+ * @tc.desc      : function test
+ */
+HWTEST_F(Mpeg2SwdecFuncNdkTest, VIDEO_DECODE_BLANK_FRAME_0010, TestSize.Level1)
+{
+    if (cap_mpeg2 != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_6;
+        vDecSample->DEFAULT_WIDTH = 1920;
+        vDecSample->DEFAULT_HEIGHT = 1080;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enbleBlankFrame = 1;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->CreateVideoDecoder(g_codecNameMpeg2));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(0, vDecSample->errCount);
+    }
+}
 }

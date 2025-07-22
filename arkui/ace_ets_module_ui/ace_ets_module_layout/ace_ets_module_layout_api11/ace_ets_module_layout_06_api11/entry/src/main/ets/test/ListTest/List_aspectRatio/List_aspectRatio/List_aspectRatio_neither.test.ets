@@ -108,7 +108,7 @@ export default function List_aspectRatio_neither() {
       let itemheight: number = item01.bottom - item01.top;
 
       expect(Math.abs(Math.round(width * 0.8) - Math.round(itemwidth)) <= 1).assertTrue();
-      expect(Math.abs(Math.round(List01.bottom - List01.top) - Math.round(width * 2)) <= 1).assertTrue();
+      expect(Math.floor(Math.abs((List01.bottom - List01.top)/2 - width)) <= 1).assertTrue();
 
       console.info('[SUB_ACE_List_aspectRatio_neither_0200] END');
       done();

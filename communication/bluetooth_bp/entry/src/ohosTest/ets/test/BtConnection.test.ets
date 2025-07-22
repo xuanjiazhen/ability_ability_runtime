@@ -1468,6 +1468,12 @@ describe('btConnectionTest', () => {
             let TRANSPORT_LE = bluetooth.BluetoothTransport.TRANSPORT_LE;
             expect(TRANSPORT_BR_EDR).assertEqual(0);
             expect(TRANSPORT_LE).assertEqual(1);
+            let TRANSPORT_DUAL = bluetooth.BluetoothTransport.TRANSPORT_DUAL;
+            console.info("TRANSPORT_DUAL:" + TRANSPORT_DUAL);
+            expect(TRANSPORT_DUAL).assertEqual(2);
+            let TRANSPORT_UNKNOWN = bluetooth.BluetoothTransport.TRANSPORT_UNKNOWN;
+            console.info("TRANSPORT_UNKNOWN:" + TRANSPORT_UNKNOWN);
+            expect(TRANSPORT_UNKNOWN).assertEqual(3);
         } catch (err) {
             console.info("BluetoothTransport errCode:" + err.code + ",errMessage:" + err.message);
             expect().assertFail();
@@ -2126,6 +2132,31 @@ describe('btConnectionTest', () => {
             message is ${error.message}`);
             if (error.code == 801) {
                 console.info('[bluetooth_js]batteryChange is not support');
+                expect(true).assertTrue();
+            } else {
+                expect(Number(error.code)).assertEqual(2900099);
+            }
+        }
+        done();
+    })
+
+    /**
+     * @tc.number SUB_COMMUNICATION_BLUETOOTHCONNECTION_GETREMOTEDEVICETRANSPORT_0100
+     * @tc.name SUB_COMMUNICATION_BLUETOOTHCONNECTION_GETREMOTEDEVICETRANSPORT_0100
+     * @tc.desc Test getRemoteDeviceTransport
+     * @tc.type Function
+     * @tc.size MediumTest
+     * @tc.level Level 0
+     */
+    it('SUB_COMMUNICATION_BLUETOOTHCONNECTION_GETREMOTEDEVICETRANSPORT_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) => {
+        try {
+            let btTransport = bluetooth.getRemoteDeviceTransport("00:11:22:33:44:55");
+            console.info('[bluetooth_js] getRemoteDeviceTransport get:' + btTransport);
+        } catch (error) {
+            console.info(`[bluetooth_js]getRemoteDeviceTransport grt error, code is ${error.code}, 
+            message is ${error.message}`);
+            if (Number(error.code) == 801) {
+                console.info('[bluetooth_js]getRemoteDeviceTransport is not support');
                 expect(true).assertTrue();
             } else {
                 expect(Number(error.code)).assertEqual(2900099);

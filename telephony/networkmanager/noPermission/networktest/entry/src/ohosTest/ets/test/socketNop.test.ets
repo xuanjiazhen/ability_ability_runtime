@@ -617,5 +617,69 @@ export default function WebSocketPermissionDeniedTest() {
         done();
       }
     });
+    /* *
+     * @tc.number: SUB_NetworkMgr_Socket_TCPSocketServer_Close_NoP_0100
+     * @tc.name  : testNetworkMgrSocketTCPSocketServerCloseNoP0100
+     * @tc.desc  : Test code 201 of TCPSocketServer
+     * @tc.size  : MediumTest
+     * @tc.type  : Function
+     * @tc.level : level 2
+     */
+      it('testNetworkMgrSocketTCPSocketServerCloseNoP0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkMgrSocketTCPSocketServerCloseNoP0100';
+      console.info(`${caseName} test start`);
+      try {
+        let tcpServer: socket.TCPSocketServer = socket.constructTCPSocketServerInstance();
+        tcpServer.close().then(()=>{
+          console.info(`${caseName} tcpServer  close success`);
+          ExpectTrue(false);
+          done();
+          console.info(`${caseName}---End`);
+        }).catch((err: BusinessError)=>{
+          console.info(`${caseName} tcpServer  close failed err is` + JSON.stringify(err));
+          ExpectTrue(err.code == 201);
+          done();
+          console.info(`${caseName}---End`);
+        })
+      } catch (err) {
+        console.info(`${caseName}_catch fail err:${JSON.stringify(err)}`);
+        ExpectTrue(err.code == 201);
+        console.info(`${caseName} test end`);
+        done();
+      }
+    });
+    
+  /* *
+     * @tc.number: SUB_NetworkMgr_Socket_TLSSocketServer_Close_NoP_0100
+     * @tc.name  : testNetworkMgrSocketTLSSocketServerCloseNoP0100
+     * @tc.desc  : Test code 201 of tlsServer
+     * @tc.size  : MediumTest
+     * @tc.type  : Function
+     * @tc.level : level 2
+     */
+    it('testNetworkMgrSocketTLSSocketServerCloseNoP0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkMgrSocketTLSSocketServerCloseNoP0100';
+      console.info(`${caseName} test start`);
+      try {
+        let tlsServer: socket.TLSSocketServer = socket.constructTLSSocketServerInstance();
+        tlsServer.close().then(()=>{
+          console.info(`${caseName} tlsServer close success `);
+          ExpectTrue(false);
+          done();
+          console.info(`${caseName}---End`);
+        }).catch((err: BusinessError)=>{
+          console.info(`${caseName} tlsServer close get err is `+JSON.stringify(err));
+          ExpectTrue(err.code == 201);
+          console.info(`${caseName}---End`);
+          done();
+        })
+      } catch (err) {
+        console.info(`${caseName}_catch fail err:${JSON.stringify(err)}`);
+        ExpectTrue(err.code == 201);
+        console.info(`${caseName} test end`);
+        done();
+      }
+    });
+
   });
 }

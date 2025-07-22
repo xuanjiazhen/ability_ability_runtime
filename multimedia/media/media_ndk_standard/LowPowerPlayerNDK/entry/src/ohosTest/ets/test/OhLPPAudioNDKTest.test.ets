@@ -86,6 +86,10 @@ export default function OhLPPAudioNDKTest() {
         lppBase.INIT_FD_EVENT,
         //createPrepareNative
         lppBase.CREATE_PREPARE_NATIVE_EVENT,
+        //audio get par
+        lppBase.AUDIO_GET_PARAMETER_EVENT,
+        //video get par
+        lppBase.VIDEO_GET_PARAMETER_EVENT,
         //audio start
         lppBase.AUDIO_START_EVENT,
         //set speed

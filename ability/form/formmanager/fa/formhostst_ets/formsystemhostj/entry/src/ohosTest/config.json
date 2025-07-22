@@ -96,9 +96,6 @@
         "name": "FMS_FormCast_commonEvent"
       },
       {
-        "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
-      },
-      {
         "name": "ohos.permission.REQUIRE_FORM"
       }
     ]

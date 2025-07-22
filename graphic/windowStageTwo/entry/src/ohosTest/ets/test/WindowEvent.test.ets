@@ -71,7 +71,7 @@ export default function windowEventTest() {
       console.log('jsUnittest beforeAll systemWindowTypeDicArr=' + JSON.stringify(systemWindowTypeDicArr) + '   ,length=' + systemWindowTypeDicArr.length);
       systemWindowTypeArr = Object.keys(systemWindowTypeDic);
       isPCStatus = settings.getValueSync(context,'isStatusBarExist','',settings.domainName.USER_PROPERTY)
-      isAutoWindow = settings.getValueSync(context,'window_pcmode_switch_status','',settings.domainName.DEVICE_SHARED);
+      isAutoWindow = settings.getValueSync(context,'window_pcmode_switch_status','',settings.domainName.USER_PROPERTY);
       //isAutoWindow == '' 非PAD设备
       //isAutoWindow == 'true' PAD设备自由多窗模式
       //isAutoWindow == 'false' PAD设备非自由多窗模式
@@ -170,7 +170,7 @@ export default function windowEventTest() {
         }
         subWindowClass.on('touchOutside', callback);
         await mainWindow.setPreferredOrientation(window.Orientation.LANDSCAPE);
-
+        await mainWindow.setSpecificSystemBarEnabled('status', false);
         await sleep(3000);
         let windowProperties = subWindowClass.getWindowProperties();
         console.log(`${caseName} windowProperties: ${JSON.stringify(windowProperties)}`);
@@ -190,10 +190,12 @@ export default function windowEventTest() {
         await sleep(1000);
         subWindowClass.off('touchOutside');
         await subWindowClass.destroyWindow();
+        await mainWindow.setSpecificSystemBarEnabled('status', true);
         done();
       } catch (e) {
         console.error(`${caseName} Failed. Cause: ${JSON.stringify(e)}`);
         await subWindowClass.destroyWindow();
+        await mainWindow.setSpecificSystemBarEnabled('status', true);
         if (e.code === 801) {
           done()
         } else {

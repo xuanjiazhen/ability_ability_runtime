@@ -26,6 +26,8 @@
 #include "drawing_round_rect.h"
 #include "drawing_sampling_options.h"
 #include "drawing_shader_effect.h"
+#include "drawing_pixel_map.h"
+#include "image/pixelmap_native.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1922,6 +1924,153 @@ HWTEST_F(DrawingNativeShaderEffectTest, testShaderEffectCreateComposeMultipleCal
     // 2. Destroy objects.
     OH_Drawing_ShaderEffectDestroy(src);
     OH_Drawing_ShaderEffectDestroy(dst);
+}
+
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_SHADOW_EFFECT_1200
+ * @tc.name: testShaderEffectCreatePixelMapShaderNormal
+ * @tc.desc: test for testShaderEffectCreatePixelMapShaderNormal
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 0
+ */
+HWTEST_F(DrawingNativeShaderEffectTest, testShaderEffectCreatePixelMapShaderNormal, Function | SmallTest | Level0) {
+    uint32_t imageWidth = 200;
+    uint32_t imageHeight = 200;
+    OH_Pixelmap_InitializationOptions* createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    OH_PixelmapInitializationOptions_SetWidth(createOps, imageWidth);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, imageHeight);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);    // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2);      // 2 is ALPHA_FORMAT_PREMUL
+    size_t bufferSize = imageWidth * imageHeight * 4;                 // 4 for test
+    void* buffer = malloc(bufferSize);
+    if (buffer == nullptr) {
+        return;
+    }
+    for (int i = 0; i < imageWidth * imageHeight; i++) {
+        ((uint32_t*)buffer)[i] = 0xFFFF00FF;
+    }
+    OH_PixelmapNative* pixelMapNative = nullptr;
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t*)buffer, bufferSize, createOps, &pixelMapNative);
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NEAREST);
+    OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
+    OH_Drawing_Matrix *matrix = OH_Drawing_MatrixCreate();
+    // 1. The interface of OH_Drawing_ShaderEffectCreatePixelMapShader is called normally.
+    OH_Drawing_ShaderEffect *shaderEffect = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        pixelMap, OH_Drawing_TileMode::CLAMP, OH_Drawing_TileMode::CLAMP, samplingOptions, matrix);
+    EXPECT_NE(shaderEffect, nullptr);
+    // 2. Destroy objects.
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_ShaderEffectDestroy(shaderEffect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_PixelMapDissolve(pixelMap);
+    OH_PixelmapNative_Release(pixelMapNative);
+    OH_PixelmapInitializationOptions_Release(createOps);
+    free(buffer);
+}
+
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_SHADOW_EFFECT_1201
+ * @tc.name: testShaderEffectCreatePixelMapShaderNull
+ * @tc.desc: test for testShaderEffectCreatePixelMapShaderNull
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 3
+ */
+HWTEST_F(DrawingNativeShaderEffectTest, testShaderEffectCreatePixelMapShaderNull, Function | SmallTest | Level3) {
+    uint32_t imageWidth = 200;
+    uint32_t imageHeight = 200;
+    OH_Pixelmap_InitializationOptions* createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    OH_PixelmapInitializationOptions_SetWidth(createOps, imageWidth);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, imageHeight);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);    // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2);      // 2 is ALPHA_FORMAT_PREMUL
+    size_t bufferSize = imageWidth * imageHeight * 4;                 // 4 for test
+    void* buffer = malloc(bufferSize);
+    if (buffer == nullptr) {
+        return;
+    }
+    for (int i = 0; i < imageWidth * imageHeight; i++) {
+        ((uint32_t*)buffer)[i] = 0xFFFF00FF;
+    }
+    OH_PixelmapNative* pixelMapNative = nullptr;
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t*)buffer, bufferSize, createOps, &pixelMapNative);
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NEAREST);
+    OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
+    OH_Drawing_Matrix *matrix = OH_Drawing_MatrixCreate();
+    // 1. Pass each interface parameter nullptr for verification one by one.
+    OH_Drawing_ShaderEffect *shaderEffect = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        nullptr, OH_Drawing_TileMode::CLAMP, OH_Drawing_TileMode::CLAMP, samplingOptions, matrix);
+    EXPECT_EQ(shaderEffect, nullptr);
+    shaderEffect = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        pixelMap, OH_Drawing_TileMode::CLAMP, OH_Drawing_TileMode::CLAMP, nullptr, matrix);
+    EXPECT_EQ(shaderEffect, nullptr);
+    shaderEffect = OH_Drawing_ShaderEffectCreatePixelMapShader(
+        pixelMap, OH_Drawing_TileMode::CLAMP, OH_Drawing_TileMode::CLAMP, samplingOptions, nullptr);
+    EXPECT_NE(shaderEffect, nullptr);
+    // 2. Destroy objects.
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_ShaderEffectDestroy(shaderEffect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_PixelMapDissolve(pixelMap);
+    OH_PixelmapNative_Release(pixelMapNative);
+    OH_PixelmapInitializationOptions_Release(createOps);
+    free(buffer);
+}
+
+/*
+ * @tc.number: SUB_BASIC_GRAPHICS_SPECIAL_API_C_DRAWING_SHADOW_EFFECT_1202
+ * @tc.name: testShaderEffectCreatePixelMapShaderMultiCalls
+ * @tc.desc: test for testShaderEffectCreatePixelMapShaderMultiCalls
+ * @tc.size  : SmallTest
+ * @tc.type  : Function
+ * @tc.level : Level 3
+ */
+HWTEST_F(DrawingNativeShaderEffectTest, testShaderEffectCreatePixelMapShaderMultiCalls, Function | SmallTest | Level3) {
+    uint32_t imageWidth = 200;
+    uint32_t imageHeight = 200;
+    OH_Pixelmap_InitializationOptions* createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    OH_PixelmapInitializationOptions_SetWidth(createOps, imageWidth);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, imageHeight);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);    // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2);      // 2 is ALPHA_FORMAT_PREMUL
+    size_t bufferSize = imageWidth * imageHeight * 4;                 // 4 for test
+    void* buffer = malloc(bufferSize);
+    if (buffer == nullptr) {
+        return;
+    }
+    for (int i = 0; i < imageWidth * imageHeight; i++) {
+        ((uint32_t*)buffer)[i] = 0xFFFF00FF;
+    }
+    OH_PixelmapNative* pixelMapNative = nullptr;
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t*)buffer, bufferSize, createOps, &pixelMapNative);
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NEAREST);
+    OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
+    OH_Drawing_Matrix *matrix = OH_Drawing_MatrixCreate();
+    // 1. The interface of OH_Drawing_ShaderEffectCreatePixelMapShader is called 10 times.
+    OH_Drawing_ShaderEffect *shaderEffect = nullptr;
+    for (int i = 0; i < 10; i++) {
+        shaderEffect = OH_Drawing_ShaderEffectCreatePixelMapShader(
+            pixelMap, OH_Drawing_TileMode::CLAMP, OH_Drawing_TileMode::CLAMP, samplingOptions, matrix);
+        EXPECT_NE(shaderEffect, nullptr);
+    }
+    // 2. Destroy objects.
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_ShaderEffectDestroy(shaderEffect);
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_Drawing_PixelMapDissolve(pixelMap);
+    OH_PixelmapNative_Release(pixelMapNative);
+    OH_PixelmapInitializationOptions_Release(createOps);
+    free(buffer);
 }
 } // namespace Drawing
 } // namespace Rosen

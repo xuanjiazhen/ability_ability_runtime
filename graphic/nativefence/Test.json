@@ -1,11 +1,11 @@
 {
-    "description": "Configuration for native buffer Tests",
+    "description": "Configuration for nativefence Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "600000",
         "shell-timeout": "600000",
         "bundle-name": "com.nativefence.napitest",
-        "module-name": "entry"
+        "module-name": "entry_test"
     },
     "kits": [
         {

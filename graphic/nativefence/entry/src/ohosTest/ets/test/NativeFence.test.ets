@@ -17,7 +17,7 @@ import { describe, expect, it, TestType, Level, Size } from '@ohos/hypium'
 import nativefence from 'libnativefence.so'
 
 export default function nativeFenceTest() {
-  describe('nativeFenceTest', () => {
+    describe('NativeFenceTest', () => {
 
     /**
      * @tc.number     : SUB_BASIC _GRAPHICS_SPECIAL_API_C_NATIVE_FENCE_0100
