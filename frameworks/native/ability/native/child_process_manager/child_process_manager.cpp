@@ -404,6 +404,11 @@ std::unique_ptr<AbilityRuntime::Runtime> ChildProcessManager::CreateRuntime(cons
         fromAppSpawn ? AppExecFwk::EventRunner::GetMainEventRunner() : AppExecFwk::EventRunner::Create();
     options.eventRunner = eventRunner;
 
+    if (hapModuleInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID ||
+        hapModuleInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2) {
+        options.lang = Runtime::Language::ETS;
+    }
+
     return AbilityRuntime::Runtime::Create(options);
 }
 
