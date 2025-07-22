@@ -4702,7 +4702,7 @@ export default function pictureNdkTest() {
     it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0100', Level.LEVEL0, async (done: Function) => {
       let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0100`;
       let filename = 'test_exif_v2.jpg'
-      let res = newCreatePictureByPixelMap(caseName, fileName);
+      let res = newCreatePictureByPixelMap(caseName, filename);
       if(!res){
         done();
         return
@@ -4712,7 +4712,7 @@ export default function pictureNdkTest() {
           for(let i = 0; i < Data.length; i++){
               let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, Data[i].key)
               if(PropertyValue != Data[i].jpegData){
-                  console.log("compare value error file:" + fileName + "get value: " + PropertyValue + " compare value: " + Data[i].jpegData);
+                  console.log("compare value error file:" + filename + "get value: " + PropertyValue + " compare value: " + Data[i].jpegData);
                   expect.assertFail();
                   done()
                   return
@@ -4739,7 +4739,7 @@ export default function pictureNdkTest() {
     it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0200', Level.LEVEL0, async (done: Function) => {
       let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0200`;
       let filename = 'test_exif_v2.png'
-      let res = newCreatePictureByPixelMap(caseName, fileName);
+      let res = newCreatePictureByPixelMap(caseName, filename);
       if(!res){
         done();
         return
@@ -4749,7 +4749,7 @@ export default function pictureNdkTest() {
           for(let i = 0; i < Data.length; i++){
               let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, Data[i].key)
               if(PropertyValue != Data[i].pngData){
-                  console.log("compare value error file:" + fileName + "get value: " + PropertyValue + " compare value: " + Data[i].pngData);
+                  console.log("compare value error file:" + filename + "get value: " + PropertyValue + " compare value: " + Data[i].pngData);
                   expect.assertFail();
                   done()
                   return
@@ -4776,7 +4776,7 @@ export default function pictureNdkTest() {
     it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0300', Level.LEVEL0, async (done: Function) => {
       let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0300`;
       let filename = 'test_exif_v2.heic'
-      let res = newCreatePictureByPixelMap(caseName, fileName);
+      let res = newCreatePictureByPixelMap(caseName, filename);
       if(!res){
         done();
         return
@@ -4786,7 +4786,7 @@ export default function pictureNdkTest() {
           for(let i = 0; i < Data.length; i++){
               let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, Data[i].key)
               if(PropertyValue != Data[i].heifData){
-                  console.log("compare value error file:" + fileName + "get value: " + PropertyValue + " compare value: " + Data[i].heifData);
+                  console.log("compare value error file:" + filename + "get value: " + PropertyValue + " compare value: " + Data[i].heifData);
                   expect.assertFail();
                   done()
                   return
@@ -4813,7 +4813,7 @@ export default function pictureNdkTest() {
     it('SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0400', Level.LEVEL0, async (done: Function) => {
       let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_PICTURE_GET_EXIF_METADATA_0400`;
       let filename = 'test_exif_v4.jpg'
-      let res = newCreatePictureByPixelMap(caseName, fileName);
+      let res = newCreatePictureByPixelMap(caseName, filename);
       if(!res){
         done();
         return
@@ -4823,7 +4823,7 @@ export default function pictureNdkTest() {
           for(let i = 0; i < Data0.length; i++){
               let PropertyValue = ndkTest.PictureMetadataGetPropertyWithNull(exifType, Data0[i].key)
               if(PropertyValue != Data0[i].jpegData){
-                  console.log("compare value error file:" + fileName + "get value: " + PropertyValue + " compare value: " + Data0[i].jpegData);
+                  console.log("compare value error file:" + filename + "get value: " + PropertyValue + " compare value: " + Data0[i].jpegData);
                   expect.assertFail();
                   done()
                   return
