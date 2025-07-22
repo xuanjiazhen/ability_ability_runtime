@@ -46,6 +46,13 @@ static bool filterESC(Input_KeyEvent *event){
     return keyCode == keyCode1;
 }
 
+constexpr int32_t TWO = 2;
+constexpr int32_t THREE = 3;
+constexpr int32_t FOUR = 4;
+constexpr int32_t FIVE = 5;
+constexpr int32_t SIX = 6;
+constexpr int32_t TEN = 10;
+
 static napi_value filterKeyCode(napi_env env, napi_callback_info info){
     size_t argc = 2;
     napi_value args[2] = {nullptr};
@@ -608,9 +615,650 @@ static napi_value getAllWIndowLayOutInfo(napi_env env, napi_callback_info info){
     
 }
 
+static napi_value TestInjectTouchEventwithTouchEventNullptr(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, nullptr, 0, 0);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithTouchEventActionOutofRange(napi_env env, napi_callback_info info)
+{
+    size_t argc =  1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, TEN);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithWindowidNotloadcontent(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithDestoryedSubwindow(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithWindowXWindowYBeyondScreen(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    napi_get_value_int32(env, args[1], &windowX);
+    napi_get_value_int32(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+  
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithFloatWindowXWindowY(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+   
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithNonExistedWindowID(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithFloatWindowID(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    double windowId;
+    napi_get_value_double(env, args[0], &windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    napi_get_value_int32(env, args[1], &windowX);
+    napi_get_value_int32(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    // OH_WindowManager_InjectTouchEvent中触屏事件为1、3，触屏抬起 ?
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithNegativeWindowID(napi_env env, napi_callback_info info)
+{
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    int32_t windowX = 0;
+    int32_t windowY = 0;
+    auto res = OH_WindowManager_InjectTouchEvent(-1, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+   
+static napi_value TestInjectTouchEventwithTouchActionCancel(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 0);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+   
+static napi_value TestInjectTouchEventwithTouchActionDown(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+  
+static napi_value TestInjectTouchEventwithTouchActionMove(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, TWO);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+  
+static napi_value TestInjectTouchEventwithTouchActionUp(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+   
+static napi_value TestInjectTouchEventwithMainWindowClick(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowClick(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithDialogWindowClick(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowSlide(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, TWO);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowEdgeSlide(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, TWO);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowSlideCancle(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, TWO);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, 0);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowButtonDownCancle(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithSubWindowSlideDownCancle(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value TestInjectTouchEventwithHideSubWindowDown(napi_env env, napi_callback_info info)
+{
+    size_t argc = THREE;
+    napi_value args[THREE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    int32_t windowId;
+    napi_get_value_int32(env, args[0], &windowId);
+    double windowX = 0;
+    double windowY = 0;
+    napi_get_value_double(env, args[1], &windowX);
+    napi_get_value_double(env, args[TWO], &windowY);
+    
+    Input_TouchEvent *touchEvent1 = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventAction(touchEvent1, 1);
+    OH_Input_SetTouchEventFingerId(touchEvent1, 1);
+    OH_Input_SetTouchEventDisplayX(touchEvent1, 0);
+    OH_Input_SetTouchEventDisplayY(touchEvent1, 0);
+    OH_Input_SetTouchEventActionTime(touchEvent1, 0);
+    OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
+    auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
+    OH_Input_DestroyTouchEvent(touchEvent1);
+    napi_value resultValue;
+    napi_create_int32(env, res, &resultValue);
+    return resultValue;
+}
+
+static napi_value injectTouchEventInit(napi_env env, napi_value exports)
+{
+    napi_property_descriptor desc[] = {
+        {"testInjectTouchEventwithWindowXWindowYBeyondScreen", nullptr,
+            TestInjectTouchEventwithWindowXWindowYBeyondScreen, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithFloatWindowXWindowY", nullptr,
+            TestInjectTouchEventwithFloatWindowXWindowY, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithNonExistedWindowID", nullptr, TestInjectTouchEventwithNonExistedWindowID,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithFloatWindowID", nullptr, TestInjectTouchEventwithFloatWindowID,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithNegativeWindowID", nullptr, TestInjectTouchEventwithNegativeWindowID,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchActionCancel", nullptr, TestInjectTouchEventwithTouchActionCancel,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchActionDown", nullptr, TestInjectTouchEventwithTouchActionDown,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchActionMove", nullptr, TestInjectTouchEventwithTouchActionMove,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchActionUp", nullptr, TestInjectTouchEventwithTouchActionUp,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithMainWindowClick", nullptr, TestInjectTouchEventwithMainWindowClick,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowClick", nullptr, TestInjectTouchEventwithSubWindowClick,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithDialogWindowClick", nullptr, TestInjectTouchEventwithDialogWindowClick,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowSlide", nullptr, TestInjectTouchEventwithSubWindowSlide,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowEdgeSlide", nullptr, TestInjectTouchEventwithSubWindowEdgeSlide,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowSlideCancle", nullptr, TestInjectTouchEventwithSubWindowSlideCancle,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowButtonDownCancle", nullptr,
+            TestInjectTouchEventwithSubWindowButtonDownCancle, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithSubWindowSlideDownCancle", nullptr, TestInjectTouchEventwithSubWindowSlideDownCancle,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithHideSubWindowDown", nullptr, TestInjectTouchEventwithHideSubWindowDown,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+    };
+    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    return exports;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
+    injectTouchEventInit(env, exports);
     napi_property_descriptor desc[] = {
         {"filterKeyCode", nullptr, filterKeyCode, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"unFilterKeyCode", nullptr, unFilterKeyCode, nullptr, nullptr, nullptr, napi_default, nullptr},
@@ -632,7 +1280,15 @@ static napi_value Init(napi_env env, napi_value exports)
         {"clearMouseFilter", nullptr, clearMouseFilter, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"registerTouchFilter", nullptr, registerTouchFilter, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"clearTouchFilter", nullptr, clearTouchFilter, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getAllWIndowLayOutInfo", nullptr, getAllWIndowLayOutInfo, nullptr, nullptr, nullptr, napi_default, nullptr}
+        {"getAllWIndowLayOutInfo", nullptr, getAllWIndowLayOutInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchEventNullptr", nullptr, TestInjectTouchEventwithTouchEventNullptr,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithTouchEventActionOutofRange", nullptr,
+            TestInjectTouchEventwithTouchEventActionOutofRange, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithWindowidNotloadcontent", nullptr, TestInjectTouchEventwithWindowidNotloadcontent,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testInjectTouchEventwithDestoryedSubwindow", nullptr, TestInjectTouchEventwithDestoryedSubwindow,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

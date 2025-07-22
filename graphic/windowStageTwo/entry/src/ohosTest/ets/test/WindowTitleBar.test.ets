@@ -2105,8 +2105,15 @@ export default function windowTitleBarTest() {
     it("testSetSupportedWindowModeswithIncorrectParameters", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let caseName = "testSetSupportedWindowModeswithIncorrectParameters";
       console.log(caseName + "begin");
+      let options: StartOptions = {
+        supportWindowModes: [
+          bundleManager.SupportWindowMode.SPLIT,
+          bundleManager.SupportWindowMode.FULL_SCREEN,
+          bundleManager.SupportWindowMode.FLOATING
+        ]
+      };
       try {
-        let windowStage1 = await startAbility(caseName + 'Test1', context);
+        let windowStage1 = await startAbility(caseName + 'Test1', context, options);
         await sleep(200);
         await windowStage1.setSupportedWindowModes([], true);
         await sleep(200);
@@ -2124,7 +2131,7 @@ export default function windowTitleBarTest() {
       }
 
       try {
-        let windowStage2 = await startAbility(caseName + 'Test2', context);
+        let windowStage2 = await startAbility(caseName + 'Test2', context, options);
         await sleep(200);
         let floating: bundleManager.SupportWindowMode = bundleManager.SupportWindowMode.FLOATING;
         await windowStage2.setSupportedWindowModes([floating,floating,floating,floating,floating], true);
@@ -2143,7 +2150,7 @@ export default function windowTitleBarTest() {
       }
 
       try {
-        let windowStage3 = await startAbility(caseName + 'Test3', context);
+        let windowStage3 = await startAbility(caseName + 'Test3', context, options);
         await sleep(200);
         await windowStage3.setSupportedWindowModes([ bundleManager.SupportWindowMode.FULL_SCREEN,
           bundleManager.SupportWindowMode.SPLIT, bundleManager.SupportWindowMode.FLOATING], true);
@@ -2174,8 +2181,15 @@ export default function windowTitleBarTest() {
     it("testSetSupportedWindowModeswithGrayOutMaximizeButtonTrueNotSupportFullScreen", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let caseName = "testSetSupportedWindowModeswithGrayOutMaximizeButtonTrueNotSupportFullScreen";
       console.log(caseName + "begin");
+      let options: StartOptions = {
+        supportWindowModes: [
+          bundleManager.SupportWindowMode.SPLIT,
+          bundleManager.SupportWindowMode.FULL_SCREEN,
+          bundleManager.SupportWindowMode.FLOATING
+        ]
+      };
       try {
-        let windowStage = await startAbility(caseName, context);
+        let windowStage = await startAbility(caseName, context, options);
         await sleep(200);
         await windowStage.setSupportedWindowModes([ bundleManager.SupportWindowMode.FLOATING,
           bundleManager.SupportWindowMode.SPLIT], true);
@@ -2217,8 +2231,15 @@ export default function windowTitleBarTest() {
     it("testSetSupportedWindowModeswithGrayOutMaximizeButtonTrueNotSupportFullScreenandSplit", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let caseName = "testSetSupportedWindowModeswithGrayOutMaximizeButtonTrueNotSupportFullScreenandSplit";
       console.log(caseName + "begin");
+      let options: StartOptions = {
+        supportWindowModes: [
+          bundleManager.SupportWindowMode.SPLIT,
+          bundleManager.SupportWindowMode.FULL_SCREEN,
+          bundleManager.SupportWindowMode.FLOATING
+        ]
+      };
       try {
-        let windowStage = await startAbility(caseName, context);
+        let windowStage = await startAbility(caseName, context, options);
         await sleep(200);
         await windowStage.setSupportedWindowModes([ bundleManager.SupportWindowMode.FLOATING], true);
         await sleep(200);
@@ -2258,8 +2279,15 @@ export default function windowTitleBarTest() {
     it("testSetSupportedWindowModeswithGrayOutMaximizeButtonFalseNotSupportFullScreen", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let caseName = "testSetSupportedWindowModeswithGrayOutMaximizeButtonFalseNotSupportFullScreen";
       console.log(caseName + "begin");
+      let options: StartOptions = {
+        supportWindowModes: [
+          bundleManager.SupportWindowMode.SPLIT,
+          bundleManager.SupportWindowMode.FULL_SCREEN,
+          bundleManager.SupportWindowMode.FLOATING
+        ]
+      };
       try {
-        let windowStage = await startAbility(caseName, context);
+        let windowStage = await startAbility(caseName, context, options);
         await sleep(200);
         await windowStage.setSupportedWindowModes([ bundleManager.SupportWindowMode.FLOATING, bundleManager.SupportWindowMode.SPLIT], false);
         await sleep(200);
@@ -2299,8 +2327,15 @@ export default function windowTitleBarTest() {
     it("testSetSupportedWindowModeswithInvisibleMaximizeButtonhGrayOutMaximizeButtonTrueNotSupportFullScreen", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let caseName = "testSetSupportedWindowModeswithInvisibleMaximizeButtonhGrayOutMaximizeButtonTrueNotSupportFullScreen";
       console.log(caseName + "begin");
+      let options: StartOptions = {
+        supportWindowModes: [
+          bundleManager.SupportWindowMode.SPLIT,
+          bundleManager.SupportWindowMode.FULL_SCREEN,
+          bundleManager.SupportWindowMode.FLOATING
+        ]
+      };
       try {
-        let windowStage = await startAbility(caseName, context);
+        let windowStage = await startAbility(caseName, context, options);
         await sleep(200);
         let windowClass = windowStage.getMainWindowSync();
         windowClass.setWindowTitleButtonVisible(false,true,true);
