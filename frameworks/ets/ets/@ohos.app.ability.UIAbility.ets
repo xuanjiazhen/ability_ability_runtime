@@ -92,4 +92,8 @@ export default class UIAbility extends Ability {
 
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
   }
+
+  onCollaborate(wantParams: Record<string, Object>): AbilityConstant.CollaborateResult {
+    return AbilityConstant.CollaborateResult.REJECT;
+  }
 }

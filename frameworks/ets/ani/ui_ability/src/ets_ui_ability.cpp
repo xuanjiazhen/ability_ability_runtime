@@ -58,6 +58,8 @@ constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
 constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":V";
 constexpr const char *MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
+constexpr const char *ON_COLLABORATE =
+    "Lescompat/Record;:L@ohos/app/ability/AbilityConstant/AbilityConstant/CollaborateResult;";
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -499,6 +501,7 @@ void EtsUIAbility::OnForeground(const Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::OnForeground(want);
+    HandleCollaboration(want);
     if (CheckIsSilentForeground()) {
         TAG_LOGD(AAFwkTag::UIABILITY, "silent foreground, do not call 'onForeground'");
         return;
@@ -548,6 +551,10 @@ void EtsUIAbility::OnBackground()
     if (delegator) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformBackground");
         delegator->PostPerformBackground(CreateADelegatorAbilityProperty());
+    }
+    auto want = GetWant();
+    if (want != nullptr) {
+        HandleCollaboration(*want);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnBackground end");
 }
@@ -931,6 +938,48 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     executeInfo.executeParam = executeParam;
     return true;
 }
+
+int32_t EtsUIAbility::OnCollaborate(WantParams &wantParam)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnCollaborate: %{public}s", GetAbilityName().c_str());
+    int32_t ret = CollaborateResult::REJECT;
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return ret;
+    }
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null etsAbilityObj_");
+        return ret;
+    }
+    ani_method method = nullptr;
+    ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onCollaborate", ON_COLLABORATE, &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "onCollaborate FindMethod status: %{public}d, or null method", status);
+        return ret;
+    }
+    ani_value args[1] = {};
+    ani_ref wantParamsRef = AppExecFwk::WrapWantParams(env, wantParam);
+    if (wantParamsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamsRef");
+        return ret;
+    }
+    args[0].r = wantParamsRef;
+    ani_ref result = nullptr;
+    if ((status = env->Object_CallMethod_Ref_A(etsAbilityObj_->aniObj, method, &result, args)) != ANI_OK ||
+        result == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "CallMethod status: %{public}d, or null result", status);
+        return ret;
+    }
+    AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParam);
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, reinterpret_cast<ani_enum_item>(result), ret)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_EtsToNative failed");
+        return ret;
+    }
+    ret = (ret == CollaborateResult::ACCEPT) ? CollaborateResult::ACCEPT : CollaborateResult::REJECT;
+    return ret;
+}
 #endif
 
 void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
@@ -1014,6 +1063,7 @@ void EtsUIAbility::OnNewWant(const Want &want)
     if (scene_) {
         scene_->OnNewWant(want);
     }
+    HandleCollaboration(want);
 #endif
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
@@ -1065,7 +1115,7 @@ void EtsUIAbility::Dump(const std::vector<std::string> &params, std::vector<std:
     UIAbility::Dump(params, info);
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr || etsAbilityObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or stsAbilityObj");
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or etsAbilityObj");
         return;
     }
     ani_object arrayObj = nullptr;
