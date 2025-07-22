@@ -229,6 +229,29 @@ export default function PowerTest() {
       })
 
     /**
+     * @tc.number SUB_PowerSystem_PowerTest_JSTest_0081
+     * @tc.name Power_DevicePowerMode_MODE_CUSTOM_POWER_SAVE_Test
+     * @tc.desc Get device power mode MODE_CUSTOM_POWER_SAVE
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('Power_DevicePowerMode_MODE_CUSTOM_POWER_SAVE_Test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+      async function (done) {
+        let TAG = 'Power_DevicePowerMode_MODE_CUSTOM_POWER_SAVE_Test';
+        try {
+          let devicePowerMode = power.DevicePowerMode.MODE_CUSTOM_POWER_SAVE;
+          console.info(`${TAG} devicePowerMode: ${devicePowerMode}`);
+          expect(devicePowerMode).assertEqual(650);
+          done();
+        } catch (error) {
+          console.error(`${TAG} error: ${JSON.stringify(error)}`);
+          expect().assertFail();
+          done();
+        }
+      })
+
+    /**
      * @tc.number SUB_PowerSystem_PowerTest_JSTest_0090
      * @tc.name testPower_IsStandby_Test
      * @tc.desc Device isStandby interface verification
@@ -375,6 +398,35 @@ export default function PowerTest() {
     })
 
     /**
+     * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0121
+     * @tc.name System_API_Test_Power_Manager_0601
+     * @tc.desc Test the third-party application call setPowerMode will be blocked
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('System_API_Test_Power_Manager_0601', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+      let TAG = 'System_API_Test_Power_Manager_0601';
+      try {
+        power.setPowerMode(power.DevicePowerMode.MODE_CUSTOM_POWER_SAVE, (error) => {
+          if (error) {
+            console.error(`${TAG} error: ${JSON.stringify(error)}`);
+            expect(error.code).assertEqual(202);
+            done();
+          } else {
+            console.info('set power mode to MODE_CUSTOM_POWER_SAVE');
+            expect().assertFail();
+            done();
+          }
+        });
+      } catch (error) {
+        console.error(`${TAG} error: ${JSON.stringify(error)}`);
+        expect(error.code).assertEqual(202);
+        done();
+      }
+    })
+
+    /**
      * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0130
      * @tc.name testSystem_API_Test_Power_Manager_0700
      * @tc.desc Test the third-party application call setPowerMode will be blocked
@@ -388,6 +440,35 @@ export default function PowerTest() {
         power.setPowerMode(power.DevicePowerMode.MODE_PERFORMANCE)
           .then(() => {
             console.info('set power mode to MODE_PERFORMANCE');
+            expect().assertFail();
+            done();
+          })
+          .catch((error) => {
+            console.error(`${TAG} error: ${JSON.stringify(error)}`);
+            expect(error.code).assertEqual(202);
+            done();
+          });
+      } catch (error) {
+        console.error(`${TAG} error: ${JSON.stringify(error)}`);
+        expect(error.code).assertEqual(202);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0131
+     * @tc.name System_API_Test_Power_Manager_0701
+     * @tc.desc Test the third-party application call setPowerMode will be blocked
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('System_API_Test_Power_Manager_0701', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+      let TAG = 'System_API_Test_Power_Manager_0701';
+      try {
+        power.setPowerMode(power.DevicePowerMode.MODE_CUSTOM_POWER_SAVE)
+          .then(() => {
+            console.info('set power mode to MODE_CUSTOM_POWER_SAVE');
             expect().assertFail();
             done();
           })

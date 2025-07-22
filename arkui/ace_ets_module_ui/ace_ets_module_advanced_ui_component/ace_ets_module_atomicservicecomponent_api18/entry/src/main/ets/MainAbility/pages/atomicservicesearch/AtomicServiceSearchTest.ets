@@ -10,11 +10,11 @@ struct AtomicServiceSearchTest {
   @State current: number = 1
   @State selectWhich: number = 1;
   @State simpleList: Array<string> = [
-    'Demo01：AtomicServiceSearchDemo01',
-    'Demo02：AtomicServiceSearchDemo02',
-    'Demo03：AtomicServiceSearchDemo03',
-    'Demo04：AtomicServiceSearchDemo04',
-    'Demo05：AtomicServiceSearchDemo05',
+    'Demo01',
+    'Demo02',
+    'Demo03',
+    'Demo04',
+    'Demo05',
   ];
 
   build() {

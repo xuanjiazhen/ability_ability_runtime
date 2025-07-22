@@ -16,6 +16,7 @@ group("web") {
   deps = [
     "DFX:DFXTest",
     "application_interworking:ActsApplicationInterworkingTest",
+    "network_management:NetWorkManagement",
     "page_interaction:pageInteraction",
     "web_content_processing:WebContentProcessing",
     "web_jump:WebJump",

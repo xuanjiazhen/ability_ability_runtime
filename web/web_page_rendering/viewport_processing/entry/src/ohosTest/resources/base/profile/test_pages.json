@@ -1,6 +1,7 @@
 {
   "src": [
     "testability/pages/webViewOnViewportFitChange",
-    "testability/pages/webViewMetaViewportTrue"
+    "testability/pages/webViewMetaViewportTrue",
+	"testability/pages/WebViewAvoidVisibleViewportBottom"
   ]
 }

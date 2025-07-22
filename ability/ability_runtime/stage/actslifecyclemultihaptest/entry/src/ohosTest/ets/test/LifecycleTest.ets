@@ -718,9 +718,10 @@ export default function abilityTest() {
       TAG = "Multihap_LifecycleTest_010";
       let hap3MainAbility3onForegroundCount:number = 0;
       let isFirstMainAbility4onForeground = true;
-      let eventCallback =  (event: string)=>{
+      let eventCallback =  async (event: string)=>{
         console.log(TAG + " eventCallback, event is :" + event);
         if (event === 'MainAbility4onForeground' && isFirstMainAbility4onForeground){
+          await sleep(1000);
           isFirstMainAbility4onForeground = false;
           globalThis.abilityContext.startAbility({
             bundleName: "com.example.lifecycletest",
@@ -730,6 +731,7 @@ export default function abilityTest() {
             JSON.stringify(error) + ",data: " + JSON.stringify(data));
           })
         } else if (event === 'Hap2MainAbility10onForeground') {
+          await sleep(1000);
           globalThis.abilityContext.startAbility({
             bundleName: "com.example.lifecycletest",
             abilityName: "Hap3MainAbility3",
@@ -742,6 +744,7 @@ export default function abilityTest() {
             done();
             return;
           }
+          await sleep(1000);
           hap3MainAbility3onForegroundCount ++;
           if (hap3MainAbility3onForegroundCount == 3) {
             clearInterval(intervalId);
@@ -772,6 +775,7 @@ export default function abilityTest() {
                 done();
               });
           } else {
+            await sleep(1000);
             globalThis.abilityContext.startAbility({
               bundleName: "com.example.lifecycletest",
               abilityName: "Hap2MainAbility10",

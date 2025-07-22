@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {
   UiComponent,
@@ -58,7 +58,7 @@ export default function ObjectLink2() {
       await CommonFunc.sleep(1000);
       router.back()
     });
-    it('ObjectLink2_0100', 0, async (done: Function) => {
+    it('ObjectLink2_0100', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0100 START');
       let driver = await UiDriver.create()
       let button = await driver.findComponent(BY.key('obBtn1'));
@@ -76,7 +76,7 @@ export default function ObjectLink2() {
 
     });
 
-    it('ObjectLink2_0200', 0, async (done: Function) => {
+    it('ObjectLink2_0200', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0200 START');
       let driver = await UiDriver.create()
       let button = await driver.findComponent(BY.key('obBtn2'));
@@ -93,7 +93,7 @@ export default function ObjectLink2() {
     });
 
 
-    it('ObjectLink2_0300', 0, async (done: Function) => {
+    it('ObjectLink2_0300', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0300 START');
       let driver = await UiDriver.create()
       let button = await driver.findComponent(BY.key('obBtn3'));
@@ -103,13 +103,17 @@ export default function ObjectLink2() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ObjectLink2_0300] component obj is: " + JSON.stringify(obj));
       console.info("[ObjectLink2_0300] title: " + JSON.stringify(obj.$attrs.fontSize));
-      expect(obj.$attrs.fontSize).assertEqual('16.00fp');
+      let compareBtnStrJson = getInspectorByKey('compareBtn');
+      let compareBtnObj: ESObject = JSON.parse(compareBtnStrJson);
+      console.info("[ObjectLink2_0300] component compareBtnObj is: " + JSON.stringify(compareBtnObj));
+      console.info("[ObjectLink2_0300] title: " + JSON.stringify(compareBtnObj.$attrs.fontSize));
+      expect(obj.$attrs.fontSize).assertEqual(compareBtnObj.$attrs.fontSize);
       console.info('[ObjectLink2_0300] END');
       done();
 
     });
 
-    it('ObjectLink2_0400', 0, async (done: Function) => {
+    it('ObjectLink2_0400', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0400 START');
       let driver = await UiDriver.create()
       let button = await driver.findComponent(BY.key('obBtn4'));
@@ -119,14 +123,18 @@ export default function ObjectLink2() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ObjectLink2_0400] component obj is: " + JSON.stringify(obj));
       console.info("[ObjectLink2_0400] title: " + JSON.stringify(obj.$attrs.fontSize));
-      expect(obj.$attrs.fontSize).assertEqual('16.00fp');
+      let compareBtnStrJson = getInspectorByKey('compareBtn');
+      let compareBtnObj: ESObject = JSON.parse(compareBtnStrJson);
+      console.info("[ObjectLink2_0400] component compareBtnObj is: " + JSON.stringify(compareBtnObj));
+      console.info("[ObjectLink2_0400] title: " + JSON.stringify(compareBtnObj.$attrs.fontSize));
+      expect(obj.$attrs.fontSize).assertEqual(compareBtnObj.$attrs.fontSize);
       console.info('[ObjectLink2_0400] END');
       done();
 
     });
 
 
-    it('ObjectLink2_0500', 0, async (done: Function) => {
+    it('ObjectLink2_0500', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0500 START');
       let driver = await UiDriver.create()
       let button = await driver.findComponent(BY.key('ziobBtn1'));
@@ -142,7 +150,7 @@ export default function ObjectLink2() {
 
     });
 
-    it('ObjectLink2_0600', 0, async (done: Function) => {
+    it('ObjectLink2_0600', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0600 START');
       let driver = await UiDriver.create()
       // await driver.swipe(100,500,100,100)
@@ -161,7 +169,7 @@ export default function ObjectLink2() {
     });
 
 
-    it('ObjectLink2_0700', 0, async (done: Function) => {
+    it('ObjectLink2_0700', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0700 START');
       let driver = await UiDriver.create()
       // await driver.swipe(100,500,100,100)
@@ -173,13 +181,17 @@ export default function ObjectLink2() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ObjectLink2_0700] component obj is: " + JSON.stringify(obj));
       console.info("[ObjectLink2_0700] title: " + JSON.stringify(obj.$attrs.fontSize));
-      expect(obj.$attrs.fontSize).assertEqual('16.00fp');
+      let compareBtnStrJson = getInspectorByKey('compareBtn');
+      let compareBtnObj: ESObject = JSON.parse(compareBtnStrJson);
+      console.info("[ObjectLink2_0700] component compareBtnObj is: " + JSON.stringify(compareBtnObj));
+      console.info("[ObjectLink2_0700] title: " + JSON.stringify(compareBtnObj.$attrs.fontSize));
+      expect(obj.$attrs.fontSize).assertEqual(compareBtnObj.$attrs.fontSize);
       console.info('[ObjectLink2_0700] END');
       done();
 
     });
 
-    it('ObjectLink2_0800', 0, async (done: Function) => {
+    it('ObjectLink2_0800', Level.LEVEL0, async (done: Function) => {
       console.info('ObjectLink2_0800 START');
       let driver = await UiDriver.create()
       // await driver.swipe(100,500,100,100)
@@ -191,7 +203,11 @@ export default function ObjectLink2() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("[ObjectLink2_0800] component obj is: " + JSON.stringify(obj));
       console.info("[ObjectLink2_0800] title: " + JSON.stringify(obj.$attrs.fontSize));
-      expect(obj.$attrs.fontSize).assertEqual('16.00fp');
+      let compareBtnStrJson = getInspectorByKey('compareBtn');
+      let compareBtnObj: ESObject = JSON.parse(compareBtnStrJson);
+      console.info("[ObjectLink2_0800] component compareBtnObj is: " + JSON.stringify(compareBtnObj));
+      console.info("[ObjectLink2_0800] title: " + JSON.stringify(compareBtnObj.$attrs.fontSize));
+      expect(obj.$attrs.fontSize).assertEqual(compareBtnObj.$attrs.fontSize);
       console.info('[ObjectLink2_0800] END');
       done();
 

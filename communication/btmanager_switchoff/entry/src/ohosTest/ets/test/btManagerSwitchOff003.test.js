@@ -56,6 +56,32 @@ async function tryToDisableBt() {
             console.info('[bluetooth_js] enable success');
     }
 }
+async function tryToEnableBt() {
+    let sta = bluetoothManager.getState();
+    switch(sta){
+      case 0:
+        bluetoothManager.enableBluetooth();
+        await clickTheWindow(OPEN_BT_TEXT);
+        let sta1 = bluetoothManager.getState();
+        console.info('[bluetooth_js] bt turn off and enableBt:'+ JSON.stringify(sta1));
+        break;
+      case 1:
+        console.info('[bluetooth_js] bt turning on and sleep 3s:'+ JSON.stringify(sta));
+        await sleep(3000);
+        break;
+      case 2:
+        console.info('[bluetooth_js] bt turn on:'+ JSON.stringify(sta));
+        break;
+      case 3:
+        btAccess.enableBluetooth();
+        await clickTheWindow(OPEN_BT_TEXT);
+        let sta2 = bluetoothManager.getState();
+        console.info('[bluetooth_js] bt turning off and enableBt:'+ JSON.stringify(sta2));
+        break;
+      default:
+        console.info('[bluetooth_js] state undefined');
+    }
+  }
 
 async function openPhone() {
     try{
@@ -72,6 +98,7 @@ async function openPhone() {
 }
 
 let CLOSE_BT_TEXT = "关闭";
+let OPEN_BT_TEXT = "开启";
 
 async function clickTheWindow(text) {
      console.info('[bluetooth_js] clickTheWindow start');
@@ -110,9 +137,9 @@ export default function btManagerError003Test() {
             console.info('afterEach called')
         })
         afterAll(async function (done) {
-            console.info('afterAll called')
-            await sleep(900);
-            gattClient.close();
+            console.info('afterAll start')
+            await tryToEnableBt();
+            console.info('afterAll end')
             done();
         })
 

@@ -923,10 +923,10 @@ export default function bluetoothAdvertisingTest() {
           duration: 0,
       }
       try {
-          for (let count = 0; count < 10; count++) {
+          for (let count = 0; count < 17; count++) {
               await bluetooth.startAdvertising(advertisingParams);
               console.info('[bluetooth_js]startAdvertising count:' + count);
-              if (count == 9) {
+              if (count == 16) {
                 console.info('[bluetooth_js]startAdvertising count success');
                 expect().assertFail();
               }
@@ -971,12 +971,12 @@ export default function bluetoothAdvertisingTest() {
           duration: 0,
       }
       try {
-          for (let count = 0; count < 10; count++) {
+          for (let count = 0; count < 17; count++) {
               await bluetooth.startAdvertising(advertisingParams).then((outAdvHandle) => {
               console.info('[bluetooth_js]startAdvertising return outAdvHandle:' + JSON.stringify(outAdvHandle));
               });
               console.info('[bluetooth_js]startAdvertising count:' + count);
-              if (count == 9) {
+              if (count == 16) {
                 console.info('[bluetooth_js]startAdvertising count success');
                 expect().assertFail();
               }
@@ -1035,11 +1035,11 @@ export default function bluetoothAdvertisingTest() {
           });
         }
       try {
-          for (let count = 0; count < 10; count++) {
+          for (let count = 0; count < 17; count++) {
               await startAdvertisingCallback().then((data) => {
                 console.info('[bluetooth_js] startAdvertisingCallback result:' + JSON.stringify(data));
                 console.info('[bluetooth_js]startAdvertising count:' + count);
-                if (count == 9) {
+                if (count == 16) {
                   console.info('[bluetooth_js]startAdvertising count success');
                   expect().assertFail();
                   done();

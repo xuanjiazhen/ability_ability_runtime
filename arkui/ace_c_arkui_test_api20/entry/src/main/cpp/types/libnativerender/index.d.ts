@@ -13,3 +13,15 @@
  * limitations under the License.
  */
 export const testPostOnIdle: (a: string) => void;
+
+export const customComponentOnDrawFrontTest: (a: string) => void;
+
+export const customComponentOnDrawBehindTest: (a: string) => void;
+export const testEmbeddedComponentOption: (a: string) => void;
+
+export const uiStatesTest: (a: string) => void;
+
+export const ontouchTestDone: (a: string) => void;
+
+export const uiInputErrorCodeTest: (a: string) => void;
+export const testNodeUniqueId: (a: string) => void;

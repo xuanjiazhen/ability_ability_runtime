@@ -7,6 +7,10 @@
     {
       "name": "description_application",
       "value": "ActsAceEtsComponentCommonAttrsBorderWidthTest"
+    },
+    {
+      "name": "download",
+      "value": "下载"
     }
   ]
 }

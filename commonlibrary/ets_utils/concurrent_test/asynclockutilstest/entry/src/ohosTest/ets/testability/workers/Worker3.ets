@@ -40,7 +40,11 @@ workerPort.onmessage = async (event: MessageEvents) => {
       }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
       promises.push(promise);
     }
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.log('Promise.all caught an error:', error);
+    }
     console.log('count1:' + count);
     workerPort.postMessage(count);
     workerPort.close();
@@ -72,7 +76,11 @@ workerPort.onmessage = async (event: MessageEvents) => {
     }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
     console.log('Exit EXCLUSIVE lock lock1');
     promises.push(promise);
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.log('Promise.all caught an error:', error);
+    }
     console.log('count:' + count);
     workerPort.postMessage(count);
     workerPort.close();
@@ -273,7 +281,11 @@ workerPort.onmessage = async (event: MessageEvents) => {
       console.log('Exit EXCLUSIVE lock');
     }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE, options1);
     promises.push(promise1);
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.log('Promise.all caught an error:', error);
+    }
     while (count != 1) {
       await sleep(300);
     }
@@ -310,7 +322,11 @@ workerPort.onmessage = async (event: MessageEvents) => {
       console.log('Exit EXCLUSIVE lock');
     }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE, options1);
     promises.push(promise1);
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      console.log('Promise.all caught an error:', error);
+    }
     while (count != 1) {
       await sleep(300);
     }

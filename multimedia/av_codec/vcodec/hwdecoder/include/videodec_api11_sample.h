@@ -83,6 +83,7 @@ public:
     uint32_t repeat_time = 0;
     uint32_t outFrameCount = 0;
     bool outputYuvFlag = false;
+    bool NocaleHash = false;
     // 解码输出数据预期
     bool needCheckOutputDesc = false;
     bool isResChangeStream = false;
@@ -95,6 +96,16 @@ public:
     int32_t picWidth_ = 0;
     int32_t picHeight_ = 0;
     bool enableVRR = false;
+    bool enableLowLatency = false;
+    bool getInputBufferIndexRepeat = false;
+    int32_t enbleSyncMode = 0;
+    int64_t syncInputWaitTime = -1;
+    int64_t syncOutputWaitTime = -1;
+    bool queryOutputBufferEOS = false;
+    bool queryInputBufferEOS = false;
+    bool getOutputBufferIndexRepeated = false;
+    bool getOutputBufferIndexNoExisted = false;
+    bool abnormalIndexValue = false;
     
     int32_t Start();
     int32_t Stop();
@@ -106,6 +117,7 @@ public:
     void WaitForEOS();
     int32_t ConfigureVideoDecoder();
     int32_t StartDecoder();
+    int32_t StartSyncDecoder();
     int32_t StartVideoDecoder();
     int64_t GetSystemTimeUs();
     int32_t CreateVideoDecoder(std::string codeName);
@@ -125,8 +137,17 @@ public:
     int32_t CheckAttrFlag(OH_AVCodecBufferAttr attr);
     void GetStride();
     void InputFuncTest();
+    void SyncInputFunc();
     void InFuncTest();
     void OutputFuncTest();
+    void SyncOutputFunc();
+    int32_t SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFrames, uint32_t &index,
+    OH_AVBuffer *buffer, OH_AVCodecBufferAttr &attr);
+    int32_t QueryInputBuffer(uint32_t index, int64_t timeoutUs);
+    int32_t QueryOutputBuffer(uint32_t index, int64_t timeoutUs);
+    OH_AVBuffer *GetInputBuffer(uint32_t index);
+    OH_AVBuffer *GetOutputBuffer(uint32_t index);
+    int32_t PushInputBuffer(uint32_t index);
     void ReleaseSignal();
     void CreateSurface();
     void ReleaseInFile();
@@ -159,8 +180,10 @@ public:
     bool outputCallbackStop = false;
     bool useHDRSource = false;
     bool isAPI = false;
+    bool outputYuvSurface = false;
     int32_t DEFAULT_PROFILE = HEVC_PROFILE_MAIN_10;
     int32_t DecodeSetSurface();
+    int32_t OpenFile();
 private:
     std::unique_ptr<std::ifstream> inFile_;
     std::unique_ptr<std::thread> inputLoop_;

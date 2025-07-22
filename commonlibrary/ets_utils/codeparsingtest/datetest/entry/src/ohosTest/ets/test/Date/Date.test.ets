@@ -5972,7 +5972,7 @@ export default function dateTest() {
       const TAG = "testDataToUTCString0001";
       try {
         const event = new Date(Date.UTC(2012, 11, 20, 3, 0, 0));
-        expect(event.toLocaleDateString("fa-IR")).assertEqual("۱۳۹۱/۹/۳۰");
+        expect(event.toLocaleDateString("fa-IR")).assertEqual("۲۰۱۲/۱۲/۲۰");
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();

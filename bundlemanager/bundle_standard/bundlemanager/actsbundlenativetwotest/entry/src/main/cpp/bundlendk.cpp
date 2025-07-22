@@ -106,6 +106,22 @@ static napi_value GetModuleMetadata(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value GetCurrentApplicationInfo(napi_env env, napi_callback_info info)
+{
+    OH_NativeBundle_ApplicationInfo nativeApplicationInfo = OH_NativeBundle_GetCurrentApplicationInfo();
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    napi_value bundleName;
+    napi_create_string_utf8(env, nativeApplicationInfo.bundleName, NAPI_AUTO_LENGTH, &bundleName);
+    napi_set_named_property(env, result, "bundleName", bundleName);
+    napi_value fingerprint;
+    napi_create_string_utf8(env, nativeApplicationInfo.fingerprint, NAPI_AUTO_LENGTH, &fingerprint);
+    napi_set_named_property(env, result, "fingerprint", fingerprint);
+    free(nativeApplicationInfo.bundleName);
+    free(nativeApplicationInfo.fingerprint);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -113,6 +129,8 @@ static napi_value Init(napi_env env, napi_value exports)
         { "add", nullptr, Add, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "IsDebugMode", nullptr, IsDebugMode, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "GetModuleMetadata", nullptr, GetModuleMetadata, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getCurrentApplicationInfo", nullptr, GetCurrentApplicationInfo,
+            nullptr, nullptr, nullptr, napi_default, nullptr },
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

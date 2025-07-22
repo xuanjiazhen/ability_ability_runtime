@@ -98,6 +98,7 @@ export default function actsGetLauncherAbilityInfoTest() {
           expect(abilityInfos[index].applicationInfo.installSource).assertEqual("unknown");
           expect(abilityInfos[index].applicationInfo.releaseType.length).assertLarger(PARAM_0);
           expect(abilityInfos[index].applicationInfo.cloudFileSyncEnabled).assertEqual(false);
+          expect(abilityInfos[index].applicationInfo.cloudStructuredDataSyncEnabled).assertEqual(false);
           expect(abilityInfos[index].elementName.deviceId).assertEqual("");
           expect(abilityInfos[index].elementName.bundleName).assertEqual(BUNDLE_NAME100);
           expect(abilityInfos[index].elementName.moduleName).assertEqual("entry");

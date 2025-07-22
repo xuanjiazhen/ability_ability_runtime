@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
 import ohosWindow from '@ohos.window';
 import { BusinessError } from '@ohos.base';
 import common from '@ohos.app.ability.common';
@@ -1092,5 +1092,51 @@ export default function windowErrCode401_3() {
         done()
       }
     })
+
+    /**
+     * @tc.number    : test_setWindowLimits_ErrorCode_401
+     * @tc.name      : test_setWindowLimits_ErrorCode_401
+     * @tc.desc      : test_setWindowLimits_ErrorCode_401
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('test_setWindowLimits_ErrorCode_401', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let CaseName:string = 'test_setWindowLimits_ErrorCode_401';
+      let windowLimits: ohosWindow.WindowLimits = {
+        maxWidth: 1500,
+        maxHeight: 1000,
+        minWidth: 100,
+        minHeight: 100
+      };
+      let subWindow = await windowStage.createSubWindow('test_setWindowLimits_401');
+      await sleep(200);
+
+      try {
+        let promise = subWindow.setWindowLimits(null,true);
+        promise.then(async ()=>{
+          console.log(CaseName + ' setWindowLimits success ');
+          await subWindow.destroyWindow();
+          expect(false).assertTrue();
+          done();
+        }).catch(async (err:BusinessError)=>{
+          console.error(CaseName + ' setWindowLimits failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+          await subWindow.destroyWindow();
+          expect(false).assertTrue();
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+        await subWindow.destroyWindow();
+        expect(err.code).assertEqual(401);
+        done();
+      }
+
+    })
+
+
+
+
+
   })
 }

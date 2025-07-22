@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0 
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1120,6 +1120,36 @@ export default function NetConnectionNDKTest() {
       console.info(`testOHNetConGetPacUrl_0100test start`);
       let re: string = ncAPI.OHNetConnGetPacUrl(CASE_INDEX_5);
       console.info(`testOHNetConGetPacUrl_0100test ${re}`);
+      done();
+    });
+
+    /**
+     * @tc.number : SUB_NETWORK_CallHttpClientApi_0100
+     * @tc.name   : testOHNetCallHttpClientApi_0100
+     * @tc.desc   : CallHttpClientApi
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHNetCallHttpClientApi_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      let result : number = ncAPI.CallHttpClientApi();
+      expect(result).assertEqual(0);
+      console.info(`testOHNetCallHttpClientApi_0100 ${result}`);
+      done();
+    });
+
+    /**
+     * @tc.number : SUB_NETWORK_OHHttpGetHeaderValue_0100
+     * @tc.name   : testOHStackHttpGetHeaderValue_0100
+     * @tc.desc   : GetHttpHeaderValue
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHStackHttpGetHeaderValue_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      let result : number = ncAPI.OHHttpGetHeaderValue();
+      console.info(`testOHStackHttpGetHeaderValue_0100 ${result}`);
+      expect(result).assertEqual(0);
       done();
     });
   });

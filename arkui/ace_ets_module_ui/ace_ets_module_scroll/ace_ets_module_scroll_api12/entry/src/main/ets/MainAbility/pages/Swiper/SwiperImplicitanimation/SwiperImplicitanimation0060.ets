@@ -28,23 +28,25 @@ struct SwiperImplicitanimation0060 {
     Column({ space: 5 }) {
       Swiper(this.swiperController) {
         Text('1')
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('2')
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('3')
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
       }
+      .width('80%')
+      .height('50%')
       .loop(false)
       .effectMode(EdgeEffect.Spring)
       .id('implicitanimation_0060')
@@ -57,22 +59,29 @@ struct SwiperImplicitanimation0060 {
         this.velocity = extraInfo.velocity.toString()
       })
 
-      Button('切换下').onClick((event: ClickEvent) => {
-        this.swiperController.showNext()
+      Row(){
+        Button('切换下')
+          .height('5%').onClick((event: ClickEvent) => {
+          this.swiperController.showNext()
 
-      }).id('btn_implicitanimation_0060_1')
+        }).id('btn_implicitanimation_0060_1')
 
-      Button('切换上').onClick((event: ClickEvent) => {
-        this.swiperController.showPrevious()
+        Button('切换上')
+          .height('5%').onClick((event: ClickEvent) => {
+          this.swiperController.showPrevious()
 
-      }).id('btn_implicitanimation_0060_2')
+        }).id('btn_implicitanimation_0060_2')
+      }
 
-      Button('切换').onClick((event: ClickEvent) => {
+      Button('切换')
+          .height('5%').onClick((event: ClickEvent) => {
         this.swiperController.changeIndex(2)
 
       }).id('btn_implicitanimation_0060')
-      Text(this.indexstring).key('implicitanimation_0060_1')
-      Text(this.targetIndexs).key('implicitanimation_0060_2')
+      Row(){
+        Text(this.indexstring).key('implicitanimation_0060_1').margin({right:5})
+        Text(this.targetIndexs).key('implicitanimation_0060_2')
+      }
       Text(this.currentOffset).key('implicitanimation_0060_3')
       Text(this.targetOffset).key('implicitanimation_0060_4')
       Text(this.velocity).key('implicitanimation_0060_5')

@@ -171,6 +171,15 @@
       },
       {
         "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
+      },
+      {
+        "name": "ohos.permission.ENTERPRISE_SET_USER_RESTRICTION"
+      },
+      {
+        "name": "ohos.permission.ENTERPRISE_SET_KIOSK"
+      },
+      {
+        "name": "ohos.permission.ENTERPRISE_MANAGE_TELEPHONY"
       }
     ]
   }

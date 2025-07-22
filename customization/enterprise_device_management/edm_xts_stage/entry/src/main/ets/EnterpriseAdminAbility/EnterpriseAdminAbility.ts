@@ -49,6 +49,12 @@ export default class EnterpriseAdminAbility extends EnterpriseAdminExtensionAbil
   onAccountRemoved(accountId: number){
     console.log(`EnterpriseAdminExtensionAbility onAccountRemoved accountId: ${accountId}`);
   }
+  onKioskModeEntering(bundleName: string, accountId: number): void {
+    console.info(`EnterpriseAdminExtensionAbility onKioskModeEntering bundleName:${bundleName},accountId:${accountId}`);
+  }
+  onKioskModeExiting(bundleName: string, accountId: number): void {
+    console.info(`EnterpriseAdminExtensionAbility onKioskModeExiting bundleName:${bundleName},accountId:${accountId}`);
+  }
   onStart(){
     console.log('EnterpriseAdminExtensionAbility onStart');
   }

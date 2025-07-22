@@ -38,6 +38,7 @@ public:
     void Release();
     int BackTraceFromFp(void *startFp, int size);
     void SymbolicAddress(int index);
+    void SymbolicInvalidAddress(int index);
     void PrintStackFrame(void *pc, const HiDebug_StackFrame &frame);
 
 private:
@@ -123,6 +124,17 @@ void BackTraceObject::SymbolicAddress(int index)
                                });
 }
 
+void BackTraceObject::SymbolicInvalidAddress(int index) {
+    if (index < 0 || index >= MAX_FRAME_SIZE) {
+        return;
+    }
+    int i = OH_HiDebug_SymbolicAddress(backtraceObject_,  reinterpret_cast<BackTraceObject *>(0x0001), this,
+                               [](void *pc, void *arg, const HiDebug_StackFrame *frame) {
+                                   reinterpret_cast<BackTraceObject *>(arg)->PrintStackFrame(pc, *frame);
+                               });
+    OH_LOG_Print(LOG_APP, LOG_WARN, LOG_PRINT_DOMAIN, "TestTag", "return error code %{public}d", i);
+}
+
 
 void BackTraceCurrentThread()
 {
@@ -131,6 +143,18 @@ void BackTraceCurrentThread()
     auto pcSize2 = BackTraceObject::GetInstance().BackTraceFromFp(__builtin_frame_address(0), MAX_FRAME_SIZE);
     for (int i = 0; i < pcSize2; i++) {
         BackTraceObject::GetInstance().SymbolicAddress(i); // 栈解析。
+    }
+    BackTraceObject::GetInstance().Release();
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "TestTag", "end  BackTraceCurrentThread");
+}
+
+void InvaildBackTraceCurrentThread()
+{
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "TestTag", "start  BackTraceCurrentThread");
+    BackTraceObject::GetInstance().Init(MAX_FRAME_SIZE);
+    auto pcSize2 = BackTraceObject::GetInstance().BackTraceFromFp(__builtin_frame_address(0), MAX_FRAME_SIZE);
+    for (int i = 0; i < pcSize2; i++) {
+        BackTraceObject::GetInstance().SymbolicInvalidAddress(i); // 栈解析。
     }
     BackTraceObject::GetInstance().Release();
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "TestTag", "end  BackTraceCurrentThread");

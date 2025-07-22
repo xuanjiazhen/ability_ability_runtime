@@ -18,14 +18,14 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level
 import reminderAgent from '@ohos.reminderAgent'
 import notification from '@ohos.notification'
 import notificationManager from '@ohos.notificationManager';
-import { UiDriver, BY } from '@ohos.UiTest';
+import { Driver, ON } from '@ohos.UiTest';
 
 export default function ReminderAgentTest() {
     describe('ReminderAgentTest', function () {
 
         const TRIGGER_TIME_IN_SECONDS = 100;
         function sleep(ms) {
-            console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>sleep is success`);
+            console.info(`ReminderAgentTest sleep is success`);
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
@@ -34,35 +34,48 @@ export default function ReminderAgentTest() {
             /*
              * @tc.setup: setup invoked before all testcases
              */
-            console.info('beforeAll caled')
+            console.info(`ReminderAgentTest beforeAll called click usb button`)
+            await sleep(500);
+            let usb = Driver.create();
+            await sleep(500)
+            let usbButton = await usb.findComponent(ON.type('Button').text('确定').within(ON.type('Dialog')));
+            console.info(`usb button is ${JSON.stringify(usbButton)}`);
+            if (usbButton !== null) {
+                await sleep(1000);
+                await usbButton.click();
+                await sleep(500);
+            }
+
+            await sleep(500);
+            console.info(`ReminderAgentTest beforeAll called requestEnableNotification`)
             notificationManager.requestEnableNotification(async (err) => {
-            console.info(`ReminderAgentTest requestEnableNotification ===>====>come in requestEnableNotification`);
+            console.info(`ReminderAgentTest come in requestEnableNotification`);
               if (err) {
-                console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>requestEnableNotification failed, code is ${err.code}, message is ${err.message}`);
+                console.info(`ReminderAgentTest requestEnableNotification failed, code is ${err.code}, message is ${err.message}`);
                 expect(false).assertTrue();
                 done();
               } else {
-                console.info("ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>requestEnableNotification success");
+                console.info("ReminderAgentTest requestEnableNotification success");
                 expect(true).assertTrue();
                 await sleep(1000);
                 done();
               }
             });
         
-            await sleep(1000);
 
-            let driver = await UiDriver.create();
-            console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>come in driveFn`);
             await sleep(1000);
-            console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>driver is ${JSON.stringify(driver)}`);
-            let button = await driver.findComponent(BY.text('允许'));
-            console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>button is ${JSON.stringify(button)}`);
+            let driver = await Driver.create();
+            console.info(`ReminderAgentTest come in driveFn`);
+            await sleep(1000);
+            console.info(`ReminderAgentTest driver is ${JSON.stringify(driver)}`);
+            let button = await driver.findComponent(ON.type('Button').text('允许').within(ON.type('Dialog')));
+            console.info(`ReminderAgentTest button is ${JSON.stringify(button)}`);
             if(button != null){
                 await button.click();
-                console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>button is click`);
+                console.info(`ReminderAgentTest button is click`);
                 await sleep(1000);
             }else{
-                console.info(`ReminderAgentTest SUB_NOTIFICATION_ANS_Publish_TEST ===>====>button is null button`);
+                console.info(`ReminderAgentTest button is null`);
                 await sleep(1000);
                 done(); 
             } 

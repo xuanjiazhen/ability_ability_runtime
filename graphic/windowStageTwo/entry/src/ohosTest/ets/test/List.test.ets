@@ -27,8 +27,12 @@ import extensionWindowPropertiesTest from './ExtensionWindowProperties.test';
 import windowFocusTest from './WindowFocus.test';
 import windowPCTest from './WindowPC.test';
 import windowRotationTest from './WindowRotation.test';
+import windowEventTest from './WindowEvent.test';
+import windowControlsTest from './WindowControls.test';
+import windowKeyBorad from './WindowKeyBorad.test';
 
 export default function testsuite() {
+  windowEventTest();
   windowFocusTest();
   windowAutoSaveTest();
   windowTitleBarTest();
@@ -40,6 +44,8 @@ export default function testsuite() {
   windowMaximizeTest();
   windowImmersiveTest();
   windowPCTest();
+  windowControlsTest();
+  windowKeyBorad()
   windowRotationTest();
   windowPropertiesTest();
   windowPropertiesTest2();

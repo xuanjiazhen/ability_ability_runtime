@@ -104,5 +104,18 @@ export default function abilityTest() {
         .assertEqual('ohos.param.atomicservice.subpackageName');
       done();
     })
+
+    /*
+     * @tc.number  Sub_Ability_AbilityRuntime_AtomicserviceShareRouter_0100
+     * @tc.name    Sub_Ability_AbilityRuntime_AtomicserviceShareRouter_0100
+     * @tc.desc    Function test
+     * @tc.level   0
+     */
+    it('Sub_Ability_AbilityRuntime_AtomicserviceShareRouter_0100', Level.LEVEL0, async (done: Function) => {
+      TAG = 'Sub_Ability_AbilityRuntime_AtomicserviceShareRouter_0100 ==>';
+      expect(wantConstant.Params.ATOMIC_SERVICE_SHARE_ROUTER)
+        .assertEqual('ohos.params.atomicservice.shareRouter');
+      done();
+    })
   })
 }

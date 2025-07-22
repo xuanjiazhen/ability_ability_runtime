@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import myavcapability from 'libavcapability.so'
 import { BusinessError } from '@ohos.base';
 import media from '@ohos.multimedia.media';
 import image from '@ohos.multimedia.image';
@@ -436,6 +437,12 @@ export default function FetchScaledFrameByTimeTest() {
             let outSize: media.OutputSize = {
                 width: 111,
                 height: 111
+            }
+            let isSupport = await myavcapability.AVCapabilityIsVideoSizeSupported(2336, 1080);
+            if (isSupport == -1) {
+                console.info(`${testNum} AVCapabilityIsVideoSizeSupported Failed`);
+                done();
+                return;
             }
             let hdrFd: media.AVFileDescriptor | undefined = undefined
             await getFileDescriptor("hdr.mp4").then((fileDescriptor: resourceManager.RawFileDescriptor | undefined) => {

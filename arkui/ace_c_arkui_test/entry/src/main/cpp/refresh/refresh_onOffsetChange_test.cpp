@@ -49,10 +49,13 @@ static void BasicSet()
     refresh2 = nodeAPI2->createNode(ARKUI_NODE_REFRESH);
     ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
     ArkUI_NumberValue height_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue ratio_value[] = {{.f32 = PARAM_1}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     ArkUI_AttributeItem height_item = {height_value, sizeof(height_value) / sizeof(ArkUI_NumberValue)};
+    ArkUI_AttributeItem ratio_item = {ratio_value, sizeof(ratio_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI2->setAttribute(refresh2, NODE_WIDTH, &width_item);
     nodeAPI2->setAttribute(refresh2, NODE_HEIGHT, &height_item);
+    nodeAPI2->setAttribute(refresh2, NODE_REFRESH_PULL_DOWN_RATIO, &ratio_item);
     ArkUI_NumberValue background_color_value[] = { { .u32 = COLOR_BLUE } };
     ArkUI_AttributeItem background_color_item = { background_color_value,
         sizeof(background_color_value) / sizeof(ArkUI_NumberValue) };

@@ -14,7 +14,9 @@
  */
 
 import webRegisterJavaScriptProxyJsunit from './webRegisterJavaScriptProxyJsunit.test'
+import webRegisterAsyncThreadJavaScriptProxy from './WebRegisterAsyncThreadJavaScriptProxy.test'
 
 export default function testsuite() {
   webRegisterJavaScriptProxyJsunit()
+  webRegisterAsyncThreadJavaScriptProxy()
 }

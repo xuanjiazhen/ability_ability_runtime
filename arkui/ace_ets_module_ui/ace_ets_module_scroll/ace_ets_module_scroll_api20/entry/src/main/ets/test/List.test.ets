@@ -13,8 +13,44 @@
  * limitations under the License.
  */
 
+import barHeightNoMinHeightLimit from './TabsTest/barHeightNoMinHeightLimit.test';
 import maintainPosition from './SwiperTest/maintainPosition.test';
+import barMarginGrid from './GridTest/barMarginGrid.test';
+import barMarginList from './ListTest/barMarginList.test';
+import barMarginScroll from './ScrollTest/barMarginScroll.test';
+import curvesTabs from './TabsTest/curvesTabs.test';
+import maxDownRefresh from './RefreshTest/maxDownRefresh.test';
+import scrollBarColor from './ScrollBarTest/scrollBarColor.test';
+import canOverGrid from './GridTest/canOverGrid.test';
+import canOverList from './ListTest/canOverList.test';
+import canOverScroll from './ScrollTest/canOverScroll.test';
+import gridStopDrag from './GridTest/gridStopDrag.test';
+import listStopDrag from './ListTest/listStopDrag.test';
+import scrollStopDrag from './ScrollTest/scrollStopDrag.test';
+import waterFlowStopDrag from './WaterFlowTest/waterFlowStopDrag.test';
+import syncLoadGrid from './GridTest/syncLoadGrid.test';
+import syncLoadList from './ListTest/syncLoadList.test';
+import syncLoadGroup from './ListTest/syncLoadGroup.test';
+import syncLoadFlow from './WaterFlowTest/syncLoadFlow.test';
 
 export default function testsuite() {
+  barHeightNoMinHeightLimit();
   maintainPosition()
+  barMarginGrid()
+  barMarginList()
+  barMarginScroll()
+  curvesTabs()
+  maxDownRefresh()
+  scrollBarColor()
+  canOverGrid()
+  canOverList()
+  canOverScroll()
+  gridStopDrag()
+  listStopDrag()
+  scrollStopDrag()
+  waterFlowStopDrag()
+  syncLoadGrid()
+  syncLoadList()
+  syncLoadGroup()
+  syncLoadFlow()
 }

@@ -82,12 +82,17 @@ struct webviewSelectionMenuOptions {
                 await buttonOne.longClick()
                 await Utils.sleep(4000);
                 let buttontwo = await driver.findComponent(ON.text('Apple'));
+				//点击菜单栏的扩展项
                 if(!buttontwo) {
                   let buttonThree = await driver.findComponent(ON.type('SymbolGlyph'));
                   console.log('hhaaaaa' + buttonThree)
                   await buttonThree.click();
                 }
-                await buttontwo.click();
+				console.log('999buttontwo' + buttontwo)
+			    //然后再点Apple
+				let buttonFour = await driver.findComponent(ON.text('Apple'));
+				console.log('999buttontwo3333' + buttonFour)
+                await buttonFour.click();
                 await Utils.sleep(4000);
                 
               } catch (error) {

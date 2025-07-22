@@ -298,6 +298,93 @@ __attribute((noinline)) __attribute((optnone)) napi_value GetBacktraceFromFp(nap
     return nullptr;
 }
 
+__attribute((noinline)) __attribute((optnone)) void TestNativeInvaildFrames(int i)
+{
+    if (i > 0) {
+        TestNativeFrames(i - 1);
+        return;
+    }
+    InvaildBackTraceCurrentThread();
+}
+
+__attribute((noinline)) __attribute((optnone)) napi_value GetBacktraceInvaildFromFp(napi_env env, napi_callback_info info)
+{
+    TestNativeFrames(1); 
+    return nullptr;
+}
+
+static void* MyMalloc(size_t size)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    return original->malloc(size);
+}
+
+static void MyFree(void* ptr)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    original->free(ptr);
+}
+
+static void* MyMmap(void* addr, size_t len, int prot, int flags, int fd, off_t offset)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    return original->mmap(addr, len, prot, flags, fd, offset);
+}
+
+static int MyMunmap(void* addr, size_t len)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    return original->munmap(addr, len);
+}
+
+static void* MyCalloc(size_t nmemb, size_t size)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    return original->calloc(nmemb, size);
+}
+
+static void* MyRealloc(void* ptr, size_t size)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    return original->realloc(ptr, size);
+}
+
+static napi_value GetDefaultMallocDispatchTable(napi_env env, napi_callback_info info)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    HiDebug_MallocDispatch* current = (HiDebug_MallocDispatch*)original->malloc(sizeof(HiDebug_MallocDispatch));
+    current->malloc = MyMalloc;
+    current->free = MyFree;
+    current->mmap = MyMmap;
+    current->munmap = MyMunmap;
+    current->calloc = MyCalloc;
+    current->realloc = MyRealloc;
+    napi_value sum;
+    int initResult = OH_HiDebug_SetMallocDispatchTable(current);
+    napi_create_int32(env, initResult, &sum);
+    return sum;
+}
+
+static napi_value RestoreMallocDispatchTable(napi_env env, napi_callback_info info)
+{
+    HiDebug_MallocDispatch* original = (HiDebug_MallocDispatch*)OH_HiDebug_GetDefaultMallocDispatchTable();
+    HiDebug_MallocDispatch* current = (HiDebug_MallocDispatch*)original->malloc(sizeof(HiDebug_MallocDispatch));
+    current->malloc = MyMalloc;
+    napi_value sum;
+    int initResult = OH_HiDebug_SetMallocDispatchTable(current);
+    napi_create_int32(env, initResult, &sum);
+    OH_HiDebug_RestoreMallocDispatchTable();
+    return sum;
+}
+
+static napi_value GetInvaildMallocDispatchTable(napi_env env, napi_callback_info info)
+{
+    napi_value sum;
+    int initResult = OH_HiDebug_SetMallocDispatchTable(nullptr);
+    napi_create_int32(env, initResult, &sum);
+    return sum;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -322,10 +409,14 @@ static napi_value Init(napi_env env, napi_value exports)
         { "startAppTraceCaptureTag", nullptr,
           StartAppTraceCaptureTag, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "stopAppTraceCapture", nullptr, StopAppTraceCapture, nullptr, nullptr, nullptr, napi_default, nullptr },
-        {"getGraphicsMemory", nullptr, getGraphicsMemory, nullptr, nullptr, nullptr, napi_default, nullptr},
+        { "getGraphicsMemory", nullptr, getGraphicsMemory, nullptr, nullptr, nullptr, napi_default, nullptr},
         { "getGraphicsMemoryNULL", nullptr, getGraphicsMemoryNULL, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "getGraphicsMemoryArray", nullptr, getGraphicsMemoryArray, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "getBacktraceFromFp", nullptr, GetBacktraceFromFp, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getBacktraceInvaildFromFp", nullptr, GetBacktraceInvaildFromFp, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getDefaultMallocDispatchTable", nullptr, GetDefaultMallocDispatchTable, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "restoreMallocDispatchTable", nullptr, RestoreMallocDispatchTable, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getInvaildMallocDispatchTable", nullptr, GetInvaildMallocDispatchTable, nullptr, nullptr, nullptr, napi_default, nullptr },
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

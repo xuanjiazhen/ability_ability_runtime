@@ -1628,6 +1628,65 @@ export default function windowPropertiesTest2() {
         done()
       }
     })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_ONSCREENSHOTAPPEVENT_0100
+     * @tc.name       : testOnScreenShotAppEventwithDestoryedSubWindow
+     * @tc.desc       : 验证子窗销毁后监听on_screenshotAppEvent返回1300002错误码
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testOnScreenShotAppEventwithDestoryedSubWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testOnScreenShotAppEventwithDestoryedSubWindow";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      let windowClass = await windowStage.createSubWindow('testOnScreenShotAppEventwithDestoryedSubWindow');
+      await windowClass.destroyWindow();
+      try {
+        const callback = (data: window.ScreenshotEventType) => {
+          console.log(`${caseName} callback data: ${JSON.stringify(data)}`);
+        }
+        windowClass.on('screenshotAppEvent', callback);
+        console.info(msgStr + 'Succeeded in calling on screenshotAppEvent.');
+        expect().assertFail();
+        done()
+      } catch (exception) {
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
+        expect(exception.code).assertEqual(1300002)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_ONSCREENSHOTAPPEVENT_0200
+     * @tc.name       : testOffScreenShotAppEventwithDestoryedSubWindow
+     * @tc.desc       : 验证子窗销毁后取消监听off_screenshotAppEvent返回1300002错误码
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testOffScreenShotAppEventwithDestoryedSubWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testOffScreenShotAppEventwithDestoryedSubWindow";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      let windowClass = await windowStage.createSubWindow('testOffScreenShotAppEventwithDestoryedSubWindow');
+      await windowClass.destroyWindow();
+      try {
+        const callback = (data: window.ScreenshotEventType) => {
+          console.log(`${caseName} callback data: ${JSON.stringify(data)}`);
+        }
+        windowClass.off('screenshotAppEvent', callback);
+        console.info(msgStr + 'Succeeded in calling off screenshotAppEvent.');
+        expect().assertFail();
+        done()
+      } catch (exception) {
+        console.error(msgStr + 'Failed. Cause:' + JSON.stringify(exception));
+        expect(exception.code).assertEqual(1300002)
+        done()
+      }
+    })
+
   })
 }
 

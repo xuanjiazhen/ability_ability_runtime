@@ -17,7 +17,7 @@
  import { image } from '@kit.ImageKit';
  import { describe, it, expect, Level } from '@ohos/hypium';
  import { abilityDelegatorRegistry } from '@kit.TestKit';
- import deviceInfo from '@ohos.deviceInfo';
+ import { fileIo as fs } from '@kit.CoreFileKit';
 
  let abilityDelegator: abilityDelegatorRegistry.AbilityDelegator;
  let abilityDelegatorArguments: abilityDelegatorRegistry.AbilityDelegatorArgs;
@@ -29,13 +29,7 @@
         let moduleName = abilityDelegatorArguments.parameters['-m'];
         let context = abilityDelegator.getAppContext().getApplicationContext().createModuleContext(moduleName);
         let mResourceManager = context.resourceManager;
-        let imageSource: image.ImageSource = image.createImageSource(
-            mResourceManager.getRawFdSync('videoProcessTsSample.jpeg'));
-        let opts: image.DecodingOptions = {
-            desiredPixelFormat : 3,
-            editable : true,
-            desiredSize:{width:1080, height:2440}
-        }
+        let imageSource: image.ImageSource = image.createImageSource(mResourceManager.getRawFdSync('sample_image.png'));
     
     /**
      * @tc.number     : SUB_MULTIMEDIA_AV_CODEC_NATIVE_AVCODEC_VIDEOENCODER_VIDEO_PROCESS_TS_001
@@ -49,8 +43,8 @@
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             done();
@@ -74,11 +68,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs002', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
@@ -105,11 +103,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs003', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
@@ -136,11 +138,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs004', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
@@ -167,11 +173,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs005', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
@@ -198,11 +208,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs006', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
@@ -229,12 +243,16 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs007', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = imageProcessor.enhanceDetailSync(
-                sourceImage, 0.5, videoProcessingEngine.QualityLevel.NONE);
+                sourceImage, 2, videoProcessingEngine.QualityLevel.NONE);
             expect(enhancedPixelmap != null).assertTrue();
             done();
         } catch (err) {
@@ -257,11 +275,15 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs008', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             const imageInfo: image.ImageInfo = await sourceImage.getImageInfo();
-            let targetWidth = imageInfo.size.width * 0.5;
-            let targetHeight = imageInfo.size.height * 0.5;
+            let targetWidth = imageInfo.size.width * 2;
+            let targetHeight = imageInfo.size.height * 2;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = await imageProcessor.enhanceDetail(
@@ -288,12 +310,16 @@
      * @tc.level      : Level 1
      */
     it('testVideoProcessTs009', Level.LEVEL0, async(done: Function) => {
+        if (!fs.accessSync("/system/lib64/libvideoprocessingengine_ext.z.so")) {
+            expect(true).assertTrue();
+            done();
+        }
         try {
             let sourceImage = await imageSource.createPixelMap() as image.PixelMap;
             let imageProcessor = videoProcessingEngine.create() as videoProcessingEngine.ImageProcessor;
             expect(imageProcessor != null).assertTrue();
             let enhancedPixelmap: image.PixelMap = await imageProcessor.enhanceDetail(
-                sourceImage, 0.5, videoProcessingEngine.QualityLevel.NONE);
+                sourceImage, 2, videoProcessingEngine.QualityLevel.NONE);
             expect(enhancedPixelmap != null).assertTrue();
             done();
         } catch (err) {

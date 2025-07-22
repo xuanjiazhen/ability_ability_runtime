@@ -14,7 +14,7 @@
 */
 import { ArkTSUtils, MessageEvents, taskpool, worker } from '@kit.ArkTS';
 
-export function sleep(time: number): Promise<void> {
+export async function sleep(time: number): Promise<void> {
   return new Promise((re, je) => {
     setTimeout(() => {
       re();
@@ -31,7 +31,7 @@ export function printArgs1(args: number): number {
 }
 
 @Concurrent
-export function ConcurrentFunc(num: number): number {
+export async function ConcurrentFunc(num: number): Promise<number> {
   const promises: Promise<void>[] = [];
   let count: number = 0;
   count = num;
@@ -58,6 +58,7 @@ export function ConcurrentFunc(num: number): number {
     console.log('Exit shared lock lock1');
   }, ArkTSUtils.locks.AsyncLockMode.SHARED);
   promises.push(promise);
+  await Promise.all(promises).catch(()=>{})
   taskpool.Task.sendData(count);
   return count;
 }
@@ -72,7 +73,7 @@ export function delay(args: number): number {
 }
 
 @Concurrent
-export function printArgs2(args: number): number {
+export async function printArgs2(args: number): Promise<number> {
   let count:number = 0;
   count = args
   let LOCK1 = new ArkTSUtils.locks.AsyncLock();
@@ -89,11 +90,12 @@ export function printArgs2(args: number): number {
     }, ArkTSUtils.locks.AsyncLockMode.SHARED);
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs4(args: number): number {
+export async function printArgs4(args: number): Promise<number> {
   let count:number = 0;
   count = args
   let lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -110,11 +112,12 @@ export function printArgs4(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs6(args: number): number {
+export async function printArgs6(args: number): Promise<number> {
   let count:number = 0;
   count = args
   let lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -131,11 +134,12 @@ export function printArgs6(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs9(args: number): number {
+export async function printArgs9(args: number): Promise<number> {
   let count:number = 0;
   count = args
   let lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -157,11 +161,12 @@ export function printArgs9(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs12(args: number): number {
+export async function printArgs12(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -188,11 +193,12 @@ export function printArgs12(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs15(args: number): number {
+export async function printArgs15(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -213,11 +219,12 @@ export function printArgs15(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs17(args: number): number {
+export async function printArgs17(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -238,11 +245,12 @@ export function printArgs17(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs20(args: number): number {
+export async function printArgs20(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -271,12 +279,13 @@ export function printArgs20(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 
 @Concurrent
-export function printArgs21(args: number): number {
+export async function printArgs21(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -305,11 +314,12 @@ export function printArgs21(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs23(args: number): number {
+export async function printArgs23(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -332,11 +342,12 @@ export function printArgs23(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs25(args: number): number {
+export async function printArgs25(args: number): Promise<number> {
   let count:number = 0;
   count = args
   const lock1 = new ArkTSUtils.locks.AsyncLock();
@@ -359,11 +370,12 @@ export function printArgs25(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs28(args: number): number {
+export async function printArgs28(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -381,11 +393,12 @@ export function printArgs28(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs31(args: number): number {
+export async function printArgs31(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -403,11 +416,12 @@ export function printArgs31(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs34(args: number): number {
+export async function printArgs34(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -431,11 +445,12 @@ export function printArgs34(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs37(args: number): number {
+export async function printArgs37(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -464,11 +479,12 @@ export function printArgs37(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs40(args: number): number {
+export async function printArgs40(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -494,11 +510,12 @@ export function printArgs40(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs41(args: number): number {
+export async function printArgs41(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -522,11 +539,49 @@ export function printArgs41(args: number): number {
   }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
   console.log('Exit shared lock lock1');
   promises.push(promise1);
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs43(args: number): number {
+export async function printArgs43(args: number): Promise<number> {
+  const caseName = 'TaskpoolUtilsAsynclockDifferentTest4300';
+  let count = 0;
+  count = args;
+  const promises: Promise<void>[] = [];
+  const lock1 = ArkTSUtils.locks.AsyncLock.request('lock1');
+  const lock2 = ArkTSUtils.locks.AsyncLock.request('lock2');
+  const lock3 = ArkTSUtils.locks.AsyncLock.request('lock3');
+  for (let i = 0; i < 10; i++) {
+    const promise1 = lock1.lockAsync(async () => {
+      console.log('Enter shared lock lock1');
+      await lock2.lockAsync(async () => {
+        console.log('Enter EXCLUSIVE lock lock2');
+        await lock3.lockAsync(async () => {
+          let workThread: worker.ThreadWorker;
+          workThread = new worker.ThreadWorker('../workers/Worker');
+          workThread.postMessage(caseName);
+          workThread.onmessage = (e: MessageEvents): void => {
+            count = e.data;
+            console.log('e:' + JSON.stringify(e));
+            console.info('main2 thread count is  ' + count);
+            workThread.terminate();
+          }
+          console.log('Exit EXCLUSIVE lock lock3');
+        }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
+        console.log('Exit EXCLUSIVE lock lock2');
+      }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
+      console.log('Exit shared lock lock1');
+    }, ArkTSUtils.locks.AsyncLockMode.SHARED);
+    console.log('Exit shared lock lock1');
+    promises.push(promise1);
+  }
+  await Promise.all(promises).catch(()=>{})
+  return count;
+}
+
+@Concurrent
+export async function printArgs44(args: number): Promise<number> {
   const caseName = 'TaskpoolUtilsAsynclockDifferentTest4300';
   let count = 0;
   count = args;
@@ -558,47 +613,12 @@ export function printArgs43(args: number): number {
     console.log('Exit shared lock lock1');
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs44(args: number): number {
-  const caseName = 'TaskpoolUtilsAsynclockDifferentTest4300';
-  let count = 0;
-  count = args;
-  const promises: Promise<void>[] = [];
-  const lock1 = ArkTSUtils.locks.AsyncLock.request('lock1');
-  const lock2 = ArkTSUtils.locks.AsyncLock.request('lock2');
-  const lock3 = ArkTSUtils.locks.AsyncLock.request('lock3');
-  for (let i = 0; i < 10; i++) {
-    const promise1 = lock1.lockAsync(async () => {
-      console.log('Enter shared lock lock1');
-      await lock2.lockAsync(async () => {
-        console.log('Enter EXCLUSIVE lock lock2');
-        await lock3.lockAsync(async () => {
-          let workThread: worker.ThreadWorker;
-          workThread = new worker.ThreadWorker('../testability/workers/Worker');
-          workThread.postMessage(caseName);
-          workThread.onmessage = (e: MessageEvents): void => {
-            count = e.data;
-            console.log('e:' + JSON.stringify(e));
-            console.info('main2 thread count is  ' + count);
-            workThread.terminate();
-          }
-          console.log('Exit EXCLUSIVE lock lock3');
-        }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
-        console.log('Exit EXCLUSIVE lock lock2');
-      }, ArkTSUtils.locks.AsyncLockMode.EXCLUSIVE);
-      console.log('Exit shared lock lock1');
-    }, ArkTSUtils.locks.AsyncLockMode.SHARED);
-    console.log('Exit shared lock lock1');
-    promises.push(promise1);
-  }
-  return count;
-}
-
-@Concurrent
-export function printArgs46(args: number): number {
+export async function printArgs46(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -629,11 +649,12 @@ export function printArgs46(args: number): number {
     }, ArkTSUtils.locks.AsyncLockMode.SHARED, options1);
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 
 @Concurrent
-export function printArgs49(args: number): number {
+export async function printArgs49(args: number): Promise<number> {
   let count = 0;
   count = args;
   const promises: Promise<void>[] = [];
@@ -664,6 +685,7 @@ export function printArgs49(args: number): number {
     }, ArkTSUtils.locks.AsyncLockMode.SHARED, options1);
     promises.push(promise1);
   }
+  await Promise.all(promises).catch(()=>{})
   return count;
 }
 

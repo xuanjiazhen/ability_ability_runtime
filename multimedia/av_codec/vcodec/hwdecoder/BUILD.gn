@@ -62,6 +62,7 @@ ohos_moduletest_suite("ActsHwdecoderTest") {
     sources = [
       "./src/api_test.cpp",
       "./src/func_test.cpp",
+      "./src/Func2Test.cpp",
       "./src/hwh265_hdr2sdr_test.cpp",
       "./src/state_test.cpp",
       "./src/videodec_api11_sample.cpp",

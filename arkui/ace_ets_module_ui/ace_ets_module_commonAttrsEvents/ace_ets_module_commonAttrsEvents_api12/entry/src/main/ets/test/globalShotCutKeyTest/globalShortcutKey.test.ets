@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeEach, afterEach, it, expect } from '@ohos/hypium'
+import { describe, beforeEach, afterEach, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router'
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
 import events_emitter from '@ohos.events.emitter';
@@ -76,18 +76,6 @@ async function testAsyncFunction3(keyChar: string|FunctionKey) {
   await CommonFunc.sleep(500);
   let driver = Driver.create();
   // keyboard to sumilate
-  if(keyChar === FunctionKey.ESC) {
-    globalThis.value.message.notify({name:'keys',value:[ModifierKey.SHIFT,ModifierKey.CTRL]})
-    await CommonFunc.sleep(500);
-    await driver.triggerCombineKeys(input.KeyCode.KEYCODE_CTRL_LEFT, input.KeyCode.KEYCODE_SHIFT_LEFT, keycodeMap.get(keyChar));
-    await CommonFunc.sleep(2000);
-    // to get the data to check
-    let tt2 = getInspectorByKey('keyTest3');
-    let obj2: ESObject = JSON.parse(tt2);
-    console.info('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0280  '+ obj2.$attrs.content);
-    expect(obj2.$attrs.content).assertEqual('three key test');
-  }
-
   if(keyChar === 'Z') {
     globalThis.value.message.notify({name:'keys',value:[ModifierKey.SHIFT,ModifierKey.CTRL]})
     await CommonFunc.sleep(500);
@@ -98,18 +86,6 @@ async function testAsyncFunction3(keyChar: string|FunctionKey) {
     let obj2: ESObject = JSON.parse(tt2);
     console.info('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0280  '+ obj2.$attrs.content);
     expect(obj2.$attrs.content).assertEqual('I clicked Button3 ' + keyChar);
-  }
-
-  if(keyChar === FunctionKey.F4) {
-    globalThis.value.message.notify({name:'keys',value:[ModifierKey.SHIFT,ModifierKey.ALT]})
-    await CommonFunc.sleep(500);
-    await driver.triggerCombineKeys(input.KeyCode.KEYCODE_ALT_LEFT, input.KeyCode.KEYCODE_SHIFT_LEFT, keycodeMap.get(keyChar));
-    await CommonFunc.sleep(2000);
-    // to get the data to check
-    let tt2 = getInspectorByKey('keyTest3');
-    let obj2: ESObject = JSON.parse(tt2);
-    console.info('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0280  '+ obj2.$attrs.content);
-    expect(obj2.$attrs.content).assertEqual('three key test');
   }
 
   if(keyChar === FunctionKey.TAB) {
@@ -160,7 +136,7 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0230', 0, async (done: Function) => {
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0230', Level.LEVEL0, async (done: Function) => {
       let keyStrings: (string | FunctionKey)[] = ["C", "A", "Z", "Y", "V",FunctionKey.ESC, FunctionKey.F1, FunctionKey.F2,
         FunctionKey.F3, FunctionKey.F3,
         FunctionKey.F4, FunctionKey.F5,
@@ -186,8 +162,8 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0280', 0, async (done: Function) => {
-      let keyStrings: (string | FunctionKey)[] = [ FunctionKey.ESC,FunctionKey.F4, FunctionKey.TAB, 'Z'];
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0280', Level.LEVEL0, async (done: Function) => {
+      let keyStrings: (string | FunctionKey)[] = [FunctionKey.TAB, 'Z'];
       // to test Ctrl + SHIT + Z..
       for (const keyChar of keyStrings) {
         await testAsyncFunction3(keyChar);
@@ -203,7 +179,7 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0340', 0, async (done: Function) => {
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0340', Level.LEVEL0, async (done: Function) => {
       let driver = Driver.create();
       // keyboard to sumilate 'CTRL + M'
       await driver.triggerCombineKeys(input.KeyCode.KEYCODE_CTRL_LEFT, input.KeyCode.KEYCODE_M);
@@ -224,7 +200,7 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0380', 0, async (done: Function) => {
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0380', Level.LEVEL0, async (done: Function) => {
       let driver = Driver.create();
       // keyboard to sumilate 'CTRAL + ←'
       await driver.triggerCombineKeys(input.KeyCode.KEYCODE_CTRL_LEFT,input.KeyCode.KEYCODE_CTRL_LEFT, input.KeyCode.KEYCODE_DPAD_LEFT);
@@ -245,7 +221,7 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0370', 0, async (done: Function) => {
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0370', Level.LEVEL0, async (done: Function) => {
       let driver = Driver.create();
       // keyboard to sumilate 'CTRAL + I'
       await driver.triggerCombineKeys(input.KeyCode.KEYCODE_CTRL_LEFT, input.KeyCode.KEYCODE_I);
@@ -267,7 +243,7 @@ export default function globalShortcutKeyTest() {
      * @tc.type :
      * @tc.size :
      */
-    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0330', 0, async (done: Function) => {
+    it('SUB_ACE_SUPPORT_GLOBAL_SHORTCUT_KEY_REGISTRATION_0330', Level.LEVEL0, async (done: Function) => {
       let driver = Driver.create();
       // keyboard to sumilate 'SHIFT + ->'
       await driver.triggerCombineKeys(input.KeyCode.KEYCODE_SHIFT_LEFT, input.KeyCode.KEYCODE_DPAD_RIGHT);

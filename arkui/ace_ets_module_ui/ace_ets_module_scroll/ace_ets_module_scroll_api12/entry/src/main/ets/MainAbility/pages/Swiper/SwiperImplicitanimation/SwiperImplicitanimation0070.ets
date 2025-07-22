@@ -26,25 +26,27 @@ struct SwiperImplicitanimation0070 {
       Swiper(this.swiperController) {
         Text('1')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('2')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('3')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
       }
+      .width('80%')
+      .height('50%')
       .loop(false)
       .effectMode(EdgeEffect.Spring)
       .id('implicitanimation_0070')
@@ -53,8 +55,10 @@ struct SwiperImplicitanimation0070 {
         this.currentOffset = extraInfo.currentOffset.toFixed(0).toString()
       })
 
-      Text(this.index).key('implicitanimation_0070_1')
-      Text(this.currentOffset).key('implicitanimation_0070_2')
+      Row(){
+        Text(this.index).key('implicitanimation_0070_1').margin({right:5})
+        Text(this.currentOffset).key('implicitanimation_0070_2')
+      }
     }.width('100%')
     .margin({ top: 5 })
   }

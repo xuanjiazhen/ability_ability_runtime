@@ -19,7 +19,8 @@ import WebViewEnumAndFontLibrary from './WebViewEnumAndFontLibrary.test'
 import WebViewEnumAndSetWebController from './WebViewEnumAndSetWebController.test'
 import webViewMenuShowResult from './webViewMenuShowResult.test'
 import webViewHasImageJsunit from './webViewHasImageJsunit.test'
-
+import WebViewonOnContextMenuShow from './WebViewonOnContextMenuShow.test'
+import WebViewonOnContextMenuShowTwo from './WebViewonOnContextMenuShowTwo.test'
 
 
 export default function testsuite() {
@@ -28,5 +29,7 @@ export default function testsuite() {
   WebViewEnumAndSetWebController()
   webViewMenuShowResult()
   webViewHasImageJsunit()
+  WebViewonOnContextMenuShow()
+  WebViewonOnContextMenuShowTwo()
 
 }

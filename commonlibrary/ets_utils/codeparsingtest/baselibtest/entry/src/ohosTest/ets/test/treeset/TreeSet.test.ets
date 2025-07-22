@@ -2044,5 +2044,150 @@ export default function TreeSetTest() {
       }
     });
 
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREESET_8800
+     * @tc.name       : testTreeSetComparatorConstruct0001
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeSetComparatorConstruct0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeSetComparatorConstruct0001";
+      class A {
+        time: number = 0;
+        constructor(time: number) {
+            this.time = time;
+        }
+      }
+      let set = new TreeSet<A>((first: A, second: A) => {
+          return first.time > second.time;
+      });
+      try {
+        const a1 = new A(1);
+        const a2 = new A(2);
+        const a3 = new A(3);
+        const a4 = new A(4);
+        const a5 = new A(5);
+        set.add(a1);
+        set.add(a2);
+        set.add(a3);
+        set.add(a4);
+        set.add(a5);
+        for (let i = 0; i < 5; i++) {
+            set.remove(a1);
+            expect(set.has(a1)).assertEqual(false);
+            set.add(a1);
+        }
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
+
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREESET_8900
+     * @tc.name       : testTreeSetComparatorConstruct0002
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeSetComparatorConstruct0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeSetComparatorConstruct0002";
+      class A {
+        name: string;
+        constructor(name: string) {
+            this.name = name;
+        }
+      }
+      let set = new TreeSet<A>((first: A, second: A) => {
+          return first.name > second.name;
+      });
+      try {
+        const a1 = new A('jflksad');
+        const a2 = new A('jgoijsd');
+        const a3 = new A('sjdalkgj');
+        const a4 = new A('jglkasdg');
+        const a5 = new A('vjlkwdef');
+        set.add(a1);
+        set.add(a2);
+        set.add(a3);
+        set.add(a4);
+        set.add(a5);
+        for (let i = 0; i < 5; i++) {
+            set.remove(a1);
+            expect(set.has(a1)).assertEqual(false);
+            set.add(a1);
+        }
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
+
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREESET_9000
+     * @tc.name       : testTreeSetComparatorConstruct0003
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeSetComparatorConstruct0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeSetComparatorConstruct0003";
+      class A {
+        value: number;
+        name: string;
+        constructor(value: number, name: string) {
+            this.value = value;
+            this.name = name;
+        }
+      }
+      let set = new TreeSet<A>((first: A, second: A) => {
+        if (first.value == second.value) {
+          return first.name > second.name;
+        }
+        return first.value > second.value;
+      });
+      try {
+        const a1 = new A(1, 'abc');
+        const a2 = new A(2, 'abc');
+        const a3 = new A(3, 'abc');
+        const a4 = new A(4, 'abc');
+        const a5 = new A(5, 'abc');
+        const aa1 = new A(1, 'aac');
+        const aa2 = new A(2, 'aac');
+        const aa3 = new A(3, 'aac');
+        const aa4 = new A(4, 'aac');
+        const aa5 = new A(5, 'aac');
+        set.add(a1);
+        set.add(a2);
+        set.add(a3);
+        set.add(a4);
+        set.add(a5);
+        set.add(aa1);
+        set.add(aa2);
+        set.add(aa3);
+        set.add(aa4);
+        set.add(aa5);
+        for (let i = 0; i < 5; i++) {
+            set.remove(a1);
+            expect(set.has(a1)).assertEqual(false);
+            set.add(a1);
+        }
+        expect(set.length).assertEqual(10);
+        expect(set.has(a1)).assertEqual(true);
+        set.remove(a1);
+        expect(set.has(a2)).assertEqual(true);
+        set.remove(a2);
+        expect(set.has(aa1)).assertEqual(true);
+        set.remove(aa1);
+        expect(set.has(aa2)).assertEqual(true);
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
   })
 }

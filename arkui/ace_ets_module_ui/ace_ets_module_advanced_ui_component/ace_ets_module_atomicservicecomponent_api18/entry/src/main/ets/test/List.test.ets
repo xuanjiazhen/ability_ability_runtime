@@ -19,6 +19,7 @@ import atomicservicewebTest from './atomicserviceweb/AtomicServiceWeb.test';
 import atomicservicetabsTest from './atomicservicetabs/AtomicServiceTabs.test';
 import interstitialdialogactionTest from './interstitialdialogaction/InterstitialDialogAction.test';
 import halfscreenlaunchcomponentTest from './halfscreenlaunchcomponent/HalfScreenLaunchComponent.test';
+import innerfullscreenlaunchcomponentTest from './innerfullscreenlaunchcomponent/InnerFullScreenLaunchComponent.test';
 
 export default function testsuite() {
   atomicservicenavigationTest();
@@ -27,4 +28,5 @@ export default function testsuite() {
   atomicservicetabsTest();
   halfscreenlaunchcomponentTest();
   interstitialdialogactionTest();
+  innerfullscreenlaunchcomponentTest();
 }

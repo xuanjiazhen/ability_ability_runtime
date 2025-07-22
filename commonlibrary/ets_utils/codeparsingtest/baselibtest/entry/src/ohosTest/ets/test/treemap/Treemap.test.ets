@@ -2506,5 +2506,151 @@ export default function TreemapTest() {
         expect().assertFail();
       }
     });
+
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREEMAP_101000
+     * @tc.name       : testTreeMapComparatorConstruct0001
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeMapComparatorConstruct0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeMapComparatorConstruct0001";
+      class A {
+        time: number = 0;
+        constructor(time: number) {
+            this.time = time;
+        }
+      }
+      let mp: TreeMap<A, number> = new TreeMap((first: A, second: A) => {
+          return first.time > second.time;
+      });
+      try {
+        const a1 = new A(1);
+        const a2 = new A(2);
+        const a3 = new A(3);
+        const a4 = new A(4);
+        const a5 = new A(5);
+        mp.set(a1, 1);
+        mp.set(a2, 2);
+        mp.set(a3, 3);
+        mp.set(a4, 4);
+        mp.set(a5, 5);
+        for (let i = 0; i < 5; i++) {
+            mp.remove(a1);
+            expect(mp.hasKey(a1)).assertEqual(false);
+            mp.set(a1, 1);
+        }
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
+
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREESET_102000
+     * @tc.name       : testTreeMapComparatorConstruct0002
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeMapComparatorConstruct0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeMapComparatorConstruct0002";
+      class A {
+        name: string;
+        constructor(name: string) {
+            this.name = name;
+        }
+      }
+      let mp: TreeMap<A, number> = new TreeMap((first: A, second: A) => {
+          return first.name > second.name;
+      });
+      try {
+        const a1 = new A('jflksad');
+        const a2 = new A('jgoijsd');
+        const a3 = new A('sjdalkgj');
+        const a4 = new A('jglkasdg');
+        const a5 = new A('vjlkwdef');
+        mp.set(a1, 1);
+        mp.set(a2, 2);
+        mp.set(a3, 3);
+        mp.set(a4, 4);
+        mp.set(a5, 5);
+        for (let i = 0; i < 5; i++) {
+            mp.remove(a1);
+            expect(mp.hasKey(a1)).assertEqual(false);
+            mp.set(a1, 1);
+        }
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
+
+    /**
+     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREEMAP_103000
+     * @tc.name       : testTreeMapComparatorConstruct0003
+     * @tc.desc       : Test the comparator of construct.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testTreeMapComparatorConstruct0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
+      const TAG = "testTreeMapComparatorConstruct0003";
+      class A {
+        value: number;
+        name: string;
+        constructor(value: number, name: string) {
+            this.value = value;
+            this.name = name;
+        }
+      }
+      let mp: TreeMap<A, number> = new TreeMap((first: A, second: A) => {
+        if (first.value == second.value) {
+          return first.name > second.name;
+        }
+        return first.value > second.value;
+      });
+      try {
+        const a1 = new A(1, 'abc');
+        const a2 = new A(2, 'abc');
+        const a3 = new A(3, 'abc');
+        const a4 = new A(4, 'abc');
+        const a5 = new A(5, 'abc');
+        const aa1 = new A(1, 'aac');
+        const aa2 = new A(2, 'aac');
+        const aa3 = new A(3, 'aac');
+        const aa4 = new A(4, 'aac');
+        const aa5 = new A(5, 'aac');
+        mp.set(a1, 1);
+        mp.set(a2, 2);
+        mp.set(a3, 3);
+        mp.set(a4, 4);
+        mp.set(a5, 5);
+        mp.set(aa1, 1);
+        mp.set(aa2, 1);
+        mp.set(aa3, 1);
+        mp.set(aa4, 1);
+        mp.set(aa5, 1);
+        for (let i = 0; i < 5; i++) {
+            mp.remove(a1);
+            expect(mp.hasKey(a1)).assertEqual(false);
+            mp.set(a1, 1);
+        }
+        expect(mp.length).assertEqual(10);
+        expect(mp.hasKey(a1)).assertEqual(true);
+        mp.remove(a1);
+        expect(mp.hasKey(a2)).assertEqual(true);
+        mp.remove(a2);
+        expect(mp.hasKey(aa1)).assertEqual(true);
+        mp.remove(aa1);
+        expect(mp.hasKey(aa2)).assertEqual(true);
+      } catch (err) {
+        console.error(`${TAG} failed, error: ${err}`);
+        expect().assertFail();
+      }
+    });
   })
 }

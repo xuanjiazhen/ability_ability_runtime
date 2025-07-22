@@ -27,6 +27,7 @@ group("DFXTest") {
       "log_dotting_two:ActsWebLogDottingTwoTest",
       "performance_maintenance:ActsWebPerformanceMaintenanceTest",
       "system_events:ActsWebSystemEventsTest",
+      "web_page_debug:ActsWebPageDebugTest",
     ]
   }
 }

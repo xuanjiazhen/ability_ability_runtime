@@ -531,7 +531,7 @@ export async function taskFunctionTest4700() {
 
 @Concurrent
 export async function taskFunctionTest5000() {
-  const caseName = 'AsynclockSameTest4900';
+  const caseName = 'AsynclockSameTest5000';
   const lock1 :ArkTSUtils.locks.AsyncLock =  ArkTSUtils.locks.AsyncLock.request('lock_1');
   const lock2 :ArkTSUtils.locks.AsyncLock =  ArkTSUtils.locks.AsyncLock.request('lock_1');
   const lock3 :ArkTSUtils.locks.AsyncLock =  ArkTSUtils.locks.AsyncLock.request('lock_1');

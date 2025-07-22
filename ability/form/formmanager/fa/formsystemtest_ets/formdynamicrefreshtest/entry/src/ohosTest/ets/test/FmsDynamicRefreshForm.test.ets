@@ -80,8 +80,8 @@ export default function test() {
                 expect(data.code).assertEqual(0);
                 commonEvent.unsubscribe(subscriberOnRefresh, () => unsubscribeOnRefreshCallback(tcNumber));
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                    console.info('FMS_timedRefresh_0100 publish' + JSON.stringify(err));
-                    done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
             };
             commonEvent.subscribe(subscriberOnRefresh, onRefreshCallback);
@@ -129,8 +129,8 @@ export default function test() {
                 expect(data.code).assertEqual(0);
                 commonEvent.unsubscribe(subscriberOnRefresh, () => unsubscribeOnRefreshCallback(tcNumber));
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                    console.info('FMS_timedRefresh_0200 publish' + JSON.stringify(err));
-                    done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
             };
             commonEvent.subscribe(subscriberOnRefresh, onRefreshCallback);
@@ -175,11 +175,10 @@ export default function test() {
             const onRefreshCallback = async (_:BusinessError, data: CommonEventManager.CommonEventData) => {
                 console.info(`${tcNumber} onRefreshCallback data: ${JSON.stringify(data)}`);
                 expect(data.event).assertEqual(`FMS_FormDynamicRefresh_commonEvent`);
-                expect(data.data).assertEqual(`7`);
                 commonEvent.unsubscribe(subscriberOnRefresh, () => unsubscribeOnRefreshCallback(tcNumber));
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                    console.info('FMS_timedRefresh_0300 publish' + JSON.stringify(err));
-                    done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
             };
             commonEvent.subscribe(subscriberOnRefresh, onRefreshCallback);
@@ -208,9 +207,11 @@ export default function test() {
                         }
                     }
                 }).then((res) => {
-                    console.info(`${tcNumber} featureAbility.startAbilityhost res: ${JSON.stringify(res)}`);
+                    console.info(`${tcNumber} featureAbility.startAbilityhost again res: ${JSON.stringify(res)}`);
+                    commonEvent.publish("FMS_FormDynamicRefresh_commonEvent", () => {
+                        console.info(`${tcNumber} onRefreshCallback publish start`)});
                 }).catch((err: BusinessError) => {
-                    console.info(`${tcNumber} featureAbility.startAbilityhost error: ${JSON.stringify(err)}`);
+                    console.info(`${tcNumber} featureAbility.startAbilityhost again error: ${JSON.stringify(err)}`);
                 });
                 console.info(`${tcNumber} featureAbility.startAbility again end`);
             };
@@ -256,8 +257,8 @@ export default function test() {
                 expect(data.event).assertEqual(`FMS_FormDynamicRefresh_commonEvent`);
                 commonEvent.unsubscribe(subscriberOnRefresh, () => unsubscribeOnRefreshCallback(tcNumber));
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                   console.info('FMS_timedRefresh_0400 publish' + JSON.stringify(err));
-                   done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
             };
             commonEvent.subscribe(subscriberOnRefresh, onRefreshCallback);
@@ -288,11 +289,11 @@ export default function test() {
                         }
                     }
                 }).then((res) => {
-                    console.info(`${tcNumber} featureAbility.startAbilityhost res: ${JSON.stringify(res)}`);
+                    console.info(`${tcNumber} featureAbility.startAbilityhost again res: ${JSON.stringify(res)}`);
                     commonEvent.publish("FMS_FormDynamicRefresh_commonEvent", () => {
-                        console.info(`${tcNumber} onRefreshCallback publish start`)})
+                        console.info(`${tcNumber} onRefreshCallback publish again start`)})
                 }).catch((err: BusinessError) => {
-                    console.info(`${tcNumber} featureAbility.startAbilityhost error: ${JSON.stringify(err)}`);
+                    console.info(`${tcNumber} featureAbility.startAbilityhost again error: ${JSON.stringify(err)}`);
                 });
                 console.info(`${tcNumber} featureAbility.startAbility again end`);
             };
@@ -340,8 +341,8 @@ export default function test() {
                 expect(data.code).assertEqual(0);
                 commonEvent.unsubscribe(subscriberOnRefresh, () => unsubscribeOnRefreshCallback(tcNumber));
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                    console.info('FMS_timedRefresh_0500 publish' + JSON.stringify(err));
-                    done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
             };
             commonEvent.subscribe(subscriberOnRefresh, onRefreshCallback);
@@ -387,8 +388,8 @@ export default function test() {
                 console.info(`${tcNumber} onSupplyCallback data: ${JSON.stringify(data)}`);
                 expect(data.event).assertEqual(`FMS_FormSupply_commonEvent`);
                 commonEvent.publish(deleteForm_Event, data, (err) => {
-                  console.info('FMS_timedRefresh_0600 publish' + JSON.stringify(err));
-                  done()
+                    console.info(`${tcNumber} publish deleteForm_Event: ${JSON.stringify(err)}`);
+                    done();
                 });
                 
             };

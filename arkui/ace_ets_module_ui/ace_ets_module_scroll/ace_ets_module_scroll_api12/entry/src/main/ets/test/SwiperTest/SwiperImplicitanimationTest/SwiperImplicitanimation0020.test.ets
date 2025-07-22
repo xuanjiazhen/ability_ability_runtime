@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {
   UiComponent,
@@ -64,7 +64,7 @@ export default function SwiperImplicitanimation0020() {
      * @tc.type Function
      * @tc.size MediumTest
      */
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_IMPLICITANIMATION_0020', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_IMPLICITANIMATION_0020', Level.LEVEL1, async (done: Function) => {
       console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_IMPLICITANIMATION_0020 START");
       await CommonFunc.sleep(1000);
       let driver: Driver = Driver.create();
@@ -76,12 +76,16 @@ export default function SwiperImplicitanimation0020() {
       let strIndex: string = getInspectorByKey('implicitanimation_0020_1')
       let jsonIndex: ESObject = JSON.parse(strIndex).$attrs.content;
       expect(jsonIndex).assertEqual('1')
-      let swiperArrow = await driver.findComponent(ON.id("implicitanimation_0020"));
-      let point2 = await swiperArrow.getBoundsCenter();
-      let x:number = parseInt(vp2px(120).toString());
-      let x1:number = parseInt(vp2px(90).toString());
-      await driver.drag(point2.x + x, point2.y, point2.x - x1, point2.y, 3000)
-      await CommonFunc.sleep(1000);
+      let swipeRect = CommonFunc.getComponentRectOnScreen('implicitanimation_0020');
+      let top = swipeRect.top;
+      let right = swipeRect.right;
+      let left = swipeRect.left;
+      let bottom = swipeRect.bottom;
+      console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_IMPLICITANIMATION_0020 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.drag(Math.round(left + width*0.8),Math.round(top + height/2),Math.round(left + width*0.1),Math.round(top + height/2));
+      await CommonFunc.sleep(2000);
       let strIndex4: string = getInspectorByKey('implicitanimation_0020_1')
       let jsonIndex4: ESObject = JSON.parse(strIndex4).$attrs.content;
       expect(jsonIndex4).assertEqual('2')
@@ -104,7 +108,7 @@ export default function SwiperImplicitanimation0020() {
       await showPrevious.click();
       await CommonFunc.sleep(1000);
 
-      await driver.drag(point2.x - x, point2.y, point2.x + x1, point2.y, 3000)
+      await driver.drag(Math.round(left + width*0.3),Math.round(top + height/2),Math.round(left + width*0.9),Math.round(top + height/2));
       await CommonFunc.sleep(1000);
       let strIndex0: string = getInspectorByKey('implicitanimation_0020_1')
       let jsonIndex0: ESObject = JSON.parse(strIndex0).$attrs.content;

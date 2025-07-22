@@ -33,9 +33,9 @@ struct AccessibilityProperty {
     '4、绿框绘制在组件上，屏幕朗读朗读“已选中accessibilitySelected true”\n' +
     '5、绿框绘制在组件上，屏幕朗读朗读“accessibilitySelected false”\n' +
     '6、绿框绘制在组件上，屏幕朗读朗读“accessibilitySelected undefined”\n' +
-    '7、勾选不勾选Checkbox，屏幕朗读的都是“已选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked true Select undefined”\n' +
-    '8、勾选不勾选Checkbox，屏幕朗读的都是“未选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked false Select undefined”\n' +
-    '9、勾选Checkbox，屏幕朗读的都是“已选中”，不勾选的时候朗读的是“未选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked undefined Select undefined”\n' +
+    '7、勾选不勾选Checkbox，屏幕朗读的都是“已选中，复选框，单指双击即可取消选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked true Select undefined”\n' +
+    '8、勾选不勾选Checkbox，屏幕朗读的都是“未选中，复选框，单指双击即可选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked false Select undefined”\n' +
+    '9、勾选Checkbox，屏幕朗读的都是“已选中，复选框，单指双击即可取消选中”，不勾选的时候朗读的是“未选中，复选框，单指双击即可选中”，聚焦到后面的文本内容，朗读的是“accessbilityChecked undefined Select undefined”\n' +
     '10、绿框绘制在组件上，屏幕朗读朗读“已选中accessibilitySelected true Checked undefined”\n' +
     '11、绿框绘制在组件上，屏幕朗读朗读“accessibilitySelected false Checked undefined”\n' +
     '12、绿框绘制在组件上，屏幕朗读朗读“accessibilitySelected undefined Checked undefined”';

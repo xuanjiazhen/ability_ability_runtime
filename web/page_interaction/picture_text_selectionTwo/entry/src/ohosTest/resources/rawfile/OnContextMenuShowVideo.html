@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture In Picture Video</title>
+</head>
+
+<body>
+<div class="container">
+    <video id="myVideo" controls>
+        <source src="https://vd2.bdstatic.com/mda-pm68mkxgax2mwydj/sc/cae_h264/1701958902456543503/mda-pm68mkxgax2mwydj.mp4?v_from_s=hkapp-haokan-hbf&auth_key=1703753049-0-0-952d747c497ad77ea1b953d042357beb&bcevod_channel=searchbox_feed&pd=1&cr=2&cd=0&pt=3&logid=2649216236&vid=7962020702593201339&klogid=2649216236&abtest="
+        type="video/mp4">
+    </video>
+</div>
+<style>
+    .container {
+         position: relative; /* 父元素设为相对定位 */
+         height: 100vh; /* 示例：父元素高度为视口高度 */
+         border: 1px solid #ccc;
+    }
+    #myVideo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* 通过平移自身宽高的50%实现居中 */
+        width: 300px;
+        height: 100px;
+        text-align: center;
+        line-height: 100px;
+    }
+</style>
+
+</body>
+
+</html>

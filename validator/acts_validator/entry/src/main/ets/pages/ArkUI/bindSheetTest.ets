@@ -253,6 +253,7 @@ struct bindSheetTest {
           })
           .fontSize(20)
           .bindSheet($$this.isShow, this.myBuilder(), {
+            height: this.sheetHeight,
             preferType: SheetType.BOTTOM,
             effectEdge: this.sheetEffectEdge,
             onAppear: () => {
@@ -275,6 +276,7 @@ struct bindSheetTest {
           })
           .fontSize(20)
           .bindSheet($$this.isShow1, this.myBuilder(), {
+            height: this.sheetHeight,
             preferType: SheetType.CENTER,
             effectEdge: this.sheetEffectEdge,
             onAppear: () => {
@@ -297,6 +299,7 @@ struct bindSheetTest {
           })
           .fontSize(20)
           .bindSheet($$this.isShow2, this.myBuilder(), {
+            height: this.sheetHeight,
             preferType: SheetType.POPUP,
             effectEdge: this.sheetEffectEdge,
             onAppear: () => {

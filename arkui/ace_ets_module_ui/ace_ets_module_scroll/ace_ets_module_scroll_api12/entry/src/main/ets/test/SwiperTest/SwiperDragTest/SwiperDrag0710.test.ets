@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {UiComponent, Driver, Component, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
 import CommonFunc from '../../../MainAbility/utils/Common';
@@ -52,15 +52,20 @@ export default function SwiperDrag0710() {
      * @tc.type
      * @tc.size
      */
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DRAG_0710', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DRAG_0710', Level.LEVEL1, async (done: Function) => {
       console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DRAG_0710 START");
       await CommonFunc.sleep(1000);
       let driver: Driver = Driver.create();
-      let swiperArrow = await driver.findComponent(ON.id("swiperdrag0710"));
-      let point2 = await swiperArrow.getBoundsCenter();
-      await CommonFunc.sleep(1000);
-      await driver.fling({x: point2.x + 200, y: point2.y}, {x: point2.x - 210, y: point2.y}, 5, 1000);
-      await CommonFunc.sleep(1000);
+      let swipeRect = CommonFunc.getComponentRectOnScreen('swiperdrag0710');
+      let top = swipeRect.top;
+      let right = swipeRect.right;
+      let left = swipeRect.left;
+      let bottom = swipeRect.bottom;
+      console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DRAG_0710 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.swipe(Math.round(left + width*0.8),Math.round(top + height/2),Math.round(left + width*0.1),Math.round(top + height/2));
+      await CommonFunc.sleep(2000);
       let strJson2: string = getInspectorByKey('swiper_drag_0710');
       let marq: ESObject =JSON.parse(strJson2).$attrs.content;
       expect(marq).assertEqual("1");

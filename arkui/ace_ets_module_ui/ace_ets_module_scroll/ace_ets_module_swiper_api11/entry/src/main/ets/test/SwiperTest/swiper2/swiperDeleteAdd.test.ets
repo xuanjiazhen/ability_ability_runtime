@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import CommonFunc from '../../../MainAbility/common/Common';
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
@@ -50,7 +50,7 @@ export default function swiperDelAddTest() {
      * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0070', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0070', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0070] START');
       await CommonFunc.sleep(2000);
       // click the delete button
@@ -62,12 +62,14 @@ export default function swiperDelAddTest() {
       // right scroll
       let bt = CommonFunc.getComponentRect('swiperTestWidth5');
       let btBottom = bt.bottom;
+      let btTop = bt.top;
       let btRight = bt.right;
       let btLeft = bt.left;
       let btWidth = Math.round(btRight - btLeft);
+      let btHeight = Math.round(btBottom - btTop);
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0700] swiper width " + btWidth);
      
-      await driver.swipe(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(27)), globalThis.winTop + Math.round(btBottom/2), globalThis.winLeft + Math.round(btRight), globalThis.winTop + Math.round(btBottom/2));
+      await driver.swipe(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(20)), globalThis.winTop + btTop + Math.round(btHeight/2), globalThis.winLeft + Math.round(btRight), globalThis.winTop + btTop + Math.round(btHeight/2));
       await CommonFunc.sleep(3000);
 
 
@@ -93,7 +95,7 @@ export default function swiperDelAddTest() {
      * @tc.type
     * @tc.size
      */
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0080', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0080', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0080] START');
       await CommonFunc.sleep(2000);
        // click the add button
@@ -109,12 +111,14 @@ export default function swiperDelAddTest() {
       // left scroll
       let bt = CommonFunc.getComponentRect('swiperTestWidth5');
       let btBottom = bt.bottom;
+      let btTop = bt.top;
       let btRight = bt.right;
       let btLeft = bt.left;
       let btWidth = Math.round(btRight - btLeft);
+      let btHeight = Math.round(btBottom - btTop);
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0700] swiper width " + btWidth);
       // right scroll
-      await driver.swipe(Math.round(globalThis.winLeft + Math.round(btRight) - vp2px(10)), Math.round(globalThis.winTop + Math.round(btBottom/2)),  Math.round(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(27))),  Math.round(globalThis.winTop + Math.round(btBottom/2)));
+      await driver.swipe(Math.round(globalThis.winLeft + Math.round(btRight) - vp2px(10)), Math.round(globalThis.winTop + btTop + Math.round(btHeight/2)),  Math.round(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(20))),  Math.round(globalThis.winTop  + btTop + Math.round(btHeight/2)));
       await CommonFunc.sleep(5000);
 
       // click the next button

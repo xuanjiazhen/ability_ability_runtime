@@ -22,12 +22,14 @@ group("concurrent_test") {
       "collectionstaskpooltest:ActsCollectionsTaskPoolTest",
       "collectionstest:ActsCollectionsTest",
       "concurrentlibtest:ActsConcurrentLibTest",
+      "concurrentmoduletest:ActsConcurrentModuleTest",
       "processtest:ActsProcessTest",
       "promisetest:ActsPromiseTest",
       "sharedarraybuffertest:ActsSharedArrayBufferTest",
       "taskpoolandtimer:ActsTaskPoolAndTimerTest",
       "taskpoolexecutedelayedtest:ActsTaskPoolExecuteDelayedTest",
       "taskpoolsequencerunnertest:ActsTaskPoolSequenceRunnerTest",
+      "taskpoolsupplementtest:ActsTaskPoolSupplementTest",
       "taskpooltaskgrouptest:ActsTaskPoolTaskGroupTest",
     ]
   }

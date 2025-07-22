@@ -29,11 +29,18 @@ add_library(nativeNode SHARED
     capihand/manager.cpp
     init.cpp )
 
+
+
 add_library(nativegamecrontroller SHARED
     GameCtroller/container.cpp
     GameCtroller/manager.cpp
     native_gameinit.cpp )
 
+
+add_library(nativeKeyEvent SHARED
+    keyEvent/container.cpp
+    keyEvent/manager.cpp
+    native_keyEventinit.cpp )
 
 
 find_library(
@@ -79,4 +86,6 @@ target_link_libraries(nativerender_ PUBLIC
 target_link_libraries(nativeNode PUBLIC
     ${hilog-lib} ${libace-lib} ${libnapi-lib}  ${libnative_drawing})
 target_link_libraries(nativegamecrontroller PUBLIC
-    ${hilog-lib} ${libace-lib} ${libnapi-lib}  ${libnative_drawing})    
+    ${hilog-lib} ${libace-lib} ${libnapi-lib}  ${libnative_drawing})
+target_link_libraries(nativeKeyEvent PUBLIC
+    ${hilog-lib} ${libace-lib} ${libnapi-lib}  ${libnative_drawing})

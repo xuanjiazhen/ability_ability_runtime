@@ -97,41 +97,9 @@ export default function inputMethodEngineJSUnit() {
     beforeAll(async (done: Function) => {
       console.info('====>beforeAll inputMethod_enable start!')
       try {
-        let inputMethodSetting: inputMethod.InputMethodSetting = inputMethod.getSetting();
-        let result: boolean = await inputMethodSetting.showOptionalInputMethods();
-        console.info('====>beforeAll inputMethodSwitch showOptionalInputMethods result: ' + JSON.stringify(result));
-        let inputMethodList = await driver.waitForComponent(ON.type('List'), 3000);
-        console.info('====>beforeAll inputMethodSwitch inputMethodList: ' + JSON.stringify(inputMethodList));
-        if (JSON.stringify(inputMethodList) === 'null') {
-          await driver.delayMs(200);
-          inputMethodList = await driver.findComponent(ON.type('List'));
-          console.info('====>beforeAll inputMethodSwitch inputMethodList second: ' + JSON.stringify(inputMethodList));
-        }
-        await driver.delayMs(1000);
-        if (deviceinfo.deviceType === '2in1') {
-          let inputMethod_name: Component =
-            await driver.waitForComponent(ON.text('engine', MatchPattern.CONTAINS), 2000);
-          await inputMethod_name.click();
-          await driver.delayMs(500);
-        } else {
-          let inputMethod_name: Component =
-            await inputMethodList.scrollSearch(ON.text('engine', MatchPattern.CONTAINS));
-          console.info('====>beforeAll inputMethodSwitch inputMethod_name: ' + JSON.stringify(inputMethod_name));
-          if (JSON.stringify(inputMethod_name) === 'null') {
-            await driver.delayMs(200);
-            inputMethod_name = await inputMethodList.scrollSearch(ON.text('engine', MatchPattern.CONTAINS));
-            console.info('====>beforeAll inputMethodSwitch inputMethod_name second: ' +
-            JSON.stringify(inputMethod_name));
-          }
-          await inputMethod_name.click();
-        }
-        console.info('====>beforeAll inputMethodSwitch done');
-        await driver.delayMs(1000);
-        let testWindow: UiWindow = await driver.findWindow({
-          bundleName: "com.acts.inputmethodengine.test"
-        });
-        console.info('====>beforeAll inputMethodSwitch switch window: ' + JSON.stringify(testWindow));
-        await testWindow.focus();
+        await delegator.executeShellCommand('ime -e com.acts.inputmethodengine.test -f');
+        await delegator.executeShellCommand('ime -s com.acts.inputmethodengine.test');
+        console.info('====>beforeAll inputMethod_enable success');
         await driver.delayMs(1000);
         textArea = await driver.findComponent(ON.type('TextArea'));
         console.info('====>beforeAll inputMethodSwitch window textArea: ' + JSON.stringify(textArea));

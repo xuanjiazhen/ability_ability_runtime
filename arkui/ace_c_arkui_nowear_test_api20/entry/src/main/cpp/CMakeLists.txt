@@ -14,6 +14,14 @@ add_library(nativerender SHARED
     manager/plugin_manager.cpp
     napi_render_init.cpp
     button/button_gettype_test.cpp
+    drag/GetDisplayIdTest.cpp
+    drag/GetDragSourceTest.cpp
+    dropBadge/EnableDropDisallowedBadgeTest.cpp
+    component/ComponentTest.cpp
+    component/GridComponentTest.cpp
+    component/TextComponentTest.cpp
+    grid/FocusWrapModeTest.cpp
+    dialog/DialogGetStateTest.cpp
 )
 
 add_library(nativefunc SHARED

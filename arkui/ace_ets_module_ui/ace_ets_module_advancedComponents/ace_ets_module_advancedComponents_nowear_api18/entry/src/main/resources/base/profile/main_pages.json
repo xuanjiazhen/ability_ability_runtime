@@ -8,6 +8,10 @@
     "MainAbility/pages/segbtn/SegBtnItem0010",
     "MainAbility/pages/capsuleSegmentButtonV2/SegmentButtonV2Test",
     "MainAbility/pages/tabSegmentButtonV2/TabSegmentButtonV2Example",
-    "MainAbility/pages/multiCapsuleSegmentButtonV2/MultiSegmentButtonV2Page"
+    "MainAbility/pages/multiCapsuleSegmentButtonV2/MultiSegmentButtonV2Page",
+    "MainAbility/pages/progressButton/progressButtonTest",
+    "MainAbility/pages/subHeader/subHeaderSelect",
+    "MainAbility/pages/subHeaderV2/subHeaderV2Select",
+    "MainAbility/pages/swipeRefresher/swipeRefresherPageTest"
   ]
 }

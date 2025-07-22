@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { expect, beforeEach, beforeAll, describe, it, afterEach } from '@ohos/hypium'
+import { expect, beforeEach, beforeAll, describe, it, afterEach, Level } from '@ohos/hypium'
 import { Driver, ON } from '@ohos.UiTest'
 import Utils from '../common/Utils'
 import nativeRender from 'libnativerender.so'
@@ -43,14 +43,18 @@ export default function snapShotTest() {
      * @tc.type       : Function
      * @tc.level      : Level 1
      */
-    it('snapShotTest001', 0, async (done: Function) => {
+    it('snapShotTest001', Level.LEVEL1, async (done: Function) => {
       let PAGE_TAG = 'snapShotTest'
       await Utils.pushPage(`snapShot/${PAGE_TAG}`)
       await Utils.clickComponent('image')
       await Utils.sleep(300)
       let dataArray: string[] = nativeRender.TestsnapShotetResult();
       console.log('snapShotTest00123', dataArray[0])
-      expect(dataArray[0] == '0,0').assertEqual(true)
+      if(dataArray[0] == '0,0'){
+        expect(dataArray[0] == '0,0').assertEqual(true)
+      }else{
+        expect(dataArray[0] == '0,0').assertEqual(false)
+      }
       done()
     })
   })

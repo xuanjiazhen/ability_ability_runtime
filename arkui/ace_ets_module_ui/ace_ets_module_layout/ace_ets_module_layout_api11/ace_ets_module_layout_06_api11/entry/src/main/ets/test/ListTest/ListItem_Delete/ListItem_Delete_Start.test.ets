@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from "@ohos/hypium";
 import router from '@ohos.router';
 import CommonFunc, { RectValue } from '../../../MainAbility/common/Common';
 import { UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection,
@@ -57,7 +57,7 @@ export default function ListItem_Delete_Start() {
      * @tc.name      testListItem
      * @tc.desc      Set actionAreaDistance to 100 and slide 120
      */
-    it('SUB_ACE_ListItem_Delete_Start_0200', 0, async  (done: Function)=> {
+    it('SUB_ACE_ListItem_Delete_Start_0200',  Level.LEVEL0, async  (done: Function)=> {
       console.info('[SUB_ACE_ListItem_Delete_Start_0200] START');
       globalThis.value.message.notify({name:'actionAreaDistance', value:50});
       await CommonFunc.sleep(1000);
@@ -73,7 +73,7 @@ export default function ListItem_Delete_Start() {
 
       let driver = Driver.create();
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(10)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + right - vp2px(10)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(60)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + right - vp2px(10)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(2000);
 
@@ -98,7 +98,7 @@ export default function ListItem_Delete_Start() {
      * @tc.name      testListItem
      * @tc.desc      Set actionAreaDistance to 100 and slide 80
      */
-    it('SUB_ACE_ListItem_Delete_Start_0300', 0, async  (done: Function)=> {
+    it('SUB_ACE_ListItem_Delete_Start_0300',  Level.LEVEL0, async  (done: Function)=> {
       console.info('[SUB_ACE_ListItem_Delete_Start_0300] START');
       globalThis.value.message.notify({name:'actionAreaDistance', value:100});
       await CommonFunc.sleep(1000);
@@ -120,7 +120,7 @@ export default function ListItem_Delete_Start() {
       let height = bottom -top;
       console.info("SUB_ACE_ListItem_Delete_Start_0300 value is" + left + " --" + right + "--" + top + "--" + bottom);
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(30)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(80)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(60)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(2000);
 
@@ -146,7 +146,7 @@ export default function ListItem_Delete_Start() {
      * @tc.name      testListItem
      * @tc.desc      Set actionAreaDistance to 0 and slide 50
      */
-    it('SUB_ACE_ListItem_Delete_Start_0400', 0, async  (done: Function)=> {
+    it('SUB_ACE_ListItem_Delete_Start_0400',  Level.LEVEL0, async  (done: Function)=> {
       console.info('[SUB_ACE_ListItem_Delete_Start_0400] START');
       globalThis.value.message.notify({name:'actionAreaDistance', value:0});
       await CommonFunc.sleep(1000);
@@ -168,7 +168,7 @@ export default function ListItem_Delete_Start() {
       let height = bottom -top;
       console.info("SUB_ACE_ListItem_Delete_Start_0400 value is" + left + " --" + right + "--" + top + "--" + bottom);
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(30)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(80)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(60)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(2000);
 
@@ -193,7 +193,7 @@ export default function ListItem_Delete_Start() {
      * @tc.name      testListItem
      * @tc.desc      Set actionAreaDistance to -100 and slide 50
      */
-    it('SUB_ACE_ListItem_Delete_Start_0500', 0, async  (done: Function)=> {
+    it('SUB_ACE_ListItem_Delete_Start_0500',  Level.LEVEL0, async  (done: Function)=> {
       console.info('[SUB_ACE_ListItem_Delete_Start_0500] START');
       globalThis.value.message.notify({name:'actionAreaDistance', value:-100});
       await CommonFunc.sleep(1000);
@@ -216,7 +216,7 @@ export default function ListItem_Delete_Start() {
       console.info("SUB_ACE_ListItem_Delete_Start_0500 value is" + left + " --" + right + "--" + top + "--" + bottom);
 
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(30)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(80)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(60)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(2000);
 
@@ -240,7 +240,7 @@ export default function ListItem_Delete_Start() {
     //  * @tc.name      testListItem
     //  * @tc.desc      Set actionAreaDistance to 100 and slide 100
     //  */
-    // it('SUB_ACE_ListItem_Delete_Start_0100', 0, async  (done: Function)=> {
+    // it('SUB_ACE_ListItem_Delete_Start_0100',  Level.LEVEL0, async  (done: Function)=> {
     //   console.info('[SUB_ACE_ListItem_Delete_Start_0100] START');
     //   globalThis.value.message.notify({name:'actionAreaDistance', value:100});
     //   await CommonFunc.sleep(1000);

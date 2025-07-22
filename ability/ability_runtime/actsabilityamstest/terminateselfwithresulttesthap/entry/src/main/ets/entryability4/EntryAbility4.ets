@@ -29,8 +29,12 @@ export default class EntryAbility4 extends UIAbility {
     AppStorage.SetOrCreate<boolean>('onCreate', true);
     param.setTextNme(want.action);
   }
-
-  onDestroy(): void {
+  sleep(ms: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, ms)
+    });
+  }
+  async onDestroy(): Promise<void> {
     hilog.info(0x0000, 'EntryAbility4', '%{public}s', 'Ability onDestroy');
     let onBackground = AppStorage.get<boolean>('onBackground');
     let onWindowStageDestroy = AppStorage.get<boolean>('onWindowStageDestroy');
@@ -50,6 +54,7 @@ export default class EntryAbility4 extends UIAbility {
         hilog.info(0x0000, 'EntryAbility4', `onConnect, 50 == ${JSON.stringify(result)}`);
       });
     }
+    await this.sleep(1000);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {

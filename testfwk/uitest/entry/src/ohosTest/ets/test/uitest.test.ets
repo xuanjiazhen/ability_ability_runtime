@@ -47,9 +47,34 @@ async function stopApplication(bundleName: string) {
 async function exitInputMethod() {
     let driver = Driver.create()
     let softKeyBoard = await driver.findComponent(ON.type('Canvas'))
+    console.log(`${TestTag},softKeyBoard: ${JSON.stringify(softKeyBoard)}`);
     if (softKeyBoard != null) {
         await driver.pressBack()
     }
+}
+
+async function getInputMethodPermission() {
+    let driver = Driver.create()
+    await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+    await driver.delayMs(2000)
+    let TextInput = await driver.findComponent(ON.type('TextInput'))
+    if (TextInput == null) {
+        let scorll = await driver.findComponent(ON.type('Scroll'))
+        TextInput = await scorll.scrollSearch(ON.type('TextInput'))
+    }
+    await TextInput.click()
+    await driver.delayMs(1000)
+    let permissionBtn1 = await driver.findComponent(ON.text('同意'))
+    if (permissionBtn1 != null) {
+        await permissionBtn1.click()
+        await driver.delayMs(1000)
+    }
+    let permissionBtn2 = await driver.findComponent(ON.text('下一步'))
+    if (permissionBtn2 != null) {
+        await permissionBtn2.click()
+        await driver.delayMs(1000)
+    }
+    await stopApplication('com.uitestScene.acts')
 }
 
 export default function UiTest() {
@@ -58,6 +83,7 @@ export default function UiTest() {
         beforeAll(async (done: Function) => {
             driver = Driver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -87,7 +113,7 @@ export default function UiTest() {
         })
 
         /*
-        * @tc.number: uiTest_200015
+        * @tc.number: uiTest_20002
         * @tc.name: testNewMouseLongClick
         * @tc.desc: longClick in the specified location on the screen by mouse, the value of speed and duration are 3000.
         */
@@ -106,7 +132,7 @@ export default function UiTest() {
         })
 
         /*
-         * @tc.number: uiTest_20005
+         * @tc.number: uiTest_20003
          * @tc.name: testDriverInputText
          * @tc.desc: enter '123',the values of both paste and addition are false
          */
@@ -126,13 +152,17 @@ export default function UiTest() {
             await exitInputMethod();
             await driver.delayMs(2000);
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == '123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testDriverInputText over');
         })
 
         /*
-         * @tc.number: uiTest_20006
+         * @tc.number: uiTest_20004
          * @tc.name: testDriverInputText1
          * @tc.desc: enter '长贵儿',the values of both paste and addition are false
          */
@@ -148,19 +178,29 @@ export default function UiTest() {
             await text.clearText();
             await driver.delayMs(2000);
             await exitInputMethod();
-            let center = await text.getBoundsCenter();
+            await driver.delayMs(2000);
+            let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
+            let center = await text1.getBoundsCenter();
             await driver.inputText(center, '长贵儿', {paste:false, addition:false});
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(2000)
-            let text1 = await driver.findComponent(ON.type('TextInput'))
-            expect(await text1.getText() == '长贵儿').assertTrue()
+            let text2 = await driver.findComponent(ON.type('TextInput'))
+            if (text2 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text2 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
+            expect(await text2.getText() == '长贵儿').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testDriverInputText1 over');
         })
 
         /*
-         * @tc.number: uiTest_20007
+         * @tc.number: uiTest_20005
          * @tc.name: testDriverInputText2
          * @tc.desc: enter '123',the values of paste is true,the values of addition is false
          */
@@ -176,19 +216,29 @@ export default function UiTest() {
             await text.clearText()
             await driver.delayMs(2000)
             await exitInputMethod()
+            await driver.delayMs(1000)
+            text = await driver.findComponent(ON.type('TextInput'))
+            if (text == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             let center = await text.getBoundsCenter()
             await driver.inputText(center, '123', {paste:true, addition:false})
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == '123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testDriverInputText2 over');
         })
 
         /*
-         * @tc.number: uiTest_20008
+         * @tc.number: uiTest_20006
          * @tc.name: testDriverInputText3
          * @tc.desc: enter '123',the values of paste is false,the values of addition is true
          */
@@ -207,13 +257,17 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == 'Hello World123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testDriverInputText3 over');
         })
 
         /*
-         * @tc.number: uiTest_20009
+         * @tc.number: uiTest_20007
          * @tc.name: testDriverInputText4
          * @tc.desc: enter '123',the values of paste is true,the values of addition is true
          */
@@ -232,13 +286,17 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == 'Hello World123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testDriverInputText4 over');
         })
 
         /*
-         * @tc.number: uiTest_20010
+         * @tc.number: uiTest_20008
          * @tc.name: testComponentInputText
          * @tc.desc: enter '123',the values of both paste and addition are false
          */
@@ -256,13 +314,17 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == '123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testComponentInputText over');
         })
 
         /*
-         * @tc.number: uiTest_20011
+         * @tc.number: uiTest_20009
          * @tc.name: testComponentInputText1
          * @tc.desc: enter '长贵儿',the values of both paste and addition are false
          */
@@ -278,18 +340,28 @@ export default function UiTest() {
             await text.clearText()
             await driver.delayMs(2000)
             await exitInputMethod()
+            await driver.delayMs(2000)
+            text = await driver.findComponent(ON.type('TextInput'))
+            if (text == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             await text.inputText('长贵儿', {paste:false, addition:false})
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == '长贵儿').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testComponentInputText1 over');
         })
 
         /*
-         * @tc.number: uiTest_20012
+         * @tc.number: uiTest_20010
          * @tc.name: testComponentInputText2
          * @tc.desc: enter '123',the values of paste is true,the values of addition is false
          */
@@ -305,18 +377,28 @@ export default function UiTest() {
             await text.clearText()
             await driver.delayMs(2000)
             await exitInputMethod()
+            await driver.delayMs(2000)
+            text = await driver.findComponent(ON.type('TextInput'))
+            if (text == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             await text.inputText('123', {paste:true, addition:false})
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == '123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testComponentInputText2 over');
         })
 
         /*
-         * @tc.number: uiTest_20013
+         * @tc.number: uiTest_20011
          * @tc.name: testComponentInputText3
          * @tc.desc: enter '123',the values of paste is false,the values of addition is true
          */
@@ -334,13 +416,17 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == 'Hello World123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testComponentInputText3 over');
         })
 
         /*
-         * @tc.number: uiTest_20014
+         * @tc.number: uiTest_20012
          * @tc.name: testComponentInputText4
          * @tc.desc: enter '123',the values of paste is true,the values of addition is true
          */
@@ -358,13 +444,17 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let text1 = await driver.findComponent(ON.type('TextInput'))
+            if (text1 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                text1 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             expect(await text1.getText() == 'Hello World123').assertTrue()
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testComponentInputText4 over');
         })
 
         /*
-         * @tc.number: uiTest_20015
+         * @tc.number: uiTest_20013
          * @tc.name: testCrownRotate
          * @tc.desc: crownRotate test
          */
@@ -372,20 +462,22 @@ export default function UiTest() {
             console.log(TestTag, 'testCrownRotate start');
             await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
             await driver.delayMs(1000)
-            let btn = await driver.findComponent(ON.text('Click twice'))
-            if (btn == null) {
+            let button = await driver.findComponent(ON.text('wearList'))
+            if (button == null) {
                 let scorll = await driver.findComponent(ON.type('Scroll'))
-                btn = await scorll.scrollSearch(ON.text('Click twice'))
+                button = await scorll.scrollSearch(ON.text('wearList'))
             }
-            await btn.longClick();
+            await driver.delayMs(waitUiReadyMs)
+            await button.click()
+            await driver.delayMs(waitUiReadyMs)
             try {
-                await driver.crownRotate(50);
+                await driver.crownRotate(250);
                 await driver.delayMs(1000);
                 let toastBtn = await driver.findComponent(ON.text('1'));
                 await driver.delayMs(1000);
                 expect(toastBtn == null).assertTrue();
                 await driver.delayMs(1000);
-                await driver.crownRotate(-50);
+                await driver.crownRotate(-350);
                 await driver.delayMs(1000);
                 let toastBtn1 = await driver.findComponent(ON.text('1'));
                 await driver.delayMs(1000);
@@ -399,7 +491,7 @@ export default function UiTest() {
         })
 
         /*
-         * @tc.number: uiTest_20016
+         * @tc.number: uiTest_20014
          * @tc.name: testCrownRotateSpeed
          * @tc.desc: crownRotate test
          */
@@ -407,20 +499,22 @@ export default function UiTest() {
             console.log(TestTag, 'testCrownRotateSpeed start');
             await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
             await driver.delayMs(1000)
-            let btn = await driver.findComponent(ON.text('Click twice'))
-            if (btn == null) {
+            let button = await driver.findComponent(ON.text('wearList'))
+            if (button == null) {
                 let scorll = await driver.findComponent(ON.type('Scroll'))
-                btn = await scorll.scrollSearch(ON.text('Click twice'))
+                button = await scorll.scrollSearch(ON.text('wearList'))
             }
-            await btn.longClick();
+            await driver.delayMs(waitUiReadyMs)
+            await button.click()
+            await driver.delayMs(waitUiReadyMs)
             try {
-                await driver.crownRotate(50, 30);
+                await driver.crownRotate(250, 30);
                 await driver.delayMs(1000);
                 let toastBtn = await driver.findComponent(ON.text('1'));
                 await driver.delayMs(1000);
                 expect(toastBtn == null).assertTrue();
                 await driver.delayMs(1000);
-                await driver.crownRotate(-50, 30);
+                await driver.crownRotate(-350, 30);
                 await driver.delayMs(1000);
                 let toastBtn1 = await driver.findComponent(ON.text('1'));
                 await driver.delayMs(1000);
@@ -432,12 +526,538 @@ export default function UiTest() {
             await stopApplication('com.uitestScene.acts')
             console.log(TestTag, 'testCrownRotateSpeed over');
         })
+
+        /*
+         * @tc.number: uiTest_20015
+         * @tc.name: testBelongingDisplay
+         * @tc.desc: belongingDisplay test
+         */
+        it('testBelongingDisplay', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testBelongingDisplay start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(1000);
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testBelongingDisplay disPlay is: ${JSON.stringify(disPlay)}`);
+            try {
+                let mainPage = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('MainPage'));
+                let msg = await mainPage.getText();
+                console.log(`${TestTag}, testBelongingDisplay msg is: ${JSON.stringify(msg)}`);
+                expect(msg).assertEqual('MainPage')
+            } catch (error) {
+                console.log(`${TestTag}, testBelongingDisplay error is: ${JSON.stringify(error)}`);
+                expect().assertFail();
+            }
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testBelongingDisplay over');
+        })
+
+        /*
+         * @tc.number: uiTest_20016
+         * @tc.name: testGetDisplayId
+         * @tc.desc: getDisplayId test
+         */
+        it('testGetDisplayId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testGetDisplayId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(1000);
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testGetDisplayId disPlay is: ${JSON.stringify(disPlay)}`);
+            try {
+                let mainPage = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('MainPage'));
+                let disId = await mainPage.getDisplayId();
+                console.log(`${TestTag}, testGetDisplayId disId is: ${JSON.stringify(disId)}`);
+                expect(disId).assertEqual(disPlay.id)
+            } catch (error) {
+                console.log(`${TestTag}, testGetDisplayId error is: ${JSON.stringify(error)}`);
+                expect().assertFail();
+            }
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testGetDisplayId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20017
+         * @tc.name: testPressBackWithId
+         * @tc.desc: pressBack test
+         */
+        it('testPressBackWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testPressBackWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testPressBackWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            let button = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('next page'))
+            await button.click()
+            await driver.delayMs(waitUiReadyMs)
+            await driver.pressBack(disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            let button_ori = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('next page'))
+            expect(await button_ori.getText() == 'next page').assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testPressBackWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20018
+         * @tc.name: testTriggerKeyWithId
+         * @tc.desc: triggerKey test
+         */
+        it('testTriggerKeyWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testTriggerKeyWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testTriggerKeyWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            await driver.delayMs(waitUiReadyMs)
+            let button = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('next page'))
+            await button.click()
+            await driver.delayMs(waitUiReadyMs)
+            let keyBack = 2
+            await driver.triggerKey(keyBack, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            let button_ori = await driver.findComponent(ON.belongingDisplay(disPlay.id).text('next page'))
+            expect(await button_ori.getText() == 'next page').assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testTriggerKeyWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20019
+         * @tc.name: testScreenCapWithId
+         * @tc.desc: screenCap test
+         */
+        it('testScreenCapWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testScreenCapWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testScreenCapWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            await driver.delayMs(waitUiReadyMs)
+            let savePath = '/data/storage/el2/base/cache/1.png'
+            let success = await driver.screenCap(savePath, disPlay.id)
+            expect(success == true).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testScreenCapWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20020
+         * @tc.name: testGetDisplaySizeWithId
+         * @tc.desc: getDisplaySize test
+         */
+        it('testGetDisplaySizeWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testGetDisplaySizeWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testScreenCapWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            let s = await driver.getDisplaySize(disPlay.id)
+            expect(s.x != 0).assertTrue()
+            expect(s.y != 0).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testScreenCapWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20021
+         * @tc.name: testGetDisplayDensityWithId
+         * @tc.desc: getDisplayDensity test
+         */
+        it('testGetDisplayDensityWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testGetDisplayDensityWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testGetDisplayDensityWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            let s = await driver.getDisplayDensity(disPlay.id)
+            expect(s.x != 0).assertTrue()
+            expect(s.y != 0).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testGetDisplayDensityWithId over');
+        })
+
+
+        /*
+         * @tc.number: uiTest_20022
+         * @tc.name: testClickAt
+         * @tc.desc: clickAt test
+         */
+        it('testClickAt', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testClickAt start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let Button = await driver.findComponent(ON.text('next page'))
+            let center = await Button.getBoundsCenter()
+            await driver.clickAt(center)
+            await driver.delayMs(waitUiReadyMs)
+            let newButton = await driver.findComponent(ON.text('back to index'))
+            let text = await newButton.getText()
+            expect(text == 'back to index').assertTrue()
+            await newButton.click()
+            console.log(TestTag, 'testClickAt over');
+        })
+
+        /*
+         * @tc.number: uiTest_20023
+         * @tc.name: testDoubleClickAt
+         * @tc.desc: doubleClickAt test
+         */
+        it('testDoubleClickAt', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testDoubleClickAt start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let Button = await driver.findComponent(ON.text('Click twice'))
+            if (Button == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                Button = await scorll.scrollSearch(ON.text('Click twice'))
+            }
+            let center = await Button.getBoundsCenter()
+            await driver.doubleClickAt(center)
+            await driver.delayMs(waitUiReadyMs)
+            let button = await driver.findComponent(ON.text('doubleClick'))
+            let text = await button.getText()
+            expect(text == 'doubleClick').assertTrue()
+            await button.click()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testDoubleClickAt over');
+        })
+
+        /*
+         * @tc.number: uiTest_20024
+         * @tc.name: test_swipeBetween
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetween', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id})
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20025
+         * @tc.name: test_swipeBetweenspeednull
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetweenspeednull', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id}, null)
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20026
+         * @tc.name: test_swipeBetweenspeedundefined
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetweenspeedundefined', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id}, undefined)
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20027
+         * @tc.name: test_swipeBetweenspeed199
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetweenspeed199', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id}, 199)
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20028
+         * @tc.name: test_swipeBetweenspeed40001
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetweenspeed40001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id}, 40001)
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20029
+         * @tc.name: test_swipeBetweenspeed1000
+         * @tc.desc: swipeBetween test
+         */
+        it('test_swipeBetweenspeed1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_swipeBetween start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, test_swipeBetween disPlay is: ${JSON.stringify(disPlay)}`);
+            let scoll = await driver.findComponent(ON.type('Scroll'))
+            let rect = await scoll.getBounds()
+            let center = await scoll.getBoundsCenter()
+            await driver.swipeBetween({x: center.x, y: Math.floor(center.y + (rect.bottom - rect.top) / 4)
+            , displayId: disPlay.id},
+                {x: center.x, y: Math.floor(center.y - (rect.bottom - rect.top) / 4), displayId: disPlay.id}, 1000)
+            await driver.delayMs(waitUiReadyMs)
+            let text = await driver.findComponent(ON.text('toast'))
+            expect(text == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_swipeBetween over');
+        })
+
+        /*
+         * @tc.number: uiTest_20030
+         * @tc.name: testFlingWithId
+         * @tc.desc: fling test
+         */
+        it('testFlingWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testFlingWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testFlingWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            if (disPlay.id == 999) {
+                console.info('Can not create full screen application scene')
+                return
+            }
+            let window = await driver.findWindow({bundleName: 'com.uitestScene.acts'})
+            try {
+                await window.maximize()
+                await driver.delayMs(500)
+            } catch (error) {
+                console.info('It is already a Fullscreen window')
+            }
+            let button = await driver.findComponent(ON.text('wearList'))
+            if (button == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                button = await scorll.scrollSearch(ON.text('wearList'))
+            }
+            await driver.delayMs(waitUiReadyMs)
+            await button.click()
+            await driver.delayMs(waitUiReadyMs)
+            await driver.fling(UiDirection.DOWN, 39000, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            let buttonCom = await driver.findComponents(ON.belongingDisplay(disPlay.id).text('1'))
+            console.log(`${TestTag}, testFlingWithId buttonCom: ${JSON.stringify(buttonCom)}`);
+            expect (buttonCom).assertNull()
+            await driver.fling(UiDirection.LEFT, 39000, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            await driver.fling(UiDirection.RIGHT, 39000, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            await driver.fling(UiDirection.UP, 39000, disPlay.id)
+            await driver.delayMs(2000)
+            let button2 = await driver.findComponents(ON.belongingDisplay(disPlay.id).text('15'))
+            console.log(`${TestTag}, testFlingWithId button2: ${JSON.stringify(button2)}`);
+            expect (button2 == null).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testFlingWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20031
+         * @tc.name: testGetDisplayRotationWithId
+         * @tc.desc: getDisplayRotation test
+         */
+        it('testGetDisplayRotationWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testGetDisplayRotationWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testGetDisplayRotationWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            await driver.delayMs(waitUiReadyMs)
+            let rotation = await driver.getDisplayRotation(disPlay.id)
+            expect(rotation == DisplayRotation.ROTATION_0
+                || rotation == DisplayRotation.ROTATION_90
+                || rotation == DisplayRotation.ROTATION_180
+                || rotation == DisplayRotation.ROTATION_270).assertTrue();
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testGetDisplayRotationWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20032
+         * @tc.name: testTriggerCombineKeysWithId
+         * @tc.desc: triggerCombineKeys test
+         */
+        it('testTriggerCombineKeysWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'testTriggerCombineKeysWithId start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testTriggerCombineKeysWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            await driver.delayMs(1000);
+            await exitInputMethod();
+            await driver.delayMs(1000);
+            let text = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            if (text == null) {
+                let scorll = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('Scroll'))
+                text = await scorll.scrollSearch(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            }
+            // set pasteBoard data
+            await text.inputText('123')
+            await driver.delayMs(1000)
+            await exitInputMethod()
+            await driver.delayMs(1000)
+            text = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            if (text == null) {
+                let scorll = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('Scroll'))
+                text = await scorll.scrollSearch(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            }
+            let center = await text.getBoundsCenter()
+            await driver.click(center.x, center.y)
+            await driver.delayMs(waitUiReadyMs)
+            await driver.triggerCombineKeys(2072, 2017, 0, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            await driver.triggerCombineKeys(2072, 2019, 0, disPlay.id)
+            await driver.delayMs(waitUiReadyMs)
+            await exitInputMethod()
+            await driver.delayMs(1000)
+            // clear and paste
+            let text2 = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            if (text2 == null) {
+                let scorll = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('Scroll'))
+                text2 = await scorll.scrollSearch(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            }
+            await text2.clearText()
+            await driver.delayMs(waitUiReadyMs)
+            await driver.triggerCombineKeys(2072, 2038, 0, disPlay.id)
+            await driver.delayMs(1000)
+            await exitInputMethod()
+            await driver.delayMs(1000)
+            let text3 = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            if (text3 == null) {
+                let scorll = await driver.findComponent(ON.belongingDisplay(disPlay.id).type('Scroll'))
+                text3 = await scorll.scrollSearch(ON.belongingDisplay(disPlay.id).type('TextInput'))
+            }
+            expect(await text3.getText() == '123').assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'testTriggerCombineKeysWithId over');
+        })
+
+        /*
+         * @tc.number: uiTest_20033
+         * @tc.name: test_origin
+         * @tc.desc: specifies the string value match pattern.
+         */
+        it('test_origin', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            console.log(TestTag, 'test_origin start');
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let button1 = await driver.findComponent(ON.originalText('next page'))
+            console.log(`${TestTag}, test_origin button1: ${JSON.stringify(button1)}`);
+            let originText = await button1.getOriginalText();
+            console.log(`${TestTag}, test_origin originText: ${JSON.stringify(originText)}`);
+            expect(originText == 'next page').assertTrue()
+            let button2 = await driver.findComponent(ON.originalText('next',MatchPattern.STARTS_WITH))
+            console.log(`${TestTag}, test_origin button2: ${JSON.stringify(button2)}`);
+            let originText1 = await button2.getOriginalText();
+            console.log(`${TestTag}, test_origin originText1: ${JSON.stringify(originText1)}`);
+            expect(originText1 == 'next page').assertTrue()
+            await stopApplication('com.uitestScene.acts')
+            console.log(TestTag, 'test_origin end');
+        })
+
+        /*
+         * @tc.number: uiTest_20034
+         * @tc.name: testWindowAttrWithId
+         * @tc.desc: find window by WindowFilter and get it's active status.
+         */
+        it('testWindowAttrWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testWindowAttrWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            let window = await driver.findWindow({bundleName:'com.uitestScene.acts',focused:true,active:true,title:'',displayId: disPlay.id})
+            await window.focus()
+            await driver.delayMs(waitUiReadyMs)
+            let isActive = await window.isActive()
+            expect(isActive == true).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+        })
+
+        /*
+         * @tc.number: uiTest_20035
+         * @tc.name: testScreenCaptureWithId
+         * @tc.desc: capture the specified area of current screen.
+         */
+        it('testScreenCaptureWithId', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testScreenCaptureWithId disPlay is: ${JSON.stringify(disPlay)}`);
+            let savePath = '/data/storage/el2/base/cache/testScreenCaptureWithId.png'
+            let success = await driver.screenCapture(savePath, {left: 0, top: 0, right: 100, bottom: 100, displayId: disPlay.id})
+            expect(success == true).assertTrue()
+            await stopApplication('com.uitestScene.acts')
+        })
     })
     describe('UiTest_API16', () => {
         let driver: Driver
         beforeAll(async (done: Function) => {
             driver = Driver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -1496,6 +2116,7 @@ export default function UiTest() {
         beforeAll(async (done: Function) => {
             driver = Driver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -1622,14 +2243,14 @@ export default function UiTest() {
          * @tc.name: testMouseMoveWithTrack
          * @tc.desc: swipe on the screen between the specified points with mouse.
          */
-		it('testMouseMoveWithTrack', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
-           await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
-           let driver = Driver.create()
-           await driver.delayMs(waitUiReadyMs)
-           let Button = await driver.findComponent(ON.id('jump'))
-           if (Button == null) {
-             let scorll = await driver.findComponent(ON.type('Scroll'))
-             Button = await scorll.scrollSearch(ON.id('jump'))
+        it('testMouseMoveWithTrack', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            let driver = Driver.create()
+            await driver.delayMs(waitUiReadyMs)
+            let Button = await driver.findComponent(ON.id('jump'))
+            if (Button == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                Button = await scorll.scrollSearch(ON.id('jump'))
             }
             let center = await Button.getBoundsCenter()
             await driver.mouseMoveTo(center)
@@ -1660,17 +2281,25 @@ export default function UiTest() {
                 let scorll = await driver.findComponent(ON.type('Scroll'))
                 inputText = await scorll.scrollSearch(ON.type('TextInput'))
             }
-            let input = await driver.findComponent(ON.type('TextInput'))
-            await input.clearText()
+            await inputText.clearText()
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(waitUiReadyMs)
+            let input = await driver.findComponent(ON.type('TextInput'))
+            if (input == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                input = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             let center = await input.getBoundsCenter()
             await driver.inputText(center, '123')
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(2000)
             let input_new = await driver.findComponent(ON.type('TextInput'))
+            if (input_new == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                input_new = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             let text = await input_new.getText()
             console.info("testInputText result :" + text)
             expect(text == '123').assertTrue()
@@ -1753,6 +2382,7 @@ export default function UiTest() {
         beforeAll(async (done: Function) => {
             driver = Driver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -1975,6 +2605,7 @@ export default function UiTest() {
         beforeAll(async (done: Function) => {
             driver = Driver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -2000,6 +2631,10 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let input_new = await driver.findComponent(ON.type('TextInput'))
+            if (input_new == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                input_new = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             let text = await input_new.getText()
             console.info("testInputText result :" + text)
             expect(text == '123').assertTrue()
@@ -2024,11 +2659,19 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let input2 = await driver.findComponent(ON.type('TextInput'))
+            if (input2 == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                input2 = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             await input2.clearText()
             await driver.delayMs(2000)
             await exitInputMethod()
             await driver.delayMs(waitUiReadyMs)
             let input_new = await driver.findComponent(ON.type('TextInput'))
+            if (input_new == null) {
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                input_new = await scorll.scrollSearch(ON.type('TextInput'))
+            }
             let text = await input_new.getText()
             console.info("testClearText result :" + text)
             expect(text).assertEqual('')
@@ -2045,8 +2688,8 @@ export default function UiTest() {
             await driver.delayMs(waitUiReadyMs)
             let button = await driver.findComponent(ON.checkable().type('Checkbox'))
             if (button == null) {
-               let scorll = await driver.findComponent(ON.type('Scroll'))
-               button = await scorll.scrollSearch(ON.type('Checkbox').checkable(true))
+                let scorll = await driver.findComponent(ON.type('Scroll'))
+                button = await scorll.scrollSearch(ON.type('Checkbox').checkable(true))
             }
             let checkable = await button.isCheckable()
             expect(checkable == true).assertTrue()
@@ -2888,37 +3531,6 @@ export default function UiTest() {
         })
 
         /*
-         * @tc.number: uiTest_9044
-         * @tc.name: testWindowMaximize
-         * @tc.desc: maximize this UiWindow.
-         */
-        it('testWindowMaximize', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
-            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
-            await driver.delayMs(waitUiReadyMs)
-            let window = await driver.findWindow({bundleName:'com.uitestScene.acts'})
-            try{
-                let windowMode = await window.getWindowMode()
-                if (windowMode != WindowMode.FLOATING) {
-                    await window.resume()
-                }
-                let window2 = await driver.findWindow({bundleName:'com.uitestScene.acts'})
-                await window2.maximize()
-                await driver.delayMs(waitUiReadyMs)
-                let window3 = await driver.findWindow({bundleName:'com.uitestScene.acts'})
-                let mode = await window3.getWindowMode()
-                expect(mode == WindowMode.FULLSCREEN).assertTrue()
-                await stopApplication('com.uitestScene.acts')
-            }
-            catch (err) {
-                if (err.message == 'this device can not support this action') {
-                    expect(window != null).assertTrue()
-                } else {
-                    expect(false).assertTrue()
-                }
-            }
-        })
-
-        /*
          * @tc.number: uiTest_9045
          * @tc.name: testWindowMinimize
          * @tc.desc: minimize this UiWindow.
@@ -3046,6 +3658,37 @@ export default function UiTest() {
             }
             await stopApplication('com.uitestScene.acts')
         })
+
+        /*
+         * @tc.number: uiTest_9044
+         * @tc.name: testWindowMaximize
+         * @tc.desc: maximize this UiWindow.
+         */
+        it('testWindowMaximize', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+            await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
+            await driver.delayMs(waitUiReadyMs)
+            let window = await driver.findWindow({bundleName:'com.uitestScene.acts'})
+            try{
+                let windowMode = await window.getWindowMode()
+                if (windowMode != WindowMode.FLOATING) {
+                    await window.resume()
+                }
+                let window2 = await driver.findWindow({bundleName:'com.uitestScene.acts'})
+                await window2.maximize()
+                await driver.delayMs(waitUiReadyMs)
+                let window3 = await driver.findWindow({bundleName:'com.uitestScene.acts'})
+                let mode = await window3.getWindowMode()
+                expect(mode == WindowMode.FULLSCREEN).assertTrue()
+                await stopApplication('com.uitestScene.acts')
+            }
+            catch (err) {
+                if (err.message == 'this device can not support this action') {
+                    expect(window != null).assertTrue()
+                } else {
+                    expect(false).assertTrue()
+                }
+            }
+        })
     })
 
     describe('UiTest_API8', () => {
@@ -3053,6 +3696,7 @@ export default function UiTest() {
         beforeAll(async (done: Function) => {
             driver = UiDriver.create()
             await driver.delayMs(1000)
+            await getInputMethodPermission()
             done()
         })
 
@@ -3078,6 +3722,10 @@ export default function UiTest() {
             await exitInputMethod()
             await driver.delayMs(2000)
             let input_new = await driver.findComponent(BY.type('TextInput'))
+            if (input_new == null) {
+                let scorll = await driver.findComponent(BY.type('Scroll'))
+                input_new = await scorll.scrollSearch(BY.type('TextInput'))
+            }
             let text = await input_new.getText()
             console.info("testInputText result :" + text)
             expect(text == '123').assertTrue()

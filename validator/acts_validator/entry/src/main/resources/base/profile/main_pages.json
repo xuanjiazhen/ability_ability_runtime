@@ -10,6 +10,7 @@
     "pages/ArkUI/RotationGestureTest",
     "pages/ArkUI/SwipeGestureTest",
     "pages/ArkUI/TapGesture",
+    "pages/ArkUI/DraggingSizeChangeEffect",
     "pages/ArkUI/TouchMoveTest",
     "pages/ArkUI/bindSheetTest",
     "pages/ArkUI/CanvasLineWidth",
@@ -132,15 +133,20 @@
     "pages/ArkUI/Touchhand",
     "pages/ArkUI/HoverSpen",
     "pages/ArkUI/stopSwiper",
+    "pages/ArkUI/moveList",
     "pages/ArkUI/AccessibilityRoleTypeTest",
     "pages/ArkUI/StylusPen",
+    "pages/ArkUI/KeyEvent",
+    "pages/ArkUI/CapiKeyEvent",
     "pages/ArkUI/AccessibilityFocusDrawLevel",
 	"entryembeddeduiextability/pages/EntryEmbeddedUIExtAbilityPage",
     "pages/ArkUI/AccessibilityNextFocusIdPage",
     "pages/ArkUI/AccessibilityDefaultFocusPage",
     "pages/ArkUI/AccessibilityScrollTriggerablePage",
 	"pages/ArkUI/EmbeddedComponentInstanceTest",
-    "pages/ArkUI/OnAccessibilityActionIntercept"
+    "pages/ArkUI/OnAccessibilityActionIntercept",
+    "pages/ArkUI/AccessBilityHoverTransparent",
+    "pages/ArkUI/hoverScaleInterruption"
   ]
 }
 

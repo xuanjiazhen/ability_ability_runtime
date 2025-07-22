@@ -13,9 +13,12 @@ struct HalfScreenLaunchComponentTest {
         options: {},
         onTerminated:  (info:TerminationInfo)=>{
         console.log('onTerminated info = '+info.want);
-      },
+        },
         onError: (err) => {
           console.error(' onError code: ' + err.code + ', message: ', err.message);
+        },
+        onReceive: (data) => {
+          console.info('onReceive, data: ' + data['ohos.atomicService.window']);
         }
       }).width('100%').height('80vp')
     }

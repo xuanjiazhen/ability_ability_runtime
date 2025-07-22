@@ -26,16 +26,16 @@ struct ListItemExample15 {
   @Builder
   itemEnd() {
     Row() {
-      Button("Delete").margin("4vp").fontSize(12).height('5%')
-      Button("Set").margin("4vp").fontSize(12).height('5%')
+      Button("Delete").margin("4vp").fontSize(12)
+      Button("Set").margin("4vp").fontSize(12)
     }.padding("4vp").justifyContent(FlexAlign.SpaceEvenly)
   }
 
   @Builder
   itemStart() {
     Row() {
-      Button("StartDelete").margin("4vp").fontSize(12).height('5%')
-      Button("StartSet").margin("4vp").fontSize(12).height('5%')
+      Button("StartDelete").margin("4vp").fontSize(12)
+      Button("StartSet").margin("4vp").fontSize(12)
     }.padding("4vp").justifyContent(FlexAlign.SpaceEvenly)
   }
 

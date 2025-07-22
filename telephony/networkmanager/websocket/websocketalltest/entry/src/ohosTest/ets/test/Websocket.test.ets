@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, beforeEach, Level, Size, TestType } from '@ohos/hypium';
+import { describe, it, expect, beforeEach, beforeAll, Level, Size, TestType } from '@ohos/hypium';
 import { BusinessError } from '@ohos.base';
 import webSocket from '@ohos.net.webSocket';
-let activeUrl: string = 'ws://124.222.6.60:8800';
+import getWebsite from './utils/WsWebsite';
+let activeUrl: string;
 
 const ExpectTrue: (n: boolean) => void = (n: boolean) => {
   try {
@@ -56,10 +57,20 @@ let options: webSocket.WebSocketRequestOptions = {
   }
 };
 let ws: webSocket.WebSocket;
-let availableWebSocketAddress: string = 'ws://124.222.6.60:8800';
+let availableWebSocketAddress: string ;
 
 export default function WebSocketTest() {
   describe('webSocketTest', () => {
+    beforeAll(async (done: Function)=>{
+      console.log("beforeAll start")
+      availableWebSocketAddress = await getWebsite();
+      activeUrl = availableWebSocketAddress;
+      console.log("current url is "+ availableWebSocketAddress)
+      done()
+      console.log("beforeAll end")
+    })
+
+  
     beforeEach((done: Function) => {
       ws = webSocket.createWebSocket();
       done();

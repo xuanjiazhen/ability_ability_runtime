@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import router from '@ohos.router';
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import { Driver, ON, On } from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/utils/Common';
 import {MessageManager,Callback} from '../../MainAbility/utils/MessageManager';
@@ -50,15 +50,22 @@ export default function listSwipeActionApi12Test() {
      * @tc.type :
      * @tc.size :
     */
-    it('listSwipeActionApi12Test_001', 0, async (done: Function) => {
+    it('listSwipeActionApi12Test_001', Level.LEVEL1, async (done: Function) => {
       console.info('listSwipeActionApi12Test_001 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
       await CommonFunc.sleep(500);
       // swipe the listItem to right
-      await driver.swipe(
-        Math.round(globalThis.winLeft + vp2px(50)), Math.round(globalThis.winTop + vp2px(108)), Math.round(globalThis.winLeft + vp2px(200)), Math.round(globalThis.winTop + vp2px(108))
-      );
+      let swipeRect = CommonFunc.getComponentRectOnScreen('lSwipe29Action0');
+      let top = swipeRect.top;
+      let right = swipeRect.right;
+      let left = swipeRect.left;
+      let bottom = swipeRect.bottom;
+      console.info("listSwipeActionApi12Test_001 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await CommonFunc.sleep(1000);
+      await driver.swipe(Math.round(left + vp2px(60)),Math.round(top + height/2),Math.round(left + vp2px(150)),Math.round(top + height/2));
       await CommonFunc.sleep(5000);
       let strJson1 = getInspectorByKey('ListTestApi12_2');
       let obj1: ESObject = JSON.parse(strJson1);

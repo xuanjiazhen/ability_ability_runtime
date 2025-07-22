@@ -25,21 +25,23 @@ struct SwiperDrag0710 {
       Swiper(this.swiperController) {
         Text('1')
           .fontSize(80)
-          .width(400)
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
 
         Text('2')
           .fontSize(80)
-          .width(300)
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
       }
       .id('swiperdrag0710')
+      .width('80%')
+      .height('50%')
       .loop(false)
       .autoPlay(true)
       .onChange((index:Number)=>{

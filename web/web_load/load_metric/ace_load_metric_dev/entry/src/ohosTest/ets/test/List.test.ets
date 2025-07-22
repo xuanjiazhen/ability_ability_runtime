@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import webJsunit from './WebJsunit.test';
+import webJsunitTwo from './WebJsunitTwo.test';
 
 export default function testsuite() {
   webJsunit();
+  webJsunitTwo();
 }
