@@ -123,6 +123,8 @@ export default class UIAbilityContext extends Context {
     startCallback: AbilityStartCallback): BusinessError;
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
+
+  private native nativeOnSetRestoreEnabled(enabled: boolean): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -430,6 +432,10 @@ export default class UIAbilityContext extends Context {
       });
     });
     return p;
+  }
+
+  setRestoreEnabled(enabled: boolean): void {
+    return this.nativeOnSetRestoreEnabled(enabled);
   }
 
   openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
