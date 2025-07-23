@@ -965,6 +965,7 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker1');
       await sleep(200);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -985,6 +986,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(200);
       expect(errorCaught).assertEqual('Error: worker onmessage error');
+      myWorker.terminate();
       Done();
     });
 
@@ -1005,6 +1007,7 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker5');
       await sleep(100);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -1033,6 +1036,7 @@ export default function abilityTest() {
       await sleep(200);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
+      myWorker.terminate();
       Done();
     });
 
@@ -1053,6 +1057,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(200);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -1077,6 +1082,7 @@ export default function abilityTest() {
         Done();
       }, 100);
       expect(errorCaught).assertEqual('');
+      myWorker.terminate();
       Done();
     });
 
@@ -1101,6 +1107,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       sleep(200);
       expect(errorCaught).assertEqual('');
+      myWorker.terminate();
       Done();
     });
 
@@ -1295,6 +1302,7 @@ export default function abilityTest() {
       expect(!errorCaughtList.includes('error18')).assertTrue();
       expect(errorCaughtList.includes('worker top level error')).assertTrue();
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
+      myWorker.terminate();
       Done();
     });
   })
