@@ -41,6 +41,7 @@ ohos_shared_library("ani_common") {
 
   sources = [
     "src/ani_common_ability_result.cpp",
+    "src/ani_common_ability_state_data.cpp",
     "src/ani_common_configuration.cpp",
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
@@ -59,6 +60,7 @@ ohos_shared_library("ani_common") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
