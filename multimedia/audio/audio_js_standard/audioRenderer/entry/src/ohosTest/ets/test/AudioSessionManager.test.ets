@@ -329,7 +329,7 @@ export default function audioSessionManagerTest() {
     it('SUB_AUDIO_AUDIOSESSIONMANAGER_API_11', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       sessionManager.on('audioSessionStateChanged', (AudioSessionStateChangedEvent: audio.AudioSessionStateChangedEvent) => {
         if(AudioSessionStateChangedEvent.stateChangeHint === audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_RESUME){
-          console.info(`reason of audioSessionDeactivated: ${audioSessionDeactivatedEvent.reason} `);
+          console.info(`reason of audioSessionDeactivated: ${AudioSessionStateChangedEvent.stateChangeHint} `);
         }
       });
       done();
@@ -344,7 +344,7 @@ export default function audioSessionManagerTest() {
     */
     it('SUB_AUDIO_AUDIOSESSIONMANAGER_API_12', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       sessionManager.on('currentOutputDeviceChanged', (CurrentOutputDeviceChangedEvent: audio.CurrentOutputDeviceChangedEvent) => {
-        console.info(`deviceRoleValue of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.devices.deviceRole} `);
+        console.info(`devices of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.devices} `);
         console.info(`changeReason of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.changeReason} `);
         console.info(`recommendedAction of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.recommendedAction} `);
       });
