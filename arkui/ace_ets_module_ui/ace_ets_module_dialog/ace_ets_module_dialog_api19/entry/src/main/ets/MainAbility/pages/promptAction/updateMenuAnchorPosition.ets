@@ -14,6 +14,7 @@
  */
 import { ComponentContent, FrameNode } from '@kit.ArkUI';
 import emitter from '@ohos.events.emitter';
+import window from '@ohos.window';
 
 let innerEvent: emitter.InnerEvent = {
   eventId: 1,
