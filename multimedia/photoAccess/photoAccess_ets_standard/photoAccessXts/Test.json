@@ -27,8 +27,7 @@
     },
     {
       "test-file-name": [
-        "ActsPhotoAccessNDKMainTest.hap",
-        "ActsPhotoAccessNDKTest.hap"
+        "ActsPhotoAccessXtsTest.hap"
       ],
       "type": "AppInstallKit",
       "cleanup-apps": true
