@@ -11,13 +11,13 @@ function task1() {
 
 @Concurrent
 function task2() {
-  throw new Error("error2");
+  throw new Error('error2');
 }
 
 @Concurrent
 function task3() {
   setTimeout(() => {
-    throw new Error("error3");
+    throw new Error('error3');
   }, 50);
 }
 
@@ -25,7 +25,7 @@ function task3() {
 function task4() {
   new Promise<void>(() => {
     setTimeout(() => {
-      throw new Error("error4");
+      throw new Error('error4');
     }, 50);
   });
 }
@@ -33,15 +33,15 @@ function task4() {
 @Concurrent
 function task5() {
   Promise.resolve().then(() => {
-    throw new Error("error5");
+    throw new Error('error5');
   });
 }
 
 @Concurrent
 function task6() {
-  Promise.reject(new Error("origin error"))
+  Promise.reject(new Error('origin error'))
     .catch(() => {
-      throw new Error("error6");
+      throw new Error('error6');
     });
 }
 
@@ -49,7 +49,7 @@ function task6() {
 function task7() {
   Promise.resolve()
     .finally(() => {
-      throw new Error("error7");
+      throw new Error('error7');
     });
 }
 
@@ -57,7 +57,7 @@ function task7() {
 function task8() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
-    throw new Error("error8");
+    throw new Error('error8');
   });
 }
 
@@ -66,7 +66,7 @@ function task9() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
   }).then(() => {
-    throw new Error("error9");
+    throw new Error('error9');
   });
 }
 
@@ -74,9 +74,9 @@ function task9() {
 function task10() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
-    throw new Error("error10");
+    throw new Error('error10');
   }).catch(() => {
-    throw new Error("error10");
+    throw new Error('error10');
   });
 }
 
@@ -85,7 +85,7 @@ function task11() {
   const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
   conditionVariable.waitFor(10)
     .finally(() => {
-      throw new Error("error11");
+      throw new Error('error11');
     });
 }
 
@@ -93,13 +93,13 @@ function task11() {
 function task12() {
   const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
   conditionVariable.waitFor(10).then(() => {
-    throw new Error("error12");
+    throw new Error('error12');
   });
 }
 
 @Concurrent
 function task13() {
-  return Promise.reject(new Error("error13"));
+  return Promise.reject(new Error('error13'));
 }
 
 @Concurrent
@@ -119,7 +119,7 @@ function task15() {
 function task16() {
   let task: taskpool.Task = new taskpool.Task(normalTask);
   taskpool.execute(task).then(() => {
-    throw new Error("error16");
+    throw new Error('error16');
   });
 }
 
@@ -127,7 +127,7 @@ function task16() {
 function task17() {
   let task: taskpool.Task = new taskpool.Task(throwErrorTask);
   taskpool.execute(task).catch(() => {
-    throw new Error("error17");
+    throw new Error('error17');
   });
 }
 
@@ -135,7 +135,7 @@ function task17() {
 function task18() {
   let task: taskpool.Task = new taskpool.Task(longTaskWithData, 1);
   task.onReceiveData(()=>{
-    throw new Error("error18");
+    throw new Error('error18');
   });
   taskpool.execute(task);
 }
@@ -164,20 +164,20 @@ function executeTaskArray() {
 }
 
 
-console.log("task start");
+console.log('task start');
 executeTaskArray();
 
 
 /*
 * Copyright (C) 2025 HiHope Open Source Organization.
-* Licensed under the Apache License, Version 2.0 (the "License");
+* Licensed under the Apache License, Version 2.0 (the 'License');
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 *
 *   http://www.apache.org/licenses/LICENSE-2.0
 *
 * Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
+* distributed under the License is distributed on an 'AS IS' BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.

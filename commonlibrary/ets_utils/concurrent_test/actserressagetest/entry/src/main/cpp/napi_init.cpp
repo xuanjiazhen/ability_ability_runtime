@@ -10,7 +10,8 @@ static napi_value addWithTwoNumber(napi_env env, napi_callback_info info)
         napi_throw_error(env, nullptr, "Expected two arguments");
         return nullptr;
     }
-    double a, b;
+    double a;
+    double b;
     napi_get_value_double(env, argv[0], &a);
     napi_get_value_double(env, argv[1], &b);
     napi_value result;
