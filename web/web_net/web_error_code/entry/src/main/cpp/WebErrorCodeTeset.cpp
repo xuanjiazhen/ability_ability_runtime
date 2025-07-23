@@ -59,12 +59,6 @@ static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
         {"webErrCodeSuccess", nullptr, WebErrorCodeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putNull", nullptr, PutNull, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putReal", nullptr, PutReal, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putText", nullptr, PutText, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putBlob", nullptr, PutBlob, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putAsset", nullptr, PutAsset, nullptr, nullptr, nullptr, napi_default, nullptr},
-//        {"putAssets", nullptr, PutAssets, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
