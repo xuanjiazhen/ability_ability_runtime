@@ -15,7 +15,9 @@
 
 import { describe, expect, it, beforeAll, Level } from '@ohos/hypium';
 import { ENTINFO1, INVALID_WANT, SELFHAPNAME, SELFWANT, TEST_TOKEN_ID, TEST_CLIPBOARD_POLICY,
-  WATERMARK_BUNDLE_NAME, DEFAULT_USER_ID, getPixelMap, PIXEL_MAP, getCurrentUserId, CURRENT_USER_ID } from '../commom';
+  WATERMARK_BUNDLE_NAME, DEFAULT_USER_ID, getPixelMap, PIXEL_MAP, getCurrentUserId, CURRENT_USER_ID,
+  TEST_APP_INSTANCE_1, TEST_PERMISSION_MANAGED_STATE_GRANTED, TEST_PERMISSION_LIST_1,
+  TEST_PERMISSION_1 } from '../commom';
 
 import adminManager from '@ohos.enterprise.adminManager';
 import securityManager from '@ohos.enterprise.securityManager';
@@ -141,6 +143,9 @@ export default function securityManagerTest() {
 
     testSetWatermarkImage();
     testCancelWatermarkImage();
+
+    testSetPermissionManagedState();
+    testGetPermissionManagedState();
   })
 }
 
@@ -466,6 +471,52 @@ function testCancelWatermarkImage() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
       securityManager.cancelWatermarkImage(SELFWANT, WATERMARK_BUNDLE_NAME, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testSetPermissionManagedState() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0100
+   * @tc.name      : test_set_permission_managed_state_0100
+   * @tc.desc      : test securityManager setPermissionManagedState without permission
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testGetPermissionManagedState() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0100
+   * @tc.name      : test_get_permission_managed_state_0100
+   * @tc.desc      : test securityManager getPermissionManagedState without permission
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201).assertTrue();

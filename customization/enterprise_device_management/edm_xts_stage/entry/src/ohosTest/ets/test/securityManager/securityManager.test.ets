@@ -16,7 +16,9 @@
 import { describe, expect, it, beforeAll, Level } from '@ohos/hypium';
 import { ENTINFO1, INVALID_WANT, SELFHAPNAME, SELFWANT, TEST_TOKEN_ID, TEST_CLIPBOARD_POLICY, CURRENT_USER_ID,
   WATERMARK_BUNDLE_NAME, DEFAULT_USER_ID, getPixelMap, getCurrentUserId, PIXEL_MAP,
-  INVALID_BUNDLE_NAME } from '../commom';
+  INVALID_BUNDLE_NAME, TEST_APP_INSTANCE_1, TEST_PERMISSION_MANAGED_STATE_GRANTED,
+  TEST_PERMISSION_MANAGED_STATE_DENIED, TEST_PERMISSION_MANAGED_STATE_DEFAULT,
+  TEST_PERMISSION_LIST_1, TEST_PERMISSION_1 } from '../commom';
 
 import adminManager from '@ohos.enterprise.adminManager';
 import securityManager from '@ohos.enterprise.securityManager';
@@ -143,6 +145,9 @@ export default function securityManagerTest() {
     
     testSetWatermarkImage();
     testCancelWatermarkImage();
+    
+    testSetPermissionManagedState();
+    testGetPermissionManagedState();
   })
 }
 
@@ -1951,6 +1956,287 @@ function testCancelWatermarkImage() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       securityManager.cancelWatermarkImage(SELFWANT, WATERMARK_BUNDLE_NAME, null);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+}
+
+function testSetPermissionManagedState() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0100
+   * @tc.name      : test_set_permission_managed_state_0100
+   * @tc.desc      : test securityManager setPermissionManagedState without activated admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0200
+   * @tc.name      : test_set_permission_managed_state_0200
+   * @tc.desc      : test securityManager setPermissionManagedState without permission
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0200", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0300
+   * @tc.name      : test_set_permission_managed_state_0300
+   * @tc.desc      : test securityManager setPermissionManagedState without admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0300", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.setPermissionManagedState(null, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0400
+   * @tc.name      : test_set_permission_managed_state_0400
+   * @tc.desc      : test securityManager setPermissionManagedState
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0400", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, null, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0500
+   * @tc.name      : test_set_permission_managed_state_0500
+   * @tc.desc      : test securityManager setPermissionManagedState
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_clipboard_policy_0500", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, null);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0600
+   * @tc.name      : test_set_permission_managed_state_0600
+   * @tc.desc      : test securityManager setPermissionManagedState
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0600", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      let data: securityManager.PermissionManagedState = securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(data == TEST_PERMISSION_MANAGED_STATE_GRANTED).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0700
+   * @tc.name      : test_set_permission_managed_state_0700
+   * @tc.desc      : test securityManager setPermissionManagedState
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_permission_managed_state_0700", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_DENIED);
+      let data: securityManager.PermissionManagedState = securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(data == TEST_PERMISSION_MANAGED_STATE_DENIED).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_PERMISSION_MANAGED_STATE_JS_0800
+   * @tc.name      : test_set_permission_managed_state_0800
+   * @tc.desc      : test securityManager setPermissionManagedState
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_clipboard_policy_0800", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_DEFAULT);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+}
+
+function testGetPermissionManagedState() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0100
+   * @tc.name      : test_get_permission_managed_state_0100
+   * @tc.desc      : test securityManager getPermissionManagedState without activated admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0200
+   * @tc.name      : test_get_permission_managed_state_0200
+   * @tc.desc      : test securityManager getPermissionManagedState without permission
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0200", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0300
+   * @tc.name      : test_get_permission_managed_state_0300
+   * @tc.desc      : test securityManager getPermissionManagedState without admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0300", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.getPermissionManagedState(null, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0400
+   * @tc.name      : test_get_permission_managed_state_0400
+   * @tc.desc      : test securityManager getPermissionManagedState without activated admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0400", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0500
+   * @tc.name      : test_get_permission_managed_state_0500
+   * @tc.desc      : test securityManager getPermissionManagedState without permission
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0500", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_PERMISSION_MANAGED_STATE_JS_0600
+   * @tc.name      : test_get_permission_managed_state_0600
+   * @tc.desc      : test securityManager getPermissionManagedState with super admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_permission_managed_state_0600", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      securityManager.getPermissionManagedState(null, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 401).assertTrue();
