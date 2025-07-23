@@ -70,14 +70,17 @@ export default function SwiperAcross0300() {
       let driver: Driver = Driver.create();
       let btn = await driver.findComponent(ON.id('btnswiper_across0030'));
       await btn.click();
-      let swiperArrow = await driver.findComponent(ON.id("swiperacr_0030"));
-      let point2 = await swiperArrow.getBoundsCenter();
-      await driver.fling({
-        x: point2.x + 200, y: point2.y
-      }, {
-        x: point2.x - 210, y: point2.y
-      }, 5, 5000);
       await CommonFunc.sleep(1000);
+      let swipeList = CommonFunc.getComponentRectOnScreen('swiperacr_0030');
+      let top = swipeList.top;
+      let right = swipeList.right;
+      let left = swipeList.left;
+      let bottom = swipeList.bottom;
+      console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_ACROSS_0300 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.swipe(Math.round(left + width*0.8),Math.round(top + height/2),Math.round(left + width*0.2),Math.round(top + height/2));
+      await CommonFunc.sleep(2000);
       let strJson2: string = getInspectorByKey('swiper_across_0300');
       let marq2: ESObject = JSON.parse(strJson2).$attrs.content;
       expect(marq2).assertEqual("6");

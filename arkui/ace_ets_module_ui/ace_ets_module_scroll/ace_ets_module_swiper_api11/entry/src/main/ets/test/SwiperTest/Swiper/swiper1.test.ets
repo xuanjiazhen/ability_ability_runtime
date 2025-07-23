@@ -59,12 +59,14 @@ export default function swiper1() {
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0130] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
       let driver = await Driver.create();
       await CommonFunc.sleep(1000);
-      await driver.swipe(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(27)), Math.round(globalThis.winTop + btBottom - vp2px(10)), globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(27)), Math.round(globalThis.winTop + btTop + vp2px(10)));
+      await driver.swipe(globalThis.winLeft + Math.round(btLeft + width*0.3), Math.round(globalThis.winTop + btBottom - vp2px(10)), globalThis.winLeft + Math.round(btLeft + width*0.3), Math.round(globalThis.winTop + btTop + vp2px(10)));
       await CommonFunc.sleep(5000);
 
       let strJson = getInspectorByKey('swiperText1');

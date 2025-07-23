@@ -25,14 +25,14 @@ struct SwiperAdd0510 {
       Swiper(this.swiperController) {
         Text('1')
           .fontSize(80)
-          .width(400)
+          .width('80%')
           .height(160)
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center).border({ width: 1 })
 
         Text('2')
           .fontSize(80)
-          .width(300)
+          .width('80%')
           .height(160)
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center).border({ width: 1 })
