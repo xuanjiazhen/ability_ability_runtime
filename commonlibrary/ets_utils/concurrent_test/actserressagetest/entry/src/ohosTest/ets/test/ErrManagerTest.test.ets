@@ -6,24 +6,21 @@ import { throwErrorTask,normalTask,longErrorTask,longTaskWithData, AsyncTask,
   AsyncTaskWithError
 } from '../testability/pages/Taskpool';
 
-
-
 function promiseFunc(observer: errorManager.GlobalError) {
-  console.info("result name :" + observer.name);
-  console.info("result message :" + observer.message);
-  console.info("result stack :" + observer.stack);
-  console.info("result instanceName :" + observer.instanceName);
-  console.info("result instaceType :" + observer.instanceType);
+  console.info('result name :' + observer.name);
+  console.info('result message :' + observer.message);
+  console.info('result stack :' + observer.stack);
+  console.info('result instanceName :' + observer.instanceName);
+  console.info('result instaceType :' + observer.instanceType);
 }
 
-const err = "error";
+const err = 'error';
 function throwError() {
-  throw new Error("error");
+  throw new Error('error');
 }
-
 
 async function asyncThrow() {
-  throw new Error("error");
+  throw new Error('error');
 }
 
 export function sleep(time: number): Promise<void> {
@@ -41,13 +38,13 @@ function task1() {
 
 @Concurrent
 function task2() {
-  throw new Error("error2");
+  throw new Error('error2');
 }
 
 @Concurrent
 function task3() {
   setTimeout(() => {
-    throw new Error("error3");
+    throw new Error('error3');
   }, 50);
 }
 
@@ -55,7 +52,7 @@ function task3() {
 function task4() {
   new Promise<void>(() => {
     setTimeout(() => {
-      throw new Error("error4");
+      throw new Error('error4');
     }, 50);
   });
 }
@@ -63,15 +60,15 @@ function task4() {
 @Concurrent
 function task5() {
   Promise.resolve().then(() => {
-    throw new Error("error5");
+    throw new Error('error5');
   });
 }
 
 @Concurrent
 function task6() {
-  Promise.reject(new Error("origin error"))
+  Promise.reject(new Error('origin error'))
     .catch(() => {
-      throw new Error("error6");
+      throw new Error('error6');
     });
 }
 
@@ -79,7 +76,7 @@ function task6() {
 function task7() {
   Promise.resolve()
     .finally(() => {
-      throw new Error("error7");
+      throw new Error('error7');
     });
 }
 
@@ -87,7 +84,7 @@ function task7() {
 function task8() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
-    throw new Error("error8");
+    throw new Error('error8');
   });
 }
 
@@ -96,7 +93,7 @@ function task9() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
   }).then(() => {
-    throw new Error("error9");
+    throw new Error('error9');
   });
 }
 
@@ -104,9 +101,9 @@ function task9() {
 function task10() {
   const lock = new ArkTSUtils.locks.AsyncLock();
   lock.lockAsync<void>(() => {
-    throw new Error("error10");
+    throw new Error('error10');
   }).catch(() => {
-    throw new Error("error10");
+    throw new Error('error10');
   });
 }
 
@@ -115,7 +112,7 @@ function task11() {
   const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
   conditionVariable.waitFor(10)
     .finally(() => {
-      throw new Error("error11");
+      throw new Error('error11');
     });
 }
 
@@ -123,13 +120,13 @@ function task11() {
 function task12() {
   const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
   conditionVariable.waitFor(10).then(() => {
-    throw new Error("error12");
+    throw new Error('error12');
   });
 }
 
 @Concurrent
 function task13() {
-  return Promise.reject(new Error("error13"));
+  return Promise.reject(new Error('error13'));
 }
 
 @Concurrent
@@ -149,7 +146,7 @@ function task15() {
 function task16() {
   let task: taskpool.Task = new taskpool.Task(normalTask);
   taskpool.execute(task).then(() => {
-    throw new Error("error16");
+    throw new Error('error16');
   });
 }
 
@@ -157,7 +154,7 @@ function task16() {
 function task17() {
   let task: taskpool.Task = new taskpool.Task(throwErrorTask);
   taskpool.execute(task).catch(() => {
-    throw new Error("error17");
+    throw new Error('error17');
   });
 }
 
@@ -165,7 +162,7 @@ function task17() {
 function task18() {
   let task: taskpool.Task = new taskpool.Task(longTaskWithData, 1);
   task.onReceiveData(()=>{
-    throw new Error("error18");
+    throw new Error('error18');
   });
   taskpool.execute(task);
 }
@@ -223,7 +220,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('SetTimeoutThrowErrorTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -244,7 +241,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseThrowErrorTest0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -267,7 +264,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseThenThrowErrorTest0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise:Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -293,7 +290,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseCatchThrowErrorTest0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -301,7 +298,7 @@ export default function abilityTest() {
           errorCaught = String(reason);
         }
       });
-      Promise.reject(new Error("origin error"))
+      Promise.reject(new Error('origin error'))
         .catch(() => {
           throwError();
         });
@@ -320,7 +317,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseFinallyThrowErrorTest0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -346,7 +343,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -372,7 +369,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -399,7 +396,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -427,7 +424,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WaitForThrowErrorTest0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -454,7 +451,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WaitForErrorTest1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -480,7 +477,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncFunctionThrowErrorTest1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -503,7 +500,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('NativeMethodThrowErrorTest1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -511,7 +508,7 @@ export default function abilityTest() {
         testNapi.addWithTwoNumber();
       }, 0);
       await sleep(50);
-      expect(errorCaught).assertEqual("Expected two arguments");
+      expect(errorCaught).assertEqual('Expected two arguments');
       Done();
     });
 
@@ -524,14 +521,14 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskThrowErrorTest1300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.execute(task);
       await sleep(50);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -544,7 +541,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolGenericTaskThenThrowErrorTest1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -571,7 +568,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskGroupTaskThrowErrorTest1500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -579,7 +576,7 @@ export default function abilityTest() {
       taskGroup.addTask(throwErrorTask);
       taskpool.execute(taskGroup);
       await sleep(50);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -592,7 +589,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskGroupTaskThrowErrorTest1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -601,7 +598,7 @@ export default function abilityTest() {
       taskGroup.addTask(throwErrorTask);
       taskpool.execute(taskGroup);
       await sleep(50);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -628,7 +625,7 @@ export default function abilityTest() {
       );
       let task1: taskpool.Task = new taskpool.Task(normalTask);
       task1.onExecutionFailed((err: Error) => {
-        throw new Error("onExecutionFailed error");
+        throw new Error('onExecutionFailed error');
       })
       let task2: taskpool.Task = new taskpool.Task(throwErrorTask);
       let taskGroup: taskpool.TaskGroup = new taskpool.TaskGroup();
@@ -637,8 +634,8 @@ export default function abilityTest() {
       taskpool.execute(taskGroup);
       await sleep(50);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(!errorCaughtList.includes("onExecutionFailed error")).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(!errorCaughtList.includes('onExecutionFailed error')).assertTrue();
       Done();
     });
 
@@ -651,14 +648,14 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolDelayedTaskThrowErrorTest1800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executeDelayed(100, task);
       await sleep(150);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -671,7 +668,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolDelayedTaskCatchThrowErrorTest1900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
@@ -682,10 +679,10 @@ export default function abilityTest() {
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executeDelayed(100, task)
         .catch(() => {
-          throw new Error("catch callback error");
+          throw new Error('catch callback error');
         });
       await sleep(150);
-      expect(errorCaught).assertEqual("catch callback error");
+      expect(errorCaught).assertEqual('catch callback error');
       Done();
     });
 
@@ -698,14 +695,14 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolPeriodicTaskThrowErrorTest2000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executePeriodically(100, task);
       await sleep(150);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       taskpool.cancel(task);
       Done();
     });
@@ -733,12 +730,12 @@ export default function abilityTest() {
       );
       let task: taskpool.Task = new taskpool.Task(normalTask);
       task.onEnqueued(() => {
-          throw new Error("onEnqueued callback error");
+          throw new Error('onEnqueued callback error');
       });
       taskpool.executePeriodically(100, task);
       await sleep(150);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(!errorCaughtList.includes("onEnqueued callback error")).assertTrue();
+      expect(!errorCaughtList.includes('onEnqueued callback error')).assertTrue();
       taskpool.cancel(task);
       Done();
     });
@@ -752,14 +749,14 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolLongTaskThrowErrorTest2200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.LongTask = new taskpool.LongTask(longErrorTask);
       taskpool.execute(task);
       await sleep(200);
-      expect(errorCaught).assertEqual("long task error");
+      expect(errorCaught).assertEqual('long task error');
       Done();
     });
 
@@ -789,7 +786,7 @@ export default function abilityTest() {
       taskpool.execute(task);
       await sleep(200);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(!errorCaughtList.includes("error")).assertTrue();
+      expect(!errorCaughtList.includes('error')).assertTrue();
       Done();
     });
 
@@ -802,7 +799,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolSerialTaskThrowErrorTest2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -810,7 +807,7 @@ export default function abilityTest() {
       let task = new taskpool.Task(throwErrorTask);
       runner.execute(task);
       await sleep(200);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -823,7 +820,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolSerialTask1ErrorTask2NormalTest2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -833,7 +830,7 @@ export default function abilityTest() {
       runner.execute(task1);
       runner.execute(task2);
       await sleep(200);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -861,14 +858,14 @@ export default function abilityTest() {
       let runner = new taskpool.SequenceRunner();
       let task1 = new taskpool.Task(normalTask);
       task1.onStartExecution(() =>{
-        throw new Error("onStartExecution error");
+        throw new Error('onStartExecution error');
       });
       let task2 = new taskpool.Task(normalTask);
       runner.execute(task1);
       runner.execute(task2);
       await sleep(200);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(!errorCaughtList.includes("onStartExecution error")).assertTrue();
+      expect(!errorCaughtList.includes('onStartExecution error')).assertTrue();
       Done();
     });
 
@@ -881,7 +878,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolAsyncTaskThrowErrorTest2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -889,7 +886,7 @@ export default function abilityTest() {
       let task = new taskpool.Task(throwErrorTask);
       runner.execute(task);
       await sleep(200);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -902,7 +899,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolAsyncTask1NormalTask2ErrorTest2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -912,7 +909,7 @@ export default function abilityTest() {
       runner.execute(task1);
       runner.execute(task2);
       await sleep(200);
-      expect(errorCaught).assertEqual("taskpool error");
+      expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
 
@@ -940,15 +937,15 @@ export default function abilityTest() {
       let runner = new taskpool.AsyncRunner(4);
       let task1 = new taskpool.Task(normalTask);
       task1.onExecutionSucceeded(() => {
-        throw new Error("onExecutionSucceeded error");
+        throw new Error('onExecutionSucceeded error');
       });
       let task2 = new taskpool.Task(throwErrorTask);
       runner.execute(task1);
       runner.execute(task2);
       await sleep(200);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(!errorCaughtList.includes("onExecutionSucceeded error")).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(!errorCaughtList.includes('onExecutionSucceeded error')).assertTrue();
       Done();
     });
 
@@ -961,13 +958,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerTopLevelThrowErrorTest3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker1');
       await sleep(200);
-      expect(errorCaught).assertEqual("worker top level error");
+      expect(errorCaught).assertEqual('worker top level error');
       Done();
     });
 
@@ -980,64 +977,17 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerOnMessageThrowErrorTest3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker2');
       myWorker.postMessage({ foo: 'bar' });
       await sleep(200);
-      expect(errorCaught).assertEqual("Error: worker onmessage error");
+      expect(errorCaught).assertEqual('Error: worker onmessage error');
       Done();
     });
 
-    /**
-     * @tc.number    : WorkerOnErrorThrowErrorTest3200
-     * @tc.name      : WorkerOnErrorThrowErrorTest3200
-     * @tc.desc      : worker线程的onerror中抛出异常
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('WorkerOnErrorThrowErrorTest3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaughtList: string[] = [];
-      errorManager.on('globalErrorOccurred', (err) => {
-        errorCaughtList.push(`global: ${err.message}`);
-      });
-      let myWorker = new worker.ThreadWorker('../testability/workers/Worker3');
-      myWorker.onAllErrors = (err) => {
-        errorCaughtList.push(`worker: ${err.message}`);
-      };
-      await sleep(1000);
-      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      myWorker.terminate();
-      Done();
-    });
-
-    /**
-     * @tc.number    : WorkerOnMessageErrorThrowErrorTest3300
-     * @tc.name      : WorkerOnMessageErrorThrowErrorTest3300
-     * @tc.desc      : worker线程的onmessageerror中抛出异常
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('WorkerOnMessageErrorThrowErrorTest3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaughtList: string[] = [];
-      errorManager.on('globalErrorOccurred', (err) => {
-        errorCaughtList.push(`global: ${err.message}`);
-      });
-      let myWorker = new worker.ThreadWorker('../testability/workers/Worker4');
-      myWorker.onAllErrors = (err) => {
-        errorCaughtList.push(`worker: ${err.message}`);
-      };
-      //myWorker.postMessage(()=>{});
-      await sleep(200);
-      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      myWorker.terminate();
-      //expect(errorCaught).assertEqual("");
-      Done();
-    });
 
     /**
      * @tc.number    : WorkerSubWorkerTopLevelThrowErrorTest3400
@@ -1048,13 +998,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerTopLevelThrowErrorTest3400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker5');
       await sleep(100);
-      expect(errorCaught).assertEqual("worker top level error");
+      expect(errorCaught).assertEqual('worker top level error');
       Done();
     });
 
@@ -1082,7 +1032,7 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker6');
       await sleep(200);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("worker onmessage error")).assertTrue();
+      expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       Done();
     });
 
@@ -1095,14 +1045,14 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker8');
       myWorker.postMessage({ foo: 'bar' });
       await sleep(200);
-      expect(errorCaught).assertEqual("worker top level error");
+      expect(errorCaught).assertEqual('worker top level error');
       Done();
     });
 
@@ -1115,7 +1065,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -1126,7 +1076,7 @@ export default function abilityTest() {
         console.log('主线程已terminate worker');
         Done();
       }, 100);
-      expect(errorCaught).assertEqual("");
+      expect(errorCaught).assertEqual('');
       Done();
     });
 
@@ -1139,7 +1089,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
+      let errorCaught = '';
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -1150,7 +1100,7 @@ export default function abilityTest() {
       };
       myWorker.postMessage({ foo: 'bar' });
       sleep(200);
-      expect(errorCaught).assertEqual("");
+      expect(errorCaught).assertEqual('');
       Done();
     });
 
@@ -1180,25 +1130,25 @@ export default function abilityTest() {
       taskpool.execute(taskGroup);
       await sleep(2000);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("error2")).assertTrue();
-      expect(errorCaughtList.includes("error3")).assertTrue();
-      expect(errorCaughtList.includes("error4")).assertTrue();
-      expect(errorCaughtList.includes("error5")).assertTrue();
-      expect(errorCaughtList.includes("error6")).assertTrue();
-      expect(errorCaughtList.includes("error7")).assertTrue();
-      expect(errorCaughtList.includes("error8")).assertTrue();
-      expect(errorCaughtList.includes("error9")).assertTrue();
-      expect(errorCaughtList.includes("error10")).assertTrue();
-      expect(errorCaughtList.includes("error11")).assertTrue();
-      expect(errorCaughtList.includes("error12")).assertTrue();
-      expect(errorCaughtList.includes("error13")).assertTrue();
-      expect(errorCaughtList.includes("Expected two arguments")).assertTrue();
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(errorCaughtList.includes("error16")).assertTrue();
-      expect(errorCaughtList.includes("error17")).assertTrue();
-      expect(!errorCaughtList.includes("error18")).assertTrue();
-      expect(errorCaughtList.includes("worker top level error")).assertTrue();
-      expect(errorCaughtList.includes("worker onmessage error")).assertTrue();
+      expect(errorCaughtList.includes('error2')).assertTrue();
+      expect(errorCaughtList.includes('error3')).assertTrue();
+      expect(errorCaughtList.includes('error4')).assertTrue();
+      expect(errorCaughtList.includes('error5')).assertTrue();
+      expect(errorCaughtList.includes('error6')).assertTrue();
+      expect(errorCaughtList.includes('error7')).assertTrue();
+      expect(errorCaughtList.includes('error8')).assertTrue();
+      expect(errorCaughtList.includes('error9')).assertTrue();
+      expect(errorCaughtList.includes('error10')).assertTrue();
+      expect(errorCaughtList.includes('error11')).assertTrue();
+      expect(errorCaughtList.includes('error12')).assertTrue();
+      expect(errorCaughtList.includes('error13')).assertTrue();
+      expect(errorCaughtList.includes('Expected two arguments')).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(errorCaughtList.includes('error16')).assertTrue();
+      expect(errorCaughtList.includes('error17')).assertTrue();
+      expect(!errorCaughtList.includes('error18')).assertTrue();
+      expect(errorCaughtList.includes('worker top level error')).assertTrue();
+      expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       Done();
     });
 
@@ -1230,25 +1180,25 @@ export default function abilityTest() {
       });
       await sleep(2000);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("error2")).assertTrue();
-      expect(errorCaughtList.includes("error3")).assertTrue();
-      expect(errorCaughtList.includes("error4")).assertTrue();
-      expect(errorCaughtList.includes("error5")).assertTrue();
-      expect(errorCaughtList.includes("error6")).assertTrue();
-      expect(errorCaughtList.includes("error7")).assertTrue();
-      expect(errorCaughtList.includes("error8")).assertTrue();
-      expect(errorCaughtList.includes("error9")).assertTrue();
-      expect(errorCaughtList.includes("error10")).assertTrue();
-      expect(errorCaughtList.includes("error11")).assertTrue();
-      expect(errorCaughtList.includes("error12")).assertTrue();
-      expect(errorCaughtList.includes("error13")).assertTrue();
-      expect(errorCaughtList.includes("Expected two arguments")).assertTrue();
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(errorCaughtList.includes("error16")).assertTrue();
-      expect(errorCaughtList.includes("error17")).assertTrue();
-      expect(!errorCaughtList.includes("error18")).assertTrue();
-      expect(errorCaughtList.includes("worker top level error")).assertTrue();
-      expect(errorCaughtList.includes("worker onmessage error")).assertTrue();
+      expect(errorCaughtList.includes('error2')).assertTrue();
+      expect(errorCaughtList.includes('error3')).assertTrue();
+      expect(errorCaughtList.includes('error4')).assertTrue();
+      expect(errorCaughtList.includes('error5')).assertTrue();
+      expect(errorCaughtList.includes('error6')).assertTrue();
+      expect(errorCaughtList.includes('error7')).assertTrue();
+      expect(errorCaughtList.includes('error8')).assertTrue();
+      expect(errorCaughtList.includes('error9')).assertTrue();
+      expect(errorCaughtList.includes('error10')).assertTrue();
+      expect(errorCaughtList.includes('error11')).assertTrue();
+      expect(errorCaughtList.includes('error12')).assertTrue();
+      expect(errorCaughtList.includes('error13')).assertTrue();
+      expect(errorCaughtList.includes('Expected two arguments')).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(errorCaughtList.includes('error16')).assertTrue();
+      expect(errorCaughtList.includes('error17')).assertTrue();
+      expect(!errorCaughtList.includes('error18')).assertTrue();
+      expect(errorCaughtList.includes('worker top level error')).assertTrue();
+      expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       Done();
     });
 
@@ -1280,25 +1230,25 @@ export default function abilityTest() {
       });
       await sleep(2000);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("error2")).assertTrue();
-      expect(errorCaughtList.includes("error3")).assertTrue();
-      expect(errorCaughtList.includes("error4")).assertTrue();
-      expect(errorCaughtList.includes("error5")).assertTrue();
-      expect(errorCaughtList.includes("error6")).assertTrue();
-      expect(errorCaughtList.includes("error7")).assertTrue();
-      expect(errorCaughtList.includes("error8")).assertTrue();
-      expect(errorCaughtList.includes("error9")).assertTrue();
-      expect(errorCaughtList.includes("error10")).assertTrue();
-      expect(errorCaughtList.includes("error11")).assertTrue();
-      expect(errorCaughtList.includes("error12")).assertTrue();
-      expect(errorCaughtList.includes("error13")).assertTrue();
-      expect(errorCaughtList.includes("Expected two arguments")).assertTrue();
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(errorCaughtList.includes("error16")).assertTrue();
-      expect(errorCaughtList.includes("error17")).assertTrue();
-      expect(!errorCaughtList.includes("error18")).assertTrue();
-      expect(errorCaughtList.includes("worker top level error")).assertTrue();
-      expect(errorCaughtList.includes("worker onmessage error")).assertTrue();
+      expect(errorCaughtList.includes('error2')).assertTrue();
+      expect(errorCaughtList.includes('error3')).assertTrue();
+      expect(errorCaughtList.includes('error4')).assertTrue();
+      expect(errorCaughtList.includes('error5')).assertTrue();
+      expect(errorCaughtList.includes('error6')).assertTrue();
+      expect(errorCaughtList.includes('error7')).assertTrue();
+      expect(errorCaughtList.includes('error8')).assertTrue();
+      expect(errorCaughtList.includes('error9')).assertTrue();
+      expect(errorCaughtList.includes('error10')).assertTrue();
+      expect(errorCaughtList.includes('error11')).assertTrue();
+      expect(errorCaughtList.includes('error12')).assertTrue();
+      expect(errorCaughtList.includes('error13')).assertTrue();
+      expect(errorCaughtList.includes('Expected two arguments')).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(errorCaughtList.includes('error16')).assertTrue();
+      expect(errorCaughtList.includes('error17')).assertTrue();
+      expect(!errorCaughtList.includes('error18')).assertTrue();
+      expect(errorCaughtList.includes('worker top level error')).assertTrue();
+      expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       Done();
     });
 
@@ -1326,25 +1276,25 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker7');
       await sleep(2000);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      expect(errorCaughtList.includes("error2")).assertTrue();
-      expect(errorCaughtList.includes("error3")).assertTrue();
-      expect(errorCaughtList.includes("error4")).assertTrue();
-      expect(errorCaughtList.includes("error5")).assertTrue();
-      expect(errorCaughtList.includes("error6")).assertTrue();
-      expect(errorCaughtList.includes("error7")).assertTrue();
-      expect(errorCaughtList.includes("error8")).assertTrue();
-      expect(errorCaughtList.includes("error9")).assertTrue();
-      expect(errorCaughtList.includes("error10")).assertTrue();
-      expect(errorCaughtList.includes("error11")).assertTrue();
-      expect(errorCaughtList.includes("error12")).assertTrue();
-      expect(errorCaughtList.includes("error13")).assertTrue();
-      expect(errorCaughtList.includes("Expected two arguments")).assertTrue();
-      expect(errorCaughtList.includes("taskpool error")).assertTrue();
-      expect(errorCaughtList.includes("error16")).assertTrue();
-      expect(errorCaughtList.includes("error17")).assertTrue();
-      expect(!errorCaughtList.includes("error18")).assertTrue();
-      expect(errorCaughtList.includes("worker top level error")).assertTrue();
-      expect(errorCaughtList.includes("worker onmessage error")).assertTrue();
+      expect(errorCaughtList.includes('error2')).assertTrue();
+      expect(errorCaughtList.includes('error3')).assertTrue();
+      expect(errorCaughtList.includes('error4')).assertTrue();
+      expect(errorCaughtList.includes('error5')).assertTrue();
+      expect(errorCaughtList.includes('error6')).assertTrue();
+      expect(errorCaughtList.includes('error7')).assertTrue();
+      expect(errorCaughtList.includes('error8')).assertTrue();
+      expect(errorCaughtList.includes('error9')).assertTrue();
+      expect(errorCaughtList.includes('error10')).assertTrue();
+      expect(errorCaughtList.includes('error11')).assertTrue();
+      expect(errorCaughtList.includes('error12')).assertTrue();
+      expect(errorCaughtList.includes('error13')).assertTrue();
+      expect(errorCaughtList.includes('Expected two arguments')).assertTrue();
+      expect(errorCaughtList.includes('taskpool error')).assertTrue();
+      expect(errorCaughtList.includes('error16')).assertTrue();
+      expect(errorCaughtList.includes('error17')).assertTrue();
+      expect(!errorCaughtList.includes('error18')).assertTrue();
+      expect(errorCaughtList.includes('worker top level error')).assertTrue();
+      expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       Done();
     });
   })
