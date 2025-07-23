@@ -29,7 +29,7 @@
         },
         {
             "test-file-name": [
-                "ActsCameraStandardETSTest.hap"
+                "ActsCameraXtsTest.hap"
             ],
             "type": "AppInstallKit",
             "cleanup-apps": true
