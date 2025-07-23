@@ -29,8 +29,8 @@ struct DirectiveMenuExample {
     window.getLastWindow(context).then((data) => {
       let windowClass: window.Window = data;
       let rect = windowClass.getWindowProperties().windowRect;
-      this.left = rect.left;
-      this.top = rect.top;
+      this.left = this.getUIContext().px2vp(rect.left);
+      this.top = this.getUIContext().px2vp(rect.top);
     });
   }
 
