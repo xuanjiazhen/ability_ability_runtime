@@ -561,6 +561,27 @@ export default function deviceSettingsTest() {
     });
 
     /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_DEVICE_SETTINGS_SET_HOME_WALL_PAPER_JS_0300
+     * @tc.name      : test_device_settings_set_home_wall_paper_0300
+     * @tc.desc      : test deviceSettings set home wall paper with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_device_settings_set_home_wall_paper_0300", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      let filePath: string = getContext().resourceDir + '/101mb.bmp';
+      let fd: number = fs.openSync(filePath, fs.OpenMode.READ_ONLY).fd;
+      await deviceSettings.setHomeWallpaper(SELFWANT, fd).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code == 9200012).assertTrue();
+      }).finally(async () => {
+        await adminManager.disableAdmin(SELFWANT);
+      });
+      done();
+    });
+
+    /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_DEVICE_SETTINGS_SET_UNLOCK_WALL_PAPER_JS_0100
      * @tc.name      : test_device_settings_set_unlock_wall_paper_0100
      * @tc.desc      : test deviceSettings set unlock wall paper with out admin
@@ -593,6 +614,27 @@ export default function deviceSettingsTest() {
       await deviceSettings.setUnlockWallpaper(SELFWANT, fd).then(() => {
       }).catch((error: BusinessError) => {
         expect(error.code == 9200002).assertTrue();
+      }).finally(async () => {
+        await adminManager.disableAdmin(SELFWANT);
+      });
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_DEVICE_SETTINGS_SET_UNLOCK_WALL_PAPER_JS_0300
+     * @tc.name      : test_device_settings_set_unlock_wall_paper_0300
+     * @tc.desc      : test deviceSettings set unlock wall paper with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_device_settings_set_unlock_wall_paper_0300", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      let filePath: string = getContext().resourceDir + '/101mb.bmp';
+      let fd: number = fs.openSync(filePath, fs.OpenMode.READ_ONLY).fd;
+      await deviceSettings.setUnlockWallpaper(SELFWANT, fd).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code == 9200012).assertTrue();
       }).finally(async () => {
         await adminManager.disableAdmin(SELFWANT);
       });
