@@ -5377,6 +5377,22 @@ export default function audioFramework() {
       await sleep(50);
       done();
     })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_DEVICE_RECOMMENDEDACTION_0100
+     * @tc.name      : DeviceRole - ALL Device Role
+     * @tc.desc      : DeviceRole - ALL Device Role
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_DEVICE_RECOMMENDEDACTION_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      expect(audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE).assertEqual(0);
+      console.info("audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE :" + audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE);
+      expect(audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP).assertEqual(1);
+      console.info("audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP :" + audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP);
+      await sleep(50);
+      done();
+    })
 
     /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_MANAGER_DEVICEROLE_0100

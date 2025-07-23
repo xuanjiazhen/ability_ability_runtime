@@ -318,6 +318,37 @@ export default function audioSessionManagerTest() {
       });
       isAudioSessionActivatedTrue(done, isDone);
     })
-
+    /* *
+    * @tc.number    : SUB_AUDIO_AUDIOSESSIONMANAGER_API_10
+    * @tc.name      : test AudioSessionManager basic API by promise
+    * @tc.desc      : test AudioSessionManager operation:调用AudioSessionManager注册事件和关闭注册事件覆盖参数
+    * @tc.size      : AudioTest
+    * @tc.type      : Function
+    * @tc.level     : Level3
+    */
+    it('SUB_AUDIO_AUDIOSESSIONMANAGER_API_11', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      sessionManager.on('audioSessionStateChanged', (AudioSessionStateChangedEvent: audio.AudioSessionStateChangedEvent) => {
+        if(AudioSessionStateChangedEvent.stateChangeHint === audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_RESUME){
+          console.info(`reason of audioSessionDeactivated: ${audioSessionDeactivatedEvent.reason} `);
+        }
+      });
+      done();
+    })
+    /* *
+    * @tc.number    : SUB_AUDIO_AUDIOSESSIONMANAGER_API_12
+    * @tc.name      : test AudioSessionManager basic API by promise
+    * @tc.desc      : test AudioSessionManager operation:调用AudioSessionManager注册事件和关闭注册事件覆盖参数
+    * @tc.size      : AudioTest
+    * @tc.type      : Function
+    * @tc.level     : Level3
+    */
+    it('SUB_AUDIO_AUDIOSESSIONMANAGER_API_12', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      sessionManager.on('currentOutputDeviceChanged', (CurrentOutputDeviceChangedEvent: audio.CurrentOutputDeviceChangedEvent) => {
+        console.info(`deviceRoleValue of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.devices.deviceRole} `);
+        console.info(`changeReason of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.changeReason} `);
+        console.info(`recommendedAction of currentOutputDeviceChanged: ${CurrentOutputDeviceChangedEvent.recommendedAction} `);
+      });
+      done();
+    })
   })
 }
