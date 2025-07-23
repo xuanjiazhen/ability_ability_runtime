@@ -17,11 +17,11 @@ group("concurrent_test") {
   testonly = true
   if (is_standard_system) {
     deps = [
-      "actserressagetest:ActsErrMessageTest",
       "asynclockutilstest:ActsAsyncLockUtilsTest",
       "atomicstest:ActsAtomicsTest",
       "collectionstaskpooltest:ActsCollectionsTaskPoolTest",
       "collectionstest:ActsCollectionsTest",
+      "concurrenterrormessagetest:ActsConcurrentErrMessageTest",
       "concurrentlibtest:ActsConcurrentLibTest",
       "concurrentmoduletest:ActsConcurrentModuleTest",
       "processtest:ActsProcessTest",

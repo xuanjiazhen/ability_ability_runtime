@@ -20,7 +20,7 @@ static napi_value addWithTwoNumber(napi_env env, napi_callback_info info)
     size_t argc = 2;
     napi_value argv[2];
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (argc < 2) {
+    if (argc < EXPECTED_ARGUMENT_COUNT) {
         napi_throw_error(env, nullptr, "Expected two arguments");
         return nullptr;
     }
