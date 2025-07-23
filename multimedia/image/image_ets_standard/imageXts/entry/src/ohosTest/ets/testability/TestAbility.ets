@@ -27,11 +27,11 @@ export default class TestAbility extends UIAbility {
     AppStorage.setOrCreate('testContext', this.context);
 
     let testContext: common.UIAbilityContext =
-      AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+      AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
     if (testContext) {
-      console.error('LXH', 'START--111')
+      console.error('START--111')
     }
-    console.error('LXH', 'START--222')
+    console.error('START--222')
     let abilityDelegator: abilityDelegatorRegistry.AbilityDelegator;
     abilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
     let abilityDelegatorArguments: abilityDelegatorRegistry.AbilityDelegatorArgs;

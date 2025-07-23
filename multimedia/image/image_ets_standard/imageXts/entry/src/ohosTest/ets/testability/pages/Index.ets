@@ -29,11 +29,11 @@ struct Index {
         controller: this.xComponentController
       })
         .onLoad(() => {
-          console.log("load surface")
-          this.xComponentController.setXComponentSurfaceRect({ surfaceWidth: 640, surfaceHeight: 480 })
-          surfaceId = this.xComponentController.getXComponentSurfaceId()
-          this.xComponentContext = this.xComponentController.getXComponentContext() as Record<string, () => void>
-          globalThis.value = surfaceId
+          console.log("load surface");
+          this.xComponentController.setXComponentSurfaceRect({ surfaceWidth: 640, surfaceHeight: 480 });
+          surfaceId = this.xComponentController.getXComponentSurfaceId();
+          this.xComponentContext = this.xComponentController.getXComponentContext() as Record<string, () => void>;
+          globalThis.value = surfaceId;
         })
         .width('640px')
         .height('480px')
