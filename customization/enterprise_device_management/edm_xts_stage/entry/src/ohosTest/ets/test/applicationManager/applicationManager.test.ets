@@ -1553,6 +1553,29 @@ export default function applicationManagerTest() {
     })
 
     /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_setKioskFeatures_004
+     * @tc.name      : test_setKioskFeatures_004
+     * @tc.desc      : test setKioskFeatures method with invalid number
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_setKioskFeatures_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        let kioskFeatures: Array<applicationManager.KioskFeature> = [];
+        kioskFeatures.push(INVALID_USER_ID);
+        applicationManager.setKioskFeatures(SELFWANT, kioskFeatures);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200012).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_001
      * @tc.name      : test_addKeepAliveAppsWithDisallowModify_001
      * @tc.desc      : test AddKeepAliveAppsWithDisallowModify method with unActive admin
