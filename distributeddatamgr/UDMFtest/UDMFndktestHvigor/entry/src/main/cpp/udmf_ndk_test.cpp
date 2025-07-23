@@ -2171,7 +2171,7 @@ static napi_value OH_Udmf_DeleteUnifiedData_004(napi_env env, napi_callback_info
     OH_Udmf_DeleteUnifiedData(options, &dataArray1, &dataSize1);
     OH_Udmf_DestroyDataArray(&dataArray1, dataSize1);
     OH_UdmfOptions_Destroy(options);
-        OH_UdmfOptions_Destroy(options1);
+    OH_UdmfOptions_Destroy(options1);
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(udmfUnifiedData);
