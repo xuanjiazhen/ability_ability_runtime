@@ -241,7 +241,17 @@ bool UnwrapWant(ani_env *env, ani_object param, AAFwk::Want &want)
     AAFwk::WantParams wantParams;
     if (InnerUnwrapWantParams(env, param, wantParams)) {
         want.SetParams(wantParams);
+        wantParams.DumpInfo(0);
     }
+
+    TAG_LOGI(AAFwkTag::ANI, "start InnerUnwrapWantParams");
+    AAFwk::WantParams wantParams1;
+    for (int i = 0; i < 1000; i++) {
+        if (!InnerUnwrapWantParams(env, param, wantParams1)) {
+            TAG_LOGI(AAFwkTag::ANI, "InnerUnwrapWantParams failed, times%{public}d", i);
+        }
+    }
+    TAG_LOGI(AAFwkTag::ANI, "end InnerUnwrapWantParams");
     return true;
 }
 
@@ -268,26 +278,27 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
         return false;
     }
     ani_ref wantParamsAniString;
-    status = env->Class_CallStaticMethod_Ref(cls, stringifyMethod, &wantParamsAniString, param);
+    ani_long wantParamsLong = reinterpret_cast<ani_long>(&wantParams);
+    status = env->Class_CallStaticMethod_Ref(cls, stringifyMethod, &wantParamsAniString, param, wantParamsLong);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "failed to call stringifyNoThrow method, status: %{public}d", status);
         return false;
     }
-    std::string wantParamsString;
-    if (!GetStdString(env, reinterpret_cast<ani_string>(wantParamsAniString), wantParamsString)) {
-        TAG_LOGE(AAFwkTag::ANI, "GetStdString failed");
-        return false;
-    }
-    if (wantParamsString.empty()) {
-        TAG_LOGE(AAFwkTag::ANI, "wantParamsString empty");
-        return false;
-    }
-    nlohmann::json wantParamsJson = nlohmann::json::parse(wantParamsString, nullptr, false);
-    if (wantParamsJson.is_discarded()) {
-        TAG_LOGE(AAFwkTag::ANI, "Failed to parse json string");
-        return false;
-    }
-    from_json(wantParamsJson, wantParams);
+    //std::string wantParamsString;
+    //if (!GetStdString(env, reinterpret_cast<ani_string>(wantParamsAniString), wantParamsString)) {
+    //    TAG_LOGE(AAFwkTag::ANI, "GetStdString failed");
+    //    return false;
+    //}
+    //if (wantParamsString.empty()) {
+    //    TAG_LOGE(AAFwkTag::ANI, "wantParamsString empty");
+    //    return false;
+    //}
+    //nlohmann::json wantParamsJson = nlohmann::json::parse(wantParamsString, nullptr, false);
+    //if (wantParamsJson.is_discarded()) {
+    //    TAG_LOGE(AAFwkTag::ANI, "Failed to parse json string");
+    //    return false;
+    //}
+    //from_json(wantParamsJson, wantParams);
     return true;
 }
 
