@@ -18,15 +18,15 @@ ohos_app_assist_suite("ActsImageXtsTest") {
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsImageXtsTest"
   subsystem_name = "multimedia"
-  part_name = "media_library"
+  part_name = "image_framework"
 }
 
-ohos_js_app_suite("imageXts_js_hap") {
+ohos_js_app_suite("imageXts_ets_hap") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsImageXtsTest"
-  part_name = "media_library"
+  part_name = "image_framework"
 
   subsystem_name = "multimedia"
   deps = [ ":ActsImageXtsTest" ]
