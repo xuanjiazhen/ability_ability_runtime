@@ -118,3 +118,4 @@ export const GetImageSourceSupportedFormats: () => Array<string>;
 export const GetImagePackerSupportedFormatsError: (flag: boolean) => number;
 export const GetImageSourceSupportedFormatsError: (flag: boolean) => number;
 export const NewGetImagePropertyWithNull: (source: image.ImageSource, key:String) => String | number;
+export const NewPackingOptionsGetMimeType: (packing:image.PackingOption) => String | Number;

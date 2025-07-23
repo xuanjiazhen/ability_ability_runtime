@@ -1625,6 +1625,33 @@ export default function imageNdkTest() {
       return result
     }
 
+    const testNewGetMimeTypeWithNull = async (mimeType: string, testTag: string, done: Function) => {
+      let packingOps: image.PackingOption = ndkTest.CreatePackingOptions();
+      let res: number = ndkTest.PackingOptionsSetMimeType(packingOps, mimeType);
+      if(res){
+        hilog.info(domain, testTag, `PackingOptionsSetMimeType fail`);
+        expect(false).assertTrue();
+        done();
+        return
+      }
+      let res1: String | Number = ndkTest.NewPackingOptionsGetMimeType(packingOps);
+      await ndkTest.ReleasePackingOptions(packingOps)
+      if(typeof res1 === "string"){
+        if(res1 != mimeType){
+          hilog.info(domain, testTag, `NewPackingOptionsGetMimeType res: ` + res1);
+          expect(false).assertTrue();
+          done();
+          return
+        }
+        expect(true).assertTrue();
+        done();
+      } else{
+          hilog.info(domain, testTag, `NewPackingOptionsGetMimeType fail`);
+          expect(false).assertTrue();
+          done();
+      }
+    }
+
     /*
      * @tc.number    : SUB_MULTIMEDIA_PIXELMAPCAPI_InitializationOptions_0100
      * @tc.name      : testInitializationOptions
@@ -6160,6 +6187,178 @@ export default function imageNdkTest() {
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
+        expect().assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0100
+     * @tc.name     : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0100
+     * @tc.desc     : 1.create packingOptions
+     * 				  2.setMimeType
+     * 				  3.check getMimeType is equal to setMimeType
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0100", Level.LEVEL0, async (done: Function) => {
+      const testTag = 'SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0100';
+      let mimeType = "image/jpeg";
+      try{
+        await testNewGetMimeTypeWithNull(mimeType, testTag, done);
+      } catch(e){
+        hilog.info(domain, testTag, `Test exception: ` + e);
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0200
+     * @tc.name     : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0200
+     * @tc.desc     : 1.create packingOptions
+     * 				  2.setMimeType
+     * 				  3.check getMimeType is equal to setMimeType
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0200", Level.LEVEL0, async (done: Function) => {
+      const testTag = 'SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0200';
+      let mimeType = "image/heif";
+      try{
+        await testNewGetMimeTypeWithNull(mimeType, testTag, done);
+      } catch(e){
+        hilog.info(domain, testTag, `Test exception: ` + e);
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0300
+     * @tc.name     : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0300
+     * @tc.desc     : 1.create packingOptions
+     * 				  2.setMimeType
+     * 				  3.check getMimeType is equal to setMimeType
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0300", Level.LEVEL0, async (done: Function) => {
+      const testTag = 'SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_GET_MIMETYPE_WITH_NULL_0300';
+      let mimeType = "IMAGE/jpeg";
+      try{
+        await testNewGetMimeTypeWithNull(mimeType, testTag, done);
+      } catch(e){
+        hilog.info(domain, testTag, `Test exception: ` + e);
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number   : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_SET_MIMETYPE_ERROR_0100
+     * @tc.name     : SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_SET_MIMETYPE_ERROR_0100
+     * @tc.desc     : 1.create packingOptions
+     * 				        2.setMimeType null
+     * @tc.size     : MediumTest
+     * @tc.type     : Functional
+     * @tc.level    : Level 0
+     */
+    it("SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_SET_MIMETYPE_ERROR_0100", Level.LEVEL0, async (done: Function) => {
+      const testTag = 'SUB_MULTIMEDIA_IMAGE_PACKINGOPTIONS_SET_MIMETYPE_ERROR_0100';
+      let mimeType = ""
+      try{
+        let packingOps: image.PackingOption = ndkTest.CreatePackingOptions();
+        let res: number = ndkTest.PackingOptionsSetMimeType(packingOps, mimeType);
+        if(res != 401){
+          hilog.info(domain, testTag, `PackingOptionsSetMimeType test errorCode fail`);
+          expect(false).assertTrue();
+          done();
+          return
+        }
+        expect(true).assertTrue();
+        done();
+      } catch(e){
+        hilog.info(domain, testTag, `Test exception: ` + e);
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0200
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0200
+     * @tc.desc      : 1.decodingOptions get dynamicRange
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0200', Level.LEVEL0, async (done: Function) => {
+      const testTag = "SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0200"
+      try {
+        await DecodingOptionsDesiredDynamic(testTag, 0, done)
+      } catch (error) {
+        hilog.info(domain, testTag, `Test exception ` + error);
+        expect().assertFail();
+        done();
+      }
+    })
+	
+	  /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0300
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0300
+     * @tc.desc      : 1.decodingOptions get dynamicRange
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0300', Level.LEVEL0, async (done: Function) => {
+      const testTag = "SUB_MULTIMEDIA_IMAGE_GET_DECODINGOPTIONS_DYNAMICRANGE_0300"
+      try {
+        await DecodingOptionsDesiredDynamic(testTag, 2, done)
+      } catch (error) {
+        hilog.info(domain, testTag, `Test exception ` + error);
+        expect().assertFail();
+        done();
+      }
+    })
+	
+	  /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0200
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0200
+     * @tc.desc      : 1.packingOptions get dynamicRange
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0200', Level.LEVEL0, async (done: Function) => {
+      const testTag = "SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0200"
+      try {
+        await PackingOptionsDesiredDynamic(testTag, 0, done)
+      } catch (error) {
+        hilog.info(domain, testTag, `Test exception ` + error);
+        expect().assertFail();
+        done();
+      }
+    })
+	
+	  /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0300
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0300
+     * @tc.desc      : 1.packingOptions get dynamicRange
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0300', Level.LEVEL0, async (done: Function) => {
+      const testTag = "SUB_MULTIMEDIA_IMAGE_GET_PACKINGOPTIONS_DYNAMICRANGE_0300"
+      try {
+        await PackingOptionsDesiredDynamic(testTag, 2, done)
+      } catch (error) {
+        hilog.info(domain, testTag, `Test exception ` + error);
         expect().assertFail();
         done();
       }
