@@ -27,8 +27,7 @@
     },
     {
       "test-file-name": [
-        "ActsimageNDKMainTest.hap",
-        "ActsimageNDKTest.hap"
+        "ActsImageXtsTest.hap"
       ],
       "type": "AppInstallKit",
       "cleanup-apps": true
