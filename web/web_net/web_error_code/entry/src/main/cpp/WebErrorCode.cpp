@@ -25,16 +25,17 @@ static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
     OH_LOG_ERROR(LOG_APP, "==== chenbio start..");
     napi_value result;
     const char* webTag = "web1211";
-    const char* data = 
-    "<html>\n"
+    const char* data = "<html>\n"
     "    <head>\n"
-    "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0\">\n"
+    "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale="
+                                              "1.0, maximum-scale=1.0\">\n"
     "    </head>\n"
     "    <body>\n"
     "        Source:<pre>source</pre>\n"
     "        <div dir=\"auto\">\n"
     "            <br />\n"
-    "            <img style=\"max-width:592px;height:auto\" src=\"image.jpg\" alt=\"图片\" width=\"592\" height=\"1052\" />\n"
+    "            <img style=\"max-width:592px;height:auto\" src=\"image.jpg\" alt=\"图片\""
+                                                "width=\"592\" height=\"1052\" />\n"
     "            <div>\n"
     "                <br /><br /><br /><br /><br />\n"
     "                <div>图片</div>\n"
