@@ -58,7 +58,7 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface25', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    it('testHiprofilerInterface25', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_2500 start");
       try {
         let nativeMemInfo = await hidebug.getAppNativeMemInfoAsync();
@@ -94,7 +94,7 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface26', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    it('testHiprofilerInterface26', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_2600 start");
       try {
         let nativeMemInfo = hidebug.getAppNativeMemInfoWithCache(true);
@@ -130,7 +130,7 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface27', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    it('testHiprofilerInterface27', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_2700 start");
       try {
         let nativeMemInfo = hidebug.getAppNativeMemInfoWithCache(false);
@@ -325,7 +325,7 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level3
      */
-    it('testHiprofilerInterface33', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level3, async (done: Function) => {
+    it('testHiprofilerInterface33', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3300 start");
       try {
         for (let i = 0; i < 1000; i++) {
@@ -364,7 +364,7 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level3
      */
-    it('testHiprofilerInterface34', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level3, async (done: Function) => {
+    it('testHiprofilerInterface34', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3400 start");
       try {
         for (let i = 0; i < 1000; i++) {
@@ -403,10 +403,10 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface35', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level2, async (done: Function) => {
+    it('testHiprofilerInterface35', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3500 start");
       try {
-        let nativeMemInfo = testNapi.getNativeMemInfoWithCacheTrue();
+        let nativeMemInfo = testNapi.getNativeMemInfoTrue();
         expect(nativeMemInfo.pss >= 0).assertTrue();
         expect(nativeMemInfo.vss >= 0).assertTrue();
         expect(nativeMemInfo.rss >= 0).assertTrue();
@@ -439,10 +439,10 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface36', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level2, async (done: Function) => {
+    it('testHiprofilerInterface36', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3600 start");
       try {
-        let nativeMemInfo = testNapi.getNativeMemInfoWithCacheFalse();
+        let nativeMemInfo = testNapi.getNativeMemInfoFalse();
         expect(nativeMemInfo.pss >= 0).assertTrue();
         expect(nativeMemInfo.vss >= 0).assertTrue();
         expect(nativeMemInfo.rss >= 0).assertTrue();
@@ -475,14 +475,14 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface37', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level2, async (done: Function) => {
+    it('testHiprofilerInterface37', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3700 start");
       try {
-        let nativeMemInfo1 = testNapi.getNativeMemInfoWithCacheTrue();
+        let nativeMemInfo1 = testNapi.getNativeMemInfoTrue();
         await asyncSleep(50);
-        let nativeMemInfo2 = testNapi.getNativeMemInfoWithCacheTrue();
+        let nativeMemInfo2 = testNapi.getNativeMemInfoTrue();
         await asyncSleep(50);
-        let nativeMemInfo3 = testNapi.getNativeMemInfoWithCacheTrue();
+        let nativeMemInfo3 = testNapi.getNativeMemInfoTrue();
         assertNativeMemInfoNotEqual(nativeMemInfo1, nativeMemInfo2);
         assertNativeMemInfoNotEqual(nativeMemInfo1, nativeMemInfo3);
         console.info("SUB_DFX_DFR_Hiprofiler_Interface_3700 nativeMemInfo1:" + "\n"
@@ -526,12 +526,12 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level2
      */
-    it('testHiprofilerInterface38', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level2, async (done: Function) => {
+    it('testHiprofilerInterface38', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3800 start");
       try {
-        let nativeMemInfo1 = testNapi.getNativeMemInfoWithCacheFalse();
-        let nativeMemInfo2 = testNapi.getNativeMemInfoWithCacheFalse();
-        let nativeMemInfo3 = testNapi.getNativeMemInfoWithCacheFalse();
+        let nativeMemInfo1 = testNapi.getNativeMemInfoFalse();
+        let nativeMemInfo2 = testNapi.getNativeMemInfoFalse();
+        let nativeMemInfo3 = testNapi.getNativeMemInfoFalse();
         assertNativeMemInfoEqual(nativeMemInfo1, nativeMemInfo2);
         assertNativeMemInfoEqual(nativeMemInfo1, nativeMemInfo3);
         console.info("SUB_DFX_DFR_Hiprofiler_Interface_3800 nativeMemInfo1:" + "\n"
@@ -575,11 +575,11 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level3
      */
-    it('testHiprofilerInterface39', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level3, async (done: Function) => {
+    it('testHiprofilerInterface39', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3900 start");
       try {
         for (let i = 0; i < 1000; i++) {
-          let nativeMemInfo = testNapi.getNativeMemInfoWithCacheTrue();
+          let nativeMemInfo = testNapi.getNativeMemInfoTrue();
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
           expect(nativeMemInfo.rss >= 0).assertTrue();
@@ -614,11 +614,11 @@ export default function abilityTest() {
      * @tc.type Function
      * @tc.level Level3
      */
-    it('testHiprofilerInterface40', TestType.FUNCTION | Size.MEDIUMTEST | Level.Level3, async (done: Function) => {
+    it('testHiprofilerInterface40', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_4000 start");
       try {
         for (let i = 0; i < 1000; i++) {
-          let nativeMemInfo = testNapi.getNativeMemInfoWithCacheFalse();
+          let nativeMemInfo = testNapi.getNativeMemInfoFalse();
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
           expect(nativeMemInfo.rss >= 0).assertTrue();

@@ -43,7 +43,7 @@ static napi_value Add(napi_env env, napi_callback_info info)
 
 }
 
-static napi_value GetNativeMemInfoWithCacheTrue(napi_env env, napi_callback_info info)
+static napi_value GetNativeMemInfoTrue(napi_env env, napi_callback_info info)
 {
     HiDebug_NativeMemInfo nativeMemInfo;
     OH_HiDebug_GetAppNativeMemInfoWithCache(&nativeMemInfo, true);
@@ -80,7 +80,7 @@ static napi_value GetNativeMemInfoWithCacheTrue(napi_env env, napi_callback_info
     return memInfo;
 }
 
-static napi_value GetNativeMemInfoWithCacheFalse(napi_env env, napi_callback_info info)
+static napi_value GetNativeMemInfoFalse(napi_env env, napi_callback_info info)
 {
     HiDebug_NativeMemInfo nativeMemInfo;
     OH_HiDebug_GetAppNativeMemInfoWithCache(&nativeMemInfo, false);
@@ -122,8 +122,8 @@ static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
         { "add", nullptr, Add, nullptr, nullptr, nullptr, napi_default, nullptr },
-        { "getNativeMemInfoWithCacheTrue", nullptr, GetNativeMemInfoWithCacheTrue, nullptr, nullptr, nullptr, napi_default, nullptr },
-        { "getNativeMemInfoWithCacheFalse", nullptr, GetNativeMemInfoWithCacheFalse, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getNativeMemInfoTrue", nullptr, GetNativeMemInfoTrue, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "getNativeMemInfoFalse", nullptr, GetNativeMemInfoFalse, nullptr, nullptr, nullptr, napi_default, nullptr },
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

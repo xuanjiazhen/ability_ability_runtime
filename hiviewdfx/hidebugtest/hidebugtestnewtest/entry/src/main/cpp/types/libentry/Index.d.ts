@@ -15,5 +15,5 @@
 
 export const add: (a: number, b: number) => number;
 import hidebug from '@ohos.hidebug';
-export const getNativeMemInfoWithCacheTrue: () => hidebug.NativeMemInfo;
-export const getNativeMemInfoWithCacheFalse: () => hidebug.NativeMemInfo;
+export const getNativeMemInfoTrue: () => hidebug.NativeMemInfo;
+export const getNativeMemInfoFalse: () => hidebug.NativeMemInfo;
