@@ -21,8 +21,8 @@
         "rm -rf /storage/media/100/local/files/Docs/Documents/.*",
         "rm -rf /storage/media/100/local/files/entry_test/*",
         "sleep 5",
-        "rm -rf /data/app/el2/100/database/com.ohos.medialibrary.medialibrarydata/*",
-        "kill -9 `pidof com.ohos.medialibrary.medialibrarydata`"
+        "rm -rf /data/app/el2/100/database/ohos.acts.multimedia.media.xts/*",
+        "kill -9 `pidof ohos.acts.multimedia.media.xts`"
       ]
     },
     {
@@ -64,8 +64,8 @@
         "./resource/media/AVPlayer/H263.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/AVPlayer/MPEG2.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/videoplayer/mpeg_ts/h264_aac_480p_25r.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
-        "./resource/media/videoplayer/mpeg_ts/h264_mp3_480p_25r.ts -> /data/app/el2/100/base/ohos.acts.multimedia.avplayer/haps/entry_test/files/",
-        "./resource/media/AVPlayer/H263_AAC.ts -> /data/app/el2/100/base/ohos.acts.multimedia.avplayer/haps/entry_test/files/",
+        "./resource/media/videoplayer/mpeg_ts/h264_mp3_480p_25r.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
+        "./resource/media/AVPlayer/H263_AAC.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/AVPlayer/H263_MP3.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/videoplayer/mpeg_ts/mpeg2_aac_720p_30r.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/videoplayer/mpeg_ts/mpeg2_mp3_480p_25r.ts -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
@@ -119,8 +119,8 @@
         "rm -rf /storage/media/100/local/files/Docs/Documents/.*",
         "rm -rf /storage/media/100/local/files/entry_test/*",
         "sleep 5",
-        "rm -rf /data/app/el2/100/database/com.ohos.medialibrary.medialibrarydata/*",
-        "kill -9 `pidof com.ohos.medialibrary.medialibrarydata`"
+        "rm -rf /data/app/el2/100/database/ohos.acts.multimedia.media.xts/*",
+        "kill -9 `pidof ohos.acts.multimedia.media.xts`"
       ]
     }
   ]
