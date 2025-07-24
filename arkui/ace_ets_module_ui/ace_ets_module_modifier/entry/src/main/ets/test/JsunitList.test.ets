@@ -53,6 +53,7 @@ import listItemJsunit from './ListItem.test';
 import listItemGroupJsunit from './ListItemGroup.test';
 import gridJsunit from './Grid.test';
 import gridItemJsunit from './GridItem.test';
+import refreshJsunit from './Refresh.test';
 import toggleJsunit from './ToggleJsunit.test';
 import rectJsunit from './RectJsunit.test';
 import polyLineJsunit from './PolyLine.test';
@@ -108,6 +109,7 @@ export default function testsuite() {
   gridJsunit();
   gridNestedScrollJsunit();
   gridItemJsunit();
+  refreshJsunit();
   listJsunit();
   listNestedScrollJsunit();
   listItemJsunit();
