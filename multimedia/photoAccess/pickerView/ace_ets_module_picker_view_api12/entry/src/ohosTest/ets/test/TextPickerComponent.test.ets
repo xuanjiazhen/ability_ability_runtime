@@ -37,7 +37,8 @@ import {
   SaveMode,
   ItemDisplayRatio
 } from '@ohos.file.PhotoPickerComponent';
-import { AlbumPickerComponent, AlbumPickerOptions, AlbumInfo } from '@ohos.file.AlbumPickerComponent';
+import { AlbumPickerComponent, AlbumPickerOptions, AlbumInfo,
+  AlbumPickerController } from '@ohos.file.AlbumPickerComponent';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import { PhotoPickerResult } from '../MainAbility/common/PhotoPickerResult'
 import {
@@ -2227,6 +2228,81 @@ export default function TextPicker() {
       router.back();
       console.info("testPicker47 finish");
       events_emitter.off(event.eventId);
+      done();
+    });
+
+    /**
+     * @tc.number    : testPicker48
+     * @tc.name      : testPicker48
+     * @tc.desc      : Testing PhotoPicker combinedMediaTypeFilter
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testPicker48', Level.LEVEL0, async (done: Function) => {
+      if (!isExecutePicker) {
+        done();
+        return;
+      }
+      let code: number = EventType.PHOTO_PICKER_INFO;
+      let pickerOptions: PickerOptions = getDefaultPickerOptions();
+      pickerOptions.combinedMediaTypeFilter = ['image|(movingPhoto)|(image/gif)', 'video|*|video/mp4'];
+      let options: router.RouterOptions = {
+        url: 'MainAbility/pages/PickerComponent',
+        params: {
+          eventId: code,
+          pickerOptions: pickerOptions,
+        }
+      }
+      await routeToUrl(options);
+      let strJson: string = getInspectorByKey('PhotoPickerComponent');
+      console.info("testPicker48 JSON.parse(strJson) is" + strJson);
+      expect(JSON.parse(strJson).$attrs.visibility).assertEqual('Visibility.Visible');
+      await CommonFunc.sleep(2000);
+      router.back();
+      console.info("testPicker48 finish");
+      done();
+    });
+
+    /**
+     * @tc.number    : testPicker49
+     * @tc.name      : testPicker49
+     * @tc.desc      : Testing PhotoPicker combinedMediaTypeFilter
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testPicker49', Level.LEVEL0, async (done: Function) => {
+      if (!isExecutePicker) {
+        done();
+        return;
+      }
+      let code: number = EventType.PHOTO_PICKER_INFO;
+      let pickerOptions: PickerOptions = getDefaultPickerOptions();
+      let fileSizeFilterArray: Array<photoAccessHelper.PhotoViewMimeTypeFileSizeFilter> = [];
+      let filter: photoAccessHelper.PhotoViewMimeTypeFileSizeFilter = {
+        photoViewMimeType: photoAccessHelper.PhotoViewMIMETypes.MOVING_PHOTO_IMAGE_TYPE,
+        sizeFilter: {
+          filterOperator: photoAccessHelper.FilterOperator.LESS_THAN,
+          fileSize: 8048576,
+        }
+      }
+      fileSizeFilterArray.push(filter);
+      pickerOptions.photoViewMimeTypeFileSizeFilters = fileSizeFilterArray;
+      let options: router.RouterOptions = {
+        url: 'MainAbility/pages/PickerComponent',
+        params: {
+          eventId: code,
+          pickerOptions: pickerOptions,
+        }
+      }
+      await routeToUrl(options);
+      let strJson: string = getInspectorByKey('PhotoPickerComponent');
+      console.info("testPicker49 JSON.parse(strJson) is" + strJson);
+      expect(JSON.parse(strJson).$attrs.visibility).assertEqual('Visibility.Visible');
+      await CommonFunc.sleep(2000);
+      router.back();
+      console.info("testPicker49 finish");
       done();
     });
   })
