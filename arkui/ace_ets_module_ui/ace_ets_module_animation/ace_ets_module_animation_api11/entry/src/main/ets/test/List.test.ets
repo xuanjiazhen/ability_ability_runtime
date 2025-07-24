@@ -24,6 +24,7 @@ import animationStatusJsunit from './AnimationTest/AnimationStatusJsunit.test';
 import pageTransitionJsunit from './Animation/PageTransitionJsunit.test';
 import curvesJsunit from './CurvesJsunit.test';
 import WorkerUseCurvesTest from './WorkerUseCurves.test';
+import MotionPathExample from './MotionPathExample.test';
 
 export default function testsuite() {
   animateToTest();
@@ -38,4 +39,5 @@ export default function testsuite() {
   curvesJsunit();
   pageTransitionJsunit();
   WorkerUseCurvesTest();
+  MotionPathExample();
 }
