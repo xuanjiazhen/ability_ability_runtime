@@ -21,7 +21,7 @@ import webView from '@ohos.web.webview';
 import PermissionsUtils from '../../test/PermissionsUtils';
 import { Driver, ON } from '@ohos.UiTest';
 import common from '@ohos.app.ability.common';
-import { waitForExist} from '../../test/WaitTest';
+import { waitForExist} from '../../test/WaitTest.test';
 
 interface PreviewBuilderParam {
   previewImage: Resource | string | undefined;

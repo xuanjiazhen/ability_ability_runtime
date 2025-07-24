@@ -61,7 +61,6 @@ struct webViewSdkSchemeHandler {
               this.emitKey = eventData.data.ACTION;
           }
       }
-      Utils.setEmitKey(this.emitKey);
   }
   
   build() {

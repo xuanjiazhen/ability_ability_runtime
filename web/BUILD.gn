@@ -25,6 +25,6 @@ group("web") {
     "web_multi_media:WebMultimedia",
     "web_page_document_processing:webPageDocumentProcessing",
     "web_page_rendering:webPageRenderingTest",
-    "web_security_privacy:WebSecurityPrivacy",
+    "web_security_privacy:WebSecurityPrivacy"
   ]
 }

@@ -170,8 +170,6 @@ struct WebViewEnumAndSetWebController {
               let downX = Math.round(globalThis.winLeft + webRect.left + (webRect.right - webRect.left) / 2);
               let downY = Math.round(globalThis.winTop + webRect.top + (webRect.bottom - webRect.top) / 2);
               let driver = Driver.create();
-              let X = Utils.getRectHorizontalCenterX(webRect)
-              let Y = Utils.getRectVerticalCenterY(webRect)
               await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
               break;
             }
