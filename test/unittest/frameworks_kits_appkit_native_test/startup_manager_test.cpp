@@ -841,13 +841,17 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTask_0100, Function | 
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
     startupManager->preloadSystemSoAllowlist_.clear();
 
-    nlohmann::json preloadHintStartupTasksJson1 = R"(
-        {"systemPreloadHintStartupTasks":""}
-    )"_json;
-    startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson1, preloadSoStartupTasks);
+    nlohmann::json preloadHintStartupTasksJson0 = R"({})"_json;
+    startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson0, preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
     startupManager->preloadSystemSoAllowlist_.insert("@ohos:testUrl");
+    startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson0, preloadSoStartupTasks);
+    EXPECT_TRUE(preloadSoStartupTasks.empty());
+
+    nlohmann::json preloadHintStartupTasksJson1 = R"(
+        {"systemPreloadHintStartupTasks":""}
+    )"_json;
     startupManager->AnalyzePreloadSystemSoStartupTask(preloadHintStartupTasksJson1, preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
@@ -1042,39 +1046,35 @@ HWTEST_F(StartupManagerTest, AnalyzePreloadSystemSoStartupTaskInner_0100, Functi
     EXPECT_TRUE(startupManager != nullptr);
     std::string name = "test_name";
     std::map<std::string, std::shared_ptr<AppStartupTask>> preloadSoStartupTasks;
+    startupManager->preloadSystemSoAllowlist_.clear();
 
-    nlohmann::json preloadSoStartupTaskInnerJson0 = R"(
-        {"name":"testName"}
-    )"_json;
-    startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson0.at("name"),
+    nlohmann::json preloadSoStartupTaskInnerJson0 = "testName";
+    startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson0,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson1 = R"(
-        {}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson1 = R"({})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson1,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson2 = R"(
-        {"name":[]}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson2 = R"({"name":[]})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson2,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson3 = R"(
-        {"name":"testName"}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson3 = R"({"name":"testName"})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson3,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
 
-    nlohmann::json preloadSoStartupTaskInnerJson4 = R"(
-        {"name":"testName", "ohmurl":"[]"}
-    )"_json;
+    nlohmann::json preloadSoStartupTaskInnerJson4 = R"({"name":"testName", "ohmurl":[]})"_json;
     startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson4,
+        preloadSoStartupTasks);
+    EXPECT_TRUE(preloadSoStartupTasks.empty());
+
+    nlohmann::json preloadSoStartupTaskInnerJson5 = R"({"name":"testName", "ohmurl":"testUrl"})"_json;
+    startupManager->AnalyzePreloadSystemSoStartupTaskInner(preloadSoStartupTaskInnerJson5,
         preloadSoStartupTasks);
     EXPECT_TRUE(preloadSoStartupTasks.empty());
     GTEST_LOG_(INFO) << "StartupManagerTest AnalyzePreloadSystemSoStartupTaskInner_0100 end";
@@ -1271,6 +1271,10 @@ HWTEST_F(StartupManagerTest, ParsePreloadSystemSoAllowlist_0100, Function | Medi
     nlohmann::json jsonStr5 = R"({"systemPreloadSoAllowList":["testOhmurl"]})"_json;
     allowlist.clear();
     EXPECT_TRUE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr5, allowlist));
+
+    nlohmann::json jsonStr6 = R"({"systemPreloadSoAllowList":[{"name":"testName"}]})"_json;
+    allowlist.clear();
+    EXPECT_TRUE(startupManager->ParsePreloadSystemSoAllowlist(jsonStr5, allowlist));
     EXPECT_FALSE(allowlist.empty());
 }
 
@@ -1282,6 +1286,7 @@ HWTEST_F(StartupManagerTest, ParsePreloadSystemSoAllowlist_0100, Function | Medi
 HWTEST_F(StartupManagerTest, RunAppAutoPreloadSystemSoTask_0100, Function | MediumTest | Level1)
 {
     std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    const std::string taskType = "PreloadSystemSo";
 
     startupManager->preloadSystemSoStartupTasks_.clear();
     EXPECT_EQ(ERR_OK, startupManager->RunAppAutoPreloadSystemSoTask());
@@ -1291,11 +1296,24 @@ HWTEST_F(StartupManagerTest, RunAppAutoPreloadSystemSoTask_0100, Function | Medi
     startupManager->preloadSystemSoStartupTasks_.emplace("testName2",
         std::make_shared<PreloadSystemSoStartupTask>("testName2", "url"));
     startupManager->preloadSystemSoStartupTasks_.emplace("testName3",
-        std::make_shared<PreloadSystemSoStartupTask>("testName3", "testUrl"));
+        std::make_shared<PreloadSystemSoStartupTask>("testName3", "@ohos:"));
     startupManager->preloadSystemSoStartupTasks_.emplace("testName4",
-        std::make_shared<PreloadSystemSoStartupTask>("testName4", "@ohos:testUrl"));
-    startupManager->preloadSystemSoStartupTasks_.emplace("testName4",
-        std::make_shared<PreloadSystemSoStartupTask>("testName4", "@ohos:account.osAccount"));
+        std::make_shared<PreloadSystemSoStartupTask>("testName4", "@ohor:testUrl"));
+    startupManager->preloadSystemSoStartupTasks_.emplace("testName5",
+        std::make_shared<PreloadSystemSoStartupTask>("testName5", "@ohos:testUrl"));
+    startupManager->preloadSystemSoStartupTasks_.emplace("testName6",
+        std::make_shared<PreloadSystemSoStartupTask>("testName6", "@ohot:testUrl"));
+    startupManager->preloadSystemSoStartupTasks_.emplace("testName7",
+        std::make_shared<PreloadSystemSoStartupTask>("testName7", "@ohos:account.osAccount"));
+
+    for (const auto&[key, task] : startupManager->preloadSystemSoStartupTasks_)
+    {
+        if (task == nullptr) {
+            continue;
+        }
+        task->RunTaskInit(nullptr);
+        EXPECT_EQ(task->GetType(), PreloadSystemSoStartupTask::TASK_TYPE);
+    }
 
     EXPECT_EQ(ERR_STARTUP_TIMEOUT, startupManager->RunAppAutoPreloadSystemSoTask());
 }
@@ -1334,6 +1352,37 @@ HWTEST_F(StartupManagerTest, ParseJsonStringArray_001, Function | MediumTest | L
     StartupManager::ParseJsonStringArray(json, "actions", arr3);
     EXPECT_EQ(arr3.size(), 2);
     GTEST_LOG_(INFO) << "ParseJsonStringArray_001 end";
+}
+
+/**
+ * @tc.name: StopAutoPreloadSoTask_0100
+ * @tc.type: FUNC
+ * @tc.Function: StopAutoPreloadSoTask
+ */
+HWTEST_F(StartupManagerTest, StopAutoPreloadSoTask_0100, Function | MediumTest | Level1)
+{
+    uint32_t firstTaskId = 0;
+    uint32_t secondTaskId = 1;
+    std::shared_ptr<StartupManager> startupManager = DelayedSingleton<StartupManager>::GetInstance();
+    auto autoPreloadSoTaskManagerBak = startupManager->autoPreloadSoTaskManager_.lock();
+    auto autoPreloadSystemSoTaskManagerBak = startupManager->autoPreloadSystemSoTaskManager_.lock();
+    startupManager->autoPreloadSoTaskManager_.reset();
+    startupManager->autoPreloadSystemSoTaskManager_.reset();
+    startupManager->StopAutoPreloadSoTask();
+    EXPECT_TRUE(startupManager->autoPreloadSoTaskManager_.expired());
+    EXPECT_TRUE(startupManager->autoPreloadSystemSoTaskManager_.expired());
+
+    std::map<std::string, std::shared_ptr<StartupTask>> tasks;
+    auto taskManager1 = std::make_shared<StartupTaskManager>(firstTaskId, tasks);
+    auto taskManager2 = std::make_shared<StartupTaskManager>(secondTaskId, tasks);
+    startupManager->autoPreloadSoTaskManager_ = taskManager1;
+    startupManager->autoPreloadSystemSoTaskManager_ = taskManager2;
+    startupManager->StopAutoPreloadSoTask();
+    EXPECT_FALSE(startupManager->autoPreloadSoTaskManager_.expired());
+    EXPECT_FALSE(startupManager->autoPreloadSystemSoTaskManager_.expired());
+
+    startupManager->autoPreloadSoTaskManager_ = autoPreloadSoTaskManagerBak;
+    startupManager->autoPreloadSystemSoTaskManager_ = autoPreloadSystemSoTaskManagerBak;
 }
 }
 }
