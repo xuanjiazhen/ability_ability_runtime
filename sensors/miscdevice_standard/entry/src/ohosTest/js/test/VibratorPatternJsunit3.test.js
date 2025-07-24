@@ -31,7 +31,7 @@ export default function VibratorJsTest_misc_12() {
             try {
                 const vibratorsList = vibrator.getVibratorInfoSync();
                 if (ABILITYJUDGMENT === false || vibratorsList.length === 0 ||
-                    (vibratorsList.length !== 0 && !vibratorsList[0].isLocalVibrator)) {
+                    (vibratorsList.length !== 0 && vibratorsList.every(vibrator => !vibrator.isLocalVibrator))) {
                     isAvailable = false;
                     console.info('VibratorJsTest_misc_12 isAvailable ' + isAvailable);
                     done();

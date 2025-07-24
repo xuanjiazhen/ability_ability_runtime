@@ -33,7 +33,7 @@ export default function ActsMiscdeviceNdkTest() {
       try {
         const vibratorsList : Array<vibrator.VibratorInfo> = vibrator.getVibratorInfoSync();
         if (ABILITYJUDGMENT === false || vibratorsList.length === 0 ||
-          (vibratorsList.length !== 0 && !vibratorsList[0].isLocalVibrator)) {
+          (vibratorsList.length !== 0 && vibratorsList.every(vibrator => !vibrator.isLocalVibrator))) {
           isAvailable = false;
           console.info('ActsMiscdeviceNdkTest isAvailable ' + isAvailable);
           done()

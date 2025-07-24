@@ -30,7 +30,7 @@ describe("VibratorJsTest_misc_3", function () {
         try {
             const vibratorsList = vibrator.getVibratorInfoSync();
             if (ABILITYJUDGMENT === false || vibratorsList.length === 0 ||
-                (vibratorsList.length !== 0 && !vibratorsList[0].isLocalVibrator)) {
+                (vibratorsList.length !== 0 && vibratorsList.every(vibrator => !vibrator.isLocalVibrator))) {
                 isAvailable = false;
                 console.info('VibratorJsTest_misc_3 isAvailable ' + isAvailable);
                 done()
