@@ -19,6 +19,7 @@ group("napi_packages") {
     "${ability_runtime_napi_path}/ability:ability_napi",
     "${ability_runtime_napi_path}/ability:uiability",
     "${ability_runtime_napi_path}/abilityDataUriUtils:datauriutils",
+    "${ability_runtime_napi_path}/ability_CompletionHandlerForAtomicService:abilitycompletionhandleratomic_napi",
     "${ability_runtime_napi_path}/ability_auto_startup_callback:autostartupcallback",
     "${ability_runtime_napi_path}/ability_auto_startup_manager:autostartupmanager",
     "${ability_runtime_napi_path}/ability_constant:abilityconstant",
