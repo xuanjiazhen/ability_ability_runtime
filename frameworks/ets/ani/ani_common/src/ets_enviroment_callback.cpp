@@ -47,8 +47,11 @@ int32_t EtsEnviromentCallback::Register(ani_object aniCallback)
         serialNumber_ = 0;
     }
     ani_ref aniCallbackRef = nullptr;
-    env_->GlobalReference_Create(aniCallback, &aniCallbackRef);
-
+    ani_status status = ANI_ERROR;
+    if ((status = env_->GlobalReference_Create(aniCallback, &aniCallbackRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Create status: %{public}d", status);
+        return -1;
+    }
     std::lock_guard lock(Mutex_);
     enviromentAniCallbacks_.emplace(callbackId, aniCallbackRef);
     return callbackId;
@@ -63,6 +66,11 @@ bool EtsEnviromentCallback::UnRegister(int32_t callbackId)
         return false;
     }
     TAG_LOGD(AAFwkTag::APPKIT, "callbacks_.callbackId: %{public}d", it->first);
+    ani_status status = ANI_ERROR;
+    if ((status = env_->GlobalReference_Delete(it->second)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Delete status: %{public}d", status);
+        return false;
+    }
     return enviromentAniCallbacks_.erase(callbackId) == 1;
 }
 
