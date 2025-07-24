@@ -13,21 +13,11 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("ActsMediaXtsTest") {
-  testonly = true
-  certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsMediaXtsTest"
-  subsystem_name = "multimedia"
-  part_name = "player_framework"
-}
-
-ohos_js_app_suite("mediaXts_ets_hap") {
+ohos_js_app_suite("media_xts_hap") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsMediaXtsTest"
   part_name = "player_framework"
-
   subsystem_name = "multimedia"
-  deps = [ ":ActsMediaXtsTest" ]
 }
