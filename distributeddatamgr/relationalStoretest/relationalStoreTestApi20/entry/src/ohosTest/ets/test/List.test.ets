@@ -13,8 +13,8 @@
  * limitations under the License.
  */
  
-import ActsRelationStoreTest from './ActsRelationStoreTest.test'
+import ActsRelationalStoreTest from './ActsRelationalStoreTest.test'
 
 export default function testsuite() {
-  ActsRelationStoreTest()
+  ActsRelationalStoreTest()
 }
