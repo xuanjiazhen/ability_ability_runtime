@@ -28,9 +28,18 @@ class RecordWriter {
     this.wantParams = new NativeWantParams(wantParams);
   }
 
-  public write(obj: Object): String {
-    this.writeObject(obj);
-    return this.buffer.toString();
+  public write(obj: Object): boolean {
+    return this.parseRecord(obj);
+    // return this.buffer.toString();
+  }
+
+  private parseRecord(obj: NullishType): boolean {
+    if (obj instanceof Record) {
+      return this.writeRecord(obj as Object as Record<string, valueType>);
+    } else {
+      hilog.error(DOMAIN_ID, TAG, `input object not record type`);
+      return false;
+    }
   }
 
   private writeObject(obj: NullishType): void {
@@ -56,31 +65,44 @@ class RecordWriter {
     }
   }
 
-  private writeObjectToNative(key: string, obj: NullishType): void {
+  private writeObjectToNative(wantParams?: NativeWantParams, key: string, obj: NullishType): boolean {
+    let localWantParams = (wantParams === undefined) ? this.wantParams : wantParams;
     if (obj === null) {
       //this.buffer.append('null');
-      this.wantParams?.setParam(key, 'null');
+      localWantParams?.setParam(key, 'null');
+      return true;
     } else if (obj === undefined) {
       //this.buffer.append('undefined');
-      this.wantParams?.setParam(key, 'undefined');
+      localWantParams?.setParam(key, 'undefined');
+      return true;
     } else if (obj instanceof String) {
       //this.buffer.append(JSON.stringify(obj as String));
-      this.wantParams?.setParam(key, obj as String);
-    } else if (this.writeValueTypeToNative(key, obj as Object)) {
+      localWantParams?.setParam(key, obj as String);
+      return true;
+    } else if (this.writeValueTypeToNative(localWantParams, key, obj as Object)) {
       // nothing to do
+      return true;
     } else if (obj instanceof Array) {
       this.writeArray(obj as Object as Array<valueType>);
+      return true;
     } else if (obj instanceof Record) {
-      this.writeRecord(obj as Object as Record<string, valueType>);
+      //this.writeRecord(obj as Object as Record<string, valueType>);
+      let newWantParams = this.writeRecordToNative(obj as Object as Record<string, valueType>);
+      if (newWantParams === null) {
+        return false;
+      }
+      localWantParams?.setParam(key, newWantParams);
     } else {
       const objType = Type.of(obj);
       if (objType instanceof ArrayType) {
         this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
       } else {
         //this.buffer.append('null');
-        this.wantParams?.setParam(key, 'null');
+        localWantParams?.setParam(key, 'null');
       }
+      return true;
     }
+    return false;
   }
 
   private writeValueType(obj: Object): boolean {
@@ -116,42 +138,42 @@ class RecordWriter {
     }
   }
 
-  private writeValueTypeToNative(key: string, obj: Object): boolean {
+  private writeValueTypeToNative(wantParams: NativeWantParams, key: string, obj: Object): boolean {
     if (obj instanceof Boolean) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, 'not support Boolean');
+      wantParams?.setParam(key, 'not support Boolean');
       return true;
     } else if (obj instanceof Byte) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Char) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Short) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Int) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Long) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Float) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof Double) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
-      this.wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj.unboxed());
       return true;
     } else if (obj instanceof BigInt) {
       //this.buffer.append(JSON.stringify(obj));
-      this.wantParams?.setParam(key, 'not support BigInt');
+      wantParams?.setParam(key, obj.toString()); // JSON库中BigInt转化为字符串
       return true;
     } else {
       return false;
@@ -197,11 +219,11 @@ class RecordWriter {
     this.buffer.append(']');
   }
 
-  private writeRecord(rec: Record<string, valueType>): void {
+  private writeRecord(rec: Record<string, valueType>): boolean {
     //this.buffer.append('{');
     this.checkReferencesCycle(rec);
     this.store.add(rec);
-    //let isFirst = true;
+    let isSuccess = false;
     for (let key of rec.keys()) {
       if (rec[key] !== undefined) {
         //if (!isFirst) {
@@ -213,11 +235,37 @@ class RecordWriter {
         //this.buffer.append(':');
         //this.writeObject(rec[key]);
 
-        this.writeObjectToNative(key as String, rec[key] as Object);
+        isSuccess = this.writeObjectToNative(key as String, rec[key] as Object);
+        if (isSuccess != true) {
+          return false;
+        }
       }
     }
     this.store.delete(rec);
     //this.buffer.append('}');
+    return isSuccess;
+  }
+
+  private writeRecordToNative(rec: Record<string, valueType>): NativeWantParams | null {
+    let NativeWantParams = new NativeWantParams();
+    this.checkReferencesCycle(rec);
+    this.store.add(rec);
+    let isSuccess = false;
+    for (let key of rec.keys()) {
+      if (rec[key] == undefined) {
+        continue;
+      }
+      isSuccess = this.writeObjectToNative(NativeWantParams, key as String, rec[key] as Object);
+      if (isSuccess != true) {
+          return null;
+      }
+    }
+    this.store.delete(rec);
+    if (isSuccess != true) {
+      return null;
+    } else {
+      return NativeWantParams;
+    }
   }
 
   private checkReferencesCycle(obj: Object): void {
@@ -228,12 +276,12 @@ class RecordWriter {
 }
 
 export class RecordSerializeTool {
-  public static stringifyNoThrow(obj: Record<string, Object>, nativeWantParams: long): String {
+  public static stringifyNoThrow(obj: Record<string, Object>, nativeWantParams: long): boolean {
     try {
       return RecordSerializeTool.stringify(obj as Object as Record<string, NullishType>, nativeWantParams);
     } catch (err) {
       hilog.error(DOMAIN_ID, TAG, `RecordSerializeTool.stringify error: ${err}`);
-      return '';
+      return false;
     }
   }
 
@@ -246,7 +294,7 @@ export class RecordSerializeTool {
     }
   }
 
-  public static stringify(obj: Record<string, valueType>, nativeWantParams: long): String {
+  public static stringify(obj: Record<string, valueType>, nativeWantParams: long): boolean {
     return new RecordWriter(nativeWantParams).write(obj);
   }
 

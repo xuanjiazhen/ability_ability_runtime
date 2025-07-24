@@ -277,10 +277,11 @@ bool UnwrapWantParams(ani_env *env, ani_ref param, AAFwk::WantParams &wantParams
         TAG_LOGE(AAFwkTag::ANI, "failed to get stringifyNoThrow method, status: %{public}d", status);
         return false;
     }
-    ani_ref wantParamsAniString;
+    //ani_ref wantParamsAniString;
+    ani_boolean isSuccess;
     ani_long wantParamsLong = reinterpret_cast<ani_long>(&wantParams);
-    status = env->Class_CallStaticMethod_Ref(cls, stringifyMethod, &wantParamsAniString, param, wantParamsLong);
-    if (status != ANI_OK) {
+    status = env->Class_CallStaticMethod_Boolean(cls, stringifyMethod, &isSuccess, param, wantParamsLong);
+    if (status != ANI_OK || isSuccess != ANI_TRUE) {
         TAG_LOGE(AAFwkTag::ANI, "failed to call stringifyNoThrow method, status: %{public}d", status);
         return false;
     }
