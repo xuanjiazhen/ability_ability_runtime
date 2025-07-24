@@ -274,6 +274,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       let result: number = myScreenCaptureNdk.originAVScreenCaptureTest();
       console.info(Tag + "originAVScreenCaptureTest-------------res:" + result);
       expect(result).assertEqual(0);
+      await Utils.btnTextScreenCapture();
       done();
     });
 
