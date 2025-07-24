@@ -196,7 +196,7 @@ export default function abilityTest() {
       // This API supports only one parameter: preset action function.
     })
     beforeEach(async() => {
-      await sleep(100);
+      await sleep(500);
       // Presets an action, which is performed before each unit test case starts.
       // The number of execution times is the same as the number of test cases defined by **it**.
       // This API supports only one parameter: preset action function.
@@ -227,7 +227,7 @@ export default function abilityTest() {
       setTimeout(() => {
         throwError();
       }, 50);
-      await sleep(100);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -250,7 +250,7 @@ export default function abilityTest() {
           throwError();
         }, 50);
       });
-      await sleep(100);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -265,7 +265,7 @@ export default function abilityTest() {
      */
     it('PromiseThenThrowErrorTest0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise:Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise:Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -275,7 +275,7 @@ export default function abilityTest() {
       Promise.resolve().then(() => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -291,7 +291,7 @@ export default function abilityTest() {
      */
     it('PromiseCatchThrowErrorTest0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -302,7 +302,7 @@ export default function abilityTest() {
         .catch(() => {
           throwError();
         });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -318,7 +318,7 @@ export default function abilityTest() {
      */
     it('PromiseFinallyThrowErrorTest0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -329,7 +329,7 @@ export default function abilityTest() {
         .finally(() => {
           throwError();
         });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -344,7 +344,7 @@ export default function abilityTest() {
      */
     it('AsyncLockThrowErrorTest0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -355,7 +355,7 @@ export default function abilityTest() {
       lock.lockAsync<void>(() => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -370,7 +370,7 @@ export default function abilityTest() {
      */
     it('AsyncLockThrowErrorTest0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -382,7 +382,7 @@ export default function abilityTest() {
       }).then(() => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -397,7 +397,7 @@ export default function abilityTest() {
      */
     it('AsyncLockThrowErrorTest0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -410,7 +410,7 @@ export default function abilityTest() {
       }).catch(() => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -425,7 +425,7 @@ export default function abilityTest() {
      */
     it('WaitForThrowErrorTest0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -437,7 +437,7 @@ export default function abilityTest() {
         .finally(() => {
           throwError();
         });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -452,7 +452,7 @@ export default function abilityTest() {
      */
     it('WaitForErrorTest1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -463,7 +463,7 @@ export default function abilityTest() {
       conditionVariable.waitFor(10).then(() => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -478,7 +478,7 @@ export default function abilityTest() {
      */
     it('AsyncFunctionThrowErrorTest1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -486,7 +486,7 @@ export default function abilityTest() {
         }
       });
       asyncThrow();
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -507,7 +507,7 @@ export default function abilityTest() {
       setTimeout(() => {
         testNapi.addWithTwoNumber();
       }, 0);
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual('Expected two arguments');
       Done();
     });
@@ -527,7 +527,7 @@ export default function abilityTest() {
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.execute(task);
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -542,7 +542,7 @@ export default function abilityTest() {
      */
     it('TaskpoolGenericTaskThenThrowErrorTest1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -554,7 +554,7 @@ export default function abilityTest() {
       taskpool.execute(taskGroup).then((res: Array<Object>) => {
         throwError();
       });
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual(err);
       Done();
     });
@@ -575,7 +575,7 @@ export default function abilityTest() {
       let taskGroup: taskpool.TaskGroup = new taskpool.TaskGroup();
       taskGroup.addTask(throwErrorTask);
       taskpool.execute(taskGroup);
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -597,7 +597,7 @@ export default function abilityTest() {
       taskGroup.addTask(normalTask);
       taskGroup.addTask(throwErrorTask);
       taskpool.execute(taskGroup);
-      await sleep(50);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -632,7 +632,7 @@ export default function abilityTest() {
       taskGroup.addTask(task1);
       taskGroup.addTask(task2);
       taskpool.execute(taskGroup);
-      await sleep(50);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('taskpool error')).assertTrue();
       expect(!errorCaughtList.includes('onExecutionFailed error')).assertTrue();
@@ -669,7 +669,7 @@ export default function abilityTest() {
      */
     it('TaskpoolDelayedTaskCatchThrowErrorTest1900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
       let errorCaught = '';
-      errorManager.on('unhandledRejection', (reason: Error | string, promise: Promise<void>) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
         if (reason instanceof Error) {
           errorCaught = reason.message;
         } else {
@@ -755,7 +755,7 @@ export default function abilityTest() {
       });
       let task: taskpool.LongTask = new taskpool.LongTask(longErrorTask);
       taskpool.execute(task);
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('long task error');
       Done();
     });
@@ -784,7 +784,7 @@ export default function abilityTest() {
       let task: taskpool.LongTask = new taskpool.LongTask(longTaskWithData,1);
       task.onReceiveData(throwError);
       taskpool.execute(task);
-      await sleep(200);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(!errorCaughtList.includes('error')).assertTrue();
       Done();
@@ -806,7 +806,7 @@ export default function abilityTest() {
       let runner = new taskpool.SequenceRunner();
       let task = new taskpool.Task(throwErrorTask);
       runner.execute(task);
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -829,7 +829,7 @@ export default function abilityTest() {
       let task2 = new taskpool.Task(normalTask);
       runner.execute(task1);
       runner.execute(task2);
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -863,7 +863,7 @@ export default function abilityTest() {
       let task2 = new taskpool.Task(normalTask);
       runner.execute(task1);
       runner.execute(task2);
-      await sleep(200);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(!errorCaughtList.includes('onStartExecution error')).assertTrue();
       Done();
@@ -885,7 +885,7 @@ export default function abilityTest() {
       let runner = new taskpool.AsyncRunner(4);
       let task = new taskpool.Task(throwErrorTask);
       runner.execute(task);
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -908,7 +908,7 @@ export default function abilityTest() {
       let task2 = new taskpool.Task(throwErrorTask);
       runner.execute(task1);
       runner.execute(task2);
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -942,7 +942,7 @@ export default function abilityTest() {
       let task2 = new taskpool.Task(throwErrorTask);
       runner.execute(task1);
       runner.execute(task2);
-      await sleep(200);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('taskpool error')).assertTrue();
       expect(!errorCaughtList.includes('onExecutionSucceeded error')).assertTrue();
@@ -963,7 +963,7 @@ export default function abilityTest() {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker1');
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
       myWorker.terminate();
       Done();
@@ -984,7 +984,7 @@ export default function abilityTest() {
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker2');
       myWorker.postMessage({ foo: 'bar' });
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('Error: worker onmessage error');
       myWorker.terminate();
       Done();
@@ -1005,7 +1005,7 @@ export default function abilityTest() {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker5');
-      await sleep(100);
+      await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
       myWorker.terminate();
       Done();
@@ -1033,7 +1033,7 @@ export default function abilityTest() {
         }}
       );
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker6');
-      await sleep(200);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
       myWorker.terminate();
@@ -1055,7 +1055,7 @@ export default function abilityTest() {
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker8');
       myWorker.postMessage({ foo: 'bar' });
-      await sleep(200);
+      await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
       myWorker.terminate();
       Done();
