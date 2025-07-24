@@ -57,6 +57,8 @@ const LABEL_SET_DEVICE_NAME = "setDeviceName";
 const LABEL_SUDO = "sudo";
 const LABEL_NFC = "nfc";
 const LABEL_TELEPHONY_CALL = "telephoneCall";
+const LABEL_BACKUP_AND_RESTORE = "backupAndRestore";
+const LABEL_PRIVATE_SPACE = "privateSpace";
 
 export default function restrictionsTest() {
   describe('restrictions_test', () => {
@@ -1347,6 +1349,48 @@ function testSetDisallowedPolicy() {
     try {
       restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
       expect(restrictions.getDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL)).assertFalse();
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0162
+   * @tc.name      : test_set_disallowed_policy_0162
+   * @tc.desc      : test restrictions setDisallowedPolicy
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0162", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicy(SELFWANT, LABEL_BACKUP_AND_RESTORE, false);
+      expect(restrictions.getDisallowedPolicy(SELFWANT, LABEL_BACKUP_AND_RESTORE)).assertFalse();
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0163
+   * @tc.name      : test_set_disallowed_policy_0163
+   * @tc.desc      : test restrictions setDisallowedPolicy
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0163", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicy(SELFWANT, LABEL_PRIVATE_SPACE, false);
+      expect(restrictions.getDisallowedPolicy(SELFWANT, LABEL_PRIVATE_SPACE)).assertFalse();
     } catch (error) {
       expect(error.code == 801).assertTrue();
     } finally {
