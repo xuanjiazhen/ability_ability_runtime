@@ -47,6 +47,8 @@ export default class EntryAbility extends UIAbility {
         }
         windowClass = data;
         hilog.info(0x0000, 'testTag', 'Succeeded in obtaining the main window. Data: ' + JSON.stringify(data));
+        // Set the current window to wide color gamut mode.
+        windowClass.setWindowColorSpace(window.ColorSpace.WIDE_GAMUT);
         try {
           let properties : window.WindowProperties = windowClass.getWindowProperties();
           let wRect : window.Rect =  properties.windowRect;
