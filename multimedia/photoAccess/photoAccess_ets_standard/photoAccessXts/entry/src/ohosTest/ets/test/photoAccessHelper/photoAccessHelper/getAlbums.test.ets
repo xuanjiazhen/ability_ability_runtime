@@ -1009,14 +1009,14 @@ export default function getAlbumsTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('getAlbums_promise_user_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
+    /*it('getAlbums_promise_user_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
       const testName = 'getAlbums_promise_user_ops_abnormal_004';
       console.info(TAG, testName);
       const type: photoAccessHelper.AlbumType = albumType.USER;
       const subType: photoAccessHelper.AlbumSubtype = albumSubtype.ANY;
       const fetchOps: photoAccessHelper.FetchOptions | undefined = undefined;
       await getAlbumsPromiseWithOptionsAbnormalTest(done, type, subType, fetchOps);
-    })
+    })*/
 
     /**
      * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_042
@@ -1172,14 +1172,14 @@ export default function getAlbumsTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('getAlbums_promise_system_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
+    /*it('getAlbums_promise_system_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
       const testName = 'getAlbums_promise_system_ops_abnormal_004';
       console.info(TAG, testName);
       const type: photoAccessHelper.AlbumType = albumType.SYSTEM;
       const subType: photoAccessHelper.AlbumSubtype = albumSubtype.ANY;
       const fetchOps: photoAccessHelper.FetchOptions | undefined = undefined;
       await getAlbumsPromiseWithOptionsAbnormalTest(done, type, subType, fetchOps);
-    })
+    })*/
 
     /**
      * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_051

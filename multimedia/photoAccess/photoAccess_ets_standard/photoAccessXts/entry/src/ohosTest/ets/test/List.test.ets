@@ -96,25 +96,19 @@ export default function testsuite() {
   sendableConvertToPhotoAlbumTest();
   sendableGetAssetsTest();
   sendableCommitModifyTest();
-
-
   sendablePhotoAccessHelperCreateAssetTest();
   sendablePhotoAccessHelperGetAssetsTest();
   sendablePhotoAccessHelperReleaseTest();
-
-
-  sendableCommitModifyPhotoAssetTest(); //d
-  sendableConvertToPhotoAssetTest(); //d
-  sendableGetTest(); //d
-  sendableGetThumbnailTest(); //d
-  sendableSetTest(); //d
+  sendableCommitModifyPhotoAssetTest();
+  sendableConvertToPhotoAssetTest();
+  sendableGetTest();
+  sendableGetThumbnailTest();
+  sendableSetTest();
   createAssetTest();
   getAssetsTest();
   getBurstAssetsTest();
   registerChangeTest();
   releaseTest();
-
-
   albumCommitModifyTest();
   albumGetAssetsTest();
   closeTest();
@@ -126,7 +120,6 @@ export default function testsuite() {
   getObjectByPositionTest();
   isAfterLastTest();
   PhotoViewPickerSelectTest();
-
   checkAttrTest();
   cloneAssetTest();
   commitModifyTest();
@@ -134,19 +127,15 @@ export default function testsuite() {
   getThumbnailTest();
   setTest();
   getAlbumsTest();
-
-
   MediaAlbumChangeRequestGetAlbumTest();
   MediaAlbumChangeRequestAddAssetsTest();
   MediaAlbumChangeRequestRemoveAssetsTest();
-
   MediaAssetManagerRequestImageTest();
   MediaAssetManagerRequestImageDataTest();
   // MediaAssetManagerRequestMovingPhotoTest();
   MediaAssetManagerRequestVideoFileTest();
   MediaAssetManagerCancelRequestTest();
   MediaAssetManagerLoadMovingPhotoTest();
-
   MediaAssetChangeRequestGetAssetsTest();
   MediaAssetChangeRequestCreateImageAssetRequestTest();
   MediaAssetChangeRequestCreateVideoAssetRequestTest();
@@ -162,7 +151,6 @@ export default function testsuite() {
   requestPhotoUrisReadPermissionTest();
   getSupportedPhotoFormatsTest();
   MediaAssetDataHandlerOnDataPreparedTest();
-
   MovingPhotoGetUriTest();
   MovingPhotoRequestContentTest();
   MediaAssetChangeRequestDeleteAssetsTest();

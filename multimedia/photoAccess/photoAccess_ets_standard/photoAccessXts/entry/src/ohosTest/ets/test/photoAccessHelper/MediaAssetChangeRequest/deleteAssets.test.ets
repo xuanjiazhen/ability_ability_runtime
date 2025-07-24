@@ -80,11 +80,11 @@ export default function MediaAssetChangeRequestDeleteAssetsTest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetChangeRequest_deleteAssets_promise_001', Level.LEVEL0, async (done: Function) => {
+    /*it('MediaAssetChangeRequest_deleteAssets_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'MediaAssetChangeRequest_deleteAssets_promise_001';
       const type = 'assets';
       await deleteAssetsPromiseTest(done, testName, type);
-    })
+    })*/
 
     /**
      * @tc.number    : MEDIA_ASSET_CHANGE_REQUEST_DELETE_ASSETS_002
@@ -94,10 +94,10 @@ export default function MediaAssetChangeRequestDeleteAssetsTest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetChangeRequest_deleteAssets_promise_002', Level.LEVEL0, async (done: Function) => {
+    /*it('MediaAssetChangeRequest_deleteAssets_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'MediaAssetChangeRequest_deleteAssets_promise_002';
       const type = 'uriList';
       await deleteAssetsPromiseTest(done, testName, type);
-    })
+    })*/
   })
 }

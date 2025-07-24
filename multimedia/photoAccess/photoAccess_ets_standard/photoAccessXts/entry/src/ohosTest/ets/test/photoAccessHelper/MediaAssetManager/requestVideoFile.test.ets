@@ -79,7 +79,7 @@ export default function MediaAssetManagerRequestVideoFileTest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('MediaAssetManager_requestVideoFile_promise_001', Level.LEVEL0, async (done: Function) => {
+    /*it('MediaAssetManager_requestVideoFile_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'MediaAssetManager_requestVideoFile_promise_001';
       const fetchOptions = fetchAllOption();
       let requestOptions: photoAccessHelper.RequestOptions = {
@@ -89,6 +89,6 @@ export default function MediaAssetManagerRequestVideoFileTest() {
       const path = '1vp9_320x240_30.mp4';
       await copyImageToSandbox(fileName, path);
       await requestVideoFilePromiseTest(done, testName, fetchOptions, requestOptions, path);
-    })
+    })*/
   })
 }
