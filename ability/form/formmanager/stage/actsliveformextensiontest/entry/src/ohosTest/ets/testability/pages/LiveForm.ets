@@ -38,15 +38,22 @@ struct LiveForm {
     hilog.info(0x0000, TAG, '%{public}s', 'LiveForm aboutToDisappear');
   }
 
-  private runAnimation(): void {
-    animateTo({
-      duration: 3500,
-      curve: Curve.Ease
-    }, () => {
-      this.columnScale = END_SCALE;
-      this.columnTranslate = END_TRANSLATE;
-      this.columnBackgroundColor = Color.Red;
+  private startAbilityByLiveForm(): void {
+    try {
+      this.context?.startAbilityByLiveForm({
+        bundleName: 'com.acts.liveformextensiontest',
+        abilityName: 'TestAbility'
     })
+      .then(() => {
+        hilog.info(0x0000, TAG, `startAbilityByLiveForm succeed`);
+      })
+      .catch((err: BusinessError) => {
+        hilog.error(0x0000, TAG,
+          `startAbilityByLiveForm failed, code is ${err?.code}, message is ${err?.message}`);
+      });
+    } catch (e) {
+      hilog.error(0x0000, TAG, `startAbilityByLiveForm failed: ${e}`);
+    }
   }
 
   build() {
@@ -63,7 +70,7 @@ struct LiveForm {
           y: this.columnTranslate
         })
         .onAppear(() => {
-          this.runAnimation();
+          this.startAbilityByLiveForm();
         })
     }
     .border({
