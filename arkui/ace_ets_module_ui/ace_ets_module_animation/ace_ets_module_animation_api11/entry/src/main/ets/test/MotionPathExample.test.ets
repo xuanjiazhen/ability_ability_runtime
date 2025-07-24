@@ -48,7 +48,6 @@ export default function MotionPathExample() {
       let driver = await Driver.create()
       await CommonFunc.sleep(1000);
 
-
       let button = await driver.findComponent(ON.text('clickme'));
 
       let point1 = await button.getBoundsCenter();
