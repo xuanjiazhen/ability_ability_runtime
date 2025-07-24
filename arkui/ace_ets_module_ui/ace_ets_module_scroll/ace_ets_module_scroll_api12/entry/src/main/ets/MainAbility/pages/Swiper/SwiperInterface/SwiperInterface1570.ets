@@ -25,16 +25,16 @@ struct SwiperInterface1570 {
       Swiper(this.swiperController) {
         Text('1')
           .fontSize(80)
-          .width(400)
-          .height(160)
+          .width('90%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
 
         Text('2')
           .fontSize(80)
-          .width(300)
-          .height(160)
+          .width('90%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
@@ -42,21 +42,22 @@ struct SwiperInterface1570 {
       .key('swiperinterface1570')
       .autoPlay(true)
       .duration(-5000)
-
+      .width('80%')
+      .height('40%')
 
        Swiper(this.swiperController2) {
         Text('1')
           .fontSize(80)
-          .width(400)
-          .height(160)
+          .width('90%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
 
         Text('2')
           .fontSize(80)
-          .width(300)
-          .height(160)
+          .width('90%')
+          .height('100%')
           .backgroundColor(Color.Orange)
           .textAlign(TextAlign.Center)
           .border({ width: 1 })
@@ -64,6 +65,8 @@ struct SwiperInterface1570 {
       .key('swiperinterface1580')
       .autoPlay(true)
       .duration(0)
+      .width('80%')
+      .height('40%')
 
     }
   }

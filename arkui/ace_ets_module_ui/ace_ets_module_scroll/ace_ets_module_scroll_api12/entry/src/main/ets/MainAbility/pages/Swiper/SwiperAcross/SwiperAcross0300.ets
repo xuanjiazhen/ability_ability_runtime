@@ -29,7 +29,7 @@ struct SwiperAcross0300 {
             Text('' + obj.item)
               .textAlign(TextAlign.Center)
               .backgroundColor(Color.Orange)
-              .width(400)
+              .width('80%')
               .height(160)
           })
       }

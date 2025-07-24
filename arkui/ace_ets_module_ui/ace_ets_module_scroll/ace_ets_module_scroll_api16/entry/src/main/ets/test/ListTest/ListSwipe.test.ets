@@ -15,6 +15,7 @@
 import { describe, beforeEach, afterEach, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router'
 import { Driver, Component, ON } from '@ohos.UiTest'
+import CommonFunc from '../../MainAbility/common/Common';
 import events_emitter from '@ohos.events.emitter';
 
 export default function ListSwipeTest() {
@@ -85,12 +86,15 @@ export default function ListSwipeTest() {
       let strJson: string = getInspectorByKey(baseKey);
       console.info("windowRect Left: " + globalThis.winLeft + ',' + "windowRect Top: " + globalThis.winTop);
       // 2.swipe right
-      let rectCenter: number[] = getRectCenter(JSON.parse(strJson).$rect)
-      await driver.swipe(Math.round(globalThis.winLeft + rectCenter[0] - (rectCenter[3] - rectCenter[2]) / 4),
-        Math.round(globalThis.winTop + rectCenter[1]),
-        Math.round(globalThis.winLeft + rectCenter[0] + (rectCenter[3] -rectCenter[2]) / 4),
-        Math.round(globalThis.winTop + rectCenter[1]))
-
+      let swipeList = CommonFunc.getComponentRectOnScreen('MyList2_ListItem0');
+      let top = swipeList.top;
+      let right = swipeList.right;
+      let left = swipeList.left;
+      let bottom = swipeList.bottom;
+      console.info("ArkUI_List_Swipe_0300 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.swipe(Math.round(left + width*0.3),Math.round(top + height/2),Math.round(left + width*0.9),Math.round(top + height/2));
 
       await sleep(8000) // wait for ui update
       console.info('get getInspectorByKey swipe0300')
