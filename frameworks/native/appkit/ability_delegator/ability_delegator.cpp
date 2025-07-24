@@ -730,7 +730,7 @@ void AbilityDelegator::RegisterClearFunc(ClearFunc func)
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid func");
         return;
     }
-
+    std::unique_lock<std::mutex> lck(mutexRegisterClearFunc_);
     clearFunc_ = func;
 }
 
