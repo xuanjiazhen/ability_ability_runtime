@@ -77,7 +77,6 @@ struct webDefaultFontSizeNoAll {
               })
               break;
             }
-
           }
         })
       }
