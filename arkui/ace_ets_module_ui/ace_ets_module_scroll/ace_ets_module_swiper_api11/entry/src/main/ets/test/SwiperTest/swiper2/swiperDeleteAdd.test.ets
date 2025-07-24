@@ -69,7 +69,7 @@ export default function swiperDelAddTest() {
       let btHeight = Math.round(btBottom - btTop);
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0700] swiper width " + btWidth);
      
-      await driver.swipe(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(20)), globalThis.winTop + btTop + Math.round(btHeight/2), globalThis.winLeft + Math.round(btRight), globalThis.winTop + btTop + Math.round(btHeight/2));
+      await driver.swipe(globalThis.winLeft + Math.round(btLeft + btWidth*0.3), globalThis.winTop + btTop + Math.round(btHeight/2), globalThis.winLeft + Math.round(btRight), globalThis.winTop + btTop + Math.round(btHeight/2));
       await CommonFunc.sleep(3000);
 
 

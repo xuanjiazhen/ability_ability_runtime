@@ -85,8 +85,14 @@ export default function swiperDisableSwipeTrue() {
       expect(disableTrue.bottom).assertEqual(disableTrue01.bottom);
       let driver = Driver.create();
       await CommonFunc.sleep(500);
-      await driver.swipe(Math.round(vp2px(150)), Math.round(vp2px(100)), Math.round(vp2px(100)), Math.round(vp2px(100)));
       //await driver.swipe(250, 230, 200, 230);
+      let swipeRect:RectValue = CommonFunc.getComponentRectOnScreen('disableTrue')
+      await driver.swipe(
+        Number.parseInt(`${(swipeRect.right - swipeRect.left) * 0.8 + swipeRect.left}`),
+        Number.parseInt(`${(swipeRect.bottom - swipeRect.top) * 0.5 + swipeRect.top}`),
+        Number.parseInt(`${(swipeRect.right - swipeRect.left) * 0.1 + swipeRect.left}`),
+        Number.parseInt(`${(swipeRect.bottom - swipeRect.top) * 0.5 + swipeRect.top}`),
+        1000);
       await CommonFunc.sleep(1000);
       disableTrue01 = CommonFunc.getComponentRectOnScreen('disableTrue01');
       disableTrue02 = CommonFunc.getComponentRectOnScreen('disableTrue02');

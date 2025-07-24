@@ -32,6 +32,7 @@ struct UIComponentScrollSwiperDisplaycount0200 {
         Text('5').fontSize(80).width(200).textAlign(TextAlign.Center).borderWidth(3).borderColor(Color.Red)
         Text('6').fontSize(80).width(200).textAlign(TextAlign.Center).borderWidth(3).borderColor(Color.Red)
       }.id('swiperdisplaycount0200')
+      .height('50%')
       .onChange((index: number) => {
         this.index = index.toString()
       })
@@ -39,7 +40,7 @@ struct UIComponentScrollSwiperDisplaycount0200 {
         this.swiperController.showNext()
       }).id('btnDisplaycount0200')
 
-      Text(this.index).fontColor(80).width(200).height(200).key('swiperdisplaycount0200_1')
+      Text(this.index).fontColor(80).key('swiperdisplaycount0200_1')
     }.width('100%')
     .margin({ top: 5 })
   }

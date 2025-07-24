@@ -90,9 +90,10 @@ export default function interceptSwiperTest() {
       let left = swiperList.left;
       let bottom = swiperList.bottom;
       let height = bottom -top;
+      let width = right - left;
       console.info("interceptSwiperTest_0200 value is" + left + " --" + right + "--" + top + "--" + bottom);
       let driver = await Driver.create()
-      await driver.swipe(Math.round(left + vp2px(20)),Math.round(top + height/2),Math.round(right - vp2px(20)),Math.round(top + height/2));
+      await driver.swipe(Math.round(left + width*0.3),Math.round(top + height/2),Math.round(right - vp2px(20)),Math.round(top + height/2));
       await CommonFunc.sleep(2000);
       let swiperContent = await driver.findComponent(ON.id('swiper_intercept_text'));
       let text1 = await swiperContent.getText();

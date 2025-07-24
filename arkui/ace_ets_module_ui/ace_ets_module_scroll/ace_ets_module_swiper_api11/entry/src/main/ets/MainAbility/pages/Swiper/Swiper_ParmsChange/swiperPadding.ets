@@ -52,8 +52,8 @@ struct SwipePaddingTest {
         }.width('100%').height('100%').backgroundColor(0xD2B48C).key('swiperPadding06')
       }
       .key('swiperPadding')
-      .height(300)
-      .width(300)
+      .height('50%')
+      .width('80%')
       .indicator(true)
       .loop(true)
       .displayCount(1)
