@@ -52,7 +52,7 @@ namespace OHOS {
     {
         printf("------start ActsOpenGlMainGl30MasterTest------\n");
         if (canIUse("SystemCapability.Graphic.Graphic2D.WebGL")) {
-            system("/data/local/tmp/gl_cts/mustpass/gl_cts "
+            system("/data/local/tmp/gl_cts/mustpass/glcts "
                 "--deqp-caselist-file=/data/local/tmp/gl_cts/mustpass/gl/khronos_mustpass/main/"
                 "gl30-master.txt "
                 "--deqp-log-filename=ActsOpenGlMainGl30MasterTest.qpa");

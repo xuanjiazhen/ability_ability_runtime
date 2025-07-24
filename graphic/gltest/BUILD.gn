@@ -36,4 +36,5 @@ group("openGLTest") {
     deps = [
       "src/gltest/gltest_km/gltest_main/gl30master:ActsOpenGlMainGl30MasterTest",
     ]
-  }}
+  }
+}
