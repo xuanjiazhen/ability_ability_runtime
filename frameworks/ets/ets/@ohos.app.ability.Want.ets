@@ -22,6 +22,11 @@ const TAG = 'WantSerializeTool';
 class RecordWriter {
   private buffer = new StringBuilder();
   private store = new Set<Object>();
+  private wantParams: NativeWantParams | null = null;
+
+  constructor(wantParams: long) {
+    this.wantParams = new NativeWantParams(wantParams);
+  }
 
   public write(obj: Object): String {
     this.writeObject(obj);
@@ -47,6 +52,33 @@ class RecordWriter {
         this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
       } else {
         this.buffer.append('null');
+      }
+    }
+  }
+
+  private writeObjectToNative(key: string, obj: NullishType): void {
+    if (obj === null) {
+      //this.buffer.append('null');
+      this.wantParams?.setParam(key, 'null');
+    } else if (obj === undefined) {
+      //this.buffer.append('undefined');
+      this.wantParams?.setParam(key, 'undefined');
+    } else if (obj instanceof String) {
+      //this.buffer.append(JSON.stringify(obj as String));
+      this.wantParams?.setParam(key, obj as String);
+    } else if (this.writeValueTypeToNative(key, obj as Object)) {
+      // nothing to do
+    } else if (obj instanceof Array) {
+      this.writeArray(obj as Object as Array<valueType>);
+    } else if (obj instanceof Record) {
+      this.writeRecord(obj as Object as Record<string, valueType>);
+    } else {
+      const objType = Type.of(obj);
+      if (objType instanceof ArrayType) {
+        this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
+      } else {
+        //this.buffer.append('null');
+        this.wantParams?.setParam(key, 'null');
       }
     }
   }
@@ -78,6 +110,48 @@ class RecordWriter {
       return true;
     } else if (obj instanceof BigInt) {
       this.buffer.append(JSON.stringify(obj));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private writeValueTypeToNative(key: string, obj: Object): boolean {
+    if (obj instanceof Boolean) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, 'not support Boolean');
+      return true;
+    } else if (obj instanceof Byte) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Char) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Short) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Int) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Long) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Float) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof Double) {
+      //this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (obj instanceof BigInt) {
+      //this.buffer.append(JSON.stringify(obj));
+      this.wantParams?.setParam(key, 'not support BigInt');
       return true;
     } else {
       return false;
@@ -124,24 +198,26 @@ class RecordWriter {
   }
 
   private writeRecord(rec: Record<string, valueType>): void {
-    this.buffer.append('{');
+    //this.buffer.append('{');
     this.checkReferencesCycle(rec);
     this.store.add(rec);
-    let isFirst = true;
+    //let isFirst = true;
     for (let key of rec.keys()) {
       if (rec[key] !== undefined) {
-        if (!isFirst) {
-          this.buffer.append(',');
-        } else {
-          isFirst = false;
-        }
-        this.buffer.append(JSON.stringify(key as String));
-        this.buffer.append(':');
-        this.writeObject(rec[key]);
+        //if (!isFirst) {
+        //  this.buffer.append(',');
+        //} else {
+        //  isFirst = false;
+        //}
+        //this.buffer.append(JSON.stringify(key as String));
+        //this.buffer.append(':');
+        //this.writeObject(rec[key]);
+
+        this.writeObjectToNative(key as String, rec[key] as Object);
       }
     }
     this.store.delete(rec);
-    this.buffer.append('}');
+    //this.buffer.append('}');
   }
 
   private checkReferencesCycle(obj: Object): void {
@@ -152,9 +228,9 @@ class RecordWriter {
 }
 
 export class RecordSerializeTool {
-  public static stringifyNoThrow(obj: Record<string, Object>): String {
+  public static stringifyNoThrow(obj: Record<string, Object>, nativeWantParams: long): String {
     try {
-      return RecordSerializeTool.stringify(obj as Object as Record<string, NullishType>);
+      return RecordSerializeTool.stringify(obj as Object as Record<string, NullishType>, nativeWantParams);
     } catch (err) {
       hilog.error(DOMAIN_ID, TAG, `RecordSerializeTool.stringify error: ${err}`);
       return '';
@@ -170,8 +246,8 @@ export class RecordSerializeTool {
     }
   }
 
-  public static stringify(obj: Record<string, valueType>): String {
-    return new RecordWriter().write(obj);
+  public static stringify(obj: Record<string, valueType>, nativeWantParams: long): String {
+    return new RecordWriter(nativeWantParams).write(obj);
   }
 
   public static parse(text: string): Record<string, valueType> {
@@ -215,6 +291,88 @@ export class RecordSerializeTool {
     } else {
       throw new TypeError('unknown JSONValue');
     }
+  }
+}
+
+class NativeWantParamsCleaner {
+  public nativeWantParams: long = 0;
+
+  constructor(nativeWantParams: long) {
+    this.nativeWantParams = nativeWantParams;
+  }
+
+  private static native nativeDestroy(nativeWantParams: long): void;
+
+  public clean(): void {
+    NativeWantParamsCleaner.nativeDestroy(this.nativeWantParams);
+    this.nativeWantParams = 0;
+  }
+}
+
+function nativeWantParamsCleanerCallback(cleaner: NativeWantParamsCleaner): void {
+  cleaner.clean();
+}
+
+let destroyRegister = new FinalizationRegistry<NativeWantParamsCleaner>(nativeWantParamsCleanerCallback);
+
+class NativeWantParams {
+  static {
+    loadLibrary("want_ani_kit.z");
+  }
+
+  private nativeWantParams: long = 0;
+  private cleaner: NativeWantParamsCleaner | null = null;
+
+  constructor(wantParams?: long) {
+    if (wantParams === undefined) {
+      this.nativeWantParams = NativeWantParams.nativeCreate();
+      this.registerCleaner(this.nativeWantParams)
+      return;
+    }
+    this.nativeWantParams = wantParams;
+  }
+
+  private static native nativeCreate(): long;
+  private static native nativeSetStringParam(nativeWantParams: long, key: string,  value: string): boolean;
+  private static native nativeSetNumberParam(nativeWantParams: long, key: string,  value: number): boolean;
+  private static native nativeSetIntParam(nativeWantParams: long, key: string,  value: int): boolean;
+  private static native nativeSetWantParams(nativeWantParams: long, key: string,  value: long): boolean;
+
+  private registerCleaner(nativeWantParams: long): void {
+    this.cleaner = new NativeWantParamsCleaner(nativeWantParams);
+    destroyRegister.register(this, this.cleaner!, this);
+  }
+
+  public setParam(key: string,  value: string): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetStringParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: number): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetNumberParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: int): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetIntParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string,  value: NativeWantParams): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetWantParams(this.nativeWantParams, key, value.nativeWantParams);
   }
 }
 
