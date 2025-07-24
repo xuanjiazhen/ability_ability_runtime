@@ -147,7 +147,7 @@ function getPreviewProfile() {
 }
 
 function getVideoSession() {
-  console.info(TAG, 'getPhotoSession.');
+  console.info(TAG, 'getVideoSession.');
   mVideoSession = mCameraManager.createSession(mSupportedModes[1]);
 }
 

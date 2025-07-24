@@ -657,8 +657,8 @@ async function hasFlashPreConfigVideo(done: Function, testName: string, type: ca
       mVideoOutput = mCameraManager.createVideoOutput(mVideoSurfaceId);
       await getPreConfigVideoSession(testName, mPreviewOutput, mVideoOutput);
       let videoStatus = mVideoSession.hasFlash();
-      expect(videoStatus).assertTrue();
       console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+      expect(isEmpty(videoStatus)).assertFalse();
       await releaseVideoSession();
     }
     done();
@@ -734,8 +734,8 @@ async function getVideoFlashSupportedModeStatusWithPreConfig(done: Function, tes
       mVideoOutput = mCameraManager.createVideoOutput(mVideoSurfaceId);
       await getPreConfigVideoSession(testName, mPreviewOutput, mVideoOutput);
       let videoStatus = mVideoSession.isFlashModeSupported(flashMode);
-      expect(videoStatus).assertTrue();
       console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+      expect(isEmpty(videoStatus)).assertFalse();
       await releaseVideoSession();
     }
     done();

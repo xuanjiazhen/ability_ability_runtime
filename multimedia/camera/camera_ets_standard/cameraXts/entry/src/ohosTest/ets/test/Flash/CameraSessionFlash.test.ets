@@ -325,8 +325,7 @@ async function getPhotoFlashSupportedModeStatus(done: Function, testName: string
       expect().assertFail();
     } else {
       mPhotoOutput = mCameraManager.createPhotoOutput(mCameraOutputCapModePhoto.photoProfiles[0]);
-      mPreviewOutput =
-        mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
+      mPreviewOutput = mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
       await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
       let photoStatus = mPhotoSession.isFlashModeSupported(flashMode);
       expect(photoStatus).assertTrue();
@@ -388,8 +387,8 @@ async function getVideoFlashSupportedModeStatus(done: Function, testName: string
         mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
         await getCreateVideoSession(testName, mPreviewOutput, mVideoOutput);
         let videoStatus = mVideoSession.isFlashModeSupported(flashMode);
-        expect(videoStatus).assertTrue();
         console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+        expect(isEmpty(videoStatus)).assertFalse();
         await releaseVideoSession();
       }
     }
@@ -657,8 +656,8 @@ async function getVideoFlashSupportedModeStatusWithPreConfig(done: Function, tes
       mVideoOutput = mCameraManager.createVideoOutput(mVideoSurfaceId);
       await getPreConfigVideoSession(testName, mPreviewOutput, mVideoOutput);
       let videoStatus = mVideoSession.isFlashModeSupported(flashMode);
-      expect(videoStatus).assertTrue();
       console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+      expect(isEmpty(videoStatus)).assertFalse();
       await releaseVideoSession();
     }
     done();

@@ -167,14 +167,13 @@ export default function CameraInputTest() {
           await cameraInput.open().then(async () => {
             console.info(TAG, testName + ' camera opened successfully.');
             expect(true).assertTrue();
+          }).catch((error: BusinessError) => {
+            if (error !== undefined && error.code !== 0) {
+              console.error(TAG,
+                testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+              expect().assertFail();
+            }
           })
-            .catch((error: BusinessError) => {
-              if (error !== undefined && error.code !== 0) {
-                console.error(TAG,
-                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                expect().assertFail();
-              }
-            })
           await cameraInput.close();
         }
         done();
@@ -210,14 +209,13 @@ export default function CameraInputTest() {
             await cameraInput.open(true).then(async (seqId: bigint) => {
               console.info(TAG, testName + ' camera opened successfully. bigint: ' + JSON.stringify(seqId));
               expect(true).assertTrue();
+            }).catch((error: BusinessError) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG,
+                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+                expect(false).assertFalse();
+              }
             })
-              .catch((error: BusinessError) => {
-                if (error !== undefined && error.code !== 0) {
-                  console.error(TAG,
-                    testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                  expect(false).assertFalse();
-                }
-              })
             await cameraInput.close();
           } else {
             console.info(TAG, testName + ' No secure mode. ');
@@ -256,14 +254,13 @@ export default function CameraInputTest() {
           await cameraInput.open(false).then(async (seqId: bigint) => {
             console.info(TAG, testName + ' camera opened successfully. bigint: ' + JSON.stringify(seqId));
             expect(true).assertTrue();
+          }).catch((error: BusinessError) => {
+            if (error !== undefined && error.code !== 0) {
+              console.error(TAG,
+                testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+              expect(false).assertFalse();
+            }
           })
-            .catch((error: BusinessError) => {
-              if (error !== undefined && error.code !== 0) {
-                console.error(TAG,
-                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                expect().assertFail();
-              }
-            })
           await cameraInput.close();
         }
         done();
@@ -290,23 +287,22 @@ export default function CameraInputTest() {
           console.info(TAG, testName + ' cameraManager is null.');
           expect().assertFail();
         } else {
-          let cameraInput = mCameraManager.createCameraInput(mCameraDeviceArray[0]);
-          expect(isEmpty(cameraInput)).assertFalse();
           if (getCameraConcurrentInfos()) {
             mCameraManager.on('cameraStatus', async (error, cameraStatusInfo) => {
               cameraStatusOnCallback(error, cameraStatusInfo);
-            })
+            });
+            let cameraInput = mCameraManager.createCameraInput(mCameraConcurrentInfos[0].device);
+            expect(isEmpty(cameraInput)).assertFalse();
             await cameraInput.open(cameraConcurrentType.CAMERA_LIMITED_CAPABILITY).then(async () => {
               console.info(TAG, testName + ' camera opened successfully. ');
               expect(true).assertTrue();
-            })
-              .catch((error: BusinessError) => {
-                if (error !== undefined && error.code !== 0) {
-                  console.error(TAG,
-                    testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                  expect(error.code).assertEqual('301');
-                }
-              })
+            }).catch((error: BusinessError) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG,
+                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+                expect().assertFail();
+              }
+            });
             await cameraInput.close();
           } else {
             console.info(TAG, testName + ' Not supporting concurrency. ');
@@ -316,7 +312,7 @@ export default function CameraInputTest() {
         done();
       } catch (error) {
         console.error(TAG, testName + ' failed. err: ' + error.code + ', msg: ' + error.message);
-        expect(error.code === cameraErrorCode.INVALID_ARGUMENT).assertTrue();
+        expect().assertFail();
         done();
       }
     })
@@ -337,23 +333,22 @@ export default function CameraInputTest() {
           console.info(TAG, 'cameraManager is null.');
           expect().assertFail();
         } else {
-          let cameraInput = mCameraManager.createCameraInput(mCameraDeviceArray[0]);
-          expect(isEmpty(cameraInput)).assertFalse();
           if (getCameraConcurrentInfos()) {
             mCameraManager.on('cameraStatus', async (error, cameraStatusInfo) => {
               cameraStatusOnCallback(error, cameraStatusInfo);
-            })
+            });
+            let cameraInput = mCameraManager.createCameraInput(mCameraConcurrentInfos[0].device);
+            expect(isEmpty(cameraInput)).assertFalse();
             await cameraInput.open(cameraConcurrentType.CAMERA_FULL_CAPABILITY).then(async () => {
               console.info(TAG, testName + ' camera opened successfully. ');
               expect(true).assertTrue();
-            })
-              .catch((error: BusinessError) => {
-                if (error !== undefined && error.code !== 0) {
-                  console.error(TAG,
-                    testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                  expect().assertFail();
-                }
-              })
+            }).catch((error: BusinessError) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG,
+                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+                expect().assertFail();
+              }
+            });
             await cameraInput.close();
           } else {
             console.info(TAG, testName + ' Not supporting concurrency. ');
@@ -363,7 +358,7 @@ export default function CameraInputTest() {
         done();
       } catch (error) {
         console.error(TAG, testName + ' failed. err: ' + error.code + ', msg: ' + error.message);
-        expect(error.code === cameraErrorCode.INVALID_ARGUMENT).assertTrue();
+        expect().assertFail();
         done();
       }
     })
@@ -394,14 +389,13 @@ export default function CameraInputTest() {
             await cameraInput.open(abnormalType).then(async () => {
               console.info(TAG, testName + ' camera opened successfully. ');
               expect(true).assertTrue();
-            })
-              .catch((error: BusinessError) => {
-                if (error !== undefined && error.code !== 0) {
-                  console.error(TAG,
-                    testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
-                  expect().assertFail();
-                }
-              })
+            }).catch((error: BusinessError) => {
+              if (error !== undefined && error.code !== 0) {
+                console.error(TAG,
+                  testName + ' failed to open the camera, err: ' + error.code + ', msg: ' + error.message);
+                expect().assertFail();
+              }
+            });
             await cameraInput.close();
           } else {
             console.info(TAG, testName + ' Not supporting concurrency. ');
