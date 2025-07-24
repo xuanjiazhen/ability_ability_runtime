@@ -2,11 +2,7 @@
   "string": [
     {
       "name": "app_name",
-      "value": "ActsRelationStoreTest"
-    },
-    {
-      "name": "description_application",
-      "value": "ActsRelationStoreTest"
+      "value": "web_error_code"
     }
   ]
 }

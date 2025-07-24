@@ -15,7 +15,7 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/librelationstorendk.so": "file:./src/main/cpp/types/libosaccountndk"
+    "@types/librelationstorendk.so": "file:./src/main/cpp/types/libweberrorcodetest"
   },
   "author": "",
   "name": "entry",
