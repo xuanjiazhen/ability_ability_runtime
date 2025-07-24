@@ -22,7 +22,7 @@
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
 {
-    OH_LOG_ERROR(LOG_APP, "==== chenbio start..");
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess start..");
     napi_value result;
     const char* webTag = "web1211";
     const char* data = "<html>\n"
@@ -48,9 +48,8 @@ static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
     const char* baseUrl = "resource://rawfile/";
     const char* historyUrl = "www";
     int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-    OH_LOG_ERROR(LOG_APP, "==== chenbio fucntion end..");
     napi_create_int32(env, ret, &result);
-    OH_LOG_ERROR(LOG_APP, "==== chenbio fucntion 2222..");
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess end..");
     return result;
 }
 
