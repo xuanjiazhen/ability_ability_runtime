@@ -60,8 +60,8 @@ export default function DataObjectPermissionTest() {
       try {
         g_object.setSessionId(distributedDataObject.genSessionId(), ()=>{
           expect().assertFail();
+          done();
         });
-        done();
       } catch (err) {
         console.error(TAG + 'Failed to setSession. Code: ' + err.code + ',message: ' + err.message)
         expect(err.code).assertEqual('201')
