@@ -21,8 +21,8 @@
             ],
             "teardown-command": [
                 "power-shell setmode 600",
-                "rm -rf /data/app/el2/100/database/com.ohos.medialibrary.medialibrarydata/*",
-                "kill -9 `pidof com.ohos.medialibrary.medialibrarydata`",
+                "rm -rf /data/app/el2/100/database/ohos.acts.multimedia.camera.xts/*",
+                "kill -9 `pidof ohos.acts.multimedia.camera.xts`",
                 "scanner",
                 "sleep 5"
             ]
