@@ -14,16 +14,18 @@
  */
 import { ComponentContent, FrameNode } from '@kit.ArkUI';
 import emitter from '@ohos.events.emitter';
+import window from '@ohos.window';
 
 let innerEvent: emitter.InnerEvent = {
   eventId: 1,
   priority: emitter.EventPriority.HIGH
 };
+
 @Builder
 function buildText() {
   Column() {
-    Menu(){
-      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' })
+    Menu() {
+      MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项1' }).id('menuItem')
       MenuItem({ startIcon: $r('app.media.icon'), content: '菜单选项2' })
     }
   }
@@ -47,13 +49,27 @@ struct Index {
   @State textPosition1: Position = { x: 0, y: 0 };
   @State textPosition2: Position = { x: 0, y: 0 };
   @State textPosition3: Position = { x: 0, y: 0 };
+  @State left: number = 0;
+  @State top: number = 0;
+
+  onPageShow(): void {
+    let context = this.getUIContext().getHostContext();
+    window.getLastWindow(context).then((data) => {
+      let windowClass: window.Window = data;
+      let rect = windowClass.getWindowProperties().windowRect;
+      this.left = this.getUIContext().px2vp(rect.left);
+      this.top = this.getUIContext().px2vp(rect.top);
+    });
+  }
+
   callback: Callback<emitter.EventData> = (eventData: emitter.EventData) => {
-      let tempX: number = eventData.data && eventData.data['menuPosition']['x']
-      let tempY: number = eventData.data && eventData.data['menuPosition']['y']
-      this.menuPosition.x = tempX;
-      this.menuPosition.y = tempY;
+    let tempX: number = eventData.data && eventData.data['menuPosition']['x']
+    let tempY: number = eventData.data && eventData.data['menuPosition']['y']
+    this.menuPosition.x = tempX - this.left;
+    this.menuPosition.y = tempY - this.top;
 
   }
+
   build() {
     Column() {
       Text(this.menuPosition.x + '').id('menuPositionX')
@@ -81,8 +97,8 @@ struct Index {
           let uniqueId = this.getUniqueId();
           let frameNode: FrameNode | null = context.getFrameNodeByUniqueId(uniqueId);
           emitter.on(innerEvent, this.callback);
-          promptAction.openMenu(contentNode, { id: 'btn1', componentId: frameNode?.getUniqueId() },{
-            anchorPosition:{x:10, y:20},
+          promptAction.openMenu(contentNode, { id: 'btn1', componentId: frameNode?.getUniqueId() }, {
+            anchorPosition: { x: 10, y: 20 },
           })
         })
 
@@ -103,8 +119,8 @@ struct Index {
           let uniqueId = this.getUniqueId();
           let frameNode: FrameNode | null = context.getFrameNodeByUniqueId(uniqueId);
           emitter.on(innerEvent, this.callback);
-          promptAction.openMenu(contentNode, { id: 'btn2', componentId: frameNode?.getUniqueId() },{
-            anchorPosition:{x:-10, y:-20},
+          promptAction.openMenu(contentNode, { id: 'btn2', componentId: frameNode?.getUniqueId() }, {
+            anchorPosition: { x: -10, y: -20 },
           })
         })
 
@@ -125,8 +141,8 @@ struct Index {
           let uniqueId = this.getUniqueId();
           let frameNode: FrameNode | null = context.getFrameNodeByUniqueId(uniqueId);
           emitter.on(innerEvent, this.callback);
-          promptAction.openMenu(contentNode, { id: 'btn3', componentId: frameNode?.getUniqueId() },{
-            anchorPosition:{x:-10, y:10},
+          promptAction.openMenu(contentNode, { id: 'btn3', componentId: frameNode?.getUniqueId() }, {
+            anchorPosition: { x: -10, y: 10 },
           })
         })
 

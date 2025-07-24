@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import window from '@ohos.window';
 
 @Entry
 @Component
@@ -21,19 +22,32 @@ struct BindMenuAnchorPosition {
   @State textPosition1: Position = { x: 0, y: 0 };
   @State textPosition2: Position = { x: 0, y: 0 };
   @State textPosition3: Position = { x: 0, y: 0 };
+  @State left: number = 0;
+  @State top: number = 0;
+
+  onPageShow(): void {
+    let context = this.getUIContext().getHostContext();
+    window.getLastWindow(context).then((data) => {
+      let windowClass: window.Window = data;
+      let rect = windowClass.getWindowProperties().windowRect;
+      this.left = this.getUIContext().px2vp(rect.left);
+      this.top = this.getUIContext().px2vp(rect.top);
+    });
+  }
+
 
   @Builder
   MenuBuilder() {
     Column() {
-      Text('Options')
+      Text('Options').id('Options')
       Divider().strokeWidth(2).margin(5).color('#F0F0F0')
       Text('Hide')
       Divider().strokeWidth(2).margin(5).color('#F0F0F0')
       Text('Exit')
     }.id('MenuBuilder')
     .onAreaChange((oldValue: Area, newValue: Area) => {
-      this.menuPosition.x = newValue.globalPosition.x;
-      this.menuPosition.y = newValue.globalPosition.y;
+      this.menuPosition.x = newValue.globalPosition.x as number - this.left;
+      this.menuPosition.y = newValue.globalPosition.y as number - this.top;
     })
     .width(100)
   }

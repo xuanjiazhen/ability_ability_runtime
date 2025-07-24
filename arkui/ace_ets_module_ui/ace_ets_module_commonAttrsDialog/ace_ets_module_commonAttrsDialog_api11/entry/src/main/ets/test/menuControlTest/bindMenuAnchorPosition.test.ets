@@ -71,7 +71,8 @@ export default function bindMenuAnchorPosition() {
       await button.longClick();
       await CommonFunc.sleep(3000);
 
-      await driver.click(20, 20);
+      let menu = await driver.findComponent(ON.id('Options'));
+      await menu.click();
       await CommonFunc.sleep(2000);
       let text1 = await driver.findComponent(ON.id('menuPositionX'));
       let menuPositionX = Number.parseFloat(await text1.getText());
@@ -87,8 +88,6 @@ export default function bindMenuAnchorPosition() {
       expect(textPositionX).assertLess(menuPositionX)
       expect(textPositionY).assertLess(menuPositionY)
 
-      await CommonFunc.sleep(1000);
-      await driver.click(200, 200);
       await CommonFunc.sleep(2000);
       console.info('[bindMenuAnchorPosition_0100] END');
       done();
@@ -108,7 +107,8 @@ export default function bindMenuAnchorPosition() {
       await button.longClick();
       await CommonFunc.sleep(3000);
 
-      await driver.click(20, 20);
+      let menu = await driver.findComponent(ON.id('Options'));
+      await menu.click();
       await CommonFunc.sleep(2000);
 
       let text1 = await driver.findComponent(ON.id('menuPositionX'));
@@ -124,8 +124,6 @@ export default function bindMenuAnchorPosition() {
       let textPositionY = Number.parseFloat(await text4.getText());
       expect(textPositionY).assertLess(menuPositionY)
 
-      await CommonFunc.sleep(1000);
-      await driver.click(200, 200);
       await CommonFunc.sleep(2000);
       console.info('[bindMenuAnchorPosition_0200] END');
       done();
@@ -145,7 +143,8 @@ export default function bindMenuAnchorPosition() {
       await button.longClick();
       await CommonFunc.sleep(3000);
 
-      await driver.click(20, 20);
+      let menu = await driver.findComponent(ON.id('Options'));
+      await menu.click();
       await CommonFunc.sleep(2000);
       let text1 = await driver.findComponent(ON.id('menuPositionX'));
       let menuPositionX = Number.parseFloat(await text1.getText());
@@ -161,8 +160,6 @@ export default function bindMenuAnchorPosition() {
       expect(menuPositionX).assertLess(textPositionX)
       expect(textPositionY).assertLess(menuPositionY)
 
-      await CommonFunc.sleep(1000);
-      await driver.click(200, 200);
       await CommonFunc.sleep(2000);
       console.info('[bindMenuAnchorPosition_0300] END');
       done();
