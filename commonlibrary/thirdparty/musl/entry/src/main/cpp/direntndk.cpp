@@ -81,6 +81,7 @@ static napi_value Scandir64(napi_env env, napi_callback_info info)
         return result;
     }
     napi_get_value_string_utf8(env, args[0], strTemp, length, &stresult);
+    int fd = open(strTemp, O_RDWR);
     int valueFirst;
     napi_get_value_int32(env, args[1], &valueFirst);
     struct dirent **namelist;
@@ -91,6 +92,7 @@ static napi_value Scandir64(napi_env env, napi_callback_info info)
         int total = scandir64(nullptr, &namelist, PARAM_0, alphasort);
         napi_create_int32(env, total, &result);
     }
+    close(fd);
     return result;
 }
 
@@ -109,6 +111,7 @@ static napi_value Scandir(napi_env env, napi_callback_info info)
         return result;
     }
     napi_get_value_string_utf8(env, args[0], strTemp, length, &stresult);
+    int fd = open(strTemp, O_RDWR);
     int valueFirst;
     napi_get_value_int32(env, args[1], &valueFirst);
     struct dirent **namelist;
@@ -119,6 +122,7 @@ static napi_value Scandir(napi_env env, napi_callback_info info)
         int total = scandir(nullptr, &namelist, PARAM_0, alphasort);
         napi_create_int32(env, total, &result);
     }
+    close(fd);
     return result;
 }
 
