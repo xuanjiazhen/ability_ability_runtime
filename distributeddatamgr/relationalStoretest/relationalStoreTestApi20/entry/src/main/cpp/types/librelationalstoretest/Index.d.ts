@@ -12,7 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// database/data/data_asset.h
 export const getURISuccess: () => number;
+export const getPathSuccess: () => number;
+export const getCreateTimeSuccess: () => number;
+export const getModifyTimeSuccess: () => number;
+export const getSizeSuccess: () => number;
+export const getStatusSuccess: () => number;
+
 
 
 
