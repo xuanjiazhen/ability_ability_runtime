@@ -49,15 +49,16 @@ struct TextCommonTextComputing0290 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0290_1).key('textComputing0290_1')
-          Text('width: ' + this.textComputing0290_12).key('textComputing0290_12')
-          Text('width: ' + this.textComputing0290_2.width).key('textComputing0290_2')
-          Text('width: ' + this.textComputing0290_22.width).key('textComputing0290_22')
+          Text('width: ' + this.textComputing0290_1).key('textComputing0290_1').height('5%')
+          Text('width: ' + this.textComputing0290_12).key('textComputing0290_12').height('5%')
+          Text('width: ' + this.textComputing0290_2.width).key('textComputing0290_2').height('5%')
+          Text('width: ' + this.textComputing0290_22.width).key('textComputing0290_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('letterSpacing_10vp')
-            .id('letterSpacing_10vp').margin(10)
+            .id('letterSpacing_10vp')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure letterSpacing 10vp';
               this.textComputing0290_1 = this.measure.measureText({
@@ -82,7 +83,8 @@ struct TextCommonTextComputing0290 {
               })
             })
           Button('letterSpacing_-5')
-            .id('letterSpacing_-5').margin(10)
+            .id('letterSpacing_-5')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure letterSpacing -5';
               this.textComputing0290_1 = this.measure.measureText({
@@ -106,11 +108,12 @@ struct TextCommonTextComputing0290 {
                 letterSpacing: -5
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('letterSpacing_20')
-            .id('letterSpacing_20').margin({ left: 10 })
+            .id('letterSpacing_20')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure letterSpacing 20';
               this.textComputing0290_1 = this.measure.measureText({
@@ -134,11 +137,38 @@ struct TextCommonTextComputing0290 {
                 letterSpacing: 20
               })
             })
-        }.width('100%').margin({ top: 30 })
+          Button('textAlign_Start')
+            .id('textAlign_Start')
+            .width('50%')
+            .onClick(() => {
+              this.message = 'this message is test for measure TextAlign.Start';
+              this.textComputing0290_1 = this.measure.measureText({
+                textContent: this.message,
+                maxLines: 2,
+                textAlign: TextAlign.Start
+              })
+              this.textComputing0290_2 = this.measure.measureTextSize({
+                textContent: this.message,
+                maxLines: 2,
+                textAlign: TextAlign.Start
+              })
+              this.textComputing0290_12 = this.measure.measureText({
+                textContent: this.message,
+                maxLines: 2,
+                textAlign: TextAlign.Start
+              })
+              this.textComputing0290_22 = this.measure.measureTextSize({
+                textContent: this.message,
+                maxLines: 2,
+                textAlign: TextAlign.Start
+              })
+            })
+        }.width('100%').height('5%')
 
         Row() {
           Button('textAlign_end')
-            .id('textAlign_end').margin({ left: 10 })
+            .id('textAlign_end')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextAlign.End';
               this.textComputing0290_1 = this.measure.measureText({
@@ -163,7 +193,8 @@ struct TextCommonTextComputing0290 {
               })
             })
           Button('textAlign_JUSTIFY')
-            .id('textAlign_JUSTIFY').margin({ left: 10 })
+            .id('textAlign_JUSTIFY')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextAlign.JUSTIFY';
               this.textComputing0290_1 = this.measure.measureText({
@@ -187,35 +218,7 @@ struct TextCommonTextComputing0290 {
                 textAlign: TextAlign.JUSTIFY
               })
             })
-        }.width('100%').margin({ top: 30 })
-
-        Row() {
-          Button('textAlign_Start')
-            .id('textAlign_Start').margin({ left: 10 })
-            .onClick(() => {
-              this.message = 'this message is test for measure TextAlign.Start';
-              this.textComputing0290_1 = this.measure.measureText({
-                textContent: this.message,
-                maxLines: 2,
-                textAlign: TextAlign.Start
-              })
-              this.textComputing0290_2 = this.measure.measureTextSize({
-                textContent: this.message,
-                maxLines: 2,
-                textAlign: TextAlign.Start
-              })
-              this.textComputing0290_12 = this.measure.measureText({
-                textContent: this.message,
-                maxLines: 2,
-                textAlign: TextAlign.Start
-              })
-              this.textComputing0290_22 = this.measure.measureTextSize({
-                textContent: this.message,
-                maxLines: 2,
-                textAlign: TextAlign.Start
-              })
-            })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

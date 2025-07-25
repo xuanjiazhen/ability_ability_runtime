@@ -49,15 +49,16 @@ struct TextCommonTextComputing0370 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0370_1).key('textComputing0370_1')
-          Text('width: ' + this.textComputing0370_12).key('textComputing0370_12')
-          Text('width: ' + this.textComputing0370_2.width).key('textComputing0370_2')
-          Text('width: ' + this.textComputing0370_22.width).key('textComputing0370_22')
+          Text('width: ' + this.textComputing0370_1).key('textComputing0370_1').height('5%')
+          Text('width: ' + this.textComputing0370_12).key('textComputing0370_12').height('5%')
+          Text('width: ' + this.textComputing0370_2.width).key('textComputing0370_2').height('5%')
+          Text('width: ' + this.textComputing0370_22.width).key('textComputing0370_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('overflow_Ellipsis')
-            .id('overflow_Ellipsis').margin(10)
+            .id('overflow_Ellipsis')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextOverflow.Ellipsis';
               this.textComputing0370_1 = this.measure.measureText({
@@ -82,7 +83,8 @@ struct TextCommonTextComputing0370 {
               })
             })
           Button('overflow_Clip')
-            .id('overflow_Clip').margin(10)
+            .id('overflow_Clip')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextOverflow.Clip';
               this.textComputing0370_1 = this.measure.measureText({
@@ -106,11 +108,12 @@ struct TextCommonTextComputing0370 {
                 overflow: TextOverflow.Clip
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('overflow_None')
-            .id('overflow_None').margin({ left: 10 })
+            .id('overflow_None')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextOverflow.None';
               this.textComputing0370_1 = this.measure.measureText({
@@ -135,7 +138,8 @@ struct TextCommonTextComputing0370 {
               })
             })
           Button('overflow_MARQUEE')
-            .id('overflow_MARQUEE').margin({ left: 10 })
+            .id('overflow_MARQUEE')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextOverflow.MARQUEE';
               this.textComputing0370_1 = this.measure.measureText({
@@ -159,11 +163,11 @@ struct TextCommonTextComputing0370 {
                 overflow: TextOverflow.MARQUEE
               })
             })
-        }.width('100%').margin({ top: 30 })
-
+        }.width('100%').height('5%')
         Row() {
           Button('textCase_Normal')
-            .id('textCase_Normal').margin({ left: 10 })
+            .id('textCase_Normal')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextCase.Normal';
               this.textComputing0370_1 = this.measure.measureText({
@@ -188,7 +192,8 @@ struct TextCommonTextComputing0370 {
               })
             })
           Button('textCase_LowerCase')
-            .id('textCase_LowerCase').margin({ left: 10 })
+            .id('textCase_LowerCase')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure TextCase.LowerCase';
               this.textComputing0370_1 = this.measure.measureText({
@@ -212,11 +217,11 @@ struct TextCommonTextComputing0370 {
                 textCase: TextCase.LowerCase
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('textCase_UpperCase')
-            .id('textCase_UpperCase').margin({ left: 10 })
+            .id('textCase_UpperCase')
             .onClick(() => {
               this.message = 'this message is test for measure TextCase.UpperCase';
               this.textComputing0370_1 = this.measure.measureText({
@@ -240,7 +245,7 @@ struct TextCommonTextComputing0370 {
                 textCase: TextCase.UpperCase
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

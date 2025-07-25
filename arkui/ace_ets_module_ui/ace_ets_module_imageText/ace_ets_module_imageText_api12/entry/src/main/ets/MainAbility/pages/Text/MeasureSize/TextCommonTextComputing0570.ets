@@ -45,15 +45,16 @@ struct TextCommonTextComputing0570 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0570_1).key('textComputing0570_1')
-          Text('width: ' + this.textComputing0570_12).key('textComputing0570_12')
-          Text('width: ' + this.textComputing0570_2.width).key('textComputing0570_2')
-          Text('width: ' + this.textComputing0570_22.width).key('textComputing0570_22')
+          Text('width: ' + this.textComputing0570_1).key('textComputing0570_1').height('5%')
+          Text('width: ' + this.textComputing0570_12).key('textComputing0570_12').height('5%')
+          Text('width: ' + this.textComputing0570_2.width).key('textComputing0570_2').height('5%')
+          Text('width: ' + this.textComputing0570_22.width).key('textComputing0570_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('wordBreak_all')
-            .id('wordBreak_all').margin(10)
+            .id('wordBreak_all')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure WordBreak.BREAK_ALL';
               this.textComputing0570_1 = this.measure.measureText({
@@ -78,7 +79,8 @@ struct TextCommonTextComputing0570 {
               })
             })
           Button('wordBreak_NORMAL')
-            .id('wordBreak_NORMAL').margin(10)
+            .id('wordBreak_NORMAL')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure WordBreak.NORMAL';
               this.textComputing0570_1 = this.measure.measureText({
@@ -102,11 +104,12 @@ struct TextCommonTextComputing0570 {
                 wordBreak: WordBreak.NORMAL
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('wordBreak_word')
-            .id('wordBreak_word').margin({ left: 10 })
+            .id('wordBreak_word')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure WordBreak.BREAK_WORD';
               this.textComputing0570_1 = this.measure.measureText({
@@ -130,11 +133,9 @@ struct TextCommonTextComputing0570 {
                 wordBreak: WordBreak.BREAK_WORD
               })
             })
-        }.width('100%').margin({ top: 30 })
-
-        Row() {
           Button('textIndent-5%')
-            .id('textIndent-5%').margin({ left: 10 })
+            .id('textIndent-5%')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure textIndent 5%';
               this.textComputing0570_1 = this.measure.measureText({
@@ -158,11 +159,12 @@ struct TextCommonTextComputing0570 {
                 textIndent: '5%'
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('textIndent-10')
-            .id('textIndent-10').margin({ left: 10 })
+            .id('textIndent-10')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure textIndent -10';
               this.textComputing0570_1 = this.measure.measureText({
@@ -187,7 +189,8 @@ struct TextCommonTextComputing0570 {
               })
             })
           Button('textIndent_100')
-            .id('textIndent_100').margin({ left: 10 })
+            .id('textIndent_100')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure textIndent 100';
               this.textComputing0570_1 = this.measure.measureText({
@@ -211,7 +214,7 @@ struct TextCommonTextComputing0570 {
                 textIndent: 100
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

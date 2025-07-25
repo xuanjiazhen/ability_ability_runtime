@@ -195,88 +195,7 @@ import RichEditorAction001 from './RichEditorCustomColorsTest/RichEditorAction00
 import RichEditorParticiple001 from './RichEditorCustomColorsTest/RichEditorParticiple001.test'
 import RichEditorParticiple002 from './RichEditorCustomColorsTest/RichEditorParticiple002.test'
 
-import RichEditorOnWillChange001 from './RichEditorOnWillChangeTest/RichEditorOnWillChange001.test'
-import RichEditorOnWillChange002 from './RichEditorOnWillChangeTest/RichEditorOnWillChange002.test'
-import RichEditorOnWillChange003 from './RichEditorOnWillChangeTest/RichEditorOnWillChange003.test'
-import RichEditorOnWillChange004 from './RichEditorOnWillChangeTest/RichEditorOnWillChange004.test'
-import RichEditorOnWillChange005 from './RichEditorOnWillChangeTest/RichEditorOnWillChange005.test'
-import RichEditorOnWillChange006 from './RichEditorOnWillChangeTest/RichEditorOnWillChange006.test'
-import RichEditorOnWillChange007 from './RichEditorOnWillChangeTest/RichEditorOnWillChange007.test'
-import RichEditorOnWillChange008 from './RichEditorOnWillChangeTest/RichEditorOnWillChange008.test'
-import RichEditorOnWillChange009 from './RichEditorOnWillChangeTest/RichEditorOnWillChange009.test'
-import RichEditorOnWillChange010 from './RichEditorOnWillChangeTest/RichEditorOnWillChange010.test'
-import RichEditorOnWillChange011 from './RichEditorOnWillChangeTest/RichEditorOnWillChange011.test'
-import RichEditorOnWillChange012 from './RichEditorOnWillChangeTest/RichEditorOnWillChange012.test'
-import RichEditorOnWillChange013 from './RichEditorOnWillChangeTest/RichEditorOnWillChange013.test'
-import RichEditorOnWillChange014 from './RichEditorOnWillChangeTest/RichEditorOnWillChange014.test'
-import RichEditorOnWillChange015 from './RichEditorOnWillChangeTest/RichEditorOnWillChange015.test'
-import RichEditorOnWillChange016 from './RichEditorOnWillChangeTest/RichEditorOnWillChange016.test'
-import RichEditorOnWillChange017 from './RichEditorOnWillChangeTest/RichEditorOnWillChange017.test'
-import RichEditorOnWillChange018 from './RichEditorOnWillChangeTest/RichEditorOnWillChange018.test'
-import RichEditorOnWillChange019 from './RichEditorOnWillChangeTest/RichEditorOnWillChange019.test'
-import RichEditorOnWillChange020 from './RichEditorOnWillChangeTest/RichEditorOnWillChange020.test'
-
-import RichEditorQueryLayout001 from './RichEditorQueryLayoutTest/RichEditorQueryLayout001.test'
-import RichEditorQueryLayout002 from './RichEditorQueryLayoutTest/RichEditorQueryLayout002.test'
-import RichEditorQueryLayout003 from './RichEditorQueryLayoutTest/RichEditorQueryLayout003.test'
-import RichEditorQueryLayout004 from './RichEditorQueryLayoutTest/RichEditorQueryLayout004.test'
-import RichEditorQueryLayout005 from './RichEditorQueryLayoutTest/RichEditorQueryLayout005.test'
-import RichEditorQueryLayout006 from './RichEditorQueryLayoutTest/RichEditorQueryLayout006.test'
-import RichEditorQueryLayout007 from './RichEditorQueryLayoutTest/RichEditorQueryLayout007.test'
-import RichEditorQueryLayout008 from './RichEditorQueryLayoutTest/RichEditorQueryLayout008.test'
-import RichEditorQueryLayout009 from './RichEditorQueryLayoutTest/RichEditorQueryLayout009.test'
-import RichEditorQueryLayout010 from './RichEditorQueryLayoutTest/RichEditorQueryLayout010.test'
-import RichEditorQueryLayout011 from './RichEditorQueryLayoutTest/RichEditorQueryLayout011.test'
-import RichEditorQueryLayout012 from './RichEditorQueryLayoutTest/RichEditorQueryLayout012.test'
-import RichEditorQueryLayout013 from './RichEditorQueryLayoutTest/RichEditorQueryLayout013.test'
-import RichEditorQueryLayout014 from './RichEditorQueryLayoutTest/RichEditorQueryLayout014.test'
-import RichEditorQueryLayout015 from './RichEditorQueryLayoutTest/RichEditorQueryLayout015.test'
-import RichEditorQueryLayout016 from './RichEditorQueryLayoutTest/RichEditorQueryLayout016.test'
-import RichEditorQueryLayout017 from './RichEditorQueryLayoutTest/RichEditorQueryLayout017.test'
-import RichEditorQueryLayout018 from './RichEditorQueryLayoutTest/RichEditorQueryLayout018.test'
-import RichEditorQueryLayout019 from './RichEditorQueryLayoutTest/RichEditorQueryLayout019.test'
-import RichEditorQueryLayout020 from './RichEditorQueryLayoutTest/RichEditorQueryLayout020.test'
-import RichEditorQueryLayout021 from './RichEditorQueryLayoutTest/RichEditorQueryLayout021.test'
-import RichEditorQueryLayout022 from './RichEditorQueryLayoutTest/RichEditorQueryLayout022.test'
-import RichEditorQueryLayout023 from './RichEditorQueryLayoutTest/RichEditorQueryLayout023.test'
-import RichEditorQueryLayout024 from './RichEditorQueryLayoutTest/RichEditorQueryLayout024.test'
-
 import RichEditorPlaceHolder001 from './RichEditorPlaceHolderTest/RichEditorPlaceHolder001.test'
-
-import RichEditorTextChange001 from './RichEditorTextChangeTest/RichEditorTextChange001.test'
-import RichEditorTextChange002 from './RichEditorTextChangeTest/RichEditorTextChange002.test'
-import RichEditorTextChange003 from './RichEditorTextChangeTest/RichEditorTextChange003.test'
-import RichEditorTextChange004 from './RichEditorTextChangeTest/RichEditorTextChange004.test'
-import RichEditorTextChange005 from './RichEditorTextChangeTest/RichEditorTextChange005.test'
-import RichEditorTextChange006 from './RichEditorTextChangeTest/RichEditorTextChange006.test'
-import RichEditorTextChange008 from './RichEditorTextChangeTest/RichEditorTextChange008.test'
-import RichEditorTextChange010 from './RichEditorTextChangeTest/RichEditorTextChange010.test'
-import RichEditorTextChange011 from './RichEditorTextChangeTest/RichEditorTextChange011.test'
-import RichEditorTextChange012 from './RichEditorTextChangeTest/RichEditorTextChange012.test'
-import RichEditorTextChange013 from './RichEditorTextChangeTest/RichEditorTextChange013.test'
-import RichEditorTextChange014 from './RichEditorTextChangeTest/RichEditorTextChange014.test'
-import RichEditorTextChange015 from './RichEditorTextChangeTest/RichEditorTextChange015.test'
-import RichEditorTextChange016 from './RichEditorTextChangeTest/RichEditorTextChange016.test'
-import RichEditorTextChange017 from './RichEditorTextChangeTest/RichEditorTextChange017.test'
-
-import RichEditorOnSelectionChange001 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange001.test'
-import RichEditorOnSelectionChange002 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange002.test'
-import RichEditorOnSelectionChange003 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange003.test'
-import RichEditorOnSelectionChange004 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange004.test'
-import RichEditorOnSelectionChange005 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange005.test'
-import RichEditorOnSelectionChange006 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange006.test'
-import RichEditorOnSelectionChange007 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange007.test'
-import RichEditorOnSelectionChange008 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange008.test'
-import RichEditorOnSelectionChange009 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange009.test'
-import RichEditorOnSelectionChange011 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange011.test'
-import RichEditorOnSelectionChange012 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange012.test'
-import RichEditorOnSelectionChange013 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange013.test'
-import RichEditorOnSelectionChange014 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange014.test'
-import RichEditorOnSelectionChange015 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange015.test'
-import RichEditorOnSelectionChange016 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange016.test'
-import RichEditorOnSelectionChange017 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange017.test'
-import RichEditorOnSelectionChange018 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange018.test'
-import RichEditorOnSelectionChange019 from './RichEditorOnSelectionChangeTest/RichEditorOnSelectionChange019.test'
 
 import RichEditorLineLetter001 from './RichEditorLineLetterTest/RichEditorLineLetter001.test'
 import RichEditorLineLetter002 from './RichEditorLineLetterTest/RichEditorLineLetter002.test'
@@ -293,15 +212,6 @@ import RichEditorLineLetter012 from './RichEditorLineLetterTest/RichEditorLineLe
 import RichEditorLineLetter013 from './RichEditorLineLetterTest/RichEditorLineLetter013.test'
 import RichEditorLineLetter014 from './RichEditorLineLetterTest/RichEditorLineLetter014.test'
 import RichEditorLineLetter015 from './RichEditorLineLetterTest/RichEditorLineLetter015.test'
-
-import RichEditorKeyBoard001 from './RichEditorKeyBoardTest/RichEditorKeyBoard001.test'
-import RichEditorKeyBoard002 from './RichEditorKeyBoardTest/RichEditorKeyBoard002.test'
-import RichEditorKeyBoard003 from './RichEditorKeyBoardTest/RichEditorKeyBoard003.test'
-import RichEditorKeyBoard004 from './RichEditorKeyBoardTest/RichEditorKeyBoard004.test'
-import RichEditorKeyBoard005 from './RichEditorKeyBoardTest/RichEditorKeyBoard005.test'
-import RichEditorKeyBoard006 from './RichEditorKeyBoardTest/RichEditorKeyBoard006.test'
-import RichEditorKeyBoard007 from './RichEditorKeyBoardTest/RichEditorKeyBoard007.test'
-import RichEditorKeyBoard008 from './RichEditorKeyBoardTest/RichEditorKeyBoard008.test'
 
 import RichEditorUxConFormance001 from './RichEditorUxConFormanceTest/RichEditorUxConFormance001.test'
 import RichEditorUxConFormance002 from './RichEditorUxConFormanceTest/RichEditorUxConFormance002.test'
@@ -341,14 +251,6 @@ import RichEditorLineBreakStrategy001 from './RichEditorLineBreakStrategyTest/Ri
 import RichEditorLineBreakStrategy002 from './RichEditorLineBreakStrategyTest/RichEditorLineBreakStrategy002.test'
 import RichEditorLineBreakStrategy003 from './RichEditorLineBreakStrategyTest/RichEditorLineBreakStrategy003.test'
 
-import RichEditorPreventDefault001 from './RichEditorPreventDefaultTest/RichEditorPreventDefault001.test'
-import RichEditorPreventDefault002 from './RichEditorPreventDefaultTest/RichEditorPreventDefault002.test'
-import RichEditorPreventDefault003 from './RichEditorPreventDefaultTest/RichEditorPreventDefault003.test'
-import RichEditorPreventDefault004 from './RichEditorPreventDefaultTest/RichEditorPreventDefault004.test'
-import RichEditorPreventDefault005 from './RichEditorPreventDefaultTest/RichEditorPreventDefault005.test'
-import RichEditorPreventDefault006 from './RichEditorPreventDefaultTest/RichEditorPreventDefault006.test'
-import RichEditorPreventDefault007 from './RichEditorPreventDefaultTest/RichEditorPreventDefault007.test'
-
 import RichEditorSetStyledString002 from './RichEditorSetStyledStringTest/RichEditorSetStyledString002.test'
 import RichEditorSetStyledString003 from './RichEditorSetStyledStringTest/RichEditorSetStyledString003.test'
 import RichEditorSetStyledString004 from './RichEditorSetStyledStringTest/RichEditorSetStyledString004.test'
@@ -369,12 +271,6 @@ import RichEditorSetStyledString018 from './RichEditorSetStyledStringTest/RichEd
 import RichEditorSetStyledString019 from './RichEditorSetStyledStringTest/RichEditorSetStyledString019.test'
 import RichEditorSetStyledString020 from './RichEditorSetStyledStringTest/RichEditorSetStyledString020.test'
 
-import RichEditorTransformation001 from './RichEditorTransformationTest/RichEditorTransformation001.test'
-import RichEditorTransformation002 from './RichEditorTransformationTest/RichEditorTransformation002.test'
-import RichEditorTransformation003 from './RichEditorTransformationTest/RichEditorTransformation003.test'
-import RichEditorTransformation004 from './RichEditorTransformationTest/RichEditorTransformation004.test'
-import RichEditorTransformation005 from './RichEditorTransformationTest/RichEditorTransformation005.test'
-
 import RichEditorGetNumber001 from './RichEditorGetNumberTest/RichEditorGetNumber001.test'
 import RichEditorGetNumber002 from './RichEditorGetNumberTest/RichEditorGetNumber002.test'
 import RichEditorGetNumber003 from './RichEditorGetNumberTest/RichEditorGetNumber003.test'
@@ -391,30 +287,6 @@ import RichEditorGetNumber013 from './RichEditorGetNumberTest/RichEditorGetNumbe
 import RichEditorGetNumber014 from './RichEditorGetNumberTest/RichEditorGetNumber014.test'
 import RichEditorGetNumber015 from './RichEditorGetNumberTest/RichEditorGetNumber015.test'
 import RichEditorGetNumber016 from './RichEditorGetNumberTest/RichEditorGetNumber016.test'
-
-import RichEditorShortCutKeys001 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys001.test'
-import RichEditorShortCutKeys002 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys002.test'
-import RichEditorShortCutKeys003 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys003.test'
-import RichEditorShortCutKeys004 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys004.test'
-import RichEditorShortCutKeys005 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys005.test'
-import RichEditorShortCutKeys006 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys006.test'
-import RichEditorShortCutKeys007 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys007.test'
-import RichEditorShortCutKeys008 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys008.test'
-import RichEditorShortCutKeys009 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys009.test'
-import RichEditorShortCutKeys010 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys010.test'
-import RichEditorShortCutKeys011 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys011.test'
-import RichEditorShortCutKeys012 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys012.test'
-import RichEditorShortCutKeys013 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys013.test'
-import RichEditorShortCutKeys014 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys014.test'
-import RichEditorShortCutKeys015 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys015.test'
-import RichEditorShortCutKeys017 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys017.test'
-import RichEditorShortCutKeys018 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys018.test'
-import RichEditorShortCutKeys019 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys019.test'
-import RichEditorShortCutKeys020 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys020.test'
-import RichEditorShortCutKeys021 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys021.test'
-import RichEditorShortCutKeys022 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys022.test'
-import RichEditorShortCutKeys023 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys023.test'
-import RichEditorShortCutKeys024 from './RichEditorShortCutKeysTest/RichEditorShortCutKeys024.test'
 
 import RichEditorStringSpan001 from './RichEditorStringSpanTest/RichEditorStringSpan001.test'
 import RichEditorStringSpan002 from './RichEditorStringSpanTest/RichEditorStringSpan002.test'
@@ -440,51 +312,6 @@ import RichEditorCustomSpan015 from './RichEditorCustomSpanTest/RichEditorCustom
 import RichEditorCustomSpan016 from './RichEditorCustomSpanTest/RichEditorCustomSpan016.test'
 import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 
-import RichEditorAttributeStrings001 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings001.test'
-import RichEditorAttributeStrings002 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings002.test'
-import RichEditorAttributeStrings003 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings003.test'
-import RichEditorAttributeStrings004 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings004.test'
-import RichEditorAttributeStrings005 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings005.test'
-import RichEditorAttributeStrings006 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings006.test'
-import RichEditorAttributeStrings007 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings007.test'
-import RichEditorAttributeStrings008 from './RichEditorAttributeStringsTest/RichEditorAttributeStrings008.test'
-
-import RichEditorStabillity001 from './RichEditorStabillityTest/RichEditorStabillity001.test'
-import RichEditorStabillity002 from './RichEditorStabillityTest/RichEditorStabillity002.test'
-import RichEditorStabillity003 from './RichEditorStabillityTest/RichEditorStabillity003.test'
-import RichEditorStabillity004 from './RichEditorStabillityTest/RichEditorStabillity004.test'
-import RichEditorStabillity005 from './RichEditorStabillityTest/RichEditorStabillity005.test'
-
-import RichEditorThreeStrikes001 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes001.test'
-import RichEditorThreeStrikes002 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes002.test'
-import RichEditorThreeStrikes003 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes003.test'
-import RichEditorThreeStrikes004 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes004.test'
-import RichEditorThreeStrikes005 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes005.test'
-import RichEditorThreeStrikes006 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes006.test'
-import RichEditorThreeStrikes007 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes007.test'
-import RichEditorThreeStrikes008 from './RichEditorThreeStrikesTest/RichEditorThreeStrikes008.test'
-
-import RichEditorDoubleClick001 from './RichEditorDoubleClickTest/RichEditorDoubleClick001.test'
-import RichEditorDoubleClick002 from './RichEditorDoubleClickTest/RichEditorDoubleClick002.test'
-import RichEditorDoubleClick003 from './RichEditorDoubleClickTest/RichEditorDoubleClick003.test'
-import RichEditorDoubleClick004 from './RichEditorDoubleClickTest/RichEditorDoubleClick004.test'
-import RichEditorDoubleClick005 from './RichEditorDoubleClickTest/RichEditorDoubleClick005.test'
-import RichEditorDoubleClick006 from './RichEditorDoubleClickTest/RichEditorDoubleClick006.test'
-import RichEditorDoubleClick007 from './RichEditorDoubleClickTest/RichEditorDoubleClick007.test'
-import RichEditorDoubleClick008 from './RichEditorDoubleClickTest/RichEditorDoubleClick008.test'
-import RichEditorDoubleClick009 from './RichEditorDoubleClickTest/RichEditorDoubleClick009.test'
-import RichEditorDoubleClick010 from './RichEditorDoubleClickTest/RichEditorDoubleClick010.test'
-import RichEditorDoubleClick011 from './RichEditorDoubleClickTest/RichEditorDoubleClick011.test'
-import RichEditorDoubleClick012 from './RichEditorDoubleClickTest/RichEditorDoubleClick012.test'
-import RichEditorDoubleClick013 from './RichEditorDoubleClickTest/RichEditorDoubleClick013.test'
-import RichEditorDoubleClick014 from './RichEditorDoubleClickTest/RichEditorDoubleClick014.test'
-import RichEditorDoubleClick015 from './RichEditorDoubleClickTest/RichEditorDoubleClick015.test'
-import RichEditorDoubleClick016 from './RichEditorDoubleClickTest/RichEditorDoubleClick016.test'
-import RichEditorDoubleClick017 from './RichEditorDoubleClickTest/RichEditorDoubleClick017.test'
-import RichEditorDoubleClick018 from './RichEditorDoubleClickTest/RichEditorDoubleClick018.test'
-import RichEditorDoubleClick019 from './RichEditorDoubleClickTest/RichEditorDoubleClick019.test'
-
-import RichEditorScroll001 from './RichEditorScrollTest/RichEditorScroll001.test'
 import TextCommonTextComputing1 from './TextTest/MeasureSizeTest/TextCommonTextComputing1.test';
 import TextCommonTextComputing2 from './TextTest/MeasureSizeTest/TextCommonTextComputing2.test';
 import TextCommonTextComputing3 from './TextTest/MeasureSizeTest/TextCommonTextComputing3.test';
@@ -647,31 +474,6 @@ export default function testsuite() {
   spanTest();
   ContainerSpanModifierTest();
   
-  RichEditor001();
-  RichEditor002();
-  RichEditor003();
-  RichEditor004();
-  RichEditor005();
-  RichEditor006();
-  RichEditor007();
-  RichEditor008();
-  RichEditor009();
-  RichEditor010();
-  RichEditor011();
-  RichEditor012();
-  RichEditor013();
-  RichEditor014();
-  RichEditor015();
-  RichEditor016();
-  RichEditor017();
-  RichEditor018();
-  RichEditor019();
-  RichEditor020();
-  RichEditor021();
-  RichEditor022();
-  RichEditor023();
-  RichEditor024();
-
   RichEditorBreak001();
   RichEditorBreak002();
   RichEditorBreak003();
@@ -684,88 +486,7 @@ export default function testsuite() {
   RichEditorParticiple001();
   RichEditorParticiple002();
 
-  RichEditorOnWillChange001();
-  RichEditorOnWillChange002();
-  RichEditorOnWillChange003();
-  RichEditorOnWillChange004();
-  RichEditorOnWillChange005();
-  RichEditorOnWillChange006();
-  RichEditorOnWillChange007();
-  RichEditorOnWillChange008();
-  RichEditorOnWillChange009();
-  RichEditorOnWillChange010();
-  RichEditorOnWillChange011();
-  RichEditorOnWillChange012();
-  RichEditorOnWillChange013();
-  RichEditorOnWillChange014();
-  RichEditorOnWillChange015();
-  RichEditorOnWillChange016();
-  RichEditorOnWillChange017();
-  RichEditorOnWillChange018();
-  RichEditorOnWillChange019();
-  RichEditorOnWillChange020();
-
-  RichEditorQueryLayout001();
-  RichEditorQueryLayout002();
-  RichEditorQueryLayout003();
-  RichEditorQueryLayout004();
-  RichEditorQueryLayout005();
-  RichEditorQueryLayout006();
-  RichEditorQueryLayout007();
-  RichEditorQueryLayout008();
-  RichEditorQueryLayout009();
-  RichEditorQueryLayout010();
-  RichEditorQueryLayout011();
-  RichEditorQueryLayout012();
-  RichEditorQueryLayout013();
-  RichEditorQueryLayout014();
-  RichEditorQueryLayout015();
-  RichEditorQueryLayout016();
-  RichEditorQueryLayout017();
-  RichEditorQueryLayout018();
-  RichEditorQueryLayout019();
-  RichEditorQueryLayout020();
-  RichEditorQueryLayout021();
-  RichEditorQueryLayout022();
-  RichEditorQueryLayout023();
-  RichEditorQueryLayout024();
-
   RichEditorPlaceHolder001();
-
-  RichEditorTextChange001();
-  RichEditorTextChange002();
-  RichEditorTextChange003();
-  RichEditorTextChange004();
-  RichEditorTextChange005();
-  RichEditorTextChange006();
-  RichEditorTextChange008();
-  RichEditorTextChange010();
-  RichEditorTextChange011();
-  RichEditorTextChange012();
-  RichEditorTextChange013();
-  RichEditorTextChange014();
-  RichEditorTextChange015();
-  RichEditorTextChange016();
-  RichEditorTextChange017();
-
-  RichEditorOnSelectionChange001();
-  RichEditorOnSelectionChange002();
-  RichEditorOnSelectionChange003();
-  RichEditorOnSelectionChange004();
-  RichEditorOnSelectionChange005();
-  RichEditorOnSelectionChange006();
-  RichEditorOnSelectionChange007();
-  RichEditorOnSelectionChange008();
-  RichEditorOnSelectionChange009();
-  RichEditorOnSelectionChange011();
-  RichEditorOnSelectionChange012();
-  RichEditorOnSelectionChange013();
-  RichEditorOnSelectionChange014();
-  RichEditorOnSelectionChange015();
-  RichEditorOnSelectionChange016();
-  RichEditorOnSelectionChange017();
-  RichEditorOnSelectionChange018();
-  RichEditorOnSelectionChange019();
 
   RichEditorLineLetter001();
   RichEditorLineLetter002();
@@ -782,15 +503,6 @@ export default function testsuite() {
   RichEditorLineLetter013();
   RichEditorLineLetter014();
   RichEditorLineLetter015();
-
-  RichEditorKeyBoard001();
-  RichEditorKeyBoard002();
-  RichEditorKeyBoard003();
-  RichEditorKeyBoard004();
-  RichEditorKeyBoard005();
-  RichEditorKeyBoard006();
-  RichEditorKeyBoard007();
-  RichEditorKeyBoard008();
 
   RichEditorUxConFormance001();
   RichEditorUxConFormance002();
@@ -830,14 +542,6 @@ export default function testsuite() {
   RichEditorLineBreakStrategy002();
   RichEditorLineBreakStrategy003();
 
-  RichEditorPreventDefault001();
-  RichEditorPreventDefault002();
-  RichEditorPreventDefault003();
-  RichEditorPreventDefault004();
-  RichEditorPreventDefault005();
-  RichEditorPreventDefault006();
-  RichEditorPreventDefault007();
-
   RichEditorSetStyledString002();
   RichEditorSetStyledString003();
   RichEditorSetStyledString004();
@@ -858,12 +562,6 @@ export default function testsuite() {
   RichEditorSetStyledString019();
   RichEditorSetStyledString020();
 
-  RichEditorTransformation001();
-  RichEditorTransformation002();
-  RichEditorTransformation003();
-  RichEditorTransformation004();
-  RichEditorTransformation005();
-
   RichEditorGetNumber001();
   RichEditorGetNumber002();
   RichEditorGetNumber003();
@@ -880,30 +578,6 @@ export default function testsuite() {
   RichEditorGetNumber014();
   RichEditorGetNumber015();
   RichEditorGetNumber016();
-
-  RichEditorShortCutKeys001();
-  RichEditorShortCutKeys002();
-  RichEditorShortCutKeys003();
-  RichEditorShortCutKeys004();
-  RichEditorShortCutKeys005();
-  RichEditorShortCutKeys006();
-  RichEditorShortCutKeys007();
-  RichEditorShortCutKeys008();
-  RichEditorShortCutKeys009();
-  RichEditorShortCutKeys010();
-  RichEditorShortCutKeys011();
-  RichEditorShortCutKeys012();
-  RichEditorShortCutKeys013();
-  RichEditorShortCutKeys014();
-  RichEditorShortCutKeys015();
-  RichEditorShortCutKeys017();
-  RichEditorShortCutKeys018();
-  RichEditorShortCutKeys019();
-  RichEditorShortCutKeys020();
-  RichEditorShortCutKeys021();
-  RichEditorShortCutKeys022();
-  RichEditorShortCutKeys023();
-  RichEditorShortCutKeys024();
 
   RichEditorStringSpan001();
   RichEditorStringSpan002();
@@ -929,51 +603,6 @@ export default function testsuite() {
   RichEditorCustomSpan016();
   RichEditorCustomSpan017();
 
-  RichEditorAttributeStrings001();
-  RichEditorAttributeStrings002();
-  RichEditorAttributeStrings003();
-  RichEditorAttributeStrings004();
-  RichEditorAttributeStrings005();
-  RichEditorAttributeStrings006();
-  RichEditorAttributeStrings007();
-  RichEditorAttributeStrings008();
-
-  RichEditorStabillity001();
-  RichEditorStabillity002();
-  RichEditorStabillity003();
-  RichEditorStabillity004();
-  RichEditorStabillity005();
-
-  RichEditorThreeStrikes001();
-  RichEditorThreeStrikes002();
-  RichEditorThreeStrikes003();
-  RichEditorThreeStrikes004();
-  RichEditorThreeStrikes005();
-  RichEditorThreeStrikes006();
-  RichEditorThreeStrikes007();
-  RichEditorThreeStrikes008();
-
-  RichEditorDoubleClick001();
-  RichEditorDoubleClick002();
-  RichEditorDoubleClick003();
-  RichEditorDoubleClick004();
-  RichEditorDoubleClick005();
-  RichEditorDoubleClick006();
-  RichEditorDoubleClick007();
-  RichEditorDoubleClick008();
-  RichEditorDoubleClick009();
-  RichEditorDoubleClick010();
-  RichEditorDoubleClick011();
-  RichEditorDoubleClick012();
-  RichEditorDoubleClick013();
-  RichEditorDoubleClick014();
-  RichEditorDoubleClick015();
-  RichEditorDoubleClick016();
-  RichEditorDoubleClick017();
-  RichEditorDoubleClick018();
-  RichEditorDoubleClick019();
-
-  RichEditorScroll001();
   getStyles();
   replaceString();
   TextAreaTypeTest();
