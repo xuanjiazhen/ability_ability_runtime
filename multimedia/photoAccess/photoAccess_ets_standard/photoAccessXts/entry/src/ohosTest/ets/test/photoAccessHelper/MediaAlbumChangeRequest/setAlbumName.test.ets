@@ -29,11 +29,14 @@ async function setAlbumNamePromiseTest(done: Function, testName: string, newAlbu
       await phAccessHelper.getAlbums(photoAccessHelper.AlbumType.USER, photoAccessHelper.AlbumSubtype.USER_GENERIC);
     const count = await albumFetchResult.getCount();
     if (count == 0) {
+      console.log(TAG, 'album length is 0')
       await createUserAlbum(testContext, 'setAlbumName', genRandomStr(10));
+      console.log(TAG, 'createAlbum successfully')
       albumFetchResult =
         await phAccessHelper.getAlbums(photoAccessHelper.AlbumType.USER, photoAccessHelper.AlbumSubtype.USER_GENERIC);
     }
     let album: photoAccessHelper.Album = await albumFetchResult.getFirstObject();
+
     if (album) {
       let albumChangeRequest: photoAccessHelper.MediaAlbumChangeRequest =
         new photoAccessHelper.MediaAlbumChangeRequest(album);

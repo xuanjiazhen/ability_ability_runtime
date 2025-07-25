@@ -81,9 +81,9 @@ import releaseTest from './photoAccessHelper/photoAccessHelper/release.test';
 import MediaAssetChangeRequestConstructorTest from './photoAccessHelper/MediaAssetChangeRequest/constructor.test';
 
 export default function testsuite() {
+  MediaAlbumChangeRequestSetAlbumNameTest();
   MediaAssetChangeRequestSetOrientationTest();
   sendablePhotoAccessHelperGetAlbumsTest();
-  MediaAlbumChangeRequestSetAlbumNameTest();
   MediaAlbumChangeRequestConstructorTest();
   sendableGetCountTest();
   sendableIsAfterLastTest();
