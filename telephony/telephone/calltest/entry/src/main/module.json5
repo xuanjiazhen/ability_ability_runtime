@@ -61,9 +61,6 @@
         "name": "ohos.permission.WRITE_CALL_LOG"
       },
       {
-        "name": "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"
-      },
-      {
         "name": "ohos.permission.CLEAN_BACKGROUND_PROCESSES"
       },
       {

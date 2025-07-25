@@ -105,7 +105,7 @@ export default function SetDownloadDelegateSecond() {
       LocalContext.context.eventHub.on("SetDownloadDelegate5", (data: number) => {
         flg = true
         expect(data).assertEqual('https:' +
-          '//cd001.v78q.com/cs/104sem/Beyond%20Compare%20%E6%96%87%E4%BB%B6%E5%AF%B9%E6%AF%94%E5%B7%A5%E5%85%B7_sm60000068e.exe0')
+          '//mirrors.huaweicloud.com/npm-software/v6.14.16.tar.gz0')
         console.info('SUB_ACE_WEB_getUrl_2000 end')
         hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_ACE_WEB_getUrl_2000 end')
       })
@@ -138,7 +138,7 @@ export default function SetDownloadDelegateSecond() {
       LocalContext.context.eventHub.on("SetDownloadDelegate5", (data: number) => {
         flg = true
         expect(data).assertEqual('https:' +
-          '//cd001.v78q.com/cs/104sem/Beyond%20Compare%20%E6%96%87%E4%BB%B6%E5%AF%B9%E6%AF%94%E5%B7%A5%E5%85%B7_sm60000068e.exe0')
+          '//mirrors.huaweicloud.com/npm-software/v6.14.16.tar.gz0')
         console.info('SUB_ACE_WEB_getUrl_2001 end')
         hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_ACE_WEB_getUrl_2001 end')
       })

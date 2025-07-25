@@ -62,6 +62,7 @@ group("ability_runtime") {
       "actsgetapplicationnewtest:ActsGetApplicationNewTest",
       "actsintent:actsintent",
       "actsjsdataabilitytest:ActsJsDataAbilityTest",
+      "actskioskmanagertest:ActsKioskManagerTest",
       "actslastexitreason:actslastexitreason",
       "actslifecycle:actslifecycle",
       "actsmultiplecall:actsmultiplecall",

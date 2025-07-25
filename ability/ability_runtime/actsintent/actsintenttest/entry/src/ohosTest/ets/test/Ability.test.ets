@@ -14,6 +14,7 @@
  */
 import { describe, expect, it, Level } from '@ohos/hypium';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { insightIntent, InsightIntentEntity } from '@kit.AbilityKit';
 
 export default function abilityTest() {
   describe('ActsInsightIntentDecoratorTest', () => {
@@ -41,4 +42,41 @@ export default function abilityTest() {
       console.log(`[${caseName}]: end`)
     })
   })
+}
+
+@InsightIntentEntity({
+  entityCategory: 'artist entity category',
+  parameters: {
+    '$id': '/schemas/ArtistClassDef',
+    'type': 'object',
+    'description': 'Information about the artist',
+    'properties': {
+      'country': {
+        'type': 'string',
+        'description': 'The artist\'s country of origin',
+        'default': 'zh'
+      },
+      'city': {
+        'type': 'string',
+        'description': 'The artist\'s city of origin'
+      },
+      'name': {
+        'type': 'string',
+        'description': 'The name of the artist',
+        'minLength': 1
+      }
+    }
+  }
+})
+export class ArtistClassDef implements insightIntent.IntentEntity {
+  public entityId: string = 'id';
+  public name: string = '';
+}
+
+@InsightIntentEntity({
+  entityCategory: 'artist entity category Required',
+})
+export class ArtistClassOnlyRequired implements insightIntent.IntentEntity {
+  public entityId: string = 'id';
+  public name: string = '';
 }

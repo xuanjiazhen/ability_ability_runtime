@@ -701,7 +701,11 @@ describe("VibratorJsTest_misc_3", function () {
                 expect(true).assertTrue();
             }).catch((error)=>{
                 console.info("VibratorJsTest031 error :" + error);
-                expect(false).assertTrue();
+                if (error.code == 801) {
+                    expect(true).assertTrue();
+                } else {
+                    expect(false).assertTrue();
+                }  
             });
             await vibrator.stopVibration();
             done();

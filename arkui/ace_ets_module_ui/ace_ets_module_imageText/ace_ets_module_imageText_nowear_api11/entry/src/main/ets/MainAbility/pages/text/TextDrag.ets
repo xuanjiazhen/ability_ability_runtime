@@ -23,6 +23,7 @@ struct TextDrag {
         .key('DraggedText')
         .draggable(true)
         .copyOption(CopyOptions.LocalDevice)
+        .textAlign(TextAlign.Center)
         .onDragStart(() => {
           this.text = 'Text--onDragStart'
         })

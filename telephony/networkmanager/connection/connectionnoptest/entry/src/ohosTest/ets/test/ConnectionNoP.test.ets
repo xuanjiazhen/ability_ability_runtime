@@ -206,7 +206,7 @@ export default function Multicastconnection201Test() {
      * @tc.type: Function
      * @tc.size: SmallTest
      */
-    it("testNetworkManagerDNSclearCustomDNSRulesPromise0200", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL0,async (done:Function)=> {
+    it("testNetworkManagerDNSclearCustomDNSRulesPromise0200", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL0, async (done:Function)=> {
       const caseName: string = 'testNetworkManagerDNSclearCustomDNSRulesPromise0200';
       console.info(`${caseName}---Start`);
       try {
@@ -228,6 +228,115 @@ export default function Multicastconnection201Test() {
         done();
       }
     });
+    
+    /**
+     * @tc.number SUB_NetworkMgr_Connection_SetNetExtAttributeSync_NoP_0100
+     * @tc.name testNetworkMgrConnectionSetNetExtAttributeSyncNoP0100
+     * @tc.desc Test setNetExtAttributeSync permission
+     * @tc.level Level 3
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+   it("testNetworkMgrConnectionSetNetExtAttributeSyncNoP0100", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL3, async (done: Function) => {
+     let caseName: string = "testNetworkMgrConnectionSetNetExtAttributeSyncNoP0100";
+     console.info(`${caseName}---Start`);
+     try{
+       let netExtAttribute: string = 'test';
+       connection.setNetExtAttributeSync(undefined, netExtAttribute);
+       console.info(`${caseName} setNetExtAttributeSync success `);
+       ExpectFail();
+       console.info(`${caseName}---End`);
+       done();
+     }catch (err){
+       console.info(`${caseName} catch err is `+JSON.stringify(err));
+       ExpectTrue(err.code == 201);
+       console.info(`${caseName}---End`);
+       done();
+     }
+   })
+ 
+     /**
+     * @tc.number SUB_NetworkMgr_Connection_SetNetExtAttribute_NoP_0100
+     * @tc.name testNetworkMgrConnectionSetNetExtAttributeNoP0100
+     * @tc.desc Test setNetExtAttribute permission
+     * @tc.level Level 3
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+   it("testNetworkMgrConnectionSetNetExtAttributeNoP0100", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL3, async (done: Function) => {
+     let caseName: string = "testNetworkMgrConnectionSetNetExtAttributeNoP0100";
+     console.info(`${caseName}---Start`);
+     try{
+       let netExtAttribute: string = 'test';
+       connection.setNetExtAttribute(undefined, netExtAttribute).then(() => {
+         console.info(`${caseName} setNetExtAttribute success `);
+         ExpectFail();
+         done();
+       }).catch((err: BusinessError)=>{
+         ExpectTrue(err.code == 201);
+         console.info(`${caseName}---End`);
+         done();
+       })
+     }catch (err){
+       console.info(`${caseName} catch err is `+JSON.stringify(err));
+       ExpectTrue(err.code == 201);
+       console.info(`${caseName}---End`);
+       done();
+     }
+   });
+
+    /**
+     * @tc.number SUB_NetworkMgr_Connection_GetNetExtAttributeSync_NoP_0100
+     * @tc.name testNetworkMgrConnectionGetNetExtAttributeSyncNoP0100
+     * @tc.desc Test getNetExtAttributeSync permission
+     * @tc.level Level 3
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+   it("testNetworkMgrConnectionGetNetExtAttributeSyncNoP0100", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL3, async (done: Function) => {
+     let caseName: string = "testNetworkMgrConnectionGetNetExtAttributeSyncNoP0100";
+     console.info(`${caseName}---Start`);
+     try{
+       let netExtAttribute: string = connection.getNetExtAttributeSync(undefined);
+       console.info(`${caseName} netExtAttribute is ->`+JSON.stringify(netExtAttribute));
+       ExpectFail();
+       done();
+     }catch (err){
+       console.info(`${caseName} catch err is `+JSON.stringify(err));
+       ExpectTrue(err.code == 201);
+       console.info(`${caseName}---End`);
+       done();
+     }
+   });
+
+    /**
+     * @tc.number SUB_NetworkMgr_Connection_GetNetExtAttribute_NoP_0100
+     * @tc.name testNetworkMgrConnectionGetNetExtAttributeNoP0100
+     * @tc.desc Test getNetExtAttribute permission
+     * @tc.level Level 3
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+   it("testNetworkMgrConnectionGetNetExtAttributeNoP0100", TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL3, async (done: Function) => {
+     let caseName: string = "testNetworkMgrConnectionGetNetExtAttributeNoP0100";
+     console.info(`${caseName}---Start`);
+     try{
+       connection.getNetExtAttribute(undefined).then((netExtAttribute: string)=>{
+         console.info(`${caseName} getNetExtAttribute success netExtAttribute is ->`+ netExtAttribute);
+         ExpectFail();
+         done();
+       }).catch((err: BusinessError)=>{
+         console.info(`${caseName} getNetExtAttribute failed err is ->`+ JSON.stringify(err));
+         ExpectTrue(err.code == 201);
+         done();
+       })
+     }catch (err){
+       console.info(`${caseName} catch err is `+JSON.stringify(err));
+       ExpectTrue(err.code == 201);
+       console.info(`${caseName}---End`);
+       done();
+     }
+   });
 
   })
 };

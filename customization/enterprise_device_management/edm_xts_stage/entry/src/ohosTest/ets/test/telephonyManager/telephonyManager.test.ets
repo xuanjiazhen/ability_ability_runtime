@@ -546,7 +546,6 @@ function testAddOutgoingCallPolicyNumbers() {
     } catch (error) {
       expect(error.code == 203 || error.code == 801).assertTrue();
     } finally {
-      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
@@ -810,7 +809,6 @@ function testRemoveOutgoingCallPolicyNumbers() {
     } catch (error) {
       expect(error.code == 203 || error.code == 801).assertTrue();
     } finally {
-      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
@@ -965,7 +963,6 @@ function testAddIncomingCallPolicyNumbers() {
     } catch (error) {
       expect(error.code == 203 || error.code == 801).assertTrue();
     } finally {
-      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
@@ -1229,7 +1226,6 @@ function testRemoveIncomingCallPolicyNumbers() {
     } catch (error) {
       expect(error.code == 203 || error.code == 801).assertTrue();
     } finally {
-      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();

@@ -23,6 +23,7 @@ import BuilderNodeOneTest from './LocalStorageTest/BuilderNodeOneTest.test';
 import BuilderNodeTwoTest from './LocalStorageTest/BuilderNodeTwoTest.test';
 import BuilderNodeThreeTest from './LocalStorageTest/BuilderNodeThreeTest.test';
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
+import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
 
 export default function testsuite() {
   IsAvailableTest();
@@ -36,4 +37,5 @@ export default function testsuite() {
   BuilderNodeTwoTest();
   BuilderNodeThreeTest();
   DarkModeTest();
+  EnableProvideConsumeCrossingTest();
 }

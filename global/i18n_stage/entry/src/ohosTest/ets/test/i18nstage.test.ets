@@ -624,7 +624,8 @@ export default function i18nStageTest() {
     it('dateTimeFormatAdapt_test_0020', Level.LEVEL1, () => {
       let data = new Date(2020, 11, 20, 14, 23, 16);
       let dateFmt = new Intl.DateTimeFormat("zh-CN", {
-        timeStyle: 'full'
+        timeStyle: 'full',
+        hourCycle: 'h12'
       });
       console.log('dateTimeFormatAdapt_test_0020:' + dateFmt.format(data));
       expect(dateFmt.format(data)).assertEqual('中国标准时间 下午2:23:16');

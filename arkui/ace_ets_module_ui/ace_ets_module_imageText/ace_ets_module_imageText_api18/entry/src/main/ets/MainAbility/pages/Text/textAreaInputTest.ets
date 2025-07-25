@@ -26,6 +26,7 @@ struct TextAreaInputTestExample {
           .draggable(true)
           .width('90%')
           .margin(20)
+          .textAlign(TextAlign.Center)
           .copyOption(CopyOptions.LocalDevice)
           .onDragStart(() => {
             this.text = 'Text--onDragStart'

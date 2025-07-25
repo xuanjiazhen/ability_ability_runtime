@@ -3303,14 +3303,15 @@ export default function UiTest() {
             let bounds1 = await image1.getBounds()
             let left = bounds1.left
             let right = bounds1.right
+            let width = (bounds1.right - bounds1.left) * 0.8
             let centerY = Math.floor((bounds1.top + bounds1.bottom) / 2)
             let pointer = PointerMatrix.create(2,11)
             await driver.delayMs(300)
             for (let step = 0; step < 11; step++) {
-                pointer.setPoint(0, step, {x: left + 200 - (step + 1) *20, y: centerY + step * 20})
+                pointer.setPoint(0, step, {x: Math.floor(left + width - (step + 1) * (width / 10)), y: centerY})
             }
             for (let step = 0; step < 11; step++) {
-                pointer.setPoint(1, step, {x: right - 200 + (step + 1) *20, y: centerY - step * 20})
+                pointer.setPoint(1, step, {x: Math.floor(right - width + (step + 1) * (width / 10)), y: centerY})
             }
             await driver.injectMultiPointerAction(pointer, 400)
             await driver.delayMs(3000)
@@ -3660,7 +3661,7 @@ export default function UiTest() {
         })
 
         /*
-         * @tc.number: uiTest_9044
+         * @tc.number: uiTest_9057
          * @tc.name: testWindowMaximize
          * @tc.desc: maximize this UiWindow.
          */

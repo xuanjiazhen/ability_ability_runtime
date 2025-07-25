@@ -18,14 +18,22 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../test/List.test';
+import {  Configuration, ConfigurationConstant } from '@kit.AbilityKit';
 
 export default class TestAbility extends UIAbility {
     onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
         hilog.info(0x0000, 'testTag', '%{public}s', 'TestAbility onCreate');
         hilog.info(0x0000, 'testTag', '%{public}s', 'want param:' + JSON.stringify(want) ?? '');
         hilog.info(0x0000, 'testTag', '%{public}s', 'launchParam:'+ JSON.stringify(launchParam) ?? '');
+        AppStorage.setOrCreate<ConfigurationConstant.ColorMode>('currentColorMode', this.context.config.colorMode);
+        hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
     }
-
+    onConfigurationUpdate(newConfig: Configuration): void {
+        const currentColorMode: ConfigurationConstant.ColorMode | undefined = AppStorage.get('currentColorMode');
+        if (currentColorMode !== newConfig.colorMode) {
+            AppStorage.setOrCreate<ConfigurationConstant.ColorMode>('currentColorMode', newConfig.colorMode);
+        }
+    }
     onDestroy() {
         hilog.info(0x0000, 'testTag', '%{public}s', 'TestAbility onDestroy');
     }

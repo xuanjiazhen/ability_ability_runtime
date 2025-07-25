@@ -16,7 +16,7 @@
 import bluetooth from '@ohos.bluetooth.access';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Level, Size } from '@ohos/hypium';
 import { UiComponent, UiDriver, BY, Component, Driver, UiWindow, ON, MatchPattern, DisplayRotation, ResizeDirection, UiDirection, MouseButton, WindowMode, PointerMatrix, UIElementInfo, UIEventObserver } from '@ohos.UiTest'
-
+import { BusinessError } from '@ohos.base';
     function sleep(delay : number) : Promise<void> {
         return new Promise(resovle => setTimeout(resovle, delay))
     }
@@ -49,14 +49,6 @@ import { UiComponent, UiDriver, BY, Component, Driver, UiWindow, ON, MatchPatter
             console.info('[bluetooth_js] clickRequestPermission end');
         } catch (err) {
             console.info('[bluetooth_js] clickRequestPermission failed. ' + err);
-        }
-        try {
-            let button1 = await driver.findComponent(ON.text("允许"));
-            await button1.click();
-            await driver.delayMs(3000);
-            console.info('[bluetooth_js] click 允许 end');
-        } catch (err) {
-            console.info('[bluetooth_js] click 允许 failed. ' + err);
         }
     }
     function onReceiveEvent(data : bluetooth.BluetoothState) {
@@ -462,5 +454,76 @@ describe('btAccessTest', () => {
     }
     done();
     })
+
+    /**
+     * @tc.number SUB_COMMUNICATION_BLUETOOTH_BLUETOOTHASYNC_0001
+     * @tc.name SUB_COMMUNICATION_BLUETOOTH_BLUETOOTHASYNC_0001
+     * @tc.desc Test Asynchronous interface for enables/disables Bluetooth on a device
+     * @tc.type Function
+     * @tc.size MediumTest
+     * @tc.level Level 0
+     */
+        it('SUB_COMMUNICATION_BLUETOOTH_BLUETOOTHASYNC_0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done : Function) =>  {
+            try {
+                let isNotSupport = false;
+                bluetooth.disableBluetoothAsync().then(() => {
+                    console.info("disableBluetoothAsync success");
+                    done();
+                }).catch((err: BusinessError) => {
+                    console.error("disableBluetoothAsync get error:" + JSON.stringify(err));
+                    if (Number(err.code) == 801) {
+                        console.info('api is not support');
+                        expect(true).assertTrue();
+                        isNotSupport = true;
+                    } else {
+                        expect().assertFail();
+                    }
+                });
+                await sleep(2000);
+                if (!isNotSupport) {
+                    await clickRequestPermission(CLOSE_BT_TEXT);
+                }
+            } catch (error) {
+                console.error("disableBluetoothAsync get error:" + JSON.stringify(error));
+                if (Number(error.code) == 801) {
+                    console.info('api is not support');
+                    expect(true).assertTrue();
+                }
+            }
+            await sleep(10000);
+            console.info("after disableBluetoothAsync state:" + bluetooth.getState());
+            expect(bluetooth.getState()).assertEqual(0);
+            try {
+                let isNotSupports = false;
+                bluetooth.enableBluetoothAsync().then(() => {
+                    console.info("enableBluetoothAsync success");
+                    done();
+                }).catch((err: BusinessError) => {
+                    console.error("enableBluetoothAsync get error:" + JSON.stringify(err));
+                    if (Number(err.code) == 801) {
+                        console.info('api is not support');
+                        expect(true).assertTrue();
+                        isNotSupports = true;
+                    } else {
+                        expect().assertFail();
+                    }
+                });
+                await sleep(2000);
+                if (!isNotSupports) {
+                    await clickRequestPermission(OPEN_BT_TEXT);
+                }
+            } catch (error) {
+                console.error("enableBluetoothAsync get error:" + JSON.stringify(error));
+                if (Number(error.code) == 801) {
+                    console.info('api is not support');
+                    expect(true).assertTrue();
+                }
+            }
+            await sleep(2000);
+            console.info("after enableBluetoothAsync state:" + bluetooth.getState());
+            expect(bluetooth.getState()).assertEqual(2);
+            await sleep(10000);
+            done();
+        })
 })
 }

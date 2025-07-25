@@ -184,6 +184,7 @@ public:
     int32_t DEFAULT_PROFILE = HEVC_PROFILE_MAIN_10;
     int32_t DecodeSetSurface();
     int32_t OpenFile();
+    int enbleBlankFrame = 0;
 private:
     std::unique_ptr<std::ifstream> inFile_;
     std::unique_ptr<std::thread> inputLoop_;

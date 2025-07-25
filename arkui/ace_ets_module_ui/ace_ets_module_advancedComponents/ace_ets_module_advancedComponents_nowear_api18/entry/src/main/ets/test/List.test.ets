@@ -25,6 +25,8 @@ import ProgressButtonTest from './progressButton/progressButtonTest.test';
 import SubHeaderSelectTest from './subHeader/subHeaderSelect.test';
 import SubHeaderV2SelectTest from './subHeaderV2/subHeaderV2Select.test';
 import SwipeRefresherPageTest from './swipeRefresher/swipeRefresherPageTest.test';
+import maxFontScaleTest from './segbtnTest/maxFontScaleTest.test';
+import accessibilitySelectedTypeTest from './ChipTest/accessibilitySelectedTypeTest.test';
 
 export default function testsuite() {
   ChipGroupIconItemOptionsTest();
@@ -39,4 +41,6 @@ export default function testsuite() {
   SubHeaderSelectTest();
   SubHeaderV2SelectTest();
   SwipeRefresherPageTest();
+  maxFontScaleTest();
+  accessibilitySelectedTypeTest();
 }

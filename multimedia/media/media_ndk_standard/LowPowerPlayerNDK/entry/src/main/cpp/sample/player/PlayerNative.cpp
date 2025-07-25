@@ -388,6 +388,15 @@ napi_value PlayerNative::CreateLppVideoStreamer(napi_env env, napi_callback_info
     return result;
 }
 
+napi_value PlayerNative::AudioStreamerGetParameter(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioStreamerGetParameter in");
+    int32_t ret = Player::GetInstance().AudioStreamerGetParameter();
+    AVCODEC_SAMPLE_LOGI("AudioStreamerGetParameter out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
 napi_value PlayerNative::AudioStreamerSetParameter(napi_env env, napi_callback_info info)
 {
     AVCODEC_SAMPLE_LOGI("AudioStreamerSetParameter in");
@@ -428,6 +437,24 @@ napi_value PlayerNative::VideoStreamerConfigure(napi_env env, napi_callback_info
     return result;
 }
 
+napi_value PlayerNative::VideoStreamerSetParameter(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetParameter in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetParameter();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetParameter out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerGetParameter(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerGetParameter in");
+    int32_t ret = Player::GetInstance().VideoStreamerGetParameter();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerGetParameter out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
 napi_value PlayerNative::VideoStreamerSetSurface(napi_env env, napi_callback_info info)
 {
     AVCODEC_SAMPLE_LOGI("VideoStreamerSetSurface in");
@@ -532,9 +559,15 @@ static napi_value Init(napi_env env, napi_value exports)
             napi_default, nullptr},
         {"audioSetParameterNative", nullptr, PlayerNative::AudioStreamerSetParameter, nullptr, nullptr, nullptr,
          napi_default, nullptr},
+        {"audioGetParameterNative", nullptr, PlayerNative::AudioStreamerGetParameter, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
         {"audioPrepareNative", nullptr, PlayerNative::AudioStreamerPrepare, nullptr, nullptr, nullptr, napi_default,
          nullptr},
         {"videoConfigureNative", nullptr, PlayerNative::VideoStreamerConfigure, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"videoStreamerSetParameter", nullptr, PlayerNative::VideoStreamerSetParameter, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"videoStreamerGetParameter", nullptr, PlayerNative::VideoStreamerGetParameter, nullptr, nullptr, nullptr,
             napi_default, nullptr},
         {"videoSetSurfaceNative", nullptr, PlayerNative::VideoStreamerSetSurface, nullptr, nullptr, nullptr,
             napi_default, nullptr},

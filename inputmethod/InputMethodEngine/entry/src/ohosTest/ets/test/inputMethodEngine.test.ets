@@ -3780,6 +3780,28 @@ export default function inputMethodEngineJSUnit() {
     });
 
     /*
+    * @tc.number  Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400
+    * @tc.name   Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400
+    * @tc.desc    Function test
+    * @tc.size    MediumTest
+    * @tc.type    Function
+    * @tc.level   Level2
+    */
+    it('Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400', Level.LEVEL2, async (done: Function) => {
+      let beforePublish = async () => {
+        await inputMethod.getController().detach();
+        const ATTRIBUTE: inputMethod.TextConfig = {
+          inputAttribute: {
+            textInputType: 0, enterKeyType: 0
+          }
+        }
+        inputMethod.getController().attach(true, ATTRIBUTE, inputMethod.RequestKeyboardReason.OTHER);
+      }
+
+      testTemplate('Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400', 106, done, beforePublish);
+    });
+
+    /*
     * @tc.number  Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0500
     * @tc.name   Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0500
     * @tc.desc    Function test
@@ -3869,28 +3891,6 @@ export default function inputMethodEngineJSUnit() {
       }
 
       testTemplate('Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0800', 114, done, beforePublish);
-    });
-
-    /*
-    * @tc.number  Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400
-    * @tc.name   Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400
-    * @tc.desc    Function test
-    * @tc.size    MediumTest
-    * @tc.type    Function
-    * @tc.level   Level2
-    */
-    it('Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400', Level.LEVEL2, async (done: Function) => {
-      let beforePublish = async () => {
-        await inputMethod.getController().detach();
-        const ATTRIBUTE: inputMethod.TextConfig = {
-          inputAttribute: {
-            textInputType: 0, enterKeyType: 0
-          }
-        }
-        inputMethod.getController().attach(true, ATTRIBUTE, inputMethod.RequestKeyboardReason.OTHER);
-      }
-
-      testTemplate('Sub_Misc_inputMethodEngine_InputClient_getAttachOptions_0400', 106, done, beforePublish);
     });
 
     /*

@@ -547,6 +547,28 @@ export default function bundleManagerTest() {
     })
 
     /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_ADD_INSTALLATION_ALLOWED_APP_DISTRIBUTION_TYPES_0500
+     * @tc.name test_add_installation_allowed_app_distribution_types_0500
+     * @tc.desc test addInstallationAllowedAppDistributionTypes type out of scope
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_installation_allowed_app_distribution_types_0500', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      try {
+        let allowedAppDistributionTypes: Array<bundleManager.AppDistributionType>  = [0, 7];
+        bundleManager.addInstallationAllowedAppDistributionTypes(SELFWANT, allowedAppDistributionTypes);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200012).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
      * @tc.number SUB_CUSTOMIZATION_EDM_GET_INSTALLATION_ALLOWED_APP_DISTRIBUTION_TYPES_0100
      * @tc.name test_get_installation_allowed_app_distribution_types_0100
      * @tc.desc test getInstallationAllowedAppDistributionTypes method with normal admin
@@ -710,6 +732,28 @@ export default function bundleManagerTest() {
         expect(ret2.length == 1).assertTrue();
       } catch(error) {
         expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    });
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_REMOVE_INSTALLATION_ALLOWED_APP_DISTRIBUTION_TYPES_0500
+     * @tc.name test_remove_installation_allowed_app_distribution_types_0500
+     * @tc.desc test removeInstallationAllowedAppDistributionTypes type out of scope
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_remove_installation_allowed_app_distribution_types_0500', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      try {
+        let allowedAppDistributionTypes: Array<bundleManager.AppDistributionType>  = [0, 7];
+        bundleManager.removeInstallationAllowedAppDistributionTypes(SELFWANT, allowedAppDistributionTypes);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200012).assertTrue();
       } finally {
         await adminManager.disableSuperAdmin(SELFHAPNAME);
       }

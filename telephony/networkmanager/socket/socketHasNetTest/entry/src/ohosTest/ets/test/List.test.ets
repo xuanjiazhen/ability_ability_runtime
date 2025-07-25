@@ -14,11 +14,17 @@
  */
 
 import SocketGetSocketFdTest from './SocketGetSocketFd.test';
+import TcpSocketServerCloseTest from './TcpsocketServerClose.test';
+import TlsSocketServerCloseTest from './ TlsSocketServerClose.test';
+import LocalSocketServerCloseTest from './LocalSocketServerClose.test';
 import EmptyTest from './Empty.test';
 import sim from '@ohos.telephony.sim';
 
 export default function testsuite() {
   if (sim.getMaxSimCount()>1){
+    TlsSocketServerCloseTest();
+    TcpSocketServerCloseTest();
+    LocalSocketServerCloseTest();
     SocketGetSocketFdTest();
   }else{
     EmptyTest()

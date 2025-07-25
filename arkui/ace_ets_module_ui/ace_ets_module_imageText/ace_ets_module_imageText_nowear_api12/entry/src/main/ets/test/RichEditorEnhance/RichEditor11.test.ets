@@ -60,9 +60,7 @@ export default function RichEditor11() {
       let driver = Driver.create();
       await driver.delayMs(1000)
       let RichEditor11_double = await driver.findComponent(ON.id("RichEditor11_double"));
-      let point = await RichEditor11_double.getBoundsCenter()
-      await driver.doubleClick(point.x,point.y);
-      await driver.doubleClick(point.x,point.y);
+      await RichEditor11_double.longClick()
       let getSelection = await driver.findComponent(ON.text("getSelection"));
       await getSelection.click();
       let RichEditor11_Text = await driver.findComponent(ON.id("RichEditor11_Text"));

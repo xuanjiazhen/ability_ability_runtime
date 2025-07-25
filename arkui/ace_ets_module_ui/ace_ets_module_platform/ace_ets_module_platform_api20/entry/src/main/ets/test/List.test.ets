@@ -16,11 +16,13 @@ import XComponentHDRBrightnessTest from './XComponent/XComponentHDRBrightnessTes
 import XComponentDrawingCanvasTest from './XComponent/XComponentDrawingCanvasTest.test'
 import XComponentKeyMouseTest from './XComponent/XComponentKeyMouseTest.test'
 import XComponentNdkInterfaceTest from './XComponent/XComponentNdkInterfaceTest.test'
+import VideoOnErrorTest from './Video/VideoOnErrorTest.test'
 
 export default function testsuite() {
   XComponentHDRBrightnessTest()
   XComponentDrawingCanvasTest()
   XComponentKeyMouseTest()
   XComponentNdkInterfaceTest()
+  VideoOnErrorTest()
 }
 

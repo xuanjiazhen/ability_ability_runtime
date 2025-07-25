@@ -65,9 +65,9 @@ export default class EntryAbility1 extends UIAbility {
           console.log(`lifecycleflowordertestdemo moveAbilityToBackground success.`);
         }).catch((err: BusinessError) => {
           console.log(`lifecycleflowordertestdemo moveAbilityToBackground error: ${JSON.stringify(err)}.`);
-          if(err.code == 801){
+          if(err.code == 16000061){
             let commonEventData: EventDataI = {
-              data: '801'
+              data: '16000061'
             };
             commonEventManager.publish(this.wantParam.toString(), commonEventData, (err) => {
               console.info('lifecycleflowordertestdemo ====> [onWillBackground_0100 moveAbilityToBackground result] publish: ' + JSON.stringify(err));

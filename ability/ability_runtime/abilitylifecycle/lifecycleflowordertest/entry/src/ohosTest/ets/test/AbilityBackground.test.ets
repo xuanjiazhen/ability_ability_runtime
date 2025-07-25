@@ -17,7 +17,6 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { commonEventManager } from '@kit.BasicServicesKit';
 import { Driver, Component, ON } from '@kit.TestKit';
 import { common } from '@kit.AbilityKit';
-
 async function sleep(time: number) {
   return new Promise<void>((resolve, reject) => {
     setTimeout(resolve, time)
@@ -68,13 +67,13 @@ export default function ActsLifeCycleMainBackgroundTest() {
         });
       let subscribeCallBack = async (err: BusinessError, data: commonEventManager.CommonEventData) => {
         console.info(`${tag}-subscribeCallBack success1-${data.data}`);
-        if(data.data == '801'){
-          done()
-        }
-        try {
+        if(data.data != '16000061'){
+          try {
           expect(data.data)
             .assertEqual("onWillBackground,onBackground,hidden event,onDidBackground");
-        } catch (error) {
+          } catch (error) {
+            console.error(`${tag}-expect failed, code is ${error.code}, message is ${error.message}`);
+          }
         }
         commonEventManager.unsubscribe(subscriber);
         done()

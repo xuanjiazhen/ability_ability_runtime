@@ -35,6 +35,8 @@ napi_value OHEffectBufferInfoSetWidth(napi_env env, napi_callback_info info);
 napi_value OHEffectBufferInfoGetWidth(napi_env env, napi_callback_info info);
 napi_value OHEffectBufferInfoSetTimestamp(napi_env env, napi_callback_info info);
 napi_value OHEffectBufferInfoGetTimestamp(napi_env env, napi_callback_info info);
+napi_value OHEffectBufferInfoSetTextureId(napi_env env, napi_callback_info info);
+napi_value OHEffectBufferInfoGetTextureId(napi_env env, napi_callback_info info);
 napi_value OHEffectBufferInfoRelease(napi_env env, napi_callback_info info);
 napi_value OHEffectFilterInfoCreate(napi_env env, napi_callback_info info);
 napi_value OHEffectFilterInfoSetFilterName(napi_env env, napi_callback_info info);

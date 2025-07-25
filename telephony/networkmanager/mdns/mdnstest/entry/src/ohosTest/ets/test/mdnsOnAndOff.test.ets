@@ -93,9 +93,9 @@ export default function NetworkManagerMdnsTest() {
      * @tc.desc  : Subscribing to the Notification of Enabling the mDNS Service Listening Function
      * @tc.size  : SMALLTEST
      * @tc.type  : Function
-     * @tc.level : level 0
+     * @tc.level : level 2
      */
-    it('testTelephonyNetManagerStartSearchingMDNS0100', Size.SMALLTEST | TestType.FUNCTION | Level.LEVEL0 , async (done: Function) => {
+    it('testTelephonyNetManagerStartSearchingMDNS0100', Size.SMALLTEST | TestType.FUNCTION | Level.LEVEL2 , async (done: Function) => {
       let caseName = 'testTelephonyNetManagerStartSearchingMDNS0100';
       console.info(`${caseName} test start `);
       try {

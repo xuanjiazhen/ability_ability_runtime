@@ -34,7 +34,6 @@
     "MainAbility/pages/Text/TextVerticalAlign",
     "MainAbility/pages/Text/TextVerticalAlignModifier",
     "MainAbility/pages/RichEditor/RichEditorEnableAutoSpacing",
-    "MainAbility/pages/RichEditor/RichEditorTextVerticalAlign",
     "MainAbility/pages/Text/TextGetparagraphs",
     "MainAbility/pages/StyledString/fromHtml",
     "MainAbility/pages/Text/EnablePreviewMenu",
@@ -42,6 +41,8 @@
     "MainAbility/pages/ImageOrientation/ImageOrientation",
     "MainAbility/pages/Text/TextNumberTransitionTest",
     "MainAbility/pages/SymbolGlyph/SymbolEffectTest",
-    "MainAbility/pages/Text/shaderStyle"
+    "MainAbility/pages/Text/shaderStyle",
+    "MainAbility/pages/RichEditor/RichEditorTextMenuItemId",
+    "MainAbility/pages/Text/TextMenuItemId"
   ]
 }

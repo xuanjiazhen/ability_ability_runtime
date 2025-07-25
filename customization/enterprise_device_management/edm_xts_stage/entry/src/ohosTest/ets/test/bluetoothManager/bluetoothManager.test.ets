@@ -1016,5 +1016,226 @@ export default function bluetoothManagerTest() {
       done();
     })
 
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_ADD_DISALLOWED_BLUETOOTH_PROTOCOLS_0100
+     * @tc.name test_add_disallowed_bluetooth_protocols_0100
+     * @tc.desc test addDisallowedBluetoothProtocols method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_disallowed_bluetooth_protocols_0100', Level.LEVEL2, async (done: Function) => {
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.addDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_ADD_DISALLOWED_BLUETOOTH_PROTOCOLS_0200
+     * @tc.name      : test_add_disallowed_bluetooth_protocols_0200
+     * @tc.desc      : test addDisallowedBluetoothProtocols method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_disallowed_bluetooth_protocols_0200', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.addDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_ADD_DISALLOWED_BLUETOOTH_PROTOCOLS_0300
+     * @tc.name test_add_disallowed_bluetooth_protocols_0300
+     * @tc.desc test addDisallowedBluetoothProtocols method with null admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_disallowed_bluetooth_protocols_0300', Level.LEVEL2, async (done: Function) => {
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.addDisallowedBluetoothProtocols(null, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 401).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_ADD_DISALLOWED_BLUETOOTH_PROTOCOLS_0400
+     * @tc.name test_add_disallowed_bluetooth_protocols_0400
+     * @tc.desc test adddisallowedbluetoothdevices method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_disallowed_bluetooth_protocols_0400', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.addDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        let ret: Array<bluetoothManager.Protocol> =
+          bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
+        expect(ret.length == 2).assertTrue();
+        bluetoothManager.removeDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        ret = bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
+        expect(ret.length == 0).assertTrue();
+      } catch(error) {
+        expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_REMOVE_DISALLOWED_BLUETOOTH_PROTOCOLS_0100
+     * @tc.name test_remove_disallowed_bluetooth_protocols_0100
+     * @tc.desc test removeDisallowedBluetoothProtocols method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_remove_disallowed_bluetooth_protocols_0100', Level.LEVEL2, async (done: Function) => {
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.removeDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_REMOVE_DISALLOWED_BLUETOOTH_PROTOCOLS_0200
+     * @tc.name      : test_remove_disallowed_bluetooth_protocols_0200
+     * @tc.desc      : test removeDisallowedBluetoothProtocols method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_remove_disallowed_bluetooth_protocols_0200', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.removeDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_REMOVE_DISALLOWED_BLUETOOTH_PROTOCOLS_0300
+     * @tc.name test_remove_disallowed_bluetooth_protocols_0300
+     * @tc.desc test removeDisallowedBluetoothProtocols method with null admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_remove_disallowed_bluetooth_protocols_0300', Level.LEVEL2, async (done: Function) => {
+      try {
+        let accountId: number = 100;
+        let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
+          bluetoothManager.Protocol.SPP];
+        bluetoothManager.removeDisallowedBluetoothProtocols(null, accountId, protocols);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 401).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_BLUETOOTH_PROTOCOLS_0100
+     * @tc.name test_get_disallowed_bluetooth_protocols_0100
+     * @tc.desc test getDisallowedBluetoothProtocols method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_get_disallowed_bluetooth_protocols_0100', Level.LEVEL2, async (done: Function) => {
+      try {
+        let accountId: number = 100;
+        bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
+        expect(false).assertTrue();
+      } catch(error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_BLUETOOTH_PROTOCOLS_0200
+     * @tc.name test_get_disallowed_bluetooth_protocols_0200
+     * @tc.desc test getDisallowedBluetoothProtocols method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_get_disallowed_bluetooth_protocols_0200', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+      try {
+        let accountId: number = 100;
+        bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
+      } catch(error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_BLUETOOTH_PROTOCOLS_0300
+     * @tc.name test_get_disallowed_bluetooth_protocols_0300
+     * @tc.desc test getDisallowedBluetoothProtocols method with null admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_get_disallowed_bluetooth_protocols_0300', Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      try {
+        let accountId: number = 100;
+        bluetoothManager.getDisallowedBluetoothProtocols(null, accountId);
+      } catch(error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
   })
 }

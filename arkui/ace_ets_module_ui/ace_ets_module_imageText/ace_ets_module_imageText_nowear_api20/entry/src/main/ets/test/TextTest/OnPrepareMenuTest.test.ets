@@ -61,7 +61,7 @@ export default function OnPrepareMenuTest() {
       await CommonFunc.sleep(500);
       await TextArea.longClick()
       await CommonFunc.sleep(500);
-      driver.assertComponentExist(ON.text('prepare1'))
+      await driver.assertComponentExist(ON.text('prepare1'))
       let Button = await driver.findComponent(ON.text('prepare1'));
       if(Button){
          expect("").assertEqual("")

@@ -28,6 +28,8 @@ export const OHEffectBufferInfoSetWidth: (a: number) => number;
 export const OHEffectBufferInfoGetWidth: (a: number) => number;
 export const OHEffectBufferInfoSetTimestamp: (a: number) => number;
 export const OHEffectBufferInfoGetTimestamp: (a: number) => number;
+export const OHEffectBufferInfoSetTextureId: () => number;
+export const OHEffectBufferInfoGetTextureId: () => number;
 export const OHEffectBufferInfoRelease: (a: number) => number;
 
 export const OHEffectFilterInfoCreate: () => number;
@@ -48,6 +50,7 @@ export const OHEffectFilterRegister: (a: number) => number;
 export const OHEffectFilterRelease: (a: number) => number;
 export const OHEffectFilterReleaseFilterNames: (a: number) => number;
 export const OHEffectFilterRender: (a:number) => number;
+export const OHEffectFilterRenderWithTextureId: () => number;
 
 export const OHImageEffectCreate: (a: number) => number;
 export const OHImageEffectConfigure: (a: number) => number;
@@ -76,3 +79,5 @@ export const OHImageEffectStart: () => number;
 export const OHImageEffectStop: () => number;
 export const OHImageEffectSetInputPicture: () => number;
 export const OHImageEffectSetOutputPicture: () => number;
+export const OHImageEffectSetInputTexture: () => number;
+export const OHImageEffectSetOutputTexture: () => number;

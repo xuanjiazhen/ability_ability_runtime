@@ -17,7 +17,7 @@ group("osaccount_hap") {
   testonly = true
   if (is_standard_system) {
     deps = [
-      "actsosaccounttest:ActsOsAccountTest",
+      "actsosaccounttest:ActsOsAccountEnterpriseTest",
       "actsosaccountthirdpartytest:ActsOsAccountThirdPartyTest",
       "osaccountassistapps:osAccountAssistApps",
     ]

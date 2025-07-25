@@ -33,6 +33,7 @@ import systemParameterEnhance from '@ohos.systemParameterEnhance';
 import { AbilityLifecycleCallback } from '@kit.AbilityKit';
 import { Driver } from '@ohos.UiTest';
 import DemoProcess from '../process/AProcess';
+import { window } from '@kit.ArkUI';
 
 let EXTENSION_INFO_ERR = 16000001;
 let INNER_ERROR = 16000050;
@@ -579,6 +580,7 @@ export default function ApiCoverTest() {
      * @tc.level   3
      */
     it('SUB_AA_Test_StartOptions_0100', Level.LEVEL0, async (done: Function) => {
+      let windowParam: window.WindowCreateParams = {};
       let startOp: startOptions = {
         withAnimation: false,
         displayId: 0,
@@ -587,6 +589,7 @@ export default function ApiCoverTest() {
         windowWidth: 100,
         windowHeight: 100,
         windowFocused: true,
+        windowCreateParams: windowParam
       }
       let startWant: Want = {
         deviceId: "",

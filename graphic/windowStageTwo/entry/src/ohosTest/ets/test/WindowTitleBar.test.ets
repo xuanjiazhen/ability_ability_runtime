@@ -1526,7 +1526,10 @@ export default function windowTitleBarTest() {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
             done();
-          }else {
+          }else if(err.code == 1300002){
+            done();
+          }
+          else {
             expect().assertFail();
             done();
           }
@@ -1573,7 +1576,10 @@ export default function windowTitleBarTest() {
             await data.destroyWindow();
             if(err.code == 801){
               done();
-            }else {
+            }else if(err.code == 1300002){
+              done();
+            }
+            else {
               expect().assertFail();
               done();
             }
@@ -1628,7 +1634,9 @@ export default function windowTitleBarTest() {
             await data.destroyWindow();
             if(err.code == 801){
               done();
-            }else {
+            }else if(err.code == 1300002){
+              done();
+            } else {
               expect().assertFail();
               done();
             }
@@ -1668,6 +1676,8 @@ export default function windowTitleBarTest() {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
             done();
+          }else if(err.code == 1300002){
+            done();
           }else {
             expect().assertFail();
             done();
@@ -1704,6 +1714,8 @@ export default function windowTitleBarTest() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
+            done();
+          }else if(err.code == 1300002){
             done();
           }else {
             expect().assertFail();

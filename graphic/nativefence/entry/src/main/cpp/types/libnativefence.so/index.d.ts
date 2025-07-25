@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export const nativeFenceWaitIs0: () => number;
 export const nativeFenceWaitIs500: () => number;
 export const nativeFenceWaitIs5000: () => number;

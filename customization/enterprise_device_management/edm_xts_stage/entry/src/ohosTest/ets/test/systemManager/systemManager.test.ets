@@ -1271,7 +1271,7 @@ function testSetInstallLocalEnterpriseAppEnabled() {
       systemManager.setInstallLocalEnterpriseAppEnabled(SELFWANT, true);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200001).assertTrue();
+      expect(error.code == 801 || error.code == 9200001).assertTrue();
     }
     done();
   });
@@ -1290,7 +1290,7 @@ function testSetInstallLocalEnterpriseAppEnabled() {
       systemManager.setInstallLocalEnterpriseAppEnabled(SELFWANT, true);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200002).assertTrue();
+      expect(error.code == 801 || error.code == 9200002).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1311,7 +1311,7 @@ function testSetInstallLocalEnterpriseAppEnabled() {
       systemManager.setInstallLocalEnterpriseAppEnabled(INVALID_WANT, true);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 401).assertTrue();
+      expect(error.code == 801 || error.code == 401).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
@@ -1339,7 +1339,7 @@ function testSetInstallLocalEnterpriseAppEnabled() {
       result = systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
       expect(result === value).assertTrue();
     } catch (error) {
-      expect(false).assertTrue();
+      expect(error.code == 801).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
@@ -1360,7 +1360,7 @@ function testGetInstallLocalEnterpriseAppEnabled() {
     try {
       let isDisallow: boolean = await systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
     } catch (error) {
-      expect(error.code == 9200001).assertTrue();
+      expect(error.code == 801 || error.code == 9200001).assertTrue();
     }
     done();
   });
@@ -1378,7 +1378,7 @@ function testGetInstallLocalEnterpriseAppEnabled() {
     try {
       let isDisallow: boolean = await systemManager.getInstallLocalEnterpriseAppEnabled(INVALID_WANT);
     } catch (error) {
-      expect(error.code == 401).assertTrue();
+      expect(error.code == 801 || error.code == 401).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1398,7 +1398,7 @@ function testGetInstallLocalEnterpriseAppEnabled() {
     try {
       let isDisallow: boolean = await systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
     } catch (error) {
-      expect(error.code == 9200002).assertTrue();
+      expect(error.code == 801 || error.code == 9200002).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1419,7 +1419,7 @@ function testGetInstallLocalEnterpriseAppEnabled() {
       let isDisallow: boolean = await systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
       expect(isDisallow).assertFalse();
     } catch (error) {
-      expect(false).assertTrue();
+      expect(error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }

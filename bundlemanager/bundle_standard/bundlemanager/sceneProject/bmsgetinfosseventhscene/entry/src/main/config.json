@@ -1070,11 +1070,8 @@
       {
         "name": "ohos.permission.GET_BUNDLE_INFO",
         "reason": "use ohos.permission.GET_BUNDLE_INFO"
-      },
-      {
-        "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED",
-        "reason": "use ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
       }
+      
     ]
   }
 }

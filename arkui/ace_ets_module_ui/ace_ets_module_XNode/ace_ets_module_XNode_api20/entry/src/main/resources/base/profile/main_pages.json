@@ -11,6 +11,7 @@
         "MainAbility/pages/LocalStorage/BuilderNodeOneTest",
         "MainAbility/pages/LocalStorage/BuilderNodeTwoTest",
         "MainAbility/pages/LocalStorage/BuilderNodeThreeTest",
-        "MainAbility/pages/UIAppearance/DarkModeTest"
+        "MainAbility/pages/UIAppearance/DarkModeTest",
+        "MainAbility/pages/BuilderNode/EnableProvideConsumeCrossingTest"
   ]
 }

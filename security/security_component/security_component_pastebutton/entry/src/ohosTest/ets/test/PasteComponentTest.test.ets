@@ -1897,9 +1897,9 @@ export default function pasteComponentTest() {
           if(clickData.data !=undefined){
             console.info("====>[Test_Security_Button_Paste_1800] get clickEvent result is: " + JSON.stringify(clickEvent));
             console.info("====>[Test_Security_Button_Paste_1800] get clickData.data.clickResult is: " + JSON.stringify(clickData.data.clickResult));
-            if (clickData.data.clickResult == PasteButtonOnClickResult.TEMPORARY_AUTHORIZATION_FAILED) {
+            if (clickData.data.clickResult == PasteButtonOnClickResult.SUCCESS) {
               console.info("====>[Test_Security_Button_Paste_1800] ERR CASE 成功");
-              expect(clickData.data.clickResult == PasteButtonOnClickResult.TEMPORARY_AUTHORIZATION_FAILED).assertTrue();
+              expect(clickData.data.clickResult == PasteButtonOnClickResult.SUCCESS).assertTrue();
               console.info("====>[Test_Security_Button_Paste_1800] END====");
               done();
             } else {

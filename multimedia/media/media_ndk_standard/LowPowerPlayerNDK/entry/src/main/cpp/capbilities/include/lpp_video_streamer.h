@@ -36,6 +36,7 @@ public:
     int32_t Configure(const SampleInfo &sampleInfo);
 
     int32_t SetParameter(const SampleInfo &sampleInfo);
+    int32_t GetParameter(const SampleInfo &sampleInfo);
 
     int32_t SetVideoSurface(const SampleInfo &sampleInfo);
 
@@ -73,6 +74,7 @@ public:
     int32_t SetErrorCallback(LppUserData *lppUserData);
     int32_t SetRenderStartCallback(LppUserData *lppUserData);
     int32_t SetEosCallback(LppUserData *lppUserData);
+    int32_t SetFirstFrameDecodedCallback(LppUserData *lppUserData);
     
     int32_t RenderFirstFrame();
     

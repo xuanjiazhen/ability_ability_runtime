@@ -360,6 +360,41 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100
+     * @tc.desc      : getSupportedOutputCapability api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100 cameraManager is null or undefined");
+        expect().assertFail();
+        done();
+      } else {
+        let invalidSceneaMode:Array<cameraObj.SceneMode> = [0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18];
+        invalidSceneaMode.forEach(sceneMode => {
+          try {
+            if (!isEmpty(mCameraDevicesArray)) {
+              mCameraManager.getSupportedOutputCapability(mCameraDevicesArray[0], sceneMode);
+            }
+            expect().assertFail();
+            done();
+          } catch (error) {
+            console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_CAMERA_OUTPUT_CAPABILITY_0100 FAILED");
+            console.info(TAG + "ERRORCODE: " + error.code);
+            expect(error.code == cameraObj.CameraErrorCode.INVALID_ARGUMENT).assertTrue();
+            done();
+          }
+        });
+        done();
+      }
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0100
      * @tc.name      : createCameraInput api
      * @tc.desc      : createCameraInput api
@@ -528,6 +563,77 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300
+     * @tc.desc      : test createPreviewOutput api with invalid argument
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300 cameraManager == null || undefined");
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let profile:cameraObj.Profile = {
+            format:-2,
+            size:{
+              height:-1,
+              width:-1
+            }
+          }
+          let previewOutput = mCameraManager.createPreviewOutput(profile, "createoutput");
+          mCameraSession.addOutput(previewOutput);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400101');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0400
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0400
+     * @tc.desc      : createPreviewOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0400', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0400--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0400 cameraManager == null || undefined");
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let previewOutput = mCameraManager.createPreviewOutput("");
+          mCameraSession.addOutput(previewOutput);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PREVIEW_OUTPUT_0300 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400101');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0100
      * @tc.name      : createPhotoOutput api
      * @tc.desc      : createPhotoOutput api
@@ -537,6 +643,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0100', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0100--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0100 cameraManager == null || undefined")
@@ -565,6 +672,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0200', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0200--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0200 cameraManager == null || undefined")
@@ -584,6 +692,116 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300
+     * @tc.desc      : createPhotoOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let profile:cameraObj.Profile = {
+            format:-2,
+            size:{
+              height:-1,
+              width:-1
+            }
+          }
+          let photoOutput = mCameraManager.createPhotoOutput(profile);
+          mCameraSession.addOutput(photoOutput);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0300 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400201');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400
+     * @tc.desc      : createPhotoOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let photoOutput = mCameraManager.createPhotoOutput();
+          mCameraSession.addOutput(photoOutput);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0400 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400201');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500
+     * @tc.desc      : createPhotoOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let profile:cameraObj.Profile = {
+            format:-2,
+            size:{
+              height:-1,
+              width:-1
+            }
+          }
+          let photoOutput = mCameraManager.createPhotoOutput(profile, "");
+          mCameraSession.addOutput(photoOutput);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_PHOTO_OUTPUT_0500 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400201');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0100
      * @tc.name      : createVideoOutput api
      * @tc.desc      : createVideoOutput api
@@ -593,6 +811,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0100', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0100--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0100 cameraManager == null || undefined")
@@ -621,6 +840,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0200', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0200--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0200 cameraManager == null || undefined")
@@ -640,6 +860,81 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300
+     * @tc.desc      : createVideoOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let videoOutputTemp = mCameraManager.createVideoOutput("");
+          mCameraSession.addOutput(videoOutputTemp);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0300 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400101');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400
+     * @tc.desc      : createVideoOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400 cameraManager is null or undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          let profile:cameraObj.VideoProfile = {
+            frameRateRange: {
+              min:-1,
+              max:-1
+            },
+            format: cameraObj.CameraFormat.CAMERA_FORMAT_RGBA_8888,
+            size: {
+              height:-1,
+              width:-1
+            }
+          }
+          let videoOutputTemp = mCameraManager.createVideoOutput(profile, "createoutput");
+          mCameraSession.addOutput(videoOutputTemp);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_VIDEO_OUTPUT_0400 FAILED");
+          console.info(TAG + "ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400101');
+          done();
+        }
+        done();
+      }
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0100
      * @tc.name      : createMetadataOutput api
      * @tc.desc      : createMetadataOutput api
@@ -649,6 +944,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0100', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0100--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0100 cameraManager == null || undefined")
@@ -669,7 +965,7 @@ export default function CameraErrorCodeUsecaseTest() {
 
     /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200
-     * @tc.name      : createMetadataOutput api
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200
      * @tc.desc      : createMetadataOutput api
      * @tc.size      : MEDIUM
      * @tc.type      : Function
@@ -677,6 +973,7 @@ export default function CameraErrorCodeUsecaseTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200', Level.LEVEL0, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200--------------");
+      createCameraSessionInstance();
       if (isEmpty(mCameraManager)) {
         console.info(TAG +
           "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200 cameraManager == null || undefined")
@@ -684,15 +981,48 @@ export default function CameraErrorCodeUsecaseTest() {
         done();
       } else {
         try {
-          let metadataoutput = mCameraManager.createMetadataOutput(null);
+          let metadataObjectTypes:Array<cameraObj.MetadataObjectType> = [1];
+          let metadataoutput = mCameraManager.createMetadataOutput(metadataObjectTypes);
+          expect().assertFail();
+          done();
         } catch (error) {
           console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_METADATA_OUTPUT_0200 FAILED");
           console.info(TAG + "ERRORCODE: " + error.code);
-          expect(error.code == cameraObj.CameraErrorCode.INVALID_ARGUMENT).assertTrue();
-          expect(true).assertTrue();
+          expect(error.code).assertEqual('7400101');
+          done();
         }
         done();
       }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100
+     * @tc.desc      : createSession api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100--------------");
+      createCameraSessionInstance();
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      }
+      try {
+        mCameraManager.createSession(0);
+        expect().assertFail();
+        done();
+      } catch (error) {
+        console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_SESSION_0100 FAILED");
+        console.info(TAG + "ERRORCODE: " + error.code);
+        expect(error.code).assertEqual('7400101');
+        done();
+      }
+      done();
     })
 
     /**
@@ -1075,6 +1405,33 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_ADD_OUTPUT_0400
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_ADD_OUTPUT_0400
+     * @tc.desc      : addOutput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_ADD_OUTPUT_0400', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_ADD_OUTPUT_0400--------------");
+      try {
+        await createInput(0);
+        createCameraSessionInstance();
+        createOutput(0);
+        mCameraSession.addOutput(mPreviewOutput);
+        mCameraSession.addOutput(mPreviewOutput);
+        expect().assertFail();
+        done();
+      } catch (error) {
+        console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_ADD_OUTPUT_0400 FAILED");
+        console.info(TAG + "ERRORCODE: " + error.code);
+        expect(error.code).assertEqual('7400201');
+        done();
+      }
+      done();
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_OUTPUT_0300
      * @tc.name      : removeOutput api
      * @tc.desc      : removeOutput api
@@ -1094,6 +1451,32 @@ export default function CameraErrorCodeUsecaseTest() {
         console.info(TAG + "ERRORCODE: " + error.code);
         expect(error.code == 7400102).assertTrue();
         expect(true).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_INPUT_0400
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_INPUT_0400
+     * @tc.desc      : removeInput api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_INPUT_0400', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_INPUT_0400--------------");
+      await createInput(0);
+      createCameraSessionInstance();
+      createOutput(0);
+      try {
+        mCameraSession.removeInput(mCameraInput);
+        expect().assertFail();
+        done();
+      } catch (error) {
+        console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_REMOVE_INPUT_0400 FAILED");
+        console.info(TAG + "ERRORCODE: " + error.code);
+        expect(error.code).assertEqual('7400201');
+        done();
       }
       done();
     })
@@ -2557,6 +2940,31 @@ export default function CameraErrorCodeUsecaseTest() {
     })
 
     /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_BEGINCONFIG_0200
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_BEGINCONFIG_0200
+     * @tc.desc      : capturesession beginConfig api
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_BEGINCONFIG_0200', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_BEGINCONFIG_0200--------------");
+      createCameraSessionInstance();
+      try {
+        mCameraSession.beginConfig();
+        expect().assertFail();
+        done();
+      } catch (error) {
+        await createInput(0);
+        console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_BEGINCONFIG_0200 FAILED");
+        console.info(TAG + "ERRORCODE: " + error.code);
+        expect(error.code).assertEqual('7400105');
+        done();
+      }
+      done();
+    })
+
+    /**
      * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_CREATE_CLOSE_0100
      * @tc.name      : test camera input close api with error code 7400201
      * @tc.desc      : test camera input close api with error code 7400201
@@ -2691,6 +3099,243 @@ export default function CameraErrorCodeUsecaseTest() {
         }
         done();
       }
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600
+     * @tc.desc      : test createCameraInput open api with error code 7400201
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          await createInput(0);
+          createCameraSessionInstance();
+          mCameraSession.addInput(mCameraInput);
+          createOutput(0);
+          mCameraSession.addOutput(mPreviewOutput);
+          mCameraSession.addOutput(mPhotoOutput);
+
+          let cameraDeviceTemp:cameraObj.CameraDevice = {
+            "cameraId":"device",
+            "hostDeviceType":0,
+            "cameraType":0,
+            "connectionType":0,
+            "cameraPosition":1,
+            "isRetractable":false,
+            "hostDeviceName":"",
+            "cameraOrientation":90,
+          };
+          let cameraInput = mCameraManager.createCameraInput(cameraDeviceTemp);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0600 ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400201');
+          done();
+        }
+        done();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700
+     * @tc.desc      : test createCameraInput open api with error code 7400201
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          await createInput(0);
+          createCameraSessionInstance();
+          mCameraSession.addInput(mCameraInput);
+          createOutput(0);
+          mCameraSession.addOutput(mPreviewOutput);
+          mCameraSession.addOutput(mPhotoOutput);
+
+          let cameraInput = mCameraManager.createCameraInput(0, 0);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0700 ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400201');
+          done();
+        }
+        done();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800
+     * @tc.desc      : test createCameraInput open api with error code 7400101
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          await createInput(0);
+          createCameraSessionInstance();
+          mCameraSession.addInput(mCameraInput);
+          createOutput(0);
+          mCameraSession.addOutput(mPreviewOutput);
+          mCameraSession.addOutput(mPhotoOutput);
+
+          mCameraDevicesArray.forEach(cameraDevice => {
+            try {
+              let cameraInput = mCameraManager.createCameraInput(null, cameraDevice.cameraType);
+              expect().assertFail();
+            } catch (error) {
+              console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800 ERRORCODE: " + error.code);
+              expect(error.code).assertEqual('7400101');
+            }
+          })
+          mCameraDevicesArray.forEach(cameraDevice => {
+            try {
+              let cameraInput = mCameraManager.createCameraInput(cameraDevice.cameraPosition, null);
+              expect().assertFail();
+            } catch (error) {
+              console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800 ERRORCODE: " + error.code);
+              expect(error.code).assertEqual('7400101');
+            }
+          })
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_CREATE_CAMERA_INPUT_0800 ERRORCODE: " + error.code);
+          expect().assertFail();
+          done();
+        }
+        done();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100
+     * @tc.desc      : test getSupportedSceneModes api with error code 7400101
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          await createInput(0);
+          createCameraSessionInstance();
+          mCameraSession.addInput(mCameraInput);
+          createOutput(0);
+          mCameraSession.addOutput(mPreviewOutput);
+          mCameraSession.addOutput(mPhotoOutput);
+
+          let cameraDeviceTemp:cameraObj.CameraDevice = {
+            "cameraId":"device",
+            "hostDeviceType":0,
+            "cameraType":0,
+            "connectionType":0,
+            "cameraPosition":2,
+            "isRetractable":false,
+            "hostDeviceName":"",
+            "cameraOrientation":270,
+          };
+          let sceneModes:Array<cameraObj.SceneMode> = mCameraManager.getSupportedSceneModes(cameraDeviceTemp);
+          expect().assertFail();
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_SUPPORTED_SCENE_MODES_0100 ERRORCODE: " + error.code);
+          expect(error.code).assertEqual('7400101');
+          done();
+        }
+        done();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100
+     * @tc.desc      : test GetCameraDevice api with error code 7400201
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100', Level.LEVEL0, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100--------------");
+      if (isEmpty(mCameraManager)) {
+        console.info(TAG +
+          "Entering SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100 cameraManager == null || undefined")
+        expect().assertFail();
+        done();
+      } else {
+        try {
+          await createInput(0);
+          createCameraSessionInstance();
+          mCameraSession.addInput(mCameraInput);
+          createOutput(0);
+          mCameraSession.addOutput(mPreviewOutput);
+          mCameraSession.addOutput(mPhotoOutput);
+
+          mCameraDevicesArray.forEach(cameraDevice => {
+            try {
+              let device = mCameraManager.getCameraDevice(-1, cameraDevice.cameraType);
+              expect().assertFail();
+            } catch (error) {
+              console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100 ERRORCODE: " + error.code);
+              expect(error.code).assertEqual('7400201');
+            }
+          })
+          mCameraDevicesArray.forEach(cameraDevice => {
+            try {
+              let device = mCameraManager.getCameraDevice(cameraDevice.cameraPosition, -1);
+              expect().assertFail();
+            } catch (error) {
+              console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100 ERRORCODE: " + error.code);
+              expect(error.code).assertEqual('7400201');
+            }
+          })
+          done();
+        } catch (error) {
+          console.info(TAG + "SUB_MULTIMEDIA_CAMERA_ERROR_CODE_USECASE_GET_CAMERA_DEVICE_0100 ERRORCODE: " + error.code);
+          expect().assertFail();
+          done();
+        }
+        done();
+      }
+      done();
     })
   })
 }

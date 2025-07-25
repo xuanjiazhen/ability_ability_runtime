@@ -651,5 +651,32 @@ export default function nativeAVScreenCaptureNdkTest() {
       done();
     });
 
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100
+     * @tc.desc         OH_AVScreenCapture_StrategyForPickerPopUp-False
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPickerPopUpFalse();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200
+     * @tc.desc         OH_AVScreenCapture_StrategyForPickerPopUp-True
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPickerPopUpTrue();
+      expect(result).assertEqual(0);
+      done();
+    });
   })
 }

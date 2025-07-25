@@ -1093,5 +1093,28 @@ export default function relationalStoreErrorCodeTest() {
       }
       console.info(TAG + "************* errcode038 end *************");
     })
+    /**
+     * @tc.name errcode039
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13600
+     * @tc.desc rdbStore.executeSql  errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode039', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode039 start *************");
+      try {
+        rdbStore.executeSql(undefined,[18],async(err)=>{
+          console.info(TAG + "executeSql success");
+          expect().assertFail()
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 401).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode039 end *************");
+    })
   })
 }

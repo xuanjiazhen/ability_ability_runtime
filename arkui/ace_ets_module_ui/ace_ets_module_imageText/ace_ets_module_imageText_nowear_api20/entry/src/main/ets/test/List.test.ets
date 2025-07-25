@@ -15,9 +15,11 @@
 
 import textAreaInputTest from './TextTest/textAreaInputTest.test';
 import OnPrepareMenuTest from './TextTest/OnPrepareMenuTest.test';
+import RichEditorTextVerticalAlignTest from './RichEditorTest/RichEditorTextVerticalAlign.test';
 
 
 export default function testsuite() {
   textAreaInputTest();
   OnPrepareMenuTest();
+  RichEditorTextVerticalAlignTest();
 }

@@ -11,26 +11,6 @@
     {
       "name": "EntryAbility_label",
       "value": "label"
-    },
-    {
-      "name": "Button_label1",
-      "value": "nativeFenceWaitIs0"
-    },
-    {
-      "name": "Button_label2",
-      "value": "NativeFenceWaitIs500"
-    },
-    {
-      "name": "Button_label3",
-      "value": "NativeFenceWaitIs5000"
-    },
-    {
-      "name": "Button_label4",
-      "value": "NativeFenceWaitKill"
-    },
-    {
-      "name": "Button_label5",
-      "value": "NativeFenceWaitForeverKill"
     }
   ]
 }

@@ -42,6 +42,7 @@ public:
     int32_t Start();
     
     int32_t SetParameter(const SampleInfo &sampleInfo);
+    int32_t GetParameter(const SampleInfo &sampleInfo);
     
     int32_t Prepare();
     

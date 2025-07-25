@@ -444,4 +444,25 @@ HWTEST_F(SwdecFuncNdkTest, VIDEO_DECODE_SYNC_SW264_FUNC_0040, TestSize.Level1)
         ASSERT_EQ(0, vDecSample->errCount);
     }
 }
+
+/**
+ * @tc.number    : VIDEO_SWDECODE_BLANK_FRAME_0010
+ * @tc.name      : VIDEO_SWDECODE_BLANK_FRAME_0010
+ * @tc.desc      : function test
+ */
+HWTEST_F(SwdecFuncNdkTest, VIDEO_SWDECODE_BLANK_FRAME_0010, TestSize.Level1)
+{
+    if (cap != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_1080_30;
+        vDecSample->DEFAULT_WIDTH = 1920;
+        vDecSample->DEFAULT_HEIGHT = 1080;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->enbleBlankFrame = 1;
+        vDecSample->SURFACE_OUTPUT = false;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameAvc));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(0, vDecSample->errCount);
+    }
+}
 } // namespace

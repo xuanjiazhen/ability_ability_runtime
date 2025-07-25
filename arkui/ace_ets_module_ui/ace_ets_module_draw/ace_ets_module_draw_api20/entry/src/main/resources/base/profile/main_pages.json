@@ -2,7 +2,7 @@
     "src": [
         "MainAbility/pages/index/index",
         "MainAbility/pages/CanvasRenderingContext2D/RoundRectPage",
-        
+        "MainAbility/pages/CanvasRenderingContext2D/CanvasGradientPage",
         "MainAbility/pages/CanvasRenderingContext2D/StartImageAnalyzerErrorCode",
         "MainAbility/pages/Circle/CircleResource",
         "MainAbility/pages/Ellipse/EllipseResource",

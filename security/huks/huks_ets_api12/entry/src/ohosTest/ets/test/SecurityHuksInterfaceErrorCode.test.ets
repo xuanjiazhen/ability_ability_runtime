@@ -15,15 +15,16 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
 import { huks } from '@kit.UniversalKeystoreKit';
 import * as huksCallback from './utils/huks/HuksCallbackUtils';
-import { AddParam, CheckSoftware, DeleteParam, MergeOptions, SetMultiParam, SetParam } from './utils/huks/HuksOptionsUtils';
+import { AddParam, CheckSoftware, DeleteParam, MergeOptions, SetInData, SetMultiParam, SetParam } from './utils/huks/HuksOptionsUtils';
 import { StringToUint8Array } from './utils/CommonUtils';
 import { GetAttestKeyOptions } from './utils/huks/AttestKeyUtils';
-import { GetAesGenerateOptions, GetEccGenerateOptions } from './utils/huks/GenerateKeyUtils';
+import { Get3DesGenerateOptions, GetAesGenerateOptions, GetEccGenerateOptions, GetSm2GenerateOptions } from './utils/huks/GenerateKeyUtils';
 import { GetAesImportData } from './utils/huks/ImportKeyUtils';
 import { GetAccessControlOptions } from './utils/huks/AccessControlUtils';
 import { BuildWrappedKeyData } from './utils/huks/ImportWrappedKeyUtils';
 import { GetGenWrapKeyOptions, GetWrapKeyOptions } from './utils/huks/WrapKeyUtils';
-import { GetCbcPkcs7Options } from './utils/huks/CipherUtils';
+import { GetCbcNoPaddingOptions, GetCbcPkcs7Options, GetCtrNoPaddingOptions, GetSm3NoPaddingOptions } from './utils/huks/CipherUtils';
+import { Derive, GetDeriveAgreeFinishOptions, GetHkdfDeriveOptions, GetSha256Options } from './utils/huks/DeriveAgreeUtils';
 
 
 export default function SecurityHuksInterfaceErrorCodeTest() {
@@ -1207,7 +1208,7 @@ export default function SecurityHuksInterfaceErrorCodeTest() {
     /**
      * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0300
      * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0300
-     * @tc.desc   : test generate key, error code 12000014
+     * @tc.desc   : test generateKeyItem, error code 12000014
      * @tc.type   : Safety
      * @tc.size   : SmallTest
      * @tc.level  : Level3
@@ -1216,12 +1217,855 @@ export default function SecurityHuksInterfaceErrorCodeTest() {
       let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0300";
       try {
         await huks.generateKeyItem(testNumber, MergeOptions(genKeyOption, GetGenWrapKeyOptions()));
+        expect(null).assertFail();
       } catch (err) {
         console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
         expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
       }
     }
     )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0400
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0400
+     * @tc.desc   : test generateKeyItem with error param, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0400', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0400";
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0500
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0500
+     * @tc.desc   : test generateKeyItem with no alg, error code 12000002
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0500', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0500";
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptionNoAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_MISSING_CRYPTO_ALG_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0600
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0600
+     * @tc.desc   : test generateKeyItem with invalid alg, error code 12000003
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0600', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0600";
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptionErrorAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0700
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0700
+     * @tc.desc   : test generateKeyItem with no credential, error code 12000013
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0700', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0700";
+      MergeOptions(genKeyOption, GetAccessControlOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_CREDENTIAL_NOT_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0800
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0800
+     * @tc.desc   : test generateKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0800', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0800";
+      await huks.generateKeyItem(testNumber, genKeyOption);
+      SetParam(genKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false)
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0900
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0900
+     * @tc.desc   : test importKeyItem with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0900', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0900";
+      try {
+        await huks.importKeyItem(testNumber, SetInData(genKeyOptionMultiAlg, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1000
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1000
+     * @tc.desc   : test importKeyItem with invalid alg, error code 12000003
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1000', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1000";
+      try {
+        await huks.importKeyItem(testNumber, SetInData(genKeyOptionErrorAlg, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1100
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1100
+     * @tc.desc   : test importKeyItem with empty appid, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1100', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1100";
+      try {
+        await huks.importKeyItem(testNumber, SetInData(MergeOptions(genKeyOption, GetGenWrapKeyOptions()), GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1200
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1200
+     * @tc.desc   : test importKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1200', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1200";
+      await huks.generateKeyItem(testNumber, genKeyOption);
+      SetParam(genKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huks.importKeyItem(testNumber, SetInData(genKeyOption, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1300
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1300
+     * @tc.desc   : test anonAttestKeyItem with multi param, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1300', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1300";
+      await huks.generateKeyItem(testNumber, GetEccGenerateOptions(256));
+      let attestOptions = AddParam(GetAttestKeyOptions(), huks.HuksTag.HUKS_TAG_ATTESTATION_CHALLENGE, StringToUint8Array("challenge_data"));
+      try {
+        await huks.anonAttestKeyItem(testNumber, attestOptions);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1400
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1400
+     * @tc.desc   : test importWrappedKeyItem with empty appid, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1400', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1400";
+      await huks.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let deviceAKeyPairAlias: string = testNumber + "_deviceAKeyPairAlias";
+      let wrappedKeySize = 192;
+      let genKeyPairOptions = GetEccGenerateOptions(256);
+      SetParam(genKeyPairOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_UNWRAP);
+      await huks.generateKeyItem(deviceAKeyPairAlias, genKeyPairOptions);
+      let deviceAPubKeyData = (await huks.exportKeyItem(deviceAKeyPairAlias, genKeyPairOptions)).outData as Uint8Array;
+      let wrappedKeyData = await BuildWrappedKeyData(deviceAPubKeyData);
+      let importWrappedKeyOption = GetAesGenerateOptions(wrappedKeySize);
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_UNWRAP_ALGORITHM_SUITE, huks.HuksUnwrapSuite.HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING);
+      importWrappedKeyOption.inData = wrappedKeyData;
+      MergeOptions(importWrappedKeyOption, GetWrapKeyOptions());
+      try {
+        await huks.importWrappedKeyItem(testNumber, deviceAKeyPairAlias, importWrappedKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1500
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1500
+     * @tc.desc   : test importWrappedKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1500', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1500";
+      await huks.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let deviceAKeyPairAlias: string = testNumber + "_deviceAKeyPairAlias";
+      let wrappedKeySize = 192;
+      let genKeyPairOptions = GetEccGenerateOptions(256);
+      SetParam(genKeyPairOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_UNWRAP);
+      await huks.generateKeyItem(deviceAKeyPairAlias, genKeyPairOptions);
+      let deviceAPubKeyData = (await huks.exportKeyItem(deviceAKeyPairAlias, genKeyPairOptions)).outData as Uint8Array;
+      let wrappedKeyData = await BuildWrappedKeyData(deviceAPubKeyData);
+      let importWrappedKeyOption = GetAesGenerateOptions(wrappedKeySize);
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_UNWRAP_ALGORITHM_SUITE, huks.HuksUnwrapSuite.HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING);
+      importWrappedKeyOption.inData = wrappedKeyData;
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huks.importWrappedKeyItem(testNumber, deviceAKeyPairAlias, importWrappedKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1600
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1600
+     * @tc.desc   : test isKeyItemExist with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1600', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1600";
+      await huks.generateKeyItem(testNumber, genKeyOption);
+      try {
+        await huks.isKeyItemExist(testNumber, genKeyOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1700
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1700
+     * @tc.desc   : test initSession with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1700', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1700";
+      await huks.generateKeyItem(testNumber, genKeyOption);
+      try {
+        await huks.initSession(testNumber, encryptOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1800
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1800
+     * @tc.desc   : test initSession with invalid mode, error code 12000002
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1800', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1800";
+      await huks.generateKeyItem(testNumber, Get3DesGenerateOptions(192));
+      try {
+        await huks.initSession(testNumber, MergeOptions(Get3DesGenerateOptions(192), GetCtrNoPaddingOptions(16)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_MISSING_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1900
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1900
+     * @tc.desc   : test initSession with invalid iv length, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1900', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1900";
+      await huks.generateKeyItem(testNumber, Get3DesGenerateOptions(192));
+      try {
+        await huks.initSession(testNumber, MergeOptions(Get3DesGenerateOptions(192), GetCbcNoPaddingOptions(12)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2000
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2000
+     * @tc.desc   : test updateSession with empty inData, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2000', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2000";
+      await huks.generateKeyItem(testNumber, GetSm2GenerateOptions(256));
+      try {
+        let res = await huks.initSession(testNumber, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        await huks.updateSession(res.handle, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2100
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2100
+     * @tc.desc   : test finishSession with empty inData, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2100', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2100";
+      await huks.generateKeyItem(testNumber, GetSm2GenerateOptions(256));
+      let res = await huks.initSession(testNumber, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+      try {
+        await huks.finishSession(res.handle, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2200
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2200
+     * @tc.desc   : test deriveKey when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2200', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2200";
+      await huks.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let genDeriveKeyOption = SetParam(GetAesGenerateOptions(256), huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_DERIVE);
+      await huks.generateKeyItem(testNumber + "_keyA", genDeriveKeyOption);
+      let initOptions = MergeOptions(GetHkdfDeriveOptions(256 / 8), GetSha256Options());
+      let finishOptions = MergeOptions(GetAesGenerateOptions(256), GetDeriveAgreeFinishOptions(testNumber));
+      let res = await huks.initSession(testNumber + "_keyA", initOptions);
+      await huks.updateSession(res.handle, initOptions);
+      SetParam(finishOptions, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huks.finishSession(res.handle, finishOptions);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0310
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0310
+     * @tc.desc   : test generateKeyItem, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0310', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0310";
+      try {
+        await huksCallback.generateKeyItem(testNumber, MergeOptions(genKeyOption, GetGenWrapKeyOptions()));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0410
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0410
+     * @tc.desc   : test generateKeyItem with error param, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0410', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0410";
+      try {
+        await huksCallback.generateKeyItem(testNumber, genKeyOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0510
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0510
+     * @tc.desc   : test generateKeyItem with no alg, error code 12000002
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0510', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0510";
+      try {
+        await huksCallback.generateKeyItem(testNumber, genKeyOptionNoAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_MISSING_CRYPTO_ALG_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0610
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0610
+     * @tc.desc   : test generateKeyItem with invalid alg, error code 12000003
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0610', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0610";
+      try {
+        await huksCallback.generateKeyItem(testNumber, genKeyOptionErrorAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    }
+    )
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0710
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0710
+     * @tc.desc   : test generateKeyItem with no credential, error code 12000013
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0710', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0710";
+      MergeOptions(genKeyOption, GetAccessControlOptions());
+      try {
+        await huksCallback.generateKeyItem(testNumber, genKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_CREDENTIAL_NOT_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0810
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0810
+     * @tc.desc   : test generateKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0810', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0810";
+      await huksCallback.generateKeyItem(testNumber, genKeyOption);
+      SetParam(genKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false)
+      try {
+        await huksCallback.generateKeyItem(testNumber, genKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_0910
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_0910
+     * @tc.desc   : test importKeyItem with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_0910', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_0910";
+      try {
+        await huksCallback.importKeyItem(testNumber, SetInData(genKeyOptionMultiAlg, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1010
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1010
+     * @tc.desc   : test importKeyItem with invalid alg, error code 12000003
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1010', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1010";
+      try {
+        await huksCallback.importKeyItem(testNumber, SetInData(genKeyOptionErrorAlg, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1110
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1110
+     * @tc.desc   : test importKeyItem with empty appid, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1110', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1110";
+      try {
+        await huksCallback.importKeyItem(testNumber, SetInData(MergeOptions(genKeyOption, GetGenWrapKeyOptions()), GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1210
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1210
+     * @tc.desc   : test importKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1210', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1210";
+      await huksCallback.generateKeyItem(testNumber, genKeyOption);
+      SetParam(genKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huksCallback.importKeyItem(testNumber, SetInData(genKeyOption, GetAesImportData(256)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1310
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1310
+     * @tc.desc   : test anonAttestKeyItem with multi param, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1310', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1310";
+      await huksCallback.generateKeyItem(testNumber, GetEccGenerateOptions(256));
+      let attestOptions = AddParam(GetAttestKeyOptions(), huks.HuksTag.HUKS_TAG_ATTESTATION_CHALLENGE, StringToUint8Array("challenge_data"));
+      try {
+        await huksCallback.anonAttestKeyItem(testNumber, attestOptions);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1410
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1410
+     * @tc.desc   : test importWrappedKeyItem with empty appid, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1410', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1410";
+      await huksCallback.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let deviceAKeyPairAlias: string = testNumber + "_deviceAKeyPairAlias";
+      let wrappedKeySize = 192;
+      let genKeyPairOptions = GetEccGenerateOptions(256);
+      SetParam(genKeyPairOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_UNWRAP);
+      await huksCallback.generateKeyItem(deviceAKeyPairAlias, genKeyPairOptions);
+      let deviceAPubKeyData = (await huksCallback.exportKeyItem(deviceAKeyPairAlias, genKeyPairOptions)).outData as Uint8Array;
+      let wrappedKeyData = await BuildWrappedKeyData(deviceAPubKeyData);
+      let importWrappedKeyOption = GetAesGenerateOptions(wrappedKeySize);
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_UNWRAP_ALGORITHM_SUITE, huks.HuksUnwrapSuite.HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING);
+      importWrappedKeyOption.inData = wrappedKeyData;
+      MergeOptions(importWrappedKeyOption, GetWrapKeyOptions());
+      try {
+        await huksCallback.importWrappedKeyItem(testNumber, deviceAKeyPairAlias, importWrappedKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1510
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1510
+     * @tc.desc   : test importWrappedKeyItem when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1510', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1510";
+      await huksCallback.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let deviceAKeyPairAlias: string = testNumber + "_deviceAKeyPairAlias";
+      let wrappedKeySize = 192;
+      let genKeyPairOptions = GetEccGenerateOptions(256);
+      SetParam(genKeyPairOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_UNWRAP);
+      await huksCallback.generateKeyItem(deviceAKeyPairAlias, genKeyPairOptions);
+      let deviceAPubKeyData = (await huksCallback.exportKeyItem(deviceAKeyPairAlias, genKeyPairOptions)).outData as Uint8Array;
+      let wrappedKeyData = await BuildWrappedKeyData(deviceAPubKeyData);
+      let importWrappedKeyOption = GetAesGenerateOptions(wrappedKeySize);
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_UNWRAP_ALGORITHM_SUITE, huks.HuksUnwrapSuite.HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING);
+      importWrappedKeyOption.inData = wrappedKeyData;
+      SetParam(importWrappedKeyOption, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huksCallback.importWrappedKeyItem(testNumber, deviceAKeyPairAlias, importWrappedKeyOption);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1610
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1610
+     * @tc.desc   : test isKeyItemExist with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1610', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1610";
+      await huksCallback.generateKeyItem(testNumber, genKeyOption);
+      try {
+        await huksCallback.isKeyItemExist(testNumber, genKeyOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1710
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1710
+     * @tc.desc   : test initSession with multi alg, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1710', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1710";
+      await huksCallback.generateKeyItem(testNumber, genKeyOption);
+      try {
+        await huksCallback.initSession(testNumber, encryptOptionMultiAlg);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1810
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1810
+     * @tc.desc   : test initSession with invalid mode, error code 12000002
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1810', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1810";
+      await huksCallback.generateKeyItem(testNumber, Get3DesGenerateOptions(192));
+      try {
+        await huksCallback.initSession(testNumber, MergeOptions(Get3DesGenerateOptions(192), GetCtrNoPaddingOptions(16)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_MISSING_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_1910
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_1910
+     * @tc.desc   : test initSession with invalid iv length, error code 401
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_1910', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_1910";
+      await huksCallback.generateKeyItem(testNumber, Get3DesGenerateOptions(192));
+      try {
+        await huksCallback.initSession(testNumber, MergeOptions(Get3DesGenerateOptions(192), GetCbcNoPaddingOptions(12)));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2010
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2010
+     * @tc.desc   : test updateSession with empty inData, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2010', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2010";
+      await huksCallback.generateKeyItem(testNumber, GetSm2GenerateOptions(256));
+      try {
+        let res = await huksCallback.initSession(testNumber, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        await huksCallback.updateSession(res.handle, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2110
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2110
+     * @tc.desc   : test finishSession with empty inData, error code 12000014
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2110', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2010";
+      await huksCallback.generateKeyItem(testNumber, GetSm2GenerateOptions(256));
+      let res = await huksCallback.initSession(testNumber, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+      try {
+        await huksCallback.finishSession(res.handle, MergeOptions(GetSm2GenerateOptions(256), GetSm3NoPaddingOptions()));
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INSUFFICIENT_MEMORY);
+      }
+    })
+
+    /**
+     * @tc.number : SUB_Security_HUKS_ErrorCode_API20_Interface_2210
+     * @tc.name   : SUB_Security_HUKS_ErrorCode_API20_Interface_2210
+     * @tc.desc   : test deriveKey when key exist, error code 12000017
+     * @tc.type   : Safety
+     * @tc.size   : SmallTest
+     * @tc.level  : Level3
+     */
+    it('SUB_Security_HUKS_ErrorCode_API20_Interface_2210', TestType.SAFETY | Size.SMALLTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_ErrorCode_API20_Interface_2210";
+      await huksCallback.generateKeyItem(testNumber, GetAesGenerateOptions(256));
+      let genDeriveKeyOption = SetParam(GetAesGenerateOptions(256), huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_DERIVE);
+      await huksCallback.generateKeyItem(testNumber + "_keyA", genDeriveKeyOption);
+      let initOptions = MergeOptions(GetHkdfDeriveOptions(256 / 8), GetSha256Options());
+      let finishOptions = MergeOptions(GetAesGenerateOptions(256), GetDeriveAgreeFinishOptions(testNumber));
+      let res = await huksCallback.initSession(testNumber + "_keyA", initOptions);
+      await huksCallback.updateSession(res.handle, initOptions);
+      SetParam(finishOptions, huks.HuksTag.HUKS_TAG_KEY_OVERRIDE, false);
+      try {
+        await huksCallback.finishSession(res.handle, finishOptions);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_KEY_ALREADY_EXIST);
+      }
+    })
   }
   )
 }

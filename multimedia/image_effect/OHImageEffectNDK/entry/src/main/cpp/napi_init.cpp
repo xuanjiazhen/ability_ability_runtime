@@ -36,6 +36,8 @@ napi_property_descriptor desc1[] = {
     DESCRIPTOR("OHEffectBufferInfoGetWidth", OHEffectBufferInfoGetWidth),
     DESCRIPTOR("OHEffectBufferInfoSetTimestamp", OHEffectBufferInfoSetTimestamp),
     DESCRIPTOR("OHEffectBufferInfoGetTimestamp", OHEffectBufferInfoGetTimestamp),
+    DESCRIPTOR("OHEffectBufferInfoSetTextureId", OHEffectBufferInfoSetTextureId),
+    DESCRIPTOR("OHEffectBufferInfoGetTextureId", OHEffectBufferInfoGetTextureId),
     DESCRIPTOR("OHEffectBufferInfoRelease", OHEffectBufferInfoRelease),
     DESCRIPTOR("OHEffectFilterInfoCreate", OHEffectFilterInfoCreate),
     DESCRIPTOR("OHEffectFilterInfoSetFilterName", OHEffectFilterInfoSetFilterName),
@@ -57,6 +59,7 @@ napi_property_descriptor desc2[] = {
     DESCRIPTOR("OHEffectFilterRelease", OHEffectFilterRelease),
     DESCRIPTOR("OHEffectFilterReleaseFilterNames", OHEffectFilterReleaseFilterNames),
     DESCRIPTOR("OHEffectFilterRender", OHEffectFilterRender),
+    DESCRIPTOR("OHEffectFilterRenderWithTextureId", OHEffectFilterRenderWithTextureId),
     DESCRIPTOR("OHImageEffectCreate", OHImageEffectCreate),
     DESCRIPTOR("OHImageEffectConfigure", OHImageEffectConfigure),
     DESCRIPTOR("OHImageEffectAddFilter", OHImageEffectAddFilter),
@@ -87,6 +90,8 @@ napi_property_descriptor desc3[] = {
     DESCRIPTOR("OHImageEffectStop", OHImageEffectStop),
     DESCRIPTOR("OHImageEffectSetInputPicture", OHImageEffectSetInputPicture),
     DESCRIPTOR("OHImageEffectSetOutputPicture", OHImageEffectSetOutputPicture),
+    DESCRIPTOR("OHImageEffectSetInputTexture", OHImageEffectSetInputTexture),
+    DESCRIPTOR("OHImageEffectSetOutputTexture", OHImageEffectSetOutputTexture),
 };
 
 EXTERN_C_START static napi_value Init(napi_env env, napi_value exports)

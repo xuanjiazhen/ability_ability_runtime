@@ -31,28 +31,6 @@ async function sleep(ms:number): Promise<void>{
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
-/*
-async function driveFn(){
-  try {
-    let driver: Driver = await Driver.create();
-    console.info(logTag + "come in driveFn")
-    console.info(logTag + `driver is ${JSON.stringify(driver)}`);
-    await sleep(1000);
-    console.info(logTag + "come in findComponent");
-    let button = await driver.findComponent(ON.text('允许'));
-    console.info(logTag + `button is ${JSON.stringify(button)}`);
-    await sleep(1000);
-    await button.click();
-    await sleep(1000);
-  }catch (err){
-    console.error(logTag + "driveFn err is "+ err);
-    return;
-  }
-}
-*/
-
-
 async function requestPermission(){
   let permissions: Array<Permissions> = ["ohos.permission.ACCESS_BLUETOOTH"];
   let context:common.UIAbilityContext | undefined = AppStorage.get("context") as common.UIAbilityContext;
@@ -111,15 +89,30 @@ async function tryToEnableBt() {
 // 注册接收数据回调
 const receivedDataCallback = (dataInfo: proxyChannelManager.DataInfo) => {
   console.info(logTag +'receivedDataCallback, data is '+ JSON.stringify(dataInfo.data));
-  console.info(logTag +'receivedDataCallback, channelId is ${dataInfo.channelId}');
+  console.info(logTag +'receivedDataCallback, channelId is ' + JSON.stringify(dataInfo.channelId));
 }
 
 
 // 注册接收通道状态回调
 const receivedStatusCallback = (channelStateInfo: proxyChannelManager.ChannelStateInfo) => {
 
-  console.info(logTag +'receivedStatusCallback, channelState is ${channelStateInfo.state}');
-  console.info(logTag +'receivedStatusCallback, channelId is ${channelStateInfo.channelId}');
+  console.info(logTag +'receivedStatusCallback, channelId is ' + JSON.stringify(channelStateInfo.channelId));
+  switch (channelStateInfo.state) {
+    case proxyChannelManager.ChannelState.CHANNEL_WAIT_RESUME:
+      console.info(logTag +'connection has been disconnected, the channel is unavailable');
+      break;
+    case proxyChannelManager.ChannelState.CHANNEL_RESUME:
+      console.info(logTag +'connection has been restored, the channel is available');
+      break;
+    case proxyChannelManager.ChannelState.CHANNEL_EXCEPTION_SOFTWARE_FAILED:
+      console.info(logTag +'other software errors caused the channel to be unavailable');
+      break;
+    case proxyChannelManager.ChannelState.CHANNEL_BR_NO_PAIRED:
+      console.info(logTag +'bluetooth pairing relationship has been deleted, the channel is unavailable');
+      break;
+    default:
+      console.info(logTag +'channelStateInfo state is invalid');
+  }
 }
 
 export default function proxyChannelMgr() {
@@ -168,7 +161,7 @@ export default function proxyChannelMgr() {
       let flag = false;
       let chlId: number = -1;
       let channelInfo: proxyChannelManager.ChannelInfo = {
-        linkType: 0,
+        linkType: proxyChannelManager.LinkType.LINK_BR,
         peerDevAddr: "00:11:22:33:44:55:66:77",
         peerUuid: "00000000-0000-0000-0000-000000000000",
       }
@@ -1566,6 +1559,47 @@ export default function proxyChannelMgr() {
       }
       await sleep(1000);
       console.info(logTag + "----------end SUB_DSoftbus_Trans_proxyChannelMgrAPI_4800----------------");
+    });
+
+    /**
+     * @tc.number     : SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900
+     * @tc.name       : SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900
+     * @tc.desc       : openProxyChannel接口入参channelInfo中peerDevAddr失效
+     * @tc.size       : MediumTest
+     * @tc.type       : Compatibility
+     * @tc.level      : Level 3
+     */
+    it('SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      console.info(logTag + "----------start SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900----------------");
+      let flag = false;
+      let chlId: number = -1;
+      let channelInfo: proxyChannelManager.ChannelInfo = {
+        linkType: 0,
+        peerDevAddr: "00:11:22:33:44:55",
+        peerUuid: "00000000-0000-0000-0000-000000000000",
+      }
+      try {
+       await proxyChannelManager.openProxyChannel(channelInfo)
+          .then((channelId: number) => {
+            chlId = channelId;
+            console.info(logTag+"SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900 openProxyChannel chlId:" + chlId);
+          })
+          .catch((error: BusinessError) => {
+            flag = true;
+            console.info(logTag + "SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900 error.code is " + error.code);
+            console.info(logTag + "SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900 error.message is " + error.message);
+            expect(error.code == 32390101).assertTrue();
+            expect(error.message != null).assertTrue();
+          })
+          .finally(() => {
+            expect(flag).assertTrue();
+          })
+          await sleep(3000);
+      }catch (error) {
+        console.info(logTag + "SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900 error.code is " + error.code);
+        console.info(logTag + "SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900 error.message is " + error.message);
+      }
+      console.info(logTag + "----------end SUB_DSoftbus_Trans_proxyChannelMgrAPI_4900----------------");
     });
   })
 }

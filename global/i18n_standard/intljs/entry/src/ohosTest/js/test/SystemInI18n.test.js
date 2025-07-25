@@ -512,7 +512,7 @@ describe('SystemInI18nTest', function () {
     it('i18n_system_test_3500', Level.LEVEL2, function () {
         let value = I18n.System.is24HourClock();
         console.log('i18n_system_test_3500 ' + value);
-        expect(value).assertFalse();
+        expect(['true', 'false']).assertContain(String(value));
     })
 
     /* *

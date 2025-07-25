@@ -50,3 +50,6 @@ export const testRegisterLifeCycleListener: (mainWindowId: number) => number;
 export const testTwoRegisterLifeCycleListener: (mainWindowId: number) => number;
 export const testUnregisterLifeCycleListener: (mainWindowId: number) => number;
 export const testUnregisterAllLifeCycleListeners: (mainWindowId: number) => number;
+export const testSetPipInitialSurfaceRect: (mainWindowId: number) => number;
+export const testSetPipInitialSurfaceRectwithInvalidWidth: (mainWindowId: number) => number;
+export const testUnsetPipInitialSurfaceRect: (mainWindowId: number) => number;

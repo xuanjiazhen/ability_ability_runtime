@@ -1744,5 +1744,86 @@ export default function displayTest() {
       }
     })
 
+    /**
+     * @tc.number     : SUB_BASIC_WMS_DMS_REFRESH_LEVEL_0100
+     * @tc.name       : testMainScreenSupportRefreshRate
+     * @tc.desc       : 验证主屏刷新率支持的档位
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testMainScreenSupportRefreshRate', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testMainScreenSupportRefreshRate";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      //正整数
+      let regNum = /^[1-9]\d*/
+      try {
+        let result = display.getDisplayByIdSync(0).supportedRefreshRates;
+        console.log(`${caseName} display.getDisplayByIdSync(0): ${JSON.stringify(result)}`);
+        if (result === undefined) {
+          done();
+        } else if(result !=null) {
+          let length = result.length;
+          console.log(`${caseName} dresult.length: ${length}`);
+          for(let i=0;i<length-1;i++){
+            console.log(`${caseName} i: i:${result[i]}`);
+            //判断是否为正整数
+            expect(regNum.test(String(result[i]))).assertTrue();
+            //判断递增
+            expect(result[i]).assertLess(result[i+1]);
+          }
+          done();
+        }
+      } catch (e) {
+        console.error(`${caseName} Failed.err:${JSON.stringify(e)}`);
+        expect().assertFail();
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_DMS_REFRESH_LEVEL_0200
+     * @tc.name       : testVirtualScreenSupportRefreshRate
+     * @tc.desc       : 验证虚拟屏刷新率支持的档位
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testVirtualScreenSupportRefreshRate', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testVirtualScreenSupportRefreshRate";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      class VirtualScreenOptions {
+        name: string = '';
+        width: number = 0;
+        height: number = 0;
+        density: number = 0;
+        surfaceId: string = '';
+      }
+      let option: VirtualScreenOptions = {
+        name: 'screen01',
+        width: 1,
+        height: 2340,
+        density: 2,
+        surfaceId: ''
+      };
+      try {
+        let screenId: number = await display.createVirtualScreen(option);
+        console.log(caseName + ' success in createVirtualScreen ' + screenId);
+        let result = display.getDisplayByIdSync(screenId).supportedRefreshRates;
+        console.log(`${caseName} display.getDisplayByIdSync(0): ${JSON.stringify(result)}`);
+        expect(result?.length).assertLarger(0);
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
   })
 }

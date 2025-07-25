@@ -34,9 +34,6 @@
         "name": "ohos.permission.INTERNET"
       },
       {
-        "name": "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"
-      },
-      {
         "name": "ohos.permission.CLEAN_BACKGROUND_PROCESSES"
       },
       {

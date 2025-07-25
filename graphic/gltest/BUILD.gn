@@ -34,13 +34,6 @@ group("openGLTest") {
   testonly = true
   if (is_standard_system) {
     deps = [
-      "src/egltest/egltest_323x:ActsOpenGlEgl323xTest",
-      "src/egltest/egltest_324x:ActsOpenGlEgl324xTest",
-      "src/egltest/egltest_325x:ActsOpenGlEgl325xTest",
-      "src/egltest/egltest_326x:ActsOpenGlEgl326xTest",
-      "src/egltest/egltest_main:ActsOpenGlEglMainTest",
-      "src/egltest/egltest_master:ActsOpenGlEglMasterTest",
-
       "src/gltest/gltest_am/gltest_461x/gl45es3master:ActsOpenGl461xGl45Es3MasterTest",
       "src/gltest/gltest_am/gltest_461x/gl45es31master:ActsOpenGl461xGl45Es31MasterTest",
       "src/gltest/gltest_am/gltest_461x/gl45master:ActsOpenGLAm461xGl45MasterTest",

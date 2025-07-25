@@ -26,7 +26,8 @@
       },
       {
         "name" :  "ohos.permission.GET_NETWORK_INFO"
-      }
+      },
+      {"name": "ohos.permission.SET_NET_EXT_ATTRIBUTE"}
     ],
     "deliveryWithInstall": true,
     "installationFree": false,

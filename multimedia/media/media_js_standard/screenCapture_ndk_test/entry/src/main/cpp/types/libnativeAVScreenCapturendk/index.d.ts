@@ -47,3 +47,5 @@ export const normalSelectionCallback: () => number;
 export const normalSelectionCallbackStop: () => number;
 export const normalAVScreenCaptureStrategyForBFramesEncodingFalse: () => number;
 export const normalAVScreenCaptureStrategyForBFramesEncodingTrue: () => number;
+export const normalAVScreenCaptureStrategyForPickerPopUpFalse: () => number;
+export const normalAVScreenCaptureStrategyForPickerPopUpTrue: () => number;

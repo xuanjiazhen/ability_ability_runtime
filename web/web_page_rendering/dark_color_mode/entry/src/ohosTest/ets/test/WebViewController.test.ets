@@ -80,7 +80,7 @@ export default function webViewController() {
     it('testDarkMode002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       Utils.emitEvent("testDarkMode002", 10)
       await Utils.sleep(2000);
-      Utils.registerEvent("testDarkMode002", "false", 31040, done);
+      Utils.registerEvent("testDarkMode002", true, 31040, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 

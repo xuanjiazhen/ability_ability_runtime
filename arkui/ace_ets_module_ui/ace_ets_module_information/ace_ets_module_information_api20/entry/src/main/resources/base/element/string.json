@@ -71,6 +71,22 @@
     {
       "name": "apple",
       "value": "apple"
+    },
+    {
+      "name": "fontSize_10",
+      "value": "10vp"
+    },
+    {
+      "name": "text_string",
+      "value": "text"
+    },
+    {
+      "name": "fontWeight_normal",
+      "value": "FontWeight.Normal"
+    },
+    {
+      "name": "size_30",
+      "value": "30px"
     }
   ]
 }

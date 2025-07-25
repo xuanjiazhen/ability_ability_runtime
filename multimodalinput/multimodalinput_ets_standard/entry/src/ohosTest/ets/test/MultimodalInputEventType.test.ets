@@ -347,6 +347,8 @@ export default function MultimodalInputEventTypeTest() {
         screenY: 1,
         windowX: 1,
         windowY: 1,
+        globalX: 1,
+        globalY: 1,
         rawDeltaX: 1,
         rawDeltaY: 1,
         button: mouseEvent.Button.LEFT,
@@ -368,6 +370,8 @@ export default function MultimodalInputEventTypeTest() {
       expect(testMouseEvent.screenY == 1).assertTrue();
       expect(testMouseEvent.windowX == 1).assertTrue();
       expect(testMouseEvent.windowY == 1).assertTrue();
+      expect(testMouseEvent.globalX == 1).assertTrue();
+      expect(testMouseEvent.globalY == 1).assertTrue();      
       expect(testMouseEvent.rawDeltaX == 1).assertTrue();
       expect(testMouseEvent.rawDeltaY == 1).assertTrue();
       expect(testMouseEvent.button == mouseEvent.Button.LEFT).assertTrue();
@@ -469,6 +473,8 @@ export default function MultimodalInputEventTypeTest() {
         screenY: 1,
         windowX: 1,
         windowY: 1,
+        globalX: 1,
+        globalY: 1,
         pressure: 1,
         width: 1,
         height: 1,
@@ -488,6 +494,8 @@ export default function MultimodalInputEventTypeTest() {
       expect(testTouch.screenY == 1).assertTrue();
       expect(testTouch.windowX == 1).assertTrue();
       expect(testTouch.windowY == 1).assertTrue();
+      expect(testTouch.globalX == 1).assertTrue();
+      expect(testTouch.globalY == 1).assertTrue();      
       expect(testTouch.pressure == 1).assertTrue();
       expect(testTouch.width == 1).assertTrue();
       expect(testTouch.height == 1).assertTrue();

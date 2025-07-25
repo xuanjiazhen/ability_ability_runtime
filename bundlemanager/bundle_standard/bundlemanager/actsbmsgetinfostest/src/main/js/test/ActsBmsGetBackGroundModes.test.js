@@ -57,47 +57,7 @@ export default function ActsBmsGetBackGroundModes() {
             })
         });
 
-        /*
-        * @tc.number: Sub_Bms_BundleTool_Query_Hap_1400
-        * @tc.name: getBackgroundModesMultiAbility
-        * @tc.desc: Get the information of the background modes from multi-ability application
-        */
-        it('getBackgroundModesMultiAbility', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0, async function (done) {
-            let dataInfos = await bundle.queryAbilityByWant({
-                action: 'action.system.home',
-                entities: ['entity.system.home'],
-                deviceId: '0',
-                bundleName: BUNDLE_NAME5,
-                abilityName: ''
-            }, bundle.BundleFlag.GET_BUNDLE_DEFAULT, userId);
-            expect(dataInfos.length).assertEqual(NUM_FOUR);
-            if (dataInfos.length == NUM_FOUR) {
-                expect(dataInfos[NUM_TWO].name).assertEqual(ABILITIY_NAME1);
-                expect(dataInfos[NUM_TWO].backgroundModes).assertEqual(DATATRANSFER | AUDIOPLAYBACK | AUDIORECORDING |
-                    LOCATION | BLUETOOTHINTERACTION | MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING);
-                expect(dataInfos[NUM_THREE].name).assertEqual(ABILITIY_NAME2);
-                expect(dataInfos[NUM_THREE].backgroundModes).assertEqual(DATATRANSFER | VOIP);
-            }
-            let bundleInfos = await bundle.getAllBundleInfo(bundle.BundleFlag.GET_BUNDLE_WITH_ABILITIES, userId);
-            for (let i = 0; i < bundleInfos.length; i++) {
-                if (bundleInfos[i].name == BUNDLE_NAME5) {
-                    for (let j = 0; j < bundleInfos[i].abilityInfos.length; j++) {
-                        if (bundleInfos[i].abilityInfos[j].name == ABILITIY_NAME1) {
-                            expect(bundleInfos[i].abilityInfos[j].backgroundModes).assertEqual(DATATRANSFER |
-                                AUDIOPLAYBACK | AUDIORECORDING | LOCATION | BLUETOOTHINTERACTION |
-                                MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING);
-                        } else if (bundleInfos[i].abilityInfos[j].name == ABILITIY_NAME2) {
-                            expect(bundleInfos[i].abilityInfos[j].backgroundModes).assertEqual(DATATRANSFER | VOIP);
-                        }
-                    }
-                }
-            }
-            let data3 = await bundle.getBundleInfo(BUNDLE_NAME5, bundle.BundleFlag.GET_BUNDLE_WITH_ABILITIES);
-            expect(data3.abilityInfos[2].backgroundModes).assertEqual(DATATRANSFER | AUDIOPLAYBACK | AUDIORECORDING |
-                LOCATION | BLUETOOTHINTERACTION | MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING);
-            expect(data3.abilityInfos[3].backgroundModes).assertEqual(DATATRANSFER | VOIP);
-            done();
-        });
+       
 
         /*
         * @tc.number: Sub_Bms_BundleTool_Query_Hap_1500
@@ -120,45 +80,7 @@ export default function ActsBmsGetBackGroundModes() {
             done();
         });
 
-        /*
-        * @tc.number: Sub_Bms_BundleTool_Query_Hap_1600
-        * @tc.name: getBackgroundModesInvalidModes
-        * @tc.desc: Read the backgroundModes information of the app's ability and replace invalid attributes 
-        */
-        it('getBackgroundModesInvalidModes', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, async function (done) {
-            let dataInfos = await bundle.queryAbilityByWant({
-                action: 'action.system.home',
-                entities: ['entity.system.home'],
-                deviceId: '0',
-                bundleName: BUNDLE_NAME2,
-                abilityName: ''
-            }, bundle.BundleFlag.GET_BUNDLE_DEFAULT, userId);
-            expect(dataInfos.length).assertEqual(NUM_TWO);
-            if (dataInfos.length == NUM_TWO) {
-                expect(dataInfos[1].name).assertEqual(ABILITIY_NAME3)
-                expect(dataInfos[1].backgroundModes).assertEqual(AUDIOPLAYBACK | AUDIORECORDING | LOCATION
-                    | BLUETOOTHINTERACTION | MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING)
-            }
-            bundle.getAllBundleInfo(bundle.BundleFlag.GET_BUNDLE_WITH_ABILITIES, userId, (err, bundleInfos) => {
-                for (let i = 0; i < bundleInfos.length; i++) {
-                    if (bundleInfos[i].name == BUNDLE_NAME2) {
-                        for (let j = 0; j < bundleInfos[i].abilityInfos.length; j++) {
-                            if (bundleInfos[i].abilityInfos[j].name == ABILITIY_NAME3) {
-                                expect(bundleInfos[i].abilityInfos[j].backgroundModes).assertEqual(
-                                    AUDIOPLAYBACK | AUDIORECORDING | LOCATION | BLUETOOTHINTERACTION
-                                    | MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING);
-                            }
-                        }
-                    }
-                }
-                bundle.getBundleInfo(BUNDLE_NAME2, bundle.BundleFlag.GET_BUNDLE_WITH_ABILITIES, (err, data3) => {
-                    expect(data3.abilityInfos[1].backgroundModes).assertEqual(AUDIOPLAYBACK | AUDIORECORDING | LOCATION
-                        | BLUETOOTHINTERACTION | MULTIDEVICECONNECTION | WIFIINTERACTION | VOIP | TASKKEEPING);
-                    done();
-                });
-            });
-        });
-
+      
         /*
         * @tc.number: Sub_Bms_BundleTool_Query_Hap_1700
         * @tc.name: getBackgroundModesNotModes

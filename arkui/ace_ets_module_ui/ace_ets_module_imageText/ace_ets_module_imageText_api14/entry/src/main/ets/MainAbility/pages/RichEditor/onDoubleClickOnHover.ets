@@ -27,7 +27,7 @@ struct OnDoubleClickOnHover {
   options1: RichEditorImageSpanOptions = {
     imageStyle:
     {
-      size: ['400px', '200px'],
+      size: ['600px', '200px'],
       layoutStyle: {
         margin: 1,
         borderRadius: 1

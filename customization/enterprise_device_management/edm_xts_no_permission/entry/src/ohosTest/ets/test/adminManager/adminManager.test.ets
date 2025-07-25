@@ -130,6 +130,27 @@ export default function adminManagerTest() {
     })
 
     /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISBYODADMIN_001
+     * @tc.name      : test_isByodAdmin_001
+     * @tc.desc      : test isByodAdmin method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isByodAdmin_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        adminManager.isByodAdmin(SELFWANT);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 201).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_STARTADMINPROVISION_001
      * @tc.name      : test_startadminprovision_001
      * @tc.desc      : test startadminprovision method with normal admin

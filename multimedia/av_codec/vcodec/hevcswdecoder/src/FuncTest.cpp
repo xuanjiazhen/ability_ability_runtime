@@ -106,4 +106,25 @@ HWTEST_F(HevcSwdecFuncNdkTest, VIDEO_DECODE_SYNC_SW265_FUNC_0020, TestSize.Level
         ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
     }
 }
+
+/**
+ * @tc.number    : VIDEO_SWDEC_H265_BLANK_FRAME_0010
+ * @tc.name      : VIDEO_SWDEC_H265_BLANK_FRAME_0010
+ * @tc.desc      : function test
+ */
+HWTEST_F(HevcSwdecFuncNdkTest, VIDEO_SWDEC_H265_BLANK_FRAME_0010, TestSize.Level0)
+{
+    if (cap_hevc != nullptr) {
+        auto vDecSample = make_shared<VDecAPI11Sample>();
+        vDecSample->INP_DIR = INP_DIR_1080_30;
+        vDecSample->DEFAULT_WIDTH = 1920;
+        vDecSample->DEFAULT_HEIGHT = 1080;
+        vDecSample->DEFAULT_FRAME_RATE = 30;
+        vDecSample->SF_OUTPUT = false;
+        vDecSample->enbleBlankFrame = 1;
+        ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec(g_codecNameHevc));
+        vDecSample->WaitForEOS();
+        ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    }
+}
 } // namespace

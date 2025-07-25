@@ -628,7 +628,36 @@ export default function RdbStoreReadOnlyTest() {
       }
       console.info(TAG + "************* testReadOnly1900 end *************");
     })
-
+    /**
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_ReadOnlyAPITest_2000
+     * @tc.name testReadOnly2000
+     * @tc.desc 1. set isReadOnly as true
+     *          2. open read-only database  if the database is not exist
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('testReadOnly2000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* testReadOnly2000 start *************");
+      try {
+        relationalStore.getRdbStore(context, STORE_CONFIG1,async(err,rdbstore)=>{
+          if(err){
+            console.error(TAG, `open read-only database failed, errCode:${err.code}, message:${err.message}`);
+            expect(err.code == 14800030).assertTrue();
+            done();
+          }
+          else{
+            expect().assertFail();
+            done();
+          }
+        });
+      } catch (err) {
+        console.error(TAG, "err.code"+err.code +"err.message"+err.message);
+        expect().assertFail();
+        done();
+      }
+      console.log(TAG + "************* testReadOnly2000 end *************");
+    })
     console.info(TAG + "*************Unit Test End*************");
   })
 }

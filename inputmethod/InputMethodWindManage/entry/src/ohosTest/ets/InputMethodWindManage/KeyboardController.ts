@@ -1813,9 +1813,9 @@ export class KeyboardController {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 sedMessages msgIdSize: ' + msgId.length );
           if (msgId === 'Sub_InputMethod_IME_Custom_0900') {
             console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 start sendMessage');
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900')
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900', that.newArrayBuffer('SUCCESS'))
           }else{
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900')
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900', that.newArrayBuffer('FAILED'))
           }
           that.InputClient.recvMessage()
         }
@@ -1983,9 +1983,9 @@ export class KeyboardController {
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 onMessage msgId: ' + msgId + ', msgParam: ' +
           that.GetArrayBufferString(msgParam) + ', msgParamObj' + msgParam);
-          if(msgId.length === 256 && msgParam?.byteLength === undefined){
+          if(msgId.length === 256 && msgParam?.byteLength === undefined) {
             console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 start sendMessage');
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100', that.newArrayBuffer('SUCCESS'))
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100')
           }else{
             that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100', that.newArrayBuffer('FAILED'))
           }
@@ -2750,7 +2750,7 @@ export class KeyboardController {
         data: 'FAILED'
     };
     inputmethodengine.getKeyboardDelegate().on('editorAttributeChanged', (attr:inputMethodEngine.EditorAttribute) => {
-      console.info(TAG + `====>on_EditorAttribute_callback = ${JSON.stringify(attr)} immersiveMode = ${attr.immersiveMode}  gradientMode = ${attr.gradientMode}`); 
+      console.info(TAG + `====>on_EditorAttribute_callback = ${JSON.stringify(attr)} immersiveMode = ${attr.immersiveMode}   gradientMode = ${attr.gradientMode}`); 
       this.immersive = attr.immersiveMode;
       inputmethodengine.getKeyboardDelegate().off('editorAttributeChanged');
     });

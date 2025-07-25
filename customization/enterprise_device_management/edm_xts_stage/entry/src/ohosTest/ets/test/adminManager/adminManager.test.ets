@@ -291,6 +291,91 @@ export default function adminManagerTest() {
     })
 
     /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISBYODADMIN_001
+     * @tc.name      : test_isByodAdmin_001
+     * @tc.desc      : test isByodAdmin method without admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isByodAdmin_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        adminManager.isByodAdmin(null);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISBYODADMIN_002
+     * @tc.name      : test_isByodAdmin_002
+     * @tc.desc      : test isByodAdmin method result is true
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isByodAdmin_002", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_BYOD);
+      try {
+        let ret: boolean = adminManager.isByodAdmin(SELFWANT);
+        expect(ret).assertTrue();
+      } catch (error) {
+        expect(false).assertTrue();
+      }finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISBYODADMIN_003
+     * @tc.name      : test_isByodAdmin_003
+     * @tc.desc      : test isByodAdmin method result is false
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isByodAdmin_003", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      try {
+        let ret: boolean = adminManager.isByodAdmin(SELFWANT);
+        expect(ret).assertFalse();
+      } catch (error) {
+        expect(false).assertTrue();
+      }finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISBYODADMIN_004
+     * @tc.name      : test_isByodAdmin_004
+     * @tc.desc      : test isByodAdmin parameter verification failed
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isByodAdmin_004", Level.LEVEL2, async (done: Function) => {
+      await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+      let adminTest: Want = {
+        bundleName: "com.edm.test",
+        abilityName: "com.example.myapplication.EnterpriseAdminAbility"
+      };
+      try {
+        let ret: boolean = adminManager.isByodAdmin(adminTest);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200012).assertTrue();
+      }finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_GETDELEGATEDPOLICIES_001
      * @tc.name      : test_getDelegatedPolicies_001
      * @tc.desc      : test getDelegatedPolicies method with unActive admin

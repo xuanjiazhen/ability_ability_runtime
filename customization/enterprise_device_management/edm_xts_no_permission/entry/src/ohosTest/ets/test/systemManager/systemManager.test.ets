@@ -343,7 +343,7 @@ function testSetInstallLocalEnterpriseAppEnabled() {
       systemManager.setInstallLocalEnterpriseAppEnabled(SELFWANT, true);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201).assertTrue();
+      expect(error.code == 801 || error.code == 201).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -366,7 +366,7 @@ function testGetInstallLocalEnterpriseAppEnabled() {
       systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201).assertTrue();
+      expect(error.code == 801 || error.code == 201).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }

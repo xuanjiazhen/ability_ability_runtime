@@ -11,9 +11,9 @@
     "kits": [
         {
             "test-file-name": [
-                "ActsOsAccountTest.hap",
-                "ActsOsAccountAssistAppOne.hap",
-                "ActsOsAccountAssistAppTwo.hap"
+                "ActsOsAccountEnterpriseTest.hap",
+                "ActsOsAccountAssistAppOneEnterpriseTest.hap",
+                "ActsOsAccountAssistAppTwoEnterpriseTest.hap"
             ],
             "type": "AppInstallKit",
             "cleanup-apps": true

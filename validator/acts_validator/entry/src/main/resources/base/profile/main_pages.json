@@ -155,7 +155,8 @@
     "pages/ArkUI/LongPressGestureListener",
     "pages/ArkUI/PinchGestureListener",
     "pages/ArkUI/RotationGestureListener",
-    "pages/ArkUI/PanGestureListener"
+    "pages/ArkUI/PanGestureListener",
+    "pages/ArkUI/AccessibilityShowStepOptions"
   ]
 }
 

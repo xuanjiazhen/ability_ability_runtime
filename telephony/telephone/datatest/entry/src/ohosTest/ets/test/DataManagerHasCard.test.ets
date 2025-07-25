@@ -927,6 +927,7 @@ export default function dataManagerTest() {
       }
       console.info(`${caseName} test end `);
     });
-  }
-  );
+    
+  });
 }
+

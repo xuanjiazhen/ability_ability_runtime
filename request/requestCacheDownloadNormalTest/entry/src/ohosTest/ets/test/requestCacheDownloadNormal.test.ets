@@ -58,14 +58,10 @@ export default function requestCacheDownloadNormalUnitTest() {
      */
     it('SUB_Request_cacheDownload_maintenance_0100', Level.LEVEL0, async (done: Function) => {
       console.info("====>-----------------------SUB_Request_cacheDownload_maintenance_0100 is starting-----------------------");
-      class cacheDownloadOptions implements cacheDownload.CacheDownloadOptions {
-        headers?: Record<string, string> | undefined = {'Accept': '*/*'}
-      }
-      let url: string = 'https://gitee.com/murphy1984/download/releases/download/V1/test_picture_1.jpg';
       try {
-        let downloadOptions = new cacheDownloadOptions();
-        cacheDownload.download(url, downloadOptions);
-        console.info("====>SUB_Request_cacheDownload_maintenance_0100 download success url: " + url);
+        let url: string = 'https://gitee.com/murphy1984/download/releases/download/V1/test_picture_1.jpg';
+        let downloadInfo: cacheDownload.DownloadInfo | undefined = cacheDownload.getDownloadInfo(url);
+        console.info("====>SUB_Request_cacheDownload_maintenance_0100 downloadInfo success: " + downloadInfo);
         expect().assertFail();
         done();
       } catch (err) {

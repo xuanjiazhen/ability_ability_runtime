@@ -5326,10 +5326,70 @@ export default function audioFramework() {
       console.info("audio.DeviceType.LINE_DIGITAL:" + audio.DeviceType.LINE_DIGITAL);
       expect(audio.DeviceType.REMOTE_DAUDIO).assertEqual(29);
       console.info("audio.DeviceType.REMOTE_DAUDIO:" + audio.DeviceType.REMOTE_DAUDIO);
+      expect(audio.DeviceType.HEARING_AID).assertEqual(30);
+      console.info("audio.DeviceType.HEARING_AID:" + audio.DeviceType.HEARING_AID);
       expect(audio.DeviceType.NEARLINK).assertEqual(31);
       console.info("audio.DeviceType.NEARLINK:" + audio.DeviceType.NEARLINK);
       expect(audio.DeviceType.DEFAULT).assertEqual(1000);
       console.info("audio.DeviceType.DEFAULT:" + audio.DeviceType.DEFAULT);
+      await sleep(50);
+      done();
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SESSION_SCENE_0100
+     * @tc.name      : DeviceRole - ALL Device Role
+     * @tc.desc      : DeviceRole - ALL Device Role
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_SESSION_SCENE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      expect(audio.AudioSessionScene.AUDIO_SESSION_SCENE_MEDIA).assertEqual(0);
+      console.info("audio.AudioSessionScene.AUDIO_SESSION_SCENE_MEDIA :" + audio.AudioSessionScene.AUDIO_SESSION_SCENE_MEDIA);
+      expect(audio.AudioSessionScene.AUDIO_SESSION_SCENE_GAME).assertEqual(1);
+      console.info("audio.AudioSessionScene.AUDIO_SESSION_SCENE_GAME :" + audio.AudioSessionScene.AUDIO_SESSION_SCENE_GAME);
+      expect(audio.AudioSessionScene.AUDIO_SESSION_SCENE_VOICE_COMMUNICATION).assertEqual(2);
+      console.info("audio.AudioSessionScene.AUDIO_SESSION_SCENE_VOICE_COMMUNICATION :" + audio.AudioSessionScene.AUDIO_SESSION_SCENE_VOICE_COMMUNICATION);
+      await sleep(50);
+      done();
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_SESSION_STATE_CHANGE_HINT_0100
+     * @tc.name      : DeviceRole - ALL Device Role
+     * @tc.desc      : DeviceRole - ALL Device Role
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_SESSION_STATE_CHANGE_HINT_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_RESUME).assertEqual(0);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_RESUME :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_RESUME);
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_PAUSE).assertEqual(1);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_PAUSE :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_PAUSE);
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_STOP).assertEqual(2);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_STOP :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_STOP);
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_TIME_OUT_STOP).assertEqual(3);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_TIME_OUT_STOP :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_TIME_OUT_STOP);
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_DUCK).assertEqual(4);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_DUCK :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_DUCK);
+      expect(audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_UNDUCK).assertEqual(5);
+      console.info("audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_UNDUCK :" + audio.AudioSessionStateChangeHint.AUDIO_SESSION_STATE_CHANGE_HINT_UNDUCK);
+      await sleep(50);
+      done();
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_DEVICE_RECOMMENDEDACTION_0100
+     * @tc.name      : DeviceRole - ALL Device Role
+     * @tc.desc      : DeviceRole - ALL Device Role
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_DEVICE_RECOMMENDEDACTION_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      expect(audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE).assertEqual(0);
+      console.info("audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE :" + audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_CONTINUE);
+      expect(audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP).assertEqual(1);
+      console.info("audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP :" + audio.OutputDeviceChangeRecommendedAction.DEVICE_CHANGE_RECOMMEND_TO_STOP);
       await sleep(50);
       done();
     })
@@ -6153,6 +6213,74 @@ export default function audioFramework() {
         }
         expect(flag).assertTrue();
         done();
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0100
+     * @tc.desc      : enable
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      try {
+        let ret: boolean = audio.getAudioManager().getStreamManager().isStreamActive(audio.StreamUsage.STREAM_USAGE_MEDIA);
+      } catch (err) {
+        let error = err as BusinessError;
+        console.error(`isStreamActive ERROR: ${error}`);
+        expect(false).assertTrue();
+      }
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_GETVOLUMNBYSTREAM_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_GETVOLUMNBYSTREAM_0100
+     * @tc.desc      : enable
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("SUB_MULTIMEDIA_AUDIO_GETVOLUMNBYSTREAM_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      try {
+        let ret: number = audio.getAudioManager().getVolumeManager().getVolumeByStream(audio.StreamUsage.STREAM_USAGE_MEDIA);
+      } catch (err) {
+        let error = err as BusinessError;
+        console.error(`getVolumeByStream ERROR: ${error}`);
+        expect(false).assertTrue();
+      }
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_GETMAXVOLUMNBYSTREAM_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_GETMAXVOLUMNBYSTREAM_0100
+     * @tc.desc      : enable
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("SUB_MULTIMEDIA_AUDIO_GETMAXVOLUMNBYSTREAM_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      try {
+        let ret: number = audio.getAudioManager().getVolumeManager().getMaxVolumeByStream(audio.StreamUsage.STREAM_USAGE_MEDIA);
+      } catch (err) {
+        let error = err as BusinessError;
+        console.error(`getMaxVolumeByStream ERROR: ${error}`);
+        expect(false).assertTrue();
+      }
+    })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_GETMINVOLUMNBYSTREAM_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_GETMINVOLUMNBYSTREAM_0100
+     * @tc.desc      : enable
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("SUB_MULTIMEDIA_AUDIO_GETMINVOLUMNBYSTREAM_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      try {
+        let ret: number = audio.getAudioManager().getVolumeManager().getMinVolumeByStream(audio.StreamUsage.STREAM_USAGE_MEDIA);
+      } catch (err) {
+        let error = err as BusinessError;
+        console.error(`getMinVolumeByStream ERROR: ${error}`);
+        expect(false).assertTrue();
+      }
     })
   })
 }

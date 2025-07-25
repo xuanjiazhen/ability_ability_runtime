@@ -220,7 +220,8 @@ void RawfileRequest::Start()
     if (stream_) {
         OH_LOG_ERROR(LOG_APP, "RawfileRequest Start have http body stream");
         OH_ArkWebHttpBodyStream_SetUserData(stream_, this);
-        OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, ReadCallback);
+        ArkWeb_HttpBodyStreamAsyncReadCallback httpBodyStreamAsyncReadCallback = ReadCallback;
+        OH_ArkWebHttpBodyStream_SetAsyncReadCallback(stream_, httpBodyStreamAsyncReadCallback);
         g_setAsyncReadCallback = 1;
         OH_LOG_INFO(LOG_APP, "RawfileRequest Start  g_setAsyncReadCallback :%{public}d", g_setAsyncReadCallback);
         OH_LOG_INFO(LOG_APP, "RawfileRequest Start OH_ArkWebHttpBodyStream_SetAsyncReadCallback end");

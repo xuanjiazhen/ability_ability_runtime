@@ -27,6 +27,46 @@ export class SendableContextObject {
   public contextName: string;
 }
 
+export class ApplicationContextObject {
+  constructor(sendableContext: common.ApplicationContext, contextName: string) {
+    this.sendableContext = sendableContext;
+    this.contextName = contextName;
+  }
+
+  public sendableContext: common.ApplicationContext;
+  public contextName: string;
+}
+
+export class AbilityStageObject {
+  constructor(sendableContext: common.AbilityStageContext, contextName: string) {
+    this.sendableContext = sendableContext;
+    this.contextName = contextName;
+  }
+
+  public sendableContext: common.AbilityStageContext;
+  public contextName: string;
+}
+
+export class ContextObject {
+  constructor(sendableContext: common.Context, contextName: string) {
+    this.sendableContext = sendableContext;
+    this.contextName = contextName;
+  }
+
+  public sendableContext: common.Context;
+  public contextName: string;
+}
+
+export class UIAbilityContextObject {
+  constructor(sendableContext: common.UIAbilityContext, contextName: string) {
+    this.sendableContext = sendableContext;
+    this.contextName = contextName;
+  }
+
+  public sendableContext: common.UIAbilityContext;
+  public contextName: string;
+}
+
 export class NormalContextObject {
   constructor(context: common.Context, contextName: string) {
     this.normalContext = context;

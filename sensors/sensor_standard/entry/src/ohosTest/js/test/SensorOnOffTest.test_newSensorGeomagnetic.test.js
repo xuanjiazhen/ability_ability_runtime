@@ -1594,7 +1594,9 @@ describe("SensorJsTest_sensor_60", function () {
                 expect(false).assertTrue();
             } else {
                 console.info("Sensor_CreateRotationMatrix_001" + JSON.stringify(data))
-                expect(JSON.stringify(data)).assertEqual(JSON.stringify(SENSOR_DATA_MATRIX[0]))
+                expect(JSON.stringify(data)).assertEqual(JSON.stringify(SENSOR_DATA_MATRIX[0]));
+                expect(JSON.stringify(data.rotation)).assertEqual(JSON.stringify(SENSOR_DATA_MATRIX[0].rotation));
+                expect(JSON.stringify(data.inclination)).assertEqual(JSON.stringify(SENSOR_DATA_MATRIX[0].inclination));
             }
             done()
         })
@@ -3564,5 +3566,67 @@ describe("SensorJsTest_sensor_60", function () {
             done();
         }
         console.info("Sensor_TransformCoordinateSystem_010 end")
+    })
+
+    /*
+    * @tc.name:Sensor_CreateRotationMatrix_015
+    * @tc.desc:getRotationMatrix 401.
+    * @tc.number:Sensor_CreateRotationMatrix_015
+    * @tc.level:Level 3
+    * @tc.type:Function
+    * @tc.size:MediumTest
+    */
+    it('Sensor_CreateRotationMatrix_015', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,async function (done) {
+        console.info('====>Sensor_CreateRotationMatrix_015 start');
+        try {
+            sensor.getRotationMatrix(-1, (error,data)=>{
+                if (error) {
+                    console.info('====>Sensor_CreateRotationMatrix_015 failed');
+                    expect(error.code).assertEqual(PARAMETER_ERROR_CODE);
+                    expect(error.message).assertEqual(PARAMETER_ERROR_MSG);
+                } else {
+                    console.info("====>Sensor_CreateRotationMatrix_015" + JSON.stringify(data))
+                    expect(true).assertfalse();
+                }
+                done();
+            })
+        } catch (error) {
+            console.info("====>Sensor_CreateRotationMatrix_015 catch error:" + error);
+            expect(error.code).assertEqual(PARAMETER_ERROR_CODE);
+            expect(error.message).assertEqual(PARAMETER_ERROR_MSG);
+            done();
+        }
+    })
+
+    /*
+    * @tc.name:Sensor_GetDirection_012
+    * @tc.desc:getRotationMatrix 401.
+    * @tc.number:Sensor_GetDirection_012
+    * @tc.level:Level 3
+    * @tc.type:Function
+    * @tc.size:MediumTest
+    */
+    it('Sensor_GetDirection_012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,async function (done) {
+        console.info('====>Sensor_GetDirection_012 start');
+        try {
+            sensor.getOrientation([1,2,3,1,2,3,1,2,3,0], (error,data)=>{
+                if (error) {
+                    console.info('====>Sensor_GetDirection_012 failed');
+                    expect(error.code).assertEqual(PARAMETER_ERROR_CODE);
+                    expect(error.message).assertEqual(PARAMETER_ERROR_MSG);
+                } else {
+                    for (let i = 0; i<data.length; i++) {
+                        console.info("====>Sensor_GetDirection_012 failed");
+                        expect(false).assertTrue();
+                    }
+                }
+                done();
+            })
+        } catch (error) {
+            console.info("====>Sensor_GetDirection_012 catch error:" + error);
+            expect(error.code).assertEqual(PARAMETER_ERROR_CODE);
+            expect(error.message).assertEqual(PARAMETER_ERROR_MSG);
+            done();
+        }
     })
 })}

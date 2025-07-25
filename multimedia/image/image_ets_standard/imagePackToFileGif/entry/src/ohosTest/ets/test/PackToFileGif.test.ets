@@ -19,6 +19,7 @@ import fileio from "@ohos.fileio";
 import display from '@ohos.display';
 import hdrCapability from '@ohos.graphics.hdrCapability';
 import { BusinessError } from '@kit.BasicServicesKit';
+import fs from '@ohos.file.fs';
 
 interface Size {
     width: number,
@@ -944,6 +945,11 @@ export default function imagePackToFileGif() {
          * @tc.level     : level 0
          */
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1900", Level.LEVEL0, async (done: Function) => {
+            if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
+                expect(true).assertTrue();
+                done();
+                return
+            };
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
                 expect(true).assertTrue();

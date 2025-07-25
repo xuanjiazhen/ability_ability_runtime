@@ -2,6 +2,7 @@
   "src": [
     "MainAbility/pages/index/index",
     "MainAbility/pages/Text/textAreaInputTest",
-    "MainAbility/pages/Text/OnPrepareMenuTest"
+    "MainAbility/pages/Text/OnPrepareMenuTest",
+    "MainAbility/pages/RichEditor/RichEditorTextVerticalAlign"
   ]
 }

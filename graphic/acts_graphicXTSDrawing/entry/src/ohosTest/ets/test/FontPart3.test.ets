@@ -561,5 +561,173 @@ export default function fontPart3Test() {
         expect(e.code).assertEqual(401)
       }
     });
+    /**
+     * @tc.number    : SUB_BASIC_GRAPHICS_SPECIAL_API_TS_DRAWING_FONT_2400
+     * @tc.name      : testFontMeasureSingleCharacterWithFeaturesNormal
+     * @tc.desc      : Test for testFontMeasureSingleCharacterWithFeaturesNormal.
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testFontMeasureSingleCharacterWithFeaturesNormal' , TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0 , () => {
+      const msg = 'testFontMeasureSingleCharacterWithFeaturesNormal';
+      const font = new drawing.Font();
+      font.setSize(70);
+      let fontFeatures : Array<drawing.FontFeature> = [];
+      try {
+        let width = font.measureSingleCharacterWithFeatures("H", fontFeatures);
+        expect(width).assertEqual(52);
+        console.info(msg + 'measureSingleCharacterWithFeatures 1 successed width: ' + width);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 1 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+      try {
+        let width2 = font.measureSingleCharacterWithFeatures("你", fontFeatures);
+        expect(width2).assertEqual(70);
+        console.info(msg + 'measureSingleCharacterWithFeatures 2 successed width2: ' + width2);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 2 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+      try {
+        let width3 = font.measureSingleCharacterWithFeatures("（", fontFeatures);
+        expect(width3).assertEqual(70);
+        console.info(msg + 'measureSingleCharacterWithFeatures 3 successed width3: ' + width3);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 3 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+      try {
+        let width4 = font.measureSingleCharacterWithFeatures("｛", fontFeatures);
+        expect(width4).assertEqual(70);
+        console.info(msg + 'measureSingleCharacterWithFeatures 4 successed width4: ' + width4);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 4 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+      fontFeatures.push({name: 'calt', value: 40});
+      try {
+        let width5 = font.measureSingleCharacterWithFeatures("8", fontFeatures);
+        expect(width5).assertEqual(40);
+        console.info(msg + 'measureSingleCharacterWithFeatures 5 successed width5: ' + width5);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 5 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+      fontFeatures.push({name: 'calt', value: 40});
+      fontFeatures.push({name: 'ccmp', value:11});
+      fontFeatures.push({name: 'frac', value:22});
+      try {
+        let width6 = font.measureSingleCharacterWithFeatures("7", fontFeatures);
+        expect(width6).assertEqual(23);
+        console.info(msg + 'measureSingleCharacterWithFeatures 6 successed width6: ' + width6);
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 6 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect().assertFail();
+      }
+    });
+    /**
+     * @tc.number    : SUB_BASIC_GRAPHICS_SPECIAL_API_TS_DRAWING_FONT_2401
+     * @tc.name      : testFontMeasureSingleCharacterWithFeaturesNull
+     * @tc.desc      : testFontMeasureSingleCharacterWithFeaturesNull
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testFontMeasureSingleCharacterWithFeaturesNull', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, () => {
+      const msg = 'testFontMeasureSingleCharacterWithFeaturesNull';
+      const font = new drawing.Font();
+      font.setSize(70);
+      let fontFeatures : Array<drawing.FontFeature> = [];
+      try {
+        font.measureSingleCharacterWithFeatures(null, fontFeatures);
+        console.info(msg + `measureSingleCharacterWithFeatures 1 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 1 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+      try {
+        font.measureSingleCharacterWithFeatures(undefined, fontFeatures);
+        console.info(msg + `measureSingleCharacterWithFeatures 2 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 2 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+      try {
+        font.measureSingleCharacterWithFeatures("H", null);
+        console.info(msg + `measureSingleCharacterWithFeatures 3 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 3 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+      try {
+        font.measureSingleCharacterWithFeatures("H", undefined);
+        console.info(msg + `measureSingleCharacterWithFeatures 4 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 4 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_GRAPHICS_SPECIAL_API_TS_DRAWING_FONT_2403
+     * @tc.name      : testFontMeasureSingleCharacterWithFeaturesMultipleCalls
+     * @tc.desc      : testFontMeasureSingleCharacterWithFeaturesMultipleCalls
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testFontMeasureSingleCharacterWithFeaturesMultipleCalls', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, () => {
+      const msg = 'testFontMeasureSingleCharacterWithFeaturesMultipleCalls';
+      const font = new drawing.Font();
+      for(let i = 0; i < 20; i++) {
+        font.setSize(70);
+        let fontFeatures : Array<drawing.FontFeature> = [];
+        fontFeatures.push({name: 'calt', value: 40});
+        try {
+          let width = font.measureSingleCharacterWithFeatures("8", fontFeatures);
+          console.info(msg + `measureSingleCharacterWithFeatures step: ${i} success width: ${width}`);
+          expect(width).assertEqual(40);
+        } catch (e) {
+          console.info(msg + `measureSingleCharacterWithFeatures  errorCode is:  ${e.code} + errormsg is: ${e.message} step: ${i}`);
+          expect().assertFail();
+        }
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_GRAPHICS_SPECIAL_API_TS_DRAWING_FONT_2402
+     * @tc.name      : testFontMeasureSingleCharacterWithFeaturesAbnormal
+     * @tc.desc      : testFontMeasureSingleCharacterWithFeaturesAbnormal
+     * @tc.size      : SmallTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testFontMeasureSingleCharacterWithFeaturesAbnormal', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, () => {
+      const msg = 'testFontMeasureSingleCharacterWithFeaturesAbnormal';
+      const font = new drawing.Font();
+      font.setSize(70);
+      let fontFeatures : Array<drawing.FontFeature> = [];
+      fontFeatures.push({name: 'calt', value: 40});
+      try {
+        font.measureSingleCharacterWithFeatures("", fontFeatures);
+        console.info(msg + `measureSingleCharacterWithFeatures 1 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 1 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+      try {
+        font.measureSingleCharacterWithFeatures("aa", fontFeatures);
+        console.info(msg + `measureSingleCharacterWithFeatures 2 success `);
+        expect().assertFail();
+      } catch (e) {
+        console.info(msg + `measureSingleCharacterWithFeatures 2 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
+        expect(e.code).assertEqual(401);
+      }
+    })
   });
 }

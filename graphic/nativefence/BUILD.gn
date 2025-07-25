@@ -13,22 +13,20 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("nativefence_ndk_main") {
+ohos_app_assist_suite("nativeFence_ndk_main") {
   testonly = true
-  certificate_profile =
-      "./signature/com_nativefence_napitest_openharmony_sx.p7b"
+  certificate_profile = "./signature/com_nativefence_napitest_openharmony_sx.p7b"
   hap_name = "ActsNativeFenceMainTest"
-  part_name = "graphic_2d"
+  part_name = "graphic_surface"
   subsystem_name = "graphic"
 }
 
 ohos_js_app_suite("ActsNativeFenceTest") {
   test_hap = true
   testonly = true
-  certificate_profile =
-      "./signature/com_nativefence_napitest_openharmony_sx.p7b"
+  certificate_profile = "./signature/com_nativefence_napitest_openharmony_sx.p7b"
   hap_name = "ActsNativeFenceTest"
-  part_name = "graphic_2d"
+  part_name = "graphic_surface"
   subsystem_name = "graphic"
-  deps = [ ":nativefence_ndk_main" ]
+  deps = [ ":nativeFence_ndk_main" ]
 }

@@ -56,6 +56,7 @@ const LABEL_SET_BIOMETRICS_AND_SCREENLOCK = "setBiometricsAndScreenLock";
 const LABEL_SET_DEVICE_NAME = "setDeviceName";
 const LABEL_SUDO = "sudo";
 const LABEL_NFC = "nfc";
+const LABEL_TELEPHONY_CALL = "telephoneCall";
 
 export default function restrictionsTest() {
   describe('restrictions_test', () => {
@@ -1265,6 +1266,87 @@ function testSetDisallowedPolicy() {
     try {
       restrictions.setDisallowedPolicy(SELFWANT, LABEL_NFC, false);
       expect(restrictions.getDisallowedPolicy(SELFWANT, LABEL_NFC)).assertFalse();
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0158
+   * @tc.name      : test_set_disallowed_policy_0158
+   * @tc.desc      : test restrictions setDisallowedPolicy without admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0158", Level.LEVEL2, async (done: Function) => {
+    try {
+      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001 || error.code == 801).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0159
+   * @tc.name      : test_set_disallowed_policy_0159
+   * @tc.desc      : test restrictions setDisallowedPolicy with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0159", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002 || error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0160
+   * @tc.name      : test_set_disallowed_policy_0160
+   * @tc.desc      : test restrictions setDisallowedPolicy with invalid admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0160", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicy(INVALID_WANT, LABEL_TELEPHONY_CALL, false);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401 || error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0161
+   * @tc.name      : test_set_disallowed_policy_0161
+   * @tc.desc      : test restrictions setDisallowedPolicy
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_0161", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL, false);
+      expect(restrictions.getDisallowedPolicy(SELFWANT, LABEL_TELEPHONY_CALL)).assertFalse();
     } catch (error) {
       expect(error.code == 801).assertTrue();
     } finally {

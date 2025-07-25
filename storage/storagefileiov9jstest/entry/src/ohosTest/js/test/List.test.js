@@ -64,6 +64,7 @@ import fileIOGetxattr from './members/getxattr.test.js'
 import fileIOSetxattr from './members/setxattr.test.js'
 import cloudSynctest from './class_cloudsync/cloudSync.test.js'
 import atomicFileTest from './class_atomicFile/atomicFile.test.js'
+import CloudFileTest from './class_cloudsync/cloudSyncFile.test.js'
 export default function testsuite() {
     fileIOAccess()
     fileIOClose()
@@ -116,4 +117,5 @@ export default function testsuite() {
     fileIOSetxattr()
     cloudSynctest()
     atomicFileTest()
+    CloudFileTest()
 }

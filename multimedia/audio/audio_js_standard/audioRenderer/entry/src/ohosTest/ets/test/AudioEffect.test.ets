@@ -4520,6 +4520,8 @@ export default function AudioEffectTest() {
       await createAudioRenderer(expect().assertFail, done)
       console.log(TAG + testCaseName + 'TestLog: Start Testing start function');
       await start(expect().assertFail, done)
+      console.log(TAG + testCaseName + 'TestLog: Sleep 1s,wait to switch to normal stream');
+      await sleep(1000)
       console.log(TAG + testCaseName + 'TestLog: Start Testing setAudioEffectMode function');
       await setAudioEffectMode(expect().assertFail, done)
       console.log(TAG + testCaseName + 'TestLog: Start Testing writeRender function');

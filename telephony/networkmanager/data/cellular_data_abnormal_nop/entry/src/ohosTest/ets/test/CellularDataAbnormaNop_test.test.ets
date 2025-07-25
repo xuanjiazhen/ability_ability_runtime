@@ -150,6 +150,38 @@ export default function telephony_data_NopTest() {
         console.error("telephony_data_nop004 error:" + JSON.stringify(err));
         done()
       }
+    });
+    
+   /*
+     * @tc.number:SUB_Telephony_Data_GetActiveApnName_NoP_0100
+     * @tc.name: testTelephonyDataGetActiveApnNameNoP0100
+     * @tc.desc: Using the getActiveApnName method without permission
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it("testTelephonyDataGetActiveApnNameNoP0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, (done: Function) => {
+      let caseName: string = "testTelephonyDataGetActiveApnNameNoP0100";
+      console.info(`${caseName}---Start`);
+      try {
+        data.getActiveApnName().then((data: string) => {
+          console.info(`${caseName} getActiveApnName success, contextData->${JSON.stringify(data)}`);
+          ExpectFail();
+          console.info(`${caseName}---End`);
+          done();
+        }).catch((err: BusinessError) => {
+          console.error(`${caseName} getActiveApnNam fail, err->${JSON.stringify(err)}`);
+          ExpectTrue(err.code == 201);
+          console.info(`${caseName}---End`);
+          done();
+        });
+      }catch (err) {
+        console.error(`${caseName} catch err is `+JSON.stringify(err));
+        ExpectTrue(err.code == 201);
+        console.info(`${caseName}---End`);
+        done();
+      }
     })
+    
   })
 }

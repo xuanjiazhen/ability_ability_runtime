@@ -60,7 +60,7 @@ export default class EntryAbility extends UIAbility {
         hilog.info(0x0000, 'lifecycleflowordertestdemo', 'Ability_test EntryAbility hidden event');
       } else if (data === window.WindowStageEventType.SHOWN) {
         hilog.info(0x0000, 'lifecycleflowordertestdemo', 'Ability_test EntryAbility show event');
-        if (this.wantParam == '0100' || this.wantParam == '0200' || this.wantParam == '0300' ||
+        if (this.wantParam == '0100' || this.wantParam == '0300' ||
           this.wantParam == '0400' || this.wantParam == '0900' || this.wantParam == '1000') {
           this.abilityLifeArr.push('show event')
         }
@@ -82,7 +82,7 @@ export default class EntryAbility extends UIAbility {
 
   onForeground(): void {
     hilog.info(0x0000, 'lifecycleflowordertestdemo', '%{public}s', 'Ability_test EntryAbility onForeground');
-    if (this.wantParam == '0100' || this.wantParam == '0200' || this.wantParam == '0300' || this.wantParam == '0400' ||
+    if (this.wantParam == '0100' || this.wantParam == '0300' || this.wantParam == '0400' ||
       this.wantParam == '0900' || this.wantParam == '1000') {
       this.abilityLifeArr.push('onForeground')
     }
@@ -94,7 +94,7 @@ export default class EntryAbility extends UIAbility {
 
   async onWillForeground(): Promise<void> {
     hilog.info(0x0000, 'lifecycleflowordertestdemo', '%{public}s', 'Ability_test EntryAbility onWillForeground');
-    if (this.wantParam == '0100' || this.wantParam == '0200' || this.wantParam == '0300' || this.wantParam == '0400' ||
+    if (this.wantParam == '0100' || this.wantParam == '0300' || this.wantParam == '0400' ||
       this.wantParam == '1000') {
       this.abilityLifeArr.push('onWillForeground')
     }
@@ -109,7 +109,7 @@ export default class EntryAbility extends UIAbility {
   onDidForeground(): void {
     hilog.info(0x0000, 'lifecycleflowordertestdemo', '%{public}s', 'Ability_test EntryAbility onDidForeground');
 
-    if (this.wantParam == '0100' || this.wantParam == '0200' || this.wantParam == '0400' ||
+    if (this.wantParam == '0100' || this.wantParam == '0400' ||
       this.wantParam == '0900') {
       this.abilityLifeArr.push('onDidForeground')
       console.info('lifecycleflowordertestdemo EntryAbility onDidForeground abilityLifeArr=>', this.wantParam.toString(), JSON.stringify(this.abilityLifeArr))
@@ -117,7 +117,7 @@ export default class EntryAbility extends UIAbility {
         data: this.abilityLifeArr.toString()
       };
       commonEventManager.publish(this.wantParam.toString(), commonEventData, (err) => {
-        console.info('lifecycleflowordertestdemo EntryAbility onDidForeground ====> [OnWillForeground_0200 result] publish: ' + JSON.stringify(err));
+        console.info('lifecycleflowordertestdemo EntryAbility onDidForeground ====> [OnWillForeground result] publish: ' + JSON.stringify(err));
         this.context.terminateSelf()
       });
     }
@@ -131,7 +131,7 @@ export default class EntryAbility extends UIAbility {
           data: this.abilityLifeArr.toString()
         };
         commonEventManager.publish(this.wantParam.toString(), commonEventData, (err) => {
-          console.info('lifecycleflowordertestdemo EntryAbility onDidForeground ====>[OnWillForeground_0200 result] publish: ' + JSON.stringify(err));
+          console.info('lifecycleflowordertestdemo EntryAbility onDidForeground ====>[OnWillForeground result] publish: ' + JSON.stringify(err));
           this.context.terminateSelf()
         });
       }, 3000)

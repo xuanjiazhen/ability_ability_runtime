@@ -53,7 +53,7 @@ static napi_value NativeFenceWaitIs0(napi_env env, napi_callback_info info)
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT); // Monitor SIGINT signal (Ctrl C)
     sigaddset(&mask, SIGURG); // Monitor SIGURG signal (Emergency event)
-    sigprocmask(SIG_BLOCK, &mask,  nullptr);
+    sigprocmask(SIG_BLOCK, &mask, nullptr);
     int sfd = signalfd(-1, &mask, 0);
     if (sfd == -1) {
         perror("signalfd failed");

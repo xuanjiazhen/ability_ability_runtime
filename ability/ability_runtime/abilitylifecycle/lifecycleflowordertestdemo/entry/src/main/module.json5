@@ -82,6 +82,16 @@
         "startWindowIcon": "$media:startIcon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true
+      },
+      {
+        "name": "EntryAbility3",
+        "srcEntry": "./ets/entryability3/EntryAbility3.ets",
+        "description": "$string:EntryAbility14_desc",
+        "icon": "$media:layered_image",
+        "label": "$string:EntryAbility14_label",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true
       }
     ],
     "extensionAbilities": [

@@ -37,7 +37,8 @@
         "skills": [
           {
             "actions": [
-              "action.system.home"
+              "action.system.home",
+              "action.ohos.pull.listener"
             ],
             "entities": [
               "entity.system.home"
