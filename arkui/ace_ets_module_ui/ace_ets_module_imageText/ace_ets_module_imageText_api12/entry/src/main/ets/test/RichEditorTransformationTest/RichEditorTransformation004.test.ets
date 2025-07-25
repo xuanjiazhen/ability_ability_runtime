@@ -56,7 +56,7 @@ export default function RichEditorTransformation004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_006
-     * @tc.name  : Test the RichEditor AffineTransformation
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_006
      * @tc.desc  : Verify whether setTypingStyle takes effect after setting the zoom/pan/rotate attributes to test RichEditor AffineTransformation
      * @tc.size: MediumTest
      * @tc.type: Function

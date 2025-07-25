@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick002() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_0027
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_0027
      * @tc.desc  : Test the RichEditor doubleClick event by double clicking on characters/images within the component that are taller than the component itself
      * @tc.size: MediumTest
      * @tc.type: Function

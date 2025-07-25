@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick013() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_018
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_018
      * @tc.desc  : After double clicking with the mouse to select, trigger the addTextCpan, setTypingStyle, or deleteSpam functions to test the RichEditor doubleClick event
      * @tc.size: MediumTest
      * @tc.type: Function

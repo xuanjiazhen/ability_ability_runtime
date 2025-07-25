@@ -56,7 +56,7 @@ export default function RichEditorGetNumber015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0015
-     * @tc.name  : Test the RichEditor Text Line
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0015
      * @tc.desc  : Test RichEditor Text Line by configuring leadingmargin with a line break character on the first line and content on the second line
      * @tc.size: MediumTest
      * @tc.type: Function

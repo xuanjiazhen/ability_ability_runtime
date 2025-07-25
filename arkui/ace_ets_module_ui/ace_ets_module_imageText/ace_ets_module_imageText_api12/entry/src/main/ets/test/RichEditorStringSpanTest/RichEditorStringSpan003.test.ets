@@ -56,7 +56,7 @@ export default function RichEditorStringSpan003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0014
-     * @tc.name  : Test the RichEditor StringSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0014
      * @tc.desc  : Test RichEditor StringSpan with ClearStyles' extension span style for text division
      * @tc.size: MediumTest
      * @tc.type: Function

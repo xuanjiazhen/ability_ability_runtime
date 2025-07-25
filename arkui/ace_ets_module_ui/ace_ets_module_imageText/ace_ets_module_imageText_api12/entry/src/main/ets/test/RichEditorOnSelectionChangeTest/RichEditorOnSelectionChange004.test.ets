@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0090
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0090
      * @tc.desc  : Test RichEditor OnSelectionChange by dynamically changing the range of selection
      * @tc.size: MediumTest
      * @tc.type: Function

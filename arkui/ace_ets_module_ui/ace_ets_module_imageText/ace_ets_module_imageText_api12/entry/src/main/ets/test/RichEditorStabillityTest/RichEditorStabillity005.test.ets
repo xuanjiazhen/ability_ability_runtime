@@ -56,7 +56,7 @@ export default function RichEditorStabillity005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_handleoptimization_0004
-     * @tc.name  : Test the RichEditor handleOptimization
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_handleoptimization_0004
      * @tc.desc  : There is a lot of content in builderspan, and a scrollbar appears to test RichEditor handleOptimization
      * @tc.size: MediumTest
      * @tc.type: Function

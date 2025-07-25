@@ -56,7 +56,7 @@ export default function RichEditorPreventDefault004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PREVENTDEFAULT_0005
-     * @tc.name  : Test the RichEditor PreventDefault
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PREVENTDEFAULT_0005
      * @tc.desc  : Set the onLongPress event for images or text to test RichEditor PreventDefault
      * @tc.size: MediumTest
      * @tc.type: Function

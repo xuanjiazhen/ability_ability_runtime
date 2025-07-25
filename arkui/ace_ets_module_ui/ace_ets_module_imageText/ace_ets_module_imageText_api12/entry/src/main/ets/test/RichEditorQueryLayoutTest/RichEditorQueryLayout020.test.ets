@@ -56,7 +56,7 @@ export default function RichEditorQueryLayout020() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0022
-     * @tc.name  : Test the RichEditor query for paragraphStyle and layoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0022
      * @tc.desc  : Test RichEditor query for paragraphStyle and layoutStyle by obtaining paragraphStyle and layoutStyle through aboutToDelete
      * @tc.size: MediumTest
      * @tc.type: Function

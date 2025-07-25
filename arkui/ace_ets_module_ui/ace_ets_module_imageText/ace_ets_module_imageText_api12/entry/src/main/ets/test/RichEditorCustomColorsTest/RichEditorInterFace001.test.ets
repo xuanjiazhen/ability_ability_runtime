@@ -56,7 +56,7 @@ export default function RichEditorInterFace001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_INTERFACE_1450
-     * @tc.name  : Test the RichEditor interface callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_INTERFACE_1450
      * @tc.desc  : bindSelectionMenu Set parameter test RichEditor interface callback
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -103,7 +103,7 @@ export default function RichEditorInterFace001() {
 
     /**
      * @tc.number: SUB_ACE_UI_PC_MENU_0080
-     * @tc.name  : Test the RichEditor menu
+     * @tc.name  : SUB_ACE_UI_PC_MENU_0080
      * @tc.desc  : Add advanced component SelectionMenu, and set the callback and builder to test the RichEditor menu
      * @tc.size: MediumTest
      * @tc.type: Function

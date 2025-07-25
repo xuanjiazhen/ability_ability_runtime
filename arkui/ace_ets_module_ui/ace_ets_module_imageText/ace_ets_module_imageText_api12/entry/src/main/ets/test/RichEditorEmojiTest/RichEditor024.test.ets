@@ -55,7 +55,7 @@ export default function RichEditor024() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0014
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0014
      * @tc.desc  : Test RichEditor Emoji by setting SetSelection without selection, pressing SetSelection to select, and pressing delete/del key
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0013
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0013
      * @tc.desc  : Call getStyles to obtain the style of the property string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -90,7 +90,7 @@ export default function RichEditorSetStyledString005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0014
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0014
      * @tc.desc  : Call removeString to remove the specified range string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

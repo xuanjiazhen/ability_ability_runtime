@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0007
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0007
      * @tc.desc  : Quick Shift+↓← → Select paragraph to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

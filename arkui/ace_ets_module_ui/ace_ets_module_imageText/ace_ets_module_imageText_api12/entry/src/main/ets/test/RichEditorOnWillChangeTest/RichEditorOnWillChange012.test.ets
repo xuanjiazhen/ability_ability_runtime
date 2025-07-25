@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0009
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0009
      * @tc.desc  : Copy a piece of content from the same component and paste it to test the RichEditor on WillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

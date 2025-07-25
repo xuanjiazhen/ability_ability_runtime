@@ -58,7 +58,7 @@ export default function RichEditorDoubleClick003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_0029
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_0029
      * @tc.desc  : Test RichEditor doubleClick event by double clicking the mouse after setting affine transformation
      * @tc.size: MediumTest
      * @tc.type: Function

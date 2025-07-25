@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString013() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0029
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0029
      * @tc.desc  : Verify that the attribute string supports the copyOptions attribute to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

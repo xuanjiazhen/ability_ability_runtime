@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0022
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0022
      * @tc.desc  : Verify property string support for onSelectionChange to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -88,7 +88,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0025
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0025
      * @tc.desc  : Validating attribute strings does not support onSelect to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -113,7 +113,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0026
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0026
      * @tc.desc  : Validating attribute strings does not support aboutToIMEInput to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -137,7 +137,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0035
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0035
      * @tc.desc  : Validating attribute strings does not support onIMEInputComplete to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -157,7 +157,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0036
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0036
      * @tc.desc  : Validating attribute strings does not support aboutToDelete to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -179,7 +179,7 @@ export default function RichEditorSetStyledString012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0037
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0037
      * @tc.desc  : Validating attribute strings does not support onDeleteComplete to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

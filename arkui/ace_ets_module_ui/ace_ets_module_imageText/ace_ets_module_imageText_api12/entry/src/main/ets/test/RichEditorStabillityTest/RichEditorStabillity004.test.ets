@@ -56,7 +56,7 @@ export default function RichEditorStabillity004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0007
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0007
      * @tc.desc  : Test RichEditor Stability with Continuous Up and Down Bone Movement Text Content
      * @tc.size: MediumTest
      * @tc.type: Function

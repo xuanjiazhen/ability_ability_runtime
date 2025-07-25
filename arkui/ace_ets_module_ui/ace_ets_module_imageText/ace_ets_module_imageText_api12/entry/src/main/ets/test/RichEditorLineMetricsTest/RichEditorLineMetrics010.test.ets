@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0015
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0015
      * @tc.desc  : Test RichEditor LineMetrics by adding content to make the component have a scrollbar and the first line is not within the display range of the page using getLineMetrics (0)
      * @tc.size: MediumTest
      * @tc.type: Function

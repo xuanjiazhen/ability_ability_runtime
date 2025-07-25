@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys021() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0033
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0033
      * @tc.desc  : Test RichEditor shortCutKeys by using shortcut keys to select words when there is empty text, display placeholder, or pure space present
      * @tc.size: MediumTest
      * @tc.type: Function

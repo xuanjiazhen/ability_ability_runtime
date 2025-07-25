@@ -55,7 +55,7 @@ export default function RichEditorBreak002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_WORDBREAK_0006
-     * @tc.name  : Test the RichEditor WordBreak
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_WORDBREAK_0006
      * @tc.desc  : Update paragraph style to set wordBreak attribute to -1 to test RichEditor WordBreak
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -80,7 +80,7 @@ export default function RichEditorBreak002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_WORDBREAK_0005
-     * @tc.name  : Test the RichEditor WordBreak
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_WORDBREAK_0005
      * @tc.desc  : Update paragraph style to set wordBreak attribute to BREAK_ALL to test RichEditor WordBreak
      * @tc.size: MediumTest
      * @tc.type: Function

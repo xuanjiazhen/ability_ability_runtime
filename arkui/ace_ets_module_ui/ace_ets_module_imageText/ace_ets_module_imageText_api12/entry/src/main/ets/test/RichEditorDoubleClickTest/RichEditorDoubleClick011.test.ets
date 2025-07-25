@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick011() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_016
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_016
      * @tc.desc  : Test the RichEditor doubleClick event by setting different typineStyle for some text in the component and double clicking the text content inside the component with the mouse
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -93,7 +93,7 @@ export default function RichEditorDoubleClick011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_019
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_019
      * @tc.desc  : Test RichEditor doubleClick event by double clicking to trigger onSelect and onSelectionChange events
      * @tc.size: MediumTest
      * @tc.type: Function

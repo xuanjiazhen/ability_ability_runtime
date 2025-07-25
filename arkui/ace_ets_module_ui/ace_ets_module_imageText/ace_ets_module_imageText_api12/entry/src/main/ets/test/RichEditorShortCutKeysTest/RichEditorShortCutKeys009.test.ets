@@ -57,7 +57,7 @@ export default function RichEditorShortCutKeys009() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0015
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0015
      * @tc.desc  : CTRL+B does not affect other font styles to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

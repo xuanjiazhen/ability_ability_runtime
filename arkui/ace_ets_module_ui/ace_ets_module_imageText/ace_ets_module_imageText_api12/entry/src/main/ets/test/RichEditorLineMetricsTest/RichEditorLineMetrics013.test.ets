@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics013() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0018
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0018
      * @tc.desc  : Using getLineMetrics (0), the current line has no content and no preset Placeholder to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange009() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0015
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0015
      * @tc.desc  : When the return value of onWillChange is true, change the typingstyle and enter text between the original spans to test the RichEditor onWillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

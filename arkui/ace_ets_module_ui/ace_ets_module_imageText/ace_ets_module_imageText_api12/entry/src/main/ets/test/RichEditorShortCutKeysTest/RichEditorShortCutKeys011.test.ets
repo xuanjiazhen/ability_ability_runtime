@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0018
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0018
      * @tc.desc  : The font has preset the texture effect, use CTRL+I shortcut key again to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

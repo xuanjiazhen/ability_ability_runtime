@@ -55,7 +55,7 @@ export default function RichEditor022() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0012
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0012
      * @tc.desc  : Select multiple emojis manually/Setselection and press the delete/del key to test RichEditor emojis
      * @tc.size: MediumTest
      * @tc.type: Function

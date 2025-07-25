@@ -56,7 +56,7 @@ export default function RichEditorUxConFormance001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0004
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0004
      * @tc.desc  : Do not set fonts, use decorative line colors to test RichEditor UXConformance
      * @tc.size: MediumTest
      * @tc.type: Function

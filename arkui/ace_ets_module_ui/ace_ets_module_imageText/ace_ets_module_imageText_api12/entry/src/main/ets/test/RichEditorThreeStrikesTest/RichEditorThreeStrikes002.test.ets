@@ -57,7 +57,7 @@ export default function RichEditorThreeStrikes002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0005
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0005
      * @tc.desc  : Include space characters, line breaks, Chinese English Japanese Korean combination text, emojis, imageSpan, builderSpan, symbolSpan three hits to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function

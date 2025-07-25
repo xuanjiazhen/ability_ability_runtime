@@ -56,7 +56,7 @@ export default function RichEditorStringSpan004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0015
-     * @tc.name  : Test the RichEditor StringSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0015
      * @tc.desc  : Test RichEditor StringSpan by clearing the extended span style of images through clearStyles
      * @tc.size: MediumTest
      * @tc.type: Function

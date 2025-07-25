@@ -56,7 +56,7 @@ export default function RichEditorKeyBoard007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_KEYBOARDREINFORCING_0014
-     * @tc.name  : Test the RichEditor Keyboard Status
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_KEYBOARDREINFORCING_0014
      * @tc.desc  : Test RichEditor Text Line by calling onSubmit, keeping it editable, calling stopEditing, and exiting editing
      * @tc.size: MediumTest
      * @tc.type: Function

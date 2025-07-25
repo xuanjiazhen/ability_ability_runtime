@@ -42,7 +42,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0200
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0200
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to Bold, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0210
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0210
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to Medium, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0220
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0220
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to Lighter, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0230
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0230
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to Normal, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -174,7 +174,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0240
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0240
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to 200, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -207,7 +207,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0250
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0250
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to 500, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -240,7 +240,7 @@ export default function TextCommonTextComputing5() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0260
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0260
      * @tc.desc  : Test MeasureTextSize when fontWeight passes to -700, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

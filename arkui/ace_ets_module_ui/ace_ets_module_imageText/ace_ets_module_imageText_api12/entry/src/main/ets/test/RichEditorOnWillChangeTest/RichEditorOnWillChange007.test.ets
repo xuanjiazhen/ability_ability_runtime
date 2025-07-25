@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0026
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0026
      * @tc.desc  : Onwillchange is set to true. Drag text content from other components to the beginning, middle, or end of the rich text component to test RichEditor OnSelectionChange
      * @tc.size: MediumTest
      * @tc.type: Function

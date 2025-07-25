@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick018() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_014
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_014
      * @tc.desc  : Test RichEditor doubleClick event by double clicking different positions on the page with the mouse
      * @tc.size: MediumTest
      * @tc.type: Function

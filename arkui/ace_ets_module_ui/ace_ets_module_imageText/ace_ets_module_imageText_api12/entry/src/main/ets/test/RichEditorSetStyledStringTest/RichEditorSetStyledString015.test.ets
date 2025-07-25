@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0043
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0043
      * @tc.desc  : Verify that attribute strings support setCaret0ffset to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -93,7 +93,7 @@ export default function RichEditorSetStyledString015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0045
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0045
      * @tc.desc  : Verify that attribute strings support setTypingstyle to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -125,7 +125,7 @@ export default function RichEditorSetStyledString015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0044
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0044
      * @tc.desc  : Verify that attribute strings support getTypingStyle to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -156,7 +156,7 @@ export default function RichEditorSetStyledString015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0046
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0046
      * @tc.desc  : Verify that attribute strings support closeSelectionMenu to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

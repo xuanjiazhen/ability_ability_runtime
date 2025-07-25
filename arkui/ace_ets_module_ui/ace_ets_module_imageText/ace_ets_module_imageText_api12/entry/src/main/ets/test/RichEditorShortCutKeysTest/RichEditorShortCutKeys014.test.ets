@@ -57,7 +57,7 @@ export default function RichEditorShortCutKeys014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0022
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0022
      * @tc.desc  : The font has been pre-set with underline effect. Use CTRL+U shortcut key again to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -94,7 +94,7 @@ export default function RichEditorShortCutKeys014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0023
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0023
      * @tc.desc  : CTRL+U does not affect other font styles to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorAttributeStrings005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0031
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0031
      * @tc.desc  : Call the fromStyledString, set the text type attribute -type attribute character string object to test the RichEditor property string display results
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -82,7 +82,7 @@ export default function RichEditorAttributeStrings005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_COPY_PASTE_ATTRIBUTE_STRINGS_0032
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_COPY_PASTE_ATTRIBUTE_STRINGS_0032
      * @tc.desc  : Call the fromStyledString, set the input parameter as the picture type attribute string object to test the RichEditor property string display result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -103,7 +103,7 @@ export default function RichEditorAttributeStrings005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0033
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0033
      * @tc.desc  : Call the fromStyledString, set the reference to the CustomSpan test RichEditor property string display results
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -124,7 +124,7 @@ export default function RichEditorAttributeStrings005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0034
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0034
      * @tc.desc  : Call the fromStyledString, set the input parameters as illegal value test RichEditor property string display results
      * @tc.size: MediumTest
      * @tc.type: Function

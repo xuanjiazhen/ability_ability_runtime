@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0020
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0020
      * @tc.desc  : Call insertString to insert a string after the mixed content of text and text to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

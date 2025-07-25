@@ -56,7 +56,7 @@ export default function RichEditorTextChange015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0001
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0001
      * @tc.desc  : Non editing state to editing state (click to focus) _onEditingChange callback query eisEditing state query to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0024
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0024
      * @tc.desc  : Verify property string support for onSelectionChange to test RichEditor onCopy
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -86,7 +86,7 @@ export default function RichEditorSetStyledString011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0021
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0021
      * @tc.desc  : Verify property string support for onSelectionChange to test RichEditor onpaste
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -106,7 +106,7 @@ export default function RichEditorSetStyledString011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0023
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0023
      * @tc.desc  : Verify property string support for onSelectionChange to test RichEditor onCut
      * @tc.size: MediumTest
      * @tc.type: Function

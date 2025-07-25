@@ -56,7 +56,7 @@ export default function RichEditorScroll001() {
 
     /**
      * @tc.number: SUB_ACE_UI_RICHEDITOR_SCROLL_0010
-     * @tc.name  : Test the RichEditor Scroll
+     * @tc.name  : SUB_ACE_UI_RICHEDITOR_SCROLL_0010
      * @tc.desc  : Set up multiple lines of text and slide the page up and down to test RichEditor Scroll
      * @tc.size: MediumTest
      * @tc.type: Function

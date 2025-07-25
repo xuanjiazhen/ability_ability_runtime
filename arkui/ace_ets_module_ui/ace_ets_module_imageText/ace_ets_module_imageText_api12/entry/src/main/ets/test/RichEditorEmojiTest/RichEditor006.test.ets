@@ -56,7 +56,7 @@ export default function RichEditor006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0009
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0009
      * @tc.desc  : Test RichEditor Emojis by using symbols before and after the emoji, and the delete button cannot delete the emoji behind the cursor
      * @tc.size: MediumTest
      * @tc.type: Function

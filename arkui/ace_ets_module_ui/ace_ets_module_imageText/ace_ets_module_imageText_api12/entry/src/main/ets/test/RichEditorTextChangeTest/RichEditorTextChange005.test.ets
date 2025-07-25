@@ -56,7 +56,7 @@ export default function RichEditorTextChange005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0012
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0012
      * @tc.desc  : Rich Text External Interaction (Click on Component External Button) _onEditingChang callback query eisEditing status query to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

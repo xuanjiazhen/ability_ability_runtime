@@ -56,7 +56,7 @@ export default function RichEditorQueryLayout017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0003
-     * @tc.name  : Test the RichEditor query for paragraphStyle and layoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0003
      * @tc.desc  : Test RichEditor query for paragraphStyle and layoutStyle with textAlign attribute value of End and leadingMargin attribute of Dimension type in paragraphStyle
      * @tc.size: MediumTest
      * @tc.type: Function

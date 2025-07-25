@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0013
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0013
      * @tc.desc  : The font has been pre-set with bold (Fontweight. Bold) effect. Use CTRL+B to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

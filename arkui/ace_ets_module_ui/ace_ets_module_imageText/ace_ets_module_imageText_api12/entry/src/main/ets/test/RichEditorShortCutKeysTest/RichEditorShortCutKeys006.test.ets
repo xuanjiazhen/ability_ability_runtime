@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0012
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0012
      * @tc.desc  : After setting bold, use CTRL+B to restore partially selected text to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

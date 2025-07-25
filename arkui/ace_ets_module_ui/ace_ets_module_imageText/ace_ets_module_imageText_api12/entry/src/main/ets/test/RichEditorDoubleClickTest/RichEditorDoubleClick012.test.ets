@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick012() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_017
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_017
      * @tc.desc  : Set careColor through component settings selectBackgroundColor, Double click with the left mouse button after entering text to test the RichEditor doubleClick event
      * @tc.size: MediumTest
      * @tc.type: Function

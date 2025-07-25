@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0027
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0027
      * @tc.desc  : Test RichEditor Custom Span by binding long press events with Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -89,7 +89,7 @@ export default function RichEditorCustomSpan017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0028
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0028
      * @tc.desc  : Test RichEditor Custom Span by binding click events with Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function

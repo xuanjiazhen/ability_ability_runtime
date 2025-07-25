@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0060
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0060
      * @tc.desc  : Test RichEditor OnSelectionChange by changing the cursor position using the setCareOffset method
      * @tc.size: MediumTest
      * @tc.type: Function

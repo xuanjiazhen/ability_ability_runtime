@@ -56,7 +56,7 @@ export default function RichEditorAttributeStrings006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0035
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0035
      * @tc.desc  : Call the toStyledString, set the Range test of the RANGE test of the span -containing SPAN
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -82,7 +82,7 @@ export default function RichEditorAttributeStrings006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0036
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0036
      * @tc.desc  : Call the toStyledString, set the Range test of the RANGE test of the span without SPAN
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -103,7 +103,7 @@ export default function RichEditorAttributeStrings006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0037
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0037
      * @tc.desc  : Call the toStyledString, set the parameters as [-1, -1] and [-1,0] test the RichEditor property string display result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -131,7 +131,7 @@ export default function RichEditorAttributeStrings006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0038
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0038
      * @tc.desc  : Call the toStyledString, set the parameters as [-100,100] test the RichEditor property string display result
      * @tc.size: MediumTest
      * @tc.type: Function

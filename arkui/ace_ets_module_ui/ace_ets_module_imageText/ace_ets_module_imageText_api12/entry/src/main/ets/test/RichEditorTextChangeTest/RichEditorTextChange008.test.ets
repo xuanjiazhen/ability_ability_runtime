@@ -56,7 +56,7 @@ export default function RichEditorTextChange008() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0008
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0008
      * @tc.desc  : From editing mode to non editing mode (actively folding the soft keyboard) _onEditingChange callback query aisEditing status query to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

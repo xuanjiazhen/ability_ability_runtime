@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick006() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_006
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_006
      * @tc.desc  : Test the RichEditor doubleClick event by double clicking on the symbolSpan displayed on one line
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorUxConFormance005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002
      * @tc.desc  : Set font size to 0 to test RichEditor UXConformance
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -83,7 +83,7 @@ export default function RichEditorUxConFormance005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003
      * @tc.desc  : Set negative font size to test RichEditor UXCorrormance
      * @tc.size: MediumTest
      * @tc.type: Function

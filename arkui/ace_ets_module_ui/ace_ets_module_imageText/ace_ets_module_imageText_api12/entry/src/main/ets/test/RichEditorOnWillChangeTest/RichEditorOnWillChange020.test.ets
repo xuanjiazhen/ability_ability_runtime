@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange020() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0006
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0006
      * @tc.desc  : Soft/hard (BackSpace, delete) keyboard to delete some text to test RichEditor on WillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

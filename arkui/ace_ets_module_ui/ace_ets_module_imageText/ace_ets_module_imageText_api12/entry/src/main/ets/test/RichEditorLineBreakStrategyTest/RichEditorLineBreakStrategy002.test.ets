@@ -56,7 +56,7 @@ export default function RichEditorLineBreakStrategy002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEBREAKSTRATEGY_0002
-     * @tc.name  : Test the RichEditor LineBreakStrategy
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEBREAKSTRATEGY_0002
      * @tc.desc  : Add textSpan and set LineBreakStrategy to BALANCED to obtain the LineBreakStrategy attribute value for testing RichEditor LayoutStyle
      * @tc.size: MediumTest
      * @tc.type: Function

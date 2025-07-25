@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0008
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0008
      * @tc.desc  : By using getLineMetrics, the correct row height can be obtained to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -83,7 +83,7 @@ export default function RichEditorLineMetrics004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0009
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0009
      * @tc.desc  : By using getLineMetrics, the correct line numbers can be obtained to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function

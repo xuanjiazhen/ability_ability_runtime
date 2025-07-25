@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick017() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_024
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_024
      * @tc.desc  : Double click AI recognition test using mouse gesture analogy: address, three word word, phone number to test RichEditor doubleClick event
      * @tc.size: MediumTest
      * @tc.type: Function

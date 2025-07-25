@@ -56,7 +56,7 @@ export default function RichEditorPlaceHolder001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PLACEHOLDER_0022
-     * @tc.name  : Test the RichEditor PlaceHolder
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PLACEHOLDER_0022
      * @tc.desc  : Set the font size of the placeholder to test RichEditor PlaceHolder
      * @tc.size: MediumTest
      * @tc.type: Function

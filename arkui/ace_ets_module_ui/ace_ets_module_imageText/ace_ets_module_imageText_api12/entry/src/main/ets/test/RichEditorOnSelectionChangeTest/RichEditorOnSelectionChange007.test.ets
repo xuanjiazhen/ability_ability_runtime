@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0210
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0210
      * @tc.desc  : Test RichEditor OnSelectionChange by clicking Copy in the pop-up menu
      * @tc.size: MediumTest
      * @tc.type: Function

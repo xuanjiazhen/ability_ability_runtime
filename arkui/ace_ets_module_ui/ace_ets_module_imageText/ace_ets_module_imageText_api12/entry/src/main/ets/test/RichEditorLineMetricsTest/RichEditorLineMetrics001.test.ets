@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0001
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0001
      * @tc.desc  : Test RichEditor LineMetrics by passing parameter 0 through getLineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -84,7 +84,7 @@ export default function RichEditorLineMetrics001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0006
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0006
      * @tc.desc  : By using getLineMetrics, the correct start and end indexes can be obtained for testing RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -107,7 +107,7 @@ export default function RichEditorLineMetrics001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0007
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0007
      * @tc.desc  : By using getLineMetrics, it is possible to obtain correct parameter information such as text ascending height and text descending height to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function

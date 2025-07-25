@@ -42,7 +42,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0570
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0570
      * @tc.desc  : Test MeasureTextSize when wordBreak passes to WordBreak.BREAK_ALL, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0580
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0580
      * @tc.desc  : Test MeasureTextSize when wordBreak passes to WordBreak.NORMAL, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0590
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0590
      * @tc.desc  : Test MeasureTextSize when wordBreak passes to WordBreak.BREAK_WORD, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0600
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0600
      * @tc.desc  : Test MeasureTextSize when wordBreak does not pass on value, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -171,7 +171,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0610
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0610
      * @tc.desc  : Test MeasureTextSize when textIndent passes to 5%, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -204,7 +204,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0620
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0620
      * @tc.desc  : Test MeasureTextSize when textIndent passes to -10, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -237,7 +237,7 @@ export default function TextCommonTextComputing9() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0630
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0630
      * @tc.desc  : Test MeasureTextSize when textIndent passes to 100, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

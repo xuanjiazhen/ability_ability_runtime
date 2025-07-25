@@ -57,7 +57,7 @@ export default function RichEditorDoubleClick008() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_008
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_008
      * @tc.desc  : Test RichEditor doubleClick event by double clicking on emoji expressions
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -55,7 +55,7 @@ export default function RichEditorPreventDefault006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PREVENTDEFAULT_0007
-     * @tc.name  : Test the RichEditor PreventDefault
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_PREVENTDEFAULT_0007
      * @tc.desc  : In addition, set the onClick event at the component layer and call preventDefault to test RichEditor PreventDefault
      * @tc.size: MediumTest
      * @tc.type: Function

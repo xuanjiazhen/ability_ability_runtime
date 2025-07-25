@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0011
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0011
      * @tc.desc  : To test the RichEditor on WillChange callback, undo the operation of cutting a piece of content and then pasting it
      * @tc.size: MediumTest
      * @tc.type: Function

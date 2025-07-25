@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange013() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0018
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0018
      * @tc.desc  : Interface deleteSpan removes content from multiple spans to test RichEditor on WillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

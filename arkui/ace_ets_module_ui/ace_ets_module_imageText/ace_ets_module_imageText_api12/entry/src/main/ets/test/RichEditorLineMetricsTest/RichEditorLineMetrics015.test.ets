@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0020
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0020
      * @tc.desc  : By using getLineMetrics (0)+getLineMetrics (1), support input content of 2 or more lines to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function

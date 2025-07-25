@@ -56,7 +56,7 @@ export default function RichEditor016() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0006
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0006
      * @tc.desc  : Test RichEditor Emojis by delete a single emoji after the cursor using the delete key
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -93,7 +93,7 @@ export default function RichEditor016() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0001
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0001
      * @tc.desc  : By using the delete key, you can delete a single emoji in front of the cursor to test the RichEditor emoji
      * @tc.size: MediumTest
      * @tc.type: Function

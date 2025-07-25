@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0230
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0230
      * @tc.desc  : Test RichEditor OnSelection Change by calling deleteSpan method to delete text
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -89,7 +89,7 @@ export default function RichEditorOnSelectionChange017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0010
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0010
      * @tc.desc  : Test RichEditor OnSelectionChange by entering text to change cursor position
      * @tc.size: MediumTest
      * @tc.type: Function

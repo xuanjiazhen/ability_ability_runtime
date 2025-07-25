@@ -56,7 +56,7 @@ export default function RichEditorLayoutStyle001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LAYOUTSTYLE_0100
-     * @tc.name  : Test the RichEditor LayoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LAYOUTSTYLE_0100
      * @tc.desc  : Test RichEditor LayoutStyle by not setting the margin value
      * @tc.size: MediumTest
      * @tc.type: Function

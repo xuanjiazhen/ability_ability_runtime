@@ -57,7 +57,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0052
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0052
      * @tc.desc  : Validate the fontColor attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -83,7 +83,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0053
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0053
      * @tc.desc  : Validate the fontSize attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -101,7 +101,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0054
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0054
      * @tc.desc  : Validate the fontStyle attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -119,7 +119,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0055
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0055
      * @tc.desc  : Validate the fontWeight attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

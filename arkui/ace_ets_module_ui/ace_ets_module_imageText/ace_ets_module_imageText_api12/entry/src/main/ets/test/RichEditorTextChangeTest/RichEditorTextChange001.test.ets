@@ -56,7 +56,7 @@ export default function RichEditorTextChange001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0015
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0015
      * @tc.desc  : When the enabled attribute is false, check if it enters editing mode to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

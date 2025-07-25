@@ -57,7 +57,7 @@ export default function RichEditorThreeStrikes005() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0013
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0013
      * @tc.desc  : Three click support for onSolutionChange callback to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -91,7 +91,7 @@ export default function RichEditorThreeStrikes005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0014
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0014
      * @tc.desc  : Three click support for onSelect callback to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function

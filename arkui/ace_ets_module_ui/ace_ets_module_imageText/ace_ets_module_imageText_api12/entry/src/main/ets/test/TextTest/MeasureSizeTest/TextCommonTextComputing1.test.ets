@@ -42,7 +42,7 @@ export default function TextCommonTextComputing1() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0010
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0010
      * @tc.desc  : Test the MeasureTextSize function when the textContent is presented in Chinese, and view the return width/size result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing1() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0020
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0020
      * @tc.desc  : Test the MeasureTextSize function when the textContent is presented in Chinese and English, and view the return width/size result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing1() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0030
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0030
      * @tc.desc  : Test the MeasureTextSize function When the textContent vote is Chinese, Japanese, and Korean mixed English, and view the return width/size result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing1() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0040
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0040
      * @tc.desc  : Test the MeasureTextSize function When the textContent is Chinese+special symbols, and view the return width/size result
      * @tc.size: MediumTest
      * @tc.type: Function

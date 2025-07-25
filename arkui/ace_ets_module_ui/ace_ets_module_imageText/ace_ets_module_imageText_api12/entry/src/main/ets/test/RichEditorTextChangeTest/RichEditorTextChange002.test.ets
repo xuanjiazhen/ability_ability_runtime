@@ -56,7 +56,7 @@ export default function RichEditorTextChange002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0014
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0014
      * @tc.desc  : Check whether to enter editing mode to test RichEditor TextChange when the focal property is false
      * @tc.size: MediumTest
      * @tc.type: Function

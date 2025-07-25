@@ -56,7 +56,7 @@ export default function RichEditorTransformation002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_003
-     * @tc.name  : Test the RichEditor AffineTransformation
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_003
      * @tc.desc  : Set a single handle test with counterclockwise rotation to test RichEditor AffineTransformation
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -80,7 +80,7 @@ export default function RichEditorTransformation002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_004
-     * @tc.name  : Test the RichEditor AffineTransformation
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_004
      * @tc.desc  : Set up counterclockwise rotation of the dual handle test to test RichEditor AffineTransformation
      * @tc.size: MediumTest
      * @tc.type: Function

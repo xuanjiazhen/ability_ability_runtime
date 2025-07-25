@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys023() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0035
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0035
      * @tc.desc  : Shortcut keys Ctrl+↑ go to the beginning of the paragraph to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -93,7 +93,7 @@ export default function RichEditorShortCutKeys023() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0036
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0036
      * @tc.desc  : Shortcut keys Ctrl+↓ go to the end of the paragraph to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

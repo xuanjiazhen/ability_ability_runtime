@@ -57,7 +57,7 @@ export default function RichEditorThreeStrikes007() {
     
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0017
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0017
      * @tc.desc  : Three clicks after line breaks to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function

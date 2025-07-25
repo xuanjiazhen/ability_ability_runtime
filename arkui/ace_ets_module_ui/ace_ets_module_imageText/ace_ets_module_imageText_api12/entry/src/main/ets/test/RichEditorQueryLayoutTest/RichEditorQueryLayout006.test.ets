@@ -56,7 +56,7 @@ export default function RichEditorQueryLayout006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0015
-     * @tc.name  : Test the RichEditor query for paragraphStyle and layoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0015
      * @tc.desc  : RichEditor supports querying borderRadius as resource type and margin as resource type in layoutStyle to test RichEditor query for paragraphStyle and layoutStyle
      * @tc.size: MediumTest
      * @tc.type: Function

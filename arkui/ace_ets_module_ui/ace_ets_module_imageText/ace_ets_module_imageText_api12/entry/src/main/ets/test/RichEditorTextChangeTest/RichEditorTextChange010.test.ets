@@ -56,7 +56,7 @@ export default function RichEditorTextChange010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0007
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0007
      * @tc.desc  : Edit state to non edit state (click outside the component to defocuse) _onEditingChange callback query tisEditing state query to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

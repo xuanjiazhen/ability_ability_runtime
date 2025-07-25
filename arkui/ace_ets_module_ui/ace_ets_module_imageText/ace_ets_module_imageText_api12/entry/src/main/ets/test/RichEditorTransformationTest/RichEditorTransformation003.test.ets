@@ -56,7 +56,7 @@ export default function RichEditorTransformation003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_005
-     * @tc.name  : Test the RichEditor AffineTransformation
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_005
      * @tc.desc  : When there is non textual content in the component, the scaling, translation, and rotation properties set still take effect to test RichEditor AffineTransformation
      * @tc.size: MediumTest
      * @tc.type: Function

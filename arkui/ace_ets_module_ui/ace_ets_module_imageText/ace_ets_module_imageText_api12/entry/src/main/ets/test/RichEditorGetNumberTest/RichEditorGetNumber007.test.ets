@@ -56,7 +56,7 @@ export default function RichEditorGetNumber007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0007
-     * @tc.name  : Test the RichEditor Text Line
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0007
      * @tc.desc  : Test RichEditor Text Line by inputting text content and then deleting some text content
      * @tc.size: MediumTest
      * @tc.type: Function

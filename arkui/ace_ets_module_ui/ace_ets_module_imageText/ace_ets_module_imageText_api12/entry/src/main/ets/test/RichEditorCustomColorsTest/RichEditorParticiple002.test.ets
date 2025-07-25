@@ -57,7 +57,7 @@ export default function RichEditorParticiple002() {
     
     /**
      * @tc.number: SUB_ACE_UI_AI_PARTICIPLE_0060
-     * @tc.name  : Test the RichEditor content Click the result
+     * @tc.name  : SUB_ACE_UI_AI_PARTICIPLE_0060
      * @tc.desc  : Set the RichEditor hybrid text and click text to test the RichEditor content click the result
      * @tc.size: MediumTest
      * @tc.type: Function

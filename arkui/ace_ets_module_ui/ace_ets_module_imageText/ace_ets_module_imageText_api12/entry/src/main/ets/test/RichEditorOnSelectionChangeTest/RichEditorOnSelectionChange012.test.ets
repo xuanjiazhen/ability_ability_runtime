@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange012() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0030
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0030
      * @tc.desc  : Test RichEditor OnSelectionChange by hot callback after pasting text
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_SHORTKCUTKEYS_0250
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_SHORTKCUTKEYS_0250
      * @tc.desc  : Mouse cutting text+shortcut key pasting to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

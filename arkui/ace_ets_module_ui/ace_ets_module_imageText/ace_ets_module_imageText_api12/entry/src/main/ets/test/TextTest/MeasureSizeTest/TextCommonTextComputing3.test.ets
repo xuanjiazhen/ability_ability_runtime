@@ -42,7 +42,7 @@ export default function TextCommonTextComputing3() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0110
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0110
      * @tc.desc  : Test MeasureTextSize when fontSize passes to 20fp, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing3() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0120
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0120
      * @tc.desc  : Test MeasureTextSize when fontSize passes to $-30, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing3() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0130
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0130
      * @tc.desc  : Test MeasureTextSize when fontSize passes to -10, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing3() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0140
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0140
      * @tc.desc  : Test MeasureTextSize when fontSize passes to calc(20%-20px), view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -174,7 +174,7 @@ export default function TextCommonTextComputing3() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0150
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0150
      * @tc.desc  : Test MeasureTextSize when fontSize passes to 50%, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0017
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0017
      * @tc.desc  : Call all styles of the ClearStyles property string object to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

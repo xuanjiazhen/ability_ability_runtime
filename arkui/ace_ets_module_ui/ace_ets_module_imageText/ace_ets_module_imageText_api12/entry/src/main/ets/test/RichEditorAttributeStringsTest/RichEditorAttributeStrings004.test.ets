@@ -56,7 +56,7 @@ export default function RichEditorAttributeStrings004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0010
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0010
      * @tc.desc  : Test the results of the RichEditor Properties Strings from the two non -attribute string components.
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorAttributeStrings001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0002
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0002
      * @tc.desc  : Test the content display results before and after the attribute string component paste the attribute string to the non -attribute string component
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -93,7 +93,7 @@ export default function RichEditorAttributeStrings001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0024
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0024
      * @tc.desc  : Test the RichEditor Properties Strings display results at the cursor
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -124,7 +124,7 @@ export default function RichEditorAttributeStrings001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0026
-     * @tc.name  : Test the RichEditor Attribute string
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_COPY_PASTE_ATTRIBUTE_STRINGS_0026
      * @tc.desc  : Paste the RichEditor property string display result after the selection
      * @tc.size: MediumTest
      * @tc.type: Function

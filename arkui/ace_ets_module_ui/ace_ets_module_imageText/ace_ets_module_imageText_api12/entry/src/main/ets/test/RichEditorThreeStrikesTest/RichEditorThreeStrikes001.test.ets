@@ -57,7 +57,7 @@ export default function RichEditorThreeStrikes001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0006
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0006
      * @tc.desc  : Three strikes without focus to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -87,7 +87,7 @@ export default function RichEditorThreeStrikes001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0002
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0002
      * @tc.desc  : Three clicks on multiple lines of text to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -142,7 +142,7 @@ export default function RichEditorThreeStrikes001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0007
-     * @tc.name  : Test the RichEditor ThreeStrikes
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_THREESTRIKES_0007
      * @tc.desc  : Three clicks with a single cursor to test RichEditor ThreeStripes
      * @tc.size: MediumTest
      * @tc.type: Function

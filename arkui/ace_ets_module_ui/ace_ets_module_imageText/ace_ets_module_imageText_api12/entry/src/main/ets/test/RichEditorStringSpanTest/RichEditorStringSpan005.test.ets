@@ -56,7 +56,7 @@ export default function RichEditorStringSpan005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0018
-     * @tc.name  : Test the RichEditor StringSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_stringspan_0018
      * @tc.desc  : Test RichEditor StringSpan by adding a new text/image attribute string at the end using appendStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

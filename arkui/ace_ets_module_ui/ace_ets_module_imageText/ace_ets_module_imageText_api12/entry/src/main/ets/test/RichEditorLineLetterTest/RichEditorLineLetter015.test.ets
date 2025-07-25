@@ -56,7 +56,7 @@ export default function RichEditorLineLetter015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEHEIGHT_LETTERSPACING_0009
-     * @tc.name  : Test the RichEditor LineHeight and LetterSpacing
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEHEIGHT_LETTERSPACING_0009
      * @tc.desc  : Test RichEditor LineHeight and LetterSpacing by setting lineHeight and LetterSpacing values to undefined for plain text content
      * @tc.size: MediumTest
      * @tc.type: Function

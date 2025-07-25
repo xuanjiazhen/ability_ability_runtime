@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0030
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0030
      * @tc.desc  : Use Ctrl+I/B/U shortcut keys and then CTR+x/c/v to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

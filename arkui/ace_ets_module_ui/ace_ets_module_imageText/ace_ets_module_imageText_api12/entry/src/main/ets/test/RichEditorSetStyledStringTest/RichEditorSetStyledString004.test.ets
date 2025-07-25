@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0011
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0011
      * @tc.desc  : SubStyledString retrieves the substring of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -91,7 +91,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0012
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0012
      * @tc.desc  : Call getString to get the length of the property string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -119,7 +119,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0051
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0051
      * @tc.desc  : Call appendStyledString to append a new attribute string to the end of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorQueryLayout010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0007
-     * @tc.name  : Test the RichEditor query for paragraphStyle and layoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0007
      * @tc.desc  : The leadindMargin property in paragraphStyle is of the LeadinglargenFlaceholder pixel type to test the RichEditor query for paragraphStyle and layoutStyle
      * @tc.size: MediumTest
      * @tc.type: Function

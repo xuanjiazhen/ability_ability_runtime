@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0007
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0007
      * @tc.desc  : Revoke deleted text content and then restore to test RichEditor on WillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

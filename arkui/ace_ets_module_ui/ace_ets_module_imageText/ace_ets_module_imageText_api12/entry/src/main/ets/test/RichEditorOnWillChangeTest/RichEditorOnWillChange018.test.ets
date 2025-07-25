@@ -56,7 +56,7 @@ export default function RichEditorOnWillChange018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0012
-     * @tc.name  : Test the RichEditor onWillChange callback
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0012
      * @tc.desc  : When disabling cutting, select a piece of text for cutting to test RichEditor on WillChange callback
      * @tc.size: MediumTest
      * @tc.type: Function

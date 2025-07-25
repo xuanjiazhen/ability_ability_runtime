@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0001
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0001
      * @tc.desc  : CustomSpan sets width = 20, height = 80 to test the RichEditor CustomSpan
      * @tc.size: MediumTest
      * @tc.type: Function

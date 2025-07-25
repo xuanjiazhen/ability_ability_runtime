@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics022() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0027
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0027
      * @tc.desc  : Test RichEditor LineMetrics by calling getLineMetrics in onIMEInputConplete and onDeleteConplete text change callbacks
      * @tc.size: MediumTest
      * @tc.type: Function

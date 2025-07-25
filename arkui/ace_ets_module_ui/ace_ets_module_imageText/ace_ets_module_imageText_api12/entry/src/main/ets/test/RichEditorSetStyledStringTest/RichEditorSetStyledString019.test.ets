@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString019() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0062
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0062
      * @tc.desc  : Validate the textAlign attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -82,7 +82,7 @@ export default function RichEditorSetStyledString019() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0063
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0063
      * @tc.desc  : Validate the textIndent attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -100,7 +100,7 @@ export default function RichEditorSetStyledString019() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0071
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0071
      * @tc.desc  : Verify that the attribute string supports the onEditingChange event to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0001
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0001
      * @tc.desc  : Single line text, HOME (Fn+left arrow) Move the cursor to the beginning of the line to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -86,7 +86,7 @@ export default function RichEditorShortCutKeys002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0003
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0003
      * @tc.desc  : Single line text, END (Fn+right arrow) cursor moved to the end of the line to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

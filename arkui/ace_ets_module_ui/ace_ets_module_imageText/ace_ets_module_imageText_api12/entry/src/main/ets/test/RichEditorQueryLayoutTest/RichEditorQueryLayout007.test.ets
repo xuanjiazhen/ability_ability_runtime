@@ -56,7 +56,7 @@ export default function RichEditorQueryLayout007() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0018
-     * @tc.name  : Test the RichEditor query for paragraphStyle and layoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_QUERYLAYOUTPARAGRAPHSTYLE_0018
      * @tc.desc  : RichEditor supports querying borderRadius and margin as outliers in layoutStyle to test RichEditor's query for paragraphStyle and layoutStyle
      * @tc.size: MediumTest
      * @tc.type: Function

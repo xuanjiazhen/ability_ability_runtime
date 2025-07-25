@@ -56,7 +56,7 @@ export default function RichEditor002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0020
-     * @tc.name  : Test the RichEditor doubleClick event
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_EMOJI_0020
      * @tc.desc  : The del key can be used to delete line breaks and test RichEditor emojis in front of the cursor
      * @tc.size: MediumTest
      * @tc.type: Function

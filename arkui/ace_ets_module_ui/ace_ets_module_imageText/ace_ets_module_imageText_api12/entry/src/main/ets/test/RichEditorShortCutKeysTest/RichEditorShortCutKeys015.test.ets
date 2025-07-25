@@ -56,7 +56,7 @@ export default function RichEditorShortCutKeys015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0024
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0024
      * @tc.desc  : Set the up and through lines, use CTRL+U shortcut keys to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

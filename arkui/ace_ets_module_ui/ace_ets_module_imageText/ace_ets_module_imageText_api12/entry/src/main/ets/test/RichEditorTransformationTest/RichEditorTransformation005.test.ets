@@ -56,7 +56,7 @@ export default function RichEditorTransformation005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_010
-     * @tc.name  : Test the RichEditor AffineTransformation
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_AffineTransformation_010
      * @tc.desc  : Verify whether it is possible to cut and paste RichEditor AffineTransformation properly after setting the zoom/pan/rotate attributes
      * @tc.size: MediumTest
      * @tc.type: Function

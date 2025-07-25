@@ -56,7 +56,7 @@ export default function RichEditorTextChange011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0006
-     * @tc.name  : Test the RichEditor TextChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_TEXTCHANGE_0006
      * @tc.desc  : From editing state to non editing state (call stopEditing) _onEditingChange callback query isEditing state query to test RichEditor TextChange
      * @tc.size: MediumTest
      * @tc.type: Function

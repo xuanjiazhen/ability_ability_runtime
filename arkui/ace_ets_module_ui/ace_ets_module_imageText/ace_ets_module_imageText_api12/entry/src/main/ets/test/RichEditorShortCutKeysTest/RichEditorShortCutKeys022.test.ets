@@ -57,7 +57,7 @@ export default function RichEditorShortCutKeys022() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0034
-     * @tc.name  : Test the RichEditor shortCutKeys
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDIT0R_SHORTCUTKEYS_0034
      * @tc.desc  : Use Ctrl+I/B/U to call getSpan and getSelection to obtain span style to test RichEditor shortCutKeys
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0011
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0011
      * @tc.desc  : Using getLineMetrics (1), there are multiple imagespans, and automatic line wrapping is used to test RichEditor LineMetrics
      * @tc.size: MediumTest
      * @tc.type: Function

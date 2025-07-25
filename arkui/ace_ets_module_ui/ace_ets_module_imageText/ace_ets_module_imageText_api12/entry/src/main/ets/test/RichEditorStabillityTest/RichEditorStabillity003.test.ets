@@ -56,7 +56,7 @@ export default function RichEditorStabillity003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0004
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0004
      * @tc.desc  : Continuously click on RichEditor to test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -118,7 +118,7 @@ export default function RichEditorStabillity003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0005
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0005
      * @tc.desc  : Double click RichEditor continuously to test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -180,7 +180,7 @@ export default function RichEditorStabillity003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0006
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0006
      * @tc.desc  : Three consecutive clicks on RichEditor to test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -229,7 +229,7 @@ export default function RichEditorStabillity003() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0014
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0014
      * @tc.desc  : Double click RichEditor continuously with the mouse to test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function

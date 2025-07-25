@@ -57,7 +57,7 @@ export default function RichEditorStabillity002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0002
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0002
      * @tc.desc  : Continuously use Ctrl+V shortcut keys to paste and test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function RichEditorStabillity002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0003
-     * @tc.name  : Test the RichEditor Stability
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_STABILLITY_0003
      * @tc.desc  : Continuously calling updateSpanStyle to update styles to test RichEditor Stability
      * @tc.size: MediumTest
      * @tc.type: Function

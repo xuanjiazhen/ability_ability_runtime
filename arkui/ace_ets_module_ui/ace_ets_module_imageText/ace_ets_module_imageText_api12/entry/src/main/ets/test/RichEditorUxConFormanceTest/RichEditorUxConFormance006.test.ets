@@ -56,7 +56,7 @@ export default function RichEditorUxConFormance006() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0010
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0010
      * @tc.desc  : Validate paragraph attributes to test RichEditor UXConformance
      * @tc.size: MediumTest
      * @tc.type: Function

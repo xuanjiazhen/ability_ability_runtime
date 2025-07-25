@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0024
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0024
      * @tc.desc  : Test RichEditor's Custom Span by inserting a property string with Custom Span to the specified location using insertStyledString()
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -89,7 +89,7 @@ export default function RichEditorCustomSpan015() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0025
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0025
      * @tc.desc  : Test RichEditor's Custom Span by adding a Custom Span to the end of appendStyles String()
      * @tc.size: MediumTest
      * @tc.type: Function

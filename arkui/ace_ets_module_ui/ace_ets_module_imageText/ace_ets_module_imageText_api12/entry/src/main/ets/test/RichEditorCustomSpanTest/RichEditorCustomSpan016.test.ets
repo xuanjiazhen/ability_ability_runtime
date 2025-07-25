@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan016() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0026
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0026
      * @tc.desc  : Test RichEditor Custom Span by selecting Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -85,7 +85,7 @@ export default function RichEditorCustomSpan016() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0029
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0029
      * @tc.desc  : Testing RichEditor's Custom Span with Copy Paste Not Supported by Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan008() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0012
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0012
      * @tc.desc  : Add Customspan, RemoveString () Remove the string within the specified range to test the RichEditor CustomSpan
      * @tc.size: MediumTest
      * @tc.type: Function

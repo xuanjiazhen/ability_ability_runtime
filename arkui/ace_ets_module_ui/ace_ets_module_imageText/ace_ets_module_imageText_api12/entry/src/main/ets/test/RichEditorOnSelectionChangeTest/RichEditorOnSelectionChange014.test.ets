@@ -56,7 +56,7 @@ export default function RichEditorOnSelectionChange014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0130
-     * @tc.name  : Test the RichEditor OnSelectionChange
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONSELECTIONCHANGE_0130
      * @tc.desc  : Test RichEditor OnSelection Change by defocusing the component after obtaining focus
      * @tc.size: MediumTest
      * @tc.type: Function
