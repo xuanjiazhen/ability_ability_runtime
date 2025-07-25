@@ -682,8 +682,8 @@ export default function abilityTest() {
 
     /* *
      * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_TOGGLEFAVORITE_3400
-     * @tc.name      : on(taggleFavorite) with avsession does not exit(errcode 6600102)
-     * @tc.desc      : test on(taggleFavorite) errcode 6600102
+     * @tc.name      : on(toggleFavorite) with avsession does not exit(errcode 6600102)
+     * @tc.desc      : test on(toggleFavorite) errcode 6600102
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -706,7 +706,7 @@ export default function abilityTest() {
     })
 
     /* *
-     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_3500
+     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_3500
      * @tc.name      : off(toggleFavorite) with avsession does not exit(errcode 6600102)
      * @tc.desc      : test off(toggleFavorite) errcode 6600102
      * @tc.size      : MediumTest
@@ -3016,16 +3016,16 @@ export default function abilityTest() {
     })
 
    /* *
-    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
-    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
-    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300
+    * @tc.desc      : Testing off(toggleFavorite) errcode 6600101
     * @tc.size      : MediumTest
     * @tc.type      : Function
     * @tc.level     : Level 3
     */
-    it('SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       try{
-        await session.off('taggleFavorite')
+        await session.off('toggleFavorite')
       }catch(err){
         console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
         expect(err.code).assertEqual(6600101);
@@ -3037,7 +3037,7 @@ export default function abilityTest() {
    /* *
     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
-    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.desc      : Testing off(toggleFavorite) errcode 6600101
     * @tc.size      : MediumTest
     * @tc.type      : Function
     * @tc.level     : Level 3
