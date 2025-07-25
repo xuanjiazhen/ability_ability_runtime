@@ -27,6 +27,10 @@
     {
       "name": "MyUIAbility_label",
       "value": "label"
+    },
+    {
+      "name": "test",
+      "value": "test"
     }
   ]
 }
