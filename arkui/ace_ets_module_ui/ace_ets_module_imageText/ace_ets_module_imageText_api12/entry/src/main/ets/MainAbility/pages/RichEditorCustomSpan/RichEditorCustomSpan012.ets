@@ -82,26 +82,26 @@ struct RichEditorCustomSpan012 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('image_top')
+      }).id('image_top').height('5%')
       Button('removeStyle').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.removeStyle(6, 5, StyledStringKey.FONT);
         this.controller.setStyledString(this.richEditorStyledString);
-      }).id('removeStyle')
+      }).id('removeStyle').height('5%')
 
       Button('removeStyleAll').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.removeStyles(0, 6);
         this.controller.setStyledString(this.richEditorStyledString);
-      }).id('removeStyleAll')
+      }).id('removeStyleAll').height('5%')
 
       Button('getStylesAll').onClick(() => {
         this.stylesInfo = JSON.stringify(this.richEditorStyledString.getStyles(0 , 6));
-      }).id('getStylesAll')
+      }).id('getStylesAll').height('5%')
 
       Button('getStyles').onClick(() => {
         this.stylesInfo = JSON.stringify(this.richEditorStyledString.getStyles(6 , 5));
-      }).id('getStyles')
+      }).id('getStyles').height('5%')
 
       Text('stylesInfo:' + this.stylesInfo).id('stylesInfo')
 
@@ -121,14 +121,14 @@ struct RichEditorCustomSpan012 {
             this.richEditorStyledString.appendStyledString(this.styledString);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('add_text')
+          }).id('add_text').height('5%')
 
           Button('add custom').onClick(() => {
             this.richEditorStyledString = this.controller.getStyledString();
             this.richEditorStyledString.appendStyledString(this.style1);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('addCustom')
+          }).id('addCustom').height('5%')
         }
 
       }

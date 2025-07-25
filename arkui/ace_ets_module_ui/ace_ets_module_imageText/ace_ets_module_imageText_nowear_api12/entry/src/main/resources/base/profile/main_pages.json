@@ -226,5 +226,30 @@
   "MainAbility/pages/RichEditorDoubleClick/RichEditorDoubleClick018",
   "MainAbility/pages/RichEditorDoubleClick/RichEditorDoubleClick019",
   "MainAbility/pages/RichEditorScroll/RichEditorScroll001",
+
+  "MainAbility/pages/RichEditorCustomColors/RichEditorCustomColors001",
+  "MainAbility/pages/RichEditorCustomColors/RichEditorInterFace001",
+  "MainAbility/pages/RichEditorCustomColors/RichEditorAction001",
+  "MainAbility/pages/RichEditorCustomColors/RichEditorParticiple002",
+  "MainAbility/pages/RichEditorLineLetter/RichEditorLineLetter002",
+  "MainAbility/pages/RichEditorLineLetter/RichEditorLineLetter003",
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics011",
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics012",
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics021",
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics022",
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics023",
+
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString011",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString012",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString013",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString014",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString015",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString016",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString019",
+  "MainAbility/pages/RichEditorSetStyledString/RichEditorSetStyledString020",
+
+  "MainAbility/pages/RichEditorGetNumber/RichEditorGetNumber003",
+  "MainAbility/pages/RichEditorGetNumber/RichEditorGetNumber007",
+  "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan016"
   ]
 }

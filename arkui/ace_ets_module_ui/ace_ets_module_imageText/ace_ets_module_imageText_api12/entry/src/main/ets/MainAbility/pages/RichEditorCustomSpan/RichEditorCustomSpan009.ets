@@ -80,12 +80,12 @@ struct RichEditorCustomSpan009 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('imageTop')
+      }).id('imageTop').height('5%')
 
       Button('get content').onClick(() => {
         let richEditorStyledString = this.controller.getStyledString();
         this.length = richEditorStyledString.getString().length + '';
-      }).id('getContent')
+      }).id('getContent').height('5%')
       Button('getStyles')
         .onClick(() => {
           let richEditorStyledString = this.controller.getStyledString();
@@ -98,13 +98,13 @@ struct RichEditorCustomSpan009 {
             }
           }
         })
-        .id('getStyles')
+        .id('getStyles').height('5%')
       Button('removeString').onClick(() => {
         let richEditorStyledString = this.controller.getStyledString();
         richEditorStyledString.removeString(4, 1);
         richEditorStyledString.removeString(2, 2);
         this.controller.setStyledString(richEditorStyledString);
-      }).id('removeString')
+      }).id('removeString').height('5%')
 
       Button('replaceStyle').onClick(() => {
         let richEditorStyledString = this.controller.getStyledString();
@@ -121,7 +121,7 @@ struct RichEditorCustomSpan009 {
           styledValue: this.customSpan2
         });
         this.controller.setStyledString(richEditorStyledString);
-      }).id('replaceStyle')
+      }).id('replaceStyle').height('5%')
 
       Text('length:' + this.length).id('length')
       Text('stylesInfo:' + this.stylesInfo).id('stylesInfo')
@@ -142,7 +142,7 @@ struct RichEditorCustomSpan009 {
             this.richEditorStyledString.appendStyledString(this.style1);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('addCustom')
+          }).id('addCustom').height('5%')
         }
 
       }

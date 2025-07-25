@@ -157,49 +157,18 @@ import TextInputXtsJsunit from './xts/TextInputXtsJsunit.test'
 import spanTest from './spanTest/SpanJsunit1.test'
 import ContainerSpanModifierTest from './TextTest/ContainerSpanModifierTest.test'
 
-import RichEditor001 from './RichEditorEmojiTest/RichEditor001.test'
-import RichEditor002 from './RichEditorEmojiTest/RichEditor002.test'
-import RichEditor003 from './RichEditorEmojiTest/RichEditor003.test'
-import RichEditor004 from './RichEditorEmojiTest/RichEditor004.test'
-import RichEditor005 from './RichEditorEmojiTest/RichEditor005.test'
-import RichEditor006 from './RichEditorEmojiTest/RichEditor006.test'
-import RichEditor007 from './RichEditorEmojiTest/RichEditor007.test'
-import RichEditor008 from './RichEditorEmojiTest/RichEditor008.test'
-import RichEditor009 from './RichEditorEmojiTest/RichEditor009.test'
-import RichEditor010 from './RichEditorEmojiTest/RichEditor010.test'
-import RichEditor011 from './RichEditorEmojiTest/RichEditor011.test'
-import RichEditor012 from './RichEditorEmojiTest/RichEditor012.test'
-import RichEditor013 from './RichEditorEmojiTest/RichEditor013.test'
-import RichEditor014 from './RichEditorEmojiTest/RichEditor014.test'
-import RichEditor015 from './RichEditorEmojiTest/RichEditor015.test'
-import RichEditor016 from './RichEditorEmojiTest/RichEditor016.test'
-import RichEditor017 from './RichEditorEmojiTest/RichEditor017.test'
-import RichEditor018 from './RichEditorEmojiTest/RichEditor018.test'
-import RichEditor019 from './RichEditorEmojiTest/RichEditor019.test'
-import RichEditor020 from './RichEditorEmojiTest/RichEditor020.test'
-import RichEditor021 from './RichEditorEmojiTest/RichEditor021.test'
-import RichEditor022 from './RichEditorEmojiTest/RichEditor022.test'
-import RichEditor023 from './RichEditorEmojiTest/RichEditor023.test'
-import RichEditor024 from './RichEditorEmojiTest/RichEditor024.test'
-
 import RichEditorBreak001 from './RichEditorWordBreakTest/RichEditorBreak001.test'
 import RichEditorBreak002 from './RichEditorWordBreakTest/RichEditorBreak002.test'
 import RichEditorBreak003 from './RichEditorWordBreakTest/RichEditorBreak003.test'
 import RichEditorBreak004 from './RichEditorWordBreakTest/RichEditorBreak004.test'
 import RichEditorBreak005 from './RichEditorWordBreakTest/RichEditorBreak005.test'
 
-import RichEditorCustomColors001 from './RichEditorCustomColorsTest/RichEditorCustomColors001.test'
 import RichEditorCustomColors002 from './RichEditorCustomColorsTest/RichEditorCustomColors002.test'
-import RichEditorInterFace001 from './RichEditorCustomColorsTest/RichEditorInterFace001.test'
-import RichEditorAction001 from './RichEditorCustomColorsTest/RichEditorAction001.test'
 import RichEditorParticiple001 from './RichEditorCustomColorsTest/RichEditorParticiple001.test'
-import RichEditorParticiple002 from './RichEditorCustomColorsTest/RichEditorParticiple002.test'
 
 import RichEditorPlaceHolder001 from './RichEditorPlaceHolderTest/RichEditorPlaceHolder001.test'
 
 import RichEditorLineLetter001 from './RichEditorLineLetterTest/RichEditorLineLetter001.test'
-import RichEditorLineLetter002 from './RichEditorLineLetterTest/RichEditorLineLetter002.test'
-import RichEditorLineLetter003 from './RichEditorLineLetterTest/RichEditorLineLetter003.test'
 import RichEditorLineLetter004 from './RichEditorLineLetterTest/RichEditorLineLetter004.test'
 import RichEditorLineLetter005 from './RichEditorLineLetterTest/RichEditorLineLetter005.test'
 import RichEditorLineLetter006 from './RichEditorLineLetterTest/RichEditorLineLetter006.test'
@@ -233,8 +202,6 @@ import RichEditorLineMetrics007 from './RichEditorLineMetricsTest/RichEditorLine
 import RichEditorLineMetrics008 from './RichEditorLineMetricsTest/RichEditorLineMetrics008.test'
 import RichEditorLineMetrics009 from './RichEditorLineMetricsTest/RichEditorLineMetrics009.test'
 import RichEditorLineMetrics010 from './RichEditorLineMetricsTest/RichEditorLineMetrics010.test'
-import RichEditorLineMetrics011 from './RichEditorLineMetricsTest/RichEditorLineMetrics011.test'
-import RichEditorLineMetrics012 from './RichEditorLineMetricsTest/RichEditorLineMetrics012.test'
 import RichEditorLineMetrics013 from './RichEditorLineMetricsTest/RichEditorLineMetrics013.test'
 import RichEditorLineMetrics014 from './RichEditorLineMetricsTest/RichEditorLineMetrics014.test'
 import RichEditorLineMetrics015 from './RichEditorLineMetricsTest/RichEditorLineMetrics015.test'
@@ -243,9 +210,6 @@ import RichEditorLineMetrics017 from './RichEditorLineMetricsTest/RichEditorLine
 import RichEditorLineMetrics018 from './RichEditorLineMetricsTest/RichEditorLineMetrics018.test'
 import RichEditorLineMetrics019 from './RichEditorLineMetricsTest/RichEditorLineMetrics019.test'
 import RichEditorLineMetrics020 from './RichEditorLineMetricsTest/RichEditorLineMetrics020.test'
-import RichEditorLineMetrics021 from './RichEditorLineMetricsTest/RichEditorLineMetrics021.test'
-import RichEditorLineMetrics022 from './RichEditorLineMetricsTest/RichEditorLineMetrics022.test'
-import RichEditorLineMetrics023 from './RichEditorLineMetricsTest/RichEditorLineMetrics023.test'
 
 import RichEditorLineBreakStrategy001 from './RichEditorLineBreakStrategyTest/RichEditorLineBreakStrategy001.test'
 import RichEditorLineBreakStrategy002 from './RichEditorLineBreakStrategyTest/RichEditorLineBreakStrategy002.test'
@@ -260,24 +224,14 @@ import RichEditorSetStyledString007 from './RichEditorSetStyledStringTest/RichEd
 import RichEditorSetStyledString008 from './RichEditorSetStyledStringTest/RichEditorSetStyledString008.test'
 import RichEditorSetStyledString009 from './RichEditorSetStyledStringTest/RichEditorSetStyledString009.test'
 import RichEditorSetStyledString010 from './RichEditorSetStyledStringTest/RichEditorSetStyledString010.test'
-import RichEditorSetStyledString011 from './RichEditorSetStyledStringTest/RichEditorSetStyledString011.test'
-import RichEditorSetStyledString012 from './RichEditorSetStyledStringTest/RichEditorSetStyledString012.test'
-import RichEditorSetStyledString013 from './RichEditorSetStyledStringTest/RichEditorSetStyledString013.test'
-import RichEditorSetStyledString014 from './RichEditorSetStyledStringTest/RichEditorSetStyledString014.test'
-import RichEditorSetStyledString015 from './RichEditorSetStyledStringTest/RichEditorSetStyledString015.test'
-import RichEditorSetStyledString016 from './RichEditorSetStyledStringTest/RichEditorSetStyledString016.test'
 import RichEditorSetStyledString017 from './RichEditorSetStyledStringTest/RichEditorSetStyledString017.test'
 import RichEditorSetStyledString018 from './RichEditorSetStyledStringTest/RichEditorSetStyledString018.test'
-import RichEditorSetStyledString019 from './RichEditorSetStyledStringTest/RichEditorSetStyledString019.test'
-import RichEditorSetStyledString020 from './RichEditorSetStyledStringTest/RichEditorSetStyledString020.test'
 
 import RichEditorGetNumber001 from './RichEditorGetNumberTest/RichEditorGetNumber001.test'
 import RichEditorGetNumber002 from './RichEditorGetNumberTest/RichEditorGetNumber002.test'
-import RichEditorGetNumber003 from './RichEditorGetNumberTest/RichEditorGetNumber003.test'
 import RichEditorGetNumber004 from './RichEditorGetNumberTest/RichEditorGetNumber004.test'
 import RichEditorGetNumber005 from './RichEditorGetNumberTest/RichEditorGetNumber005.test'
 import RichEditorGetNumber006 from './RichEditorGetNumberTest/RichEditorGetNumber006.test'
-import RichEditorGetNumber007 from './RichEditorGetNumberTest/RichEditorGetNumber007.test'
 import RichEditorGetNumber008 from './RichEditorGetNumberTest/RichEditorGetNumber008.test'
 import RichEditorGetNumber009 from './RichEditorGetNumberTest/RichEditorGetNumber009.test'
 import RichEditorGetNumber010 from './RichEditorGetNumberTest/RichEditorGetNumber010.test'
@@ -309,7 +263,6 @@ import RichEditorCustomSpan012 from './RichEditorCustomSpanTest/RichEditorCustom
 import RichEditorCustomSpan013 from './RichEditorCustomSpanTest/RichEditorCustomSpan013.test'
 import RichEditorCustomSpan014 from './RichEditorCustomSpanTest/RichEditorCustomSpan014.test'
 import RichEditorCustomSpan015 from './RichEditorCustomSpanTest/RichEditorCustomSpan015.test'
-import RichEditorCustomSpan016 from './RichEditorCustomSpanTest/RichEditorCustomSpan016.test'
 import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 
 import TextCommonTextComputing1 from './TextTest/MeasureSizeTest/TextCommonTextComputing1.test';
@@ -479,18 +432,13 @@ export default function testsuite() {
   RichEditorBreak003();
   RichEditorBreak004();
   RichEditorBreak005();
-  RichEditorCustomColors001();
+  
   RichEditorCustomColors002();
-  RichEditorInterFace001();
-  RichEditorAction001();
   RichEditorParticiple001();
-  RichEditorParticiple002();
 
   RichEditorPlaceHolder001();
 
   RichEditorLineLetter001();
-  RichEditorLineLetter002();
-  RichEditorLineLetter003();
   RichEditorLineLetter004();
   RichEditorLineLetter005();
   RichEditorLineLetter006();
@@ -524,8 +472,6 @@ export default function testsuite() {
   RichEditorLineMetrics008();
   RichEditorLineMetrics009();
   RichEditorLineMetrics010();
-  RichEditorLineMetrics011();
-  RichEditorLineMetrics012();
   RichEditorLineMetrics013();
   RichEditorLineMetrics014();
   RichEditorLineMetrics015();
@@ -534,9 +480,6 @@ export default function testsuite() {
   RichEditorLineMetrics018();
   RichEditorLineMetrics019();
   RichEditorLineMetrics020();
-  RichEditorLineMetrics021();
-  RichEditorLineMetrics022();
-  RichEditorLineMetrics023();
 
   RichEditorLineBreakStrategy001();
   RichEditorLineBreakStrategy002();
@@ -551,24 +494,14 @@ export default function testsuite() {
   RichEditorSetStyledString008();
   RichEditorSetStyledString009();
   RichEditorSetStyledString010();
-  RichEditorSetStyledString011();
-  RichEditorSetStyledString012();
-  RichEditorSetStyledString013();
-  RichEditorSetStyledString014();
-  RichEditorSetStyledString015();
-  RichEditorSetStyledString016();
   RichEditorSetStyledString017();
   RichEditorSetStyledString018();
-  RichEditorSetStyledString019();
-  RichEditorSetStyledString020();
 
   RichEditorGetNumber001();
   RichEditorGetNumber002();
-  RichEditorGetNumber003();
   RichEditorGetNumber004();
   RichEditorGetNumber005();
   RichEditorGetNumber006();
-  RichEditorGetNumber007();
   RichEditorGetNumber008();
   RichEditorGetNumber009();
   RichEditorGetNumber010();
@@ -600,7 +533,6 @@ export default function testsuite() {
   RichEditorCustomSpan013();
   RichEditorCustomSpan014();
   RichEditorCustomSpan015();
-  RichEditorCustomSpan016();
   RichEditorCustomSpan017();
 
   getStyles();

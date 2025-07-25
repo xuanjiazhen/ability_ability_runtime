@@ -24,11 +24,11 @@ struct RichEditorBreak002 {
     Column() {
       Column() {
 
-        Text('' + this.wordBreak).id('word_break_text');
+        Text('' + this.wordBreak).id('word_break_text').height('50%');
 
         Button('getParagraphStyle').onClick(() => {
           this.wordBreak = JSON.stringify(this.controller.getParagraphs({ start: -1, end: -1 }));
-        }).id('getParagraphStyle')
+        }).id('getParagraphStyle').height('25%')
 
         Button('updateParagraphStyle').onClick(() => {
           this.controller.updateParagraphStyle({
@@ -39,13 +39,13 @@ struct RichEditorBreak002 {
             }
           })
           this.wordBreak = JSON.stringify(this.controller.getParagraphs({ start: -1, end: -1 }));
-        }).id('updateParagraphStyle')
+        }).id('updateParagraphStyle').height('25%')
 
       }
       .borderWidth(1)
       .borderColor(Color.Red)
       .width('100%')
-      .height('20%')
+      .height('40%')
 
       Column() {
         RichEditor(this.options)
@@ -75,7 +75,7 @@ struct RichEditorBreak002 {
       .borderWidth(1)
       .borderColor(Color.Red)
       .width('100%')
-      .height('70%')
+      .height('60%')
     }
   }
 }
