@@ -30,6 +30,7 @@ struct testWebView_Geolocation {
         .key('getAccessibleGeolocation1')
         .onClick(() => {
           try {
+            webview.GeolocationPermissions.allowGeolocation(this.origin);
             webview.GeolocationPermissions.getAccessibleGeolocation(this.origin)
               .then(result => {
                 console.log('getAccessibleGeolocationPromise result: ' + result);
@@ -48,6 +49,7 @@ struct testWebView_Geolocation {
         .key('getAccessibleGeolocation2')
         .onClick(() => {
           try {
+            webview.GeolocationPermissions.allowGeolocation(this.origin);
             webview.GeolocationPermissions.getAccessibleGeolocation(this.origin)
               .then(result => {
                 console.log('getAccessibleGeolocationPromise result: ' + result);
