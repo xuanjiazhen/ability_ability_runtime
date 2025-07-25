@@ -168,6 +168,19 @@ static napi_value WebErrorLibraySymbolNotFound(napi_env env, napi_callback_info 
     return result;
 }
 
+static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_ErrorCode ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
+    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -185,6 +198,9 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"webErrorLibraySymbolNotFound", nullptr, WebErrorLibraySymbolNotFound, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"webErrorCookeManagerNotInitialized", nullptr, WebErrorCookeManagerNotInitialized, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

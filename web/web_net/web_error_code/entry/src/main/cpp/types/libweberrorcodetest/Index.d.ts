@@ -22,8 +22,7 @@ export const webErrorInvaledURL: () => number;
 export const webErrorInvaledCookieValue: () => number;
 export const webErrorLibraryOpenFailure: () => number;
 export const webErrorLibraySymbolNotFound: () => number;
-
-
+export const webErrorCookeManagerNotInitialized: () => number;
 
 
 

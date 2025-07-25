@@ -25,6 +25,7 @@ const TEST_ARKWEB_INVALID_URL = 17100103;
 const TEST_ARKWEB_INVALID_COOKIE_VALUE = 17100104
 const TEST_ARKWEB_LIBRARY_OPEN_FAILURE = 17100105;
 const TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND = 17100106;
+const TEST_ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED = 17100107;
 
 
 export default function ActsWebErrorCodeTest() {
@@ -206,6 +207,26 @@ export default function ActsWebErrorCodeTest() {
         done();
       } catch (err) {
         console.error("====>SUB_OH_Web_Error_Code_0900 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_Web_Error_Code_1000
+     * @tc.name    : SUB_OH_Web_Error_Code_1000
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_Web_Error_Code_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_Web_Error_Code_1000 start====");
+        let result: number = webCode.webErrorCookeManagerNotInitialized();
+        console.info("====>SUB_OH_Web_Error_Code_1000 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_Web_Error_Code_1000 catch err: " + err);
       }
     })
 
