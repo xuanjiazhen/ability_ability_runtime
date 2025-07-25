@@ -22,6 +22,7 @@
         "MainAbility/pages/WaterFlow/syncLoadFlow",
         "MainAbility/pages/Swiper/stateChange",
         "MainAbility/pages/Scroll/zoomScaleScroll",
-        "MainAbility/pages/Scroll/zoomScaleNull"
+        "MainAbility/pages/Scroll/zoomScaleNull",
+        "MainAbility/pages/Tabs/animationCurve"
     ]
 }
