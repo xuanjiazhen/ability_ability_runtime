@@ -83,7 +83,7 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
     SetLaunchParam(targetState.launchParam);
     bool ret = true;
     switch (targetState.state) {
-        case AAFwk::ABILITY_STATE_INITIAL: {
+    case AAFwk::ABILITY_STATE_INITIAL: {
             bool isAsyncCallback = false;
             if (lifecycleState_ != AAFwk::ABILITY_STATE_INITIAL) {
                 Stop(isAsyncCallback, want, sessionInfo);

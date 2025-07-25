@@ -757,5 +757,32 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_3400, TestSize.Level1)
     impl->ScheduleAbilityRequestSuccess(requestId, element);
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3400 end";
 }
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_3500
+ * @tc.name: HandleExtensionTransaction
+ * @tc.desc: current state is active, target state is inactive.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_3500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3500 start";
+    auto application = std::make_shared<AppExecFwk::OHOSApplication>();
+    std::shared_ptr<AppExecFwk::AbilityInfo> info = std::make_shared<AppExecFwk::AbilityInfo>();
+    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
+    auto record = std::make_shared<AppExecFwk::AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->Init(application, record, extension, handler, token);
+    impl->lifecycleState_ = AAFwk::ABILITY_STATE_ACTIVE;
+    Want want;
+    AAFwk::LifeCycleStateInfo targetState;
+    targetState.state = AAFwk::ABILITY_STATE_FOREGROUND_NEW;
+    impl->HandleExtensionTransaction(want, targetState);
+    EXPECT_EQ(impl->lifecycleState_, AAFwk::ABILITY_STATE_ACTIVE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3500 end";
+}
 } // namespace AppExecFwk
 } // namespace OHOS
