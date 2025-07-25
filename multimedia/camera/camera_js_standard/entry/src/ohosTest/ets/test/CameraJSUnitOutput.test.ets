@@ -3535,8 +3535,13 @@ export default function cameraJSUnitOutput() {
         console.info(`previewOutput set FrameRate failed: ` + err.code)
         expect(err.code == cameraObj.CameraErrorCode.UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS).assertTrue();
       }
+      // 关闭会话
+      videoOutput2.release()
+      await stopCameraSession()
       await cameraSession.release();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PREVIEW_OUTPUT_SET_FRAME_RATE_0300 PASS");
+      // 关闭previewOutput
+      await previewOutput.release();
       await sleep(1000);
       done();
     })

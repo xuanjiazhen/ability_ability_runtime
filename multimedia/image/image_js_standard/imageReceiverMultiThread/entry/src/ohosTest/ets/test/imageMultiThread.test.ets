@@ -286,7 +286,7 @@ let getPermission = async () => {
   let permissions: Array<Permissions> = ['ohos.permission.CAMERA'];
   console.info('permissions: Array<Permissions> = [\'ohos.permission.CAMERA\']')
   try {
-    atManager.requestPermissionsFromUser(getContext(), permissions).then((data: PermissionRequestResult) => {
+    atManager.requestPermissionsFromUser(testContext, permissions).then((data: PermissionRequestResult) => {
       console.info('data:' + JSON.stringify(data))
       console.info('data permissions:' + data.permissions)
     })

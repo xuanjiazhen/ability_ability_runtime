@@ -121,11 +121,11 @@ export default function imagePackToFileGif() {
           let globalImagesource: image.ImageSource;
           try {
               filePath = filesDir + "/" + fileName;
-              globalImagesource = image.createImageSource(filePath);
+              globalImagesource = await image.createImageSource(filePath);
               if (globalImagesource != undefined) {
                 isSupportFormat = globalImagesource.supportedFormats.includes(format);
                 console.info('isSupportFormat is ' + isSupportFormat);
-                globalImagesource.release();
+                await globalImagesource.release();
               }
               return isSupportFormat;
           } catch (error) {

@@ -1363,7 +1363,7 @@ export default function image10bitPixelMap() {
      * @tc.type      : Functional
      * @tc.level     : Level 0
     */
-    it('SUB_MULTIMEDIA_IMAGE_Image_Receiver_Off_ImageArrival_0900',0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_IMAGE_Image_Receiver_Off_ImageArrival_0900', Level.LEVEL0 , async (done: Function) => {
       let receiver: image.ImageReceiver = image.createImageReceiver(8192, 8, image.ImageFormat.JPEG, 8);
       let callbackFunc = ()=>{
         console.info('Listening succeeded')
@@ -1388,7 +1388,7 @@ export default function image10bitPixelMap() {
      * @tc.type      : Functional
      * @tc.level     : Level 0
      */
-    it('SUB_MULTIMEDIA_IMAGE_Image_Creator_Off_ImageRelease_1000',0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_IMAGE_Image_Creator_Off_ImageRelease_1000', Level.LEVEL0 , async (done: Function) => {
       let creator: image.ImageCreator = image.createImageCreator(8192, 8, image.ImageFormat.JPEG, 8);
       let callbackFunc = ()=>{
         console.info('Listen succeeded')
@@ -1491,7 +1491,7 @@ export default function image10bitPixelMap() {
      * @tc.type      : Functional
      * @tc.level     : Level 0
     */
-    it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_9000',0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_9000', Level.LEVEL0 , async (done: Function) => {
       let receiver: image.ImageReceiver = image.createImageReceiver(8192, 8, image.ImageFormat.JPEG, 8);
       let callbackFunc = ()=>{
         console.info('Listening succeeded')
@@ -1516,7 +1516,7 @@ export default function image10bitPixelMap() {
      * @tc.type      : Functional
      * @tc.level     : Level 0
      */
-    it('SUB_MULTIMEDIA_IMAGE_SOURCE_GET_COLOR_SPACE_1000',0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_IMAGE_SOURCE_GET_COLOR_SPACE_1000', Level.LEVEL0 , async (done: Function) => {
       let creator: image.ImageCreator = image.createImageCreator(8192, 8, image.ImageFormat.JPEG, 8);
       let callbackFunc = ()=>{
         console.info('Listen succeeded')
