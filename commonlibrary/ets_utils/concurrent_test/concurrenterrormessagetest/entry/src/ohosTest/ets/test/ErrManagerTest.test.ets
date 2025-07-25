@@ -884,6 +884,7 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker1');
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -904,31 +905,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(500);
       expect(errorCaught).assertEqual('Error: worker onmessage error');
-      Done();
-    });
-
-    /**
-     * @tc.number    : WorkerOnMessageErrorThrowErrorTest3300
-     * @tc.name      : WorkerOnMessageErrorThrowErrorTest3300
-     * @tc.desc      : worker线程的onmessageerror中抛出异常
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('WorkerOnMessageErrorThrowErrorTest3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaughtList: string[] = [];
-      errorManager.on('globalErrorOccurred', (err) => {
-        errorCaughtList.push(`global: ${err.message}`);
-      });
-      let myWorker = new worker.ThreadWorker('../testability/workers/Worker4');
-      myWorker.onAllErrors = (err) => {
-        errorCaughtList.push(`worker: ${err.message}`);
-      };
-      //myWorker.postMessage(()=>{});
-      await sleep(500);
-      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       myWorker.terminate();
-      //expect(errorCaught).assertEqual("");
       Done();
     });
 
@@ -948,6 +925,7 @@ export default function abilityTest() {
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker5');
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -976,6 +954,7 @@ export default function abilityTest() {
       await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
+      myWorker.terminate();
       Done();
     });
 
@@ -996,6 +975,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
+      myWorker.terminate();
       Done();
     });
 
@@ -1020,6 +1000,7 @@ export default function abilityTest() {
         Done();
       }, 100);
       expect(errorCaught).assertEqual("");
+      myWorker.terminate();
       Done();
     });
 
@@ -1044,6 +1025,7 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       sleep(200);
       expect(errorCaught).assertEqual("");
+      myWorker.terminate();
       Done();
     });
 
