@@ -56,8 +56,8 @@ export default function RichEditorDoubleClick005() {
     });
     
     /**
-     * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_008
-     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_008
+     * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_005
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_doubleclick_005
      * @tc.desc  : Test the RichEditor doubleClick event by double clicking on the builder span displayed on one line
      * @tc.size: MediumTest
      * @tc.type: Function

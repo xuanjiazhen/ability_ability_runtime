@@ -68,8 +68,7 @@ export default function RichEditorCustomSpan008() {
       let rich = await driver.findComponent(ON.id('RichEditorCustomSpan008'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(500);
+
       let removeString = await driver.findComponent(ON.id('removeString'));
       await removeString.click();
       await CommonFunc.sleep(500);

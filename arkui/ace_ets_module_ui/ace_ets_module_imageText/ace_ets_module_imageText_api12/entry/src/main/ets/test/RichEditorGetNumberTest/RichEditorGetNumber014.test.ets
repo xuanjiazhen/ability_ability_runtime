@@ -67,8 +67,6 @@ export default function RichEditorGetNumber014() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorGetNumber014'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
       let getLineCount = await driver.findComponent(ON.id('getLineCount'));
       await getLineCount.click();
       await CommonFunc.sleep(500);

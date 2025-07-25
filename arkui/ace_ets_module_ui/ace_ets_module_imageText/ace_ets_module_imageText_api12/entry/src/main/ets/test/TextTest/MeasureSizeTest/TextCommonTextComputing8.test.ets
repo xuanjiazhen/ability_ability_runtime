@@ -339,7 +339,7 @@ export default function TextCommonTextComputing8() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0560
-     * @tc.name  : TSUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0560
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0560
      * @tc.desc  : Test MeasureTextSize when baselineOffset passes to -10, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

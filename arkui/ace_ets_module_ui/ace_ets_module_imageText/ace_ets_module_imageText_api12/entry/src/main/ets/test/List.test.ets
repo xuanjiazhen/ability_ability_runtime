@@ -201,7 +201,6 @@ import RichEditorLineMetrics006 from './RichEditorLineMetricsTest/RichEditorLine
 import RichEditorLineMetrics007 from './RichEditorLineMetricsTest/RichEditorLineMetrics007.test'
 import RichEditorLineMetrics008 from './RichEditorLineMetricsTest/RichEditorLineMetrics008.test'
 import RichEditorLineMetrics009 from './RichEditorLineMetricsTest/RichEditorLineMetrics009.test'
-import RichEditorLineMetrics010 from './RichEditorLineMetricsTest/RichEditorLineMetrics010.test'
 import RichEditorLineMetrics013 from './RichEditorLineMetricsTest/RichEditorLineMetrics013.test'
 import RichEditorLineMetrics014 from './RichEditorLineMetricsTest/RichEditorLineMetrics014.test'
 import RichEditorLineMetrics015 from './RichEditorLineMetricsTest/RichEditorLineMetrics015.test'
@@ -263,7 +262,6 @@ import RichEditorCustomSpan012 from './RichEditorCustomSpanTest/RichEditorCustom
 import RichEditorCustomSpan013 from './RichEditorCustomSpanTest/RichEditorCustomSpan013.test'
 import RichEditorCustomSpan014 from './RichEditorCustomSpanTest/RichEditorCustomSpan014.test'
 import RichEditorCustomSpan015 from './RichEditorCustomSpanTest/RichEditorCustomSpan015.test'
-import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 
 import TextCommonTextComputing1 from './TextTest/MeasureSizeTest/TextCommonTextComputing1.test';
 import TextCommonTextComputing2 from './TextTest/MeasureSizeTest/TextCommonTextComputing2.test';
@@ -471,7 +469,6 @@ export default function testsuite() {
   RichEditorLineMetrics007();
   RichEditorLineMetrics008();
   RichEditorLineMetrics009();
-  RichEditorLineMetrics010();
   RichEditorLineMetrics013();
   RichEditorLineMetrics014();
   RichEditorLineMetrics015();
@@ -533,7 +530,6 @@ export default function testsuite() {
   RichEditorCustomSpan013();
   RichEditorCustomSpan014();
   RichEditorCustomSpan015();
-  RichEditorCustomSpan017();
 
   getStyles();
   replaceString();

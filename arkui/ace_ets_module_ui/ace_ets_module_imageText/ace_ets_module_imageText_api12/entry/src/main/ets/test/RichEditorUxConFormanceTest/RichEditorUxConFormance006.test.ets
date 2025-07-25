@@ -67,8 +67,6 @@ export default function RichEditorUxConFormance006() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorUxConFormance006'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let getParagraphStyle = await driver.findComponent(ON.id('getParagraphStyle'));
       await getParagraphStyle.click();

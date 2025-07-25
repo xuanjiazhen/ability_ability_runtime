@@ -69,9 +69,6 @@ export default function RichEditorSetStyledString004() {
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
 
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
-
       let add_text = await driver.findComponent(ON.id('add_text'));
       await add_text.click();
       await CommonFunc.sleep(500);
@@ -103,9 +100,6 @@ export default function RichEditorSetStyledString004() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString004'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
 
       let get_length = await driver.findComponent(ON.id('get_length'));
       await get_length.click();

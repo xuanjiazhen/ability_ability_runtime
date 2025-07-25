@@ -67,8 +67,6 @@ export default function RichEditorLineMetrics015() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLineMetrics015'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let getFirst = await driver.findComponent(ON.id('getFirst'));
       await getFirst.click();

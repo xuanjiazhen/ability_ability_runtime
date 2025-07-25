@@ -67,9 +67,7 @@ export default function RichEditorLayoutStyle003() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLayoutStyle003'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
-
+      
       let imageStyle = await driver.findComponent(ON.id('imageStyle'));
       let imageStyleText = await imageStyle.getText();
       await CommonFunc.sleep(500);

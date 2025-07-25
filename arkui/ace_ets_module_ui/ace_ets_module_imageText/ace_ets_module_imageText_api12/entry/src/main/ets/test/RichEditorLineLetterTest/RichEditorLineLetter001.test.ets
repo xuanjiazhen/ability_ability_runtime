@@ -67,9 +67,7 @@ export default function RichEditorLineLetter001() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLineLetter001'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
-
+      
       let textStyle = await driver.findComponent(ON.id('textStyle'));
       let textStyleText = await textStyle.getText();
       await CommonFunc.sleep(500);

@@ -67,8 +67,6 @@ export default function RichEditorUxConFormance001() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorUxConFormance001'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let updateSpanStyle = await driver.findComponent(ON.id('updateSpanStyle'));
       await updateSpanStyle.click();

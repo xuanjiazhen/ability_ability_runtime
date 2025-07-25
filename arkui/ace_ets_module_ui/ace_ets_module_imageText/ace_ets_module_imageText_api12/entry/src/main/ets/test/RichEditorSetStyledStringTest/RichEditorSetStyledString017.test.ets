@@ -69,8 +69,6 @@ export default function RichEditorSetStyledString017() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString017'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
       let get_fontColor = await driver.findComponent(ON.id('get_fontColor'));
       await get_fontColor.click();
       await CommonFunc.sleep(500);

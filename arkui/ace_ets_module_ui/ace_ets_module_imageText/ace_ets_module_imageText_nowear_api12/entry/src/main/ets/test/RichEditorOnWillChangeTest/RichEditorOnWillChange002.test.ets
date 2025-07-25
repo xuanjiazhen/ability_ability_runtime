@@ -113,8 +113,8 @@ export default function RichEditorOnWillChange002() {
     });
 
     /**
-     * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0019
-     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0019
+     * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0020
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_ONWILLCHANGE_0020
      * @tc.desc  : Deleting image/symbol/builder will trigger a callback to test RichEditor OnSelectionChange
      * @tc.size: MediumTest
      * @tc.type: Function

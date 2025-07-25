@@ -195,7 +195,6 @@
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics007",
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics008",
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics009",
-    "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics010",
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics013",
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics014",
     "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics015",
@@ -257,7 +256,6 @@
     "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan013",
     "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan014",
     "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan015",
-    "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan017",
 
     "MainAbility/pages/StyledString/getStyles",
     "MainAbility/pages/StyledString/replaceString",

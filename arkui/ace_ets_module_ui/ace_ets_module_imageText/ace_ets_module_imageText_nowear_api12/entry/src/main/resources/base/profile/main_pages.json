@@ -233,6 +233,8 @@
   "MainAbility/pages/RichEditorCustomColors/RichEditorParticiple002",
   "MainAbility/pages/RichEditorLineLetter/RichEditorLineLetter002",
   "MainAbility/pages/RichEditorLineLetter/RichEditorLineLetter003",
+
+  "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics010",
   "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics011",
   "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics012",
   "MainAbility/pages/RichEditorLineMetrics/RichEditorLineMetrics021",
@@ -250,6 +252,7 @@
 
   "MainAbility/pages/RichEditorGetNumber/RichEditorGetNumber003",
   "MainAbility/pages/RichEditorGetNumber/RichEditorGetNumber007",
-  "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan016"
+  "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan016",
+  "MainAbility/pages/RichEditorCustomSpan/RichEditorCustomSpan017"
   ]
 }

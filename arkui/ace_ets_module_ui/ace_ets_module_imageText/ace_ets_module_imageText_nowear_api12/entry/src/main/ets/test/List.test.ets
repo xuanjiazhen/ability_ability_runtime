@@ -247,6 +247,7 @@ import RichEditorParticiple002 from './RichEditorCustomColorsTest/RichEditorPart
 import RichEditorLineLetter002 from './RichEditorLineLetterTest/RichEditorLineLetter002.test'
 import RichEditorLineLetter003 from './RichEditorLineLetterTest/RichEditorLineLetter003.test'
 
+import RichEditorLineMetrics010 from './RichEditorLineMetricsTest/RichEditorLineMetrics010.test'
 import RichEditorLineMetrics011 from './RichEditorLineMetricsTest/RichEditorLineMetrics011.test'
 import RichEditorLineMetrics012 from './RichEditorLineMetricsTest/RichEditorLineMetrics012.test'
 import RichEditorLineMetrics021 from './RichEditorLineMetricsTest/RichEditorLineMetrics021.test'
@@ -266,6 +267,7 @@ import RichEditorGetNumber003 from './RichEditorGetNumberTest/RichEditorGetNumbe
 import RichEditorGetNumber007 from './RichEditorGetNumberTest/RichEditorGetNumber007.test'
 
 import RichEditorCustomSpan016 from './RichEditorCustomSpanTest/RichEditorCustomSpan016.test'
+import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 export default function testsuite() {
   textAreaInputTest();
   RichEditorApi5();
@@ -319,52 +321,6 @@ export default function testsuite() {
   RichEditor022();
   RichEditor023();
   RichEditor024();
-
-  RichEditorOnWillChange001();
-  RichEditorOnWillChange002();
-  RichEditorOnWillChange003();
-  RichEditorOnWillChange004();
-  RichEditorOnWillChange005();
-  RichEditorOnWillChange006();
-  RichEditorOnWillChange007();
-  RichEditorOnWillChange008();
-  RichEditorOnWillChange009();
-  RichEditorOnWillChange010();
-  RichEditorOnWillChange011();
-  RichEditorOnWillChange012();
-  RichEditorOnWillChange013();
-  RichEditorOnWillChange014();
-  RichEditorOnWillChange015();
-  RichEditorOnWillChange016();
-  RichEditorOnWillChange017();
-  RichEditorOnWillChange018();
-  RichEditorOnWillChange019();
-  RichEditorOnWillChange020();
-
-  RichEditorQueryLayout001();
-  RichEditorQueryLayout002();
-  RichEditorQueryLayout003();
-  RichEditorQueryLayout004();
-  RichEditorQueryLayout005();
-  RichEditorQueryLayout006();
-  RichEditorQueryLayout007();
-  RichEditorQueryLayout008();
-  RichEditorQueryLayout009();
-  RichEditorQueryLayout010();
-  RichEditorQueryLayout011();
-  RichEditorQueryLayout012();
-  RichEditorQueryLayout013();
-  RichEditorQueryLayout014();
-  RichEditorQueryLayout015();
-  RichEditorQueryLayout016();
-  RichEditorQueryLayout017();
-  RichEditorQueryLayout018();
-  RichEditorQueryLayout019();
-  RichEditorQueryLayout020();
-  RichEditorQueryLayout021();
-  RichEditorQueryLayout022();
-  RichEditorQueryLayout023();
-  RichEditorQueryLayout024();
 
   RichEditorOnWillChange001();
   RichEditorOnWillChange002();
@@ -513,6 +469,7 @@ export default function testsuite() {
   RichEditorLineLetter002();
   RichEditorLineLetter003();
 
+  RichEditorLineMetrics010();
   RichEditorLineMetrics011();
   RichEditorLineMetrics012();
   RichEditorLineMetrics021();
@@ -532,4 +489,5 @@ export default function testsuite() {
   RichEditorGetNumber007();
 
   RichEditorCustomSpan016();
+  RichEditorCustomSpan017();
 }

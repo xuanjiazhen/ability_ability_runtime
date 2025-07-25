@@ -67,8 +67,6 @@ export default function RichEditorLineBreakStrategy002() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLineBreakStrategy002'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let getAttr = await driver.findComponent(ON.id('getAttr'));
       await getAttr.click();
