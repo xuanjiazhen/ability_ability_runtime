@@ -7593,7 +7593,105 @@ export default function workerPriTest() {
       console.info(`${caseName} test end`);
     });
 
+    /**
+     * @tc.number     : SUB_Runtime_Language_Backend_WorkerConcurrency_141
+     * @tc.name       : threadWorker_priority_test
+     * @tc.desc       : worker priority test
+     * @tc.size       : SmallTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('threadWorker_priority_test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        let idleWorkerisTerminate = false;
+        let lowWorkerisTerminate = false;
+        let mediumWorkerisTerminate = false;
+        let highWorkerisTerminate = false;
+        let deadlineWorkerisTerminate = false;
+        let vipWorkerisTerminate = false;
 
+        let idleWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.IDLE});
+        idleWorker.postMessage('idle');
 
+        let lowWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.LOW});
+        lowWorker.postMessage('low');
+
+        let mediumWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.MEDIUM});
+        mediumWorker.postMessage('medium');
+
+        let highWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.HIGH});
+        highWorker.postMessage('high');
+
+        let deadlineWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.DEADLINE});
+        deadlineWorker.postMessage('deadline');
+
+        let vipWorker = new worker.ThreadWorker('../workers/prioWorker.ts', {priority: ThreadWorkerPriority.VIP});
+        vipWorker.postMessage('vip');
+
+        idleWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('idle worker');
+            idleWorker.terminate();
+        }
+
+        idleWorker.onexit = () => {
+            idleWorkerisTerminate = true;
+            console.log('threadWorker_priority_test idleWorker onexit');
+        }
+
+        lowWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('low worker');
+            lowWorker.terminate();
+        }
+
+        lowWorker.onexit = () => {
+            lowWorkerisTerminate = true;
+            console.log('threadWorker_priority_test lowWorker onexit');
+        }
+
+        mediumWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('medium worker');
+            mediumWorker.terminate();
+        }
+
+        mediumWorker.onexit = () => {
+            mediumWorkerisTerminate = true;
+            console.log('threadWorker_priority_test mediumWorker onexit');
+        }
+
+        highWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('high worker');
+            highWorker.terminate();
+        }
+
+        highWorker.onexit = () => {
+            highWorkerisTerminate = true;
+            console.log('threadWorker_priority_test highWorker onexit');
+        }
+
+        deadlineWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('deadline worker');
+            deadlineWorker.terminate();
+        }
+
+        deadlineWorker.onexit = () => {
+            deadlineWorkerisTerminate = true;
+            console.log('threadWorker_priority_test deadlineWorker onexit');
+        }
+
+        vipWorker.onmessage = (e) => {
+            expect(e.data).assertEqual('vip worker');
+            vipWorker.terminate();
+        }
+
+        vipWorker.onexit = () => {
+            vipWorkerisTerminate = true;
+            console.log('threadWorker_priority_test vipWorker onexit');
+        }
+
+        while (!idleWorkerisTerminate || !lowWorkerisTerminate || !mediumWorkerisTerminate || !highWorkerisTerminate ||
+            !deadlineWorkerisTerminate || !vipWorkerisTerminate) {
+            await asyncSleep(100);
+        }
+        done();
+    });
   });
 }
