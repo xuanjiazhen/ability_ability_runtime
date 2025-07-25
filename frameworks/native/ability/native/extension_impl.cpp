@@ -76,14 +76,14 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::EXT, "%{public}s;sourceState:%{public}d;targetState:%{public}d;isNewWant:%{public}d",
         want.GetElement().GetAbilityName().c_str(), lifecycleState_, targetState.state, targetState.isNewWant);
-    if (lifecycleState_ == targetState.state) {
+    if (lifecycleState_ == targetState.state && targetState.state != AAFwk::ABILITY_STATE_INITIAL) {
         TAG_LOGE(AAFwkTag::EXT, "lifecycle state equal");
         return;
     }
     SetLaunchParam(targetState.launchParam);
     bool ret = true;
     switch (targetState.state) {
-        case AAFwk::ABILITY_STATE_INITIAL: {
+    case AAFwk::ABILITY_STATE_INITIAL: {
             bool isAsyncCallback = false;
             if (lifecycleState_ != AAFwk::ABILITY_STATE_INITIAL) {
                 Stop(isAsyncCallback, want, sessionInfo);
