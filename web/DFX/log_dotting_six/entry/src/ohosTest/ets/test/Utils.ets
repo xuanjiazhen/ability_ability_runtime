@@ -20,7 +20,7 @@ import systemDateTime from '@ohos.systemDateTime';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry'
 import fs from '@ohos.file.fs';
 
-let emitKey = '';
+
 
 export default class Utils {
   static sleep(time: number) {
@@ -37,13 +37,7 @@ export default class Utils {
       return systemDateTime.getTime(true) / 1000
   }
 
-  static setEmitKey(eKey: string) {
-    emitKey = eKey;
-  }
 
-  static getEmitKey(): string {
-    return emitKey;
-  }
 
   static copyRawFileToSandbox(rawFileName: string): string {
     let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
