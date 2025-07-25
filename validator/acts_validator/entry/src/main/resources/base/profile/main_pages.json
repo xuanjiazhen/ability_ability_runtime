@@ -73,10 +73,6 @@
     "pages/Player/Player_index",
     "pages/Experience/Experience_index",
     "pages/Experience/PhotoFps",
-    "pages/Experience/PhotosColdStartTest",
-    "pages/Experience/SettingsColdStartTest",
-    "pages/Experience/StartTaskManager",
-    "pages/Experience/StartNotification",
     "pages/Player/PlayAudio",
     "pages/Player/PlayVideo",
     "pages/Player/PlayAudioList",
@@ -139,11 +135,11 @@
     "pages/ArkUI/KeyEvent",
     "pages/ArkUI/CapiKeyEvent",
     "pages/ArkUI/AccessibilityFocusDrawLevel",
-	"entryembeddeduiextability/pages/EntryEmbeddedUIExtAbilityPage",
+    "entryembeddeduiextability/pages/EntryEmbeddedUIExtAbilityPage",
     "pages/ArkUI/AccessibilityNextFocusIdPage",
     "pages/ArkUI/AccessibilityDefaultFocusPage",
     "pages/ArkUI/AccessibilityScrollTriggerablePage",
-	"pages/ArkUI/EmbeddedComponentInstanceTest",
+    "pages/ArkUI/EmbeddedComponentInstanceTest",
     "pages/ArkUI/OnAccessibilityActionIntercept",
     "pages/ArkUI/AccessBilityHoverTransparent",
     "pages/ArkUI/hoverScaleInterruption",
@@ -159,14 +155,3 @@
     "pages/ArkUI/AccessibilityShowStepOptions"
   ]
 }
-
-
-
-
-
-
-
-
-
-
-

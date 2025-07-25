@@ -45,10 +45,6 @@ struct IndexPage {
   @State TEST: number = 0;
   private TestCaseList: TestCase[] = [
     { title: 'PhotoFps', uri: 'pages/Experience/PhotoFps' },
-    { title: 'SettingsColdStart', uri: 'pages/Experience/SettingsColdStartTest' },
-    { title: 'PhotosColdStart', uri: 'pages/Experience/PhotosColdStartTest' },
-    { title: 'StartTaskManager', uri: 'pages/Experience/StartTaskManager' },
-    { title: 'StartNotification', uri: 'pages/Experience/StartNotification' },
   ]
   @State ColorObject: Object[] = VarColor;
   @State ColorTrue: number[] = [];
