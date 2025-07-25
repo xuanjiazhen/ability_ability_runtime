@@ -62,7 +62,8 @@ struct webOnFirstContThree {
             case "emitLoadUrlOnfirstcontentfulpaintWebc": {
               try {
                 this.controller.clearHistory();
-                this.controller.loadUrl({ url: "resource://rawfile/onfirstcontentfulpaint.html" })
+                this.controller.loadUrl({ url: "https://m.weibo.cn" });
+                await Utils.sleep(5000);
                 console.log("action of emitLoadUrlOnfirstcontentfulpaintWebc is loadUrl");
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
