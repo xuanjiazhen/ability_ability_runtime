@@ -56,7 +56,7 @@ struct webOnFirstContThree {
   build() {
     Column() {
       Row() {
-        Button("web click").key('webOnFirstContThree').onClick(() => {
+        Button("web click").key('webOnFirstContThree').onClick(async () => {
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitLoadUrlOnfirstcontentfulpaintWebc": {
