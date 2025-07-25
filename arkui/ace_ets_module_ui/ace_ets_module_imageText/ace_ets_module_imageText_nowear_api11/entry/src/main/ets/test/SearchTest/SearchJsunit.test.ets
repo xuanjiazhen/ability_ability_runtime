@@ -42,7 +42,7 @@ export default function SearchJsunit() {
       }
       done();
     });
-
+    let resourceSize = getContext().resourceManager.getNumber($r('sys.float.ohos_id_text_size_body1').id)
     it('SearchJsunit_0100', Level.LEVEL0, async (done: Function) => {
       // Get the information of the Search component
       console.info('[SearchJsunit_0100] START');
@@ -114,7 +114,7 @@ export default function SearchJsunit() {
       expect(obj.$attrs.searchButton).assertEqual('search');
       expect(obj.$attrs.value).assertEqual('hello');
       expect(obj.$attrs.placeholderFont).assertEqual('{"style":"FontStyle.Normal","size":"14.00fp","weight":"400","fontFamily":"sans-serif"}');
-      expect(obj.$attrs.textFont).assertEqual('{"fontSize":"16.00fp","fontStyle":"FontStyle.Normal","fontWeight":"FontWeight.Normal","fontFamily":"HarmonyOS Sans"}');
+      expect(obj.$attrs.textFont).assertEqual('{"fontSize":"'+px2fp(resourceSize)+'.00fp","fontStyle":"FontStyle.Normal","fontWeight":"FontWeight.Normal","fontFamily":"HarmonyOS Sans"}');
       expect(obj.$attrs.textAlign).assertEqual('TextAlign.Center');
       expect(obj.$attrs.copyOption).assertEqual('CopyOptions.Local');
       expect(obj.$attrs.placeholderColor).assertEqual('#FF008000');
@@ -267,7 +267,7 @@ export default function SearchJsunit() {
       expect(obj.$attrs.placeholderColor).assertEqual('#FF00000A');
       expect(obj.$attrs.value).assertEqual('hello');
       expect(obj.$attrs.placeholderFont).assertEqual('{"style":"FontStyle.Normal","size":"14.00fp","weight":"400","fontFamily":"sans-serif"}');
-      expect(obj.$attrs.textFont).assertEqual('{"fontSize":"16.00fp","fontStyle":"FontStyle.Normal","fontWeight":"FontWeight.Normal","fontFamily":"HarmonyOS Sans"}');
+      expect(obj.$attrs.textFont).assertEqual('{"fontSize":"'+px2fp(resourceSize)+'.00fp","fontStyle":"FontStyle.Normal","fontWeight":"FontWeight.Normal","fontFamily":"HarmonyOS Sans"}');
       expect(obj.$attrs.textAlign).assertEqual('TextAlign.Start');
       expect(obj.$attrs.copyOption).assertEqual('');
       expect(obj.$attrs.placeholder).assertEqual('Type to search...');

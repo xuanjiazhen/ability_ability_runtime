@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import TextPickerPage from './textPicker/textpickerselectedBackgroundStyle.test';
+import DatePickerCanLoopTest from './datePickerTest/datePickerCanLoop.test';
 
 export default function testsuite() {
     TextPickerPage();
+    DatePickerCanLoopTest();
 }

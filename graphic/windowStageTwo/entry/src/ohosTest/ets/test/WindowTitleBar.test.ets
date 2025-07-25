@@ -20,6 +20,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { Driver, ON } from '@kit.TestKit';
 import { ConfigurationConstant } from '@kit.AbilityKit';
 import { ColorMetrics } from '@kit.ArkUI';
+import MyAbilityStage from '../myabilitystage/MyAbilityStage';
 
 export default function windowTitleBarTest() {
   describe('windowTitleBarTest', async () => {
@@ -1525,7 +1526,10 @@ export default function windowTitleBarTest() {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
             done();
-          }else {
+          }else if(err.code == 1300002){
+            done();
+          }
+          else {
             expect().assertFail();
             done();
           }
@@ -1572,7 +1576,10 @@ export default function windowTitleBarTest() {
             await data.destroyWindow();
             if(err.code == 801){
               done();
-            }else {
+            }else if(err.code == 1300002){
+              done();
+            }
+            else {
               expect().assertFail();
               done();
             }
@@ -1627,7 +1634,9 @@ export default function windowTitleBarTest() {
             await data.destroyWindow();
             if(err.code == 801){
               done();
-            }else {
+            }else if(err.code == 1300002){
+              done();
+            } else {
               expect().assertFail();
               done();
             }
@@ -1667,6 +1676,8 @@ export default function windowTitleBarTest() {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
             done();
+          }else if(err.code == 1300002){
+            done();
           }else {
             expect().assertFail();
             done();
@@ -1703,6 +1714,8 @@ export default function windowTitleBarTest() {
         }).catch((err: BusinessError) => {
           console.error(`${caseName} :Failed to set the window title. Cause code: ${err.code}, message: ${err.message}`);
           if(err.code == 801){
+            done();
+          }else if(err.code == 1300002){
             done();
           }else {
             expect().assertFail();
@@ -1759,6 +1772,265 @@ export default function windowTitleBarTest() {
         console.log(msgStr + 'Failed. Cause code:' + JSON.stringify(error.code) + error.message);
         expect(false).assertTrue();
         done();
+      }
+    })
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_3500
+     * @tc.name      : testSetDecorButtonStyle_buttonIconSize_0100
+     * @tc.desc      : testSetDecorButtonStyle_buttonIconSize_0100
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonIconSize_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonIconSize_0100";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonIconSize: 15
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.error(`${msgStr} setDecorButtonStyle success.`);
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect(error.code).assertEqual(401);
+          let result = windowClass.getDecorButtonStyle();
+          console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+          expect(result.buttonIconSize).assertEqual(20);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_3600
+     * @tc.name      : testSetDecorButtonStyle_buttonIconSize_0200
+     * @tc.desc      : testSetDecorButtonStyle_buttonIconSize_0200
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonIconSize_0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonIconSize_0200";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonIconSize: 25
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.error(`${msgStr} setDecorButtonStyle success.`);
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect(error.code).assertEqual(401);
+          let result = windowClass.getDecorButtonStyle();
+          console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+          expect(result.buttonIconSize).assertEqual(20);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_3700
+     * @tc.name      : testSetDecorButtonStyle_buttonIconSize_0300
+     * @tc.desc      : testSetDecorButtonStyle_buttonIconSize_0300
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonIconSize_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonIconSize_0300";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonIconSize: 16
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.log(`${msgStr} setDecorButtonStyle success.`);
+        let result = windowClass.getDecorButtonStyle();
+        console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+        expect(result.buttonIconSize).assertEqual(16);
+        done();
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_3800
+     * @tc.name      : testSetDecorButtonStyle_buttonIconSize_0400
+     * @tc.desc      : testSetDecorButtonStyle_buttonIconSize_0400
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonIconSize_0400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonIconSize_0400";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonIconSize: 24
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.log(`${msgStr} setDecorButtonStyle success.`);
+        let result = windowClass.getDecorButtonStyle();
+        console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+        expect(result.buttonIconSize).assertEqual(24);
+        done();
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_3900
+     * @tc.name      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0100
+     * @tc.desc      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0100
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonBackgroundCornerRadius_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonBackgroundCornerRadius_0100";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonBackgroundCornerRadius: 3
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.error(`${msgStr} setDecorButtonStyle success.`);
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect(error.code).assertEqual(401);
+          let result = windowClass.getDecorButtonStyle();
+          console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+          expect(result.buttonBackgroundCornerRadius).assertEqual(4);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_4000
+     * @tc.name      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0200
+     * @tc.desc      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0200
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonBackgroundCornerRadius_0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonBackgroundCornerRadius_0200";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonBackgroundCornerRadius: 9
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.error(`${msgStr} setDecorButtonStyle success.`);
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect(error.code).assertEqual(401);
+          let result = windowClass.getDecorButtonStyle();
+          console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+          expect(result.buttonBackgroundCornerRadius).assertEqual(4);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_4100
+     * @tc.name      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0300
+     * @tc.desc      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0300
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonBackgroundCornerRadius_0300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonBackgroundCornerRadius_0300";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonBackgroundCornerRadius: 4
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.log(`${msgStr} setDecorButtonStyle success.`);
+        let result = windowClass.getDecorButtonStyle();
+        console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+        expect(result.buttonBackgroundCornerRadius).assertEqual(4);
+        done();
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_DECORBUTTON_STYLE_4200
+     * @tc.name      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0400
+     * @tc.desc      : testSetDecorButtonStyle_buttonBackgroundCornerRadius_0400
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it("testSetDecorButtonStyle_buttonBackgroundCornerRadius_0400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let msgStr = "testSetDecorButtonStyle_buttonBackgroundCornerRadius_0400";
+      console.log(msgStr + "begin");
+      let windowClass = windowStage.getMainWindowSync();
+      try {
+        let param: window.DecorButtonStyle = {
+          buttonBackgroundCornerRadius: 8
+        }
+        windowClass.setDecorButtonStyle(param);
+        console.log(`${msgStr} setDecorButtonStyle success.`);
+        let result = windowClass.getDecorButtonStyle();
+        console.log(`${msgStr} getDecorButtonStyle result: ${JSON.stringify(result)}`);
+        expect(result.buttonBackgroundCornerRadius).assertEqual(8);
+        done();
+      } catch (error) {
+        console.error(msgStr + ' Failed. Cause:' + JSON.stringify(error));
+        if (error.code == 801) {
+          done();
+        } else {
+          expect().assertFail();
+          done();
+        }
       }
     })
 

@@ -115,12 +115,12 @@ struct WebComponent {
         .key('002')
         .onClick(async () => {
           try {
-            this.controller1.startDownload('https:' +
-              '//cd001.v78q.com/cs/104sem/Beyond Compare 文件对比工具_sm60000068e.exe');
-            this.controller2.startDownload('https:' +
-              '//cd001.v78q.com/cs/104sem/Beyond Compare 文件对比工具_sm60000068e.exe');
-            this.controller3.startDownload('https:' +
-              '//cd001.v78q.com/cs/104sem/Beyond Compare 文件对比工具_sm60000068e.exe');
+            this.controller1.startDownload('https://' +
+              'mirrors.huaweicloud.com/npm-software/v6.10.2.tar.gz');
+            this.controller2.startDownload('https://' +
+              'mirrors.huaweicloud.com/npm-software/v6.14.16.tar.gz');
+            this.controller3.startDownload('https://' +
+              'mirrors.huaweicloud.com/npm-software/v6.14.2.tar.gz');
           } catch (error) {
             console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
           }

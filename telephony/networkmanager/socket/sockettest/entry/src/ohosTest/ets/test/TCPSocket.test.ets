@@ -7901,9 +7901,6 @@ export default function TCPSocketTest() {
               console.info('fail to send' + err.code.toString());
           });
         });
-        await tcp.connect(tcpConnectOptions).catch((err:BusinessError) => {
-              console.info('fail to connect' + err.code.toString());
-          });
         class SocketInfo {
           message: ArrayBuffer = new ArrayBuffer(1);
           remoteInfo: socket.SocketRemoteInfo = {} as socket.SocketRemoteInfo;
@@ -7919,6 +7916,9 @@ export default function TCPSocketTest() {
           done();
         };
         tcp.on('message', callback);
+        await tcp.connect(tcpConnectOptions).catch((err:BusinessError) => {
+              console.info('fail to connect' + err.code.toString());
+          });
       } catch (err) {
         console.info(`${caseName}_catch fail err:${JSON.stringify(err)}`);
         expectFail();
@@ -7962,9 +7962,6 @@ export default function TCPSocketTest() {
               console.info('fail to send' + err.code.toString());
           });
         });
-        await tcp.connect(tcpConnectOptions).catch((err:BusinessError) => {
-              console.info('fail to connect' + err.code.toString());
-          });
         class SocketInfo {
           message: ArrayBuffer = new ArrayBuffer(1);
           remoteInfo: socket.SocketRemoteInfo = {} as socket.SocketRemoteInfo;
@@ -7980,6 +7977,9 @@ export default function TCPSocketTest() {
           done();
         };
         tcp.on('message', callback);
+        await tcp.connect(tcpConnectOptions).catch((err:BusinessError) => {
+              console.info('fail to connect' + err.code.toString());
+          });
       } catch (err) {
         console.info(`${caseName}_catch fail err:${JSON.stringify(err)}`);
         expectFail();

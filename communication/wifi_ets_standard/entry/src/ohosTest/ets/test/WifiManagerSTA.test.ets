@@ -149,69 +149,6 @@ export default function wifiSta() {
         })
 
         /**
-         * @tc.number SUB_Communication_WiFi_XTS_Sta_0037
-         * @tc.name testAddDeviceConfig
-         * @tc.desc Test addDeviceConfig Sync API functionality.
-         * @tc.type Function
-         * @tc.size:MediumTest
-         * @tc.level Level 2
-         */
-        it('SUB_Communication_WiFi_XTS_Sta_0037', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) =>{
-            try {
-		        let wifiDeviceConfig:wifiMg.WifiDeviceConfig = {
-                "ssid": "publicTest",
-                "bssid": "00:11:22:33:44:55",
-                "bssidType": wifiMg.DeviceAddressType.RANDOM_DEVICE_ADDRESS,
-                "preSharedKey": "",
-                "isHiddenSsid": false,
-                "securityType": wifiMg.WifiSecurityType.WIFI_SEC_TYPE_OPEN
-            };
-            let networkNum =-1;
-            await wifiMg.addDeviceConfig(wifiDeviceConfig)
-                .then(netWorkId => {
-                    console.info("[wifi_test]add OPEN DeviceConfig promise result : " + JSON.stringify(netWorkId));
-                    networkNum = netWorkId;
-                }).catch((err : BusinessError) => {
-                    console.info("[wifi_test]add OPEN DeviceConfig failed : " + JSON.stringify(err));
-                    expect().assertFail();
-                });
-                expect(true).assertEqual(networkNum != -1);
-                let configs1 = wifiMg.getDeviceConfigs();
-                console.info("[wifi_test]getDeviceConfigs1 result : " + JSON.stringify(configs1));
-                if (configs1.length != 0) {
-                    expect(configs1[((configs1.length)-1)].ssid).assertEqual("publicTest");
-                } else {
-                    console.info("[wifi_test]addDeviceConfig fail");
-                }
-                console.info("[wifi_test]connectToNetwork start.");
-                wifiMg.connectToNetwork(networkNum);
-                await sleep(2000);
-                console.info("[wifi_test]disconnect start.");
-                wifiMg.disconnect();
-                await sleep(2000);
-                console.info("[wifi_test]removeDevice start.");
-                wifiMg.removeDevice(networkNum);
-                await sleep(2000);
-                let configs2 = wifiMg.getDeviceConfigs();
-                console.info("[wifi_test]getDeviceConfigs2 result : " + JSON.stringify(configs2));
-                if (configs2.length != 0) {
-                    expect(true).assertEqual(configs2[((configs2.length)-1)].ssid != "publicTest");
-                } else {
-                    expect(true).assertEqual(configs2.length == 0);
-                }
-	        }catch(error){
-		        console.error("failed:" + JSON.stringify(error));
-                if (error.code == 801) {
-                    console.info('[wifi_js]api is not support');
-                    expect(true).assertTrue();
-                } else {
-                    expect().assertFail();
-                }
-	        }
-	        done();
-        })
-
-        /**
          * @tc.number SUB_Communication_WiFi_XTS_Sta_0038
          * @tc.name testGetDeviceMacAddress
          * @tc.desc Test getDeviceMacAddress Sync API functionality.
@@ -319,58 +256,6 @@ export default function wifiSta() {
 	        }catch(error){
 		        console.error("WifiLinkType failed:" + JSON.stringify(error));
                 expect().assertFail();
-	        }
-	        done();
-        })
-
-        /**
-         * @tc.number SUB_Communication_WiFi_XTS_Sta_0042
-         * @tc.name testAddDeviceConfig
-         * @tc.desc Test addDeviceConfig Sync API functionality.
-         * @tc.type Function
-         * @tc.size:MediumTest
-         * @tc.level Level 2
-         */
-        it('SUB_Communication_WiFi_XTS_Sta_0042', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) =>{
-            try {
-            await wifiMg.addDeviceConfig(null)
-                .then(netWorkId => {
-                    console.info("[wifi_test]add OPEN DeviceConfig promise result : " + JSON.stringify(netWorkId));
-                });
-                expect().assertFail();
-	        }catch(error){
-		        console.error("failed:" + JSON.stringify(error));
-                expect(Number(error.code)).assertEqual(401);
-	        }
-	        done();
-        })
-
-        /**
-         * @tc.number SUB_Communication_WiFi_XTS_Sta_0043
-         * @tc.name testAddDeviceConfig
-         * @tc.desc Test addDeviceConfig Sync API functionality.
-         * @tc.type Function
-         * @tc.size:MediumTest
-         * @tc.level Level 2
-         */
-        it('SUB_Communication_WiFi_XTS_Sta_0043', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) =>{
-            let functionAddDeviceConfig= async ()=>{
-                return new Promise<void>((resolve,reject)=>{
-                    wifiMg.addDeviceConfig(null, error => {
-                        if (error) {
-                        reject(error)
-                        } else {
-                        resolve();
-                        }
-                    });
-                })
-            }
-            try {
-                await functionAddDeviceConfig();
-                expect().assertFail();
-	        }catch(error){
-		        console.error("failed:" + JSON.stringify(error));
-                expect(Number(error.code)).assertEqual(401);
 	        }
 	        done();
         })

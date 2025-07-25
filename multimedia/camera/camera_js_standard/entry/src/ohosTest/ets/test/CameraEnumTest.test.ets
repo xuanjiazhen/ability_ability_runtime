@@ -96,6 +96,7 @@ export default function cameraEnumTest() {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_ENUM_SCENEMODE_0100--------------");
       expect(camera.SceneMode.NORMAL_PHOTO == 1).assertTrue();
       expect(camera.SceneMode.NORMAL_VIDEO == 2).assertTrue();
+      expect(camera.SceneMode.SECURE_PHOTO == 12).assertTrue();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_ENUM_SCENEMODE_0100 ends here");
       done();
     })
@@ -134,6 +135,24 @@ export default function cameraEnumTest() {
       expect(camera.ConnectionType.CAMERA_CONNECTION_USB_PLUGIN == 1).assertTrue();
       expect(camera.ConnectionType.CAMERA_CONNECTION_REMOTE == 2).assertTrue();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_ENUM_CONNECTIONTYPE_0100 ends here");
+      done();
+    })
+
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_ENUM_HOSTDEVICETYPE_0100
+     * @tc.name      : SUB_MULTIMEDIA_CAMERA_ENUM_HOSTDEVICETYPE_0100
+     * @tc.desc      : Camera HostDeviceType Eunm
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_CAMERA_ENUM_HOSTDEVICETYPE_0100', Level.LEVEL2, async (done: Function) => {
+      console.info("--------------SUB_MULTIMEDIA_CAMERA_ENUM_HOSTDEVICETYPE_0100--------------");
+      expect(camera.HostDeviceType.UNKNOWN_TYPE == 0).assertTrue();
+      expect(camera.HostDeviceType.PHONE == 0x0E).assertTrue();
+      expect(camera.HostDeviceType.TABLET == 0x11).assertTrue();
+      console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_ENUM_HOSTDEVICETYPE_0100 ends here");
       done();
     })
 
@@ -333,6 +352,8 @@ export default function cameraEnumTest() {
       console.info(TAG + "--------------DEVICE_DISABLED--------------");
       expect(camera.CameraErrorCode.DEVICE_PREEMPTED == 7400109).assertTrue();
       console.info(TAG + "--------------DEVICE_PREEMPTED --------------");
+      expect(camera.CameraErrorCode.UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS == 7400110).assertTrue();
+      console.info(TAG + "--------------UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS --------------");
       expect(camera.CameraErrorCode.SERVICE_FATAL_ERROR == 7400201).assertTrue();
       console.info(TAG + "--------------SERVICE_FATAL_ERROR--------------");
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_ENUM_CAMERAERRORCODE_0100 ends here");

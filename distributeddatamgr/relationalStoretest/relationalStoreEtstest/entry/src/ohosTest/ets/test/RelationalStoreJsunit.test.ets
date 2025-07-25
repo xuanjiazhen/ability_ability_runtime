@@ -756,7 +756,52 @@ export default function relationalStoreTest() {
       }
       console.info(TAG + "************* testRdbStore0022 end   *************");
     })
-
+    /**
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_TransactionEtsAPITest_3100
+     * @tc.name testRdbStore0023
+     * @tc.desc relational version
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('testRdbStore0023', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function)=> {
+      console.info(TAG + "************* testRdbStore0023 start *************");
+      const STORE_CONFIGS1:data_Rdb.StoreConfig = {
+        name: "rdbstore17.db",
+        securityLevel: data_Rdb.SecurityLevel.S1
+      };
+      const STORE_CONFIGS4:data_Rdb.StoreConfig = {
+        name: "rdbstore17.db",
+        securityLevel: data_Rdb.SecurityLevel.S4
+      };
+      let store = await data_Rdb.getRdbStore(context, STORE_CONFIGS4);
+      console.info(TAG+`testRdbStore0023 S4 Get RdbStore successfully.`);
+      try {
+        data_Rdb.getRdbStore(context, STORE_CONFIGS1,async(err,rdbstore)=>{
+          if(err)
+          {
+            console.error(TAG + `testRdbStore0023 Get RdbStore failed, code is ${err.code},message is ${err.message}`);
+            await data_Rdb.deleteRdbStore(context, STORE_CONFIGS4.name);
+            console.info(TAG +`deleteRdbStore successfully.`);
+            expect(err.code == 14800017).assertTrue();
+            done()
+          }else{
+            console.info(TAG +`testRdbStore0023 Get RdbStore successfully.`);
+            await data_Rdb.deleteRdbStore(context, STORE_CONFIGS4.name);
+            console.info(TAG +`deleteRdbStore successfully.`);
+            expect().assertFail();
+            done()
+          }
+        });
+      } catch (error) {
+        console.error(TAG + `testRdbStore0023 Get RdbStore failed error, code is ${error.code},message is ${error.message}`);
+        await data_Rdb.deleteRdbStore(context, STORE_CONFIGS4.name);
+        console.info(TAG +`deleteRdbStore successfully.`);
+        expect().assertFail();
+        done()
+      }
+      console.info(TAG + "************* testRdbStore0023 end   *************");
+    })
     console.info(TAG + "*************Unit Test End*************");
   })
 }

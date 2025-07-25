@@ -25,8 +25,11 @@
 #include <multimedia/image_effect/image_effect_filter.h>
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
 #include <multimedia/image_framework/image/picture_native.h>
+#include <native_color_space_manager/native_color_space_manager.h>
 #include <native_window/external_window.h>
 #include <string>
+#include "gl_utils.h"
+#include "render_texture.h"
 
 #define MY_LOG_DOMAIN 0x0000
 #define MY_LOG_TAG "ImageEffectNDK"
@@ -61,6 +64,7 @@
 #define IMAGE_EFFECT_1048576 1048576
 #define IMAGE_EFFECT_1073741824 1073741824
 #define IMAGE_EFFECT_1080 1080
+#define IMAGE_EFFECT_1920 1920
 #define IMAGE_EFFECT_4090 4090
 #define IMAGE_EFFECT_5120 5120
 #define IMAGE_EFFECT_CODE_401 401
@@ -165,6 +169,40 @@ napi_value OHEffectFilterRender(napi_env env, napi_callback_info info)
         break;
     }
     errorCode = OH_EffectFilter_Render(filter, inputPixelmap, outputPixelmap);
+    OH_EffectFilter_Release(filter);
+    napi_value ret;
+    napi_create_int32(env, errorCode, &ret);
+    return ret;
+}
+
+napi_value OHEffectFilterRenderWithTextureId(napi_env env, napi_callback_info info)
+{
+    ImageEffect_FilterDelegate filterDelegate = getFilterDelegate();
+    // 创建 OH_EffectFilterInfo 实例
+    OH_EffectFilterInfo *customFilterInfo = OH_EffectFilterInfo_Create();
+    // 设置自定义滤镜滤镜名
+    OH_EffectFilterInfo_SetFilterName(customFilterInfo, CUSTOM_FILTER);
+    // 设置自定义滤镜所支持的内存类型
+    ImageEffect_BufferType bufferTypeArray[] = {ImageEffect_BufferType::EFFECT_BUFFER_TYPE_TEXTURE};
+    OH_EffectFilterInfo_SetSupportedBufferTypes(
+        customFilterInfo, sizeof(bufferTypeArray) / sizeof(ImageEffect_BufferType), bufferTypeArray);
+    // 设置自定义滤镜所支持的像素格式
+    ImageEffect_Format formatArray[] = {ImageEffect_Format::EFFECT_PIXEL_FORMAT_RGBA8888};
+    OH_EffectFilterInfo_SetSupportedFormats(customFilterInfo, sizeof(formatArray) / sizeof(ImageEffect_Format),
+                                            formatArray);
+    // 注册自定义滤镜
+    ImageEffect_ErrorCode errorCode = OH_EffectFilter_Register(customFilterInfo, &filterDelegate);
+    // 创建滤镜。比如：创建对比度效果器
+    OH_EffectFilter *filter = OH_EffectFilter_Create(CUSTOM_FILTER);
+
+    std::shared_ptr<RenderTexture> input = std::make_shared<RenderTexture>(IMAGE_EFFECT_1920, IMAGE_EFFECT_1080,
+        GL_RGBA8);
+    input->Init();
+    std::shared_ptr<RenderTexture> output = std::make_shared<RenderTexture>(IMAGE_EFFECT_1920, IMAGE_EFFECT_1080,
+        GL_RGBA8);
+    output->Init();
+
+    errorCode = OH_EffectFilter_RenderWithTextureId(filter, input->GetName(), output->GetName(), ColorSpaceName::SRGB);
     OH_EffectFilter_Release(filter);
     napi_value ret;
     napi_create_int32(env, errorCode, &ret);
@@ -1217,6 +1255,42 @@ napi_value OHImageEffectSetOutputPicture(napi_env env, napi_callback_info info)
     ImageEffect_ErrorCode code = OH_ImageEffect_SetOutputPicture(imageEffect, nullptr);
     LOG("OH_ImageEffect_SetOutputPicture code value: %d", code);
     
+    napi_value ret;
+    napi_create_int32(env, code, &ret);
+    return ret;
+}
+
+napi_value OHImageEffectSetInputTexture(napi_env env, napi_callback_info info)
+{
+    OH_ImageEffect *imageEffect = OH_ImageEffect_Create(IMAGE_EFFECT_NAME);
+    std::shared_ptr<OH_ImageEffect> imageEffectPtr(imageEffect, [](OH_ImageEffect *imageEffect) {
+        if (imageEffect != nullptr) {
+            OH_ImageEffect_Release(imageEffect);
+        }
+    });
+    std::shared_ptr<RenderTexture> input = std::make_shared<RenderTexture>(IMAGE_EFFECT_1920,
+        IMAGE_EFFECT_1080, GL_RGBA8);
+    input->Init();
+    ImageEffect_ErrorCode code = OH_ImageEffect_SetInputTextureId(imageEffect, input->GetName(), ColorSpaceName::SRGB);
+    LOG("OH_ImageEffect_SetInputTextureId code value: %d", code);
+    napi_value ret;
+    napi_create_int32(env, code, &ret);
+    return ret;
+}
+
+napi_value OHImageEffectSetOutputTexture(napi_env env, napi_callback_info info)
+{
+    OH_ImageEffect *imageEffect = OH_ImageEffect_Create(IMAGE_EFFECT_NAME);
+    std::shared_ptr<OH_ImageEffect> imageEffectPtr(imageEffect, [](OH_ImageEffect *imageEffect) {
+        if (imageEffect != nullptr) {
+            OH_ImageEffect_Release(imageEffect);
+        }
+    });
+    std::shared_ptr<RenderTexture> output = std::make_shared<RenderTexture>(IMAGE_EFFECT_1920,
+        IMAGE_EFFECT_1080, GL_RGBA8);
+    output->Init();
+    ImageEffect_ErrorCode code = OH_ImageEffect_SetOutputTextureId(imageEffect, output->GetName());
+    LOG("OH_ImageEffect_SetOutputTextureId code value: %d", code);
     napi_value ret;
     napi_create_int32(env, code, &ret);
     return ret;

@@ -24,6 +24,11 @@
         "deliveryWithInstall": true,
         "installationFree": false,
         "pages": "$profile:main_pages",
+        "requestPermissions": [
+            {
+                "name": "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS"
+            }
+        ],
         "abilities": [
             {
                 "name": "com.acts.osaccountassistapptwo.MainAbility",

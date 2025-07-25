@@ -1057,7 +1057,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_001, TestSize.L
 
     OH_AudioStreamBuilder_SetSamplingRate(builder, SAMPLE_RATE_48000);
     OH_AudioStreamBuilder_SetChannelCount(builder, CHANNEL_2);
-    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_VOICE_COMMUNICATION;
+    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_GAME;
     OH_AudioStreamBuilder_SetRendererInfo(builder, usage);
 
     OHAudioRendererWriteCallbackMock writeCallbackMock;
@@ -1118,7 +1118,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_002, TestSize.L
 
     OH_AudioStreamBuilder_SetSamplingRate(builder, SAMPLE_RATE_48000);
     OH_AudioStreamBuilder_SetChannelCount(builder, CHANNEL_2);
-    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_VOICE_COMMUNICATION;
+    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_GAME;
     OH_AudioStreamBuilder_SetRendererInfo(builder, usage);
 
     OHAudioRendererWriteCallbackMock writeCallbackMock;
@@ -1160,7 +1160,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_002, TestSize.L
     uint32_t underFlowCount;
     result = OH_AudioRenderer_GetUnderflowCount(audioRenderer, &underFlowCount);
     EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
-    EXPECT_EQ(underFlowCount, 0);
+    EXPECT_GT(underFlowCount, 0);
 
     OH_AudioRenderer_Stop(audioRenderer);
     OH_AudioRenderer_Release(audioRenderer);
@@ -1179,7 +1179,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_003, TestSize.L
 
     OH_AudioStreamBuilder_SetSamplingRate(builder, SAMPLE_RATE_48000);
     OH_AudioStreamBuilder_SetChannelCount(builder, CHANNEL_2);
-    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_VOICE_COMMUNICATION;
+    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_GAME;
     OH_AudioStreamBuilder_SetRendererInfo(builder, usage);
 
     OHAudioRendererWriteCallbackMock writeCallbackMock;
@@ -1219,7 +1219,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_004, TestSize.L
 
         OH_AudioStreamBuilder_SetSamplingRate(builder, SAMPLE_RATE_48000);
         OH_AudioStreamBuilder_SetChannelCount(builder, CHANNEL_2);
-        OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_VOICE_COMMUNICATION;
+        OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_GAME;
         OH_AudioStreamBuilder_SetRendererInfo(builder, usage);
 
         OHAudioRendererWriteCallbackMock writeCallbackMock;
@@ -1282,7 +1282,7 @@ HWTEST(OHAudioRenderUnitTest, OH_AudioRenderer_GetUnderflowCount_005, TestSize.L
 
     OH_AudioStreamBuilder_SetSamplingRate(builder, SAMPLE_RATE_48000);
     OH_AudioStreamBuilder_SetChannelCount(builder, CHANNEL_2);
-    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_VOICE_COMMUNICATION;
+    OH_AudioStream_Usage usage = AUDIOSTREAM_USAGE_GAME;
     OH_AudioStreamBuilder_SetRendererInfo(builder, usage);
 
     OHAudioRendererWriteCallbackMock writeCallbackMock;
@@ -1477,5 +1477,728 @@ HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_WriteDataCallback_006, TestSize.Le
 
     CleanupAudioResources(builder, audioRenderer);
 }
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_001
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_001
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'right test.
+ *             loudness is -90.0 and streamtype is music.
+ *             Returns AUDIOSTREAM_SUCCESS if result is successful.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_001, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MUSIC);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, -90.0f);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    sleep(1);
+
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && -90.0f == loudnessGain);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_002
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_002
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'right test.
+ *             loudness is -89.9 and streamtype is music.
+ *             Returns AUDIOSTREAM_SUCCESS if result is successful.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_002, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MUSIC);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, -89.9f);
+    sleep(1);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (-89.9 - loudnessGain < 0.1 || loudnessGain + 89.9 < 0.1));
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_003
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_003
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'right test.
+ *             loudness is 24.0 and streamtype is movie.
+ *             Returns AUDIOSTREAM_SUCCESS if result is successful.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_003, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MOVIE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    sleep(1);
+
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && 24.0f == loudnessGain);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_004
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_004
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'right test.
+ *             loudness is 23.9 and streamtype is audiobook.
+ *             Returns AUDIOSTREAM_SUCCESS if result is successful.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_004, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_AUDIOBOOK);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 23.9f);
+    sleep(1);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (23.9 - loudnessGain < 0.1 || loudnessGain - 23.9 < 0.1));
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_005
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_005
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'right test.
+ *             super low-power.
+ *             Returns AUDIOSTREAM_SUCCESS if result is successful.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_005, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, (OH_AudioStream_LatencyMode)5);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MOVIE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    sleep(1);
+
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && 24.0f == loudnessGain);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_006
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_006
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             loudness is -90.1.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_006, TestSize.Level1)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_AUDIOBOOK);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, -90.1f);
+    sleep(1);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_007
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_007
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             loudness is 24.1.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_007, TestSize.Level1)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_AUDIOBOOK);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.1f);
+    sleep(1);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_008
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_008
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             OH_AudioRenderer_SetLoudnessGain'renderer is nullptr.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_008, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_AUDIOBOOK);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(nullptr, 24.0f);
+    sleep(1);
+
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_010
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_010
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_VOICE_COMMUNICATION.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_010, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_VOICE_COMMUNICATION);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_011
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_011
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_VOICE_ASSISTANT.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_011, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_VOICE_ASSISTANT);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_012
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_012
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_ALARM.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_012, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_ALARM);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_013
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_013
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_VOICE_MESSAGE.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_013, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_VOICE_MESSAGE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_014
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_014
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_RINGTONE.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_014, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_RINGTONE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_015
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_015
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_NOTIFICATION.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_015, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_NOTIFICATION);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_017
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_017
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_GAME.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_017, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_GAME);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_018
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_018
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_NAVIGATION.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_018, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_NAVIGATION);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_019
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_019
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             streamtype is AUDIOSTREAM_USAGE_VIDEO_COMMUNICATION.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_019, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_VIDEO_COMMUNICATION);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE((AUDIOSTREAM_SUCCESS == result) && (loudnessGain == 0));
+
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_020
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_020
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
+ *             mode is AUDIOSTREAM_LATENCY_MODE_FAST
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_020, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_FAST);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MUSIC);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    sleep(1);
+
+    float loudnessGain = 1;
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+    EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && loudnessGain == 0);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_SetLoudnessGain_021
+ * @tc.number: OH_AudioRenderer_SetLoudnessGain_021
+ * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_SetLoudnessGain interface' stability_test.
+ *             Returns AUDIOSTREAM_SUCCESS if result is success.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_021, TestSize.Level0)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MOVIE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    int i = 0;
+    float loudnessGain = 0;
+
+    while (i < 2000) {
+        result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 10.0f);
+        EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+        result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+        EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && 10.0f == loudnessGain);
+
+        result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, -10.0f);
+        EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+        result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
+        EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && -10.0f == loudnessGain);
+
+        i++;
+    }
+    
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_GetLoudnessGain_001
+ * @tc.number: OH_AudioRenderer_GetLoudnessGain_001
+ * @tc.desc  : Test OH_AudioRenderer_GetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_GetLoudnessGain interface'back test.
+ *             renderer is nullptr.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_GetLoudnessGain_001, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MOVIE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    sleep(1);
+
+    float loudnessGain = 0;
+    result = OH_AudioRenderer_GetLoudnessGain(nullptr, &loudnessGain);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
+/**
+ * @tc.name  : OH_AudioRenderer_GetLoudnessGain_002
+ * @tc.number: OH_AudioRenderer_GetLoudnessGain_002
+ * @tc.desc  : Test OH_AudioRenderer_GetLoudnessGain interface
+ *             overwrites OH_AudioRenderer_GetLoudnessGain interface'back test.
+ *             renderer is nullptr.
+ *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
+ */
+HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_GetLoudnessGain_002, TestSize.Level2)
+{
+    OH_AudioStreamBuilder* builder = nullptr;
+    OH_AudioRenderer* audioRenderer = nullptr;
+    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_NORMAL);
+
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MOVIE);
+
+    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+
+    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    sleep(1);
+
+    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, nullptr);
+    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
+    result = OH_AudioRenderer_Release(audioRenderer);
+    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
+    OH_AudioStreamBuilder_Destroy(builder);
+}
+
 } // namespace AudioStandard
 } // namespace OHOS

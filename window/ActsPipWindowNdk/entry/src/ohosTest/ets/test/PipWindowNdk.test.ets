@@ -971,5 +971,98 @@ export default function PipWindowNdkTest() {
       }
     })
 
+    /**
+     * @tc.number    : SUB_BASIC_WMS_WINDOW_PIP_NDK_SET_INITIAL_RECT_0100
+     * @tc.name      : testSetPipInitialSurfaceRect
+     * @tc.desc      : 设置画中画启动动画初始位置和大小
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testSetPipInitialSurfaceRect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = 'testSetPipInitialSurfaceRect';
+      try{
+        let mainWindow = windowStage.getMainWindowSync();
+        let properties = mainWindow.getWindowProperties();
+        console.log(`${caseName} properties: ${JSON.stringify(properties)}`);
+        let mainWindowId = properties.id;
+        console.log(`${caseName} mainWindowId: ${JSON.stringify(mainWindowId)}`);
+        let result = testNapi.testSetPipInitialSurfaceRect(mainWindowId);
+        console.log(`${caseName} result: ${JSON.stringify(result)}`);
+        if (result === 801) {
+          done()
+        } else {
+          expect(result).assertEqual(0);
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} error: ${JSON.stringify(err)}`);
+        expect(false).assertTrue();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_WINDOW_PIP_NDK_SET_INITIAL_RECT_ERRORCODE_0100
+     * @tc.name      : testSetPipInitialSurfaceRectwithInvalidWidth
+     * @tc.desc      : 设置画中画启动动画初始位置和大小错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('testSetPipInitialSurfaceRectwithInvalidWidth', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let caseName = 'testSetPipInitialSurfaceRectwithInvalidWidth';
+      try{
+        let mainWindow = windowStage.getMainWindowSync();
+        let properties = mainWindow.getWindowProperties();
+        console.log(`${caseName} properties: ${JSON.stringify(properties)}`);
+        let mainWindowId = properties.id;
+        console.log(`${caseName} mainWindowId: ${JSON.stringify(mainWindowId)}`);
+        let result = testNapi.testSetPipInitialSurfaceRectwithInvalidWidth(mainWindowId);
+        console.log(`${caseName} result: ${JSON.stringify(result)}`);
+        if (result === 801) {
+          done()
+        } else {
+          expect(result).assertEqual(1300016);
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} error: ${JSON.stringify(err)}`);
+        expect(false).assertTrue();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_WINDOW_PIP_NDK_UNSET_INITIAL_RECT_ERRORCODE_0100
+     * @tc.name      : testUnsetPipInitialSurfaceRect
+     * @tc.desc      : 取消设置画中画启动动画初始位置和大小
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testUnsetPipInitialSurfaceRect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = 'testUnsetPipInitialSurfaceRect';
+      try{
+        let mainWindow = windowStage.getMainWindowSync();
+        let properties = mainWindow.getWindowProperties();
+        console.log(`${caseName} properties: ${JSON.stringify(properties)}`);
+        let mainWindowId = properties.id;
+        console.log(`${caseName} mainWindowId: ${JSON.stringify(mainWindowId)}`);
+        let result = testNapi.testUnsetPipInitialSurfaceRect(mainWindowId);
+        console.log(`${caseName} result: ${JSON.stringify(result)}`);
+        if (result === 801) {
+          done()
+        } else {
+          expect(result).assertEqual(0);
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} error: ${JSON.stringify(err)}`);
+        expect(false).assertTrue();
+        done();
+      }
+    })
+
   })
 }

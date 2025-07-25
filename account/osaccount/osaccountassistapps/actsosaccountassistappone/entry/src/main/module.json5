@@ -24,6 +24,11 @@
         "deliveryWithInstall": true,
         "installationFree": false,
         "pages": "$profile:main_pages",
+        "requestPermissions": [
+            {
+                "name": "ohos.permission.GET_DOMAIN_ACCOUNTS"
+            }
+        ],
         "abilities": [
             {
                 "name": "com.acts.osaccountassistappone.MainAbility",

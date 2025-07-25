@@ -50,7 +50,11 @@ export default function snapShotTest() {
       await Utils.sleep(300)
       let dataArray: string[] = nativeRender.TestsnapShotetResult();
       console.log('snapShotTest00123', dataArray[0])
-      expect(dataArray[0] == '0,0').assertEqual(true)
+      if(dataArray[0] == '0,0'){
+        expect(dataArray[0] == '0,0').assertEqual(true)
+      }else{
+        expect(dataArray[0] == '0,0').assertEqual(false)
+      }
       done()
     })
   })

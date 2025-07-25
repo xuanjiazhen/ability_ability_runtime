@@ -14,7 +14,9 @@
  */
 
 import sendableContextTest from './SendableContext.test'
+import SendableContextStageWorker from './SendableContextStageWorker.test'
 
 export default function testsuite() {
+  SendableContextStageWorker();
   sendableContextTest();
 }

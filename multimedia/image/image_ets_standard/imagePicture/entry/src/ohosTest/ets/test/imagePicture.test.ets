@@ -676,6 +676,42 @@ export default function imagePicture() {
       return file.fd;
     }
 
+    class MySequence1 implements rpc.Parcelable {
+      picture_: image.Picture;
+
+      constructor(conPicture: image.Picture) {
+        this.picture_ = conPicture;
+      }
+
+      marshalling(messageSequence: rpc.MessageSequence) {
+        this.picture_.marshalling(messageSequence);
+        return true;
+      }
+
+      unmarshalling(messageSequence: rpc.MessageSequence): boolean {
+        let picture: image.Picture = image.createPictureFromParcel(messageSequence)
+        expect(picture !== undefined).assertTrue();
+        this.picture_ = picture;
+        return true;
+      }
+    }
+
+    const testCreatePictureFromParcel = async (
+      done: Function,
+      logger: Logger,
+      picture: image.Picture
+    ) => {
+      // marshalling
+      let parcelable: MySequence1 = new MySequence1(picture);
+      let data: rpc.MessageSequence = rpc.MessageSequence.create();
+      data.writeParcelable(parcelable);
+      // createPictureFromParcel
+      let ret: MySequence1 = new MySequence1(picture);
+      data.readParcelable(ret);
+      await sleep(500);
+      done();
+    }
+
     const checkPackResult = async (
       logger: Logger,
       source: number | ArrayBuffer,
@@ -927,6 +963,11 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100");
+      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
+        expect(true).assertTrue();
+        done();
+        return
+      };
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         expect(true).assertTrue();
@@ -963,6 +1004,21 @@ export default function imagePicture() {
         let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_GAIN_PIXELMAP_JPEG_ERROR_0100");
         testPictureApiError(done, logger, "testExif.jpg", "buffer", "gainMapPixelMap");
     })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PICTURE_CREATE_PICTURE_FROM_PARCEL_0100
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PICTURE_CREATE_PICTURE_FROM_PARCEL_0100
+     * @tc.desc      : 1.create picture object by decode image source
+     *                 2.test marshalling and create Picture From Parcel
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 1
+     */
+    it('SUB_MULTIMEDIA_IMAGE_PICTURE_CREATE_PICTURE_FROM_PARCEL_0100', Level.LEVEL0, async (done: Function) => {
+      let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_CREATE_PICTURE_FROM_PARCEL_0100");
+      let picture = await createPictureImageSourcePic("testExif.jpg", "fd");
+      testCreatePictureFromParcel(done, logger, picture);
+    });
 
     /**
      * @tc.number    : SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_MARSHALLING_JPEG_0100
@@ -4680,6 +4736,11 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100");
+      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
+        expect(true).assertTrue();
+        done();
+        return
+      };
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         expect(true).assertTrue();
@@ -8802,6 +8863,31 @@ export default function imagePicture() {
       let fileName = 'FragmentMap.dat'
       let imageSourceApi = await getImageSource(fileName, "uri")
       imageSourceApi.getImageProperty(image.PropertyKey.BITS_PER_SAMPLE, options).then((data: string) => {
+        console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
+        expect().assertFail();
+        done();
+      }).catch((error: BusinessError) => {
+        console.error(tag + ' Failed to get the value of the specified attribute key of the image.');
+        expect(error.code == 62980137).assertTrue();
+        done();
+      })
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_IMAGE_PROPERTY_KEY_NULL_0100
+     * @tc.name      : SUB_MULTIMEDIA_IMAGE_PROPERTY_KEY_NULL_0100
+     * @tc.desc      :
+     * @tc.size      : MediumTest
+     * @tc.type      : Functional
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_IMAGE_PROPERTY_KEY_NULL_0100', Level.LEVEL0, async (done: Function) => {
+      const tag: string = "SUB_MULTIMEDIA_IMAGE_PROPERTY_KEY_NULL_0100"
+      let options: image.ImagePropertyOptions = { index: 0, defaultValue: '9999' }
+      let fileName = 'FragmentMap.dat'
+      let imageSourceApi = await getImageSource(fileName, "uri")
+      imageSourceApi.getImageProperty(null, options).then((data: string) => {
         console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
         expect().assertFail();
         done();

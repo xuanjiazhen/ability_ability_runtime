@@ -721,6 +721,400 @@ export default function relationalStoreErrorCodeTest() {
       }
       console.info(TAG + "************* errcode024 end *************");
     })
+    /**
+     * @tc.name errcode025
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12200
+     * @tc.desc rdbStore.getModifyTime errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode025', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode025 start *************");
+      try{
+        rdbStore.getModifyTime(undefined,undefined,undefined)
+        console.log(TAG + "getModifyTime success")
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done()
+      }
+      console.info(TAG + "************* errcode025 end *************");
+    })
+    /**
+     * @tc.name errcode026
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12300
+     * @tc.desc rdbStore.update errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode026', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode026 start *************");
+      try{
+        rdbStore.update(undefined,undefined,relationalStore.ConflictResolution.ON_CONFLICT_NONE,(err,number)=>{
+          console.log(TAG + "update success")
+          expect().assertFail()
+        })
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done()
+      }
+      console.info(TAG + "************* errcode026 end *************");
+    })
+    /**
+     * @tc.name errcode027
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12400
+     * @tc.desc transaction.update errcode is 14800027
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode027', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode027 start *************");
+      const valueBucket: relationalStore.ValuesBucket = {
+        "name": "lisi",
+        "age": 18,
+      }
+      const valueBucket1: relationalStore.ValuesBucket = {
+        "name": "wangwu",
+        "age": 18,
+      }
+      await (rdbStore as relationalStore.RdbStore).insert("employee", valueBucket)
+      let predicates = new relationalStore.RdbPredicates("employee");
+      predicates.equalTo("name", "lisi");
+      (rdbStore as relationalStore.RdbStore).createTransaction().then((transaction: relationalStore.Transaction) => {
+        transaction.update(valueBucket1, predicates, relationalStore.ConflictResolution.ON_CONFLICT_REPLACE).then(async (rows: Number) => {
+          transaction.commit();
+          console.info(TAG + `Updated row count: ${rows}`);
+          expect(rows).assertEqual(1);
+          done()
+        }).catch((err: BusinessError) => {
+          transaction.rollback();
+          console.error(TAG + `Updated failed, code is ${err.code},message is ${err.message}`);
+          expect(err.code == 14800027).assertTrue();
+          done()
+        });
+      }).catch((err: BusinessError) => {
+        console.error(`createTransaction failed, code is ${err.code},message is ${err.message}`);
+        expect().assertFail();
+        done()
+      });
+      console.info(TAG + "************* errcode027 end *************");
+    })
+    /**
+     * @tc.name errcode028
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12500
+     * @tc.desc rdbStore.update errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode028', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode028 start *************");
+      const valueBucket: relationalStore.ValuesBucket = {
+        "name": "lisi",
+        "age": 18,
+      }
+      const valueBucket1: relationalStore.ValuesBucket = {
+        "name": "we",
+        "age": 18,
+        "exec":11,
+      }
+      await (rdbStore as relationalStore.RdbStore).insert("employee", valueBucket)
+      let predicates = new relationalStore.RdbPredicates("employee");
+      predicates.equalTo("name", "lisi")
+      try{
+        rdbStore?.update(valueBucket1,predicates,relationalStore.ConflictResolution.ON_CONFLICT_NONE,(err,number)=>{
+          console.log(TAG + "update success")
+          done()
+        })
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 14800021).assertTrue();
+        done()
+      }
+      console.info(TAG + "************* errcode028 end *************");
+    })
+    /**
+     * @tc.name errcode029
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12600
+     * @tc.desc rdbStore.insertSync errcode is 14800021
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode029', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode029 start *************");
+      const valueBucket: relationalStore.ValuesBucket = {
+        "name": "zhangsan",
+        "age": 18,
+        "exsc": 100,
+      }
+      try{
+          rdbStore.insertSync("employee", valueBucket, relationalStore.ConflictResolution.ON_CONFLICT_NONE)
+          expect().assertFail();
+          console.info(TAG + "insertSync success");
+          done();
+      }catch(err){
+         console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+          expect(err.code == 14800021).assertTrue();
+          done();
+      }
+      console.info(TAG + "************* errcode029 end *************");
+    })
 
+    /**
+     * @tc.name errcode030
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12700
+     * @tc.desc rdbStore.insertSync errcode is 14800021
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode030', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode030 start *************");
+      const valueBucket: relationalStore.ValuesBucket = {
+        "name": "zhangsan",
+        "age": 18,
+        "exsc": 100,
+      }
+      const sendableValuesBucket : sendableRelationalStore.ValuesBucket = sendableRelationalStore.toSendableValuesBucket(valueBucket);
+      try{
+        rdbStore.insertSync("employee", sendableValuesBucket, relationalStore.ConflictResolution.ON_CONFLICT_NONE)
+        expect().assertFail();
+        console.info(TAG + "insertSync success");
+        done();
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 14800021).assertTrue();
+        done();
+      }
+      console.info(TAG + "************* errcode030 end *************");
+    })
+
+    /**
+     * @tc.name errcode031
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12800
+     * @tc.desc rdbStore.insert errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode031', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode031 start *************");
+      const valueBucket:relationalStore.ValuesBucket = {
+        "name": "Jim",
+        "age": 30,
+      }
+      try{
+        rdbStore.insert(undefined, valueBucket, relationalStore.ConflictResolution.ON_CONFLICT_NONE,async(err,number)=>{
+          expect().assertFail();
+          console.info(TAG + "insert success");
+          done();
+        })
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(TAG + "************* errcode031 end *************");
+    })
+
+    /**
+     * @tc.name errcode032
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_12900
+     * @tc.desc rdbStore.setDistributedTables callback errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode032', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode032 start *************");
+      const valueBucket:relationalStore.ValuesBucket = {
+        "name": "Jim",
+        "age": 30,
+      }
+      try{
+        rdbStore.setDistributedTables(undefined, async(err)=>{
+          expect().assertFail();
+          console.info(TAG + "setDistributedTables success");
+          done();
+        })
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(TAG + "************* errcode032 end *************");
+    })
+
+    /**
+     * @tc.name errcode033
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13000
+     * @tc.desc rdbStore.setDistributedTables promise errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode033', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode033 start *************");
+      const valueBucket:relationalStore.ValuesBucket = {
+        "name": "Jim",
+        "age": 30,
+      }
+      try{
+        await rdbStore.setDistributedTables(undefined);
+          expect().assertFail();
+          console.info(TAG + "setDistributedTables success");
+          done();
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(TAG + "************* errcode033 end *************");
+    })
+    /**
+     * @tc.name errcode034
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13100
+     * @tc.desc rdbStore.setDistributedTables  errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode034', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode034 start *************");
+      try{
+        rdbStore.setDistributedTables(undefined,relationalStore.DistributedType.DISTRIBUTED_CLOUD, {
+        autoSync: true},async(err)=>{
+          expect().assertFail();
+          console.info(TAG + "setDistributedTables success");
+          done();
+        });
+      }catch(err){
+        console.info(TAG + "err.code" + err.code + "err.message"+ err.message)
+        expect(err.code == 401).assertTrue();
+        done();
+      }
+      console.info(TAG + "************* errcode034 end *************");
+    })
+    /**
+     * @tc.name errcode035
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13200
+     * @tc.desc rdbStore.setDistributedTables  errcode is 801
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode035', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode035 start *************");
+      try {
+        rdbStore.setDistributedTables(["employee"],async(err)=>{
+          console.info(TAG + "set none to be distributed table success");
+          expect(rdbStore != null).assertTrue();
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 801).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode035 end *************");
+    })
+    /**
+     * @tc.name errcode036
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13300
+     * @tc.desc rdbStore.setDistributedTables  errcode is 801
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode036', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode036 start *************");
+      try {
+        rdbStore.setDistributedTables(["employee"],relationalStore.DistributedType.DISTRIBUTED_CLOUD,async(err)=>{
+          console.info(TAG + "set none to be distributed table success");
+          expect(rdbStore != null).assertTrue();
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 801).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode036 end *************");
+    })
+    /**
+     * @tc.name errcode037
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13400
+     * @tc.desc rdbStore.setDistributedTables  errcode is 801
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode037', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode037 start *************");
+      try {
+        rdbStore.setDistributedTables(["employee"],relationalStore.DistributedType.DISTRIBUTED_CLOUD, {autoSync: true},async(err)=>{
+          console.info(TAG + "set none to be distributed table success");
+          expect(rdbStore != null).assertTrue();
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 801).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode037 end *************");
+    })
+    /**
+     * @tc.name errcode038
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13500
+     * @tc.desc rdbStore.setDistributedTables  errcode is 801
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode038', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode038 start *************");
+      rdbStore.close();
+      try {
+        rdbStore.setDistributedTables(["employee"],relationalStore.DistributedType.DISTRIBUTED_CLOUD, {autoSync: true},async(err)=>{
+          console.info(TAG + "set distributed table success");
+          expect().assertFail()
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 14800014).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode038 end *************");
+    })
+    /**
+     * @tc.name errcode039
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBAPIErrcodeTest_13600
+     * @tc.desc rdbStore.executeSql  errcode is 401
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('errcode039', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "************* errcode039 start *************");
+      try {
+        rdbStore.executeSql(undefined,[18],async(err)=>{
+          console.info(TAG + "executeSql success");
+          expect().assertFail()
+          done()
+        })
+      } catch (err) {
+        console.info(TAG + "setDistributed002 failed"+ `, error code is ${err.code}, message is ${err.message}`);
+        expect(err.code == 401).assertTrue()
+        done()
+      }
+      console.info(TAG + "************* errcode039 end *************");
+    })
   })
 }

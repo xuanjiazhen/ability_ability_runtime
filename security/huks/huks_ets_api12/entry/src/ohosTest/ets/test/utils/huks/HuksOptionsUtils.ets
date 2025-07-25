@@ -9,6 +9,11 @@ export function GenParam(paramTag: huks.HuksTag, paramValue: boolean | number | 
   } as huks.HuksParam;
 }
 
+export function SetInData(huksOptions: huks.HuksOptions, inData: Uint8Array): huks.HuksOptions {
+  huksOptions.inData = inData;
+  return huksOptions;
+}
+
 export function SetParam(huksOptions: huks.HuksOptions, paramTag: huks.HuksTag, paramValue: boolean | number | bigint | Uint8Array): huks.HuksOptions {
   let properties: Array<huks.HuksParam> = huksOptions.properties as Array<huks.HuksParam>;
   DeleteParam(huksOptions, paramTag);
@@ -116,7 +121,7 @@ export async function CheckSoftware() {
   try {
     await huks.generateKeyItem(dsaAlias, dsaOptions);
     await huks.deleteKeyItem(dsaAlias, dsaOptions);
-    return true
+    return true;
   } catch (err) {
     return false;
   }

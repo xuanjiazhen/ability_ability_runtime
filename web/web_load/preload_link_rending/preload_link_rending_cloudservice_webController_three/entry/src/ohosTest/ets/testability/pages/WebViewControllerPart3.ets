@@ -21,6 +21,7 @@ import { JsProxyObject } from '../../test/Interfaces';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+import { URL } from '../../test/Config.test';
 
 @Entry
 @Component
@@ -98,13 +99,13 @@ struct WebViewControllerPart3 {
               try {
                 this.arrTime = []
                 this.controller.removeCache(true)
-                this.controller.loadUrl('https://www.huawei.com')
+                this.controller.loadUrl(URL)
                 await Utils.sleep(3000)
                 this.controller.removeCache(true);
                 await Utils.sleep(3000)
-                this.controller.prefetchPage('https://www.huawei.com');
+                this.controller.prefetchPage(URL);
                 await Utils.sleep(3000)
-                this.controller.loadUrl('https://www.huawei.com')
+                this.controller.loadUrl(URL)
                 await Utils.sleep(3000)
                 if (this.arrTime[1] - this.arrTime[0] < 0) {
                   Utils.emitEvent(true, 100079)

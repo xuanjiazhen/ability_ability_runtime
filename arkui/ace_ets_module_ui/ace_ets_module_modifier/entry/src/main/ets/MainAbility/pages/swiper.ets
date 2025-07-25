@@ -56,15 +56,11 @@ struct SwiperExample {
 
   build() {
     Column({ space: 5 }) {
-      Button("change value").onClick(() => {
-        (this.customModifier as CustomModifier).onChange1();
-      }).key("changeButton")
-
       Swiper() {
         ForEach(this.arr, (item: number) => {
           Text(item.toString())
             .width('90%')
-            .height(160)
+            .height('50%')
             .backgroundColor(0xAFEEEE)
             .textAlign(TextAlign.Center)
             .fontSize(30)
@@ -72,6 +68,12 @@ struct SwiperExample {
       }
       .attributeModifier(this.customModifier as CustomModifier)
       .key('swiper')
+      .width('90%')
+      .height('50%')
+     
+      Button("change value").onClick(() => {
+        (this.customModifier as CustomModifier).onChange1();
+      }).key("changeButton")
     }
     .margin({ top: 5 })
   }

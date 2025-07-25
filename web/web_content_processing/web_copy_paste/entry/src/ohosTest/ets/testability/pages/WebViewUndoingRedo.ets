@@ -35,7 +35,6 @@ struct WebComponent {
   @State offsetY: number = 0;
   @State showMenu: boolean = false;
   @State emitKey: string = '';
-  // @State str:string = 'emitWebviewUndoingRedo'
   @State isReceive: number = -1;
   @State str:string = ''
   aboutToAppear() {
@@ -151,10 +150,12 @@ struct WebComponent {
                     await RedoButton.click();
                     await driver.triggerKey(2001);
                     await Utils.sleep(2000);
+                    let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+                    if (softKeyBoard != null) {
+                      await driver.pressBack()
+                    }
                     let downX = Math.round(globalThis.winLeft + webRect.left + (webRect.right - webRect.left) / 2);
                     let downY = Math.round(globalThis.winTop + webRect.top + (webRect.bottom - webRect.top) / 2);
-                    let X = Utils.getRectHorizontalCenterX(webRect)
-                    let Y = Utils.getRectVerticalCenterY(webRect)
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
                     let buttonThree = await driver.findComponent(ON.text('撤销'));
                     await buttonThree.click();
@@ -187,10 +188,12 @@ struct WebComponent {
                     await RedoButton.click();
                     await driver.triggerKey(2001);
                     await Utils.sleep(2000);
+                    let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+                    if (softKeyBoard != null) {
+                      await driver.pressBack()
+                    }
                     let downX = Math.round(globalThis.winLeft + webRect.left + (webRect.right - webRect.left) / 2);
                     let downY = Math.round(globalThis.winTop + webRect.top + (webRect.bottom - webRect.top) / 2);
-                    let X = Utils.getRectHorizontalCenterX(webRect)
-                    let Y = Utils.getRectVerticalCenterY(webRect)
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
                     let buttonThree = await driver.findComponent(ON.text('撤销'));
                     await buttonThree.click();

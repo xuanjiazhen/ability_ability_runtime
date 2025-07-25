@@ -19,6 +19,11 @@
 #include "customcomponent/customcomponent_ondraw_front_test.h"
 #include "customcomponent/customcomponent_ondraw_behind_test.h"
 #include "EmbeddedComponentOption/EmbeddedComponentOptionTest.h"
+#include "uiState/UiStatesTest.h"
+#include "touchTestDone/OntouchTestDoneTest.h"
+#include "nodeUtils/NodeUniqueIdTest.h"
+#include "uiInput/UiInputErrorCodeTest.h"
+#include "scope/RunTaskInScopeTest.h"
 
 namespace ArkUICapiTest
 {
@@ -42,6 +47,15 @@ namespace ArkUICapiTest
              nullptr, nullptr, nullptr, napi_default, nullptr},
             {"testEmbeddedComponentOption", nullptr, EmbeddedComponentOptionTest::testEmbeddedComponentOption001,
             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"uiStatesTest", nullptr, UiStatesTest::CreateNativeNode, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"ontouchTestDone", nullptr, OntouchTestDoneTest::CreateNativeNode, nullptr, nullptr,nullptr, napi_default, nullptr},
+            {"testNodeUniqueId", nullptr, NodeUniqueIdTest::testNodeUniqueId001,
+             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"uiInputErrorCodeTest", nullptr, ButtonErrorCodeTest::CreateNativeNode, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"testRunTaskInScope", nullptr, RunTaskInScopeTest::testRunTaskInScope, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
         {

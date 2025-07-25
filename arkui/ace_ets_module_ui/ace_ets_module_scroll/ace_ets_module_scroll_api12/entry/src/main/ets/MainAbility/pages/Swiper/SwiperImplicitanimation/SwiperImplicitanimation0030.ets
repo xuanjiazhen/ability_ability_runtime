@@ -26,25 +26,27 @@ struct SwiperImplicitanimation0030 {
       Swiper(this.swiperController) {
         Text('1')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('2')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
 
         Text('3')
           .fontSize(20)
-          .width('90%')
-          .height(160)
+          .width('100%')
+          .height('100%')
           .backgroundColor(0xAFEEEE)
           .textAlign(TextAlign.Center)
       }
+      .width('80%')
+      .height('50%')
       .loop(false)
       .effectMode(EdgeEffect.Fade)
       .id('implicitanimation_0030')
@@ -52,18 +54,24 @@ struct SwiperImplicitanimation0030 {
         this.index = index.toString()
         this.currentOffset = extraInfo.currentOffset.toFixed(0).toString()
       })
-      Button('切换2').onClick((event: ClickEvent) => {
-        this.swiperController.showNext()
+      Row(){
+        Button('切换2')
+          .height('6%').onClick((event: ClickEvent) => {
+          this.swiperController.showNext()
 
-      }).id('btn_implicitanimation_0030_1')
+        }).id('btn_implicitanimation_0030_1')
 
-      Button('切换').onClick((event: ClickEvent) => {
-        this.swiperController.showPrevious()
+        Button('切换')
+         .height('6%').onClick((event: ClickEvent) => {
+          this.swiperController.showPrevious()
 
-      }).id('btn_implicitanimation_0030')
+        }).id('btn_implicitanimation_0030')
+      }
 
-      Text(this.index).key('implicitanimation_0030_1')
-      Text(this.currentOffset).key('implicitanimation_0030_2')
+      Row(){
+        Text(this.index).key('implicitanimation_0030_1').margin({right:5})
+        Text(this.currentOffset).key('implicitanimation_0030_2')
+      }
     }.width('100%')
     .margin({ top: 5 })
   }

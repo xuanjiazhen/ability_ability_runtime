@@ -494,6 +494,30 @@ export class KeyboardController {
           console.debug(TAG + '====>Sub_InputMethod_IME_setImmersiveEffect_0500 event:' + data.event);
           that.Sub_InputMethod_IME_setImmersiveEffect_0500();
           break;
+        case 509:
+          console.debug(TAG + '====>Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100 event:' + data.event);
+          that.Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100();
+          break;
+        case 510:
+          console.debug(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0100 event:' + data.event);
+          that.Sub_InputMethod_IME_setKeepScreenOn_0100();
+          break;
+        case 511:
+          console.debug(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0200 event:' + data.event);
+          that.Sub_InputMethod_IME_setKeepScreenOn_0200();
+          break;
+        case 520:
+          console.debug(TAG + '====>Sub_InputMethod_IME_Custom_0901 event:' + data.event);
+          that.Sub_InputMethod_IME_Custom_0901();
+          break;
+        case 530:
+          console.debug(TAG + '====>Sub_InputMethod_IME_Custom_0902 event:' + data.event);
+          that.Sub_InputMethod_IME_Custom_0902();
+          break;
+        case 540:
+          console.debug(TAG + '====>Sub_InputMethod_IME_Immersive_0600 event:' + data.event);
+          that.Sub_InputMethod_IME_Immersive_0600();
+          break;
       }
     }
 
@@ -1774,7 +1798,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_0900(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_0900 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1782,16 +1806,16 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_0900 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 onTerminated');
         },
         onMessage(msgId: string): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 onMessage msgId: ' + msgId );
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 sedMessages msgIdSize: ' + msgId.length );
           if (msgId === 'Sub_InputMethod_IME_Custom_0900') {
             console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 start sendMessage');
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900')
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900', that.newArrayBuffer('SUCCESS'))
           }else{
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900')
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_0900', that.newArrayBuffer('FAILED'))
           }
           that.InputClient.recvMessage()
         }
@@ -1801,7 +1825,7 @@ export class KeyboardController {
         data: 'SUCCESS'
       };
     } catch (error) {
-      console.info(TAG +'====>Sub_InputMethod_IME_Custom_0900 recvMessage catch err!');
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0900 recvMessage catch err!');
     }
     let t = setTimeout(() => {
       clearTimeout(t);
@@ -1810,7 +1834,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_0200(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_0200 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0200 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1818,7 +1842,7 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_0200 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_0200 onTerminated');
         },
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0200 onMessage msgId: ' + msgId + ', msgParam: ' +
@@ -1839,7 +1863,7 @@ export class KeyboardController {
         data: 'SUCCESS'
       };
     } catch (error) {
-      console.info(TAG +'====>Sub_InputMethod_IME_Custom_0200 recvMessage catch err!');
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0200 recvMessage catch err!');
     }
     let t = setTimeout(() => {
       clearTimeout(t);
@@ -1848,7 +1872,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_0800(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_0800 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0800 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1856,7 +1880,7 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_0800 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_0800 onTerminated');
         },
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0800 onMessage msgId: ' + msgId + ', msgParam: ' +
@@ -1886,7 +1910,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_0400(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_0400 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0400 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1894,7 +1918,7 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_0400 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_0400 onTerminated');
         },
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0400 onMessage msgId: ' + msgId + ', msgParam: ' +
@@ -1916,7 +1940,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_0300(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_0300 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0300 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1924,7 +1948,7 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_0300 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_0300 onTerminated');
         },
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_0300 onMessage msgId: ' + msgId + ', msgParam: ' +
@@ -1937,7 +1961,7 @@ export class KeyboardController {
         data: 'SUCCESS'
       };
     } catch (error) {
-      console.info(TAG +'====>Sub_InputMethod_IME_Custom_0300 recvMessage catch err!');
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0300 recvMessage catch err!');
     }
     let t = setTimeout(() => {
       clearTimeout(t);
@@ -1946,7 +1970,7 @@ export class KeyboardController {
   }
 
   private Sub_InputMethod_IME_Custom_1100(): void {
-    console.info(TAG +'====>Sub_InputMethod_IME_Custom_1100 data');
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 data');
     let commonEventPublishData = {
       data: 'FAILED'
     };
@@ -1954,14 +1978,14 @@ export class KeyboardController {
       let that = this;
       let msgHandler: inputMethodEngine.MessageHandler = {
         onTerminated(): void {
-          console.info(TAG +'====>Sub_InputMethod_IME_Custom_1100 onTerminated');
+          console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 onTerminated');
         },
         onMessage(msgId: string, msgParam?: ArrayBuffer): void {
           console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 onMessage msgId: ' + msgId + ', msgParam: ' +
           that.GetArrayBufferString(msgParam) + ', msgParamObj' + msgParam);
-          if(msgId.length === 256 && msgParam?.byteLength === undefined){
+          if(msgId.length === 256 && msgParam?.byteLength === undefined) {
             console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 start sendMessage');
-            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100', that.newArrayBuffer('SUCCESS'))
+            that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100')
           }else{
             that.InputClient.sendMessage('Sub_InputMethod_IME_Custom_1100', that.newArrayBuffer('FAILED'))
           }
@@ -1973,7 +1997,7 @@ export class KeyboardController {
         data: 'SUCCESS'
       };
     } catch (error) {
-      console.info(TAG +'====>Sub_InputMethod_IME_Custom_1100 recvMessage catch err!');
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_1100 recvMessage catch err!');
     }
     let t = setTimeout(() => {
       clearTimeout(t);
@@ -2596,8 +2620,8 @@ export class KeyboardController {
     try{
       let panelInfo1:inputMethodEngine.PanelInfo = {
         type: inputMethodEngine.PanelType.STATUS_BAR,
-      }
-      let inputPanel =  await inputMethodAbility.createPanel(this.mContext, panelInfo1)
+      };
+      let inputPanel = await inputMethodAbility.createPanel(this.mContext, panelInfo1);
       console.info(TAG + '====>Sub_InputMethod_IME_FullScreenAbnormal_1100 creatPanel Succeed.');
       let enhancedPanelRect:inputMethodEngine.EnhancedPanelRect = {
         landscapeRect: { left: 0, top: 500, width: 400, height: 500},
@@ -2726,7 +2750,7 @@ export class KeyboardController {
         data: 'FAILED'
     };
     inputmethodengine.getKeyboardDelegate().on('editorAttributeChanged', (attr:inputMethodEngine.EditorAttribute) => {
-      console.info(TAG + `====>on_EditorAttribute_callback = ${JSON.stringify(attr)} immersiveMode = ${attr.immersiveMode}  gradientMode = ${attr.gradientMode}`); 
+      console.info(TAG + `====>on_EditorAttribute_callback = ${JSON.stringify(attr)} immersiveMode = ${attr.immersiveMode}   gradientMode = ${attr.gradientMode}`); 
       this.immersive = attr.immersiveMode;
       inputmethodengine.getKeyboardDelegate().off('editorAttributeChanged');
     });
@@ -3529,4 +3553,161 @@ export class KeyboardController {
     };
     commoneventmanager.publish('Sub_InputMethod_IME_setImmersiveEffect_0500', commonEventPublishData, this.publishCallback);
   }
+
+  private async Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100(): Promise<void> {
+    console.info(TAG + '====>receive Sub_InputMethod_IME_setImmersiveEffect_0500 data');
+    let commonEventPublishData = {
+        data: 'FAILED'
+    };
+    try {
+      let attachOptions: inputMethodEngine.AttachOptions = this.InputClient.getAttachOptions();
+      console.info(TAG + '====>Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100 attachOptions is' + JSON.stringify(attachOptions));
+      if (attachOptions.isSimpleKeyboardEnabled === false) {
+        commonEventPublishData = {
+          data: 'SUCCESS'
+        };
+      };
+      console.info(TAG + '====>Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100 success ');
+    } catch (err) {
+      console.info(TAG + '====>Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100 cathch err: ' + JSON.stringify(err));
+    };
+    commoneventmanager.publish('Sub_InputMethod_IME_isSimpleKeyboardEnabled_0100', commonEventPublishData, this.publishCallback);
+  }
+
+  private async Sub_InputMethod_IME_setKeepScreenOn_0100(): Promise<void> {
+    console.info(TAG + '====>receive Sub_InputMethod_IME_setKeepScreenOn_0100 data');
+    let commonEventPublishData = {
+        data: 'FAILED'
+    };
+    let panelInfo1:inputMethodEngine.PanelInfo = {
+        type: inputMethodEngine.PanelType.STATUS_BAR,
+    };
+    let inputPanel = await inputMethodAbility.createPanel(this.mContext, panelInfo1);
+    try {
+      let isKeepScreenOn = true;
+      await inputPanel.setKeepScreenOn(isKeepScreenOn);
+      commonEventPublishData = {
+          data: 'SUCCESS'
+      };
+      console.info(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0100 success ');
+    } catch (err) {
+      console.info(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0100 cathch err: ' + JSON.stringify(err));
+    } finally {
+      await inputMethodAbility.destroyPanel(inputPanel);
+    };
+    commoneventmanager.publish('Sub_InputMethod_IME_setKeepScreenOn_0100', commonEventPublishData, this.publishCallback);
+  }
+
+  private async Sub_InputMethod_IME_setKeepScreenOn_0200(): Promise<void> {
+    console.info(TAG + '====>receive Sub_InputMethod_IME_setKeepScreenOn_0200 data');
+    let commonEventPublishData = {
+        data: 'FAILED'
+    };
+    let panelInfo1:inputMethodEngine.PanelInfo = {
+        type: inputMethodEngine.PanelType.STATUS_BAR,
+    };
+    let inputPanel = await inputMethodAbility.createPanel(this.mContext, panelInfo1);
+    try {
+      let isKeepScreenOn = false;
+      await inputPanel.setKeepScreenOn(isKeepScreenOn);
+      commonEventPublishData = {
+          data: 'SUCCESS'
+      };
+      console.info(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0200 success ');
+    } catch (err) {
+      console.info(TAG + '====>Sub_InputMethod_IME_setKeepScreenOn_0200 cathch err: ' + JSON.stringify(err));
+    } finally {
+      await inputMethodAbility.destroyPanel(inputPanel);
+    };
+    commoneventmanager.publish('Sub_InputMethod_IME_setKeepScreenOn_0200', commonEventPublishData, this.publishCallback);
+  }
+
+  private async Sub_InputMethod_IME_Custom_0901(): Promise<void> {
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0901 data');
+    let commonEventPublishData = {
+      data: 'FAILED'
+    };
+    try {
+      let msgId: string = 'testMsgId';
+      let msgParam: ArrayBuffer = new ArrayBuffer(128);
+      await this.InputClient.sendMessage(msgId, msgParam);
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0901 recvMessage success');
+    } catch (error) {
+      if (error.code === 12800016) {
+        commonEventPublishData = {
+          data: 'SUCCESS'
+        };
+      }
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0901 recvMessage catch err!: ' + error.code);
+    }
+    let t = setTimeout(() => {
+      clearTimeout(t);
+      commoneventmanager.publish('Sub_InputMethod_IME_Custom_0901', commonEventPublishData, this.publishCallback);
+    }, 100);
+  }
+
+  private async Sub_InputMethod_IME_Custom_0902(): Promise<void> {
+    console.info(TAG + '====>Sub_InputMethod_IME_Custom_0902 data');
+    let commonEventPublishData = {
+      data: 'FAILED'
+    };
+    try {
+      let msgId: string = 'testMsgId';
+      let msgParam: ArrayBuffer = new ArrayBuffer(128);
+      await this.InputClient.sendMessage(msgId, msgParam);
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0902 recvMessage success');
+    } catch (error) {
+      if (error.code === 12800015) {
+        commonEventPublishData = {
+          data: 'SUCCESS'
+        };
+      }
+      console.info(TAG + '====>Sub_InputMethod_IME_Custom_0902 recvMessage catch err!: ' + error.code);
+    }
+    let t = setTimeout(() => {
+      clearTimeout(t);
+      commoneventmanager.publish('Sub_InputMethod_IME_Custom_0902', commonEventPublishData, this.publishCallback);
+    }, 100);
+  }
+
+  private async Sub_InputMethod_IME_Immersive_0600(): Promise<void> {
+    console.info(TAG + '====>receive Sub_InputMethod_IME_Immersive_0600 data');
+    let commonEventPublishData = {
+      data: 'FAILED'
+    };
+    try {
+      let panelInfo1: inputMethodEngine.PanelInfo = {
+        type: inputMethodEngine.PanelType.STATUS_BAR,
+      };
+      let inputPanel = await inputMethodAbility.createPanel(this.mContext, panelInfo1);
+
+      try {
+        inputPanel.setImmersiveMode(inputMethodEngine.ImmersiveMode.LIGHT_IMMERSIVE);
+        let effect: inputMethodEngine.ImmersiveEffect = {
+          gradientHeight:1,
+          gradientMode:inputMethodEngine.GradientMode.LINEAR_GRADIENT,
+          fluidLightMode:inputMethodEngine.FluidLightMode.NONE
+        };
+        inputPanel.setImmersiveEffect(effect);
+        console.info(TAG + '====>Sub_InputMethod_IME_Immersive_0600 setImmersiveMode  success ');
+      } catch (err) {
+        console.info(TAG + '====>Sub_InputMethod_IME_Immersive_0600 setImmersiveMode err: ' + err.code + JSON.stringify(err));
+        await inputMethodAbility.destroyPanel(inputPanel);
+        if (err.code === 801) {
+          commonEventPublishData = {
+            data: 'SUCCESS'
+          };
+        }
+        if (err.code === 12800021) {
+          commonEventPublishData = {
+            data: 'SUCCESS'
+          };
+        }
+      };
+    } catch (err) {
+      console.info(TAG + '====>Sub_InputMethod_IME_Immersive_0600 cathch err: ' + JSON.stringify(err));
+    };
+    commoneventmanager.publish('Sub_InputMethod_IME_Immersive_0600', commonEventPublishData, this.publishCallback);
+  }
+
 }

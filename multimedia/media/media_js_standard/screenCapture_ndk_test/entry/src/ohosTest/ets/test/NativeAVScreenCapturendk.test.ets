@@ -64,7 +64,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       let context2: UIAbility = await delegator.getCurrentTopAbility();
       reqPermissionsFromUser(permissions, context2.context, done);
       console.info('beforeAll case');
-	  Utils.allowScreenCapture();
+      Utils.allowScreenCapture();
     });
     beforeEach(() => {
       console.info('beforeEach case');
@@ -116,6 +116,127 @@ export default function nativeAVScreenCaptureNdkTest() {
       console.info(Tag + "normalAVScreenRecordTest-------------resultStop:" + resultStop);
       expect(resultStop).assertEqual(0);
       expect(isShowDialog).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_CONFIGURE_0210
+     * @tc.name         OH_AVScreenCapture_StartScreenRecording
+     * @tc.desc         OH_AVScreenCapture_StartScreenRecording
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 1
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_CONFIGURE_0210', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenRecordTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
+      console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
+      expect(result).assertEqual(0);
+      let isShowDialog: number = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+
+      await Utils.sleep(2000);
+      result = myScreenCaptureNdk.normalAVScreenRecordingTest();
+      expect(result).assertEqual(0);
+      isShowDialog = await Utils.btnTextScreenCapture();
+      await Utils.sleep(2000);
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenRecordTestStoping();
+      expect(resultStop).assertEqual(0);
+
+      resultStop = myScreenCaptureNdk.normalAVScreenRecordTestStop();
+      console.info(Tag + "normalAVScreenRecordTest-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_CONFIGURE_0220
+     * @tc.name         OH_AVScreenCapture_StartScreenRecording
+     * @tc.desc         OH_AVScreenCapture_StartScreenRecording
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 1
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_CONFIGURE_0220', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenRecordTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
+      console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
+      expect(result).assertEqual(0);
+      let isShowDialog: number = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+
+      await Utils.sleep(2000);
+      result = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
+      expect(result).assertEqual(0);
+      isShowDialog = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+      await Utils.sleep(2000);
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTestStop();
+      expect(resultStop).assertEqual(0);
+
+      resultStop = myScreenCaptureNdk.normalAVScreenRecordTestStop();
+      console.info(Tag + "normalAVScreenRecordTest-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_SHOW_CURSOR_0110
+     * @tc.name         OH_AVScreenCapture_StartScreenCaptureOrigin
+     * @tc.desc         OH_AVScreenCapture_StartScreenCaptureOrigin
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 1
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_SHOW_CURSOR_0110', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
+      console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------res:" + result);
+      expect(result).assertEqual(0);
+      let isShowDialog: number = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+
+      await Utils.sleep(2000);
+      result = myScreenCaptureNdk.normalAVScreenRecordingTest();
+      expect(result).assertEqual(0);
+      isShowDialog = await Utils.btnTextScreenCapture();
+      await Utils.sleep(2000);
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenRecordTestStoping();
+      expect(resultStop).assertEqual(0);
+
+      resultStop = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTestStop();
+      console.info(Tag + "normalAVScreenCaptureShowCursorTestStop-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_SHOW_CURSOR_0120
+     * @tc.name         OH_AVScreenCapture_StartScreenCaptureOrigin
+     * @tc.desc         OH_AVScreenCapture_StartScreenCaptureOrigin
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 1
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_SHOW_CURSOR_0120', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
+      console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------res:" + result);
+      expect(result).assertEqual(0);
+      let isShowDialog: number = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+
+      await Utils.sleep(2000);
+      result = myScreenCaptureNdk.normalAVScreenCaptureSurfaceTest();
+      expect(result).assertEqual(0);
+      isShowDialog = await Utils.btnTextScreenCapture();
+      expect(isShowDialog).assertEqual(0);
+      await Utils.sleep(2000);
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureSurfaceTestStop();
+      expect(resultStop).assertEqual(0);
+
+      resultStop = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTestStop();
+      console.info(Tag + "normalAVScreenCaptureShowCursorTestStop-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
       done();
     });
 
@@ -256,7 +377,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       console.info(Tag + "normalAVScreenCaptureShowCursorWithParaNullFalse-------------res:" + result);
       expect(result).assertEqual(0);
       done();
-    }); 
+    });
 
     /**
      * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_SHOW_CURSOR_0400
@@ -384,7 +505,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       let isShowDialog: number = await Utils.btnTextScreenCapture();
       let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop();
       console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop-------------resultStop:" +
-          resultStop);
+        resultStop);
       expect(resultStop).assertEqual(0);
       expect(isShowDialog).assertEqual(0);
       done();
@@ -407,7 +528,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       let isShowDialog: number = await Utils.btnTextScreenCapture();
       let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop();
       console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop-------------resultStop:" +
-          resultStop);
+        resultStop);
       expect(resultStop).assertEqual(0);
       expect(isShowDialog).assertEqual(0);
       done();
@@ -425,7 +546,7 @@ export default function nativeAVScreenCaptureNdkTest() {
       console.info(Tag + "multiAVScreenCaptureCreate-------------start :");
       let sdkApiVersionInfo = deviceinfo.sdkApiVersion;
       console.info(Tag + "sdkApiVersionInfo-------------res:" + sdkApiVersionInfo);
-      if (sdkApiVersionInfo >= 17 ) {
+      if (sdkApiVersionInfo > 17 ) {
         let result: number = myScreenCaptureNdk.multiAVScreenCaptureCreate();
         console.info(Tag + "multiAVScreenCaptureCreate-------------res:" + result);
         expect(result).assertEqual(3);
@@ -433,5 +554,129 @@ export default function nativeAVScreenCaptureNdkTest() {
       done();
     });
 
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400
+     * @tc.desc         normalAVScreenCaptureErrorTest 1
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0400', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAVScreenCaptureErrorTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureErrorTest();
+      console.info(Tag + "normalAVScreenCaptureErrorTest-------------res:" + result);
+      expect(result).assertEqual(2);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0500
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0500
+     * @tc.desc         normalAreaTest 1
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0500', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalAreaTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalAreaTest();
+      console.info(Tag + "normalAreaTest-------------res:" + result);
+      expect(result).assertEqual(3);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0600
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0600
+     * @tc.desc         normalStrategyTest 1
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0600', Level.LEVEL0,async (done: Function) => {
+      console.info(Tag + "normalStrategyTest-------------before click:");
+      let result: number = myScreenCaptureNdk.normalStrategyTest();
+      console.info(Tag + "normalStrategyTest-------------res:" + result);
+      expect(result).assertEqual(3);
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0700
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0700
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 1
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_VIDEO_CONFIGURE_0700', Level.LEVEL0, async (done: Function) => {
+      console.info(Tag + "normalSelectionCallback-------------before click:");
+      let result: number = myScreenCaptureNdk.normalSelectionCallback();
+      console.info(Tag + "normalSelectionCallback-------------result:" + result);
+      expect(result).assertEqual(0);
+      await Utils.btnTextScreenCapture();
+      let resultStop: number = myScreenCaptureNdk.normalSelectionCallbackStop();
+      console.info(Tag + "normalSelectionCallbackStop-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0100
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0100
+     * @tc.desc         OH_AVScreenCapture_StrategyForBFramesEncoding-False
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0100', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForBFramesEncodingFalse();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0200
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0200
+     * @tc.desc         OH_AVScreenCapture_StrategyForBFramesEncoding-True
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_ENABLE_B_FRAME_0200', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForBFramesEncodingTrue();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100
+     * @tc.desc         OH_AVScreenCapture_StrategyForPickerPopUp-False
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0100', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPickerPopUpFalse();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200
+     * @tc.desc         OH_AVScreenCapture_StrategyForPickerPopUp-True
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_PICKER_POPUP_0200', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPickerPopUpTrue();
+      expect(result).assertEqual(0);
+      done();
+    });
   })
 }

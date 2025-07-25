@@ -11,9 +11,9 @@
     "kits": [
         {
             "test-file-name": [
-                "ActsOsAccountTest.hap",
-                "ActsOsAccountAssistAppOne.hap",
-                "ActsOsAccountAssistAppTwo.hap"
+                "ActsOsAccountEnterpriseTest.hap",
+                "ActsOsAccountAssistAppOneEnterpriseTest.hap",
+                "ActsOsAccountAssistAppTwoEnterpriseTest.hap"
             ],
             "type": "AppInstallKit",
             "cleanup-apps": true
@@ -22,7 +22,9 @@
             "type": "ShellKit",
             "run-command": [
                 "power-shell wakeup",
-                "power-shell setmode 602"
+                "power-shell setmode 602",
+                "power-shell timeout -o 86400000",
+                "hidumper -s 3301 -a -t"
             ]
         },
         {

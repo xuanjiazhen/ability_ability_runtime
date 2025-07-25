@@ -13,10 +13,10 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("ActsOsAccountAssistAppOne") {
+ohos_app_assist_suite("ActsOsAccountAssistAppOneEnterpriseTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsOsAccountAssistAppOne"
+  hap_name = "ActsOsAccountAssistAppOneEnterpriseTest"
   part_name = "os_account"
   subsystem_name = "account"
 }

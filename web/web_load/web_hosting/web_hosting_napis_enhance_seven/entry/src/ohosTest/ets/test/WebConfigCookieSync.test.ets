@@ -122,7 +122,7 @@ export default function WebConfigCookieSync() {
     */
     it('testConfigCookieSync004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       Utils.emitEvent("emitConfigCookieSync004", 612)
-      Utils.registerBaseEvent("testConfigCookieSync003", true, 2025061204, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.registerBaseEvent("testConfigCookieSync004", true, 2025061204, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('ConfigCookieSync', 10, '');

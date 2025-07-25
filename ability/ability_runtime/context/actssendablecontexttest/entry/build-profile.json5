@@ -19,7 +19,10 @@
     "sourceOption": {
       "workers": [
         "./src/ohosTest/ets/workers/Worker.ets",
-        "./src/ohosTest/ets/workers/Worker1.ets"
+        "./src/ohosTest/ets/workers/Worker1.ets",
+        "./src/ohosTest/ets/workers/WorkerTrans.ets",
+        "./src/ohosTest/ets/workers/WorkerTrans2.ets",
+        "./src/ohosTest/ets/workers/WorkerTrans3.ets"
       ]
     }
   },

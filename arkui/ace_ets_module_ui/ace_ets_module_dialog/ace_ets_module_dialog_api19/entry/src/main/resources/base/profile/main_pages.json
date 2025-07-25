@@ -23,6 +23,10 @@
     "MainAbility/pages/UIContext/showDialogBlurStyleOptions1",
     "MainAbility/pages/UIContext/showDialogBackgroundEffect1",
     "MainAbility/pages/UIContext/showDialogBlurStyleOptions2",
-    "MainAbility/pages/UIContext/showDialogBackgroundEffect2"
+    "MainAbility/pages/UIContext/showDialogBackgroundEffect2",
+    "MainAbility/pages/promptAction/openMenuAnchorPosition",
+    "MainAbility/pages/promptAction/updateMenuAnchorPosition",
+    "MainAbility/pages/selectDivider/selectDividerTest",
+    "MainAbility/pages/customDialog/CustomDialogControllerOptions"
   ]
 }

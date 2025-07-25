@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import CommonFunc from '../../../MainAbility/common/Common';
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
@@ -50,15 +50,17 @@ export default function SwiperLoop() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0270', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0270', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0270] START');
       await CommonFunc.sleep(2000);
-      let bt = CommonFunc.getComponentRect('swiperLoop');
+      let bt = CommonFunc.getComponentRectOnScreen('swiperLoop');
       //180,87,540,327
       let btTop = bt.top;
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0270] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
@@ -67,7 +69,7 @@ export default function SwiperLoop() {
       let button_Bottom = await driver.findComponent(ON.id('swiperLoopButton1'));
       await button_Bottom.click();
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(globalThis.winLeft + btRight), Math.round(globalThis.winTop + btBottom/2), Math.round(globalThis.winLeft + btLeft) +  Math.round(vp2px(27)), Math.round(btBottom/2) + globalThis.winTop);
+      await driver.swipe(Math.round(btRight - vp2px(10)), Math.round(btTop + height/2), Math.round(btLeft + vp2px(27)), Math.round(btTop + height/2));
       await CommonFunc.sleep(3500);
 
       let strJson = getInspectorByKey('SwiperLoopText10');
@@ -88,15 +90,17 @@ export default function SwiperLoop() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0280', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0280', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0280] START');
       await CommonFunc.sleep(2000);
-      let bt = CommonFunc.getComponentRect('swiperLoop');
+      let bt = CommonFunc.getComponentRectOnScreen('swiperLoop');
       //180,87,540,327
       let btTop = bt.top;
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0280] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
@@ -105,7 +109,7 @@ export default function SwiperLoop() {
       let button_Bottom = await driver.findComponent(ON.id('swiperLoopButton2'));
       await button_Bottom.click();
       await CommonFunc.sleep(1000);
-      await driver.swipe(globalThis.winLeft + Math.round(btLeft) + Math.round(vp2px(27)), Math.round(globalThis.winTop + btBottom/2), Math.round(globalThis.winLeft + btRight), Math.round(globalThis.winTop + btBottom/2));
+      await driver.swipe(Math.round(btLeft + width*0.3), Math.round(btTop + height/2), Math.round(btRight), Math.round(btTop + height/2));
       await CommonFunc.sleep(3500);
 
       let strJson = getInspectorByKey('SwiperLoopText10');
@@ -126,14 +130,16 @@ export default function SwiperLoop() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0340', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0340', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0340] START');
       await CommonFunc.sleep(2000);
-      let bt = CommonFunc.getComponentRect('swiperLoop');
+      let bt = CommonFunc.getComponentRectOnScreen('swiperLoop');
       let btTop = bt.top;
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0340] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
@@ -142,7 +148,7 @@ export default function SwiperLoop() {
       let button_Bottom = await driver.findComponent(ON.id('swiperLoopButton3'));
       await button_Bottom.click();
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(globalThis.winLeft + btRight - vp2px(50)), Math.round(globalThis.winTop + btBottom/2), Math.round(globalThis.winLeft + btLeft + Math.round(vp2px(27))), Math.round(globalThis.winTop + btBottom/2));
+      await driver.swipe(Math.round(btRight - vp2px(50)), Math.round(btTop + height/2), Math.round(btLeft + Math.round(vp2px(27))), Math.round(btTop + height/2));
       await CommonFunc.sleep(3500);
 
       let strJson = getInspectorByKey('SwiperLoopText6');
@@ -164,20 +170,22 @@ export default function SwiperLoop() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0350', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0350', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0350] START');
       await CommonFunc.sleep(2000);
-      let bt = CommonFunc.getComponentRect('swiperLoop');
+      let bt = CommonFunc.getComponentRectOnScreen('swiperLoop');
       let btTop = bt.top;
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0350] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
       let driver = await Driver.create();
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(globalThis.winLeft + btLeft) + Math.round(vp2px(27)), Math.round(globalThis.winTop + btBottom/2), Math.round(globalThis.winLeft + btRight), Math.round(globalThis.winTop + btBottom/2));
+      await driver.swipe(Math.round(btLeft + width*0.3), Math.round(btTop + height/2), Math.round(btRight), Math.round(btTop + height/2));
       await CommonFunc.sleep(3500);
 
       let strJson = getInspectorByKey('SwiperLoopText5');
@@ -198,7 +206,7 @@ export default function SwiperLoop() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0480', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0480', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0480] START');
       await CommonFunc.sleep(2000);
 

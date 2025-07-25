@@ -33,6 +33,7 @@ import RichEditorApi222 from './RichEditorTest/RichEditorApi222.test';
 import RichTextJsunit from './RichEditorTest/RichTextJsunit.test.ets';
 import richTextJsunitFOUR from './RichEditorTest/RichTextJsunitFOUR.test';
 import OnTextSelectionChangeTest from './textTest/onTextSelectionChange.test';
+import SelectJsunit01 from './selectTest/SelectJsunit01.test.ets';
 
 export default function testsuite() {
   textAreaInputTest()
@@ -56,4 +57,5 @@ export default function testsuite() {
   RichTextJsunit();
   richTextJsunitFOUR()
   OnTextSelectionChangeTest();
+  SelectJsunit01()
 }

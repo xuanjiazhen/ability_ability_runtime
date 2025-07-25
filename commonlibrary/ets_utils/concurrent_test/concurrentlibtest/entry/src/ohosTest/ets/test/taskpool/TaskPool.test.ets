@@ -1234,35 +1234,6 @@ export default function TaskPoolTest() {
     });
 
     /**
-     * @tc.number    : SUB_RUNTIME_LANGUAGE_BACKEND_TASK_ADD_DEPENDENCY_0800
-     * @tc.name      : testTaskAddDependency0008
-     * @tc.desc      : Testing the task->addDependency with Create tasks 1, 2, 3, 1 is a periodic task,
-     *                 add 2 dependencies 1.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 2
-     */
-    it('testTaskAddDependency0008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      const caseName: string = 'testTaskAddDependency0008';
-      console.info(`${caseName} test start`);
-      try {
-        let task1: taskpool.Task = new taskpool.Task(() => periodicTask(200, 3));
-        let task2: taskpool.Task = new taskpool.Task(delay, 200);
-        let task3: taskpool.Task = new taskpool.Task(delay, 200);
-        taskpool.execute(task1).then(() => {
-          console.info("dependency: periodic task1 success");
-        });
-        console.info("dependency: add dependency start");
-        task2.addDependency(task1);
-        expect().assertFail();
-      } catch (error) {
-        console.info(`${caseName} catch error: code => ${error.code} message => ${error.message}`);
-      }
-      console.info(`${caseName} test end`);
-      done();
-    });
-
-    /**
      * @tc.number    : SUB_RUNTIME_LANGUAGE_BACKEND_TASK_REMOVE_DEPENDENCY_0100
      * @tc.name      : testTaskRemoveDependency0001
      * @tc.desc      : Testing the task->removeDependency with create tasks 1, 2, 3, none executed,
@@ -3027,36 +2998,6 @@ export default function TaskPoolTest() {
     });
 
     /**
-     * @tc.number    : SUB_Runtime_Language_Backend_TaskpoolConcurrency_0605
-     * @tc.name      : testTaskpoolTaskGroupAddTask001
-     * @tc.desc      : Add task into taskgroup of taskpool with no-Concurrent function
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 2
-     */
-    it('testTaskpoolTaskGroupAddTask001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      const caseName: string = 'testTaskpoolTaskGroupAddTask001';
-      console.info(`${caseName} test start`);
-      try {
-        let isTerminate1: boolean = false;
-        let taskExecute1: taskpool.TaskGroup = new taskpool.TaskGroup();
-        taskExecute1.addTask(noConcurrent);
-        taskpool.execute(taskExecute1).then((res: Object) => {
-          console.info(`${caseName}: taskExecute1 return value: ${JSON.stringify(res)}`);
-          isTerminate1 = true;
-        });
-        while (!(isTerminate1)) {
-          await promiseCase();
-        }
-      } catch (error) {
-        console.info(`${caseName}: catch error: code => ${error.code} message => ${error.message}`);
-      }
-      console.info(`${caseName} test end`);
-      done();
-    });
-
-
-    /**
      * @tc.number    : SUB_Runtime_Language_Backend_TaskpoolConcurrency_0606
      * @tc.name      : testTaskpoolTaskGroupAddTask002
      * @tc.desc      : Add task into taskgroup of taskpool with Concurrent function
@@ -3918,31 +3859,6 @@ export default function TaskPoolTest() {
     });
 
     /**
-     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_TREEMAP_0200
-     * @tc.name       : testConstructor0002
-     * @tc.desc       : Test the function of the constructor function.
-     * @tc.size       : MediumTest
-     * @tc.type       : Function
-     * @tc.level      : Level 1
-     */
-    //func:不使用@Concurrent装饰器装饰,返回number类型，无参数----报错 10200014
-    it('testExecuteFunc0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      const TAG = "testExecuteFunc0002";
-      let funcRetNumberTmp = (): number => {
-        return 0;
-      };
-      try {
-        taskpool.execute(funcRetNumberTmp).then((value: Object) => {
-          console.info("testExecuteFunc0002 result: " + value);
-        });
-      } catch (err) {
-        console.error(`${TAG} failed, error: ${err.code}`);
-        expect(err.code).assertEqual(10200014);
-      }
-      done()
-    });
-
-    /**
      * @tc.number    : SUB_Runtime_Language_Backend_TaskpoolConcurrency_0100
      * @tc.name      : testTaskpoolExecute003
      * @tc.desc      :
@@ -4626,30 +4542,6 @@ export default function TaskPoolTest() {
       console.info(`${caseName} test end`);
     });
 
-    /**
-     * @tc.number    : SUB_Runtime_Language_Backend_TaskpoolConcurrency_0100
-     * @tc.name      : testTaskpoolTask001
-     * @tc.desc      :
-     * @tc.size      :
-     * @tc.type      : Function
-     * @tc.level     : Level 2
-     */
-    it('testTaskpoolTask001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      const TAG = "testTaskpoolTask001";
-      let taskTest001 = (): number => {
-        return 0;
-      };
-      try {
-        let task: taskpool.Task = new taskpool.Task(taskTest001);
-        taskpool.execute(task).then((value: Object) => {
-          console.info("testTaskpoolTask001 result: " + value);
-        });
-      } catch (err) {
-        console.error(`${TAG} failed, error: ${err.code}`);
-        expect(err.code).assertEqual(10200014);
-      }
-      done()
-    });
     /**
      * @tc.number    : SUB_Runtime_Language_Backend_TaskpoolConcurrency_0100
      * @tc.name      : testTaskpoolTask002

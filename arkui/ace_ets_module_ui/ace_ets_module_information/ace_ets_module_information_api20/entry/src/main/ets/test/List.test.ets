@@ -17,6 +17,7 @@ import QRCodeResourceStr from './qrcode/QRCodeResourceStr.test';
 import TextClockFormat from './textClockTest/TextClockFormat.test';
 import TextPickerValue from './textPicker/TextPickerValue.test';
 import TextTimerFontWeight from './textTimerTest/TextTimerFontWeight.test';
+import badgeTest from './badgeTest/badgeResource.test';
 
 export default function testsuite() {
     ProgressContent();
@@ -24,4 +25,5 @@ export default function testsuite() {
     TextClockFormat();
     TextPickerValue();
     TextTimerFontWeight();
+    badgeTest();
 }

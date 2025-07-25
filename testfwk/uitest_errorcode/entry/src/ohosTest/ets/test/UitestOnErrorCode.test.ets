@@ -48,5 +48,28 @@ export default function uitestOnErrorTest() {
       console.log(`${TestTag}, test_belongingDisplay_17000007 end`);
     })
 
+    /*
+     * @tc.number: uitestOnErrorTest_002
+     * @tc.name: test_originalText_17000007
+     * @tc.desc: originalText 17000007 test.
+    */
+    it('test_originalText_17000007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      console.log(`test_originalText_17000007, start`);
+      try {
+        ON.originalText(null);
+        expect().assertFail();
+      }catch (e) {
+        console.log(`${TestTag}, test_originalText_17000007 id= null error is: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(ParameterErrorCode);
+      }
+      try {
+        ON.originalText(undefined);
+        expect().assertFail();
+      }catch (e) {
+        console.log(`${TestTag}, test_originalText_17000007 id= undefined error is: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(ParameterErrorCode);
+      }
+      console.log(`${TestTag}, test_originalText_17000007 end`);
+    })
   })
 }

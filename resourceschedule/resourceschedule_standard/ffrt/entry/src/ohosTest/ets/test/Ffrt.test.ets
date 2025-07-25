@@ -1447,5 +1447,19 @@ export default function ffrtTest() {
       let flag = entry.queueApiTest015();
       expect(flag).assertEqual(0);
     })
+
+     /**
+     * @tc.number : SUB_KERNEL_DISPATCH_entry_10200
+     * @tc.name   : ffrt_fiber_001
+     * @tc.desc   : Test ffrt_fiber_init api && ffrt_fiber_switch api
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 0
+     */
+    it('ffrt_fiber_001', Level.LEVEL0, () => {
+      // Defines a test case. This API supports three parameters: test case name, filter parameter, and test case function.
+      let flag = entry.ffrt_fiber_001();
+      expect(flag).assertEqual(1);
+    })
   })
 }

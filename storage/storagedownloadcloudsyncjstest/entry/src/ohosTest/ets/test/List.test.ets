@@ -15,7 +15,9 @@
 
 import cloudFileDownloadTest from './downloadcloud.test.ets'
 import cloudCloudSyncTest from './cloudSync.test.ets'
+import CloudFileVersionTest from './CloudFileVersion.test.ets'
 export default function testsuite() {
   cloudFileDownloadTest()
   cloudCloudSyncTest()
+  CloudFileVersionTest()
 }

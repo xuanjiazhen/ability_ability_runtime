@@ -57,7 +57,7 @@ struct WebComponent {
         .onClick(() => {
           try {
             this.controller.startDownload('https:' +
-              '//cd001.v78q.com/cs/104sem/Beyond Compare 文件对比工具_sm60000068e.exe');
+              '//mirrors.huaweicloud.com/npm-software/v6.14.2.tar.gz');
           } catch (error) {
             console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
           }

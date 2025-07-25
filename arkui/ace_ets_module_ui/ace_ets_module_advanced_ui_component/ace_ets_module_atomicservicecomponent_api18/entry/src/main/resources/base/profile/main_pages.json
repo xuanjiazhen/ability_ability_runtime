@@ -6,6 +6,7 @@
     "MainAbility/pages/atomicservicesearch/AtomicServiceSearchTest",
     "MainAbility/pages/atomicservicetabs/AtomicServiceTabsTest",
     "MainAbility/pages/halfscreenlaunchcomponent/HalfScreenLaunchComponentTest",
-    "MainAbility/pages/interstitialdialogaction/InterstitialDialogActionTest"
+    "MainAbility/pages/interstitialdialogaction/InterstitialDialogActionTest",
+    "MainAbility/pages/innerfullscreenlaunchcomponent/InnerFullScreenLaunchComponentTest"
   ]
 }

@@ -19,6 +19,18 @@
     {
       "name": "color_fill",
       "value": "#FF317AF7"
+    },
+    {
+      "name": "color_red",
+      "value": "#FF0000"
+    },
+    {
+      "name": "color_white",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "color_green",
+      "value": "#00FF00"
     }
   ]
 }

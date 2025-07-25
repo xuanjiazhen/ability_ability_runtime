@@ -14,7 +14,7 @@
  */
 
 import { describe, expect, it, Level } from '@ohos/hypium';
-import { ENTINFO1, SELFWANT, SELFHAPNAME, INVALID_WANT, UPDATE_VERSION, INVALID_UPDATE_VERSION } from '../commom';
+import { ENTINFO1, SELFWANT, SELFHAPNAME, INVALID_WANT, UPDATE_VERSION, INVALID_UPDATE_VERSION, DEFAULT_USER_ID } from '../commom';
 import { BusinessError } from '@ohos.base';
 
 import adminManager from '@ohos.enterprise.adminManager';
@@ -29,6 +29,13 @@ export default function systemManagerTest() {
     testNotifyUpdatePackages();
     testGetUpdateResult();
     testGetUpdateAuthData();
+    testGetDisallowedNearLink();
+    testAddDisallowedNearLinkProtocols();
+    testRemoveDisallowedNearLinkProtocols();
+    testSetAutoUnlockAfterReboot();
+    testGetAutoUnlockAfterReboot();
+    testSetInstallLocalEnterpriseAppEnabled();
+    testGetInstallLocalEnterpriseAppEnabled();
   })
 }
 
@@ -193,6 +200,173 @@ function testGetUpdateAuthData() {
       let authData: string = await systemManager.getUpdateAuthData(SELFWANT);
     } catch (error) {
       expect(error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testGetDisallowedNearLink() {
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_NEARLINK_JS_0003
+     * @tc.name      : test_get_disallowed_near_link_0003
+     * @tc.desc      : test systemManager getDisallowedNearLinkProtocols with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_get_disallowed_near_link_0003', Level.LEVEL2, async (done: Function) => {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        try {
+            let protocols: Array<number> =
+                systemManager.getDisallowedNearLinkProtocols(SELFWANT, DEFAULT_USER_ID);
+        } catch (error) {
+            expect(error.code == 201).assertTrue();
+        } finally {
+            await adminManager.disableAdmin(SELFWANT);
+        }
+        done();
+    });
+}
+
+function testAddDisallowedNearLinkProtocols() {
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADD_DISALLOWED_NEARLINK_PROTOCOLS_JS_0002
+     * @tc.name      : test_add_disallowed_nearlink_protocols_0002
+     * @tc.desc      : test systemManager addDisallowedNearLinkProtocols with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_add_disallowed_nearlink_protocols_0002', Level.LEVEL2, async (done: Function) => {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        let nearlinkProtocols: Array<number> = new Array();
+        nearlinkProtocols.push(0);
+        nearlinkProtocols.push(1);
+        try {
+            systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
+            expect(false).assertTrue();
+        } catch (error) {
+            expect(error.code == 201).assertTrue();
+        } finally {
+            await adminManager.disableAdmin(SELFWANT);
+        }
+        done();
+    });
+}
+
+function testRemoveDisallowedNearLinkProtocols() {
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVE_DISALLOWED_NEARLINK_PROTOCOLS_JS_0002
+     * @tc.name      : test_remove_disallowed_nearlink_protocols_0002
+     * @tc.desc      : test systemManager removeDisallowedNearLinkProtocols with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it('test_remove_disallowed_nearlink_protocols_0002', Level.LEVEL2, async (done: Function) => {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        let nearlinkProtocols: Array<number> = new Array();
+        nearlinkProtocols.push(0);
+        nearlinkProtocols.push(1);
+        try {
+            systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
+            expect(false).assertTrue();
+        } catch (error) {
+            expect(error.code == 201).assertTrue();
+        } finally {
+            await adminManager.disableAdmin(SELFWANT);
+        }
+        done();
+    });
+}
+
+function testSetAutoUnlockAfterReboot() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
+   * @tc.name      : test_set_auto_unlock_after_reboot_0001
+   * @tc.desc      : test systemManager getUpdateAuthData with admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      await systemManager.setAutoUnlockAfterReboot(SELFWANT, false);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testGetAutoUnlockAfterReboot() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_AUTO_UNLOCK_AFTER_REBOOT_JS_0001
+   * @tc.name      : test_get_auto_unlock_after_reboot_0001
+   * @tc.desc      : test systemManager getUpdateAuthData with admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_auto_unlock_after_reboot_0001", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      await systemManager.getAutoUnlockAfterReboot(SELFWANT);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testSetInstallLocalEnterpriseAppEnabled() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_INSTALL_LOCAL_ENTERPRISE_APP_JS_0100
+   * @tc.name      : test_set_install_local_enterprise_app_0100
+   * @tc.desc      : test systemManager setInstallLocalEnterpriseAppEnabled with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_install_local_enterprise_app_0100", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      systemManager.setInstallLocalEnterpriseAppEnabled(SELFWANT, true);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+}
+
+function testGetInstallLocalEnterpriseAppEnabled() {
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_INSTALL_LOCAL_ENTERPRISE_APP_JS_0100
+   * @tc.name      : test_get_install_local_enterprise_app_0100
+   * @tc.desc      : test systemManager getInstallLocalEnterpriseAppEnabled with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_install_local_enterprise_app_0100", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      systemManager.getInstallLocalEnterpriseAppEnabled(SELFWANT);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 801 || error.code == 201).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }

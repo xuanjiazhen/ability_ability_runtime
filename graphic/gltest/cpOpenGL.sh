@@ -33,4 +33,4 @@ cp -rf "graphic/graphic_2d/libdeqp_ohos_platform.z.so" "suites/acts/acts/testcas
 cp -rf "graphic/graphic_2d/librosen_context.z.so" "suites/acts/acts/testcases/opengldata"
 cp -rf "xts/acts/libdeqp_amber.z.so" "suites/acts/acts/testcases/opengldata"
 cp -rf "graphic/graphic_2d/libdeqp_spirv.z.so" "suites/acts/acts/testcases/opengldata"
-cp -rf "graphic/graphic_2d/libdeqp_spvremapper.z.so" "suites/acts/acts/testcases/opengldata"
+cp -rf "graphic/graphic_2d/libdeqp_spvremapper.z.so" "suites/acts/acts/testcases/opengldata" 

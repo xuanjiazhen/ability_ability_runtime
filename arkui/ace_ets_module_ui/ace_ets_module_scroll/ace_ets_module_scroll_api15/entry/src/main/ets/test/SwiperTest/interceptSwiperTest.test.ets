@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import { Driver, Component, UiWindow, ON } from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/common/Common';
@@ -53,7 +53,7 @@ export default function interceptSwiperTest() {
      * @tc.type
      * @tc.size
      */
-    it('interceptSwiperTest_0100', 0, async (done: Function) => {
+    it('interceptSwiperTest_0100', Level.LEVEL1, async (done: Function) => {
       console.info('[interceptSwiperTest_0100] START');
       await CommonFunc.sleep(1000);
       let swiperList = CommonFunc.getComponentRectOnScreen('swiper_intercept');
@@ -81,7 +81,7 @@ export default function interceptSwiperTest() {
      * @tc.type
      * @tc.size
      */
-    it('interceptSwiperTest_0200', 0, async (done: Function) => {
+    it('interceptSwiperTest_0200', Level.LEVEL1, async (done: Function) => {
       console.info('[interceptSwiperTest_0200] START');
       await CommonFunc.sleep(1000);
       let swiperList = CommonFunc.getComponentRectOnScreen('swiper_intercept');
@@ -90,9 +90,10 @@ export default function interceptSwiperTest() {
       let left = swiperList.left;
       let bottom = swiperList.bottom;
       let height = bottom -top;
+      let width = right - left;
       console.info("interceptSwiperTest_0200 value is" + left + " --" + right + "--" + top + "--" + bottom);
       let driver = await Driver.create()
-      await driver.swipe(Math.round(left + vp2px(20)),Math.round(top + height/2),Math.round(right - vp2px(20)),Math.round(top + height/2));
+      await driver.swipe(Math.round(left + width*0.3),Math.round(top + height/2),Math.round(right - vp2px(20)),Math.round(top + height/2));
       await CommonFunc.sleep(2000);
       let swiperContent = await driver.findComponent(ON.id('swiper_intercept_text'));
       let text1 = await swiperContent.getText();

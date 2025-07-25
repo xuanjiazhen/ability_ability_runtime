@@ -25,6 +25,7 @@
 #include "common.h"
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include "database/data/oh_data_value.h"
 #include "database/data/oh_data_values.h"
 #include "database/data/oh_data_values_buckets.h"
@@ -40,6 +41,8 @@
 #include "database/rdb/oh_cursor.h"
 
 #define DIRMODE 0770
+
+#define WAIT_TIME 3
 
 const char *TAG = "transaction_ctest";
 const char *RDB_TEST_PATH = "/data/storage/el2/database/com.example.buchongndktest/entry/";
@@ -747,6 +750,151 @@ static napi_value OH_Rdb_SetPlugins0100(napi_env env, napi_callback_info)
     return result;
 }
 
+static napi_value OH_Rdb_SetSemanticIndex_Param_0100(napi_env env, napi_callback_info info)
+{
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, " func OH_Rdb_SetSemanticIndex_Param_0100 ------------- ");
+    OH_Rdb_ConfigV2 *confg = OH_Rdb_CreateConfig();
+    NAPI_ASSERT(env, confg != nullptr, "OH_Rdb_CreateConfig is fail.");
+    auto ret =  OH_Rdb_SetSemanticIndex(nullptr, true);
+    NAPI_ASSERT(env, ret == RDB_E_INVALID_ARGS, "OH_Rdb_SetSemanticIndex is fail.");
+    ret = OH_Rdb_SetSemanticIndex(confg, true);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_SetSemanticIndex is fail.");
+    ret = OH_Rdb_SetSemanticIndex(confg, false);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_SetSemanticIndex is fail.");
+    ret = OH_Rdb_DestroyConfig(confg);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_DestroyConfig is fail.");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
+static void InitRdbConfigV2(OH_Rdb_ConfigV2 *configV2, char *storeName)
+{
+    OH_Rdb_SetDatabaseDir(configV2, RDB_TEST_PATH);
+    OH_Rdb_SetStoreName(configV2, storeName);
+    OH_Rdb_SetBundleName(configV2, "com.ohos.example.distributedndk");
+    OH_Rdb_SetModuleName(configV2, "module");
+    OH_Rdb_SetEncrypted(configV2, false);
+    OH_Rdb_SetSecurityLevel(configV2, OH_Rdb_SecurityLevel::S1);
+    OH_Rdb_SetArea(configV2, RDB_SECURITY_AREA_EL1);
+    OH_Rdb_SetDbType(configV2, RDB_SQLITE);
+    OH_Rdb_SetTokenizer(configV2, RDB_CUSTOM_TOKENIZER);
+}
+
+static void CreateTable(napi_env env, OH_Rdb_Store *store)
+{
+    char createTableSql[] = "CREATE TABLE IF NOT EXISTS mail ("
+    "id INTEGER PRIMARY KEY,"
+    "subject TEXT,"
+    "content TEXT"
+    ");";
+    auto ret = OH_Rdb_Execute(store, createTableSql);
+    NAPI_ASSERT_RETURN_VOID(env, ret == RDB_OK, "OH_Rdb_Execute create is fail.");
+    ret = OH_Rdb_CloseStore(store);
+    NAPI_ASSERT_RETURN_VOID(env, ret == RDB_OK, "OH_Rdb_CloseStore is fail.");
+}
+
+static void InsertData(napi_env env, OH_Rdb_Store *store)
+{
+    char insertSql1[] = "INSERT INTO mail (id, subject, content) VALUES (0, '运动直播场景', '运动直播场景正文');";
+    auto ret = OH_Rdb_Execute(store, insertSql1);
+    NAPI_ASSERT_RETURN_VOID(env, ret == RDB_OK, "OH_Rdb_Execute1 is fail.");
+}
+
+static napi_value OH_Rdb_SetSemanticIndex_Param_0200(napi_env env, napi_callback_info info)
+{
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, " func OH_Rdb_SetSemanticIndex_Param_0200 ------------- ");
+    OH_Rdb_ConfigV2 *confg = OH_Rdb_CreateConfig();
+    NAPI_ASSERT(env, confg != nullptr, "OH_Rdb_CreateConfig is fail.");
+    InitRdbConfigV2(confg, "rdb_store_test.db");
+    int ret = OH_Rdb_DeleteStoreV2(confg);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_DeleteStoreV2 is fail.");
+    int errCode = OH_Rdb_ErrCode::RDB_OK;
+    auto store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen is fail.");
+    CreateTable(env, store);
+    ret = OH_Rdb_SetSemanticIndex(confg, false);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_SetSemanticIndex is fail.");
+
+    store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen is fail.");
+    InsertData(env, store);
+    std::this_thread::sleep_for(std::chrono::seconds(WAIT_TIME));
+
+    char querySql[] = "select count(*) from mail_inverted";
+    OH_Cursor *cursor = OH_Rdb_ExecuteQuery(store, querySql);
+    NAPI_ASSERT(env, cursor != nullptr, "OH_Rdb_ExecuteQuery is fail.");
+    int rowCount = 0;
+    cursor->getRowCount(cursor, &rowCount);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, "result row count is %{public}d", rowCount);
+    NAPI_ASSERT(env, rowCount <= 0, "getRowCount is fail.");
+
+    InitRdbConfigV2(confg, "rdb_store_test_vector.db");
+    OH_Rdb_SetDbType(confg, RDB_CAYLEY);
+    store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen vector is fail.");
+    char querySqlVector[] = "select count(*) from mail_vector";
+    cursor = OH_Rdb_ExecuteQuery(store, querySqlVector);
+    NAPI_ASSERT(env, cursor != nullptr, "OH_Rdb_ExecuteQuery is fail.");
+    cursor->getRowCount(cursor, &rowCount);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, "result vector row count is %{public}d", rowCount);
+    NAPI_ASSERT(env, rowCount <= 0, "getRowCount is fail.");
+
+    ret = OH_Rdb_DestroyConfig(confg);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_DestroyConfig is fail.");
+
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
+static napi_value OH_Rdb_SetSemanticIndex_Param_0300(napi_env env, napi_callback_info info)
+{
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, " func OH_Rdb_SetSemanticIndex_Param_0300 ------------- ");
+    OH_Rdb_ConfigV2 *confg = OH_Rdb_CreateConfig();
+    NAPI_ASSERT(env, confg != nullptr, "OH_Rdb_CreateConfig is fail.");
+    InitRdbConfigV2(confg, "rdb_store_test.db");
+    int ret = OH_Rdb_DeleteStoreV2(confg);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_DeleteStoreV2 is fail.");
+    int errCode = OH_Rdb_ErrCode::RDB_OK;
+    auto store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen is fail.");
+    CreateTable(env, store);
+    ret = OH_Rdb_SetSemanticIndex(confg, true);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_SetSemanticIndex is fail.");
+
+    store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen is fail.");
+    InsertData(env, store);
+    std::this_thread::sleep_for(std::chrono::seconds(WAIT_TIME));
+
+    char querySql[] = "select count(*) from mail_inverted";
+    OH_Cursor *cursor = OH_Rdb_ExecuteQuery(store, querySql);
+    NAPI_ASSERT(env, cursor != nullptr, "OH_Rdb_ExecuteQuery is fail.");
+    int rowCount = 0;
+    cursor->getRowCount(cursor, &rowCount);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, "result row count is %{public}d", rowCount);
+    NAPI_ASSERT(env, rowCount > 0, "getRowCount is fail.");
+
+    InitRdbConfigV2(confg, "rdb_store_test_vector.db");
+    OH_Rdb_SetDbType(confg, RDB_CAYLEY);
+    store = OH_Rdb_CreateOrOpen(confg, &errCode);
+    NAPI_ASSERT(env, store != nullptr, "OH_Rdb_CreateOrOpen is fail.");
+    char querySqlVector[] = "select count(*) from mail_vector";
+    cursor = OH_Rdb_ExecuteQuery(store, querySqlVector);
+    NAPI_ASSERT(env, cursor != nullptr, "OH_Rdb_ExecuteQuery is fail.");
+    cursor->getRowCount(cursor, &rowCount);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, 0, TAG, "result vector row count is %{public}d", rowCount);
+    NAPI_ASSERT(env, rowCount > 0, "getRowCount is fail.");
+
+    ret = OH_Rdb_DestroyConfig(confg);
+    NAPI_ASSERT(env, ret == RDB_OK, "OH_Rdb_DestroyConfig is fail.");
+
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -771,6 +919,12 @@ static napi_value Init(napi_env env, napi_value exports)
         { "OH_Rdb_SetCustomDir0100", nullptr, OH_Rdb_SetCustomDir0100, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "OH_Rdb_SetReadOnly0100", nullptr, OH_Rdb_SetReadOnly0100, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "OH_Rdb_SetPlugins0100", nullptr, OH_Rdb_SetPlugins0100, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "OH_Rdb_SetSemanticIndex_Param_0100", nullptr, OH_Rdb_SetSemanticIndex_Param_0100, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "OH_Rdb_SetSemanticIndex_Param_0200", nullptr, OH_Rdb_SetSemanticIndex_Param_0200, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
+        { "OH_Rdb_SetSemanticIndex_Param_0300", nullptr, OH_Rdb_SetSemanticIndex_Param_0300, nullptr, nullptr, nullptr,
+            napi_default, nullptr },
     };
     
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

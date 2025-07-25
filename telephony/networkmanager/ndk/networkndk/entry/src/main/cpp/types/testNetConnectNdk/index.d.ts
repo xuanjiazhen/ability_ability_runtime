@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+export const CallHttpClientApi: () => number;
+export const OHHttpGetHeaderValue: () => number;
 export const OHNetConnGetAddrInfo: (a: string, b: string, c: number) => number;
 export const OHNetConnFreeDnsResult: (a: number) => number;
 export const OHNetConnGetAllNets: (a: number) => number;

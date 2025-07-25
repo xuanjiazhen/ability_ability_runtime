@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import CommonFunc from '../../../MainAbility/common/Common';
 import { Driver, ON } from '@ohos.UiTest';
@@ -50,7 +50,7 @@ export default function tabsOnContentWillChangeIndex3JsunitTest() {
      * @tc.level  3
      */
 
-    it('tabsOnContentWillChangeJsunitTest_0020', 0, async (done: Function) => {
+    it('tabsOnContentWillChangeJsunitTest_0020', Level.LEVEL1, async (done: Function) => {
       console.info('tabsOnContentWillChangeIndex3JsunitTest START');
 
       let driver = Driver.create();
@@ -60,7 +60,7 @@ export default function tabsOnContentWillChangeIndex3JsunitTest() {
       tabsRect.top + "," + tabsRect.bottom );
       // swipe index 3 to index 2  left swipe to right
 
-      await driver.swipe(Math.round(globalThis.winLeft + (tabsRect.right-tabsRect.left)*0.1 + tabsRect.left),Math.round(globalThis.winTop + (tabsRect.bottom-tabsRect.top)/2 + tabsRect.top),Math.round(globalThis.winLeft + (tabsRect.right-tabsRect.left)*0.8 + tabsRect.left),
+      await driver.swipe(Math.round(globalThis.winLeft + (tabsRect.right-tabsRect.left)*0.3 + tabsRect.left),Math.round(globalThis.winTop + (tabsRect.bottom-tabsRect.top)/2 + tabsRect.top),Math.round(globalThis.winLeft + (tabsRect.right-tabsRect.left)*0.9 + tabsRect.left),
         Math.round(globalThis.winTop + (tabsRect.bottom-tabsRect.top)/2 + tabsRect.top));
       await CommonFunc.sleep(2000);
 

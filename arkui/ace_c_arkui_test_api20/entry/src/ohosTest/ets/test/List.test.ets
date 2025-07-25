@@ -16,10 +16,24 @@ import PostOnIdleTest from "./onIdle/PostOnIdleTest.test"
 import EmbeddedComponentOptionTest from "./EmbeddedComponentOption/EmbeddedComponentOptionTest.test"
 import CustomComponentOnDrawFrontTest from "./customcomponent/CustomComponentOnDrawFrontTest.test"
 import CustomComponentOnDrawBehindTest from "./customcomponent/CustomComponentOnDrawBehindTest.test"
+import uiStatesTest from './uiState/UiStatesTest.test'
+import OntouchTestDoneTest from "./touchTestDone/OntouchTestDoneTest.test"
+import NodeUniqueIdTest from "./nodeUtils/NodeUniqueIdTest.test"
+import uiInputErrorCodeTest from './uiInput/UiInputErrorCodeTest.test'
+import SetForceDarkConfigTest from "./darkConfig/TestSetForceDarkConfig.test"
+import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test"
+import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
 
 export default function testsuite() {
   PostOnIdleTest();
   EmbeddedComponentOptionTest();
   CustomComponentOnDrawFrontTest();
   CustomComponentOnDrawBehindTest();
+  uiStatesTest();
+  OntouchTestDoneTest();
+  NodeUniqueIdTest();
+  uiInputErrorCodeTest();
+  SetForceDarkConfigTest();
+  TestInitModuleForArkTSEnv();
+  RunTaskInScopeTest();
 }

@@ -86,10 +86,6 @@
         "reason": "need use FormSupply commonEvent"
       },
       {
-        "name":"ohos.permission.GET_BUNDLE_INFO_PRIVILEGED",
-        "reason":"need use ohos.permission.GET_BUNDLE_INFO_PRIVILEGED"
-      },
-      {
         "name":"ohos.permission.CLEAN_BACKGROUND_PROCESSES",
         "reason":"need use ohos.permission.CLEAN_BACKGROUND_PROCESSES"
       },

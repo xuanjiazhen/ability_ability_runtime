@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import myavcapability from 'libavcapability.so'
 import { BusinessError } from '@ohos.base';
 import media from '@ohos.multimedia.media';
 import image from '@ohos.multimedia.image';
@@ -101,6 +102,46 @@ async function fetchScaledFrameByTimeTest(testNum: string, done: Function, outSi
             expect().assertFail()
         };
     });
+}
+
+function getRandomNumber(min: number, max: number): number{
+    if(min > max) return Math.random() > 0.5 ? max : min
+    return min + Number((Math.random() * (max - min)).toFixed())
+}
+
+async function getVideoDuration(fdSrc: media.AVFileDescriptor, done: Function): Promise<number>{
+    let avPlayer: media.AVPlayer | undefined
+    await media.createAVPlayer().then((video) => {
+        if (typeof (video) != 'undefined') {
+            console.info('case createAVPlayer success');
+            avPlayer = video;
+        } else {
+            console.error('case createAVPlayer failed');
+            expect().assertFail();
+            done();
+        }
+    })
+    let videoMS: number = await new Promise(res => {
+        avPlayer?.on("stateChange",async (state: string) => {
+            console.log(`avPlayer state is ${state}`)
+            switch (state) {
+                case "initialized":
+                    avPlayer?.prepare()
+                    break;
+                case "prepared":
+                    res(avPlayer?.duration || -1)
+                    break;
+            }
+        })
+        if(avPlayer) avPlayer.fdSrc = fdSrc
+    })
+    avPlayer?.release()
+    if(videoMS == -1){
+        console.error(`get video duration error`)
+        expect().assertFail()
+        done()
+    }
+    return videoMS
 }
 export default function FetchScaledFrameByTimeTest() {
     describe('FetchScaledFrameByTimeTest', () => {
@@ -437,6 +478,12 @@ export default function FetchScaledFrameByTimeTest() {
                 width: 111,
                 height: 111
             }
+            let isSupport = await myavcapability.AVCapabilityIsVideoSizeSupported(2336, 1080);
+            if (isSupport == -1) {
+                console.info(`${testNum} AVCapabilityIsVideoSizeSupported Failed`);
+                done();
+                return;
+            }
             let hdrFd: media.AVFileDescriptor | undefined = undefined
             await getFileDescriptor("hdr.mp4").then((fileDescriptor: resourceManager.RawFileDescriptor | undefined) => {
                 if (fileDescriptor != undefined) {
@@ -447,5 +494,215 @@ export default function FetchScaledFrameByTimeTest() {
             })
             await fetchScaledFrameByTimeTest(testNum, done, outSize, 0, defaultQueryOption, hdrFd);
         })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_1900
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_1900
+        * @tc.desc      : Verify that the frame is fetched correctly with specific dimensions and HDR file.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_1900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_1900";
+            let outSize: media.OutputSize = {
+                width: orgWidth,
+                height: orgHeight
+            }
+            try {
+                let videoMS: number = await getVideoDuration(avFd,done)
+                await fetchScaledFrameByTimeTest(testNum, done, outSize, videoMS * 1000);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2000
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2000
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2000";
+            let outSize: media.OutputSize = {
+                width: orgWidth / 2,
+                height: orgHeight / 2
+            }
+            try {
+                let videoMS: number = await getVideoDuration(avFd,done)
+                let ustime: number = getRandomNumber(Math.floor(videoMS * 1000 / 3), Math.floor(videoMS * 1000 * 2 / 3))
+                await fetchScaledFrameByTimeTest(testNum, done, outSize, ustime);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2100
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2100
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2100";
+            let outSize: media.OutputSize = {
+                width: orgWidth / 2,
+                height: orgHeight / 2
+            }
+            try {
+                let videoMS: number = await getVideoDuration(avFd,done)
+                let ustime: number = getRandomNumber(Math.floor(videoMS * 1000 / 3), Math.floor(videoMS * 1000 * 2 / 3))
+                await fetchScaledFrameByTimeTest(testNum, done, outSize, ustime, media.AVImageQueryOptions.AV_IMAGE_QUERY_PREVIOUS_SYNC);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2200
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2200
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2200";
+            let outSize: media.OutputSize = {
+                width: orgWidth / 2,
+                height: orgHeight / 2
+            }
+            try {
+                let videoMS: number = await getVideoDuration(avFd,done)
+                let ustime: number = getRandomNumber(Math.floor(videoMS * 1000 / 3), Math.floor(videoMS * 1000 * 2 / 3))
+                await fetchScaledFrameByTimeTest(testNum, done, outSize, ustime, media.AVImageQueryOptions.AV_IMAGE_QUERY_CLOSEST_SYNC);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2300
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2300
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2300";
+            let outSize: media.OutputSize = {
+                width: orgWidth / 2,
+                height: orgHeight / 2
+            }
+            try {
+                let videoMS: number = await getVideoDuration(avFd,done)
+                let ustime: number = getRandomNumber(Math.floor(videoMS * 1000 / 3), Math.floor(videoMS * 1000 * 2 / 3))
+                await fetchScaledFrameByTimeTest(testNum, done, outSize, ustime, media.AVImageQueryOptions.AV_IMAGE_QUERY_CLOSEST);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2400
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2400
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2400";
+            let outSize: media.OutputSize = {
+                width: -1,
+                height: -1
+            }
+            try {
+                await fetchScaledFrameByTimeTest(testNum, done, outSize);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2500
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2500
+        * @tc.desc      : Verify that the frame is fetched correctly with reduced dimensions.
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2500";
+            let outSize: media.OutputSize = {
+                width: 0,
+                height: 0
+            }
+            try {
+                await fetchScaledFrameByTimeTest(testNum, done, outSize);
+            } catch (error) {
+                console.error(`Test exception: ${JSON.stringify(error)}`);
+                expect().assertFail()
+                done()
+            }
+        })
+
+        /* *
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2600
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2600
+        * @tc.desc      : Verify that the frame is fetched incorrectly after release
+        * @tc.size      : MediumTest
+        * @tc.type      : Function test
+        * @tc.level     : Level0
+        */
+        it('SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+            let testNum = "SUB_MULTIMEDIA_MEDIA_AVIMAGEGENERATOR_FETCHSCALEDFRAMEBYTIME_2600";
+            let outSize: media.OutputSize = {
+                width: orgWidth,
+                height: orgHeight
+            }
+            console.info(`${testNum} fetchScaledFrameByTimeTest start`);
+            try {
+                const avImageGenerator = await media.createAVImageGenerator()
+                avImageGenerator.fdSrc = avFd;
+                console.info(`${testNum} createAVImageGenerator success`);
+                await avImageGenerator.release()
+                console.info(`${testNum} releaseAVImageGenerator success`);
+                await avImageGenerator.fetchScaledFrameByTime(0, defaultQueryOption, outSize).then((pixelMap: image.PixelMap) => {
+                    console.info(`${testNum} fetchScaledFrameByTime success`);
+                    expect().assertFail()
+                }).catch((error: BusinessError) => {
+                    if(error.code == 5400106){
+                        console.info(`${testNum} fetchScaledFrameByTime after release success, error.code:${error.code} error.message:${error.message}`)
+                    }else{
+                        console.info(`${testNum} fetchScaledFrameByTime after release fail, code is not 5400106 ,error.code:${error.code} error.message:${error.message}`)
+                        expect().assertFail()
+                    }
+                })
+            } catch (error) {
+                console.error(`${testNum} test fetchScaledFrameByTime with error fail, error code:${error.code} message:${error.message}`);
+                expect().assertFail()
+            }
+            done()
+        })
     })
+
 }

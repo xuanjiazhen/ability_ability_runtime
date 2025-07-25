@@ -25,6 +25,7 @@ struct MyStateSample {
 
   build() {
     Column() {
+      Row().height('10vp').id('text006').width('100%')
       Text('opacity：1.5').id('text003').opacity(1.5).height('5%')
       Text('opacity：-1').id('text001').opacity(-1).height('5%')
       Text('opacity：0').id('text002').opacity(0).height('5%')
@@ -50,7 +51,8 @@ struct MyStateSample {
             this.getOpacityValue4 = text004?.getOpacity() + '';
             let text005 = uicontext.getFrameNodeById('text005');
             this.getOpacityValue5 = text005?.getOpacity() + '';
-            this.getTransformValue = text003?.getPositionToWindowWithTransform().x.toString().split('.')[0] + '';
+            let text006 = uicontext.getFrameNodeById('text006');
+            this.getTransformValue = text006?.getPositionToWindowWithTransform().x.toString().split('.')[0] + '';
           }
         })
       Text(this.getOpacityValue1).height('5%').id('getOpacityValue1')

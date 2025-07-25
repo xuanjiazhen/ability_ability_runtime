@@ -47,6 +47,7 @@ export default function GestureCaseTest() {
       let PAGE_TAG = 'GestureRecognizerTest'
       await Utils.pushPage(`gestureRecognizer/${PAGE_TAG}`)
       await click('image')
+      await Utils.sleep(1000)
       let dataArray: string[] = nativeRender.TestGestureRecognizerGetResult()
       console.log('GestureCaseTest001', dataArray[0])
       expect(dataArray[0] == '0').assertEqual(true)
@@ -67,6 +68,7 @@ export default function GestureCaseTest() {
       let driver = Driver.create()
       let refresh = await driver.findComponent(ON.id('image'))
       await refresh.click()
+      await Utils.sleep(1000)
       let dataArray: string[] = nativeRender.TestGestureRecognizerGetResult()
       console.log('GestureCaseTest002', dataArray[0])
       expect(dataArray[0] == '0,0').assertEqual(true)

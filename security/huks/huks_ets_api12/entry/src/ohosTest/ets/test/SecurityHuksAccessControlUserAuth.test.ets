@@ -15,9 +15,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
 import huks from '@ohos.security.huks';
 import { CheckSoftware, MergeOptions } from './utils/huks/HuksOptionsUtils';
-import { GetAesGenerateOption } from './utils/options/GenerateKeyOptions';
+import { GetAesGenerateOptions } from './utils/huks/GenerateKeyUtils';
 import { GetAlwaysValidOptions, GetChallengeNormalOptions, GetTuiPinOptions } from './utils/huks/AccessControlUtils';
-import { GetAesImportData } from './utils/options/ImportOptions';
+import { GetAesImportData } from './utils/huks/ImportKeyUtils';
 
 export default function SecurityHuksAccessControlUserAuthTest() {
   let useSoftware: boolean = true;
@@ -45,25 +45,23 @@ export default function SecurityHuksAccessControlUserAuthTest() {
     })
 
     /**
-     * @tc.number : SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0100
-     * @tc.name   : SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0100
+     * @tc.number : SUB_Security_HUKS_AccessControl_UserAuth_API20_Func_0100
+     * @tc.name   : SUB_Security_HUKS_AccessControl_UserAuth_API20_Func_0100
      * @tc.desc   : generate key with tui pin, error code 12000001
      * @tc.size   : Small
      * @tc.type   : Func
      * @tc.level  : Level3
      */
-    it('SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
-      let testNumber: string = "SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0100";
-      let genKeyOptions: huks.HuksOptions = GetAesGenerateOption(256);
+    it('SUB_Security_HUKS_AccessControl_UserAuth_API20_Func_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_AccessControl_UserAuth_API20_Func_0100";
+      let genKeyOptions: huks.HuksOptions = GetAesGenerateOptions(256);
       MergeOptions(genKeyOptions, GetAlwaysValidOptions(), GetChallengeNormalOptions(), GetTuiPinOptions());
-      if (useSoftware) {
-        try {
-          await huks.generateKeyItem(testNumber, genKeyOptions);
-          expect(null).assertFail();
-        } catch (err) {
-          console.log(testNumber + ` catch error: ${JSON.stringify(err)}`);
-          expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_FEATURE_NOT_SUPPORTED);
-        }
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        expect(useSoftware).assertEqual(false);
+      } catch (err) {
+        console.log(testNumber + ` catch error: ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_FEATURE_NOT_SUPPORTED);
       }
     })
 
@@ -77,17 +75,15 @@ export default function SecurityHuksAccessControlUserAuthTest() {
      */
     it('SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
       let testNumber: string = "SUB_Security_HUKS_AccessControl_UserAuth_Api20_Func_0200";
-      let importKeyOptions: huks.HuksOptions = GetAesGenerateOption(256);
+      let importKeyOptions: huks.HuksOptions = GetAesGenerateOptions(256);
       MergeOptions(importKeyOptions, GetAlwaysValidOptions(), GetChallengeNormalOptions(), GetTuiPinOptions());
       importKeyOptions.inData = GetAesImportData(256);
-      if (useSoftware) {
-        try {
-          await huks.importKeyItem(testNumber, importKeyOptions);
-          expect(null).assertFail();
-        } catch (err) {
-          console.log(testNumber + ` catch error: ${JSON.stringify(err)}`);
-          expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_FEATURE_NOT_SUPPORTED);
-        }
+      try {
+        await huks.importKeyItem(testNumber, importKeyOptions);
+        expect(useSoftware).assertEqual(false);
+      } catch (err) {
+        console.log(testNumber + ` catch error: ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_FEATURE_NOT_SUPPORTED);
       }
     })
   })

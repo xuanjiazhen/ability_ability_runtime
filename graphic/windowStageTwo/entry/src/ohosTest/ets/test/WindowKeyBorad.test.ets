@@ -35,7 +35,7 @@ export default function windowKeyBorad() {
       //isAutoWindow == '' 非PAD设备
       //isAutoWindow == 'true' PAD设备自由多窗模式
       //isAutoWindow == 'false' PAD设备非自由多窗模式
-      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.DEVICE_SHARED);
+      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.USER_PROPERTY);
       console.info(`isAutoWindow: ${JSON.stringify(isAutoWindow)}`);
       isPCStatus = settings.getValueSync(context, 'isStatusBarExist', '', settings.domainName.USER_PROPERTY)
       //isPCStatus == '' 非PC设备
@@ -48,17 +48,34 @@ export default function windowKeyBorad() {
       await sleep(1000);
       if (isPCStatus==''||isAutoWindow == 'false') {
         let input = await driver.findComponent(ON.id('textInput'));
+        console.info('beforeAll input: ' + JSON.stringify(input));
         await sleep(1000);
         await input.click();
         await sleep(1000);
-        let text = await driver.findComponent(ON.text('下一步'));
+        let text1 = await driver.findComponent(ON.text('同意'));
+        console.info('beforeAll text1: ' + JSON.stringify(text1));
+        let text2 = await driver.findComponent(ON.text('下一步'));
+        console.info('beforeAll text2: ' + JSON.stringify(text2));
         await sleep(1000);
-        if (text) {
+        if (text1) {
+          await text1.click();
+          console.info('beforeAll 同意 click success');
+          await sleep(1000);
+          let text = await driver.findComponent(ON.text('下一步'));
+          console.info('beforeAll text: ' + JSON.stringify(text));
           await text.click();
-        }else{
+          console.info('beforeAll 下一步 click success');
+          await sleep(1000);
+        } else if(text2){
+          await text2.click();
+          console.info('beforeAll 下一步 click success');
+          await sleep(1000);
+        } else{
           await driver.pressBack();
+          console.info('beforeAll pressBack success');
         }
         await sleep(1000);
+
       }
     });
     beforeEach(() => {
@@ -88,7 +105,7 @@ export default function windowKeyBorad() {
         if (isPCStatus != '' || isAutoWindow == 'true') {
           done();
         } else {
-          const callback  = (keyboardInfo: window.KeyboardInfo) => {
+          const callback  = async (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo: ${JSON.stringify(keyboardInfo)}`);
             let displayInfo = display.getDefaultDisplaySync();
             console.info(`${caseName} dispalyInfo: ${JSON.stringify(displayInfo)}`);
@@ -109,17 +126,20 @@ export default function windowKeyBorad() {
               expect(true).assertFalse();
             }
             mainWindow.off('keyboardWillShow');
+            await driver.pressBack();
+            await sleep(500);
             done();
           }
           mainWindow.on('keyboardWillShow', callback);
           let driver: Driver = Driver.create();
           await sleep(1000);
           let input = await driver.findComponent(ON.id('textInput'));
+          console.info(`${caseName}  input: ` + JSON.stringify(input));
           await sleep(1000);
           await input.click();
+          console.info(`${caseName}  click success: ` + JSON.stringify(input));
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
         }
       } catch (err) {
         console.error(caseName + 'Failed. Cause:' + JSON.stringify(err));
@@ -151,7 +171,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         } else {
@@ -175,6 +195,8 @@ export default function windowKeyBorad() {
             } else {
               expect(true).assertFalse();
             }
+            await driver.pressBack();
+            await sleep(500);
             subWindowClass.off('keyboardWillShow');
             await subWindowClass.destroyWindow()
             done();
@@ -186,8 +208,7 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
         }
       } catch (err) {
         console.error(caseName + 'Failed. Cause:' + JSON.stringify(err));
@@ -225,7 +246,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         } else {
@@ -249,6 +270,8 @@ export default function windowKeyBorad() {
             } else {
               expect(true).assertFalse();
             }
+            await driver.pressBack();
+            await sleep(500);
             subWindowClass.off('keyboardWillShow');
             await subWindowClass.destroyWindow();
             done();
@@ -260,8 +283,7 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
         }
       } catch (err) {
         console.error(caseName + 'Failed. Cause:' + JSON.stringify(err));
@@ -294,7 +316,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -329,7 +351,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -363,6 +385,13 @@ export default function windowKeyBorad() {
         if (isPCStatus != '' || isAutoWindow == 'true') {
           done();
         } else {
+          const callback1  = async (keyboardInfo: window.KeyboardInfo) => {
+            console.info(`${caseName} KeyboardInfo: ${JSON.stringify(keyboardInfo)}`);
+            mainWindow.off('keyboardWillShow');
+            await driver.pressBack();
+            await sleep(500);
+          }
+          mainWindow.on('keyboardWillShow', callback1);
           const callback  = (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo: ${JSON.stringify(keyboardInfo)}`);
             let displayInfo = display.getDefaultDisplaySync();
@@ -392,8 +421,7 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
         }
       } catch (err) {
         console.error(caseName + 'Failed. Cause:' + JSON.stringify(err));
@@ -426,10 +454,17 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow();
           done();
         } else {
+          const callback1  = async (keyboardInfo: window.KeyboardInfo) => {
+            console.info(`${caseName} KeyboardInfo: ${JSON.stringify(keyboardInfo)}`);
+            subWindowClass.off('keyboardWillShow');
+            await driver.pressBack();
+            await sleep(500);
+          }
+          subWindowClass.on('keyboardWillShow', callback1);
           const callback  = async (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo: ${JSON.stringify(keyboardInfo)}`);
             let displayInfo = display.getDefaultDisplaySync();
@@ -460,8 +495,7 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
         }
       } catch (err) {
         console.error(caseName + 'Failed. Cause:' + JSON.stringify(err));
@@ -494,7 +528,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -529,7 +563,7 @@ export default function windowKeyBorad() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        if (isPCStatus != '' || isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow != '') {
           await subWindowClass.destroyWindow()
           done();
         }
@@ -640,10 +674,12 @@ export default function windowKeyBorad() {
             timer1++;
             console.info(`${caseName} callback1 timer1: ${JSON.stringify(timer1)}`);
           }
-          const callback2  = (keyboardInfo: window.KeyboardInfo) => {
+          const callback2  = async (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo2: ${JSON.stringify(keyboardInfo)}`);
             timer1++;
             console.info(`${caseName} callback2 timer1: ${JSON.stringify(timer1)}`);
+            await driver.pressBack();
+            await sleep(500);
           }
           mainWindow.on('keyboardWillShow', callback1);
           mainWindow.on('keyboardWillShow', callback2);
@@ -667,8 +703,7 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
           mainWindow.off('keyboardWillShow');
@@ -778,10 +813,12 @@ export default function windowKeyBorad() {
         if (isPCStatus != '' || isAutoWindow == 'true') {
           done();
         } else {
-          const callback1  = (keyboardInfo: window.KeyboardInfo) => {
+          const callback1  = async (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo1: ${JSON.stringify(keyboardInfo)}`);
             timer1++;
             console.info(`${caseName} callback1 timer1: ${JSON.stringify(timer1)}`);
+            await driver.pressBack();
+            await sleep(500);
           }
           const callback2  = (keyboardInfo: window.KeyboardInfo) => {
             console.info(`${caseName} KeyboardInfo2: ${JSON.stringify(keyboardInfo)}`);
@@ -797,15 +834,13 @@ export default function windowKeyBorad() {
           await sleep(1000);
           await input.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
 
           let input2 = await driver.findComponent(ON.id('textInput2'));
           await sleep(1000);
           await input2.click();
           await sleep(500);
-          await driver.pressBack();
-          await sleep(500);
+
 
           expect(timer1).assertEqual(2);
           expect(timer2).assertEqual(2);
@@ -825,6 +860,24 @@ export default function windowKeyBorad() {
         }
       }
     });
+
+    /**
+     * @tc.number    : testWindowAnimationCurve_0100
+     * @tc.name      : testWindowAnimationCurveEnum
+     * @tc.desc      : Test the function value of WindowAnimationCurve
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testWindowAnimationCurveEnum', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testWindowAnimationCurveEnum';
+      console.log(caseName + 'begin.');
+      console.log(caseName + 'window.WindowAnimationCurve.LINEAR: '+window.WindowAnimationCurve.LINEAR);
+      console.log(caseName + 'window.WindowAnimationCurve.INTERPOLATION_SPRING: '+window.WindowAnimationCurve.INTERPOLATION_SPRING);
+      expect(window.WindowAnimationCurve.LINEAR).assertEqual(0);
+      expect(window.WindowAnimationCurve.INTERPOLATION_SPRING).assertEqual(1);
+      done();
+    })
 
   })
 }

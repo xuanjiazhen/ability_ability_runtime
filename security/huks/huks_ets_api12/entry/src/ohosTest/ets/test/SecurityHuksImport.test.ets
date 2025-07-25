@@ -17,7 +17,7 @@ import huks from '@ohos.security.huks';
 import { GenParam } from './utils/huks/HuksOptionsUtils';
 import { GetDataBySize, StringToUint8Array } from './utils/CommonUtils';
 import { Cipher, CipherData } from './utils/huks/CipherUtils';
-import { GetDesImportData, GetRsaImportData } from './utils/options/ImportOptions';
+import { GetDesImportData, GetRsaImportData } from './utils/huks/ImportKeyUtils';
 import { SignVerify, SignVerifyData } from './utils/huks/SignVerifyUtils';
 
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import CommonFunc from '../../../MainAbility/common/Common';
 import {UiComponent, UiDriver, Component, Driver, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
@@ -50,21 +50,23 @@ export default function swiper2() {
     * @tc.size
      */
 
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0260', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0260', Level.LEVEL1, async (done: Function) => {
       console.info('[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0260] START');
       await CommonFunc.sleep(2000);
-      let bt = CommonFunc.getComponentRect('swiperTest2');
+      let bt = CommonFunc.getComponentRectOnScreen('swiperTest2');
       //180,87,540,327
       let btTop = bt.top;
       let btBottom = bt.bottom;
       let btRight = bt.right;
       let btLeft = bt.left;
+      let height = btBottom -btTop;
+      let width = btRight - btLeft;
       console.info("[SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_UX_0260] swiper top:" + btTop + "bottom:" + btBottom + "right:" + btRight + "left:" + btLeft );
       await CommonFunc.sleep(1000);
 
       let driver = await Driver.create();
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(btLeft), Math.round(btBottom/2), Math.round(btRight)+40, Math.round(btBottom/2));
+      await driver.swipe(Math.round(btLeft + width*0.5), Math.round(btTop + height/2), Math.round(btRight), Math.round(btTop + height/2));
       await CommonFunc.sleep(5000);
 
       let strJson = getInspectorByKey('swiperText2');

@@ -3253,4 +3253,156 @@ describe('XmlSerializerXmlPullParserTest', function () {
             expect(e.code).assertEqual(401);
         }
     })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_XML_12900
+     * @tc.name: testParseXml019
+     * @tc.desc: Starts parsing the XML file.
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 1
+     */
+    it('testParseXml019', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function () {
+        let strXml =
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<column name="Giana"><value integer="1"/></column>' +
+            '<column name="category"><value Boolean="true"/></column>' +
+            '<column name="day"><value Boolean="3"/></column>';
+        let textEncoder = new util.TextEncoder();
+        let uint8 = textEncoder.encodeInto(strXml);
+        let pullParse = new xml.XmlPullParser(uint8.buffer, 'UTF-8');
+        let findCategory = false;
+        let categoryValue = "";
+        function attrWithTag(tagName, key, value) {
+            if (value === '1') {
+                findCategory = true;
+                return true;
+            }
+            if (findCategory) {
+                categoryValue = value;
+                return false;
+            }
+            return true;
+        }
+        let options = {supportDoctype:true, ignoreNameSpace:true, attributeWithTagCallbackFunction:attrWithTag}
+        pullParse.parseXml(options);
+        let result = 'category';
+        expect(categoryValue).assertEqual(result);
+    })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_XML_13000
+     * @tc.name: testParseXml020
+     * @tc.desc: Starts parsing the XML file.
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 1
+     */
+    it('testParseXml020', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function () {
+        let strXml =
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<column name="Giana"><value integer="1"/></column>' +
+            '<column name="category"><value Boolean="true"/></column>' +
+            '<column name="day"><value Boolean="3"/></column>';
+        let textEncoder = new util.TextEncoder();
+        let uint8 = textEncoder.encodeInto(strXml);
+        let pullParse = new xml.XmlPullParser(uint8.buffer, 'UTF-8');
+        let str = '';
+        function attrWithTag(tagName, key, value) {
+            if (value === 'category') {
+                return false;
+            }
+            str += tagName + ' ' + key + ' ' + value + ' ';
+            return true;
+        }
+        let options = {supportDoctype:true, ignoreNameSpace:true, attributeWithTagCallbackFunction:attrWithTag}
+        pullParse.parseXml(options);
+        let result = 'column name Giana value integer 1';
+        expect(str.trim()).assertEqual(result);
+    })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_XML_13100
+     * @tc.name: testParseXml021
+     * @tc.desc: Starts parsing the XML file.
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 1
+     */
+    it('testParseXml021', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function () {
+        let strXml =
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<column name="Giana"><value integer="1"/></column>' +
+            '<column name="category"><value Boolean="true"/></column>' +
+            '<column name="day"><value Boolean="3"/></column>';
+        let textEncoder = new util.TextEncoder();
+        let uint8 = textEncoder.encodeInto(strXml);
+        let pullParse = new xml.XmlPullParser(uint8.buffer, 'UTF-8');
+        let str = '';
+        function attrWithTag(tagName, key, value) {
+            if (value === 'category') {
+                return false;
+            }
+            str += key + ' ' + value + ' ';
+            return true;
+        }
+        let options = {supportDoctype:true, ignoreNameSpace:true, attributeWithTagCallbackFunction:attrWithTag}
+        pullParse.parseXml(options);
+        let result = 'name Giana integer 1';
+        expect(str.trim()).assertEqual(result);
+    })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_XML_13200
+     * @tc.name: testParseXml022
+     * @tc.desc: Starts parsing the XML file.
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 1
+     */
+    it('testParseXml022', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function () {
+        let strXml =
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<column name="Giana"><value integer="1"/></column>' +
+            '<column name="category"><value Boolean="true"/></column>';
+        let textEncoder = new util.TextEncoder();
+        let uint8 = textEncoder.encodeInto(strXml);
+        let pullParse = new xml.XmlPullParser(uint8.buffer, 'UTF-8');
+        let str = '';
+        function attrWithTag(tagName, key, value) {
+            str += tagName + ' ' + key + ' ' + value + ' ';
+            return true;
+        }
+        let options = {supportDoctype:true, ignoreNameSpace:true, attributeWithTagCallbackFunction:attrWithTag}
+        pullParse.parseXml(options);
+        let result = 'column name Giana value integer 1 column name category value Boolean true';
+        expect(str.trim()).assertEqual(result);
+    })
+
+    /**
+     * @tc.number: SUB_COMMONLIBRARY_ETSUTILS_XML_13300
+     * @tc.name: testParseXml023
+     * @tc.desc: Starts parsing the XML file.
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     * @tc.level: Level 1
+     */
+    it('testParseXml023', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, function () {
+        let strXml =
+            '<?xml version="1.0" encoding="utf-8"?>' +
+            '<column name="Giana"><value integer="1"/></column>' +
+            '<column name="category"><value Boolean="true"/></column>';
+        let textEncoder = new util.TextEncoder();
+        let uint8 = textEncoder.encodeInto(strXml);
+        let pullParse = new xml.XmlPullParser(uint8.buffer, 'UTF-8');
+        let str = '';
+        function attrWithTag(tagName, key, value) {
+            str += key + ' ' + value + ' ';
+            return true;
+        }
+        let options = {supportDoctype:true, ignoreNameSpace:true, attributeWithTagCallbackFunction:attrWithTag}
+        pullParse.parseXml(options);
+        let result = 'name Giana integer 1 name category Boolean true';
+        expect(str.trim()).assertEqual(result);
+    })
 })}

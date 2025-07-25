@@ -20,7 +20,6 @@
 #include <unordered_map>
 
 #include <ace/xcomponent/native_interface_xcomponent.h>
-// #include <ace/xcomponent/native_interface.h>
 #include <napi/native_api.h>
 
 const unsigned int LOG_PRINT_DOMAIN = 0xFF00;

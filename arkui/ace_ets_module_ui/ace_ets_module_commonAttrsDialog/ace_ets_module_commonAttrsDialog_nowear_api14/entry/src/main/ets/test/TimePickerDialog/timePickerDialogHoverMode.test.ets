@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {UiComponent, Driver, Component, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/common/Common';
@@ -53,7 +53,7 @@ export default function timePickerDialogHoverMode(){
     * @tc.type
     * @tc.size
     */
-    it('timePickerDialogHoverMode_0100', 0, async (done:Function) =>{
+    it('timePickerDialogHoverMode_0100', Level.LEVEL0, async (done:Function) =>{
       console.info('timePickerDialogHoverMode_0100 START');
       if(display.isFoldable() && display.getFoldStatus()==3){
         let driver = await Driver.create()
@@ -70,7 +70,7 @@ export default function timePickerDialogHoverMode(){
         let btn4 = await driver.findComponent(ON.text('确定'))
         let rect = await btn4.getBounds()
         console.info(`rect is: ` + JSON.stringify(rect))
-        expect(rect.top - height.y < 0 ).assertTrue();
+        expect(rect.top - height.y > 0 ).assertTrue();
         await CommonFunc.sleep(1000);
         await btn4.click()
         await CommonFunc.sleep(1000);
@@ -86,7 +86,7 @@ export default function timePickerDialogHoverMode(){
     * @tc.type
     * @tc.size
     */
-    it('timePickerDialogHoverMode_0200', 0, async (done:Function) =>{
+    it('timePickerDialogHoverMode_0200', Level.LEVEL0, async (done:Function) =>{
       console.info('timePickerDialogHoverMode_0200 START');
       if(display.isFoldable() && display.getFoldStatus()==3){
         let driver = await Driver.create()

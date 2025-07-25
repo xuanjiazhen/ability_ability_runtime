@@ -50,7 +50,6 @@ struct savebutton_customize {
   @State customText: string = '自定义保存'
   @State icRadius: number = 0
   @State buEnabled: boolean = true
-  @State topPosition: SaveButtonTipPosition = SaveButtonTipPosition.ABOVE_BOTTOM
 
   private stateChangeCallBack = (eventData:events_emitter.EventData) => {
     if (eventData != null && eventData.data != undefined) {
@@ -151,9 +150,6 @@ struct savebutton_customize {
       if (eventData.data.cuEnable != null) {
         this.buEnabled = eventData.data.cuEnable;
       }
-      if (eventData.data.cuPosition != null) {
-        this.topPosition = eventData.data.cuPosition;
-      }
     }
   }
 
@@ -215,7 +211,6 @@ struct savebutton_customize {
             .setText(this.customText)
             .iconBorderRadius(this.icRadius)
             .stateEffect(this.buEnabled)
-            .tipPosition(this.topPosition)
             .id('keySave')
         }.width(100)
       }.width('100%').alignItems(HorizontalAlign.Center)

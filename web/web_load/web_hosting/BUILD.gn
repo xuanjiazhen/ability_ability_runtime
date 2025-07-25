@@ -17,6 +17,7 @@ group("ActsWebHostingTest") {
     deps = [
       "web_hosting_cloudservice_webController_one:ActsWebHostingCloudServiceWebControllerOneTest",
       "web_hosting_cloudservice_webController_two:ActsWebHostingCloudServiceWebControllerTwoTest",
+      "web_hosting_napis_enhance_eight:ActsWebHostingNapisEnhanceEightTest",
       "web_hosting_napis_enhance_five:ActsWebHostingNapisEnhanceFiveTest",
       "web_hosting_napis_enhance_four:ActsWebHostingNapisEnhanceFourTest",
       "web_hosting_napis_enhance_one:ActsWebHostingNapisEnhanceOneTest",

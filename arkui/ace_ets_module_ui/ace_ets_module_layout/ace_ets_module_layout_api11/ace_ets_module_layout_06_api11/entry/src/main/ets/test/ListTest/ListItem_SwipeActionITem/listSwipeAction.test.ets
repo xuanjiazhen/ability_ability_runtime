@@ -16,7 +16,7 @@
 
 import router from '@ohos.router';
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from "@ohos/hypium";
 import { Driver, ON, On } from '@ohos.UiTest';
 import CommonFunc, { RectValue } from '../../../MainAbility/common/Common';
 
@@ -58,7 +58,7 @@ export default function listSwipeActionJsunit() {
      * @tc.name   : when swipe,then return the init position
      * @tc.desc   : test the onStateChange function parameter state
      */
-    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0010', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0010',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0010 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
@@ -95,7 +95,7 @@ export default function listSwipeActionJsunit() {
      * @tc.name   : when swipe,then return the init position
      * @tc.desc   : test the onStateChange function parameter state
     */
-    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0020', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0020',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0020 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
@@ -114,7 +114,7 @@ export default function listSwipeActionJsunit() {
       console.info("SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0020 value is" + left + " --" + right + "--" + top + "--" + bottom);
       // swipe the listItem
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(20)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(50)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(4000);
       // judge the swipeActionState
@@ -132,7 +132,7 @@ export default function listSwipeActionJsunit() {
     * @tc.name   : when swipe,then return the init position
     * @tc.desc   : test the onStateChange function parameter state
     */
-    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0030', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0030',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0030 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
@@ -151,7 +151,7 @@ export default function listSwipeActionJsunit() {
       console.info("SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0030 value is" + left + " --" + right + "--" + top + "--" + bottom);
       // swipe the listItem
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(10)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(230)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(50)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(230)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(4000);
       // judge the swipeActionState

@@ -114,3 +114,4 @@ export const ffrt_attr_stack_size_0001: () => number;
 export const ffrt_task_handle_ref_0001: () => number;
 export const ffrtThisTaskGetId: () => number;
 export const ffrtThisTaskUpdateQos: () => number;
+export const ffrt_fiber_001: () => number;

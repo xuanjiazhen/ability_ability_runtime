@@ -44,14 +44,17 @@ static void BasicSet()
     ArkUI_NumberValue height_value[] = {{.f32 = SIZE_300}};
     ArkUI_NumberValue offset_value[] = {{.f32 = SIZE_140}};
     ArkUI_NumberValue pull_value[] = {{.i32 = true}};
+    ArkUI_NumberValue ratio_value[] = {{.f32 = PARAM_1}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     ArkUI_AttributeItem height_item = {height_value, sizeof(height_value) / sizeof(ArkUI_NumberValue)};
     ArkUI_AttributeItem offset_item = {offset_value, sizeof(offset_value) / sizeof(ArkUI_NumberValue)};
     ArkUI_AttributeItem pull_item = {pull_value, sizeof(pull_value) / sizeof(ArkUI_NumberValue)};
+    ArkUI_AttributeItem ratio_item = {ratio_value, sizeof(ratio_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI1->setAttribute(refresh1, NODE_WIDTH, &width_item);
     nodeAPI1->setAttribute(refresh1, NODE_HEIGHT, &height_item);
     nodeAPI1->setAttribute(refresh1, NODE_REFRESH_OFFSET, &offset_item);
     nodeAPI1->setAttribute(refresh1, NODE_REFRESH_PULL_TO_REFRESH, &pull_item);
+    nodeAPI1->setAttribute(refresh1, NODE_REFRESH_PULL_DOWN_RATIO, &ratio_item);
     ArkUI_NumberValue background_color_value[] = { { .u32 = COLOR_BLUE } };
     ArkUI_AttributeItem background_color_item = { background_color_value,
         sizeof(background_color_value) / sizeof(ArkUI_NumberValue) };

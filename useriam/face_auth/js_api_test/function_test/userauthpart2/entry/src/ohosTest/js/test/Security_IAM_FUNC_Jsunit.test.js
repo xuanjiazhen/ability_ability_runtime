@@ -600,6 +600,7 @@ export default function userauthTest() {
             expect(12500005).assertEqual(userAuthNorth.UserAuthResultCode.TYPE_NOT_SUPPORT);
             expect(12500006).assertEqual(userAuthNorth.UserAuthResultCode.TRUST_LEVEL_NOT_SUPPORT);
             expect(12500007).assertEqual(userAuthNorth.UserAuthResultCode.BUSY);
+            expect(12500008).assertEqual(userAuthNorth.UserAuthResultCode.INVALID_PARAMETERS);
             expect(12500009).assertEqual(userAuthNorth.UserAuthResultCode.LOCKED);
             expect(12500010).assertEqual(userAuthNorth.UserAuthResultCode.NOT_ENROLLED);
             expect(12500011).assertEqual(userAuthNorth.UserAuthResultCode.CANCELED_FROM_WIDGET);

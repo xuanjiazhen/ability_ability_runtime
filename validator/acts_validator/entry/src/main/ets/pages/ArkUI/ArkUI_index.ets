@@ -51,6 +51,9 @@ struct IndexPage {
     { title: 'LongPressGesture', uri: 'pages/ArkUI/LongPressGesture' },
     { title: 'TapGesture', uri: 'pages/ArkUI/TapGesture' },
     { title: 'PanGesture', uri: 'pages/ArkUI/PanGesture' },
+    { title: 'DraggingSizeChangeEffect', uri: 'pages/ArkUI/DraggingSizeChangeEffect' },
+    { title: 'KeyEvent', uri: 'pages/ArkUI/KeyEvent' },
+    { title: 'CapiKeyEvent', uri: 'pages/ArkUI/CapiKeyEvent' },
     { title: 'bindSheetTest', uri: 'pages/ArkUI/bindSheetTest' },
     { title: 'CanvasFillStyle', uri: 'pages/ArkUI/CanvasFillStyle' },
     { title: 'CanvasLineWidth', uri: 'pages/ArkUI/CanvasLineWidth' },
@@ -116,7 +119,18 @@ struct IndexPage {
     { title: 'AccessibilityDefaultFocusPage', uri: 'pages/ArkUI/AccessibilityDefaultFocusPage' },
     { title: 'AccessibilityScrollTriggerablePage', uri: 'pages/ArkUI/AccessibilityScrollTriggerablePage' },
     { title: 'OnAccessibilityActionIntercept', uri: 'pages/ArkUI/OnAccessibilityActionIntercept' },
-    
+    { title: 'AccessBilityHoverTransparent', uri: 'pages/ArkUI/AccessBilityHoverTransparent' },
+    { title: 'hoverScaleInterruption', uri: 'pages/ArkUI/hoverScaleInterruption' },
+    { title: 'transform3D', uri: 'pages/ArkUI/transform3D' },
+    { title: 'dragEvent_dataLoad', uri: 'pages/ArkUI/dragEvent_dataLoad' },
+    { title: 'dragAction_dataLoad', uri: 'pages/ArkUI/dragAction_dataLoad' },
+    { title: 'TapGestureListener', uri: 'pages/ArkUI/TapGestureListener' },
+    { title: 'SwipeGestureListener', uri: 'pages/ArkUI/SwipeGestureListener' },
+    { title: 'LongPressGestureListener', uri: 'pages/ArkUI/LongPressGestureListener' },
+    { title: 'PinchGestureListener', uri: 'pages/ArkUI/PinchGestureListener' },
+    { title: 'RotationGestureListener', uri: 'pages/ArkUI/RotationGestureListener' },
+    { title: 'PanGestureListener', uri: 'pages/ArkUI/PanGestureListener' },
+    { title: 'AccessibilityShowStepOptions', uri: 'pages/ArkUI/AccessibilityShowStepOptions' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];

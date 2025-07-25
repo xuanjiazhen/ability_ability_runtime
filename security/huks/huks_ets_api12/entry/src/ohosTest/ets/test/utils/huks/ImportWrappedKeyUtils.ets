@@ -1,7 +1,7 @@
 import { huks } from '@kit.UniversalKeystoreKit';
 import { CipherData, DoCipher, GetGcmNoPaddingOptions } from './CipherUtils';
 import { GetAesGenerateOptions, GetEccGenerateOptions } from './GenerateKeyUtils';
-import { GetAesImportData } from './ImportUtils';
+import { GetAesImportData } from './ImportKeyUtils';
 import { StringToUint8Array } from '../CommonUtils';
 import { MergeOptions, SetParam } from './HuksOptionsUtils';
 

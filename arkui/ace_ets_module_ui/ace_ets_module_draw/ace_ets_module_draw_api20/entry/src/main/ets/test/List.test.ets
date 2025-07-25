@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import RoundRectTest from './CanvasRenderingContext2D/RoundRectTest.test';
+import CanvasGradientTest from './CanvasRenderingContext2D/CanvasGradientTest.test';
 
 import StartImageAnalyzerErrorCodeTest from './CanvasRenderingContext2D/StartImageAnalyzerErrorCodeTest';
 import CircleResourceTest from './Circle/CircleResourceTest';
@@ -26,6 +27,7 @@ import ShapeResourceTest from './Shape/ShapeResourceTest';
 
 export default function testsuite() {
   RoundRectTest(); 
+  CanvasGradientTest();
 
   StartImageAnalyzerErrorCodeTest();
   CircleResourceTest();

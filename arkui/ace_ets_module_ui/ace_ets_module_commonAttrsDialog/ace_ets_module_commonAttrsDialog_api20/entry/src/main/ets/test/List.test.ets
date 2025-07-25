@@ -14,7 +14,11 @@
  */
 
 import BindPopupTest from './BindPopupTest/bindpopup.test';
+import ContextMenuLife from './BindContextMenuTest/contextMenuLife.test';
+import ShowActionMenuLife from './PromptActionTest/showActionMenuLife.test';
 
 export default function testsuite() {
   BindPopupTest();
+  ContextMenuLife();
+  ShowActionMenuLife();
 }

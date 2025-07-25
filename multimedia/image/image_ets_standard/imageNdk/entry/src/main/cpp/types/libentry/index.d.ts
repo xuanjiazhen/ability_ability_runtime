@@ -64,6 +64,7 @@ export const ReleaseDecodingOptions: (options: image.DecodingOptions) => Number;
 export const CreateFromUri: (uri: string) => image.ImageSource;
 export const CreateFromFd: (fd: number) => image.ImageSource;
 export const CreateFromData: (buf: ArrayBufferLike) => image.ImageSource;
+export const CreateFromDataWithUserBuffer: (buf: ArrayBufferLike) => image.ImageSource;
 export const CreateFromRawFile: (fd: number, offset: number, length: number) => image.ImageSource;
 export const CreatePixelMap: (source: image.ImageSource, options?: image.DecodingOptions) => image.PixelMap | number;
 export const CreatePixelMapList: (source: image.ImageSource, options: image.DecodingOptions) => Array<image.PixelMap> |
@@ -79,7 +80,7 @@ export const PixelMapRelease: (source: image.PixelMap) => Number;
 export const CreatePackingOptions: () => image.PackingOption;
 export const PackingOptionsGetMimeType: (packing:image.PackingOption) => String;
 export const PackingOptionsSetMimeType: (packing:image.PackingOption, mimeType:String) => number;
-export const PackingOptionsGetQuality: (packing:image.PackingOption) => String;
+export const PackingOptionsGetQuality: (packing:image.PackingOption) => number;
 export const PackingOptionsSetQuality: (packing:image.PackingOption, mimeType:number) => number;
 export const ReleasePackingOptions: (packing:image.PackingOption) => number;
 export const PackerCreate: () => image.ImagePacker;
@@ -106,7 +107,14 @@ export const AssertImageSize: (width:number, height:number) => number;
 export const GetPropertyWithNull: () => number;
 export const GetMimeTypeWithNull: () => number;
 export const GetImagePropertyWithNull: (fd:number) => number;
+export const testCropAndScaleStrategy: (fd:number, desiredWidth:number, desiredHeight:number, regionX:number, regionY:number, regionWidth:number,
+                                        regionHight:number, cropAndScaleStrategy:number, imageWidth:number, imageHeight:number) => number;
+export const testCropAndScaleStrategyWithCropRegion: (fd:number, regionX:number, regionY:number, regionWidth:number, regionHight:number,
+                                                      cropAndScaleStrategy:number, imageWidth:number, imageHeight:number) => number;
+export const testCropAndScaleStrategyErr: (fd:number, desiredWidth:number, desiredHeight:number, regionX:number, regionY:number, 
+                                           regionWidth:number, regionHight:number, cropAndScaleStrategy:number) => number;
 export const GetImagePackerSupportedFormats: () => Array<string>;
 export const GetImageSourceSupportedFormats: () => Array<string>;
 export const GetImagePackerSupportedFormatsError: (flag: boolean) => number;
 export const GetImageSourceSupportedFormatsError: (flag: boolean) => number;
+export const NewGetImagePropertyWithNull: (source: image.ImageSource, key:String) => String | number;

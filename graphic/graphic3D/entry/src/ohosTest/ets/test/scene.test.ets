@@ -846,5 +846,52 @@ export default function sceneTest() {
           done();
         }
       })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_GRAPHIC3D_JS_API_0900
+     * @tc.name      : testRenderContext_registerResourcePath
+     * @tc.desc      : Verify registerResourcePath() returns a valid boolean indicates whether the registration was successful
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 3
+     */
+    it('testRenderContext_registerResourcePath', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async  (done:Function)=> {
+        let msg = "============================testregisterResourcePath";
+        console.info(msg + ' begin ');
+        try {
+          scene = await Scene.load($rawfile("gltf/CubeWithFloor/glTF/AnimatedCube.glb"));
+          console.info(msg + " scene loaded:", scene != null);
+          expect(scene != null).assertTrue();
+
+          let renderContext: scene3d.RenderContext | null = Scene.getDefaultRenderContext();
+          console.info(msg + " default renderContext:", renderContext);
+          expect(renderContext != null).assertTrue();
+
+          if (renderContext != null) {
+            let registerFail = renderContext.registerResourcePath("shaders", "OhosRawFile://shaders/custom_shader");
+            console.info(msg + ' protocol "shaders" registration result:', registerFail);
+            expect(registerFail).assertFalse();
+
+            let registerEmpty = renderContext.registerResourcePath("", "OhosRawFile://shaders/custom_shader");
+            console.info(msg + ' protocol "" registration result:', registerEmpty);
+            expect(registerEmpty).assertFalse();
+
+            let registerSuss = renderContext.registerResourcePath("shaders_test", "OhosRawFile://shaders/custom_shader");
+            console.info(msg + ' protocol "shaders_test" registration result:', registerSuss);
+            expect(registerSuss).assertTrue();
+
+            rf = scene.getResourceFactory();
+            let shader = rf.createShader({name: "CustomShader", uri: $rawfile('shaders/custom_shader/custom_material_sample_test.shader')});
+            expect(shader != null).assertTrue();
+          }
+          console.info(msg + " test completed successfully");
+          done();
+        } catch (err) {
+          console.info(msg + " Failed in testRenderContext_registerResourcePath " + JSON.stringify(err));
+          expect().assertFail();
+          done();
+        }
+      })
   })
 }

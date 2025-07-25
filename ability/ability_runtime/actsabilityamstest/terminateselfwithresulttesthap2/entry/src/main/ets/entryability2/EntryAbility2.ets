@@ -30,7 +30,7 @@ export default class EntryAbility2 extends UIAbility {
     param.setTextNme(want.action);
   }
 
-  onDestroy(): void {
+  async onDestroy(): Promise<void> {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
     let onBackground = AppStorage.get<boolean>('onBackground');
     let onWindowStageDestroy = AppStorage.get<boolean>('onWindowStageDestroy');
@@ -39,6 +39,7 @@ export default class EntryAbility2 extends UIAbility {
     let onForeground = AppStorage.get<boolean>('onForeground');
     let onDestroy = true;
     let events = param.getTextNme();
+
     if (events) {
       let commonEventData: commonEventManger.CommonEventPublishData = {
         parameters: {
@@ -56,6 +57,7 @@ export default class EntryAbility2 extends UIAbility {
         hilog.info(0x0000, 'testTag', `onConnect, 50 == ${JSON.stringify(result)}`);
       });
     }
+    await this.sleep(1000);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
@@ -105,5 +107,11 @@ export default class EntryAbility2 extends UIAbility {
     // Ability has back to background
     AppStorage.SetOrCreate<boolean>('onBackground', true);
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onBackground');
+  }
+
+  sleep(ms: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, ms)
+    });
   }
 }

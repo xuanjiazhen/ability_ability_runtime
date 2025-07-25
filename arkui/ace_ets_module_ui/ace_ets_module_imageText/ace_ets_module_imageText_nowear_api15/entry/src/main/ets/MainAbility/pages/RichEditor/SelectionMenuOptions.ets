@@ -55,7 +55,7 @@ struct SelectionMenuOptionsDemo {
           }
         })
         .copyOptions(CopyOptions.InApp)
-        .height('10%').width('100%')
+        .width('100%')
 
       RichEditor(this.optionsR2)
         .id('image')
@@ -92,7 +92,7 @@ struct SelectionMenuOptionsDemo {
           }
         })
         .copyOptions(CopyOptions.InApp)
-        .height('10%').width('90vp')
+        .width('90vp')
 
       RichEditor(this.optionsR3)
         .id('mixed')
@@ -130,7 +130,7 @@ struct SelectionMenuOptionsDemo {
           }
         })
         .copyOptions(CopyOptions.InApp)
-        .height('15%').width('100%')
+        .width('100%')
 
       Row(){
         Text(this.onMenuShow).fontSize(10).textAlign(TextAlign.Center).height('5%').id('onMenuShow').width('45%')

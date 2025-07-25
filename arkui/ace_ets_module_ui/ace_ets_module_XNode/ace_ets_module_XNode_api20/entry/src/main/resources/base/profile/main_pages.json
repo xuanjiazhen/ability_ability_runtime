@@ -1,6 +1,17 @@
 {
-    "src": [
+  "src": [
         "MainAbility/pages/index/index",
-        "MainAbility/pages/Context/IsAvailableTest"
-    ]
+        "MainAbility/pages/Context/IsAvailableTest",
+        "MainAbility/pages/BuilderNode/InheritFreezeOptionsTest",
+        "MainAbility/pages/ComponentContent/ComponentInheritFreezeOptionsTest",
+        "MainAbility/pages/Draw/DrawModifierOneTest",
+        "MainAbility/pages/Draw/DrawModifierTwoTest",
+        "MainAbility/pages/Draw/DrawForegroundTest",
+        "MainAbility/pages/Context/IsDisposedTest",
+        "MainAbility/pages/LocalStorage/BuilderNodeOneTest",
+        "MainAbility/pages/LocalStorage/BuilderNodeTwoTest",
+        "MainAbility/pages/LocalStorage/BuilderNodeThreeTest",
+        "MainAbility/pages/UIAppearance/DarkModeTest",
+        "MainAbility/pages/BuilderNode/EnableProvideConsumeCrossingTest"
+  ]
 }

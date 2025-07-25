@@ -55,14 +55,17 @@ export default function DataObjectPermissionTest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('SUB_DataObject_setSessionId_Callback_PermissionTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, () => {
+    it('SUB_DataObject_setSessionId_Callback_PermissionTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, (done:Function) => {
       console.info(TAG + '************ SUB_DataObject_setSessionId_Callback_PermissionTest_0100 start ************')
       try {
-        g_object.setSessionId(distributedDataObject.genSessionId(), ()=>{});
-        expect().assertFail();
+        g_object.setSessionId(distributedDataObject.genSessionId(), ()=>{
+          expect().assertFail();
+          done();
+        });
       } catch (err) {
         console.error(TAG + 'Failed to setSession. Code: ' + err.code + ',message: ' + err.message)
         expect(err.code).assertEqual('201')
+        done();
       }
       console.info(TAG + '************ SUB_DataObject_setSessionId_Callback_PermissionTest_0100 end ************')
     })
@@ -75,10 +78,10 @@ export default function DataObjectPermissionTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('SUB_DataObject_setSessionId_Promise_PermissionTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, () => {
+    it('SUB_DataObject_setSessionId_Promise_PermissionTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
       console.info(TAG + '************ SUB_DataObject_setSessionId_Promise_PermissionTest_0100 start ************')
       try {
-        g_object.setSessionId(distributedDataObject.genSessionId());
+        await g_object.setSessionId(distributedDataObject.genSessionId());
         expect().assertFail();
       } catch (err) {
         console.error(TAG + 'Failed to setSession. Code: ' + err.code + ',message: ' + err.message)

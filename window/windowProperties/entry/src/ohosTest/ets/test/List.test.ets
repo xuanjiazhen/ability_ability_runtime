@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 import windowPropertiesTest from './WindowProperties.test';
+import windowPropertiesTest2 from './WindowProperties2.test';
 
 
 export default function testsuite() {
   windowPropertiesTest();
+  windowPropertiesTest2();
 }

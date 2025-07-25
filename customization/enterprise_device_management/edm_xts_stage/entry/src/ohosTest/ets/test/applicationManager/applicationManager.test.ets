@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it, Level } from '@ohos/hypium';
+import { describe, beforeAll, expect, it, Level } from '@ohos/hypium';
 import {
   ENTINFO1,
   SELFWANT,
@@ -26,7 +26,10 @@ import {
   TEST_BUNDLENAME,
   INVALID_BUNDLE_NAME,
   DEFAULT_APP_INDEX,
-  INVALID_APP_INDEX
+  INVALID_APP_INDEX,
+  bundleNamesInit,
+  BUNDLE_NAME_200,
+  BUNDLE_NAME_201
 } from '../commom.ets';
 
 import adminManager from '@ohos.enterprise.adminManager';
@@ -36,6 +39,11 @@ import sysDeviceInfo from '@ohos.deviceInfo';
 
 export default function applicationManagerTest() {
   describe('applicationManager_test', () => {
+    beforeAll((done: Function) => {
+      bundleNamesInit();
+      done();
+    })
+
     /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDDISALLOWEDRUNNINGBUNDLESSYNC_001
      * @tc.name      : test_addDisallowedRunningBundlesSync_001
@@ -702,6 +710,315 @@ export default function applicationManagerTest() {
       done();
     })
 
+     /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDAUTOSTARTAPPS_DIS_001
+     * @tc.name      : test_addAutoStartAppsByDis_001
+     * @tc.desc      : test addAutoStartAppsByDis method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addAutoStartAppsByDis_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [SELFWANT];
+        applicationManager.addAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID, true);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDAUTOSTARTAPPS_DIS_002
+     * @tc.name      : test_addAutoStartAppsByDis_002
+     * @tc.desc      : test addAutoStartAppsByDis method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addAutoStartAppsByDis_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [SELFWANT];
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        applicationManager.addAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID, true);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDAUTOSTARTAPPS_DIS_003
+     * @tc.name      : test_addAutoStartAppsByDis_003
+     * @tc.desc      : test addAutoStartAppsByDis method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addAutoStartAppsByDis_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.addAutoStartApps(SELFWANT, null, DEFAULT_USER_ID, true);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDAUTOSTARTAPPS_DIS_004
+     * @tc.name      : test_addAutoStartAppsByDis_004
+     * @tc.desc      : test addAutoStartAppsByDis method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addAutoStartAppsByDis_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [AUTOSTARTAPP1, AUTOSTARTAPP2];
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.addAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID, true);
+      } catch (error) {
+        expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVEAUTOSTARTAPPS_USERID_001
+     * @tc.name      : test_removeAutoStartAppsByUserId_001
+     * @tc.desc      : test removeAutoStartAppsByUserId method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_removeAutoStartAppsByUserId_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [SELFWANT];
+        applicationManager.removeAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVEAUTOSTARTAPPS_USERID_002
+     * @tc.name      : test_removeAutoStartAppsByUserId_002
+     * @tc.desc      : test removeAutoStartAppsByUserId method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_removeAutoStartAppsByUserId_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [SELFWANT];
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        applicationManager.removeAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVEAUTOSTARTAPPS_USERID_003
+     * @tc.name      : test_removeAutoStartAppsByUserId_003
+     * @tc.desc      : test removeAutoStartAppsByUserId method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_removeAutoStartAppsByUserId_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.removeAutoStartApps(SELFWANT, null, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVEAUTOSTARTAPPS_USERID_004
+     * @tc.name      : test_removeAutoStartAppsByUserId_004
+     * @tc.desc      : test removeAutoStartAppsByUserId method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_removeAutoStartAppsByUserId_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        let autoStartApps: Array<Want> = [AUTOSTARTAPP1, AUTOSTARTAPP2];
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.removeAutoStartApps(SELFWANT, autoStartApps, DEFAULT_USER_ID);
+      } catch (error) {
+        expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETAUTOSTARTAPPS_USERID_001
+     * @tc.name      : test_getAutoStartAppsByUserId_001
+     * @tc.desc      : test getAutoStartAppsByUserId method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAutoStartAppsByUserId_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        applicationManager.getAutoStartApps(SELFWANT, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETAUTOSTARTAPPS_USERID_002
+     * @tc.name      : test_getAutoStartAppsByUserId_002
+     * @tc.desc      : test getAutoStartAppsByUserId method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAutoStartAppsByUserId_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        applicationManager.getAutoStartApps(SELFWANT, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETAUTOSTARTAPPS_USERID_003
+     * @tc.name      : test_getAutoStartAppsByUserId_003
+     * @tc.desc      : test getAutoStartAppsByUserId method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAutoStartAppsByUserId_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.getAutoStartApps(null, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETAUTOSTARTAPPS_USERID_004
+     * @tc.name      : test_getAutoStartAppsByUserId_004
+     * @tc.desc      : test getAutoStartAppsByUserId method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAutoStartAppsByUserId_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.getAutoStartApps(SELFWANT, DEFAULT_USER_ID);
+      } catch (error) {
+        expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYAUTOSTARTAPP_001
+     * @tc.name      : test_isModifyAutoStartAppsDisallowed_001
+     * @tc.desc      : test isModifyAutoStartAppsDisallowed method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyAutoStartAppsDisallowed_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let disallowModifty: boolean = true;
+        disallowModifty = applicationManager.isModifyAutoStartAppsDisallowed(SELFWANT, AUTOSTARTAPP1, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYAUTOSTARTAPP_002
+     * @tc.name      : test_isModifyAutoStartAppsDisallowed_002
+     * @tc.desc      : test isModifyAutoStartAppsDisallowed method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyAutoStartAppsDisallowed_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        disallowModifty = applicationManager.isModifyAutoStartAppsDisallowed(SELFWANT, AUTOSTARTAPP1, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYAUTOSTARTAPP_003
+     * @tc.name      : test_isModifyAutoStartAppsDisallowed_003
+     * @tc.desc      : test isModifyAutoStartAppsDisallowed method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyAutoStartAppsDisallowed_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        disallowModifty = applicationManager.isModifyAutoStartAppsDisallowed(null, AUTOSTARTAPP1, DEFAULT_USER_ID);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
     /**
      * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_001
      * @tc.name      : test_addKeepAliveApps_001
@@ -941,16 +1258,17 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_001
-     * @tc.name      : test_clearUpApplicationData_001
-     * @tc.desc      : test clearUpApplicationData method without admin
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_SETALLOWEDKIOSKAPPS_001
+     * @tc.name      : test_setAllowedKioskApps_001
+     * @tc.desc      : test setAllowedKioskApps method with unActive admin
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_001", Level.LEVEL2, async (done: Function) => {
+    it("test_setAllowedKioskApps_001", Level.LEVEL2, async (done: Function) => {
       try {
-        applicationManager.clearUpApplicationData(SELFWANT, TEST_BUNDLENAME, DEFAULT_APP_INDEX, DEFAULT_USER_ID);
+        let bundleNames: Array<string> = [];
+        applicationManager.setAllowedKioskApps(SELFWANT, bundleNames);
         expect(false).assertTrue();
       } catch (error) {
         expect(error.code == 9200001).assertTrue();
@@ -959,17 +1277,18 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_002
-     * @tc.name      : test_clearUpApplicationData_002
-     * @tc.desc      : test clearUpApplicationData method with normal admin
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_SETALLOWEDKIOSKAPPS_002
+     * @tc.name      : test_setAllowedKioskApps_002
+     * @tc.desc      : test setAllowedKioskApps method with normal admin
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_002", Level.LEVEL2, async (done: Function) => {
+    it("test_setAllowedKioskApps_002", Level.LEVEL2, async (done: Function) => {
       try {
+        let bundleNames: Array<string> = [];
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-        applicationManager.clearUpApplicationData(SELFWANT, TEST_BUNDLENAME, DEFAULT_APP_INDEX, DEFAULT_USER_ID);
+        applicationManager.setAllowedKioskApps(SELFWANT, bundleNames);
         expect(false).assertTrue();
       } catch (error) {
         expect(error.code == 9200002).assertTrue();
@@ -980,20 +1299,21 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_003
-     * @tc.name      : test_clearUpApplicationData_003
-     * @tc.desc      : test clearUpApplicationData method with invalid bundle name
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_SETALLOWEDKIOSKAPPS_003
+     * @tc.name      : test_setAllowedKioskApps_003
+     * @tc.desc      : test setAllowedKioskApps method with null admin
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_003", Level.LEVEL2, async (done: Function) => {
+    it("test_setAllowedKioskApps_003", Level.LEVEL2, async (done: Function) => {
       try {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        applicationManager.clearUpApplicationData(SELFWANT, INVALID_BUNDLE_NAME, DEFAULT_APP_INDEX, DEFAULT_USER_ID);
+        let bundleName: Array<string> = [];
+        applicationManager.setAllowedKioskApps(null, bundleName);
         expect(false).assertTrue();
       } catch (error) {
-         expect(error.code == 401).assertTrue();
+        expect(error.code == 401).assertTrue();
       } finally {
         await adminManager.disableSuperAdmin(SELFHAPNAME);
       }
@@ -1001,20 +1321,20 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_004
-     * @tc.name      : test_clearUpApplicationData_004
-     * @tc.desc      : test clearUpApplicationData method with invalid app index
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_SETALLOWEDKIOSKAPPS_004
+     * @tc.name      : test_setAllowedKioskApps_004
+     * @tc.desc      : test setAllowedKioskApps method with bundleName too large
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_004", Level.LEVEL2, async (done: Function) => {
+    it("test_setAllowedKioskApps_004", Level.LEVEL2, async (done: Function) => {
       try {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        applicationManager.clearUpApplicationData(SELFWANT, SELFHAPNAME, INVALID_APP_INDEX, DEFAULT_USER_ID);
+        applicationManager.setAllowedKioskApps(SELFWANT, BUNDLE_NAME_201);
         expect(false).assertTrue();
       } catch (error) {
-         expect(error.code == 401).assertTrue();
+        expect(error.code == 401).assertTrue();
       } finally {
         await adminManager.disableSuperAdmin(SELFHAPNAME);
       }
@@ -1022,20 +1342,19 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_005
-     * @tc.name      : test_clearUpApplicationData_005
-     * @tc.desc      : test clearUpApplicationData method with invalid user id
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_SETALLOWEDKIOSKAPPS_005
+     * @tc.name      : test_setAllowedKioskApps_005
+     * @tc.desc      : test setAllowedKioskApps method success
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_005", Level.LEVEL2, async (done: Function) => {
+    it("test_setAllowedKioskApps_005", Level.LEVEL2, async (done: Function) => {
       try {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        applicationManager.clearUpApplicationData(SELFWANT, SELFHAPNAME, DEFAULT_APP_INDEX, INVALID_USER_ID);
-        expect(false).assertTrue();
+        applicationManager.setAllowedKioskApps(SELFWANT, BUNDLE_NAME_200);
       } catch (error) {
-         expect(error.code == 401).assertTrue();
+        expect(error.code == 9200007).assertTrue();
       } finally {
         await adminManager.disableSuperAdmin(SELFHAPNAME);
       }
@@ -1043,19 +1362,396 @@ export default function applicationManagerTest() {
     })
 
     /**
-     * @tc.number    : SUB_CUSTOMIZATION_EDM_CLEARUPAPPLICATIONDATA_006
-     * @tc.name      : test_clearUpApplicationData_006
-     * @tc.desc      : test clearUpApplicationData method success
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETALLOWEDKIOSKAPPS_001
+     * @tc.name      : test_getAllowedKioskApps_001
+     * @tc.desc      : test getAllowedKioskApps method with unActive admin
      * @tc.level     : Level 2
      * @tc.type      : Function
      * @tc.size      : MediumTest
      */
-    it("test_clearUpApplicationData_006", Level.LEVEL2, async (done: Function) => {
+    it("test_getAllowedKioskApps_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let bundleNames: Array<string> = applicationManager.getAllowedKioskApps(SELFWANT);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETALLOWEDKIOSKAPPS_002
+     * @tc.name      : test_getAllowedKioskApps_002
+     * @tc.desc      : test getAllowedKioskApps method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAllowedKioskApps_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        let bundleNames: Array<string> = applicationManager.getAllowedKioskApps(SELFWANT);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETALLOWEDKIOSKAPPS_003
+     * @tc.name      : test_getAllowedKioskApps_003
+     * @tc.desc      : test getAllowedKioskApps method with null admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAllowedKioskApps_003", Level.LEVEL2, async (done: Function) => {
       try {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        applicationManager.clearUpApplicationData(SELFWANT, SELFHAPNAME, DEFAULT_APP_INDEX, DEFAULT_USER_ID);
+        let bundleNames: Array<string> = applicationManager.getAllowedKioskApps(null);
+        expect(false).assertTrue();
       } catch (error) {
-         expect(false).assertTrue();
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_GETALLOWEDKIOSKAPPS_004
+     * @tc.name      : test_getAllowedKioskApps_004
+     * @tc.desc      : test getAllowedKioskApps method
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_getAllowedKioskApps_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        let bundleNames: Array<string> = applicationManager.getAllowedKioskApps(SELFWANT);
+        expect(bundleNames.length == 0).assertTrue();
+      } catch (error) {
+        expect(false).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISAPPKIOSKALLOWED_001
+     * @tc.name      : test_isAppKioskAllowed_001
+     * @tc.desc      : test isAppKioskAllowed method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isAppKioskAllowed_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let isAllowed = applicationManager.isAppKioskAllowed(SELFHAPNAME);
+        expect(isAllowed).assertFalse();
+      } catch (error) {
+        expect(false).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISAPPKIOSKALLOWED_002
+     * @tc.name      : test_isAppKioskAllowed_002
+     * @tc.desc      : test isAppKioskAllowed method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isAppKioskAllowed_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        let bundleName: Array<string> = [`${TEST_BUNDLENAME}`];
+        applicationManager.setAllowedKioskApps(SELFWANT, bundleName);
+        let isAllowed = applicationManager.isAppKioskAllowed(TEST_BUNDLENAME);
+        expect(isAllowed).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200007).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_setKioskFeatures_001
+     * @tc.name      : test_setKioskFeatures_001
+     * @tc.desc      : test setKioskFeatures method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_setKioskFeatures_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let kioskFeatures: Array<applicationManager.KioskFeature> = [];
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_NOTIFICATION_CENTER);
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_CONTROL_CENTER);
+        applicationManager.setKioskFeatures(SELFWANT, kioskFeatures);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_setKioskFeatures_002
+     * @tc.name      : test_setKioskFeatures_002
+     * @tc.desc      : test setKioskFeatures method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_setKioskFeatures_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let kioskFeatures: Array<applicationManager.KioskFeature> = [];
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_NOTIFICATION_CENTER);
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_CONTROL_CENTER);
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        applicationManager.setKioskFeatures(SELFWANT, kioskFeatures);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_setKioskFeatures_003
+     * @tc.name      : test_setKioskFeatures_003
+     * @tc.desc      : test setKioskFeatures method with null admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_setKioskFeatures_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        let kioskFeatures: Array<applicationManager.KioskFeature> = [];
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_NOTIFICATION_CENTER);
+        kioskFeatures.push(applicationManager.KioskFeature.ALLOW_CONTROL_CENTER);
+        applicationManager.setKioskFeatures(null, kioskFeatures);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_setKioskFeatures_004
+     * @tc.name      : test_setKioskFeatures_004
+     * @tc.desc      : test setKioskFeatures method with invalid number
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_setKioskFeatures_004", Level.LEVEL2, async (done: Function) => {
+      try {
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        let kioskFeatures: Array<applicationManager.KioskFeature> = [];
+        kioskFeatures.push(INVALID_USER_ID);
+        applicationManager.setKioskFeatures(SELFWANT, kioskFeatures);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200012).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_001
+     * @tc.name      : test_addKeepAliveAppsWithDisallowModify_001
+     * @tc.desc      : test AddKeepAliveAppsWithDisallowModify method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addKeepAliveAppsWithDisallowModify_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApps: Array<string> = [TEST_BUNDLENAME];
+        let disallowModifty: boolean = true;
+        applicationManager.addKeepAliveApps(SELFWANT, keepAliveApps, DEFAULT_USER_ID, disallowModifty);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_002
+     * @tc.name      : test_addKeepAliveAppsWithDisallowModify_002
+     * @tc.desc      : test addKeepAliveAppsWithDisallowModify method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addKeepAliveAppsWithDisallowModify_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApps: Array<string> = [TEST_BUNDLENAME];
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        applicationManager.addKeepAliveApps(SELFWANT, keepAliveApps, DEFAULT_USER_ID, disallowModifty);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_003
+     * @tc.name      : test_addKeepAliveAppsWithDisallowModify_003
+     * @tc.desc      : test addKeepAliveAppsWithDisallowModify method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addKeepAliveAppsWithDisallowModify_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApps: Array<string> = [TEST_BUNDLENAME];
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.addKeepAliveApps(SELFWANT, keepAliveApps, INVALID_USER_ID, disallowModifty);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_004
+     * @tc.name      : test_addKeepAliveAppsWithDisallowModify_004
+     * @tc.desc      : test addKeepAliveAppsWithDisallowModify method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addKeepAliveAppsWithDisallowModify_004", Level.LEVEL2, async (done: Function) => {
+      if (sysDeviceInfo.deviceType != '2in1') {
+        done();
+        return;
+      }
+      try {
+        let keepAliveApps: Array<string> = [TEST_BUNDLENAME];
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.addKeepAliveApps(SELFWANT, keepAliveApps, DEFAULT_USER_ID, disallowModifty);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9201005).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ADDKEEPALIVEAPPS_WITHDISALLOWMODIFY_005
+     * @tc.name      : test_addKeepAliveAppsWithDisallowModify_005
+     * @tc.desc      : test addKeepAliveAppsWithDisallowModify method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_addKeepAliveAppsWithDisallowModify_005", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApps: Array<string> = [TEST_BUNDLENAME];
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        applicationManager.addDisallowedRunningBundlesSync(SELFWANT, keepAliveApps, DEFAULT_USER_ID);
+        applicationManager.addKeepAliveApps(SELFWANT, keepAliveApps, DEFAULT_USER_ID, disallowModifty);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200010).assertTrue();
+      } finally {
+        await adminManager.disableSuperAdmin(SELFHAPNAME);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYKEEPALIVEAPP_001
+     * @tc.name      : test_isModifyKeepAliveAppsDisallowed_001
+     * @tc.desc      : test isModifyKeepAliveAppsDisallowed method with unActive admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyKeepAliveAppsDisallowed_001", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApp: string = TEST_BUNDLENAME;
+        let disallowModifty: boolean = true;
+        disallowModifty = applicationManager.isModifyKeepAliveAppsDisallowed(SELFWANT, DEFAULT_USER_ID, keepAliveApp);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200001).assertTrue();
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYKEEPALIVEAPP_002
+     * @tc.name      : test_isModifyKeepAliveAppsDisallowed_002
+     * @tc.desc      : test isModifyKeepAliveAppsDisallowed method with normal admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyKeepAliveAppsDisallowed_002", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApp: string = TEST_BUNDLENAME;
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+        disallowModifty = applicationManager.isModifyKeepAliveAppsDisallowed(SELFWANT, DEFAULT_USER_ID, keepAliveApp);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 9200002).assertTrue();
+      } finally {
+        await adminManager.disableAdmin(SELFWANT);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number    : SUB_CUSTOMIZATION_EDM_ISMODITYKEEPALIVEAPP_003
+     * @tc.name      : test_isModifyKeepAliveAppsDisallowed_003
+     * @tc.desc      : test isModifyKeepAliveAppsDisallowed method with super admin
+     * @tc.level     : Level 2
+     * @tc.type      : Function
+     * @tc.size      : MediumTest
+     */
+    it("test_isModifyKeepAliveAppsDisallowed_003", Level.LEVEL2, async (done: Function) => {
+      try {
+        let keepAliveApp: string = TEST_BUNDLENAME;
+        let disallowModifty: boolean = true;
+        await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+        disallowModifty = applicationManager.isModifyKeepAliveAppsDisallowed(null, DEFAULT_USER_ID, keepAliveApp);
+        expect(false).assertTrue();
+      } catch (error) {
+        expect(error.code == 401).assertTrue();
       } finally {
         await adminManager.disableSuperAdmin(SELFHAPNAME);
       }

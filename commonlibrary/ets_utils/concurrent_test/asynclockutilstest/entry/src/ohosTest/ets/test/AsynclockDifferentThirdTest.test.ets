@@ -578,7 +578,9 @@ export default function AsynclockDifferentThirdTest() {
           console.info('main2 thread count is  ' + count);
           WorkThread.terminate();
         }
-        await sleep(300);
+        while (count != 1) {
+          await sleep(300);
+        }
         console.log('Success execution count:' + count);
         expect(count).assertEqual(1);
         console.info(`${caseName} test end`);

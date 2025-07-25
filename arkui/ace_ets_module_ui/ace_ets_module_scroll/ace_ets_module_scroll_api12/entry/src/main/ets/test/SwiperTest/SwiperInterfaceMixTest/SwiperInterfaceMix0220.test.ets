@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {
   UiComponent,
@@ -64,18 +64,20 @@ export default function SwiperInterfaceMix0220() {
      * @tc.type
      * @tc.size
      */
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_INTERFACEMIX_0220', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_INTERFACEMIX_0220', Level.LEVEL1, async (done: Function) => {
       console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_INTERFACEMIX_0220 START");
       await CommonFunc.sleep(3000);
       let driver: Driver = Driver.create();
-      let swiperArrow = await driver.findComponent(ON.id("swiperinterfacemix0220"));
-      let point2 = await swiperArrow.getBoundsCenter();
-      await driver.fling({
-        x: point2.x + 200, y: point2.y
-      }, {
-        x: point2.x - 210, y: point2.y
-      }, 5, 5000);
-      await CommonFunc.sleep(1000);
+      let swipeList = CommonFunc.getComponentRectOnScreen('swiperinterfacemix0220');
+      let top = swipeList.top;
+      let right = swipeList.right;
+      let left = swipeList.left;
+      let bottom = swipeList.bottom;
+      console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_INTERFACEMIX_0220 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.swipe(Math.round(left + width*0.8),Math.round(top + height/2),Math.round(left + width*0.2),Math.round(top + height/2));
+      await CommonFunc.sleep(2000);
       let strJson2: string = getInspectorByKey('swiper_interfacemix_0220');
       let marq2: ESObject = JSON.parse(strJson2).$attrs.content;
       expect(marq2).assertEqual("1");

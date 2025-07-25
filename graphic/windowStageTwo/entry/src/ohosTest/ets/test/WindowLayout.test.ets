@@ -35,7 +35,7 @@ export default function windowLayoutTest() {
       //isAutoWindow == '' 非PAD设备
       //isAutoWindow == 'true' PAD设备自由多窗模式
       //isAutoWindow == 'false' PAD设备非自由多窗模式
-      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.DEVICE_SHARED);
+      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.USER_PROPERTY);
       console.info(`isAutoWindow: ${JSON.stringify(isAutoWindow)}`);
       isPCStatus = settings.getValueSync(context, 'isStatusBarExist', '', settings.domainName.USER_PROPERTY)
       //isPCStatus == '' 非PC设备
@@ -1814,6 +1814,1274 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           done();
         }
       })
+
+       /**
+     * @tc.number    : SUB_BASIC_WMS_STARTMOVING_0400
+     * @tc.name      : testStartMoving_0400
+     * @tc.desc      : 验证系统窗调用startmoving移动成功
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testStartMoving_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const caseName = 'testStartMoving_0400';
+      console.log(caseName + 'begin.');
+      let config: window.Configuration = {
+        name: "testStartMoving_0400",
+        windowType: window.WindowType.TYPE_DIALOG,
+        ctx: context
+      };
+      let windowClass = await window.createWindow(config);
+      AppStorage.setOrCreate('windowClass', windowClass);
+      try {
+        let windowLimits = await windowClass.getWindowLimits();
+        console.info(`${caseName} windowLimits = ${JSON.stringify(windowLimits)}`);
+        await windowClass.resize(windowLimits.minWidth, windowLimits.minHeight);
+        await sleep(200);
+        await windowClass.setUIContent("testability/pages/WindowTest/StartMoving7");
+        await sleep(200);
+        await windowClass.showWindow();
+        await sleep(200);
+        await windowClass.moveWindowTo(100, 100);
+        await sleep(200);
+        let windowPoint = await windowClass.getWindowProperties().windowRect;
+        console.info(`${caseName} windowPoint = ${JSON.stringify(windowPoint)}`);
+        let driver = await Driver.create();
+        await sleep(1000);
+        let blank = await driver.findComponent(ON.id('startMoving'))
+        await sleep(1000)
+        let point = await blank.getBoundsCenter();
+        await driver.drag(point.x, point.y, point.x + 50, point.y + 50, 200);
+        await sleep(1000);
+        let text = await driver.findComponent(ON.id('startMovingText'));
+        await sleep(1000)
+        let textDragged = await text.getText();
+        if (textDragged == 'startMoving success') {
+          let windowPointDragged = windowClass.getWindowProperties().windowRect
+          console.info(`${caseName} sstartMoving success, windowPoint = ${JSON.stringify(windowPointDragged)}`)
+          expect(windowPointDragged.left).assertEqual(windowPoint.left + 50)
+          expect(windowPointDragged.top).assertEqual(windowPoint.top + 50)
+        } else if (textDragged == 'startMoving 801') {
+          expect(true).assertTrue();
+        } else {
+          console.error(`${caseName} Error.`);
+          expect(true).assertFalse()
+        }
+        await windowClass.destroyWindow();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if (err.code === 801) {
+          done();
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SYSTEMAPI_ENABLEDRAG_0700
+     * @tc.name      : testWindowEnableDragTruewithFullScreenMainWindow
+     * @tc.desc      :  验证全屏主窗调用enabledrag抛1300004错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testWindowEnableDragTruewithFullScreenMainWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const caseName = 'testWindowEnableDragTruewithFullScreenMainWindow';
+      console.log(caseName + 'begin.');
+      try {
+      let windowClass =  windowStage.getMainWindowSync();
+      let windowStatusType = windowClass.getWindowStatus();
+      console.info(caseName + ' windowClass.getWindowStatus(). windowStatusType: ' + JSON.stringify(windowStatusType));
+
+        await windowClass.enableDrag(true);
+        await sleep(200);
+        if (windowStatusType != window.WindowStatusType.FULL_SCREEN) {
+          done();
+        }
+
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        if(err.code == 801){
+          done();
+        }else{
+          expect(err.code).assertEqual(1300004);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0100
+     * @tc.name      : testSetRelativePositionToParentWindowEnabledwithDestoryedSubWindow
+     * @tc.desc      : 验证子窗销毁后调用接口报1300002
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithDestoryedSubWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithDestoryedSubWindow';
+      console.log(caseName + 'begin.');
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithDestoryedSubWindow');
+      await windowClass.destroyWindow();
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            expect().assertFail();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            expect(err.code).assertEqual(1300002);
+            done();
+          })
+        } else {
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        if(err.code == 801){
+          done();
+        } else{
+          expect(err.code).assertEqual(1300002);
+          done();
+        }
+      }
+    })
+
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0200
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithUnsupportedWindow
+     * @tc.desc : 验证主窗/dialog窗/float/接口报1300004
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level2
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithUnsupportedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithUnsupportedWindow';
+      console.log(caseName + 'begin.');
+      if (isPCStatus != ''|| isAutoWindow =='true') {
+        // 主窗
+        try {
+          let mainWindow = windowStage.getMainWindowSync();
+          await mainWindow.setRelativePositionToParentWindowEnabled(true);
+          console.info(caseName + 'main window succeed in calling setRelativePositionToParentWindowEnabled');
+          expect().assertFail();
+          done();
+        } catch (err) {
+          console.error(`${caseName} failed main window, err: ${JSON.stringify(err)}`);
+          if (err.code === 801) {
+            done();
+          } else {
+            expect(err.code).assertEqual(1300004);
+          }
+        }
+        // dilog窗
+        let config: window.Configuration = {
+          name: "dialogWindow",
+          windowType: window.WindowType.TYPE_DIALOG,
+          ctx: context
+        };
+        let windowClass2 = await window.createWindow(config);
+        try {
+          await windowClass2.setRelativePositionToParentWindowEnabled(true);
+          console.info(caseName + 'dialog window succeed in calling setRelativePositionToParentWindowEnabled');
+          expect().assertFail();
+          await windowClass2.destroyWindow();
+          done();
+        } catch (err) {
+          console.error(`${caseName} failed dialog window, err: ${JSON.stringify(err)}`);
+          await windowClass2.destroyWindow();
+          if(err.code == 801){
+            done();
+          } else{
+            expect(err.code).assertEqual(1300004);
+          }
+        }
+
+        // 悬浮窗
+        let config2: window.Configuration = {
+          name: "floatWindow",
+          windowType: window.WindowType.TYPE_FLOAT,
+          ctx: context
+        };
+        let subWindowClass: window.Window | undefined;
+        console.info(`${caseName} Succeeded in creating the float window.`);
+        try {
+          window.createWindow(config2).then(async (data) => {
+            subWindowClass = data;
+            await subWindowClass.setRelativePositionToParentWindowEnabled(true);
+            console.info(caseName + 'float window succeed in calling setRelativePositionToParentWindowEnabled');
+            await subWindowClass?.destroyWindow();
+            expect().assertFail();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(`${caseName} Failed float window. Cause code: ${err.code}, message: ${err.message}`);
+            await subWindowClass?.destroyWindow();
+            if (err.code === 801) {
+              done();
+            } else {
+              expect(err.code).assertEqual(1300004);
+              done();
+            }
+          });
+        } catch (e) {
+          console.error(`${caseName} Failed2 float window. Cause: ${JSON.stringify(e)}`);
+          await subWindowClass?.destroyWindow();
+          expect().assertFail();
+          done()
+        }
+      } else {
+        done()
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0300
+     * @tc.name      : testSetRelativePositionToParentWindowEnabledwithUnsupportedWindowSecondWindow
+     * @tc.desc      : 验证二级子窗调用接口报1300004
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithUnsupportedWindowSecondWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithUnsupportedWindowSecondWindow';
+      console.log(caseName + 'begin.');
+      if (isPCStatus != ''|| isAutoWindow =='true') {
+        let options: window.SubWindowOptions = {
+          title: 'subWindow1',
+          decorEnabled: true
+        }
+        // 二级子窗窗
+        let subWindowClass: window.Window | undefined;
+        let subWindowClass2: window.Window | undefined;
+        console.info(`${caseName} Succeeded in creating the float window.`);
+        try {
+          windowStage.createSubWindowWithOptions('subWindow1',options).then(async (data) => {
+            console.info(caseName + 'sub window 1 create success');
+            subWindowClass = data;
+            data.createSubWindowWithOptions('subWindow2',options).then(async (data) => {
+              console.info(caseName + 'sub window 2 create success');
+              subWindowClass2 = data;
+              await subWindowClass2.setRelativePositionToParentWindowEnabled(true);
+              console.info(caseName + 'sub window succeed in calling setRelativePositionToParentWindowEnabled');
+              expect().assertFail();
+              await subWindowClass!.destroyWindow();
+              await subWindowClass2.destroyWindow();
+              done();
+            }).catch(async (error: BusinessError) => {
+              console.log(caseName + 'Failed to create the subwindow 2. Cause: ' + JSON.stringify(error));
+              await subWindowClass2!.destroyWindow();
+              await subWindowClass!.destroyWindow();
+              if (error.code == 1300002) {
+                console.log(caseName + 'device not support')
+                done();
+              } else if(error.code == 1300004){
+
+                expect(true).assertTrue();
+                done();
+              }else if(error.code == 801){
+                done();
+              }
+              else {
+                expect().assertFail();
+                done();
+              }
+            });
+          }).catch((error: BusinessError) => {
+            console.error(caseName + 'Failed to create the subwindow 1. Cause: ' + JSON.stringify(error));
+            if (error.code == 1300002) {
+              console.log(caseName + 'device not support')
+              expect(true).assertTrue();
+              done();
+            } else {
+              expect().assertFail();
+              done();
+            }
+          });
+        } catch (e) {
+          console.error(`${caseName} Failed2 float window. Cause: ${JSON.stringify(e)}`);
+          await subWindowClass?.destroyWindow();
+          await subWindowClass2?.destroyWindow();
+          expect().assertFail();
+          done()
+        }
+      } else {
+        done()
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0400
+     * @tc.name : testSetRelativePositionToParentWindowEnabled
+     * @tc.desc : 验证子窗设置enable=true，子窗和主窗左上角重合
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabled';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabled');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainTop).assertEqual(subTop);
+            expect(mainLeft).assertEqual(subLeft);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0500
+     * @tc.name : testSetRelativePositionToParentWindowUnEnabled
+     * @tc.desc : 验证子窗设置enable=false，子窗和主窗左上角不重合
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowUnEnabled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowUnEnabled';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowUnEnabled');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(false).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            expect(Math.abs(mainWindowProperties.windowRect.left-subWindowProperties.windowRect.left)).assertLarger(0);
+            expect(Math.abs(mainWindowProperties.windowRect.top-subWindowProperties.windowRect.top)).assertLarger(0);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0600
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorTopStart
+     * @tc.desc : 验证子窗设置enable=true，anchor=TOP_START，子窗位于主窗左上角
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorTopStart', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorTopStart';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorTopStart');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_START).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainTop).assertEqual(subTop);
+            expect(mainLeft).assertEqual(subLeft);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0700
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorTop
+     * @tc.desc : 验证子窗设置enable=true，anchor=TOP，子窗位于主窗上边界横向居中点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorTop', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorTop';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorTop');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainTop).assertEqual(subTop);
+            expect(Math.abs(mainLeft - subLeft)).assertEqual(Math.abs((mainWidth + mainLeft)-(subWidth + subLeft)));
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0800
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorTopEnd
+     * @tc.desc : 验证子窗设置enable=true，anchor=TOP_END，子窗位于主窗右上角
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorTopEnd', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorTopEnd';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorTopEnd');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_END).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainTop).assertEqual(subTop);
+            expect(Math.abs((mainLeft + mainWidth)-(subLeft + subWidth))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_0900
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorStart
+     * @tc.desc : 验证子窗设置enable=true，anchor=START，子窗位于主窗左边界纵向居中点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorStart', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorStart';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorStart');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.START).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainLeft).assertEqual(subLeft);
+            expect(Math.abs((subTop+subHeight/2)-(mainTop+mainHeight/2))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1000
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorCenter
+     * @tc.desc : 验证子窗设置enable=true，anchor=CENTER，子窗位于主窗窗口横向和纵向居中点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorCenter', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorCenter';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorCenter');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.CENTER).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            windowClass.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(Math.abs((mainLeft + mainWidth/2))-(subLeft+subWidth/2)).assertLessOrEqual(1)
+            expect(Math.abs((subTop+subHeight/2)-(mainTop+mainHeight/2))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1100
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorEnd
+     * @tc.desc : 验证子窗设置enable=true，anchor=END，子窗位于主窗右边界纵向居中点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorEnd', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorEnd';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorEnd');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.END).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(Math.abs((mainLeft + mainWidth)-(subLeft + subWidth))).assertLessOrEqual(1);
+            expect(Math.abs((mainTop + mainHeight/2)-(subTop+subHeight/2))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1200
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorBottomStart
+     * @tc.desc : 验证子窗设置enable=true，anchor=BOTTOM_START，子窗位于主窗左下角
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorBottomStart', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorBottomStart';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorBottomStart');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.BOTTOM_START).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(mainLeft).assertEqual(subLeft);
+            expect( Math.abs((mainHeight + mainTop)-(subHeight + subTop))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1300
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorBottom
+     * @tc.desc : 验证子窗设置enable=true，anchor=BOTTOM，子窗位于主窗下边界横向居中点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorBottom', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorBottom';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorBottom');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.BOTTOM).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(Math.abs((mainLeft + mainWidth/2)-(subLeft+subWidth/2))).assertLessOrEqual(1);
+            expect(Math.abs((mainHeight + mainTop)-(subHeight + subTop))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1400
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithAnchorBottomEnd
+     * @tc.desc : 验证子窗设置enable=true，anchor=BOTTOM，子窗位于主窗下边界横向右顶点
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithAnchorBottomEnd', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithAnchorBottomEnd';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithAnchorBottomEnd');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.BOTTOM_END).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(Math.abs((mainWidth + mainLeft)-(subWidth + subLeft))).assertLessOrEqual(1);
+            expect(Math.abs((mainHeight + mainTop)-(subHeight + subTop))).assertLessOrEqual(1);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1500
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithOffsetXOffSetY
+     * @tc.desc : 验证offsetX为正，offsetY为正可以设置成功
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level0
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithOffsetXOffSetY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithOffsetXOffSetY';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithOffsetXOffSetY');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_START, 100, 100).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left+20,windowRect.top-20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(subLeft).assertEqual(mainLeft + 100);
+            expect(subTop).assertEqual(mainTop + 100);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1600
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithNegativeOffsetY
+     * @tc.desc : 验证offsetX为正，offsetY为负可以设置成功
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level1
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithNegativeOffsetY';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetY');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_START, 100, -100).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(subLeft).assertEqual(mainLeft + 100);
+            expect(subTop).assertEqual(Math.abs(mainTop - 100));
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1700
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithNegativeOffsetX
+     * @tc.desc : 验证offsetX为负，offsetY为正可以设置成功
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level1
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetX', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithNegativeOffsetX';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetX');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_START, -100, 100).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(subLeft).assertEqual(Math.abs(mainLeft - 100));
+            expect(subTop).assertEqual(mainTop + 100);
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number : SUB_BASIC_WMS_SETRELATIVEPOSITIONTOPARENTWINDOWENALBED_1800
+     * @tc.name : testSetRelativePositionToParentWindowEnabledwithNegativeOffsetXOffsetY
+     * @tc.desc : 验证offsetX为负，offsetY为负可以设置成功
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level1
+     */
+    it('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetXOffsetY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      const caseName = 'testSetRelativePositionToParentWindowEnabledwithNegativeOffsetXOffsetY';
+      console.log(caseName + 'begin.');
+      let mainWindow = windowStage.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testSetRelativePositionToParentWindowEnabledwithNegativeOffsetXOffsetY');
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.resizeAsync(1000,1000)
+      await sleep(1000);
+      try {
+        if(isPCStatus != ''|| isAutoWindow =='true') {
+          windowClass.setRelativePositionToParentWindowEnabled(true, window.WindowAnchor.TOP_START, -100, -100).then(async () => {
+            console.info(caseName + 'Succeed in calling setRelativePositionToParentWindowEnabled');
+            let windowRect = mainWindow.getWindowProperties().windowRect;
+            console.info(`${caseName} mainWindowProperties1: ${JSON.stringify(windowRect)}`);
+            mainWindow.moveWindowToAsync(windowRect.left-20,windowRect.top+20)
+            await sleep(1000)
+            let mainWindowProperties = mainWindow.getWindowProperties();
+            console.info(`${caseName} mainWindowProperties: ${JSON.stringify(mainWindowProperties)}`);
+            let subWindowProperties = windowClass.getWindowProperties();
+            console.info(`${caseName} subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+            let mainLeft = mainWindowProperties.windowRect.left;
+            let mainTop = mainWindowProperties.windowRect.top;
+            let mainWidth = mainWindowProperties.windowRect.width;
+            let mainHeight = mainWindowProperties.windowRect.height;
+            let subLeft = subWindowProperties.windowRect.left;
+            let subTop = subWindowProperties.windowRect.top;
+            let subWidth = subWindowProperties.windowRect.width;
+            let subHeight = subWindowProperties.windowRect.height;
+            expect(subLeft).assertEqual(Math.abs(mainLeft - 100));
+            expect(subTop).assertEqual(Math.abs(mainTop - 100));
+            await windowClass.destroyWindow();
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + `Failed. Cause code: ${err.code}, message: ${err.message}`);
+            await windowClass.destroyWindow();
+            expect().assertFail();
+            done();
+          })
+        } else {
+          await windowClass.destroyWindow();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if(err.code == 801){
+          done();
+        } else{
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_WINDOW_ANCHOR_0100
+     * @tc.name      : testWindowAnchorEnum
+     * @tc.desc      : WindowAnchor枚举值验证
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testWindowAnchorEnum', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testWindowAnchorEnum';
+      console.log(caseName + 'begin.');
+      try {
+        console.info(`${caseName} enum WindowAnchor: : ${JSON.stringify(window.WindowAnchor)}`);
+        expect(window.WindowAnchor.TOP_START).assertEqual(0);
+        expect(window.WindowAnchor.TOP).assertEqual(1);
+        expect(window.WindowAnchor.TOP_END).assertEqual(2);
+        expect(window.WindowAnchor.START).assertEqual(3);
+        expect(window.WindowAnchor.CENTER).assertEqual(4);
+        expect(window.WindowAnchor.END).assertEqual(5);
+        expect(window.WindowAnchor.BOTTOM_START).assertEqual(6);
+        expect(window.WindowAnchor.BOTTOM).assertEqual(7);
+        expect(window.WindowAnchor.BOTTOM_END).assertEqual(8);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+    })
+
 
   })
 }

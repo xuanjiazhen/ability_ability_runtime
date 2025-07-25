@@ -23,13 +23,20 @@
             "run-command": [
                 "power-shell wakeup",
                 "power-shell setmode 602",
-                "power-shell timeout -o 864000000",
                 "param set persist.sys.abilityms.support.ecologicalrulemgrservice false",
+                "uinput -T -d 300 600 -m 300 600 300 100 -u 300 100",
                 "uinput -T -m 300 1279 280 200",
-                "uinput -T -d 1070 1070 -u 1070 1070"
+                "uinput -T -d 1070 1070 -u 1070 1070",
+                "power-shell timeout -o 864000000"
             ],
             "teardown-command": [
-              "param set persist.sys.abilityms.support.ecologicalrulemgrservice true"
+                "param set persist.sys.abilityms.support.ecologicalrulemgrservice true",
+                "power-shell wakeup",
+                "power-shell setmode 602",
+                "uinput -T -d 300 600 -m 300 600 300 100 -u 300 100",
+                "uinput -T -m 300 1279 280 200",
+                "uinput -T -d 1070 1070 -u 1070 1070",
+                "power-shell timeout -o 864000000"
           ]
         }
     ]

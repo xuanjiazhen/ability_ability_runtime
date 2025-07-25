@@ -18,6 +18,7 @@ group("ActsBundleGetMainElementNameTest") {
   if (is_standard_system) {
     deps = [
       "actsbmsgetmainelementnameatest:ActsBmsGetMainElementNameATest",
+      "actsbmsgetmainelementnameaenterprisetest:ActsBmsGetMainElementNameAEnterpriseTest",
       "actsbmsgetmainelementnamebtest:ActsBmsGetMainElementNameBTest",
       "actsbmsgetmainelementnamectest:ActsBmsGetMainElementNameCTest",
       "actsbmsgetmainelementnamedtest:ActsBmsGetMainElementNameDTest",

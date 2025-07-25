@@ -13,11 +13,15 @@
  * limitations under the License.
  */
 import barMarginFlow from './WaterFlowTest/barMarginFlow.test';
+import focusWrapModeList from './ListTest/focusWrapModeList.test';
+import focusWrapModeList2 from './ListTest/focusWrapModeList2.test';
 import focusWrapDefault from './GridTest/focusWrapDefault.test';
 import focusWrapWrap from './GridTest/focusWrapWrap.test';
 
 export default function testsuite() {
   barMarginFlow()
+  focusWrapModeList();
+  focusWrapModeList2();
   focusWrapDefault()
   focusWrapWrap()
 }

@@ -100,7 +100,7 @@ struct SwiperMinSize {
       Swiper(this.swiperController) {
         LazyForEach(this.data, (item: string) => {
           Text(item.toString())
-            .height(160)
+            .height('30%')
             .backgroundColor(0xAFEEEE)
             .textAlign(TextAlign.Center)
             .fontSize(30)
@@ -124,7 +124,7 @@ struct SwiperMinSize {
         LazyForEach(this.data, (item: string) => {
           Text(item.toString())
             .width(this.swiperTextWidth)
-            .height(160)
+            .height('30%')
             .backgroundColor(0xAFEEEE)
             .textAlign(TextAlign.Center)
             .fontSize(30)

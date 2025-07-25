@@ -221,6 +221,37 @@ export default function dataManagerNotCartTest() {
       }
       console.info(`${caseName} test end `);
     });
+      /* *
+     * @tc.number: SUB_Telephony_Data_GetActiveApnName_0100
+     * @tc.name  : testTelephonyDataGetActiveApnName0100
+     * @tc.desc  : Check GetActiveApnName is no sim card
+     * @tc.size  : MediumTest
+     * @tc.type  : Function
+     * @tc.level : level 3
+     */
+    it("testTelephonyDataGetActiveApnName0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = "testTelephonyDataGetActiveApnName0100";
+      console.info(`${caseName}---Start`);
+      try {
+        data.getActiveApnName().then((data: string) => {
+          console.info(`${caseName} getActiveApnName success, contextData->${JSON.stringify(data)}`);
+          ExpectTrue(data == "");
+          console.info(`${caseName}---End`);
+          done();
+        }).catch((err: BusinessError) => {
+          ExpectTrue(false);
+          console.error(`${caseName} getActiveApnNam fail, err->${JSON.stringify(err)}`);
+          console.info(`${caseName}---End`);
+          done();
+        });
+      }catch (err) {
+        console.error(`${caseName} catch err is `+JSON.stringify(err));
+        ExpectTrue(false);
+        console.info(`${caseName}---End`);
+        done();
+      }
+    })
+    
   }
   );
 }

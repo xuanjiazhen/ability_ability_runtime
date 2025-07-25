@@ -27,11 +27,13 @@ struct SwiperImplicitanimation0010 {
             Text('' + obj.item)
               .textAlign(TextAlign.Center)
               .backgroundColor(Color.Orange)
-              .width(400)
-              .height(160)
+              .width('100%')
+              .height('100%')
           })
       }
       .id('swiper0010')
+      .width('80%')
+      .height('50%')
       .onChange((index: number) => {
         this.onAnimationStart = index + ''
       })

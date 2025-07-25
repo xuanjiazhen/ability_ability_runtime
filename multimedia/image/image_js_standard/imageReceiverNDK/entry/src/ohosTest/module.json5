@@ -54,10 +54,6 @@
                 "reason": "$string:TestAbility_desc"
             },
             {
-                "name": "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED",
-                "reason": "$string:TestAbility_desc"
-            },
-            {
                 "name": "ohos.permission.GRANT_SENSITIVE_PERMISSIONS",
                 "reason": "$string:TestAbility_desc"
             },

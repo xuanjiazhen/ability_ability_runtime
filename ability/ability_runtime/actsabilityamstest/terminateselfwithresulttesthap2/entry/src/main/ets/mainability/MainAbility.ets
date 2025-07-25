@@ -31,7 +31,12 @@ export default class MainAbility extends UIAbility {
     param.setTextNme(want.action);
   }
 
-  onDestroy(): void {
+  sleep(ms: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, ms)
+    });
+  }
+  async onDestroy(): Promise<void> {
     hilog.info(0x0000, 'MainAbility', '%{public}s', 'Ability onDestroy');
     let events = param.getTextNme();
     let onCreate = AppStorage.get<boolean>('onCreate');
@@ -57,6 +62,7 @@ export default class MainAbility extends UIAbility {
     commonEventManger.publish(events, commonEventData, (result) => {
       hilog.info(0x0000, 'MainAbility', `startAbilityForResult ok, 50 == ${JSON.stringify(result)}`);
     });
+    await this.sleep(1000);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {

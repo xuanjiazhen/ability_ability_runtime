@@ -235,7 +235,7 @@ export default function StartAbilityForResult() {
           "flags": wantConstant.Flags.FLAG_INSTALL_ON_DEMAND,
         }
         let options:StartOptions = {
-          "windowMode": 0, "displayId": 2
+          "windowMode": 0, "displayId": 2, "hideStartWindow": true
         }
         await globalThis.abilityContext.startAbilityForResult(str, options, (err:base.BusinessError, data:ability.AbilityResult) => {
           console.log(TAG + ": StartAbilityForResultCallBack success, err: " + JSON.stringify(err) +
@@ -296,7 +296,7 @@ export default function StartAbilityForResult() {
           'flags': 11
         }
         let options:StartOptions = {
-          "windowMode": 0, "displayId": 2
+          "windowMode": 0, "displayId": 2, "hideStartWindow": false
         }
         await globalThis.abilityContext.startAbilityForResult(str, options)
           .then((data:ability.AbilityResult) => {

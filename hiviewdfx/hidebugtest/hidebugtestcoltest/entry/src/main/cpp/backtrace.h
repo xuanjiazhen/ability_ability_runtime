@@ -17,5 +17,6 @@
 #define MYAPPLICATION_TESTBACKTRACE_H
 
 void BackTraceCurrentThread();
+void InvaildBackTraceCurrentThread();
 
 #endif //MYAPPLICATION_TESTBACKTRACE_H

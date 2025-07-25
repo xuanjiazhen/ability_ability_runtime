@@ -26,7 +26,13 @@ export default class ThirdAbility extends UIAbility {
     globalThis.secondContext = this.context;
   }
 
-  onDestroy() {
+  sleep(ms: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(resolve, ms)
+    });
+  }
+
+  async onDestroy(): Promise<void> {
     let onBackground = AppStorage.get<boolean>('onBackground');
     let returnDate = onBackground ? true : false;
     let commonEventData: commonEventManger.CommonEventPublishData = {
@@ -38,6 +44,7 @@ export default class ThirdAbility extends UIAbility {
       hilog.info(0x0000, 'testTag', `onConnect, 50 == ${JSON.stringify(result)}`);
     });
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
+    await this.sleep(1000);
   }
 
   onWindowStageCreate(windowStage: window.WindowStage) {

@@ -73,7 +73,7 @@ export default function swipeActionArcList() {
       console.info("[swipeActionArcList_0100] content2: " + JSON.stringify(JSON.parse(strJson2).$attrs.content));
       expect(JSON.parse(strJson2).$attrs.content).assertEqual('end EXPANDED');
 
-      await driver.swipe(Math.round(left + width*0.2),Math.round(top + height/2),Math.round(left + width*0.7),Math.round(top + height/2));
+      await driver.swipe(Math.round(left + width*0.4),Math.round(top + height/2),Math.round(left + width*0.9),Math.round(top + height/2));
       await CommonFunc.sleep(2000);
       console.info('[swipeActionArcList_0100] END');
       done();
@@ -98,7 +98,7 @@ export default function swipeActionArcList() {
       let height = bottom -top;
       let width = right - left;
       let driver = await Driver.create()
-      await driver.swipe(Math.round(left + width*0.2),Math.round(top + height/2),Math.round(left + width*0.8),Math.round(top + height/2));
+      await driver.swipe(Math.round(left + width*0.4),Math.round(top + height/2),Math.round(left + width*0.9),Math.round(top + height/2));
       await CommonFunc.sleep(2000);
       let strJson1 = getInspectorByKey('arcList_listItemOffset');
       console.info("[swipeActionArcList_0200] component obj1 is: " + JSON.stringify(JSON.parse(strJson1)));

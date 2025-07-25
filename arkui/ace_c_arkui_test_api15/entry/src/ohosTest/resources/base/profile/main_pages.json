@@ -1,6 +1,7 @@
 {
   "src": [
     "MainAbility/pages/XTSIndex",
+    "MainAbility/pages/testgesture",
     "MainAbility/pages/checkboxgroup/CheckboxGroupGroupTest",
     "MainAbility/pages/checkboxgroup/CheckboxGroupSelectAllTest",
     "MainAbility/pages/checkbox/CheckboxGroupTest",

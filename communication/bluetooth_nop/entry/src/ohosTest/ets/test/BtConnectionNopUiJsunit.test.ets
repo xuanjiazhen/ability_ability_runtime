@@ -643,5 +643,47 @@ export default function btConnectionNopUiJsunit() {
       }
       done();
     })
+
+    /**
+     * @tc.number: testDisableBluetoothAsyncNop
+     * @tc.name: testDisableBluetoothAsyncNop
+     * @tc.desc: test disableBluetoothAsync without permission
+     * @tc.size: LargeTest
+     * @tc.type: Function
+     * @tc.level: Level0
+     */
+    it("testDisableBluetoothAsyncNop", TestType.FUNCTION | Size.LARGETEST | Level.LEVEL0, async (done: Function) => {
+      try {
+        await access.disableBluetoothAsync().then(() => {
+          console.info('[bluetooth_js] disableBluetoothAsync success');
+        });
+        expect(true).assertFalse();
+      } catch (e) {
+        hilog.error(Domain, TAG, `disableBluetoothAsync promise error, error code is: ${e.code}, error message is: ${e.message}`);
+        expect(Number(e.code)).assertEqual(PERMISSION_DENIED_CODE);
+      }
+      done();
+    })
+
+    /**
+     * @tc.number: testEnableBluetoothAsyncNop
+     * @tc.name: testEnableBluetoothAsyncNop
+     * @tc.desc: test enableBluetoothAsync without permission
+     * @tc.size: LargeTest
+     * @tc.type: Function
+     * @tc.level: Level0
+     */
+    it("testEnableBluetoothAsyncNop", TestType.FUNCTION | Size.LARGETEST | Level.LEVEL0, async (done: Function) => {
+      try {
+        await access.enableBluetoothAsync().then(() => {
+          console.info('[bluetooth_js] enableBluetoothAsync success');
+        });
+        expect(true).assertFalse();
+      } catch (e) {
+        hilog.error(Domain, TAG, `enableBluetoothAsync promise error, error code is: ${e.code}, error message is: ${e.message}`);
+        expect(Number(e.code)).assertEqual(PERMISSION_DENIED_CODE);
+      }
+      done();
+    })
   })
 }

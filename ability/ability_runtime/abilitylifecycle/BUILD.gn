@@ -18,8 +18,8 @@ group("abilitylifecycletest") {
   if (is_standard_system) {
     deps = [
       "asynclifecycletest:ActsAsyncLifeCycleTest",
-      "lifecyclemain:ActsLifeCycleMainTest",
-      "lifecycletest:ActsLifeCycleTest",
+      "lifecycleflowordertest:ActsLifeCycleFlowOrderTest",
+      "lifecycleflowordertestdemo:ActsLifeCycleFlowOrderTestDemo",
     ]
   }
 }

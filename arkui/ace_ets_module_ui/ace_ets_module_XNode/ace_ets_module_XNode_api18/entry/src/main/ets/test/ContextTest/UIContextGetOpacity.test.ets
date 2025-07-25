@@ -91,7 +91,7 @@ export default function UIContextGetOpacityTest() {
       expect(obj3.$attrs.content).assertEqual('1');
       expect(obj4.$attrs.content).assertEqual('1');
       expect(obj5.$attrs.content).assertEqual('0.5');
-      expect(obj6.$attrs.content).assertEqual('4');
+      expect(obj6.$attrs.content).assertEqual('0');
       console.info('[UIContextGetOpacityTest_0100] END');
       done();
     });

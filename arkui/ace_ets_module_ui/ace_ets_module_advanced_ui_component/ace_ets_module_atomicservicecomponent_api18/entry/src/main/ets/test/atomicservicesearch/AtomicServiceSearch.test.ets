@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium";
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import { Driver, ON } from '@ohos.UiTest';
 import router from '@ohos.router';
 import events_emitter from '@ohos.events.emitter';
@@ -60,12 +60,12 @@ export default function AtomicServiceSearchTest() {
      * @tc.type Function
      * @tc.level 0
      */
-    it('AtomicServiceSearchTest_0100', 0, async (done: Function) => {
+    it('AtomicServiceSearchTest_0100', Level.LEVEL0, async (done: Function) => {
       console.info('[AtomicServiceSearchTest_0100] START');
       let driver = await Driver.create();
       await driver.delayMs(2000);
       // 查看AtomicServiceSearchTest是否存在以下入口。
-      let tab1 = await driver.findComponent(ON.text("修改placeholder"));
+      let tab1 = await driver.findComponent(ON.text("Demo01"));
       expect(tab1 !== null).assertTrue();
       console.info('[AtomicServiceSearchTest_0100] END');
       done();

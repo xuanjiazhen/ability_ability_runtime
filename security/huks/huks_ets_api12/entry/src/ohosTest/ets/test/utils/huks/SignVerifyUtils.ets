@@ -95,6 +95,17 @@ export function GetNoDigestPkcs1SignOptions(): huks.HuksOptions {
   return huksOptions;
 }
 
+export function GetNoDigestNoPaddingSignOptions(): huks.HuksOptions {
+  let huksOptions: huks.HuksOptions = {
+    properties: new Array(
+      GenParam(huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN),
+      GenParam(huks.HuksTag.HUKS_TAG_PADDING, huks.HuksKeyPadding.HUKS_PADDING_NONE),
+      GenParam(huks.HuksTag.HUKS_TAG_DIGEST, huks.HuksKeyDigest.HUKS_DIGEST_NONE)
+    )
+  };
+  return huksOptions;
+}
+
 export function GetSha256PssSignOptions(): huks.HuksOptions {
   let huksOptions: huks.HuksOptions = {
     properties: new Array(

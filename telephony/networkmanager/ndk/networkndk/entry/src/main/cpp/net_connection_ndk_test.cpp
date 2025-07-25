@@ -19,6 +19,10 @@
 #include <network/netmanager/net_connection_type.h>
 #include <string>
 #include <cstdint>
+#include <network/netstack/net_http.h>
+#include <network/netstack/net_http_type.h>
+#include <chrono>
+#include <thread>
 
 #define NETWORK_LOG_TAG "LogTagNetwork"
 #define NETWORK_LOG_DOMAIN 0x0000
@@ -689,10 +693,151 @@ static napi_value OHNetConnSetPacUrl(napi_env env, napi_callback_info info)
     return result;
 }
 
+Http_Request *request = nullptr;
+
+void Http_SampleResponseCallback(Http_Response *response, uint32_t errCode)
+{
+    if (response == nullptr) {
+        return;
+    }
+    if (errCode != 0) {
+        response->destroyResponse(&response);
+        return;
+    }
+    if (response->headers != nullptr) {
+        Http_HeaderEntry *entries = OH_Http_GetHeaderEntries(response->headers);
+        
+        Http_HeaderValue *headerValue;
+        Http_HeaderEntry *delEntries = entries;
+        while (entries != nullptr) {
+            headerValue = entries->value;
+            while (headerValue != nullptr && entries->key != nullptr) {
+                headerValue = headerValue->next;
+            }
+            entries = entries->next;
+        }
+    }
+    response->destroyResponse(&response);
+}
+
+void Http_SampleOnDataReceiveCallback(const char *data, size_t length) 
+{
+    if (data == NULL) {
+        return;
+    }
+    return;
+}
+
+void Http_SampleOnUploadProgressCallback(uint64_t totalSize, uint64_t transferredSize)
+{
+    return;
+}
+
+void Http_SampleOnDownloadProgressCallback(uint64_t totalSize, uint64_t transferredSize)
+{
+    return;
+}
+
+void Http_SampleOnHeaderReceiveCallback(Http_Headers *headers)
+{
+    if (headers != nullptr) {
+        Http_HeaderEntry *entries = OH_Http_GetHeaderEntries(headers);
+        
+        Http_HeaderValue *headerValue;
+        Http_HeaderEntry *delEntries = entries;
+        while (entries != nullptr) {
+            headerValue = entries->value;
+            while (headerValue != nullptr && entries->key != nullptr) {
+                headerValue = headerValue->next;
+            }
+            entries = entries->next;
+        }
+        OH_Http_DestroyHeaderEntries(&delEntries);
+        OH_Http_DestroyHeaders(&headers);
+    }
+}
+
+void Http_SampleOnEndCallback()
+{ 
+    return; 
+}
+
+void Http_SampleOnCancelCallback()
+{ 
+    return; 
+}
+
+static napi_value CallHttpClientApi(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+
+    const char *senddata = "https://www.baidu.com";
+    
+    Http_Request *request = OH_Http_CreateRequest(senddata);
+        OH_LOG_INFO(LOG_APP, "success %{public}s tests", request->url);
+    if (request == nullptr) {
+        return 0;
+    }
+    request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
+    if (request->options == nullptr) {
+        return 0;
+    }
+    request->options->method = NET_HTTP_METHOD_GET;
+    Http_Headers *headers = OH_Http_CreateHeaders();
+    if (headers == nullptr) {
+        return 0;
+    }
+    const char *key = "testKey";
+    const char *key1 = "testKey1";
+    const char *value1 = "testValue1";
+    const char *value2 = "testValue2";
+    uint32_t ret = OH_Http_SetHeaderValue(headers, key1, value1);
+    ret = OH_Http_SetHeaderValue(headers, key, value2);
+    request->options->headers = headers;
+
+    Http_Proxy proxy;
+    (void)memset(&proxy, 0, sizeof(Http_Proxy));
+    proxy.proxyType = HTTP_PROXY_NOT_USE;
+    (void)memset(&proxy.customProxy, 0, sizeof(Http_CustomProxy));
+    request->options->httpProxy = &proxy;
+    Http_EventsHandler eventsHandler;
+    eventsHandler.onDataReceive = Http_SampleOnDataReceiveCallback;
+    eventsHandler.onCanceled = Http_SampleOnCancelCallback;
+    eventsHandler.onDataEnd = Http_SampleOnEndCallback;
+    eventsHandler.onDownloadProgress = Http_SampleOnDownloadProgressCallback;
+    eventsHandler.onUploadProgress = Http_SampleOnUploadProgressCallback;
+    eventsHandler.onHeadersReceive = Http_SampleOnHeaderReceiveCallback;
+    int status = OH_Http_Request(request, Http_SampleResponseCallback, eventsHandler);
+    if (status != 0) {
+        return 0;
+    }
+    OH_Http_DestroyHeaders(&headers);
+    free(request->options);
+    napi_value result = nullptr;
+    napi_create_int32(env, status, &result);
+    return result;
+}
+
+static napi_value OHHttpGetHeaderValue(napi_env env, napi_callback_info info)
+{
+    Http_Headers *headers = OH_Http_CreateHeaders();
+    const char *key = "testKey";
+    const char *value = "testValue";
+    uint32_t res = OH_Http_SetHeaderValue(headers, key, value);
+    Http_HeaderValue *headValue = OH_Http_GetHeaderValue(headers, key);
+    OH_Http_DestroyHeaders(&headers);
+
+    napi_value result = nullptr;
+    napi_create_int32(env, 0, &result);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
+        {"CallHttpClientApi", nullptr, CallHttpClientApi, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OHHttpGetHeaderValue", nullptr, OHHttpGetHeaderValue, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OHNetConnGetAddrInfo", nullptr, OHNetConnGetAddrInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OHNetConnFreeDnsResult", nullptr, OHNetConnFreeDnsResult, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OHNetConnGetAllNets", nullptr, OHNetConnGetAllNets, nullptr, nullptr, nullptr, napi_default, nullptr},

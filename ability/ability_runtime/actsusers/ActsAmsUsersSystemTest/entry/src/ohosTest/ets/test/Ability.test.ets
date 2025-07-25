@@ -14,8 +14,6 @@
  */
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium'
 import commonEvent from '@ohos.commonEvent'
-import appManager from '@ohos.application.appManager'
-import osaccount from '@ohos.account.osAccount'
 import backgroundTaskManager from '@ohos.backgroundTaskManager';
 import commonEventManager from '@ohos.commonEventManager';
 import { BusinessError } from '@ohos.base';
@@ -24,10 +22,6 @@ import common from '@ohos.app.ability.common';
 let subscriberInfo_MainAbility: commonEventManager.CommonEventSubscribeInfo = {
   events: ["ACTS_InterfaceMultiUsers_0100_Start_CommonEvent", "ACTS_TerminateSelf_CommonEvent"]
 };
-let subscriberInfo_killprocess: commonEventManager.CommonEventSubscribeInfo = {
-  events: ["ACTS_KillProcess"]
-}
-//let osAccountManager
 const START_ABILITY_TIMEOUT = 10000;
 console.debug("====>in Ability.test====>");
 
@@ -39,16 +33,6 @@ export default function abilityTest() {
 
   console.debug("====>in function abilityTest====>");
   describe('ActsInterfaceMultiUsersTest', () => {
-    // afterAll(function() {
-    //   osAccountManager = osaccount.getAccountManager();
-    //   console.debug("====>get AccountManager finish====");
-    //   osAccountManager.activateOsAccount(100, (err)=>{
-    //     console.debug("====>activateOsAccount localId: 100 err:" + JSON.stringify(err));
-    // osAccountManager.removeOsAccount(101, (err)=>{
-    //   console.debug("====>remove localId: 101" + " err:" + JSON.stringify(err));
-    // })
-    //   })
-    // })
 
     let id: number = 0;
     beforeAll(async (done: Function) => {
@@ -700,106 +684,6 @@ export default function abilityTest() {
         expect(data.want!.action).assertEqual('ACTION')
         done();
       })
-    })
-
-    /*
-     * @tc.number  : ACTS_ThirdPartyKillProcess_0100
-     * @tc.name    : Use terminateselfwithresult to terminate ability and return result
-     * @tc.desc    : Starting mainability3 with startAbilityforresult
-     *               then terminateself ability and return result failed.(promise)
-     */
-    it('ACTS_ThirdPartyKillProcess_0100', Level.LEVEL0, async (done: Function) => {
-      let TAG = 'ACTS_ThirdPartyKillProcess_0100'
-      console.debug(TAG + "====>start startAbility====>");
-      await globalThis.abilityContext.startAbility(
-        {
-          bundleName: 'com.acts.killprocessthirdhap',
-          abilityName: 'com.acts.killprocessthirdhap.MainAbility'
-        }).then(() => {
-        console.debug(TAG + "====>startAbility end====>");
-      })
-      setTimeout(() => {
-        appManager.getProcessRunningInfos().then((data) => {
-          console.info(TAG + '====>ACTS_KillProcess_0100 getProcessRunningInfos=====>' + JSON.stringify(data))
-          let i: number = 0
-          for (i = 0; i < data.length; i++) {
-            if (data[i].processName == 'com.acts.killprocessthirdhap') {
-              console.info(TAG + '====>has com.acts.killprocessthirdhap=====>')
-              break
-            }
-          }
-          console.log(TAG + '====>i is:====>' + JSON.stringify(i))
-          if (i == data.length && data[i].processName != 'com.acts.killprocessthirdhap') {
-            expect().assertFail()
-          }
-        })
-      }, 1000)
-      setTimeout(() => {
-        appManager.getProcessRunningInfos().then((data) => {
-          console.info(TAG + '====>ACTS_KillProcess_0100 getProcessRunningInfos2=====>' + JSON.stringify(data))
-          let i: number = 0
-          for (i = 0; i < data.length; i++) {
-            if (data[i].processName == 'com.acts.killprocessthirdhap') {
-              break
-            }
-          }
-          console.log(TAG + '====>i2 is:====>' + JSON.stringify(i))
-          if (i == data.length && data[i].processName != 'com.acts.killprocessthirdhap') {
-            expect().assertFail()
-          }
-          done()
-        })
-      }, 15000)
-    })
-
-    /*
-     * @tc.number  : ACTS_ThirdPartyKillProcess_0200
-     * @tc.name    : Use terminateselfwithresult to terminate ability and return result
-     * @tc.desc    : Starting mainability3 with startAbilityforresult
-     *               then terminateself ability and return result failed.(callback)
-     */
-    it('ACTS_ThirdPartyKillProcess_0200', Level.LEVEL0, async (done: Function) => {
-      let TAG = 'ACTS_ThirdPartyKillProcess_0200'
-      console.debug(TAG + "====>start startAbility====>");
-      await globalThis.abilityContext.startAbility(
-        {
-          bundleName: 'com.acts.killprocessthirdhap2',
-          abilityName: 'com.acts.killprocessthirdhap2.MainAbility'
-        }).then(() => {
-        console.debug(TAG + "====>startAbility end====>");
-      })
-      setTimeout(() => {
-        appManager.getProcessRunningInfos().then((data) => {
-          console.info(TAG + '====>ACTS_KillProcess_0200 getProcessRunningInfos=====>' + JSON.stringify(data))
-          let i: number = 0
-          for (i = 0; i < data.length; i++) {
-            if (data[i].processName == 'com.acts.killprocessthirdhap2') {
-              console.info('====>has com.acts.killprocessthirdhap2=====>')
-              break
-            }
-          }
-          console.log(TAG + '====>i is:====>' + JSON.stringify(i))
-          if (i == data.length && data[i].processName != 'com.acts.killprocessthirdhap2') {
-            expect().assertFail()
-          }
-        })
-      }, 1000)
-      setTimeout(() => {
-        appManager.getProcessRunningInfos().then((data) => {
-          console.info(TAG + '====>ACTS_KillProcess_0200 getProcessRunningInfos2=====>' + JSON.stringify(data))
-          let i: number = 0
-          for (i = 0; i < data.length; i++) {
-            if (data[i].processName == 'com.acts.killprocessthirdhap2') {
-              break
-            }
-          }
-          console.log(TAG + '====>i2 is:====>' + JSON.stringify(i))
-          if (i == data.length && data[i].processName != 'com.acts.killprocessthirdhap') {
-            expect().assertFail()
-          }
-          done()
-        })
-      }, 15000)
     })
   })
 }

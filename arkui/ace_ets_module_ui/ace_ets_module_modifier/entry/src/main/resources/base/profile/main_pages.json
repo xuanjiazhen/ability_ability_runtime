@@ -41,6 +41,7 @@
         "MainAbility/pages/listItemGroup",
         "MainAbility/pages/grid",
         "MainAbility/pages/gridItem",
+        "MainAbility/pages/refresh",
         "MainAbility/pages/formComponent",
         "MainAbility/pages/panel",
         "MainAbility/pages/toggle",

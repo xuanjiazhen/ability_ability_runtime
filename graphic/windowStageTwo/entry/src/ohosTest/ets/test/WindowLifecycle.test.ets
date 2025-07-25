@@ -16,8 +16,44 @@ import hilog from '@ohos.hilog';
 import window from '@ohos.window';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect , TestType, Size, Level } from '@ohos/hypium'
 import common from '@ohos.app.ability.common';
-import { BusinessError } from '@kit.BasicServicesKit';
+import { BusinessError, settings } from '@kit.BasicServicesKit';
 import * as LoadContentByName from '../testability/pages/WindowTest/LoadContentByName';
+import { StartOptions } from '@kit.AbilityKit';
+
+let sleep = (sleepMs: number) => new Promise<string>(resolve => setTimeout(resolve, sleepMs));
+
+async function startAbility(caseName: string, context: common.UIAbilityContext, options?: StartOptions) {
+  let want: Want = {
+    bundleName: AppStorage.get('bundleName'),
+    abilityName: 'StartTestAbility'
+  };
+  if (options) {
+    await context.startAbility(want, options).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  } else {
+    await context.startAbility(want).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  }
+  await sleep(1000)
+  let windowStageStart = AppStorage.get('windowStageStartTest') as window.WindowStage;
+  return windowStageStart
+}
+
+async function terminateAbility(caseName: string) {
+  let pageContext = AppStorage.get('contextTest') as common.UIAbilityContext
+  await pageContext.terminateSelf().then(() => {
+    console.log(`${caseName} terminateSelf success`);
+  }).catch((err: BusinessError) => {
+    console.error(`${caseName} terminateSelf fail, err: ${JSON.stringify(err)}`);
+  });
+  await sleep(1000)
+}
 
 export default function WindowLifecycle() {
   describe('WindowLifecycleTest', async () => {
@@ -25,10 +61,22 @@ export default function WindowLifecycle() {
     let context: common.UIAbilityContext;
     let windowStage: window.WindowStage;
     // Defines a test suite. Two parameters are supported: test suite name and test suite function.
+    let isPCStatus: string = '';
+    let isAutoWindow: string = '';
     beforeAll(() => {
       context = AppStorage.get('context') as common.UIAbilityContext;
       console.log('windowTest context: ' + JSON.stringify(context));
       windowStage = AppStorage.get('windowStage') as window.WindowStage;
+      //isAutoWindow == '' 非PAD设备
+      //isAutoWindow == 'true' PAD设备自由多窗模式
+      //isAutoWindow == 'false' PAD设备非自由多窗模式
+      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.USER_PROPERTY);
+      console.info(`isAutoWindow: ${JSON.stringify(isAutoWindow)}`);
+      isPCStatus = settings.getValueSync(context, 'isStatusBarExist', '', settings.domainName.USER_PROPERTY)
+      //isPCStatus == '' 非PC设备
+      //isPCStatus == '1' PC设备状态栏dock未融合
+      //isPCStatus == '0' PC设备状态栏dock融合
+      console.info(`beforeAll isPCStatus: `+ isPCStatus);
     });
     beforeEach(() => {
     });
@@ -1699,5 +1747,243 @@ export default function WindowLifecycle() {
         done();
       }
     });
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0100
+     * @tc.name      : testWindowStageLifecycleEventTypeEnum
+     * @tc.desc      : 验证WindowStageLifecycleEventType枚举值
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it("testWindowStageLifecycleEventTypeEnum", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = "testWindowStageLifecycleEventTypeEnum";
+      console.log(caseName + " begin");
+      try {
+        console.log(caseName + " window.WindowStageLifecycleEventType: " + JSON.stringify(window.WindowStageLifecycleEventType));
+        expect(window.WindowStageLifecycleEventType.SHOWN).assertEqual(1);
+        expect(window.WindowStageLifecycleEventType.RESUMED).assertEqual(2);
+        expect(window.WindowStageLifecycleEventType.PAUSED).assertEqual(3);
+        expect(window.WindowStageLifecycleEventType.HIDDEN).assertEqual(4);
+        done();
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /** @tc.number    : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0200
+      * @tc.name      : testOnWindowStageLifecycleEventwithDestoryedWindow
+      * @tc.desc      : 验证主窗销毁后调用OnWindowStageLifecycleEvent抛1300002错误码
+      * @tc.size      : MediumTest
+      * @tc.type      : Function
+      * @tc.level     : Level 2
+      */
+    it("testOnWindowStageLifecycleEventwithDestoryedWindow", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let caseName = "testOnWindowStageLifecycleEventwithDestoryedWindow";
+      console.log(caseName + " begin");
+      let windowStageStart = await startAbility(caseName, context);
+      await terminateAbility(caseName);
+      try {
+        const callback = (data: window.WindowStageLifecycleEventType) => {
+          console.log(caseName + " callback: " + JSON.stringify(data));
+        }
+        windowStageStart.on('windowStageLifecycleEvent', callback);
+        expect().assertFail();
+        done();
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        expect(error.code).assertEqual(1300002);
+        done();
+      }
+    });
+
+    /** @tc.number    : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0300
+     * @tc.name      : testOffWindowStageLifecycleEventwithDestoryedWindow
+     * @tc.desc      : 验证主窗销毁后调用OffWindowStageLifecycleEvent抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("testOffWindowStageLifecycleEventwithDestoryedWindow", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let caseName = "testOffWindowStageLifecycleEventwithDestoryedWindow";
+      console.log(caseName + " begin");
+      let windowStageStart = await startAbility(caseName, context);
+      await terminateAbility(caseName);
+      try {
+        const callback = (data: window.WindowStageLifecycleEventType) => {
+          console.log(caseName + " callback: " + JSON.stringify(data));
+        }
+        windowStageStart.off('windowStageLifecycleEvent', callback);
+        expect().assertFail();
+        done();
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        expect(error.code).assertEqual(1300002);
+        done();
+      }
+    });
+
+    /** @tc.number : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0400
+     * @tc.name : testOnWindowStageLifecycleEventRegisterOne
+     * @tc.desc : WindowStageLifecycleEvent 一个callBack对象订阅监听验证
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level 0
+     */
+    it("testOnWindowStageLifecycleEventRegisterOne", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = "testOnWindowStageLifecycleEventRegisterOne";
+      console.log(caseName + " begin");
+      let timer = 0;
+      let cb1 = (WindowStageLifecycleEvent: window.WindowStageLifecycleEventType) => {
+        console.log(caseName + " callback: " + JSON.stringify(WindowStageLifecycleEvent));
+        timer++;
+        console.log(caseName + " callback: timer :" + timer);
+
+      }
+      try {
+        windowStage.on('windowStageLifecycleEvent', cb1);
+        let windowClass = windowStage.getMainWindowSync();
+        if (isPCStatus != '') {
+          await windowClass.minimize();
+          await sleep(1000);
+          console.log(caseName + " callback: timer1 :" + timer);
+          expect(timer).assertEqual(2);
+          await windowClass.restore();
+          await sleep(1000);
+          console.log(caseName + " callback: timer2 :" + timer);
+          expect(timer).assertEqual(4);
+          windowStage.off('windowStageLifecycleEvent', cb1);
+          done();
+
+        } else {
+          windowStage.off('windowStageLifecycleEvent', cb1);
+          done();
+        }
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        windowStage.off('windowStageLifecycleEvent', cb1);
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /** @tc.number : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0500
+     * @tc.name : testOnWindowStageLifecycleEventRegisterTwo
+     * @tc.desc : WindowStageLifecycleEvent 多个callBack对象订阅监听验证
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level 0
+     */
+    it("testOnWindowStageLifecycleEventRegisterTwo", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = "testOnWindowStageLifecycleEventRegisterTwo";
+      console.log(caseName + " begin");
+      let isCb1 = false;
+      let isCb2 = false;
+      let timer = 0;
+      let cb1 = (WindowStageLifecycleEvent: window.WindowStageLifecycleEventType) => {
+        console.log(caseName + " callback1: " + JSON.stringify(WindowStageLifecycleEvent));
+        timer++;
+        console.log(caseName + " callback1: timer :" + timer);
+
+      }
+      let cb2 = (WindowStageLifecycleEvent: window.WindowStageLifecycleEventType) => {
+        console.log(caseName + " callback2: " + JSON.stringify(WindowStageLifecycleEvent));
+        timer++;
+        console.log(caseName + " callback2: timer :" + timer);
+
+      }
+      try {
+        windowStage.on('windowStageLifecycleEvent', cb1);
+        windowStage.on('windowStageLifecycleEvent', cb2);
+        let windowClass = windowStage.getMainWindowSync();
+        if (isPCStatus != '') {
+          await windowClass.minimize();
+          await sleep(1000);
+          console.log(caseName + " callback: timer1 :" + timer);
+          expect(timer).assertEqual(4);
+          await windowClass.restore();
+          await sleep(1000);
+          console.log(caseName + " callback: timer2 :" + timer);
+          expect(timer).assertEqual(8);
+          windowStage.off('windowStageLifecycleEvent',cb1);
+          await windowClass.minimize();
+          await sleep(1000);
+          console.log(caseName + " callback: timer3 :" + timer);
+          expect(timer).assertEqual(10);
+          await windowClass.restore();
+          await sleep(1000);
+          console.log(caseName + " callback: timer4 :" + timer);
+          expect(timer).assertEqual(12);
+          windowStage.off('windowStageLifecycleEvent');
+          done();
+
+        } else {
+          windowStage.off('windowStageLifecycleEvent');
+          done();
+        }
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        windowStage.off('windowStageLifecycleEvent');
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /** @tc.number : SUB_BASIC_WMS_XTS_WINDOWSTAGE_LIFECYCLE_EVENT_0600
+     * @tc.name : testOffWindowStageLifecycleEventwithUnregisterAll
+     * @tc.desc : WindowStageLifecycleEvent 多个callBack对象订阅取消监听验证
+     * @tc.size : MediumTest
+     * @tc.type : Function
+     * @tc.level : Level 0
+     */
+    it("testOffWindowStageLifecycleEventwithUnregisterAll", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let caseName = "testOffWindowStageLifecycleEventwithUnregisterAll";
+      console.log(caseName + " begin");
+      let isCb1 = false;
+      let isCb2 = false;
+      let timer = 0;
+      let cb1 = (WindowStageLifecycleEvent: window.WindowStageLifecycleEventType) => {
+        console.log(caseName + " callback1: " + JSON.stringify(WindowStageLifecycleEvent));
+        timer++;
+        console.log(caseName + " callback1: timer :" + timer);
+
+      }
+      let cb2 = (WindowStageLifecycleEvent: window.WindowStageLifecycleEventType) => {
+        console.log(caseName + " callback2: " + JSON.stringify(WindowStageLifecycleEvent));
+        timer++;
+        console.log(caseName + " callback2: timer :" + timer);
+
+      }
+      try {
+        windowStage.on('windowStageLifecycleEvent', cb1);
+        windowStage.on('windowStageLifecycleEvent', cb2);
+        await sleep(100);
+        windowStage.off('windowStageLifecycleEvent');
+        let windowClass = windowStage.getMainWindowSync();
+        if (isPCStatus != '') {
+          await windowClass.minimize();
+          await sleep(1000);
+          console.log(caseName + " callback: timer1 :" + timer);
+          expect(timer).assertEqual(0);
+          await windowClass.restore();
+          await sleep(1000);
+          console.log(caseName + " callback: timer2 :" + timer);
+          expect(timer).assertEqual(0);
+          done();
+
+        } else {
+          windowStage.off('windowStageLifecycleEvent');
+          done();
+        }
+      } catch (error) {
+        console.error(caseName + ' Failed. Cause: ' + JSON.stringify(error));
+        windowStage.off('windowStageLifecycleEvent');
+        expect().assertFail();
+        done();
+      }
+    });
+
   })
 }

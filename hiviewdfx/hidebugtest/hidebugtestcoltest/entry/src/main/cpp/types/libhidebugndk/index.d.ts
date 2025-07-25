@@ -41,3 +41,7 @@ export const getGraphicsMemory: () => number;
 export const getGraphicsMemoryNULL: () => number;
 export const getGraphicsMemoryArray: () => number;
 export const getBacktraceFromFp: () => void;
+export const getBacktraceInvaildFromFp: () => void;
+export const getDefaultMallocDispatchTable: () => number;
+export const restoreMallocDispatchTable: () => number;
+export const getInvaildMallocDispatchTable: () => number;

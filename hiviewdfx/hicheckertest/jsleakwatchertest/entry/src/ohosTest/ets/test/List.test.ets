@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 import JsLeakWatcherTest from './JsLeakWatcher.test';
+import JsLeakWatcherNewTest from './JsLeakNewEnable.test';
 export default function testsuite() {
   JsLeakWatcherTest();
+  JsLeakWatcherNewTest();
 }

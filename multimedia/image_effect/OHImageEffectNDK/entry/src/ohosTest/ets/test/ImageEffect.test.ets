@@ -732,6 +732,32 @@ export default function imageEffectTest() {
     });
 
     /**
+     * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHEFFECTBUFFERINFOSETTEXTUREID_0100
+     * @tc.name   : testOHEffectBufferInfoSetTextureId001
+     * @tc.desc   : Set the image textureId.
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHEffectBufferInfoSetTextureId001', Level.LEVEL0, () => {
+      let result: number = testNapi.OHEffectBufferInfoSetTextureId();
+      expect(result).assertEqual(EFFECT_SUCCESS);
+    });
+
+    /**
+     * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHEFFECTBUFFERINFOGETTEXTUREID_0100
+     * @tc.name   : testOHEffectBufferInfoGetTextureId001
+     * @tc.desc   : Obtain image textureId.
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHEffectBufferInfoGetTextureId001', Level.LEVEL0, () => {
+      let result: number = testNapi.OHEffectBufferInfoGetTextureId();
+      expect(result).assertEqual(EFFECT_SUCCESS);
+    });
+
+    /**
      * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHEFFECTBUFFERINFORELEASE_0100
      * @tc.name   : testOHEffectBufferInfoRelease001
      * @tc.desc   : Destroy the OH-EffectBufferInfo instance.
@@ -1459,6 +1485,20 @@ export default function imageEffectTest() {
     it('testOHEffectFilterRender003', Level.LEVEL0, () => {
       let result: number = testNapi.OHEffectFilterRender(CASE_INDEX_3);
       console.log(`test render3${result}`);
+      expect(result).assertEqual(EFFECT_SUCCESS);
+    });
+
+    /**
+     * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHEFFECTFILTERRENDERWITHTEXTUREID_0100
+     * @tc.name   : testOHEffectFilterRenderWithTextureId001
+     * @tc.desc   : Perform image rendering with texture.
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHEffectFilterRenderWithTextureId001', Level.LEVEL0, () => {
+      let result: number = testNapi.OHEffectFilterRenderWithTextureId();
+      console.log(`test render with texture1 ${result}`);
       expect(result).assertEqual(EFFECT_SUCCESS);
     });
 
@@ -2593,5 +2633,30 @@ export default function imageEffectTest() {
       expect(result).assertEqual(EFFECT_SUCCESS);
     });
 
+    /**
+     * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHImageEffectSetInputTextureId_0100
+     * @tc.name   : testOHImageEffectSetInputTextureId001
+     * @tc.desc   : Start the Effector.
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHImageEffectSetInputTextureId001', Level.LEVEL0, () => {
+      let result: number = testNapi.OHImageEffectSetInputTexture();
+      expect(result).assertEqual(EFFECT_SUCCESS);
+    });
+
+    /**
+     * @tc.number : SUB_MULTIMEDIA_IMAGE_IMAGEEFFECT_OHImageEffectSetOutputTextureId_0100
+     * @tc.name   : testOHImageEffectSetOutputTextureId001
+     * @tc.desc   : Start the Effector.
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHImageEffectSetOutputTextureId001', Level.LEVEL0, () => {
+      let result: number = testNapi.OHImageEffectSetOutputTexture();
+      expect(result).assertEqual(EFFECT_SUCCESS);
+    });
   });
 }

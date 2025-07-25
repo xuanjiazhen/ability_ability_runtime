@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,9 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 export const checkboxGroupGroupTest: (a:string) => void;
 
 export const checkboxGroupSelectAllTest: (a:string) => void;
@@ -28,6 +25,7 @@ export const testGetWindowInfo: (a: string) => void;
 export const testHostWindowInfoGetName: (a: string) => void;
 
 export const testHostWindowInfoDestroy: (a: string) => void;
+
 export const ProgressLinearStyleTest: (a: string) => void;
 
 export const testProgressLinearStyle: (a: string) => void;
@@ -53,8 +51,6 @@ export const testLazyForEachExpandMode009: (a: string) => void;
 export const FocusControlTest_001: (a: string) => void;
 
 export const FocusControlTest_002: (a: string) => void;
-
-
 
 export const listTestCallback: (a: string) => void;
 

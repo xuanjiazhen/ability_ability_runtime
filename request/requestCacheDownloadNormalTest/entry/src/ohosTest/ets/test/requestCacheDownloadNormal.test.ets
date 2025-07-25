@@ -48,5 +48,28 @@ export default function requestCacheDownloadNormalUnitTest() {
       }
     });
 
+    /**
+     * @tc.number SUB_Request_cacheDownload_maintenance_0100
+     * @tc.name SUB_Request_cacheDownload_maintenance_0100
+     * @tc.desc Starts a upload session.
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_Request_cacheDownload_maintenance_0100', Level.LEVEL0, async (done: Function) => {
+      console.info("====>-----------------------SUB_Request_cacheDownload_maintenance_0100 is starting-----------------------");
+      try {
+        let url: string = 'https://gitee.com/murphy1984/download/releases/download/V1/test_picture_1.jpg';
+        let downloadInfo: cacheDownload.DownloadInfo | undefined = cacheDownload.getDownloadInfo(url);
+        console.info("====>SUB_Request_cacheDownload_maintenance_0100 downloadInfo success: " + downloadInfo);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.info("====>SUB_Request_cacheDownload_maintenance_0100 catch err: " + JSON.stringify(err));
+        expect(err.code).assertEqual(201);
+        done();
+      }
+    });
+
   });
 }

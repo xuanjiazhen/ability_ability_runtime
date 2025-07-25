@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,8 @@
  
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import common from '@ohos.app.ability.common';
-import Want from '@ohos.app.ability.Want';
 import { BusinessError } from '@ohos.base';
+import { contextConstant, Want } from '@kit.AbilityKit';
 import commonEventManager from '@ohos.commonEventManager';
 
 function log(info:string) {
@@ -98,6 +98,38 @@ export default function abilityTest() {
         });
 
       log('---------------BackToCallerAbilityWithResultTest_0100 is end---------------')
+    });
+
+    /*
+    * @tc.number  SetOnNewWantSkipScenarios_0100
+    * @tc.name
+    * @tc.desc    SetOnNewWantSkipScenarios_0100
+    * @tc.size    MediumTest
+    * @tc.type    Function
+    * @tc.level   Level 1
+    */
+    it('SetOnNewWantSkipScenarios_0100', Level.LEVEL0, async (done: Function) => {
+      log('---------------SetOnNewWantSkipScenarios_0100 is start---------------')
+      abilityContext = AppStorage.get<common.UIAbilityContext>('abilityContext')!;
+      if (!abilityContext) {
+        log('abilityContext is undefined');
+        expect().assertFail();
+        done();
+      }
+
+      let scenarios : number = contextConstant.Scenarios.SCENARIO_MOVE_MISSION_TO_FRONT |
+        contextConstant.Scenarios.SCENARIO_SHOW_ABILITY |
+        contextConstant.Scenarios.SCENARIO_BACK_TO_CALLER_ABILITY_WITH_RESULT;
+      abilityContext?.setOnNewWantSkipScenarios(scenarios).then((data) => {
+        console.info('SetOnNewWantSkipScenarios_0100 succeed');
+        expect(data).assertEqual(undefined);
+        done();
+      }).catch((err: BusinessError) => {
+        console.error(`SetOnNewWantSkipScenarios_0100 failed, code is ${err.code}, message is ${err.message}`);
+        expect().assertFail();
+        done();
+      });
+      log('---------------SetOnNewWantSkipScenarios_0100 is end---------------')
     });
 
   })

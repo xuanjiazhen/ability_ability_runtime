@@ -29,8 +29,8 @@ struct UIComponentScrollSwiperDrag0240 {
           }
         }, (item: string) => item)
       }
-      .width(250)
-      .height(250)
+      .width('80%')
+      .height('50%')
       .curve(Curve.FastOutLinearIn)
       .backgroundColor(Color.Gray)
       .onChange((index: number) => {
@@ -40,10 +40,9 @@ struct UIComponentScrollSwiperDrag0240 {
       Button('NEXT').onClick(() => {
         this.swiperController.showNext()
       })
-        .margin(20)
         .id('UIComponentScrollSwiperDrag0240_button')
 
-      Text(this.index).fontColor(80).width(200).height(200).key('UIComponentScrollSwiperDrag0240_text')
+      Text(this.index).fontColor(80).key('UIComponentScrollSwiperDrag0240_text')
     }
   }
 }

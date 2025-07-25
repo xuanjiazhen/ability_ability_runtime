@@ -2872,6 +2872,197 @@ export default function audioNDK() {
     })
 
     /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetScene_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetScene_001
+     * @tc.desc      : set AudioSessionManagerSetScene for vaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetScene_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerSetScene_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetScene_001`,
+        `AudioSessionManagerSetScene_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_001
+     * @tc.desc      : set AudioSessionManagerRegisterStateChangeCallback for vaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterStateChangeCallback_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_001`,
+        `AudioSessionManagerRegisterStateChangeCallback_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_002
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_002
+     * @tc.desc      : set AudioSessionManagerRegisterStateChangeCallback for invaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterStateChangeCallback_002();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_002`,
+        `AudioSessionManagerRegisterStateChangeCallback_002: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+  
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_003
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_003
+     * @tc.desc      : set AudioSessionManagerRegisterStateChangeCallback for double register
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterStateChangeCallback_003();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterStateChangeCallback_003`,
+        `AudioSessionManagerRegisterStateChangeCallback_003: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_001
+     * @tc.desc      : SetDefaultOutputDevice for vail value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerSetDefaultOutputDevice_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_001`,
+        `AudioSessionManagerSetDefaultOutputDevice_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_002
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_002
+     * @tc.desc      : SetDefaultOutputDevice for invail value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerSetDefaultOutputDevice_002();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerSetDefaultOutputDevice_002`,
+        `AudioSessionManagerSetDefaultOutputDevice_002: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerGetDefaultOutputDevice_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerGetDefaultOutputDevice_001
+     * @tc.desc      : GetDefaultOutputDevice for invail value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerGetDefaultOutputDevice_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerGetDefaultOutputDevice_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerGetDefaultOutputDevice_001`,
+        `AudioSessionManagerGetDefaultOutputDevice_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_001
+     * @tc.desc      : set AudioSessionManagerRegisterDeviceCallback for vaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterDeviceCallback_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_001`,
+        `AudioSessionManagerRegisterDeviceCallback_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_002
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_002
+     * @tc.desc      : set AudioSessionManagerRRegisterDeviceCallback for invaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterDeviceCallback_002();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_002`,
+        `AudioSessionManagerRegisterDeviceCallback_002: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+  
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_003
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_003
+     * @tc.desc      : set AudioSessionManagerRegisterDeviceCallback for double register
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerRegisterDeviceCallback_003();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerRegisterDeviceCallback_003`,
+        `AudioSessionManagerRegisterDeviceCallback_003: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_001
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_001
+     * @tc.desc      : AudioSessionManagerReleaseDevices for vaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerReleaseDevices_001();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_001`,
+        `AudioSessionManagerReleaseDevices_001: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_002
+     * @tc.name      : SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_002
+     * @tc.desc      : AudioSessionManagerReleaseDevices for invaild value
+     * @tc.size      : MediumTest
+     * @tc.type      : Function 
+     * @tc.level     : Level 0
+     */
+    it('SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.AudioSessionManagerReleaseDevices_002();
+      console.info(`Tag: SUM_MULTIMEDIA_AUDIO_OH_AudioSessionManagerReleaseDevices_002`,
+        `AudioSessionManagerReleaseDevices_002: ${result}`);
+      expect(0).assertEqual(result)
+      done()
+    })
+
+    /**
      * @tc.number    : SUM_MULTIMEDIA_AUDIO_OH_AudioRenderer_SetDefaultOutputDevice_0100
      * @tc.name      : set  set default output device with invalid devicetype
      * @tc.desc      : test OH_AudioRenderer_SetDefaultOutputDevice
@@ -3049,7 +3240,7 @@ export default function audioNDK() {
      * @tc.type      : Function
      * @tc.level     : Level1
      */
-    it('SUM_MULTIMEDIA_AUDIO_OH_Audio_Format_F32_TEST_0300', 1, async (done: Function) => {
+    it('SUM_MULTIMEDIA_AUDIO_OH_Audio_Format_F32_TEST_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       let streamRendererUsageNum = 2; //AUDIOSTREAM_USAGE_VOICE_COMMUNICATION
       let streamSampleFormatNum = 4; //F32LE
       let streamSamplingRateNum = 48000;
@@ -3110,7 +3301,7 @@ export default function audioNDK() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('SUM_MULTIMEDIA_AUDIO_OH_Audio_Format_F32_TEST_0400', 2, async (done: Function) => {
+    it('SUM_MULTIMEDIA_AUDIO_OH_Audio_Format_F32_TEST_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let streamRendererUsageNum = 2; //AUDIOSTREAM_USAGE_VOICE_COMMUNICATION
       let streamSampleFormatNum = 4; //F32LE
       let streamSamplingRateNum = 48000;
@@ -3841,5 +4032,111 @@ export default function audioNDK() {
       expect(result).assertEqual(0)
       done()
     })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_001
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_001
+     * @tc.desc      : test OH_AudioManager_GetAudioStreamManager nullptr
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetAudioStreamManagerTest_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_001 audioManagerGetAudioStreamManagerTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_002
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_002
+     * @tc.desc      : test OH_AudioManager_GetAudioStreamManager
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetAudioStreamManagerTest_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_002 audioManagerGetAudioStreamManagerTest_002: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001
+     * @tc.desc      : test OH_AudioStreamManager_GetDirectPlaybackSupport
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetDirectPlaybackSupportTest_001();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001 AudioManagerGetDirectPlaybackSupportTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_002
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_002
+     * @tc.desc      : test OH_AudioStreamManager_GetDirectPlaybackSupport nullptr
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetDirectPlaybackSupportTest_002();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001 AudioManagerGetDirectPlaybackSupportTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_003
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_003
+     * @tc.desc      : test OH_AudioStreamManager_GetDirectPlaybackSupport nullptr
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetDirectPlaybackSupportTest_003();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001 AudioManagerGetDirectPlaybackSupportTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_004
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_004
+     * @tc.desc      : test OH_AudioStreamManager_GetDirectPlaybackSupport nullptr
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetDirectPlaybackSupportTest_004();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001 AudioManagerGetDirectPlaybackSupportTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_005
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_005
+     * @tc.desc      : test OH_AudioStreamManager_GetDirectPlaybackSupport usage invaild
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let result = myaudioNdk.audioManagerGetDirectPlaybackSupportTest_005();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_STREAMMANAGER_GETDIRECTPLAYBACKSUPPORT_001 AudioManagerGetDirectPlaybackSupportTest_001: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
+
   })
 }

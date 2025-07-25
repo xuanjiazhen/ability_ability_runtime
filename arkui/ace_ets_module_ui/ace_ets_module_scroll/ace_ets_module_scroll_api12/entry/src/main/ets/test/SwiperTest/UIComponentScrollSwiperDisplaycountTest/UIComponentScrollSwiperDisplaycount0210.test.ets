@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import CommonFunc from '../../../MainAbility/utils/Common';
 import {
@@ -64,19 +64,20 @@ export default function UIComponentScrollSwiperDisplaycount0210() {
      * @tc.type
      * @tc.size
      */
-    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DISPLAYCOUNT_0210', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DISPLAYCOUNT_0210', Level.LEVEL1, async (done: Function) => {
       console.info(`SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DISPLAYCOUNT_0210 start.`);
       await CommonFunc.sleep(3000)
       let driver = await Driver.create()
-      let swiper = await driver.findComponent(ON.id("swiperdisplaycount0210"));
-      let point = await swiper.getBoundsCenter();
-      await CommonFunc.sleep(1000);
-      await driver.fling({
-        x: point.x - 30, y: point.y
-      }, {
-        x: point.x + 30, y: point.y
-      }, 5, 1000);
-      await CommonFunc.sleep(1000);
+      let swipeList = CommonFunc.getComponentRectOnScreen('swiperdisplaycount0210');
+      let top = swipeList.top;
+      let right = swipeList.right;
+      let left = swipeList.left;
+      let bottom = swipeList.bottom;
+      console.info("SUB_ACE_UI_COMPONENT_SCROLL_SWIPER_DISPLAYCOUNT_0210 value is" + left + " --" + right + "--" + top + "--" + bottom);
+      let height = bottom -top;
+      let width = right - left;
+      await driver.swipe(Math.round(left + width*0.4),Math.round(top + height/2),Math.round(left + width*0.9),Math.round(top + height/2));
+      await CommonFunc.sleep(2000);
       let strIndex: string = getInspectorByKey('swiperdisplaycount0210_1')
       let jsonIndex: ESObject = JSON.parse(strIndex).$attrs.content;
       expect(jsonIndex).assertEqual('0')

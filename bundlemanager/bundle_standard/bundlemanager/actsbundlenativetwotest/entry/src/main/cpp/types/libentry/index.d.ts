@@ -22,3 +22,4 @@ interface DataType {
 export const add: (a: number, b: number) => number;
 export const IsDebugMode: () => string;
 export const GetModuleMetadata: () => object;
+export const getCurrentApplicationInfo: () => object;

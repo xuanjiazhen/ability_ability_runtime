@@ -64,8 +64,8 @@ struct SwiperItemSpaceTest {
       }
       .key('itemspacekey')
       .index(0)
-      .height(300)
-      .width(300)
+      .height('50%')
+      .width('80%')
       .indicator(true)
       .loop(true)
       .itemSpace(this.test_itemspace)

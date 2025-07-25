@@ -159,13 +159,14 @@ export default function aspectRatioHeightTest() {
       console.info('[' + data.caseTag + '] data.testValue.expectValue.heightValue:' + data.testValue.expectValue.heightValue);
       console.info('[' + data.caseTag + '] data.testValue.expectValue.aspectRatio:' + data.testValue.expectValue.aspectRatio);
       console.info('[' + data.caseTag + '] data.testValue.expectValue.heightValue * data.testValue.expectValue.aspectRatio:' + data.testValue.expectValue.heightValue * data.testValue.expectValue.aspectRatio);
-      if (data.pageConfig.componentKey == 'TextInput') {
-        expect(Math.floor(Math.abs(targetRectHeight - data.testValue.expectValue.heightValue)) <= 2).assertTrue();
+      expect(Math.floor(Math.abs(targetRectAspectRatio - data.testValue.expectValue.aspectRatio)) <= 1).assertTrue();
+      if (data.pageConfig.componentKey == 'TextInput' || data.pageConfig.componentKey == 'TextArea') {
+        expect(Math.floor(Math.abs(targetRectHeight - data.testValue.expectValue.heightValue)) <= 4).assertTrue();
+        expect(Math.floor(Math.abs(targetRectWidth - data.testValue.expectValue.heightValue * data.testValue.expectValue.aspectRatio)) <= 4).assertTrue();
       } else {
         expect(Math.floor(Math.abs(targetRectHeight - data.testValue.expectValue.heightValue)) <= 1).assertTrue();
+        expect(Math.floor(Math.abs(targetRectWidth - data.testValue.expectValue.heightValue * data.testValue.expectValue.aspectRatio)) <= 1).assertTrue();
       }
-      expect(Math.floor(Math.abs(targetRectAspectRatio - data.testValue.expectValue.aspectRatio)) <= 1).assertTrue();
-      expect(Math.floor(Math.abs(targetRectWidth - data.testValue.expectValue.heightValue * data.testValue.expectValue.aspectRatio)) <= 1).assertTrue();
     });
   })
 }

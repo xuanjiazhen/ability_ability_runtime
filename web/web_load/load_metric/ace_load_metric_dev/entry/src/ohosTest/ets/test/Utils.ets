@@ -45,7 +45,7 @@ export default class Utils {
         eventId: eventId,
         priority: events_emitter.EventPriority.LOW
       }
-      events_emitter.on(innerEvent, callBack);
+      events_emitter.once(innerEvent, callBack);
     } catch (err) {
       console.info(`[${testCaseName}] err:` + JSON.stringify(err));
     }
@@ -171,6 +171,30 @@ export default class Utils {
         priority: events_emitter.EventPriority.LOW
       }
       events_emitter.on(innerEvent, callBack);
+    } catch (err) {
+      console.info(`[${testCaseName}] err:` + JSON.stringify(err));
+    }
+  }
+
+  static registerBaseEvent(testCaseName: string, expected: Object, eventId: number,
+    done: Function, expectFunction: Function) {
+    console.info(`[${testCaseName}] START`);
+    try {
+      let callBack = (backData: events_emitter.EventData) => {
+        try {
+          console.info(`${testCaseName} get result is:` + JSON.stringify(backData));
+          expectFunction(backData, expected);
+          console.info(`[${testCaseName}] END`);
+        } catch (err) {
+          console.info(`[${testCaseName}] err:` + JSON.stringify(err));
+        }
+        done()
+      }
+      let innerEvent: events_emitter.InnerEvent = {
+        eventId: eventId,
+        priority: events_emitter.EventPriority.LOW
+      }
+      events_emitter.once(innerEvent, callBack)
     } catch (err) {
       console.info(`[${testCaseName}] err:` + JSON.stringify(err));
     }

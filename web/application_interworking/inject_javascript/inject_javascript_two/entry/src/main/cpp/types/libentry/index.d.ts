@@ -18,3 +18,6 @@ export const nativeWebInit: (webName: string) => string;
 export const runJavaScript: (webName: string, jsCode: string) => string;
 export const registerJavaScriptProxy: (webName: string) => string;
 export const unregisterJavaScriptProxy: (webName: string) => string;
+export const nativeWebInitTwo: (webTag: string) => string;
+export const registerAsyncThreadJavaScriptProxy: (webTag: string, permission: string) => string;
+export const getPidResult: () => number;

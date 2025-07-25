@@ -41,6 +41,8 @@ function printSendableContext(object: SendableContextObject): boolean {
 export default class MyAbilityStage extends AbilityStage {
   onCreate(): void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'AbilityStage onCreate');
+    AppStorage.setOrCreate('TestAbilityStageContext', this.context);
+    hilog.info(0x0000, 'testTag', '%{public}s', 'AbilityStage onCreate success');
     // 应用的HAP在首次加载的时，为该Module初始化操作
     // convert ability stage context and post
     try {

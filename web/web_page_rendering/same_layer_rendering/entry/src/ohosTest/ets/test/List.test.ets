@@ -22,6 +22,8 @@ import webViewObjectEmbed3 from './webViewObjectEmbed3.test';
 import webViewObjectEmbedEnhance from './webViewObjectEmbedEnhance.test';
 import webViewAvoidArea from './webViewAvoidArea.test';
 import webViewObjectPositionReport from './webViewObjectPositionReport.test';
+import WebViewSupportCssDisplayChange from './WebViewSupportCssDisplayChange.test'
+import WebOnNativeEmbedMouseEvent from './WebOnNativeEmbedMouseEvent.test'
 
 export default function testsuite() {
   webDefaultTextEncodingFormat();
@@ -34,4 +36,6 @@ export default function testsuite() {
   webViewObjectEmbedEnhance();
   webViewAvoidArea();
   webViewObjectPositionReport();
+  WebViewSupportCssDisplayChange();
+  WebOnNativeEmbedMouseEvent();
 }

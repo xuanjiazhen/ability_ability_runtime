@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
 import ohosWindow from '@ohos.window';
 import { BusinessError } from '@ohos.base';
 import { common, StartOptions, bundleManager } from '@kit.AbilityKit';
@@ -1086,5 +1086,123 @@ export default function windowErrCode1300002_2() {
         done()
       }
     })
+    /**
+     * @tc.number    : test_setWindowLayoutFullScreen_ErrorCode_1300002
+     * @tc.name      : test_setWindowLayoutFullScreen_ErrorCode_1300002
+     * @tc.desc      : test_setWindowLayoutFullScreen_ErrorCode_1300002
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('test_setWindowLayoutFullScreen_ErrorCode_1300002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let CaseName:string = 'test_setWindowLayoutFullScreen_ErrorCode_1300002';
+      let subWindow = await windowStage.createSubWindow('test_setWindowLayoutFullScreen_ErrorCode_1300002');
+      await subWindow.destroyWindow();
+      let promise = subWindow.setWindowLayoutFullScreen(true);
+      promise.then(()=>{
+        console.log(CaseName + ' setWindowLayoutFullScreen success ');
+        expect(false).assertTrue();
+        done();
+      }).catch((err:BusinessError)=>{
+        console.error(CaseName + ' setWindowLayoutFullScreen failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+        expect(err.code).assertEqual(1300002);
+        done();
+      })
+    })
+    /**
+     * @tc.number    : test_setWindowSystemBarEnable_ErrorCode_1300002
+     * @tc.name      : test_setWindowSystemBarEnable_ErrorCode_1300002
+     * @tc.desc      : test_setWindowSystemBarEnable_ErrorCode_1300002
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('test_setWindowSystemBarEnable_ErrorCode_1300002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let CaseName:string = 'test_setWindowSystemBarEnable_ErrorCode_1300002';
+      let names: Array<'status' | 'navigation'> = [];
+      let subWindow = await windowStage.createSubWindow('test_setWindowSystemBarEnable_ErrorCode_1300002');
+      await subWindow.destroyWindow();
+      let promise = subWindow.setWindowSystemBarEnable(names);
+      promise.then(()=>{
+        console.log(CaseName + ' setWindowSystemBarEnable success ');
+        expect(false).assertTrue();
+        done();
+      }).catch((err:BusinessError)=>{
+        console.error(CaseName + ' setWindowSystemBarEnable failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+        expect(err.code).assertEqual(1300002);
+        done();
+      })
+    })
+    /**
+     * @tc.number    : test_setWindowLimits_ErrorCode_1300002
+     * @tc.name      : test_setWindowLimits_ErrorCode_1300002
+     * @tc.desc      : test_setWindowLimits_ErrorCode_1300002
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('test_setWindowLimits_ErrorCode_1300002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let CaseName:string = 'test_setWindowLimits_ErrorCode_1300002';
+      let windowLimits: ohosWindow.WindowLimits = {
+        maxWidth: 1500,
+        maxHeight: 1000,
+        minWidth: 100,
+        minHeight: 100
+      };
+      let subWindow = await windowStage.createSubWindow('test_setWindowLimits_ErrorCode_1300002');
+      await sleep(200);
+      await subWindow.destroyWindow();
+      try {
+        let promise = subWindow.setWindowLimits(windowLimits,true);
+        promise.then(()=>{
+          console.log(CaseName + ' setWindowLimits success ');
+          expect(false).assertTrue();
+          done();
+        }).catch((err:BusinessError)=>{
+          console.error(CaseName + ' setWindowLimits failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+          expect(false).assertTrue();
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+        expect(err.code).assertEqual(1300002);
+        done();
+      }
+
+    })
+    /**
+     * @tc.number    : test_startMoving_ErrorCode_1300002
+     * @tc.name      : test_startMoving_ErrorCode_1300002
+     * @tc.desc      : test_startMoving_ErrorCode_1300002
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('test_startMoving_ErrorCode_1300002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let CaseName:string = 'test_starttest_startMoving_ErrorCode_1300002Moving_1300002';
+      let subWindow = await windowStage.createSubWindow('test_startMoving_ErrorCode_1300002');
+      await sleep(200);
+      await subWindow.destroyWindow();
+      try {
+        let promise = subWindow.startMoving(100,50);
+        promise.then(()=>{
+          console.log(CaseName + ' startMoving success ');
+          expect(false).assertTrue();
+          done();
+        }).catch((err:BusinessError)=>{
+          console.error(CaseName + ' startMoving failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+          expect(false).assertTrue();
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed,casued: err.code '+err.code +' ,err.message: '+err.message);
+        expect(err.code).assertEqual(1300002);
+        done();
+      }
+
+    })
+
+
+
   })
 }

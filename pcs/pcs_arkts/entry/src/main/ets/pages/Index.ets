@@ -101,6 +101,8 @@ struct Index {
                 })
               Text(this.audioStateText)
                 .id('AudioStateText')
+                .fontSize(50)
+                .fontWeight(FontWeight.Bold)
             }
           }
           .margin({ right: 10 })
@@ -110,6 +112,7 @@ struct Index {
         .scrollable(ScrollDirection.Vertical)
       }
       .width('100%')
+      .height('80%')
       .padding({
         bottom: 20,
       })

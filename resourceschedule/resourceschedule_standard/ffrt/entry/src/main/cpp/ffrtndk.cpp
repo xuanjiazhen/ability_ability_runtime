@@ -23,6 +23,7 @@
 #include "ffrt/sleep.h"
 #include "ffrt/loop.h"
 #include "ffrt/timer.h"
+#include "fiber_utils.h"
 #include <mutex>
 #include <thread>
 #include <string>
@@ -3899,6 +3900,30 @@ static napi_value FfrtThisTaskUpdateQos(napi_env env, napi_callback_info info)
     return result;
 }
 
+static bool SuspendFunc([[maybe_unused]] void* p)
+{
+    return true;
+}
+
+static napi_value ffrt_fiber_001(napi_env env, napi_callback_info info)
+{
+    constexpr uint64_t stackSize = 16 * 1024;
+    std::array<char, stackSize> stack;
+    using fiber_t = ffrt::Fiber<>;
+    std::atomic<int> a = {0};
+    auto t = fiber_t::Init([&a] {
+        for (int i = 0; i < 10; i++) {
+            a++;
+            fiber_t::Suspend(SuspendFunc);
+        }
+    }, &stack, stackSize);
+    t->Start();
+
+    napi_value result;
+    napi_create_double(env, a.load(), &result);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -4043,7 +4068,8 @@ static napi_value Init(napi_env env, napi_value exports)
             nullptr, napi_default, nullptr },
         { "ffrtThisTaskGetId", nullptr, FfrtThisTaskGetId, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "ffrtThisTaskUpdateQos", nullptr, FfrtThisTaskUpdateQos, nullptr, nullptr, nullptr, napi_default, nullptr },
-        { "sharedMutexTest001", nullptr, SharedMutexTest001, nullptr, nullptr, nullptr, napi_default, nullptr }
+        { "sharedMutexTest001", nullptr, SharedMutexTest001, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "ffrt_fiber_001", nullptr, ffrt_fiber_001, nullptr, nullptr, nullptr, napi_default, nullptr }
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;

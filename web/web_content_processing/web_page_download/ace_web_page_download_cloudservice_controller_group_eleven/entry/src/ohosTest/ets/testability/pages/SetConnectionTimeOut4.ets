@@ -65,7 +65,7 @@ struct WebComponent {
         .onClick(() => {
           try {
             this.controller.startDownload('https:' +
-              '//mirrors.huaweicloud.com/openjdk/18/openjdk-18_linux-aarch64_bin.tar.gz');
+              '//mirrors.huaweicloud.com/npm-software/v6.14.16.tar.gz');
           } catch (error) {
             console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
           }

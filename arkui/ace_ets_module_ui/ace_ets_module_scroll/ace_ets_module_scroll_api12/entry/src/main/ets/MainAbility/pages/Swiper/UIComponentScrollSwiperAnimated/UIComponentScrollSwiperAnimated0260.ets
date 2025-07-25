@@ -85,7 +85,7 @@ struct UIComponentScrollSwiperAnimated0260 {
       .onContentDidScroll((selectedIndex: number, index: number, position: number, mainAxisLength: number) => {
         this.strindex = 'ContentDidScroll'
       })
-      Text(this.strindex).fontColor(80).width(200).height(200).key('UIComponentScrollSwiperAnimated0260_text')
-    }.margin({left:100})
+      Text(this.strindex).fontColor(80).key('UIComponentScrollSwiperAnimated0260_text')
+    }.margin({left:60})
   }
 }

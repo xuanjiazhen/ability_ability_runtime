@@ -25,7 +25,7 @@ struct listScroll100Example {
           ListItem() {
             Text('' + item)
               .width('100%')
-              .height(80)
+              .height('20%')
               .fontSize(16)
               .textAlign(TextAlign.Center)
               .borderRadius(10)

@@ -930,5 +930,275 @@ export default function UdmfNdkexTest() {
       console.info(TAG + 'OH_UdmfRecord_GetPlainText001 data= ' + JSON.stringify(data));
       expect(data).assertEqual(1);
     });
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0100
+     * @tc.name OH_UdmfOptions_GetVisibility001
+     * @tc.desc OH_UdmfOptions_GetVisibility001
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_GetVisibility001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_GetVisibility001');
+      let data = testNapi.OH_UdmfOptions_GetVisibility001();
+      console.info(TAG + 'OH_UdmfOptions_GetVisibility001 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0200
+     * @tc.name OH_UdmfOptions_GetVisibility002
+     * @tc.desc OH_UdmfOptions_GetVisibility002
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_GetVisibility002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_GetVisibility002');
+      let data = testNapi.OH_UdmfOptions_GetVisibility002();
+      console.info(TAG + 'OH_UdmfOptions_GetVisibility002 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0300
+     * @tc.name OH_UdmfOptions_SetVisibility001
+     * @tc.desc OH_UdmfOptions_SetVisibility001
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility001');
+      let data = testNapi.OH_UdmfOptions_SetVisibility001();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility001 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0400
+     * @tc.name OH_UdmfOptions_SetVisibility002
+     * @tc.desc OH_UdmfOptions_SetVisibility002
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility002');
+      let data = testNapi.OH_UdmfOptions_SetVisibility002();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility002 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0500
+     * @tc.name OH_UdmfOptions_SetVisibility003
+     * @tc.desc OH_UdmfOptions_SetVisibility003
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility003');
+      let data = testNapi.OH_UdmfOptions_SetVisibility003();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility003 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0600
+     * @tc.name OH_UdmfOptions_SetVisibility004
+     * @tc.desc OH_UdmfOptions_SetVisibility004
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility004');
+      let data = testNapi.OH_UdmfOptions_SetVisibility004();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility004 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0700
+     * @tc.name OH_UdmfOptions_SetVisibility005
+     * @tc.desc OH_UdmfOptions_SetVisibility005
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility005');
+      let data = testNapi.OH_UdmfOptions_SetVisibility005();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility005 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0800
+     * @tc.name OH_UdmfOptions_SetVisibility006
+     * @tc.desc OH_UdmfOptions_SetVisibility006
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility006');
+      let data = testNapi.OH_UdmfOptions_SetVisibility006();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility006 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_0900
+     * @tc.name OH_UdmfOptions_SetVisibility007
+     * @tc.desc OH_UdmfOptions_SetVisibility007
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility007');
+      let data = testNapi.OH_UdmfOptions_SetVisibility007();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility007 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1000
+     * @tc.name OH_UdmfOptions_SetVisibility008
+     * @tc.desc OH_UdmfOptions_SetVisibility008
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility008');
+      let data = testNapi.OH_UdmfOptions_SetVisibility008();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility008 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1100
+     * @tc.name OH_UdmfOptions_SetVisibility009
+     * @tc.desc OH_UdmfOptions_SetVisibility009
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility009');
+      let data = testNapi.OH_UdmfOptions_SetVisibility009();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility009 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1200
+     * @tc.name OH_UdmfOptions_SetVisibility010
+     * @tc.desc OH_UdmfOptions_SetVisibility010
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility010');
+      let data = testNapi.OH_UdmfOptions_SetVisibility010();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility010 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+  
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1300
+     * @tc.name OH_UdmfOptions_SetVisibility011
+     * @tc.desc OH_UdmfOptions_SetVisibility011
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility011');
+      let data = testNapi.OH_UdmfOptions_SetVisibility011();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility011 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+     /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1400
+     * @tc.name OH_UdmfOptions_SetVisibility012
+     * @tc.desc OH_UdmfOptions_SetVisibility012
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility012');
+      let data = testNapi.OH_UdmfOptions_SetVisibility012();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility012 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1500
+     * @tc.name OH_UdmfOptions_SetVisibility013
+     * @tc.desc OH_UdmfOptions_SetVisibility013
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility013', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility013');
+      let data = testNapi.OH_UdmfOptions_SetVisibility013();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility013 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1600
+     * @tc.name OH_UdmfOptions_SetVisibility014
+     * @tc.desc OH_UdmfOptions_SetVisibility014
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility014', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility014');
+      let data = testNapi.OH_UdmfOptions_SetVisibility014();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility014 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1700
+     * @tc.name OH_UdmfOptions_SetVisibility015
+     * @tc.desc OH_UdmfOptions_SetVisibility015
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility015', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility015');
+      let data = testNapi.OH_UdmfOptions_SetVisibility015(null);
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility015 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+
+    /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1800
+     * @tc.name OH_UdmfOptions_SetVisibility016
+     * @tc.desc OH_UdmfOptions_SetVisibility016
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility016', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility016');
+      let data = testNapi.OH_UdmfOptions_SetVisibility016();
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility016 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
+
+        /**
+     * @tc.number SUB_DistributedData_UDMF_SDK_NdkAddUpTest_1900
+     * @tc.name OH_UdmfOptions_SetVisibility017
+     * @tc.desc OH_UdmfOptions_SetVisibility017
+     * @tc.level: Level 2
+     * @tc.type: Functiontion
+     * @tc.size: MediumTest
+     */
+    it('OH_UdmfOptions_SetVisibility017', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility017');
+      let data = testNapi.OH_UdmfOptions_SetVisibility017(undefined);
+      console.info(TAG + 'OH_UdmfOptions_SetVisibility017 data= ' + JSON.stringify(data));
+      expect(data).assertEqual(1);
+    });
   })
 }

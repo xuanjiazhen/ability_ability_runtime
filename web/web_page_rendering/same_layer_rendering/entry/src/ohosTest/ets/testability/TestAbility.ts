@@ -14,6 +14,9 @@
  */
 
 import Ability from '@ohos.app.ability.UIAbility';
+import { window } from '@kit.ArkUI';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BusinessError } from '@ohos.base';
 
 export default class MainAbility extends Ability {
   onCreate(want, launchParam) {
@@ -29,11 +32,30 @@ export default class MainAbility extends Ability {
   }
 
   onWindowStageCreate(windowStage) {
+    let windowClass: window.Window | undefined = undefined;
     // Main window is created, set main page for this ability
     console.log('[Demo] MainAbility onWindowStageCreate windowStage=' + windowStage);
     globalThis.windowStage = windowStage;
     globalThis.abilityContext = this.context;
     windowStage.setUIContent(this.context, 'testability/pages/WebDefaultTextEncodingFormat', null);
+    windowStage.getMainWindow((err: BusinessError, data) => {
+      let errCode: number = err.code;
+      if (errCode) {
+        console.error('Failed to obtain the main window. Cause: ' + JSON.stringify(err));
+        return;
+      }
+      windowClass = data;
+      hilog.info(0x0000, 'testTag', 'Succeeded in obtaining the main window. Data: ' + JSON.stringify(data));
+      try {
+        let properties : window.WindowProperties = windowClass.getWindowProperties();
+        let wRect : window.Rect =  properties.windowRect;
+        globalThis.winLeft = wRect.left;
+        globalThis.winTop = wRect.top;
+        hilog.info(0x0000, 'testTag', 'Succeeded get winLeft:' + globalThis.winLeft + ',winTop:' + globalThis.winTop );
+      } catch (exception) {
+        hilog.error(0x0000, 'testTag', 'Failed to obtain the window properties. Cause: ' + JSON.stringify(exception));
+      }
+    })
   }
 
   onWindowStageDestroy() {

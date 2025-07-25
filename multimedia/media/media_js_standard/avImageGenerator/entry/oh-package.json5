@@ -14,6 +14,9 @@
  */
 {
   "license": "",
+  "devDependencies": {
+    "@types/libavcapability.so": "file:./src/main/cpp/types/avcapability"
+  },
   "author": "",
   "name": "entry",
   "description": "Please describe the basic information.",

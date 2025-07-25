@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import {UiComponent, Driver, Component, UiWindow, ON, BY, MatchPattern, DisplayRotation, ResizeDirection, WindowMode, PointerMatrix} from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/utils/Common';
@@ -71,7 +71,7 @@ export default function outliersAlphabet() {
      * @tc.type
      * @tc.size
      */
-    it('outliersAlphabet_0100', 0, async (done: Function) => {
+    it('outliersAlphabet_0100', Level.LEVEL1, async (done: Function) => {
       console.info('[outliersAlphabet_0100] START');
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('alphabetIndexer_outliers');
@@ -79,7 +79,11 @@ export default function outliersAlphabet() {
       console.info("[outliersAlphabet_0100] component obj is: " + JSON.stringify(JSON.parse(strJson).$attrs));
       console.info("[outliersAlphabet_0100] selectedFont: " + JSON.stringify(JSON.parse(strJson).$attrs.selectedFont));
       console.info("[outliersAlphabet_0100] fontSize: " + JSON.stringify(JSON.parse(strJson).$attrs.selectedFont.fontSize));
-      expect(JSON.parse(strJson).$attrs.selectedFont.fontSize).assertEqual("10.00vp");
+      
+      let defStrJson = getInspectorByKey('alphabetIndexer_def');
+      console.info("[outliersAlphabet_0100] defStrJson is: " + JSON.stringify(JSON.parse(defStrJson)));
+      console.info("[outliersAlphabet_0100] selectedFont: " + JSON.stringify(JSON.parse(defStrJson).$attrs.selectedFont));
+      expect(JSON.parse(strJson).$attrs.selectedFont.fontSize).assertEqual(JSON.parse(defStrJson).$attrs.selectedFont.fontSize);
       console.info('[outliersAlphabet_0100] END');
       done();
     });
@@ -92,7 +96,7 @@ export default function outliersAlphabet() {
      * @tc.type
      * @tc.size
      */
-    it('outliersAlphabet_0200', 0, async (done: Function) => {
+    it('outliersAlphabet_0200', Level.LEVEL1, async (done: Function) => {
       console.info('[outliersAlphabet_0200] START');
       await CommonFunc.sleep(3000);
       let driver: Driver = Driver.create();
@@ -118,7 +122,7 @@ export default function outliersAlphabet() {
      * @tc.type
      * @tc.size
      */
-    it('outliersAlphabet_0300', 0, async (done: Function) => {
+    it('outliersAlphabet_0300', Level.LEVEL1, async (done: Function) => {
       console.info('[outliersAlphabet_0300] START');
       await CommonFunc.sleep(5000);
       let driver: Driver = Driver.create();
@@ -144,7 +148,7 @@ export default function outliersAlphabet() {
      * @tc.type
      * @tc.size
      */
-    it('outliersAlphabet_0400', 0, async (done: Function) => {
+    it('outliersAlphabet_0400', Level.LEVEL1, async (done: Function) => {
       console.info('[outliersAlphabet_0400] START');
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('alphabetIndexer_outliers');
@@ -164,7 +168,7 @@ export default function outliersAlphabet() {
      * @tc.type
      * @tc.size
      */
-    it('outliersAlphabet_0500', 0, async (done: Function) => {
+    it('outliersAlphabet_0500', Level.LEVEL1, async (done: Function) => {
       console.info('[outliersAlphabet_0500] START');
       await CommonFunc.sleep(3000);
       let driver: Driver = Driver.create();

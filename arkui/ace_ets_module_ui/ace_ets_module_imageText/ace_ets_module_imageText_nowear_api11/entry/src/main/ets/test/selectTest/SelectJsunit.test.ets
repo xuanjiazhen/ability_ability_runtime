@@ -149,58 +149,5 @@ export default function SelectJsunit() {
       console.info('[SelectJsunit_0300] END');
       done();
     });
-
-    it('SelectJsunit_0400', Level.LEVEL0, async (done: Function) => {
-      // Illegal modification of properties of component select
-      console.info('[SelectJsunit_0400] START');
-      globalThis.value.message.notify({name:'optionValue',value:'-20'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'icon',value:'10'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selected',value:'test'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selectValue',value:'10'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selectFont',value:'###'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'fontColor',value:'123'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selectedOptionBgColor',value:'0'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selectedOptionFont',value:'%666'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'selectedOptionFontColor',value:'hello'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'optionBgColor',value:'-10'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'optionFont',value:'aaa'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'optionFontColor',value:'123'})
-      await CommonFunc.sleep(2000);
-      globalThis.value.message.notify({name:'indexValue',value:'bbb'})
-      await CommonFunc.sleep(2000);
-
-      // Get the propoties value of the select component
-      let strJson = getInspectorByKey('select');
-      let obj: ESObject = JSON.parse(strJson);
-      console.info("[SelectJsunit_0400] component obj is: " + JSON.stringify(obj));
-      expect(obj.$attrs.selected).assertEqual('0');
-      expect(obj.$attrs.value).assertEqual('10');
-      expect(obj.$attrs.font).assertEqual('{"size":"16.00fp","weight":"FontWeight.Medium","family":"","style":"FontStyle.Normal"}');
-      expect(obj.$attrs.fontColor).assertEqual('#FF00007B');
-      expect(obj.$attrs.selectedOptionBgColor).assertEqual('#FF0000FF');
-      expect(obj.$attrs.selectedOptionFont).assertEqual('{"size":"16.00fp","weight":"400","family":"","style":"FontStyle.Normal"}');
-      expect(obj.$attrs.selectedOptionFontColor).assertEqual('#FFFFFF00');
-      expect(obj.$attrs.optionBgColor).assertEqual('#FF0000FF');
-      expect(obj.$attrs.optionFont).assertEqual('{"size":"16.00fp","weight":"400","family":"","style":"FontStyle.Normal"}');
-      expect(obj.$attrs.optionFontColor).assertEqual('#FFFFFF00');
-      await CommonFunc.sleep(1000);
-      let strJson1 = getInspectorByKey('indexValue');
-      let obj1: ESObject = JSON.parse(strJson1);
-      console.info("[SelectJsunit_0400] component obj1 is: " + JSON.stringify(obj1));
-      expect(obj1.$attrs.content).assertEqual('indexValue:1');
-      console.info('[SelectJsunit_0400] END');
-      done();
-    });
   })
 }

@@ -16,7 +16,7 @@
 
 import router from '@ohos.router';
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from "@ohos/hypium"
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from "@ohos/hypium";
 import { Driver, ON, On } from '@ohos.UiTest';
 import CommonFunc, { RectValue } from '../../../MainAbility/common/Common';
 
@@ -58,7 +58,7 @@ export default function listSwipeAction29Jsunit() {
    * @tc.name   : when swipe,then return the init position
    * @tc.desc   : test the onStateChange function parameter state
    */
-    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0290', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0290',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0290 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
@@ -107,7 +107,7 @@ export default function listSwipeAction29Jsunit() {
      * @tc.name   : when swipe,then return the init position
      * @tc.desc   : test the onStateChange function parameter state
     */
-    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0310', 0, async (done: Function) => {
+    it('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0310',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_LISTANDGRID_LIST_STATECHAGE_0310 START');
       await CommonFunc.sleep(1000);
       let driver = Driver.create();
@@ -131,7 +131,7 @@ export default function listSwipeAction29Jsunit() {
 
       // swipe the listItem to right
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(5)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(100)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(50)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(120)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(5000);
       // judge the swipeActionOffset
@@ -145,7 +145,7 @@ export default function listSwipeAction29Jsunit() {
       expect(Math.abs(Math.round(Number(JSON.parse(textSwipeOffset).$attrs.content))-Math.round(px2vp(swipe_width)))<=1).assertTrue();
       // reset
       await driver.swipe(
-        Math.round(globalThis.winLeft + left + vp2px(2)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(230)), Math.round(globalThis.winTop  + top + height/2)
+        Math.round(globalThis.winLeft + left + vp2px(50)), Math.round(globalThis.winTop + top + height/2), Math.round(globalThis.winLeft + left + vp2px(230)), Math.round(globalThis.winTop  + top + height/2)
       );
       await CommonFunc.sleep(5000);
       let buttonReset2 = await driver.findComponent(ON.id('btreset29'));

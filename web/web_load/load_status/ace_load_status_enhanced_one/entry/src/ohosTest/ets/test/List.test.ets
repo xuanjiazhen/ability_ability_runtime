@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import webAttributeTest from './WebAttributeTest.test'
+import webOnBeforeUnload from './WebOnBeforeUnload.test'
 
 export default function testsuite() {
   webAttributeTest()
+  webOnBeforeUnload()
 }

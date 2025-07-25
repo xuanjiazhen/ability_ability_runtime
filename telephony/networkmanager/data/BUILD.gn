@@ -16,6 +16,10 @@ import("//build/ohos_var.gni")
 group("data") {
   testonly = true
   if (is_standard_system) {
-    deps = [ "datatest:ActsDataHasCardNoNetTest" ]
+    deps = [ 
+    "cellular_data_abnormal:ActsCellularDataAbnormalTest",
+    "cellular_data_abnormal_nop:ActsCellularDataAbnormalNopTest",
+    "datatest:ActsDataHasCardNoNetTest" 
+    ]
   }
 }

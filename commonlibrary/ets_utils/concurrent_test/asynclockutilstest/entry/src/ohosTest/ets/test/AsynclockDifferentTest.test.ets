@@ -118,17 +118,11 @@ export default function AsynclockDifferentTest() {
         console.info(`${caseName} test start`);
         let task: taskpool.Task = new taskpool.Task(printArgs2, 0);
         let count1 = 0;
-        const promises: Promise<void>[] = [];
         for (let i = 0; i < 3; i++) {
           taskpool.execute(task).then((value: Object) => {
             console.log('taskpool result: ' + value);
             count1++
           });
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count1 != 3) {
           await sleep(300);
@@ -194,17 +188,11 @@ export default function AsynclockDifferentTest() {
         console.info(`${caseName} test start`);
         let task: taskpool.Task = new taskpool.Task(printArgs4, 0);
         let count = 0;
-        const promises: Promise<void>[] = [];
         for (let i = 0; i < 3; i++) {
           taskpool.execute(task).then((value: Object) => {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -270,17 +258,11 @@ export default function AsynclockDifferentTest() {
         console.info(`${caseName} test start`);
         let task: taskpool.Task = new taskpool.Task(printArgs1, 1);
         let count = 0;
-        const promises: Promise<void>[] = [];
         for (let i = 0; i < 3; i++) {
           taskpool.execute(task).then((value) => {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -388,7 +370,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest0900';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs9, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -396,11 +377,6 @@ export default function AsynclockDifferentTest() {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -513,7 +489,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest1200';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs12, 0);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -521,11 +496,6 @@ export default function AsynclockDifferentTest() {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -628,7 +598,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest1500';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs15, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -636,11 +605,6 @@ export default function AsynclockDifferentTest() {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -711,7 +675,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest1700';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs17, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -719,11 +682,6 @@ export default function AsynclockDifferentTest() {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -836,7 +794,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest2000';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs20, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -844,11 +801,6 @@ export default function AsynclockDifferentTest() {
             console.log('taskpool result: ' + value);
             count++
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -872,7 +824,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest2100';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs21, 0);
         let count = 0;
         task.onEnqueued(() => {
@@ -883,11 +834,6 @@ export default function AsynclockDifferentTest() {
             count++;
             console.log('value:' + value)
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -958,7 +904,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest2300';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs23, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -966,11 +911,6 @@ export default function AsynclockDifferentTest() {
             count++;
             console.log('value:' + value);
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -1041,7 +981,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest2500';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let task: taskpool.Task = new taskpool.Task(printArgs25, 1);
         let count = 0;
         for (let i = 0; i < 3; i++) {
@@ -1049,11 +988,6 @@ export default function AsynclockDifferentTest() {
             count++;
             console.log('value:' + value);
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -1159,7 +1093,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest2800';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let count1 = 0;
         for (let i = 0; i < 3; i++) {
           taskpool.execute(testTask).then(() => {
@@ -1168,11 +1101,6 @@ export default function AsynclockDifferentTest() {
           }).catch((error: Error) => {
             console.error(`testTask execution failed: ${error}`);
           });
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count1 != 3) {
           await sleep(300);
@@ -1278,7 +1206,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest3100';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let count1 = 0;
         for (let i = 0; i < 3; i++) {
           taskpool.execute(testTask1).then(() => {
@@ -1287,11 +1214,6 @@ export default function AsynclockDifferentTest() {
           }).catch((error: Error) => {
             console.error(`testTask execution failed: ${error}`);
           });
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count1 != 3) {
           await sleep(300);
@@ -1426,7 +1348,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest3400';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let count1 = 0;
         for (let i = 0; i < 3; i++) {
           taskpool.execute(testTask2).then(() => {
@@ -1435,11 +1356,6 @@ export default function AsynclockDifferentTest() {
           }).catch((error: Error) => {
             console.error(`testTask execution failed: ${error}`);
           });
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count1 != 3) {
           await sleep(300);
@@ -1549,7 +1465,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest3700';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let count = 0;
         let task: taskpool.Task = new taskpool.Task(printArgs37, 1);
         for (let i = 0; i < 3; i++) {
@@ -1559,11 +1474,6 @@ export default function AsynclockDifferentTest() {
           }).catch(() => {
             console.log('taskpool failed');
           })
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);
@@ -1587,7 +1497,6 @@ export default function AsynclockDifferentTest() {
       async (Done: Function) => {
         const caseName = 'AsynclockDifferentTest3800';
         console.info(`${caseName} test start`);
-        const promises: Promise<void>[] = [];
         let count: number = 0;
         let count1: number = 0;
         let task: taskpool.Task = new taskpool.Task(ConcurrentFunc, 1);
@@ -1602,11 +1511,6 @@ export default function AsynclockDifferentTest() {
           }).catch((error: Error) => {
             console.error('taskpool execute failed: ', error);
           });
-        }
-        try {
-          await Promise.all(promises);
-        } catch (e) {
-          console.log('Caught an error in Promise.all:', JSON.stringify(e));
         }
         while (count != 3) {
           await sleep(300);

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "common/common.h"
+#include "darkConfig/SetForceDarkConfigTest.cpp"
+#include "arkTSEnv/InitModuleForArkTSEnvTest.cpp"
 
 namespace ArkUICapiTest
 {
@@ -26,7 +28,10 @@ namespace ArkUICapiTest
         }
 
         napi_property_descriptor desc[] = {
-
+            {"TestSetForceDarkConfig", nullptr, TestSetForceDarkConfig, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestInitModuleForArkTSEnv", nullptr, TestInitModuleForArkTSEnv, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
         {

@@ -14,12 +14,15 @@
  */
 
 import connectionWithoutNetTest from './ConnectionWithoutNet.test';
+import NetExtAttributeNoNetTest from './NetExtAttributeNoNet.test';
 import EmptyTest from './Empty.test';
 import sim from '@ohos.telephony.sim';
 
-export default function testsuite() {if (sim.getMaxSimCount()>1){
-  connectionWithoutNetTest();
-}else{
-  EmptyTest()
-}
+export default function testsuite() {
+	NetExtAttributeNoNetTest();
+	if (sim.getMaxSimCount()>1){
+	  connectionWithoutNetTest();
+	}else{
+	  EmptyTest()
+	}
 }

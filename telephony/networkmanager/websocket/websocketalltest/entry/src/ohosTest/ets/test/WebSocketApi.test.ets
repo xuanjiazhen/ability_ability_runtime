@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, beforeEach, TestType, Size, Level } from '@ohos/hypium';
+import { describe, it, expect, beforeEach, beforeAll, TestType, Size, Level } from '@ohos/hypium';
 import { BusinessError } from '@ohos.base';
 import webSocket from '@ohos.net.webSocket';
-
+import getWebsite from './utils/WsWebsite';
 
 function expectTrue(exp: boolean, info: string = ''): void {
   try {
@@ -89,10 +89,20 @@ let sendLongMessage: string = '创建要上传或下载的任务，并将其排�
   '创建要上传或下载的任务，并将其排入队列，每个应用最多支持创建10个未完成的任务。使用callback异步回调。'
 
 let ws: webSocket.WebSocket;
-let availableWebSocketAddress: string = 'ws://124.222.6.60:8800';
+let availableWebSocketAddress: string ;
 
 export default function WebSocketApiTest() {
   describe('webSocketApiTest', () => {
+  
+    beforeAll(async (done: Function)=>{
+      console.log("beforeAll start");
+      availableWebSocketAddress = await getWebsite();
+      console.log("current url is "+ availableWebSocketAddress)
+      done()
+      console.log("beforeAll end ")
+    })
+
+  
     beforeEach((done: Function) => {
       ws = webSocket.createWebSocket();
       done();
@@ -4533,6 +4543,80 @@ export default function WebSocketApiTest() {
           expectTrue(value);
           console.info(`${caseName} test end`);
         })
+      } catch (err) {
+        console.info(`${caseName} catchError ${JSON.stringify(err)}`);
+        expectFail(`${caseName} fail,errInfo->${JSON.stringify(err)}`);
+        done();
+        console.info(`${caseName} test end`);
+      }
+    })
+
+    /* *
+     * @tc.number: SUB_NetworkMgr_WebSocket_SkipServerCertVerify_0100
+     * @tc.name  : testNetworkMgrWebSocketSkipServerCertVerify0100
+     * @tc.desc  : Connect server with option of SkipServerCertVerify(true)
+     * @tc.size  : MediumTest
+     * @tc.type  : Function
+     * @tc.level : level 3
+     */
+    it('testNetworkMgrWebSocketSkipServerCertVerify0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = 'testNetworkMgrWebSocketSkipServerCertVerify0100';
+      console.info(`${caseName} test start`);
+      try {
+        let option: webSocket.WebSocketRequestOptions = {
+          skipServerCertVerification: true,
+        }
+        let ws: webSocket.WebSocket= webSocket.createWebSocket();
+        ws.connect(availableWebSocketAddress, option, (err: BusinessError, value: boolean) => {
+          if (err) {
+            console.info(`${caseName} test connect fail ${JSON.stringify(err)}`);
+            expectFail(`${caseName} test connect fail`);
+            done();
+            console.info(`${caseName} test end`);
+          } else {
+            console.info(`${caseName} test connect success and value is ${value}`);
+            expectTrue(true, `${caseName} test connect success`);
+            done();
+            console.info(`${caseName} test end`);
+          }
+        });
+      } catch (err) {
+        console.info(`${caseName} catchError ${JSON.stringify(err)}`);
+        expectFail(`${caseName} fail,errInfo->${JSON.stringify(err)}`);
+        done();
+        console.info(`${caseName} test end`);
+      }
+    })
+
+    /* *
+     * @tc.number: SUB_NetworkMgr_WebSocket_SkipServerCertVerify_0200
+     * @tc.name  : testNetworkMgrWebSocketSkipServerCertVerify0200
+     * @tc.desc  : Connect server with option of SkipServerCertVerify(false)
+     * @tc.size  : MediumTest
+     * @tc.type  : Function
+     * @tc.level : level 3
+     */
+    it('testNetworkMgrWebSocketSkipServerCertVerify0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName: string = 'testNetworkMgrWebSocketSkipServerCertVerify0200';
+      console.info(`${caseName} test start`);
+      try {
+        let option: webSocket.WebSocketRequestOptions = {
+          skipServerCertVerification: false,
+        }
+        let ws: webSocket.WebSocket= webSocket.createWebSocket();
+        ws.connect(availableWebSocketAddress, option, (err: BusinessError, value: boolean) => {
+          if (err) {
+            console.info(`${caseName} test connect fail ${JSON.stringify(err)}`);
+            expectFail(`${caseName} test connect fail`);
+            done();
+            console.info(`${caseName} test end`);
+          } else {
+            console.info(`${caseName} test connect success and value is ${value}`);
+            expectTrue(true, `${caseName} test connect success`);
+            done();
+            console.info(`${caseName} test end`);
+          }
+        });
       } catch (err) {
         console.info(`${caseName} catchError ${JSON.stringify(err)}`);
         expectFail(`${caseName} fail,errInfo->${JSON.stringify(err)}`);

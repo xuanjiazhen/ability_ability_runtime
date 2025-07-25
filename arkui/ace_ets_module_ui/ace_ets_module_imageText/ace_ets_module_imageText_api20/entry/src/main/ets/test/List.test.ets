@@ -33,6 +33,22 @@ import TextAreaMinLinesTest from './TextAreaTest/TextAreaMinLines.test';
 import RichEditorUndoStyleTest from './RichEditorTest/RichEditorUndoStyle.test';
 import TextLineSpacingTest from './TextTest/TextLineSpacing.test';
 import TextAreaLineSpacingTest from './TextAreaTest/TextAreaLineSpacing.test';
+import SearchAutoCapitalizationModeTest from './SearchTest/SearchAutoCapitalizationMode.test';
+import SearchAutoCapitalizationModeModifierTest from './SearchTest/SearchAutoCapitalizationModeModifier.test';
+import TextAreaAutoCapitalizationModeTest from './TextAreaTest/TextAreaAutoCapitalizationMode.test';
+import TextAreaAutoCapitalizationModeModifierTest from './TextAreaTest/TextAreaAutoCapitalizationModeModifier.test';
+import TextInputAutoCapitalizationModeTest from './TextInputTest/TextInputAutoCapitalizationMode.test';
+import TextInputAutoCapitalizationModeModifierTest from './TextInputTest/TextInputAutoCapitalizationModeModifier.test';
+import TextVerticalAlignTest from './TextTest/TextVerticalAlign.test';
+import ModifierTextVerticalAlignTest from './TextTest/TextVerticalAlignModifier.test';
+import RichEditorEnableAutoSpacingTest from './RichEditorTest/RichEditorEnableAutoSpacing.test';
+import TextGetParagraphsTest from './TextTest/TextGetparagraphs.test';
+import fromHtmlTest from './StyledStringTest/fromHtml.test';
+import ImageOrientationTest from './ImageOrientationTest/ImageOrientation.test';
+import TextNumberTransitionTest from './TextTest/TextNumberTransitionTest.test';
+import SymbolEffectTest from './SymbolGlyphTest/SymbolEffectTest.test';
+import shaderStyleTest from './TextTest/shaderStyle.test';
+import EnablePreviewMenuTest from './TextTest/EnablePreviewMenu.test';
 
 
 export default function testsuite() {
@@ -56,4 +72,20 @@ export default function testsuite() {
   RichEditorUndoStyleTest();
   TextLineSpacingTest();
   TextAreaLineSpacingTest();
+  SearchAutoCapitalizationModeTest();
+  SearchAutoCapitalizationModeModifierTest();
+  TextAreaAutoCapitalizationModeTest();
+  TextAreaAutoCapitalizationModeModifierTest();
+  TextInputAutoCapitalizationModeTest();
+  TextInputAutoCapitalizationModeModifierTest();
+  TextVerticalAlignTest();
+  ModifierTextVerticalAlignTest();
+  RichEditorEnableAutoSpacingTest();
+  TextGetParagraphsTest();
+  fromHtmlTest();
+  ImageOrientationTest();
+  TextNumberTransitionTest();
+  SymbolEffectTest();
+  shaderStyleTest();
+  EnablePreviewMenuTest();
 }

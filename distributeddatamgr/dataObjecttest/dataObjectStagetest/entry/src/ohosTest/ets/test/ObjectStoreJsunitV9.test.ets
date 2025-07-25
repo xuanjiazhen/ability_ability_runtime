@@ -1557,6 +1557,59 @@ export default function objectStoreTestV9() {
     })
 
     /**
+     * @tc.name: V9testbindAssetStore009
+     * @tc.desc: Test bindAssetStore with invalid args,assetKey is null
+     * @tc.type: Functiontion
+     * @tc.number: SUB_DistributedData_DataObject_SDK_ObjectJsAPITest_bindAssetStore_0900
+     * @tc.size: MediumTest
+     * @tc.level: Level 2
+     */
+    it('V9testbindAssetStore009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.log(TAG + "************* V9testbindAssetStore009 start *************");
+      let g_object = distributedObject.create(context, {
+        title: "bindAssettest-title",
+        content: "bindAssettest-content",
+        mark: "no mark",
+        asset008: {
+          status: 0,
+          name: "1.txt",
+          uri: "file://com.example.myapp/data/dir/1.txt",
+          path: "/dir/1.txt",
+          createTime: "2023/11/30 19:48:00",
+          modifyTime: "2023/11/30 20:10:00",
+          size: "1",
+        }
+      });
+      expect(g_object == undefined).assertEqual(false);
+      await g_object.setSessionId("session009");
+      let asset1: commonType.Asset = {
+        name: "name1",
+        uri: "uri1",
+        createTime: "createTime1",
+        modifyTime: "modifyTime1",
+        size: "size1",
+        path: "path1",
+        status: commonType.AssetStatus.ASSET_NORMAL,
+      };
+      let bindInfo: distributedObject.BindInfo = {
+        storeName: "name1",
+        tableName: "table1",
+        primaryKey: {
+          "data1": 123
+        },
+        field: "field1",
+        assetName: "asset1"
+      };
+      try {
+        await g_object.bindAssetStore("asset009", null);
+        expect().assertFail();
+      } catch (error) {
+        console.info(`V9testbindAssetStore009 err is: ${error.code} and msg is: ${error.message}`);
+        expect(error.code).assertEqual('401');
+      }
+    })
+
+    /**
      * @tc.name: V9testModifyAsset001
      * @tc.desc: object with asset create distributed data object
      * @tc.type: Functiontion

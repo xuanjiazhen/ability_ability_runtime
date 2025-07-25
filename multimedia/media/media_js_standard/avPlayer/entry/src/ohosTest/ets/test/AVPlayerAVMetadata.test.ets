@@ -19,6 +19,7 @@ import resourceManager from '@ohos.resourceManager';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium'
 import image from "@ohos.multimedia.image";
 import { BusinessError } from '@kit.BasicServicesKit';
+import { abilityAccessCtrl, Permissions } from '@kit.AbilityKit';
 
 const AUDIO_SOURCE = 'mjpeg_mp3.mp3';
 const VIDEO_SOURCE = 'H264_AAC_Matedata.mp4';
@@ -925,7 +926,7 @@ export default function AVMetadata() {
       console.info(TAG + "0100 is success");
       let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor();
       avMetadataExtractor.fdSrc = AVFileDescriptor;
-      avMetadataExtractor.fetchMetadata((err, metadata) => {
+      await avMetadataExtractor.fetchMetadata((err, metadata) => {
         if (err) {
           console.error(TAG, `fetchMetadata callback failed, err = ${JSON.stringify(err)}`);
           return;
@@ -948,7 +949,7 @@ export default function AVMetadata() {
       console.info(TAG + "SUB_MULTIMEDIA_AUDIO_PLAYER_VIDEOHEIGHT_PIXELMAP_CB_FUNCTION_0200  is success");
       let avMetadataExtractor: media.AVMetadataExtractor = await media.createAVMetadataExtractor();
       avMetadataExtractor.fdSrc = AVFileDescriptor;
-      avMetadataExtractor.fetchAlbumCover((err, PixelMap) => {
+      await avMetadataExtractor.fetchAlbumCover((err, PixelMap) => {
         if (err) {
           console.error(TAG, `fetchMetadata callback failed, err = ${JSON.stringify(err)}`);
           return;
@@ -990,7 +991,7 @@ export default function AVMetadata() {
      * @tc.type      : Function Test
      * @tc.level     : Level0
         */
-    it('SUB_MULTIMEDIA_AUDIO_PLAYER_AVMETADATA_ALBUM_CB_FUNCTION_0100', Level.LEVEL0, (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_HDRTYPE_CALLBACK_FUNCTION_0100', Level.LEVEL0, (done: Function) => {
       console.info(TAG + "0100 is success");
       let avMetadataExtractor: media.AVMetadataExtractor;
     
@@ -1038,7 +1039,7 @@ export default function AVMetadata() {
         height : 300
       };
       // 获取缩略图
-      avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
+      await avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
         pixelMapLoc = pixelMap;
         console.info(TAG, `fetchFrameByTime success`);
       }).catch((error: BusinessError) => {
@@ -1046,7 +1047,7 @@ export default function AVMetadata() {
       });
       await mediaTestBase.msleepAsync(SLEEP_TIME);
       expect(pixelMapLoc).assertUndefined();
-      avMetadataExtractor.release();
+      await avMetadataExtractor.release();
       done();
     });
 
@@ -1074,7 +1075,7 @@ export default function AVMetadata() {
         height : 300
       };
       // 获取缩略图
-      avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
+      await avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
         pixelMapLoc = pixelMap;
         console.info(TAG, `fetchFrameByTime success`);
       }).catch((error: BusinessError) => {
@@ -1082,7 +1083,74 @@ export default function AVMetadata() {
       });
       await mediaTestBase.msleepAsync(SLEEP_TIME);
       expect(pixelMapLoc).assertUndefined();
-      avMetadataExtractor.release();
+      await avMetadataExtractor.release();
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300
+     * @tc.name      : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300
+     * @tc.desc      : Online http Video playback control test
+     * @tc.size      : MediumTest
+     * @tc.type      : Function Test
+     * @tc.level     : Level0
+     */
+    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300', Level.LEVEL0, async (done: Function) => {
+      let avMetadataExtractor = await media.createAVMetadataExtractor();
+      console.info('AVMetadataExtractor success');
+      let headers: Record<string, string> = {
+        "User-Agent" : "User-Agent-Value"
+      };
+      let url = "htttp://xx";
+      await avMetadataExtractor.setUrlSource(url, headers).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code).assertEqual(media.AVErrorCode.AVERR_PARAMETER_OUT_OF_RANGE);
+        console.error(`Failed to setUrlSource, code: ${error.code} message: ${error.message}`);
+      });
+      done();
+    });
+
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400
+     * @tc.name      : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400
+     * @tc.desc      : Online http Video playback control test
+     * @tc.size      : MediumTest
+     * @tc.type      : Function Test
+     * @tc.level     : Level0
+     */
+    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400', Level.LEVEL0, async (done: Function) => {
+      let avMetadataExtractor = await media.createAVMetadataExtractor();
+      console.info('AVMetadataExtractor success');
+      let headers: Record<string, string> = {
+        "User-Agent" : "User-Agent-Value"
+      };
+      let url = "http://xx";
+      let atManager = abilityAccessCtrl.createAtManager();
+      let permissionNames: Array<Permissions> = ['ohos.permission.INTERNET'];
+      // requestPermissionsFromUser会判断权限的授权状态
+      await atManager.requestPermissionsFromUser(globalThis.abilityContext, permissionNames).then(async (data) => {
+        let grantStatus = data.authResults;
+        if (grantStatus[0] !== 0) {
+          await avMetadataExtractor.setUrlSource(url, headers).then(() => {
+          }).catch((error: BusinessError) => {
+            expect(error.code).assertEqual(media.AVErrorCode.AVERR_NO_PERMISSION);
+            console.error(`Failed to first setUrlSource, code: ${error.code} message: ${error.message}`);
+          });
+        } else {
+          await avMetadataExtractor.setUrlSource(url, headers).then(() => {
+            console.info(`success to first setUrlSource`);
+          }).catch((error: BusinessError) => {
+            console.error(`Failed to first setUrlSource, code: ${error.code} message: ${error.message}`);
+          });
+        }
+      }).catch((err: BusinessError) => {
+        console.error(`Failed to request permissions from user. Code is ${err.code}, message is ${err.message}`);
+      });
+      await avMetadataExtractor.setUrlSource(url, headers).then(() => {
+      }).catch((error: BusinessError) => {
+        expect(error.code).assertEqual(media.AVErrorCode.AVERR_OPERATE_NOT_PERMIT);
+        console.error(`Failed to second setUrlSource, code: ${error.code} message: ${error.message}`);
+      });
       done();
     });
 
@@ -1106,13 +1174,60 @@ export default function AVMetadata() {
         height : 300
       };
       // 获取缩略图
-      avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
+      await avMetadataExtractor.fetchFrameByTime(timeUs, queryOption, param).then((pixelMap: image.PixelMap) => {
         expect(pixelMap).not().assertUndefined();
         console.info(TAG, `fetchFrameByTime success`);
       }).catch((error: BusinessError) => {
         console.error(`fetchFrameByTime catchCallback ${error.name} code: ${error.code} message: ${error.message}`);
         expect().assertFail();
       });
+      await mediaTestBase.msleepAsync(SLEEP_TIME);
+      await avMetadataExtractor.release();
+      done();
+    });
+
+    /* *
+     * @tc.number    : SUB_MULTIMEDIA_PLAYER_AVMETADATA_FETCHMETADATA_PROMISE_FUNCTION_0100
+     * @tc.name      : SUB_MULTIMEDIA_PLAYER_AVMETADATA_FETCHMETADATA_PROMISE_FUNCTION_0100
+     * @tc.desc      : By fetchMetadata to get tracks info test
+     * @tc.size      : MediumTest
+     * @tc.type      : Function Test
+     * @tc.level     : Level0
+     */
+    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_FETCHMETADATA_PROMISE_FUNCTION_0100', Level.LEVEL0, async (done: Function) => {
+      let avMetadataExtractor = await media.createAVMetadataExtractor();
+      console.info('AVMetadataExtractor success');
+      avMetadataExtractor.fdSrc = AVFileDescriptor2;
+      let metadata = await avMetadataExtractor.fetchMetadata();
+      if (metadata.tracks != undefined) {
+        if (metadata.trackCount != undefined) {
+          const trackCount = parseInt(metadata.trackCount);
+          const array_size = metadata.tracks.length;
+          expect(trackCount).assertEqual(array_size);
+        }
+        for (let i = 0; i < metadata.tracks.length; i++) {
+          const element = metadata.tracks[i];
+          if (element[media.MediaDescriptionKey.MD_KEY_TRACK_TYPE] == media.MediaType.MEDIA_TYPE_VID) {
+            const value = element[media.MediaDescriptionKey.MD_KEY_CODEC_MIME] as string;
+            expect(value).not().assertUndefined();
+          }
+          if (element[media.MediaDescriptionKey.MD_KEY_TRACK_TYPE] == media.MediaType.MEDIA_TYPE_AUD) {
+            const value = element[media.MediaDescriptionKey.MD_KEY_CODEC_MIME] as string;
+            expect(value).not().assertUndefined();
+          }
+        }
+      } else {
+        console.error('get avmetadata tracks failed');
+        expect().assertFail();
+      }
+      expect(media.MediaType.MEDIA_TYPE_UNSUPPORTED).assertEqual(-1);
+      expect(media.MediaType.MEDIA_TYPE_AUD).assertEqual(0);
+      expect(media.MediaType.MEDIA_TYPE_VID).assertEqual(1);
+      expect(media.MediaType.MEDIA_TYPE_SUBTITLE).assertEqual(2);
+      expect(media.MediaType.MEDIA_TYPE_ATTACHMENT).assertEqual(3);
+      expect(media.MediaType.MEDIA_TYPE_DATA).assertEqual(4);
+      expect(media.MediaType.MEDIA_TYPE_TIMED_METADATA).assertEqual(5);
+      expect(media.MediaType.MEDIA_TYPE_AUXILIARY).assertEqual(6);
       await mediaTestBase.msleepAsync(SLEEP_TIME);
       avMetadataExtractor.release();
       done();

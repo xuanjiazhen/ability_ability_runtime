@@ -120,6 +120,216 @@ export default function VectorStoreTest() {
       }
       console.info(TAGTEST + " ************* End*************");
     });
+    /**
+     * @tc.name VectorStoreTest0200
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_VectorEtsAPITest_0200
+     * @tc.desc VectorEtsAPITest isVectorSupported
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('VectorStoreTest0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let TAGTEST = TAG + " VectorStoreTest0200 ";
+      const res = data_Rdb.isVectorSupported();
+      console.info(TAGTEST + "res=" + res);
+      if (res == false) {
+        console.info(TAGTEST + "false res =" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore. rdbStore=" + rdbStore);
+          expect().assertFail();
+          done()
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore, code=" + err.code + err.message);
+          expect(err.code == 801).assertTrue();
+          done()
+        }
+
+      } else {
+        console.info(TAGTEST + "true res111111=" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore111111. rdbStore=" + rdbStore);
+          expect(rdbStore != null).assertTrue();
+          let observer1 = async (sqlExecutionInfo : data_Rdb.SqlExecutionInfo) => {
+            console.log(TAG + "observer1")
+            done()
+          };
+          try{
+            rdbStore?.on('perfStat',observer1);
+            expect().assertFail()
+            done()
+          }catch(err){
+            console.info(TAGTEST + "fail" + err.code + err.message);
+            expect(err.code == 801).assertTrue();
+            done()
+          }
+          console.log(TAG + "************* VectorStoreTest0200 end *************");
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore111, code=" + err.code + err.message);
+          expect().assertFail();
+          done();
+        }
+      }
+      console.info(TAGTEST + " ************* End*************");
+    });
+    /**
+     * @tc.name VectorStoreTest0300
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_VectorEtsAPITest_0300
+     * @tc.desc VectorEtsAPITest isVectorSupported
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('VectorStoreTest0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let TAGTEST = TAG + " VectorStoreTest0300 ";
+      const res = data_Rdb.isVectorSupported();
+      console.info(TAGTEST + "res=" + res);
+      if (res == false) {
+        console.info(TAGTEST + "false res =" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore. rdbStore=" + rdbStore);
+          expect().assertFail();
+          done()
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore, code=" + err.code + err.message);
+          expect(err.code == 801).assertTrue();
+          done()
+        }
+
+      } else {
+        console.info(TAGTEST + "true res111111=" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore111111. rdbStore=" + rdbStore);
+          expect(rdbStore != null).assertTrue();
+          let observer1 = async (sqlExecutionInfo : data_Rdb.SqlExecutionInfo) => {
+            console.log(TAG + "observer1")
+            done()
+          };
+          try{
+            rdbStore?.off('perfStat',observer1);
+            expect().assertFail()
+            done()
+          }catch(err){
+            console.info(TAGTEST + "fail" + err.code + err.message);
+            expect(err.code == 801).assertTrue();
+            done()
+          }
+          console.log(TAG + "************* VectorStoreTest0300 end *************");
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore111, code=" + err.code + err.message);
+          expect().assertFail();
+          done();
+        }
+      }
+      console.info(TAGTEST + " ************* End*************");
+    });
+    /**
+     * @tc.name VectorStoreTest0400
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_VectorEtsAPITest_0400
+     * @tc.desc VectorEtsAPITest isVectorSupported
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('VectorStoreTest0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let TAGTEST = TAG + " VectorStoreTest0400 ";
+      const res = data_Rdb.isVectorSupported();
+      console.info(TAGTEST + "res=" + res);
+      if (res == false) {
+        console.info(TAGTEST + "false res =" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore. rdbStore=" + rdbStore);
+          expect().assertFail();
+          done()
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore, code=" + err.code + err.message);
+          expect(err.code == 801).assertTrue();
+          done()
+        }
+
+      } else {
+        console.info(TAGTEST + "true res111111=" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore111111. rdbStore=" + rdbStore);
+          expect(rdbStore != null).assertTrue();
+          try {
+            let exceptionMessage: data_Rdb.ExceptionMessage;
+            rdbStore.on('sqliteErrorOccurred', exceptionMessage => {
+              console.log(TAG + `error log is ${exceptionMessage.code}`)
+              expect().assertFail();
+              done();
+            });
+          } catch (err) {
+            console.log(TAG + `error is failed code:${err.code},message:${err.message}`);
+            expect(err.code == 801).assertTrue();
+            done();
+          }
+          console.log(TAG + "************* VectorStoreTest0400 end *************");
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore111, code=" + err.code + err.message);
+          expect().assertFail();
+          done();
+        }
+      }
+      console.info(TAGTEST + " ************* End*************");
+    });
+    /**
+     * @tc.name VectorStoreTest0500
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_VectorEtsAPITest_0500
+     * @tc.desc VectorEtsAPITest isVectorSupported
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it('VectorStoreTest0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let TAGTEST = TAG + " VectorStoreTest0500 ";
+      const res = data_Rdb.isVectorSupported();
+      console.info(TAGTEST + "res=" + res);
+      if (res == false) {
+        console.info(TAGTEST + "false res =" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore. rdbStore=" + rdbStore);
+          expect().assertFail();
+          done()
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore, code=" + err.code + err.message);
+          expect(err.code == 801).assertTrue();
+          done()
+        }
+
+      } else {
+        console.info(TAGTEST + "true res111111=" + res);
+        try {
+          rdbStore = await data_Rdb.getRdbStore(context, STORE_CONFIG);
+          console.info(TAGTEST + "success getRdbStore111111. rdbStore=" + rdbStore);
+          expect(rdbStore != null).assertTrue();
+          try {
+            let exceptionMessage: data_Rdb.ExceptionMessage;
+            rdbStore.off('sqliteErrorOccurred', exceptionMessage => {
+              console.log(TAG + `error log is ${exceptionMessage.code}`)
+              expect().assertFail();
+              done();
+            });
+          } catch (err) {
+            expect(err.code == 801).assertTrue();
+            console.log(TAG + `error is failed code:${err.code},message:${err.message}`);
+            done();
+          }
+          console.log(TAG + "************* VectorStoreTest0500 end *************");
+        } catch(err){
+          console.info(TAGTEST + "fail getRdbStore111, code=" + err.code + err.message);
+          expect().assertFail();
+          done();
+        }
+      }
+      console.info(TAGTEST + " ************* End*************");
+    });
     console.info(TAG + " *************Unit Test End*************");
   })
 }

@@ -1202,7 +1202,7 @@ struct WebComponent {
                       case 'emitWebViewNativeMediaPlayerNetworkStateError': {
                         networkState = 3
                         this.controller.loadUrl($rawfile('nativeMediaError.html'))
-                        await Utils.sleep(1000)
+                        await Utils.sleep(5000)
                         this.controller.runJavaScript('buttonPlay()', (error, result) => {
                             console.error(`The buttonPlay() return error is: ${error}`);
                             console.log(`The buttonPlay() return value is: ${result}`);

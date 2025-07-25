@@ -24,8 +24,7 @@ struct PinchTest {
     Column() {
       Image($r('app.media.test'))
         .objectFit(ImageFit.Auto)
-        .height(200)
-        .width(200)
+        .width('50%')
         .key('test_pict')
         .scale({ x: this.myscale, y: this.myscale, z: this.myscale })
         .gesture(

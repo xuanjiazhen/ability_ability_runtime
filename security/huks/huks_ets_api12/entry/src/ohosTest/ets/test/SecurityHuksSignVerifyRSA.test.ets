@@ -14,9 +14,11 @@
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level, Size, TestType } from '@ohos/hypium';
 import { huks } from '@kit.UniversalKeystoreKit';
-import { CheckSoftware, CheckWearable, GenParam, SetParam } from './utils/huks/HuksOptionsUtils';
+import { CheckSoftware, CheckWearable, GenParam, MergeOptions, SetParam } from './utils/huks/HuksOptionsUtils';
 import { GetDataBySize, StringToUint8Array } from './utils/CommonUtils';
-import { SignVerify, SignVerifyData } from './utils/huks/SignVerifyUtils';
+import { GetNoDigestNoPaddingSignOptions, GetNoDigestPkcs1SignOptions, SignVerify, SignVerifyData } from './utils/huks/SignVerifyUtils';
+import { GetRsaGenerateOptions } from './utils/huks/GenerateKeyUtils';
+import { GetSha256Options } from './utils/huks/DeriveAgreeUtils';
 
 
 export default function SecurityHuksSignVerifyRSATest() {
@@ -700,6 +702,373 @@ export default function SecurityHuksSignVerifyRSATest() {
         console.log(testNumber + `: catch error ${JSON.stringify(err)}`);
         let expectErrCode = useSoftware ? 12000001 : 12000012;
         expect(err.code).assertEqual(expectErrCode);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0100
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0100
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0100";
+      let genKeyOptions = GetRsaGenerateOptions(512);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(64)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(512), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(useSoftware).assertEqual(false);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0200
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0200
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0200";
+      let genKeyOptions = GetRsaGenerateOptions(768);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(48))],
+        finishData: StringToUint8Array(GetDataBySize(48)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(768), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(useSoftware).assertEqual(false);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0300
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0300
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0300";
+      let genKeyOptions = GetRsaGenerateOptions(1024);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(64))],
+        finishData: StringToUint8Array(GetDataBySize(64)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(1024), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0400
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0400
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0400";
+      let genKeyOptions = GetRsaGenerateOptions(1032);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(128))],
+        finishData: StringToUint8Array(GetDataBySize(1)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(1032), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0500
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0500
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0500";
+      let genKeyOptions = GetRsaGenerateOptions(2040);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(128))],
+        finishData: StringToUint8Array(GetDataBySize(127)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2040), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0600
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0600
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0600";
+      let genKeyOptions = GetRsaGenerateOptions(2048);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(256)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0700
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0700
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0700";
+      let genKeyOptions = GetRsaGenerateOptions(3072);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(128)), StringToUint8Array(GetDataBySize(127))],
+        finishData: StringToUint8Array(GetDataBySize(129)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(3072), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0800
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0800
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0800";
+      let genKeyOptions = GetRsaGenerateOptions(4096);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(255))],
+        finishData: StringToUint8Array(GetDataBySize(257)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(4096), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(res).assertEqual(true);
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(null).assertFail();
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_0900
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_0900
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0900";
+      let genKeyOptions = GetRsaGenerateOptions(2048);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(512)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_1000
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_1000
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_0900";
+      let genKeyOptions = GetRsaGenerateOptions(2048);
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: [StringToUint8Array(GetDataBySize(1))],
+        finishData: StringToUint8Array(GetDataBySize(256)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_1100
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_1100
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_1100";
+      let genKeyOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestPkcs1SignOptions());
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(256)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_1200
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_1200
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_1200";
+      let genKeyOptions = MergeOptions(GetRsaGenerateOptions(2048), GetSha256Options());
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(256)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
+      }
+    })
+
+
+    /**
+     * @tc.number SUB_Security_HUKS_SignVerify_RSA_API20_Func_1300
+     * @tc.name SUB_Security_HUKS_SignVerify_RSA_API20_Func_1300
+     * @tc.desc test rsa sign verify, no digest, no padding
+     * @tc.size SmallTest
+     * @tc.type Function
+     * @tc.level Level3
+     */
+    it('SUB_Security_HUKS_SignVerify_RSA_API20_Func_1300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
+      let testNumber: string = "SUB_Security_HUKS_SignVerify_RSA_API20_Func_1300";
+      let genKeyOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestNoPaddingSignOptions());
+      SetParam(genKeyOptions, huks.HuksTag.HUKS_TAG_PURPOSE, huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_SIGN | huks.HuksKeyPurpose.HUKS_KEY_PURPOSE_VERIFY);
+      let signData: SignVerifyData = {
+        updateDataArr: null,
+        finishData: StringToUint8Array(GetDataBySize(256)),
+        signatureData: null
+      }
+      let signOptions = MergeOptions(GetRsaGenerateOptions(2048), GetNoDigestPkcs1SignOptions());
+      try {
+        await huks.generateKeyItem(testNumber, genKeyOptions);
+        let res = await SignVerify(testNumber, signOptions, signData);
+        expect(null).assertFail();
+      } catch (err) {
+        console.error(testNumber + `: catch error ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(huks.HuksExceptionErrCode.HUKS_ERR_CODE_ILLEGAL_ARGUMENT);
       }
     })
   }

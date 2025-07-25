@@ -239,6 +239,68 @@ describe('rdbStorePluginLibsTest', function () {
         }
         console.log(TAG + "*************  testPluginLibs0009 end  *************");
     })
-
+   /**
+     * @tc.name testPluginLibs0010
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_PluginLibsEtsAPITest_1000
+     * @tc.desc Test pluginLib as current app dir
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('testPluginLibs0010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done:Function) => {
+        console.log(TAG + "************* testPluginLibs0010 start *************");
+        try {
+            let path = await context.filesDir;
+            console.log(TAG+"testPluginLibs0005 path: " + path );
+            storeConfig.pluginLibs = [ String(path) ];
+            data_relationalStore.getRdbStore(context, storeConfig,async(err,rdbstore)=>{
+                if(err){
+                    console.log(TAG+"testPluginLibs0010 getRdbStore err: failed, err: code=" + err.code + " message=" + err.message);
+                    expect(err.code == 14800021).assertTrue();
+                    done()
+                }
+                else{
+                    expect().assertFail();
+                    done()
+                }
+            });
+        } catch (e) {
+            console.log(TAG+"getRdbStore err: failed, err: code=" + e.code + " message=" + e.message);
+            expect().assertFail();
+            done()
+        }
+        console.log(TAG + "*************  testPluginLibs0010 end  *************");
+    })
+    /**
+     * @tc.name testPluginLibs0011
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_PluginLibsEtsAPITest_1100
+     * @tc.desc Test pluginLib as current app dir
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('testPluginLibs0011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done:Function) => {
+        console.log(TAG + "************* testPluginLibs0011 start *************");
+        try {
+            let path = new Array(17).fill("").map((_, index) => `dir${index + 1}`);
+            storeConfig.pluginLibs = path;
+            data_relationalStore.getRdbStore(context, storeConfig,async(err,rdbstore)=>{
+                if(err) {
+                    console.log(TAG + "getRdbStore err: failed, err: code=" + err.code + " message=" + err.message);
+                    expect(err.code == 14800000).assertTrue();
+                    done()
+                }else {
+                    console.log(TAG +"getrdbstore success");
+                    expect().assertFail();
+                    done()
+                }
+            });
+        } catch (e) {
+            console.log(TAG+"getRdbStore err: failed, err: code=" + e.code + " message=" + e.message);
+            expect().assertFail();
+            done()
+        }
+        console.log(TAG + "*************  testPluginLibs0011 end  *************");
+    })
 })
 }
