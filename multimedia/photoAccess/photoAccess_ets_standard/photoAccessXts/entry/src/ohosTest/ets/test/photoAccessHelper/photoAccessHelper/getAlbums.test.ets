@@ -1002,23 +1002,6 @@ export default function getAlbumsTest() {
     })
 
     /**
-     * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_041     //TODO
-     * @tc.name      : getAlbums_promise_user_ops_abnormal_004
-     * @tc.desc      : callback, USER-ANY, fetchOps->undefined
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 2
-     */
-    /*it('getAlbums_promise_user_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
-      const testName = 'getAlbums_promise_user_ops_abnormal_004';
-      console.info(TAG, testName);
-      const type: photoAccessHelper.AlbumType = albumType.USER;
-      const subType: photoAccessHelper.AlbumSubtype = albumSubtype.ANY;
-      const fetchOps: photoAccessHelper.FetchOptions | undefined = undefined;
-      await getAlbumsPromiseWithOptionsAbnormalTest(done, type, subType, fetchOps);
-    })*/
-
-    /**
      * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_042
      * @tc.name      : getAlbums_promise_user_001
      * @tc.desc      : callback, USER-ANY, no fetchOptions
@@ -1162,24 +1145,6 @@ export default function getAlbumsTest() {
       };
       await getAlbumsPromiseWithOptionsAbnormalTest(done, type, subType, fetchOps);
     })
-
-
-    /**
-     * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_050    //TODO
-     * @tc.name      : getAlbums_promise_system_ops_abnormal_004
-     * @tc.desc      : callback, SYSTEM-ANY, fetchOps->undefined
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 2
-     */
-    /*it('getAlbums_promise_system_ops_abnormal_004', Level.LEVEL2, async (done: Function) => {
-      const testName = 'getAlbums_promise_system_ops_abnormal_004';
-      console.info(TAG, testName);
-      const type: photoAccessHelper.AlbumType = albumType.SYSTEM;
-      const subType: photoAccessHelper.AlbumSubtype = albumSubtype.ANY;
-      const fetchOps: photoAccessHelper.FetchOptions | undefined = undefined;
-      await getAlbumsPromiseWithOptionsAbnormalTest(done, type, subType, fetchOps);
-    })*/
 
     /**
      * @tc.number    : PHOTO_ACCESS_HELPER_GET_ALBUMS_051
