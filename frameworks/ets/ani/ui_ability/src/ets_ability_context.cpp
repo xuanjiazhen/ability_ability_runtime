@@ -1313,6 +1313,7 @@ bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
     return isInstanceOf;
 }
 
+<<<<<<< HEAD
 void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
@@ -1336,6 +1337,38 @@ void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniOb
     return;
 }
 context->SetRestoreEnabled(enabled);
+=======
+void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
+    ani_boolean isShow, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto etsContext = EtsAbilityContext::GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    bool showFlag = static_cast<bool>(isShow);
+    ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed, errCode: %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
+>>>>>>> 5902dadf42 (add_ChangeAbilityVisibility_UIAbilityContext)
 }
 
 void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
@@ -1494,6 +1527,7 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
             ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
                 reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
+<<<<<<< HEAD
             ani_native_function { "nativeOnSetRestoreEnabled", "Z:V",
                 reinterpret_cast<void*>(EtsAbilityContext::NativeOnSetRestoreEnabled) },
 #ifdef SUPPORT_GRAPHICS
@@ -1501,6 +1535,10 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
 #endif
+=======
+            ani_native_function { "nativeChangeAbilityVisibility", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
+>>>>>>> 5902dadf42 (add_ChangeAbilityVisibility_UIAbilityContext)
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
