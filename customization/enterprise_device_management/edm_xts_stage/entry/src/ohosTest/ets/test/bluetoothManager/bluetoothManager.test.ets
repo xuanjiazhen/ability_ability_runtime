@@ -1095,11 +1095,11 @@ export default function bluetoothManagerTest() {
       try {
         let accountId: number = 100;
         let protocols: Array<bluetoothManager.Protocol> = [bluetoothManager.Protocol.GATT,
-          bluetoothManager.Protocol.SPP];
+          bluetoothManager.Protocol.SPP, bluetoothManager.Protocol.OPP];
         bluetoothManager.addDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
         let ret: Array<bluetoothManager.Protocol> =
           bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
-        expect(ret.length == 2).assertTrue();
+        expect(ret.length == 3).assertTrue();
         bluetoothManager.removeDisallowedBluetoothProtocols(SELFWANT, accountId, protocols);
         ret = bluetoothManager.getDisallowedBluetoothProtocols(SELFWANT, accountId);
         expect(ret.length == 0).assertTrue();
