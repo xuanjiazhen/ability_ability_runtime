@@ -14,10 +14,14 @@
  */
 
 export const webErrCodeSuccess: () => number;
-
-
-
-
+export const webInitError: () => number;
+export const webErrorUnknow: () => number;
+export const webErrorInvalidParam: () => number;
+export const webErrorSchemeRegitsterFailed: () => number;
+export const webErrorInvaledURL: () => number;
+export const webErrorInvaledCookieValue: () => number;
+export const webErrorLibraryOpenFailure: () => number;
+export const webErrorLibraySymbolNotFound: () => number;
 
 
 
