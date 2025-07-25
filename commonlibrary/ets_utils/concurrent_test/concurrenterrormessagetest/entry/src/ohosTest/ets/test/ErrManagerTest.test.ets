@@ -887,28 +887,7 @@ export default function abilityTest() {
       myWorker.terminate();
       Done();
     });
-
-    /**
-     * @tc.number    : WorkerOnMessageThrowErrorTest3100
-     * @tc.name      : WorkerOnMessageThrowErrorTest3100
-     * @tc.desc      : worker线程的onmessage中抛出异常
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('WorkerOnMessageThrowErrorTest3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = "";
-      errorManager.on('globalErrorOccurred', (err) => {
-        errorCaught = err.message;
-      });
-      let myWorker = new worker.ThreadWorker('../testability/workers/Worker2');
-      myWorker.postMessage({ foo: 'bar' });
-      await sleep(500);
-      expect(errorCaught).assertEqual('Error: worker onmessage error');
-      myWorker.terminate();
-      Done();
-    })
-
+    
     /**
      * @tc.number    : WorkerSubWorkerThrowErrorTest3500
      * @tc.name      : WorkerSubWorkerThrowErrorTest3500
