@@ -19,7 +19,7 @@ const workerPort: ThreadWorkerGlobalScope = worker.workerPort;
 workerPort.onmessage = (e: MessageEvents) => {
   console.info(`worker: worker receive data ${e.data}`);
   try {
-    let res: Object = workerPort.callGlobalCallObjectMethod('myObj', 'testTimeoutFunc', 10);
+    let res: Object = workerPort.callGlobalCallObjectMethod('myObj', 'testTimeoutFunc', 1);
     console.info(`worker: testTimeoutFunc result is ${res}`);
     if (res !== null) {
       workerPort.postMessage(res);
