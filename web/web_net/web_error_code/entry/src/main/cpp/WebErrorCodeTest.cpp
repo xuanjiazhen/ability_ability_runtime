@@ -21,7 +21,8 @@
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
 
-static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info) {
+static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess start..");
     napi_value result;
     const char *webTag = "web1211";
@@ -54,7 +55,8 @@ static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info) {
     return result;
 }
 
-static napi_value WebInitError(napi_env env, napi_callback_info info) {
+static napi_value WebInitError(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebInitError start..");
     napi_value result;
     const char *webTag = "";
@@ -69,7 +71,8 @@ static napi_value WebInitError(napi_env env, napi_callback_info info) {
     return result;
 }
 
-static napi_value WebErrorUnknow(napi_env env, napi_callback_info info) {
+static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow start..");
     ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
     ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
@@ -80,7 +83,8 @@ static napi_value WebErrorUnknow(napi_env env, napi_callback_info info) {
     return result;
 }
 
-static napi_value WebErrorInvalidParam(napi_env env, napi_callback_info info) {
+static napi_value WebErrorInvalidParam(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvalidParam start..");
     int32_t p = 6;
     int *value = &p;
@@ -99,7 +103,8 @@ static napi_value WebErrorInvalidParam(napi_env env, napi_callback_info info) {
     return result;
 }
 
-static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info info) {
+static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorSchemeRegitsterFailed start..");
     ArkWeb_ErrorCode ret = ARKWEB_SCHEME_REGISTER_FAILED;
     ArkWeb_SchemeHandler *g_schemeHandler;
@@ -111,7 +116,8 @@ static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info
     return result;
 }
 
-static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info) {
+static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledURL start..");
     ArkWeb_ErrorCode ret = ARKWEB_INVALID_URL;
     ArkWeb_SchemeHandler *g_schemeHandler;
@@ -123,7 +129,8 @@ static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info) {
     return result;
 }
 
-static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info info) {
+static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledCookieValue start..");
     ArkWeb_SchemeHandler *g_schemeHandler;
     OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
@@ -135,7 +142,8 @@ static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info in
     return result;
 }
 
-static napi_value WebErrorLibraryOpenFailure(napi_env env, napi_callback_info info) {
+static napi_value WebErrorLibraryOpenFailure(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorLibraryOpenFailure start..");
     ArkWeb_SchemeHandler *g_schemeHandler;
     OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
@@ -147,7 +155,8 @@ static napi_value WebErrorLibraryOpenFailure(napi_env env, napi_callback_info in
     return result;
 }
 
-static napi_value WebErrorLibraySymbolNotFound(napi_env env, napi_callback_info info) {
+static napi_value WebErrorLibraySymbolNotFound(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "WebErrorLibraySymbolNotFound start..");
     ArkWeb_ErrorCode ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
     ArkWeb_SchemeHandler *g_schemeHandler;
@@ -160,7 +169,8 @@ static napi_value WebErrorLibraySymbolNotFound(napi_env env, napi_callback_info 
 }
 
 EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports) {
+static napi_value Init(napi_env env, napi_value exports)
+{
     napi_property_descriptor desc[] = {
         {"webErrCodeSuccess", nullptr, WebErrorCodeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"webInitError", nullptr, WebInitError, nullptr, nullptr, nullptr, napi_default, nullptr},
