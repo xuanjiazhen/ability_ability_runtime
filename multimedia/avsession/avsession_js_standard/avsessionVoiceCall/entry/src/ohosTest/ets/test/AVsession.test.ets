@@ -2637,7 +2637,7 @@ export default function abilityTest() {
     * @tc.type      : Function
     * @tc.level     : Level 2
     */
-    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       await session.setExtras({extras : [123,'123']}, (err: BusinessError) => {
         if (err) {
           console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
@@ -2814,7 +2814,7 @@ export default function abilityTest() {
     * @tc.type      : Function
     * @tc.level     : Level 3
     */
-    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       await controller.sendAVKeyEvent(event1).then(() => {
         console.info('SendAVKeyEvent Successfully');
       }).catch((err: BusinessError) => {
