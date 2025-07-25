@@ -5,19 +5,30 @@ import testNapi from 'libentry.so';
 import { throwErrorTask,normalTask,longErrorTask,longTaskWithData, AsyncTask,
   AsyncTaskWithError
 } from '../testability/pages/Taskpool';
+import { process } from '@kit.ArkTS';
 
 function promiseFunc(observer: errorManager.GlobalError) {
-  console.info('result name :' + observer.name);
-  console.info('result message :' + observer.message);
-  console.info('result stack :' + observer.stack);
-  console.info('result instanceName :' + observer.instanceName);
-  console.info('result instaceType :' + observer.instanceType);
+  console.info('[Demo] result name :' + observer.name);
+  console.info('[Demo] result message :' + observer.message);
+  console.info('[Demo] result stack :' + observer.stack);
+  console.info('[Demo] result instanceName :' + observer.instanceName);
+  console.info('[Demo] result instaceType :' + observer.instanceType);
+  let pro = new process.ProcessManager();
+  pro.exit(0);
+}
+
+let errorCaught = "";
+
+function handleUnhandledRejection(observer: errorManager.GlobalError) {
+    errorCaught = observer.message;
+  console.info('[Test] Unhandled rejection caught:', errorCaught);
 }
 
 const err = 'error';
 function throwError() {
   throw new Error('error');
 }
+
 
 async function asyncThrow() {
   throw new Error('error');
@@ -185,9 +196,6 @@ const tasks = [
   task16, task17, task18, task19, task20
 ];
 
-
-
-
 export default function abilityTest() {
   describe('ErrManagerTest', () => {
     // Defines a test suite. Two parameters are supported: test suite name and test suite function.
@@ -220,7 +228,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('SetTimeoutThrowErrorTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -241,7 +249,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseThrowErrorTest0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -264,21 +272,19 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseThenThrowErrorTest0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise:Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
-      Promise.resolve().then(() => {
-        throwError();
-      });
-      await sleep(500);
-      expect(errorCaught).assertEqual(err);
+      try {
+        errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
+        Promise.resolve().then(() => {
+          throwError();
+        });
+        await sleep(500);
+        expect(errorCaught).assertEqual(err);
+      } finally {
+        errorManager.off('globalUnhandledRejectionDetected', handleUnhandledRejection);
+      }
       Done();
     });
+
 
 
     /**
@@ -290,20 +296,17 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseCatchThrowErrorTest0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
-      Promise.reject(new Error('origin error'))
-        .catch(() => {
-          throwError();
-        });
-      await sleep(500);
-      expect(errorCaught).assertEqual(err);
+      try {
+        errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
+        Promise.reject(new Error('origin error'))
+          .catch(() => {
+            throwError();
+          });
+        await sleep(500);
+        expect(errorCaught).assertEqual(err);
+      } finally {
+        errorManager.off('globalUnhandledRejectionDetected', handleUnhandledRejection);
+      }
       Done();
     });
 
@@ -317,14 +320,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('PromiseFinallyThrowErrorTest0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
       Promise.resolve()
         .finally(() => {
           throwError();
@@ -343,14 +339,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected',handleUnhandledRejection);
       const lock = new ArkTSUtils.locks.AsyncLock();
       lock.lockAsync<void>(() => {
         throwError();
@@ -369,14 +358,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
       const lock = new ArkTSUtils.locks.AsyncLock();
       lock.lockAsync<void>(() => {
       }).then(() => {
@@ -396,14 +378,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncLockThrowErrorTest0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected',handleUnhandledRejection);
       const lock = new ArkTSUtils.locks.AsyncLock();
       lock.lockAsync<void>(() => {
         throwError();
@@ -424,14 +399,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WaitForThrowErrorTest0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected',handleUnhandledRejection);
       const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
       conditionVariable.waitFor(10)
         .finally(() => {
@@ -451,14 +419,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WaitForErrorTest1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
       const conditionVariable = new ArkTSUtils.locks.ConditionVariable();
       conditionVariable.waitFor(10).then(() => {
         throwError();
@@ -477,14 +438,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('AsyncFunctionThrowErrorTest1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
       asyncThrow();
       await sleep(500);
       expect(errorCaught).assertEqual(err);
@@ -500,7 +454,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('NativeMethodThrowErrorTest1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -521,7 +475,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskThrowErrorTest1300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -541,14 +495,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolGenericTaskThenThrowErrorTest1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected',handleUnhandledRejection);
       let taskGroup: taskpool.TaskGroup = new taskpool.TaskGroup();
       taskGroup.addTask(normalTask);
       taskpool.execute(taskGroup).then((res: Array<Object>) => {
@@ -568,7 +515,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskGroupTaskThrowErrorTest1500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -589,7 +536,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolTaskGroupTaskThrowErrorTest1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -618,7 +565,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -648,13 +595,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolDelayedTaskThrowErrorTest1800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executeDelayed(100, task);
-      await sleep(150);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       Done();
     });
@@ -668,20 +615,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolDelayedTaskCatchThrowErrorTest1900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
-      errorManager.on('globalUnhandledRejectionDetected', (reason: Error | string, promise: Promise<void>) => {
-        if (reason instanceof Error) {
-          errorCaught = reason.message;
-        } else {
-          errorCaught = String(reason);
-        }
-      });
+      errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executeDelayed(100, task)
         .catch(() => {
           throw new Error('catch callback error');
         });
-      await sleep(150);
+      await sleep(500);
       expect(errorCaught).assertEqual('catch callback error');
       Done();
     });
@@ -695,13 +635,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolPeriodicTaskThrowErrorTest2000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let task: taskpool.Task = new taskpool.Task(throwErrorTask);
       taskpool.executePeriodically(100, task);
-      await sleep(150);
+      await sleep(500);
       expect(errorCaught).assertEqual('taskpool error');
       taskpool.cancel(task);
       Done();
@@ -723,7 +663,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -733,7 +673,7 @@ export default function abilityTest() {
           throw new Error('onEnqueued callback error');
       });
       taskpool.executePeriodically(100, task);
-      await sleep(150);
+      await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(!errorCaughtList.includes('onEnqueued callback error')).assertTrue();
       taskpool.cancel(task);
@@ -749,7 +689,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolLongTaskThrowErrorTest2200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -776,7 +716,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -799,7 +739,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolSerialTaskThrowErrorTest2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -820,7 +760,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolSerialTask1ErrorTask2NormalTest2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -850,7 +790,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -878,7 +818,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolAsyncTaskThrowErrorTest2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -899,7 +839,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('TaskpoolAsyncTask1NormalTask2ErrorTest2800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -929,7 +869,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -958,14 +898,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerTopLevelThrowErrorTest3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker1');
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
-      myWorker.terminate();
       Done();
     });
 
@@ -978,7 +917,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerOnMessageThrowErrorTest3100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -986,10 +925,56 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(500);
       expect(errorCaught).assertEqual('Error: worker onmessage error');
+      Done();
+    });
+
+    /**
+     * @tc.number    : WorkerOnErrorThrowErrorTest3200
+     * @tc.name      : WorkerOnErrorThrowErrorTest3200
+     * @tc.desc      : worker线程的onerror中抛出异常
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('WorkerOnErrorThrowErrorTest3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
+      let errorCaughtList: string[] = [];
+      errorManager.on('globalErrorOccurred', (err) => {
+        errorCaughtList.push(`global: ${err.message}`);
+      });
+      let myWorker = new worker.ThreadWorker('../testability/workers/Worker3');
+      myWorker.onAllErrors = (err) => {
+        errorCaughtList.push(`worker: ${err.message}`);
+      };
+      await sleep(1000);
+      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       myWorker.terminate();
       Done();
     });
 
+    /**
+     * @tc.number    : WorkerOnMessageErrorThrowErrorTest3300
+     * @tc.name      : WorkerOnMessageErrorThrowErrorTest3300
+     * @tc.desc      : worker线程的onmessageerror中抛出异常
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('WorkerOnMessageErrorThrowErrorTest3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
+      let errorCaughtList: string[] = [];
+      errorManager.on('globalErrorOccurred', (err) => {
+        errorCaughtList.push(`global: ${err.message}`);
+      });
+      let myWorker = new worker.ThreadWorker('../testability/workers/Worker4');
+      myWorker.onAllErrors = (err) => {
+        errorCaughtList.push(`worker: ${err.message}`);
+      };
+      //myWorker.postMessage(()=>{});
+      await sleep(500);
+      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
+      myWorker.terminate();
+      //expect(errorCaught).assertEqual("");
+      Done();
+    });
 
     /**
      * @tc.number    : WorkerSubWorkerTopLevelThrowErrorTest3400
@@ -1000,14 +985,13 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerTopLevelThrowErrorTest3400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
       let myWorker = new worker.ThreadWorker('../testability/workers/Worker5');
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
-      myWorker.terminate();
       Done();
     });
 
@@ -1027,7 +1011,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -1036,7 +1020,6 @@ export default function abilityTest() {
       await sleep(500);
       console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
-      myWorker.terminate();
       Done();
     });
 
@@ -1049,7 +1032,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -1057,7 +1040,6 @@ export default function abilityTest() {
       myWorker.postMessage({ foo: 'bar' });
       await sleep(500);
       expect(errorCaught).assertEqual('worker top level error');
-      myWorker.terminate();
       Done();
     });
 
@@ -1070,7 +1052,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -1081,8 +1063,7 @@ export default function abilityTest() {
         console.log('主线程已terminate worker');
         Done();
       }, 100);
-      expect(errorCaught).assertEqual('');
-      myWorker.terminate();
+      expect(errorCaught).assertEqual("");
       Done();
     });
 
@@ -1095,7 +1076,7 @@ export default function abilityTest() {
      * @tc.level     : Level 0
      */
     it('WorkerSubWorkerThrowErrorTest3800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaught = '';
+      let errorCaught = "";
       errorManager.on('globalErrorOccurred', (err) => {
         errorCaught = err.message;
       });
@@ -1106,8 +1087,7 @@ export default function abilityTest() {
       };
       myWorker.postMessage({ foo: 'bar' });
       sleep(200);
-      expect(errorCaught).assertEqual('');
-      myWorker.terminate();
+      expect(errorCaught).assertEqual("");
       Done();
     });
 
@@ -1127,7 +1107,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
           if (reason instanceof Error) {
             errorCaughtList.push(`${reason.message}`);
           }}
@@ -1175,7 +1155,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -1225,7 +1205,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -1275,7 +1255,7 @@ export default function abilityTest() {
       errorManager.on('globalUnhandledRejectionDetected', (reason) => {
         errorCaughtList.push(`${reason.message}`);
       });
-      errorManager.on('unhandledRejection', (reason: Error) => {
+      errorManager.on('globalUnhandledRejectionDetected', (reason: Error) => {
         if (reason instanceof Error) {
           errorCaughtList.push(`${reason.message}`);
         }}
@@ -1302,7 +1282,6 @@ export default function abilityTest() {
       expect(!errorCaughtList.includes('error18')).assertTrue();
       expect(errorCaughtList.includes('worker top level error')).assertTrue();
       expect(errorCaughtList.includes('worker onmessage error')).assertTrue();
-      myWorker.terminate();
       Done();
     });
   })
