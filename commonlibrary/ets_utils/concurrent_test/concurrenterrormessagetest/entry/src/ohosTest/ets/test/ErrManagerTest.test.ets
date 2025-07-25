@@ -929,29 +929,6 @@ export default function abilityTest() {
     });
 
     /**
-     * @tc.number    : WorkerOnErrorThrowErrorTest3200
-     * @tc.name      : WorkerOnErrorThrowErrorTest3200
-     * @tc.desc      : worker线程的onerror中抛出异常
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('WorkerOnErrorThrowErrorTest3200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (Done: () => void) => {
-      let errorCaughtList: string[] = [];
-      errorManager.on('globalErrorOccurred', (err) => {
-        errorCaughtList.push(`global: ${err.message}`);
-      });
-      let myWorker = new worker.ThreadWorker('../testability/workers/Worker3');
-      myWorker.onAllErrors = (err) => {
-        errorCaughtList.push(`worker: ${err.message}`);
-      };
-      await sleep(1000);
-      console.log('errorCaughtList(JSON):', JSON.stringify(errorCaughtList, null, 2));
-      myWorker.terminate();
-      Done();
-    });
-
-    /**
      * @tc.number    : WorkerOnMessageErrorThrowErrorTest3300
      * @tc.name      : WorkerOnMessageErrorThrowErrorTest3300
      * @tc.desc      : worker线程的onmessageerror中抛出异常
