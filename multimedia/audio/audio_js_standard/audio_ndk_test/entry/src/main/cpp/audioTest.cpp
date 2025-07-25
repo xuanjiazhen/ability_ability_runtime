@@ -5027,6 +5027,405 @@ static napi_value AudioSessionManagerReason_002(napi_env env, napi_callback_info
     return res;
 }
 
+static void MyStateCallback(OH_AudioSession_StateChangedEvent event)
+{
+    return;
+}
+
+static void MyDeviceCallback(OH_AudioDeviceDescriptorArray *devices,
+    OH_AudioStream_DeviceChangeReason changeReason,
+    OH_AudioSession_OutputDeviceChangeRecommendedAction recommendedAction)
+{
+    return;
+}
+
+static napi_value AudioSessionManagerSetScene_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioSession_Scene scene = AUDIO_SESSION_SCENE_MEDIA;
+    result = OH_AudioSessionManager_SetScene(audioSessionManager, scene);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("SetScene fail AUDIO_SESSION_SCENE_MEDIA, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    scene = AUDIO_SESSION_SCENE_GAME;
+    result = OH_AudioSessionManager_SetScene(audioSessionManager, scene);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("SetScene fail AUDIO_SESSION_SCENE_GAME, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    scene = AUDIO_SESSION_SCENE_VOICE_COMMUNICATION;
+    result = OH_AudioSessionManager_SetScene(audioSessionManager, scene);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("SetScene fail AUDIO_SESSION_SCENE_VOICE_COMMUNICATION, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterStateChangeCallback_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    result = OH_AudioSessionManager_UnregisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterStateChangeCallback_002(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterStateChangeCallback(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterStateChangeCallback(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterStateChangeCallback_003(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback double fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterStateChangeCallback(audioSessionManager, MyStateCallback);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback double fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerSetDefaultOutputDevice_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioDevice_Type deviceTypeGet = AUDIO_DEVICE_TYPE_EARPIECE;
+    result = OH_AudioSessionManager_GetDefaultOutputDevice(audioSessionManager, &deviceTypeGet);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS || deviceTypeGet != AUDIO_DEVICE_TYPE_INVALID) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("GetDefaultOutputDevice fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioDevice_Type deviceType = AUDIO_DEVICE_TYPE_DEFAULT;
+    result = OH_AudioSessionManager_SetDefaultOutputDevice(audioSessionManager, deviceType);
+    if ((result != AUDIOCOMMON_RESULT_SUCCESS) && (result != AUDIOCOMMON_RESULT_ERROR_SYSTEM)) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("SetDefaultOutputDevice AUDIO_DEVICE_TYPE_DEFAULT fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_GetDefaultOutputDevice(audioSessionManager, &deviceTypeGet);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("GetDefaultOutputDevice  fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerSetDefaultOutputDevice_002(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioDevice_Type deviceType = AUDIO_DEVICE_TYPE_INVALID;
+    result = OH_AudioSessionManager_SetDefaultOutputDevice(audioSessionManager, deviceType);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("SetDefaultOutputDevice fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerGetDefaultOutputDevice_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_GetDefaultOutputDevice(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("GetDefaultOutputDevice fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterDeviceCallback_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    result = OH_AudioSessionManager_UnregisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterDeviceCallback_002(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterCurrentOutputDeviceChangeCallback(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterCurrentOutputDeviceChangeCallback(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerRegisterDeviceCallback_003(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_RegisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("RegisterStateChangeCallback double fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_UnregisterCurrentOutputDeviceChangeCallback(audioSessionManager, MyDeviceCallback);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("UnregisterStateChangeCallback double fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerReleaseDevices_001(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioRoutingManager *audioRoutingManager = nullptr;
+    result = OH_AudioManager_GetAudioRoutingManager(&audioRoutingManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio route manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    OH_AudioDevice_Flag deviceFlag = AUDIO_DEVICE_FLAG_OUTPUT;
+    OH_AudioDeviceDescriptorArray *array = nullptr;
+    result = OH_AudioRoutingManager_GetDevices(audioRoutingManager, deviceFlag, &array);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS || array == nullptr) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("AudioRoutingManager_GetDevices fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_ReleaseDevices(audioSessionManager, array);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("AudioSessionManager_ReleaseDevices fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
+static napi_value AudioSessionManagerReleaseDevices_002(napi_env env, napi_callback_info info)
+{
+    napi_value res;
+    OH_AudioSessionManager *audioSessionManager = nullptr;
+    OH_AudioCommon_Result result = OH_AudioManager_GetAudioSessionManager(&audioSessionManager);
+    if (result != AUDIOCOMMON_RESULT_SUCCESS) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("get audio session manager fail, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_ReleaseDevices(nullptr, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("AudioSessionManager_ReleaseDevices fail, manager nullptr, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+
+    result = OH_AudioSessionManager_ReleaseDevices(audioSessionManager, nullptr);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("AudioSessionManager_ReleaseDevices fail, devices nullptr, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    OH_AudioDeviceDescriptorArray audioDeviceDescriptorArray;
+    audioDeviceDescriptorArray.descriptors = nullptr;
+
+    result = OH_AudioSessionManager_ReleaseDevices(audioSessionManager, &audioDeviceDescriptorArray);
+    if (result != AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM) {
+        napi_create_int32(env, TEST_FAIL, &res);
+        LOG("AudioSessionManager_ReleaseDevices fail, descriptors nullptr, result is: %{public}d", TEST_FAIL);
+        return res;
+    }
+    napi_create_int32(env, TEST_PASS, &res);
+    return res;
+}
+
 static napi_value AudioRendererSetDefaultOutputDevice_01(napi_env env, napi_callback_info info)
 {
     napi_value res;
@@ -7206,6 +7605,30 @@ napi_property_descriptor desc2[] = {
         AudioSessionManagerReason_001, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"AudioSessionManagerReason_002", nullptr,
         AudioSessionManagerReason_002, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerSetScene_001", nullptr,
+        AudioSessionManagerSetScene_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterStateChangeCallback_001", nullptr,
+        AudioSessionManagerRegisterStateChangeCallback_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterStateChangeCallback_002", nullptr,
+        AudioSessionManagerRegisterStateChangeCallback_002, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterStateChangeCallback_003", nullptr,
+        AudioSessionManagerRegisterStateChangeCallback_003, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerSetDefaultOutputDevice_001", nullptr,
+        AudioSessionManagerSetDefaultOutputDevice_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerSetDefaultOutputDevice_002", nullptr,
+        AudioSessionManagerSetDefaultOutputDevice_002, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerGetDefaultOutputDevice_001", nullptr,
+        AudioSessionManagerGetDefaultOutputDevice_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterDeviceCallback_001", nullptr,
+        AudioSessionManagerRegisterDeviceCallback_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterDeviceCallback_002", nullptr,
+        AudioSessionManagerRegisterDeviceCallback_002, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerRegisterDeviceCallback_003", nullptr,
+        AudioSessionManagerRegisterDeviceCallback_003, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerReleaseDevices_001", nullptr,
+        AudioSessionManagerReleaseDevices_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioSessionManagerReleaseDevices_002", nullptr,
+        AudioSessionManagerReleaseDevices_002, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioRendererSetDefaultOutputDevice_01", nullptr,
         AudioRendererSetDefaultOutputDevice_01, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioRendererSetDefaultOutputDevice_02", nullptr,
