@@ -54,6 +54,8 @@ public:
 private:
     bool CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const;
 
+    ani_object CallObjectMethod(const char *name, const char *signature, ...);
+
     std::shared_ptr<AppExecFwk::EtsDelegatorAbilityStageProperty> CreateStageProperty() const;
 
     std::string GetHapModuleProp(const std::string &propName) const;
