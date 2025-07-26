@@ -458,6 +458,7 @@ export default function geolocationTest_LocErr(){
          * @tc.level     : Level 1
          */
         it('testAddGnssGeofence05', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async function (done) {
+            let geofenceUnsupportFlag = 0;
             var isAcessToken = canIUse("SystemCapability.Location.Location.Geofence");
             console.info("testAddGnssGeofence05 : " + isAcessToken);
             if (!isAcessToken) {
@@ -483,19 +484,27 @@ export default function geolocationTest_LocErr(){
                         await geolocationm.addGnssGeofence(gnssGeofenceRequest);
                     } catch(error) {
                         console.error("addGnssGeofence failed, err:" + JSON.stringify(error));
+                        if (error.code == 801) {
+                            expect(true).assertTrue();
+                            geofenceUnsupportFlag = 1;
+                            done();
+                            break;
+                        }
                     }
                 }
 
-                try {
-                    await geolocationm.addGnssGeofence(gnssGeofenceRequest).then((id) => {
-                    }).catch((error) => {
+                if (geofenceUnsupportFlag == 0) {
+                    try {
+                        await geolocationm.addGnssGeofence(gnssGeofenceRequest).then((id) => {
+                        }).catch((error) => {
+                            console.error("addGnssGeofence failed, err:" + JSON.stringify(error));
+                            expect(error.code).assertEqual(3301601);
+                        });
+                    } catch(error) {
                         console.error("addGnssGeofence failed, err:" + JSON.stringify(error));
-                        expect(error.code).assertEqual(3301601);
-                    });
-                } catch(error) {
-                    console.error("addGnssGeofence failed, err:" + JSON.stringify(error));
+                    }
+                    done();
                 }
-                done();
             }
         })
 
