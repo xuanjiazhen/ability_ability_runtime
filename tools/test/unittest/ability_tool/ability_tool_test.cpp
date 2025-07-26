@@ -480,6 +480,8 @@ HWTEST_F(AbilityToolTest, AbilityTool_Test_0400, TestSize.Level1)
         const_cast<char*>("com.example.abilitytooltest"),
     };
     int argc = sizeof(argv) / sizeof(argv[0]);
+    // aa tool : -s unittest is not mandatory parameter
+    // ability tool: -s unittest is mandatory parameter
     AbilityToolCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), ABILITY_TOOL_HELP_LACK_OPTIONS + "\n" + ABILITY_TOOL_HELP_MSG_TEST);
 }
