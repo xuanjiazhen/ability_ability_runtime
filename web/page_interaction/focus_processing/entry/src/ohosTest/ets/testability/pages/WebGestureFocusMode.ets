@@ -74,6 +74,9 @@ struct WebComponent {
         Button("WebController click").key('WebGestureFocusModeButton').onClick(async () => {
           console.info("key==>" + this.str)
           await waitForExist(()=>this.isReceive, this.str, 0);
+          let webRect = Utils.getComponentRect('WebViewGestureFocusMode');
+          let X = Utils.getRectHorizontalCenterX(webRect)
+          let Y = Utils.getRectVerticalCenterY(webRect)
           switch (this.str) {
             case "testWebGestureFocusMode001": {
               try {
@@ -131,10 +134,6 @@ struct WebComponent {
             case "testWebGestureFocusMode004": {
               try {
                 this.flagType = 'webOnscroll'
-                let webRect = Utils.getComponentRect('WebViewGestureFocusMode');
-                let X = Utils.getRectHorizontalCenterX(webRect)
-                let Y = Utils.getRectVerticalCenterY(webRect)
-                this.controller.refresh();
                 this.controller.loadUrl("www.example.com");
                 await Utils.sleep(2000);
                 this.controller.loadUrl($rawfile('inputmode.html'));
@@ -155,7 +154,7 @@ struct WebComponent {
                 } else {
                   this.inputMethodController.hideTextInput()
                 }
-                await Utils.sleep(2000);
+                await Utils.sleep(1000);
                 await driver.swipe(X, Y, X, Y-800);
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
