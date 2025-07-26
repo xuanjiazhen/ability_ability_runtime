@@ -216,8 +216,10 @@ static napi_value Init(napi_env env, napi_value exports)
         {"saveCookieAsyncNullptr", nullptr, SaveCookieAsyncNullptr, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"saveCookieAsyncThread", nullptr, SaveCookieAsyncThread, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"saveCookieAsyncCallback", nullptr, SaveCookieAsyncCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getSaveCookieSyncThreadResult", nullptr, GetSaveCookieSyncThreadResult, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getSaveCookieAsyncCallbackResult", nullptr, GetSaveCookieAsyncCallbackResult, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getSaveCookieSyncThreadResult", nullptr, GetSaveCookieSyncThreadResult, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"getSaveCookieAsyncCallbackResult", nullptr, GetSaveCookieAsyncCallbackResult, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
