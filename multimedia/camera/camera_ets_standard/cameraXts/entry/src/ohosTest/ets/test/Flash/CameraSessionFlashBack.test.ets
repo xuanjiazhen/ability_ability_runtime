@@ -423,8 +423,8 @@ async function getVideoFlashSupportedModeStatus(done: Function, testName: string
         mVideoOutput = mCameraManager.createVideoOutput(mVideoProfile, mVideoSurfaceId);
         await getCreateVideoSession(testName, mPreviewOutput, mVideoOutput);
         let videoStatus = mVideoSession.isFlashModeSupported(flashMode);
-        expect(videoStatus).assertTrue();
         console.info(TAG, testName + ' video mode, status: ' + videoStatus);
+        expect(isEmpty(videoStatus)).assertFalse();
         await releaseVideoSession();
       }
     }

@@ -1757,7 +1757,7 @@ export default function CameraVideoSessionTest() {
     /**
      * @tc.number    : CAMERA_VIDEO_SESSION_047
      * @tc.name      : commitConfig_video_preconfig_callback_abnormal_001
-     * @tc.desc      : commitConfig-callback-preConfig, ratio->-1
+     * @tc.desc      : commitConfig-callback-preConfig, ratio->abnormalIndex
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 2
@@ -1770,7 +1770,7 @@ export default function CameraVideoSessionTest() {
     /**
      * @tc.number    : CAMERA_VIDEO_SESSION_048
      * @tc.name      : commitConfig_video_preconfig_callback_abnormal_002
-     * @tc.desc      : commitConfig-callback-preConfig, type->-1, ratio->PRECONFIG_RATIO_16_9
+     * @tc.desc      : commitConfig-callback-preConfig, type->abnormalIndex, ratio->PRECONFIG_RATIO_16_9
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 2
@@ -1783,7 +1783,7 @@ export default function CameraVideoSessionTest() {
     /**
      * @tc.number    : CAMERA_VIDEO_SESSION_049
      * @tc.name      : commitConfig_video_preconfig_callback_abnormal_003
-     * @tc.desc      : commitConfig-callback-preConfig, ratio->abnormalIndex
+     * @tc.desc      : commitConfig-callback-preConfig, ratio->undefined
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 2
@@ -1836,7 +1836,7 @@ export default function CameraVideoSessionTest() {
     /**
      * @tc.number    : CAMERA_VIDEO_SESSION_053
      * @tc.name      : commitConfig_video_preconfig_promise_abnormal_003
-     * @tc.desc      : commitConfig-promise-preConfig, ratio->abnormalIndex
+     * @tc.desc      : commitConfig-promise-preConfig, ratio->undefined
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 2
