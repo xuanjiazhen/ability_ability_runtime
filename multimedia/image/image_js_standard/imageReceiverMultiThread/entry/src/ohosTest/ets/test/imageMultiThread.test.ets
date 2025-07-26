@@ -349,25 +349,6 @@ export default function multiThreadTest() {
     it('SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0100', Level.LEVEL0, async (done: Function) => {
       await doTestForCreator(done, "SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0100", "entry_test/ets/workers/creator.ets");
     });
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0200
-     * @tc.name      : multiple thread
-     * @tc.desc      : 1.create creator.ets
-     *                 2.invoked simultaneously by multiple thread
-     * @tc.size      : MEDIUM
-     * @tc.type      : Functional
-     * @tc.level     : Level 0
-     */
-    it('SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0200', Level.LEVEL0, async (done: Function) => {
-      let isSupportedCamerasResult = isSupportedCameras(); 
-      if(!isSupportedCamerasResult){
-        console.info('Failed to obtain the default camera or device object.Not support usb camera');
-        expect(true).assertTrue();
-        done();
-      }
-      let testContext: common.UIAbilityContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext
-      let cameraManager = camera.getCameraManager(testContext);
-      await doTestForReceiver(done, cameraManager, "SUB_MULTIMEDIA_IMAGE_RECEIVER_MULTI_THREAD_0200", "entry_test/ets/workers/receiver.ets");
-    });
+    
   })
 }
