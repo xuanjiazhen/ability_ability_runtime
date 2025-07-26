@@ -24,6 +24,8 @@
 
 #include "ability_delegator_registry.h"
 #include "ani_common_configuration.h"
+#include "ani_common_want.h"
+#include "ani_enum_convert.h"
 #include "configuration_convertor.h"
 #include "ets_ability_stage_context.h"
 #include "freeze_util.h"
@@ -40,6 +42,9 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+constexpr const char* MEMORY_LEVEL_ENUM_NAME =
+    "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
 
 AbilityStage *ETSAbilityStage::Create(
     const std::unique_ptr<Runtime>& runtime, const AppExecFwk::HapModuleInfo& hapModuleInfo)
@@ -128,12 +133,46 @@ void ETSAbilityStage::OnDestroy() const
 
 std::string ETSAbilityStage::OnAcceptWant(const AAFwk::Want &want)
 {
-    return std::string();
+    TAG_LOGD(AAFwkTag::APPKIT, "OnAcceptWant called");
+    AbilityStage::OnAcceptWant(want);
+
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env nullptr");
+        return "";
+    }
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+    std::string strResult;
+    ani_object resObj = CallObjectMethod("onAcceptWant", "L@ohos/app/ability/Want/Want;:Lstd/core/String;", wantRef);
+    ani_string ani_result = reinterpret_cast<ani_string>(resObj);
+    if (!OHOS::AppExecFwk::GetStdString(env, ani_result, strResult)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ani_result GetStdString failed");
+    }
+    return strResult;
 }
 
 std::string ETSAbilityStage::OnNewProcessRequest(const AAFwk::Want &want)
 {
-    return std::string();
+    TAG_LOGD(AAFwkTag::APPKIT, "OnNewProcessRequest called");
+    AbilityStage::OnNewProcessRequest(want);
+
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env nullptr");
+        return "";
+    }
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+
+    std::string strResult;
+    ani_object resObj = CallObjectMethod("onNewProcessRequest",
+        "L@ohos/app/ability/Want/Want;:Lstd/core/String;", wantRef);
+
+    ani_string ani_result = reinterpret_cast<ani_string>(resObj);
+
+    if (!OHOS::AppExecFwk::GetStdString(env, ani_result, strResult)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ani_result GetStdString failed");
+    }
+    return strResult;
 }
 
 void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)
@@ -166,6 +205,56 @@ void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &co
 
 void ETSAbilityStage::OnMemoryLevel(int32_t level)
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "OnMemoryLevel called");
+    AbilityStage::OnMemoryLevel(level);
+
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "env nullptr");
+        return;
+    }
+    ani_enum_item memoryLevelItem {};
+    OHOS::AAFwk::AniEnumConvertUtil::EnumConvertNativeToSts(env,
+        MEMORY_LEVEL_ENUM_NAME, level, memoryLevelItem);
+
+    CallObjectMethod(false, "onMemoryLevel", "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;:V",
+        memoryLevelItem);
+    TAG_LOGD(AAFwkTag::APPKIT, "end");
+}
+
+ani_object ETSAbilityStage::CallObjectMethod(const char *name, const char *signature, ...)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
+    TAG_LOGD(AAFwkTag::UIABILITY, "StsUIAbility call sts, name: %{public}s", name);
+    if (stsAbilityStageObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null stsAbilityObj");
+        return nullptr;
+    }
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return nullptr;
+    }
+    auto obj = stsAbilityStageObj_->aniObj;
+    auto cls = stsAbilityStageObj_->aniCls;
+    ani_status status = ANI_ERROR;
+
+    ani_method method {};
+    if ((status = env->Class_FindMethod(cls, name, signature, &method)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        env->ResetError();
+        return nullptr;
+    }
+    ani_ref res {};
+    va_list args;
+    va_start(args, signature);
+    if ((status = env->Object_CallMethod_Ref(obj, method, &res, args)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        etsRuntime_.HandleUncaughtError();
+        return nullptr;
+    }
+    va_end(args);
+    return reinterpret_cast<ani_object>(res);
 }
 
 bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const
