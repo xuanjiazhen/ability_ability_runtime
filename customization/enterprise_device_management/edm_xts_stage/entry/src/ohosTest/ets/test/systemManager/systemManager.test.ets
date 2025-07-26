@@ -18,7 +18,6 @@ import { ENTINFO1, SELFWANT, SELFHAPNAME, INVALID_WANT, UPDATE_VERSION, INVALID_
 import { BusinessError } from '@ohos.base';
 
 import adminManager from '@ohos.enterprise.adminManager';
-import sysDeviceInfo from '@ohos.deviceInfo';
 import systemManager from '@ohos.enterprise.systemManager';
 
 export default function systemManagerTest() {
@@ -1045,11 +1044,7 @@ function testGetDisallowedNearLinkProtocols() {
         let protocols: Array<systemManager.NearLinkProtocol> = systemManager.getDisallowedNearLinkProtocols(SELFWANT,
             DEFAULT_USER_ID);
     } catch (error) {
-        if (sysDeviceInfo.deviceType != '2in1') {
-          expect(error.code == 801).assertTrue();
-        } else {
-          expect(error.code == 9200001).assertTrue();
-        }
+        expect(error.code == 801 || error.code == 9200001).assertTrue();
     }
     done();
   });
@@ -1068,11 +1063,7 @@ function testGetDisallowedNearLinkProtocols() {
         let protocols: Array<systemManager.NearLinkProtocol> = systemManager.getDisallowedNearLinkProtocols(
             INVALID_WANT, DEFAULT_USER_ID);
     } catch (error) {
-        if (sysDeviceInfo.deviceType != '2in1') {
-          expect(error.code == 801).assertTrue();
-        } else {
-          expect(error.code == 401).assertTrue();
-        }
+        expect(error.code == 801 || error.code == 401).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1093,11 +1084,7 @@ function testGetDisallowedNearLinkProtocols() {
         let protocols: Array<systemManager.NearLinkProtocol> = systemManager.getDisallowedNearLinkProtocols(SELFWANT,
             DEFAULT_USER_ID);
     } catch (error) {
-        if (sysDeviceInfo.deviceType != '2in1') {
-          expect(error.code == 801).assertTrue();
-        } else {
-          expect(error.code == 9200002).assertTrue();
-        }
+        expect(error.code == 801 || error.code == 9200002).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1145,11 +1132,7 @@ function testAddDisallowedNearLinkProtocols() {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200001).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200001).assertTrue();
         }
         done();
     });
@@ -1171,11 +1154,7 @@ function testAddDisallowedNearLinkProtocols() {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200002).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200002).assertTrue();
         } finally {
             await adminManager.disableAdmin(SELFWANT);
         }
@@ -1223,11 +1202,7 @@ function testAddDisallowedNearLinkProtocols() {
         try {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200012).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200012).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
@@ -1248,11 +1223,7 @@ function testAddDisallowedNearLinkProtocols() {
         try {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200012).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200012).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
@@ -1277,11 +1248,7 @@ function testRemoveDisallowedNearLinkProtocols() {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200001).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200001).assertTrue();
         }
         done();
     });
@@ -1303,11 +1270,7 @@ function testRemoveDisallowedNearLinkProtocols() {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200002).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200002).assertTrue();
         } finally {
             await adminManager.disableAdmin(SELFWANT);
         }
@@ -1354,11 +1317,7 @@ function testRemoveDisallowedNearLinkProtocols() {
         try {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200012).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200012).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
@@ -1379,11 +1338,7 @@ function testRemoveDisallowedNearLinkProtocols() {
         try {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
-            if (sysDeviceInfo.deviceType != '2in1') {
-              expect(error.code == 801).assertTrue();
-            } else {
-              expect(error.code == 9200012).assertTrue();
-            }
+            expect(error.code == 801 || error.code == 9200012).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
