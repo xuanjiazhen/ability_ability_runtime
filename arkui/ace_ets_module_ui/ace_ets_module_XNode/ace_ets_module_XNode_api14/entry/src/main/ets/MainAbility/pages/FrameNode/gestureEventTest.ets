@@ -23,7 +23,7 @@ class MyNodeController extends NodeController {
 
   makeNode(uiContext: UIContext): FrameNode | null {
     this.rootNode = new FrameNode(uiContext);
-    this.rootNode.commonAttribute.width(100)
+    this.rootNode.commonAttribute
       .overlay('This is a FrameNode')
       .backgroundColor(Color.Pink)
       .width('100%')
@@ -76,10 +76,11 @@ struct gestureEventTest {
         .id('getpanGestureInfo')
 
       NodeContainer(this.myNodeController)
+        .align(Alignment.Center)
         .id('gestureEventTest_node')
         .borderWidth(1)
-        .width(300)
-        .height(300)
+        .width('50%')
+        .height('50%')
     }.width('100%')
   }
 }
