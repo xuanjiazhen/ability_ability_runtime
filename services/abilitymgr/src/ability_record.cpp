@@ -557,6 +557,7 @@ void AbilityRecord::RemoveForegroundTimeoutTask()
 {
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
     CHECK_POINTER(handler);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RemoveForegroundTimeoutTask recordId:%{public}" PRId64, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::FOREGROUND_HALF_TIMEOUT_MSG, GetAbilityRecordId());
     handler->RemoveEvent(AbilityManagerService::FOREGROUND_TIMEOUT_MSG, GetAbilityRecordId());
 }
