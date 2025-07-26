@@ -114,7 +114,7 @@ export default function printTest() {
       // Permissions required: ohos.permission.PRINT
       print.print(file, (err: BusinessError, printTask: print.PrintTask) => {
         try {
-          if (err) {  
+          if (err) {
             console.log('print_function_0200 expect failed, err: ' + JSON.stringify(err));
             expect(err).assertEqual(401);
             done();
@@ -232,7 +232,7 @@ export default function printTest() {
 
     class MyPrintDocumentAdapter implements print.PrintDocumentAdapter {
       onStartLayoutWrite(jobId: string, oldAttrs: print.PrintAttributes, newAttrs: print.PrintAttributes, fd: number,
-                         writeResultCallback: (jobId: string, writeResult: print.PrintFileCreationState) => void) {
+        writeResultCallback: (jobId: string, writeResult: print.PrintFileCreationState) => void) {
         writeResultCallback(jobId, print.PrintFileCreationState.PRINT_FILE_CREATED);
         writeResultCallback(jobId, print.PrintFileCreationState.PRINT_FILE_CREATION_FAILED);
         writeResultCallback(jobId, print.PrintFileCreationState.PRINT_FILE_CREATED_UNRENDERED);
@@ -471,7 +471,7 @@ export default function printTest() {
           console.log('addPrinterToDiscovery expect failed, error: ' + JSON.stringify(error));
           expect(error).assertEqual(401);
           done();
-      })
+        })
     })
 
     /**
@@ -559,7 +559,7 @@ export default function printTest() {
           console.log('updatePrinterInDiscovery expect failed, error: ' + JSON.stringify(error));
           expect(error).assertEqual(401);
           done();
-      })
+        })
     })
 
     /**
@@ -607,7 +607,7 @@ export default function printTest() {
           console.log('removePrinterFromDiscovery expect failed, error: ' + JSON.stringify(error));
           expect(error).assertEqual(401);
           done();
-      })
+        })
     })
 
     /**
@@ -684,7 +684,7 @@ export default function printTest() {
           console.log('getPrinterInformationById expect failed, error: ' + JSON.stringify(error));
           expect(error).assertEqual(401);
           done();
-      })
+        })
     })
 
     /**
@@ -733,6 +733,7 @@ export default function printTest() {
         print.PrintJobSubState.PRINT_JOB_BLOCK_LOW_ON_TONER,
         print.PrintJobSubState.PRINT_JOB_BLOCK_REALLY_LOW_ON_INK,
         print.PrintJobSubState.PRINT_JOB_BLOCK_BAD_CERTIFICATE,
+        print.PrintJobSubState.PRINT_JOB_BLOCK_DRIVER_EXCEPTION,
         print.PrintJobSubState.PRINT_JOB_BLOCK_ACCOUNT_ERROR,
         print.PrintJobSubState.PRINT_JOB_BLOCK_PRINT_PERMISSION_ERROR,
         print.PrintJobSubState.PRINT_JOB_BLOCK_PRINT_COLOR_PERMISSION_ERROR,
@@ -744,6 +745,9 @@ export default function printTest() {
         print.PrintJobSubState.PRINT_JOB_RUNNING_UPLOADING_FILES,
         print.PrintJobSubState.PRINT_JOB_RUNNING_CONVERTING_FILES,
         print.PrintJobSubState.PRINT_JOB_BLOCK_FILE_UPLOADING_ERROR,
+        print.PrintJobSubState.PRINT_JOB_BLOCK_DRIVER_MISSING,
+        print.PrintJobSubState.PRINT_JOB_BLOCK_INTERRUPT,
+        print.PrintJobSubState.PRINT_JOB_BLOCK_PRINTER_UNAVAILABLE,
         print.PrintJobSubState.PRINT_JOB_BLOCK_UNKNOWN
       ];
       console.log('jobSubStates: ' + JSON.stringify(jobSubStates));
@@ -811,7 +815,7 @@ export default function printTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('print_function_1100', Level.LEVEL2, async (done: Function) => {
+    it('print_function_1100', Level.LEVEL1, async (done: Function) => {
       // Permissions required: ohos.permission.PRINT
       await print.getAddedPrinters().then((printers : Array<string>) => {
         console.log('getAddedPrinters expect succeed, data: ' + JSON.stringify(printers));
@@ -832,7 +836,7 @@ export default function printTest() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('print_function_1200', Level.LEVEL2, async (done: Function) => {
+    it('print_function_1200', Level.LEVEL1, async (done: Function) => {
       let callBackCount : number = 0;
       let onPrinterChange =
         (event: print.PrinterEvent, printerInformation: print.PrinterInformation) => {
@@ -884,6 +888,148 @@ export default function printTest() {
         expect().assertFalse();
         done();
       }
+    })
+
+    /**
+     * @tc.number print_function_1300
+     * @tc.name Test print
+     * @tc.desc check success of startDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1300', Level.LEVEL1, async (done: Function) => {
+      let extensionList: string[] = [];
+      // Permissions required: ohos.permission.PRINT
+      print.startDiscoverPrinter(extensionList, (err: BusinessError, data: void) => {
+        try {
+          if (err) {
+            expect(err).assertTrue();
+            done();
+          } else {
+            console.log('print_function_1300 expect success');
+            expect(data).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1301
+     * @tc.name Test print
+     * @tc.desc check success of startDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1301', Level.LEVEL1, async (done: Function) => {
+      let extensionList: string[] = [];
+      // Permissions required: ohos.permission.PRINT
+      await print.startDiscoverPrinter(extensionList).then((data: void) => {
+        console.log('print_function_1301 expect success');
+        expect(data).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        expect(err).assertTrue();
+        done();
+      })
+    })
+
+    /**
+     * @tc.number print_function_1400
+     * @tc.name Test print
+     * @tc.desc check success of stopDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1400', Level.LEVEL1, async (done: Function) => {
+      // Permissions required: ohos.permission.PRINT
+      print.stopDiscoverPrinter((err: BusinessError, data: void) => {
+        try {
+          if (err) {
+            expect(err).assertTrue();
+            done();
+          } else {
+            console.log('print_function_1400 expect success');
+            expect(data).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1401
+     * @tc.name Test print
+     * @tc.desc check success of stopDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1401', Level.LEVEL1, async (done: Function) => {
+      // Permissions required: ohos.permission.PRINT
+      await print.stopDiscoverPrinter().then((data: void) => {
+        console.log('print_function_1401 expect success');
+        expect(data).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        expect(err).assertTrue();
+        done();
+      })
+    })
+
+    /**
+     * @tc.number print_function_1500
+     * @tc.name Test print
+     * @tc.desc check success of connectPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1500', Level.LEVEL1, async (done: Function) => {
+      let printId: string = '123';
+      // Permissions required: ohos.permission.PRINT
+      print.connectPrinter(printId, (err: BusinessError) => {
+        try {
+          if (err) {
+            console.log('print_function_1500 expect failed by required real printer');
+            expect(err).assertEqual(13100005);
+            done();
+          } else {
+            expect(false).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1501
+     * @tc.name Test print
+     * @tc.desc check success of connectPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1501', Level.LEVEL1, async (done: Function) => {
+      let printId: string = '123';
+      // Permissions required: ohos.permission.PRINT
+      await print.connectPrinter(printId).then((data:void) => {
+        expect(false).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        console.log('print_function_1501 expect failed by required real printer');
+        expect(err).assertEqual(13100005);
+        done();
+      })
     })
   })
 }
