@@ -241,6 +241,65 @@ export default function effectKitBTest() {
         done()
       })
     })
-
+    
+    /**
+     * @tc.number    : testGetEffectPixelMap_useCpuRender1
+     * @tc.name      : testGetEffectPixelMap_useCpuRender1
+     * @tc.desc      : test getEffectPixelMap useCpuRender
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testGetEffectPixelMap_useCpuRender1', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      const color = new ArrayBuffer(96);
+      let opts : image.InitializationOptions = {
+        editable: true,
+        pixelFormat: 3,
+        size: {
+          height: 4,
+          width: 6
+        }
+      };
+      image.createPixelMap(color, opts).then((pixelMap) => {
+        effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(false).then(data => {
+          console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
+          expect(true).assertTrue();
+          done();
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+          done();
+        })
+      })
+    })
+    
+    /**
+     * @tc.number    : testGetEffectPixelMap_useCpuRender2
+     * @tc.name      : testGetEffectPixelMap_useCpuRender2
+     * @tc.desc      : test getEffectPixelMap useCpuRender
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level1
+     */
+    it('testGetEffectPixelMap_useCpuRender2', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, (done: Function) => {
+      const color = new ArrayBuffer(96);
+      let opts : image.InitializationOptions = {
+        editable: true,
+        pixelFormat: 3,
+        size: {
+          height: 4,
+          width: 6
+        }
+      };
+      image.createPixelMap(color, opts).then((pixelMap) => {
+        effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(true).then(data => {
+          console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
+          expect(true).assertTrue();
+          done();
+        }).catch((err: BusinessError) => {
+          expect().assertFail();
+          done();
+        })
+      })
+    })
   })
 }

@@ -284,5 +284,42 @@ export default function colorSpaceManagerTest(context: common.UIAbilityContext, 
       }
     })
 
+    /**
+     * @tc.number    : testColorSpace_create001
+     * @tc.name      : testColorSpace_create001
+     * @tc.desc      : test ColorSpaceManager ErrorCode
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testColorSpace_create001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let colorSpace: colorSpaceManager.colorSpaceManager;
+      try {
+        let primaries: colorSpaceManager.ColorSpacePrimaries = {
+          redX: 0.1,
+          redY: 0.1,
+          greenX: 0.2,
+          greenY: 0.2,
+          blueX: 0.3,
+          blueY: 0.3,
+          whitePointX: 0.4,
+          whitePointY: 0.4
+        };
+        let gamma = 2.2;
+        try {
+          colorSpace = colorSpaceManager.create(primaries, null);
+          expect().assertFail();
+          done();
+        } catch(err){
+          expect(Number(err.code) == 401).assertTrue();
+          done();
+        }
+      } catch (err) {
+        console.log('test enum value of ColorSpace Manager error ' + JSON.stringify(err));
+        expect.assertFail();
+        done();
+      }
+    })
+
   })
 }
