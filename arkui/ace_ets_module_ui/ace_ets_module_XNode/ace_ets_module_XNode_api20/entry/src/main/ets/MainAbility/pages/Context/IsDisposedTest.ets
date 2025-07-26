@@ -37,7 +37,6 @@ class MyNodeController extends NodeController {
   public renderNodeBeforeValue: string  = '';
   public renderNodeAfterValue: string  = '';
   public nodeAdapterBeforeValue: string  = '';
-  public nodeAdapterAfterValue: string  = '';
 
   makeNode(uiContext: UIContext): FrameNode | null {
     this.rootNode = new FrameNode(uiContext);
@@ -83,9 +82,6 @@ class MyNodeController extends NodeController {
       this.renderNodeAfterValue = this.renderNode.isDisposed() + '';
       console.log(`jerry before NodeAdapter dispose: isDisposed=`, this.nodeAdapter.isDisposed());
       this.nodeAdapterBeforeValue = this.nodeAdapter.isDisposed() + '';
-      this.nodeAdapter.dispose();
-      console.log(`jerry after NodeAdapter dispose: isDisposed=`, this.nodeAdapter.isDisposed());
-      this.nodeAdapterAfterValue = this.nodeAdapter.isDisposed() + '';
     }
   }
 }
@@ -103,7 +99,6 @@ struct Index {
   @State renderNodeBeforeValue: string  = '6';
   @State renderNodeAfterValue: string  = '5';
   @State nodeAdapterBeforeValue: string  = '2';
-  @State ndeAdapterAfterValue: string  = '0';
   @State componentContentBeforeValue: string  = '9';
   @State componentContentAfterValue: string  = '9';
 
@@ -132,7 +127,6 @@ struct Index {
           this.renderNodeBeforeValue = this.myNodeController.renderNodeBeforeValue
           this.renderNodeAfterValue = this.myNodeController.renderNodeAfterValue
           this.nodeAdapterBeforeValue = this.myNodeController.nodeAdapterBeforeValue
-          this.ndeAdapterAfterValue = this.myNodeController.nodeAdapterAfterValue
 
           this.promptAction?.closeCustomDialog(this.contentNode);
           console.log(`jerry before ComponentContent dispose: isDisposed=`, this.contentNode?.isDisposed());
@@ -151,7 +145,6 @@ struct Index {
       Text(`${this.renderNodeBeforeValue}`).height('2%').id('RenderNodeBeforeValue')
       Text(`${this.renderNodeAfterValue}`).height('2%').id('RenderNodeAfterValue')
       Text(`${this.nodeAdapterBeforeValue}`).height('2%').id('NodeAdapterBeforeValue')
-      Text(`${this.ndeAdapterAfterValue}`).height('2%').id('NodeAdapterAfterValue')
       Text(`${this.componentContentBeforeValue}`).height('2%').id('ComponentContentBeforeValue')
       Text(`${this.componentContentAfterValue}`).height('2%').id('ComponentContentAfterValue')
 
