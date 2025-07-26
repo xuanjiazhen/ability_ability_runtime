@@ -143,10 +143,10 @@ struct WebComponent {
                 await buttonOne.click()
                 await Utils.sleep(2000);
                 //关闭软键盘方法
-                let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
-                if (softKeyBoard != null) {
-                  await driver.pressBack()
-                }
+                //let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+                //if (softKeyBoard != null) {
+                  //await driver.pressBack()
+                //}
                 //关闭软键盘方法
                 let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
                 if (buttonTwo) {
