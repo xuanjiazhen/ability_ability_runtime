@@ -293,7 +293,7 @@ export default function colorSpaceManagerTest(context: common.UIAbilityContext, 
      * @tc.level     : Level3
      */
     it('testColorSpace_create001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      let colorSpace: colorSpaceManager.colorSpaceManager;
+      let colorSpace: colorSpaceManager.ColorSpaceManager;
       try {
         let primaries: colorSpaceManager.ColorSpacePrimaries = {
           redX: 0.1,
