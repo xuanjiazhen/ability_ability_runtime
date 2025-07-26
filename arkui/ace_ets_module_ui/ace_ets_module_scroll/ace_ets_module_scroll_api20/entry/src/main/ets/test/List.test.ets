@@ -35,6 +35,7 @@ import syncLoadFlow from './WaterFlowTest/syncLoadFlow.test';
 import stateChange from './SwiperTest/stateChange.test';
 import zoomScaleScroll from './ScrollTest/zoomScaleScroll.test';
 import zoomScaleNull from './ScrollTest/zoomScaleNull.test';
+import animationCurve from './TabsTest/animationCurve.test';
 
 export default function testsuite() {
   barHeightNoMinHeightLimit();
@@ -59,4 +60,5 @@ export default function testsuite() {
   stateChange()
   zoomScaleScroll()
   zoomScaleNull()
+  animationCurve()
 }
