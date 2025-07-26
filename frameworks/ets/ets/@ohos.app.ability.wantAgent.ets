@@ -22,6 +22,8 @@ import AsyncCallbackWrapper from './utils/AbilityUtils';
 namespace wantAgent {
   loadLibrary("aniwantagent.z");
 
+  export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
   class Cleaner {
     public ptr: long = 0;
 
@@ -323,7 +325,7 @@ namespace wantAgent {
     want: Want;
     finalCode: int;
     finalData: string;
-    extraInfo?: Record<string, Object>;
+    extraInfo?: RecordData;
   }
 
   class CompleteDataImpl implements CompleteData {
@@ -331,7 +333,7 @@ namespace wantAgent {
     public want: Want;
     public finalCode: int;
     public finalData: string;
-    public extraInfo?: Record<string, Object>;
+    public extraInfo?: RecordData;
   }
 
   export type TriggerInfo = _TriggerInfo;

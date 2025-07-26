@@ -29,6 +29,8 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 class Cleaner {
   public ptr: long = 0;
 
@@ -138,7 +140,7 @@ export default class UIAbilityContext extends Context {
 
   private native nativeSetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
 
-  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>,
+  private native nativeStartAbilityByTypeSync(type: string, wantParam: RecordData,
     startCallback: AbilityStartCallback): BusinessError;
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
@@ -438,7 +440,7 @@ export default class UIAbilityContext extends Context {
     this.nativeSetColorMode(colorMode);
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
       return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
@@ -455,7 +457,7 @@ export default class UIAbilityContext extends Context {
     });
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>,
+  startAbilityByType(type: string, wantParam: RecordData,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
       let p1 = taskpool.execute((): BusinessError => {

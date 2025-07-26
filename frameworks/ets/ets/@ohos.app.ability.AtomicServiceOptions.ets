@@ -15,7 +15,9 @@
 
 import StartOptions from '@ohos.app.ability.StartOptions';
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 export default class AtomicServiceOptions extends StartOptions {
   flags?: int;
-  parameters?: Record<string, Object>;
+  parameters?: RecordData;
 }
