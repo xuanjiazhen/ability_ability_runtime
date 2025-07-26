@@ -156,7 +156,7 @@ struct WebComponent {
                   this.inputMethodController.hideTextInput()
                 }
                 await Utils.sleep(2000);
-                await driver.swipe(X, Y, X, Y-300);
+                await driver.swipe(X, Y, X, Y-800);
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
               }
