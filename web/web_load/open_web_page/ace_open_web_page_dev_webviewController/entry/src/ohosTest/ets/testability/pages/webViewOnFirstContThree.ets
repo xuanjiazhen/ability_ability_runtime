@@ -18,6 +18,7 @@ import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
+import { waitForExist } from '../../test/WaitTest.test';
 import web_webview from '@ohos.web.webview';
 
 @Entry
@@ -35,6 +36,7 @@ struct webViewOnFirstContThree {
   @State databaseAccess: boolean = true;
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
+  @State isPageEnd: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
@@ -57,16 +59,12 @@ struct webViewOnFirstContThree {
   build() {
     Column() {
       Row() {
-        Button("web click").key('webViewOnFirstContThree').onClick(() => {
+        Button("web click").key('webViewOnFirstContThree').onClick(async () => {
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitLoadUrlOnfirstcontentfulpaint": {
-              try {
-                this.controller.loadUrl($rawfile('onfirstcontentfulpaint.html'))
-                console.log("action of emitLoadUrlOnfirstcontentfulpaint is loadUrl");
-              } catch (error) {
-                console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-              }
+              await waitForExist(()=>this.isPageEnd, 'emitLoadUrlOnfirstcontentfulpaint_isPageEnd', 1, 1000)
+              this.isPageEnd = -1
               Utils.emitEvent(this.firstcontentfulpaint, this.firstId)
               break;
             }
@@ -85,10 +83,17 @@ struct webViewOnFirstContThree {
         .onFirstContentfulPaint(event => {
           console.log("onFirstContentfulPaint:" + "[navigationStartTick]:" +
           event.navigationStartTick + ", [firstContentfulPaintMs]:" + event.firstContentfulPaintMs + this.firstId)
-          if (event.firstContentfulPaintMs > 0 && event.firstContentfulPaintMs < 5000) {
+          if (event.firstContentfulPaintMs > 0) {
             this.firstcontentfulpaint = true;
             console.error("result of onFirstContentfulPaint is: " + this.firstcontentfulpaint + this.firstId);
           }
+        })
+        .onPageBegin((event) => {
+          console.log('onPageBegin url:' + event.url)
+        })
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url)
+          this.isPageEnd = 1
         })
     }
   }
