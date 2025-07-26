@@ -541,5 +541,147 @@ export default function printTest() {
         done();
       }
     })
+
+    /**
+     * @tc.number print_function_1300
+     * @tc.name Test print
+     * @tc.desc check success of startDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1300', Level.LEVEL1, async (done: Function) => {
+      let extensionList: string[] = [];
+      // Permissions required: ohos.permission.PRINT
+      print.startDiscoverPrinter(extensionList, (err: BusinessError) => {
+        try {
+          if (err) {
+            console.log('print_function_1300 expect failed');
+            expect(err).assertEqual(201);
+            done();
+          } else {
+            expect(false).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1301
+     * @tc.name Test print
+     * @tc.desc check success of startDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1301', Level.LEVEL1, async (done: Function) => {
+      let extensionList: string[] = [];
+      // Permissions required: ohos.permission.PRINT
+      await print.startDiscoverPrinter(extensionList).then((data: void) => {
+        expect(false).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        console.log('print_function_1301 expect failed');
+        expect(err).assertEqual(201);
+        done();
+      })
+    })
+
+    /**
+     * @tc.number print_function_1400
+     * @tc.name Test print
+     * @tc.desc check success of stopDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1400', Level.LEVEL1, async (done: Function) => {
+      // Permissions required: ohos.permission.PRINT
+      print.stopDiscoverPrinter((err: BusinessError) => {
+        try {
+          if (err) {
+            console.log('print_function_1400 expect failed');
+            expect(err).assertEqual(201);
+            done();
+          } else {
+            expect(false).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1401
+     * @tc.name Test print
+     * @tc.desc check success of stopDiscoverPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1401', Level.LEVEL1, async (done: Function) => {
+      // Permissions required: ohos.permission.PRINT
+      await print.stopDiscoverPrinter().then(() => {
+        expect(false).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        console.log('print_function_1401 expect failed');
+        expect(err).assertEqual(201);
+        done();
+      })
+    })
+
+    /**
+     * @tc.number print_function_1500
+     * @tc.name Test print
+     * @tc.desc check success of connectPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1500', Level.LEVEL1, async (done: Function) => {
+      let printId: string = '123';
+      // Permissions required: ohos.permission.PRINT
+      print.connectPrinter(printId, (err: BusinessError) => {
+        try {
+          if (err) {
+            console.log('print_function_1500 expect failed');
+            expect(err).assertEqual(201);
+            done();
+          } else {
+            expect(false).assertTrue();
+            done();
+          }
+        } catch (error) {
+          done();
+        }
+      })
+    })
+
+    /**
+     * @tc.number print_function_1501
+     * @tc.name Test print
+     * @tc.desc check success of connectPrinter function
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('print_function_1501', Level.LEVEL1, async (done: Function) => {
+      let printId: string = '123';
+      // Permissions required: ohos.permission.PRINT
+      await print.connectPrinter(printId).then(() => {
+        expect(false).assertTrue();
+        done();
+      }).catch((err: BusinessError) => {
+        console.log('print_function_1501 expect failed');
+        expect(err).assertEqual(201);
+        done();
+      })
+    })
   })
 }
