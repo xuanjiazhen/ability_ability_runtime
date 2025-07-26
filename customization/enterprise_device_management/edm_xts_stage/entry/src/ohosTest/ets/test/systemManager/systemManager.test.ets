@@ -1244,7 +1244,18 @@ function testAddDisallowedNearLinkProtocols() {
      */
     it('test_add_disallowed_nearlink_protocols_0005', Level.LEVEL2, async (done: Function) => {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        let nearlinkProtocols: Array<number> = new Array(10001);
+        let nearlinkProtocols: Array<number> = new Array();
+        nearlinkProtocols.push(1);
+        nearlinkProtocols.push(2);
+        nearlinkProtocols.push(3);
+        nearlinkProtocols.push(4);
+        nearlinkProtocols.push(5);
+        nearlinkProtocols.push(6);
+        nearlinkProtocols.push(7);
+        nearlinkProtocols.push(8);
+        nearlinkProtocols.push(9);
+        nearlinkProtocols.push(10);
+        nearlinkProtocols.push(11);
         try {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
@@ -1375,7 +1386,18 @@ function testRemoveDisallowedNearLinkProtocols() {
      */
     it('test_remove_disallowed_nearlink_protocols_0005', Level.LEVEL2, async (done: Function) => {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-        let nearlinkProtocols: Array<number> = new Array(10001);
+        let nearlinkProtocols: Array<number> = new Array();
+        nearlinkProtocols.push(1);
+        nearlinkProtocols.push(2);
+        nearlinkProtocols.push(3);
+        nearlinkProtocols.push(4);
+        nearlinkProtocols.push(5);
+        nearlinkProtocols.push(6);
+        nearlinkProtocols.push(7);
+        nearlinkProtocols.push(8);
+        nearlinkProtocols.push(9);
+        nearlinkProtocols.push(10);
+        nearlinkProtocols.push(11);
         try {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
         } catch (error) {
