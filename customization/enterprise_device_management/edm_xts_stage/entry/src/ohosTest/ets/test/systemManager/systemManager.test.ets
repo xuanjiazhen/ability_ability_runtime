@@ -1107,7 +1107,7 @@ function testGetDisallowedNearLinkProtocols() {
       expect(protocols).not().assertNull();
       expect(protocols.length).assertEqual(0);
     } catch (error) {
-      expect(false).assertTrue();
+      expect(error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -1180,7 +1180,7 @@ function testAddDisallowedNearLinkProtocols() {
                 systemManager.getDisallowedNearLinkProtocols(SELFWANT, DEFAULT_USER_ID);
             expect(protocols.length == nearlinkProtocols.length).assertTrue();
         } catch (error) {
-            expect(false).assertTrue();
+            expect(error.code == 801).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
@@ -1296,7 +1296,7 @@ function testRemoveDisallowedNearLinkProtocols() {
                 systemManager.getDisallowedNearLinkProtocols(SELFWANT, DEFAULT_USER_ID);
             expect(protocols.length == 0).assertTrue();
         } catch (error) {
-            expect(false).assertTrue();
+            expect(error.code == 801).assertTrue();
         } finally {
             await adminManager.disableSuperAdmin(SELFHAPNAME);
         }
