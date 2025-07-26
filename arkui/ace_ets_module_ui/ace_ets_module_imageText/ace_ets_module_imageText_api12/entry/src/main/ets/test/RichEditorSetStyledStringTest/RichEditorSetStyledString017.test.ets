@@ -57,7 +57,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0052
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0052
      * @tc.desc  : Validate the fontColor attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -69,8 +69,6 @@ export default function RichEditorSetStyledString017() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString017'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
       let get_fontColor = await driver.findComponent(ON.id('get_fontColor'));
       await get_fontColor.click();
       await CommonFunc.sleep(500);
@@ -83,7 +81,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0053
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0053
      * @tc.desc  : Validate the fontSize attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -101,7 +99,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0054
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0054
      * @tc.desc  : Validate the fontStyle attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -119,7 +117,7 @@ export default function RichEditorSetStyledString017() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0055
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0055
      * @tc.desc  : Validate the fontWeight attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

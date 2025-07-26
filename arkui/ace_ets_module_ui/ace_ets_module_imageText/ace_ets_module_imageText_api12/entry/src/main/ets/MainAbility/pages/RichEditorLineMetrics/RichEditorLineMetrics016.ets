@@ -33,7 +33,9 @@ struct RichEditorLineMetrics016 {
           console.log('RichEditorController 1 lineMetrics1:' +  JSON.stringify(lineMetrics1));
           this.lineMetrics2 = JSON.stringify(lineMetrics1);
         })
-        .margin({ bottom: 20, top: 10 })
+        .height('5%')
+      Text('lineMetrics(0):' + this.lineMetrics1).id('lineMetrics1')
+      Text('lineMetrics(1):' + this.lineMetrics2).id('lineMetrics2')
       RichEditor({ controller: this.controller })
         .width(200)
         .onReady(() => {
@@ -44,8 +46,7 @@ struct RichEditorLineMetrics016 {
           console.log('RichEditorController value:' + JSON.stringify(value));
         })
         .id('RichEditorLineMetrics016')
-      Text('lineMetrics(0):' + this.lineMetrics1).id('lineMetrics1')
-      Text('lineMetrics(1):' + this.lineMetrics2).id('lineMetrics2')
+      
     }
   }
 }

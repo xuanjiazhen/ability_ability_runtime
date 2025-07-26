@@ -42,7 +42,7 @@ export default function TextCommonTextComputing4() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0160
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0160
      * @tc.desc  : Test MeasureTextSize when fontStyle passes to Normal, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing4() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0170
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0170
      * @tc.desc  : Test MeasureTextSize when fontStyle passes to Italic, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing4() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0190
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0190
      * @tc.desc  : Test MeasureTextSize when fontStyle passes to -100, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing4() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0270
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0270
      * @tc.desc  : Test MeasureTextSize when fontFamily passes to $(app.string.fontFanily), view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -174,7 +174,7 @@ export default function TextCommonTextComputing4() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0280
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0280
      * @tc.desc  : Test MeasureTextSize when fontFamily set value, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

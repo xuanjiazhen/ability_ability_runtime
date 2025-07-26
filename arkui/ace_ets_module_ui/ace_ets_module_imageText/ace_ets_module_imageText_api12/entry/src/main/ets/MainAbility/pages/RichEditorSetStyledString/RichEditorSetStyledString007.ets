@@ -87,19 +87,19 @@ struct RichEditorSetStyledString007 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('image_top')
+      }).id('image_top').height('5%')
 
       Text('lengthStr:' + this.lengthStr).id('lengthStr')
 
       Button('get length').onClick(() => {
         this.lengthStr = this.controller.getStyledString().length + '';
-      }).id('get_length')
+      }).id('get_length').height('5%')
 
       Button('clear').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.clearStyles();
         this.controller.setStyledString(this.richEditorStyledString);
-      }).id('clear')
+      }).id('clear').height('5%')
 
       RichEditor(this.options)
         .onReady(() => {
@@ -117,7 +117,7 @@ struct RichEditorSetStyledString007 {
             this.richEditorStyledString.appendStyledString(this.styledString);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('add_text')
+          }).id('add_text').height('5%')
         }
 
       }

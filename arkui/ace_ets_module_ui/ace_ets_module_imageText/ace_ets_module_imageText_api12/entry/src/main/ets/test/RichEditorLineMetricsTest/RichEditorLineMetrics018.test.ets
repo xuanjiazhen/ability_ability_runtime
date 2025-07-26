@@ -56,7 +56,7 @@ export default function RichEditorLineMetrics018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0023
-     * @tc.name  : Test the RichEditor LineMetrics
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEMETRICS_0023
      * @tc.desc  : Test RichEditor LineMetrics by using setLineMetrics (0)+getLineMetrics (1) with only multiple lines of whitespace
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorLineMetrics018() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLineMetrics018'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let getFirst = await driver.findComponent(ON.id('getFirst'));
       await getFirst.click();

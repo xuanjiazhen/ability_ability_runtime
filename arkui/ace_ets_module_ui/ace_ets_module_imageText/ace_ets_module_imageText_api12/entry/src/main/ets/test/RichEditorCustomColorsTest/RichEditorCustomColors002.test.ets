@@ -55,7 +55,7 @@ export default function RichEditorCustomColors002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMCOLORS_0026
-     * @tc.name  : Test the RichEditor custom cursor color
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMCOLORS_0026
      * @tc.desc  : Custom color external mouse test RichEditor custom cursor color
      * @tc.size: MediumTest
      * @tc.type: Function

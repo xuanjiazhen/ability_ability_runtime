@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0021
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0021
      * @tc.desc  : Replace with images using replaceStyledSstring() CustomSpan、 The attribute string of the string is tested to the specified position using RichEditor Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,8 +68,7 @@ export default function RichEditorCustomSpan014() {
       let rich = await driver.findComponent(ON.id('RichEditorCustomSpan014'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y );
-      await CommonFunc.sleep(500);
+
       let imageTop = await driver.findComponent(ON.id('imageTop'));
       await imageTop.click();
       await CommonFunc.sleep(500);
@@ -98,7 +97,7 @@ export default function RichEditorCustomSpan014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0022
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0022
      * @tc.desc  : Test RichEditor Custom Span by replacing the attribute string with only a string to the specified position using replaceStyledSString()
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -128,7 +127,7 @@ export default function RichEditorCustomSpan014() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0023
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0023
      * @tc.desc  : Replace the attribute string containing only the Custom Span with replaceStyledString () to the specified location to test RichEditor Custom Span
      * @tc.size: MediumTest
      * @tc.type: Function

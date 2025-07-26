@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0015
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0015
      * @tc.desc  : Set the specified range content through setStyle() to test the new style of the specified type to  test the RichEditor CustomSpan
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,8 +68,7 @@ export default function RichEditorCustomSpan010() {
       let rich = await driver.findComponent(ON.id('RichEditorCustomSpan010'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y );
-      await CommonFunc.sleep(1000);
+
       let addCustom = await driver.findComponent(ON.id('addCustom'));
       await addCustom.click();
       await CommonFunc.sleep(500);

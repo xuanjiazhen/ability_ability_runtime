@@ -53,10 +53,10 @@ export default function RichEditorUxConFormance005() {
       }
       done();
     });
-
+    let resourceSize = getContext().resourceManager.getNumber($r('sys.float.ohos_id_text_font_size').id)
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002
      * @tc.desc  : Set font size to 0 to test RichEditor UXConformance
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorUxConFormance005() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorUxConFormance005'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let get_spans = await driver.findComponent(ON.id('get_spans'));
       await get_spans.click();
@@ -77,13 +75,13 @@ export default function RichEditorUxConFormance005() {
       let spanInfo = await driver.findComponent(ON.id('spanInfo'));
       let spanInfoText = await spanInfo.getText();
       await CommonFunc.sleep(500);
-      expect(spanInfoText.indexOf('"fontSize":16') > 0).assertEqual(true);
+      expect(spanInfoText.indexOf('"fontSize":'+px2vp(resourceSize)) > 0).assertEqual(true);
       done();
     });
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003
      * @tc.desc  : Set negative font size to test RichEditor UXCorrormance
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -94,8 +92,6 @@ export default function RichEditorUxConFormance005() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorUxConFormance005'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let updateSpanStyle = await driver.findComponent(ON.id('updateSpanStyle'));
       await updateSpanStyle.click();
@@ -108,7 +104,7 @@ export default function RichEditorUxConFormance005() {
       let spanInfo = await driver.findComponent(ON.id('spanInfo'));
       let spanInfoText = await spanInfo.getText();
       await CommonFunc.sleep(500);
-      expect(spanInfoText.indexOf('"fontSize":16') > 0).assertEqual(true);
+      expect(spanInfoText.indexOf('"fontSize":'+px2vp(resourceSize)) > 0).assertEqual(true);
       done();
     });
 

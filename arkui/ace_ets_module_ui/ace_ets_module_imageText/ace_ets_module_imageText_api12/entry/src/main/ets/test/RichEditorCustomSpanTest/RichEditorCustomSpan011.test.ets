@@ -56,7 +56,7 @@ export default function RichEditorCustomSpan011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0016
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0016
      * @tc.desc  : Through the specified type style of the specified range content through removeStyle(), the removal position is only one CustomSpan to test RichEditor CustomSpan
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,8 +68,7 @@ export default function RichEditorCustomSpan011() {
       let rich = await driver.findComponent(ON.id('RichEditorCustomSpan011'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y );
-      await CommonFunc.sleep(1000);
+
       let addCustom = await driver.findComponent(ON.id('addCustom'));
       await addCustom.click();
       await CommonFunc.sleep(500);
@@ -88,7 +87,7 @@ export default function RichEditorCustomSpan011() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0017
-     * @tc.name  : Test the RichEditor CustomSpan
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_CUSTOMSPAN_0017
      * @tc.desc  : Through the specified type style of the specified range content through Removestyleo, the removal position is only multi CustomSpan to test RichEditor CustomSpan
      * @tc.size: MediumTest
      * @tc.type: Function

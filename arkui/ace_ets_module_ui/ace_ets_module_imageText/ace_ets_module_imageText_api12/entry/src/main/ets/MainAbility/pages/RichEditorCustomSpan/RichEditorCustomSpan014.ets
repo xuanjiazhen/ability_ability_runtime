@@ -89,14 +89,14 @@ struct RichEditorCustomSpan014 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('imageTop')
+      }).id('imageTop').height('5%')
       Button('getStyles')
         .onClick(() => {
           this.richEditorStyledString = this.controller.getStyledString();
           let styles = this.richEditorStyledString.getStyles(0, this.richEditorStyledString.length);
           this.stylesInfo = JSON.stringify(styles);
         })
-        .id('getStyles')
+        .id('getStyles').height('5%')
       Button('replaceStyledString').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.replaceStyledString(0, 4, this.mutableStyledString1);
@@ -113,25 +113,25 @@ struct RichEditorCustomSpan014 {
         this.richEditorStyledString.replaceStyledString(5, 1, this.style2);
         this.controller.setStyledString(this.richEditorStyledString);
         this.controller.setCaretOffset(this.richEditorStyledString.length);
-      }).id('replaceStyledString')
+      }).id('replaceStyledString').height('5%')
 
       Button('replace String').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.replaceStyledString(0, 4, this.mutableStyledString2);
         this.controller.setStyledString(this.richEditorStyledString);
         this.controller.setCaretOffset(this.richEditorStyledString.length);
-      }).id('replaceString')
+      }).id('replaceString').height('5%')
 
       Button('replace Custom').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.replaceStyledString(6, 1, this.style3);
         this.controller.setStyledString(this.richEditorStyledString);
         this.controller.setCaretOffset(this.richEditorStyledString.length);
-      }).id('replaceCustom')
+      }).id('replaceCustom').height('5%')
 
       Button('get style String').onClick(() => {
         this.styleString = this.controller.getStyledString().getString();
-      }).id('getString')
+      }).id('getString').height('5%')
       Column() {
         Row() {
           Button('add custom').onClick(() => {
@@ -139,7 +139,7 @@ struct RichEditorCustomSpan014 {
             this.richEditorStyledString.appendStyledString(this.style1);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('addCustom')
+          }).id('addCustom').height('5%')
         }
       }
       .width('100%')

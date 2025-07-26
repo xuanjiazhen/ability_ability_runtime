@@ -80,21 +80,21 @@ struct RichEditorCustomSpan015 {
           let styles = this.richEditorStyledString.getStyles(0, this.richEditorStyledString.length);
           this.stylesInfo = JSON.stringify(styles);
         })
-        .id('getStyles')
+        .id('getStyles').height('5%')
 
       Button('insertStyledString').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.insertStyledString(4, this.style1);
         this.controller.setStyledString(this.richEditorStyledString);
         this.controller.setCaretOffset(this.richEditorStyledString.length);
-      }).id('insertStyledString')
+      }).id('insertStyledString').height('5%')
 
       Button('appendStyledString').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.appendStyledString(this.style2);
         this.controller.setStyledString(this.richEditorStyledString);
         this.controller.setCaretOffset(this.richEditorStyledString.length);
-      }).id('appendStyledString')
+      }).id('appendStyledString').height('5%')
 
       Text('stylesInfo:' + this.stylesInfo).id('stylesInfo')
 

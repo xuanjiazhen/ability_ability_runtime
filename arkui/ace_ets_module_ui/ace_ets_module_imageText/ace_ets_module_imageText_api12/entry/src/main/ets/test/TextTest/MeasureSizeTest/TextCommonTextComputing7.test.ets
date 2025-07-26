@@ -42,7 +42,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0370
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0370
      * @tc.desc  : Test MeasureTextSize when overflow passes to Text0verflow.Ellipsis, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0380
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0380
      * @tc.desc  : Test MeasureTextSize when overflow passes to Text0verflow.Clip, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0390
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0390
      * @tc.desc  : Test MeasureTextSize when overflow passes to Text0verflow.None, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0400
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0400
      * @tc.desc  : Test MeasureTextSize when overflow passes to Text0verflow.Marquee, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -174,7 +174,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0410
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0410
      * @tc.desc  : Test MeasureTextSize when textCase passes to TextCase.Normal, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -207,7 +207,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0420
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0420
      * @tc.desc  : Test MeasureTextSize when textCase passes to TextCase.LowerCase, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -240,7 +240,7 @@ export default function TextCommonTextComputing7() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0430
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0430
      * @tc.desc  : Test MeasureTextSize when textCase passes to TextCase.UpperCase, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

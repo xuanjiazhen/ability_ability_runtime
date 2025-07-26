@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledStrin_000120
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledStrin_000120
      * @tc.desc  : Test RichEditor setStyledString by using 'equals' to determine if two attribute strings are equal for an image
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,9 +68,6 @@ export default function RichEditorSetStyledString002() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString002'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-
-      await driver.click(getBounds.x, getBounds.y );
-      await CommonFunc.sleep(1000);
 
       let add_image = await driver.findComponent(ON.id('add_image'));
       await add_image.click();

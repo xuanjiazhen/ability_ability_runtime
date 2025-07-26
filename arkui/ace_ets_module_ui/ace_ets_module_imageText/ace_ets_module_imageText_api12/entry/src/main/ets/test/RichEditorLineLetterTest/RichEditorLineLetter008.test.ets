@@ -56,7 +56,7 @@ export default function RichEditorLineLetter008() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEHEIGHT_LETTERSPACING_0005
-     * @tc.name  : Test the RichEditor LineHeight and LetterSpacing
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LINEHEIGHT_LETTERSPACING_0005
      * @tc.desc  : Set the lineHeight value to "30.40" and letter spacing value to "30.40 *" for plain text content to test RichEditor LineHeight and LetterSpacing
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorLineLetter008() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLineLetter008'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let textStyle = await driver.findComponent(ON.id('textStyle'));
       let textStyleText = await textStyle.getText();

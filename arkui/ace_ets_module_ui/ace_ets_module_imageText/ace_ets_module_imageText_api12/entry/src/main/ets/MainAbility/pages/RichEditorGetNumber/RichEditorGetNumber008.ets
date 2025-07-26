@@ -28,7 +28,7 @@ struct RichEditorGetNumber008 {
     fontWeight: FontWeight.Lighter,
     fontFamily: Utils.FONT_FAMILY,
     fontColor: Color.Green,
-    fontSize: LengthMetrics.vp(30),
+    fontSize: LengthMetrics.vp(10),
     fontStyle: FontStyle.Normal
   })
   fontStyle1: TextStyle = new TextStyle({ fontColor: Color.Blue });
@@ -36,7 +36,7 @@ struct RichEditorGetNumber008 {
     fontWeight: FontWeight.Bolder,
     fontFamily: 'Arial',
     fontColor: Color.Orange,
-    fontSize: LengthMetrics.vp(30),
+    fontSize: LengthMetrics.vp(10),
     fontStyle: FontStyle.Italic
   })
   // 创建属性字符串对象

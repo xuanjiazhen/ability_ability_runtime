@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0058
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0058
      * @tc.desc  : Validate the textShadow attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,8 +68,6 @@ export default function RichEditorSetStyledString018() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString018'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
       let get_style = await driver.findComponent(ON.id('get_style'));
       await get_style.click();
       await CommonFunc.sleep(500);
@@ -82,7 +80,7 @@ export default function RichEditorSetStyledString018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0059
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0059
      * @tc.desc  : Validate the baselineOffset attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -100,7 +98,7 @@ export default function RichEditorSetStyledString018() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0061
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0061
      * @tc.desc  : Validate the backgroundColor attribute of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

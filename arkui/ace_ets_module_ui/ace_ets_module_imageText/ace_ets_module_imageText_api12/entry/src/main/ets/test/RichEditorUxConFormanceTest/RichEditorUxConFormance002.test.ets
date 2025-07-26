@@ -56,7 +56,7 @@ export default function RichEditorUxConFormance002() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0001
-     * @tc.name  : Test the RichEditor UXConformance
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0001
      * @tc.desc  : Do not set font size to test RichEditor UXConformance
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorUxConFormance002() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorUxConFormance002'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let get_spans = await driver.findComponent(ON.id('get_spans'));
       await get_spans.click();

@@ -49,15 +49,16 @@ struct TextCommonTextComputing0050 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0050_1).key('textComputing0050_1')
-          Text('width: ' + this.textComputing0050_12).key('textComputing0050_12')
-          Text('width: ' + this.textComputing0050_2.width).key('textComputing0050_2')
-          Text('width: ' + this.textComputing0050_22.width).key('textComputing0050_22')
+          Text('width: ' + this.textComputing0050_1).key('textComputing0050_1').height('5%')
+          Text('width: ' + this.textComputing0050_12).key('textComputing0050_12').height('5%')
+          Text('width: ' + this.textComputing0050_2.width).key('textComputing0050_2').height('5%')
+          Text('width: ' + this.textComputing0050_22.width).key('textComputing0050_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('conWidth_200vp')
-            .id('conWidth_200vp').margin(20)
+            .id('conWidth_200vp')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure constraintWidth 200vp';
               let size = getContext().resourceManager.getNumber($r('app.float.text_con_width'));
@@ -84,7 +85,8 @@ struct TextCommonTextComputing0050 {
               })
             })
           Button('conWidth_calc')
-            .id('conWidth_calc').margin(20)
+            .id('conWidth_calc')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure constraintWidth calc(20%-50px)';
               this.textComputing0050_1 = this.measure.measureText({
@@ -108,11 +110,12 @@ struct TextCommonTextComputing0050 {
                 constraintWidth: 'calc(20%-50px)'
               })
             })
-        }.width('100%')
+        }.width('100%').height('5%')
 
         Row() {
           Button('conWidth_90abc')
-            .id('conWidth_90abc').margin({ left: 20 })
+            .id('conWidth_90abc')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure constraintWidth 90abc';
               this.textComputing0050_1 = this.measure.measureText({
@@ -137,7 +140,8 @@ struct TextCommonTextComputing0050 {
               })
             })
           Button('conWidth_50%')
-            .id('conWidth_50').margin({ left: 20 })
+            .id('conWidth_50')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure constraintWidth 50%';
               this.textComputing0050_1 = this.measure.measureText({
@@ -161,7 +165,7 @@ struct TextCommonTextComputing0050 {
                 constraintWidth: '50%'
               })
             })
-        }.width('100%')
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

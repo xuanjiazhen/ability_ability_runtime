@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString010() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0020
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0020
      * @tc.desc  : Call insertString to insert a string after the mixed content of text and text to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,8 +68,6 @@ export default function RichEditorSetStyledString010() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString010'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-      await driver.click(getBounds.x, getBounds.y );
-      await CommonFunc.sleep(1000);
       let image_top = await driver.findComponent(ON.id('image_top'));
       await image_top.click();
       await CommonFunc.sleep(500);

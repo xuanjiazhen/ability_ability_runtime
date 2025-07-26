@@ -88,7 +88,7 @@ struct RichEditorSetStyledString006 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('image_top')
+      }).id('image_top').height('5%')
 
       Button('get content').onClick(() => {
         let imageArray = this.richEditorStyledString.getStyles(11, 1, StyledStringKey.IMAGE);
@@ -107,14 +107,14 @@ struct RichEditorSetStyledString006 {
           }
         }
         console.log('RichEditorController this.content:' + this.content);
-      }).id('get_content')
+      }).id('get_content').height('5%')
 
       Text('content:' + this.content).id('content')
       Text('lengthStr:' + this.lengthStr).id('lengthStr')
 
       Button('get length').onClick(() => {
         this.lengthStr = this.controller.getStyledString().length + '';
-      }).id('get_length')
+      }).id('get_length').height('5%')
 
       Button('update style').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
@@ -132,13 +132,13 @@ struct RichEditorSetStyledString006 {
         })
         this.controller.setStyledString(this.richEditorStyledString);
         this.content = '';
-      }).id('update_style')
+      }).id('update_style').height('5%')
 
       Button('remove').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.removeStyles(6, 6);
         this.controller.setStyledString(this.richEditorStyledString);
-      }).id('remove')
+      }).id('remove').height('5%')
 
       RichEditor(this.options)
         .onReady(() => {
@@ -156,7 +156,7 @@ struct RichEditorSetStyledString006 {
             this.richEditorStyledString.appendStyledString(this.styledString);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('add_text')
+          }).id('add_text').height('5%')
         }
 
       }

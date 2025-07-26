@@ -49,15 +49,16 @@ struct TextCommonTextComputing0200 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0200_1).key('textComputing0200_1')
-          Text('width: ' + this.textComputing0200_12).key('textComputing0200_12')
-          Text('width: ' + this.textComputing0200_2.width).key('textComputing0200_2')
-          Text('width: ' + this.textComputing0200_22.width).key('textComputing0200_22')
+          Text('width: ' + this.textComputing0200_1).key('textComputing0200_1').height('5%')
+          Text('width: ' + this.textComputing0200_12).key('textComputing0200_12').height('5%')
+          Text('width: ' + this.textComputing0200_2.width).key('textComputing0200_2').height('5%')
+          Text('width: ' + this.textComputing0200_22.width).key('textComputing0200_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('fontWeight_Bold')
-            .id('fontWeight_Bold').margin(10)
+            .id('fontWeight_Bold')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight.Bold';
               this.textComputing0200_1 = this.measure.measureText({
@@ -82,7 +83,8 @@ struct TextCommonTextComputing0200 {
               })
             })
           Button('fontWeight_Medium')
-            .id('fontWeight_Medium').margin(10)
+            .id('fontWeight_Medium')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight.Medium';
               this.textComputing0200_1 = this.measure.measureText({
@@ -106,11 +108,12 @@ struct TextCommonTextComputing0200 {
                 fontWeight: FontWeight.Medium
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('fontWeight_Lighter')
-            .id('fontWeight_Lighter').margin({ left: 10 })
+            .id('fontWeight_Lighter')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight.Lighter';
               this.textComputing0200_1 = this.measure.measureText({
@@ -135,7 +138,8 @@ struct TextCommonTextComputing0200 {
               })
             })
           Button('fontWeight_Normal')
-            .id('fontWeight_Normal').margin({ left: 10 })
+            .id('fontWeight_Normal')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight.Normal';
               this.textComputing0200_1 = this.measure.measureText({
@@ -159,11 +163,12 @@ struct TextCommonTextComputing0200 {
                 fontWeight: FontWeight.Normal
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('fontWeight_200')
-            .id('fontWeight_200').margin({ left: 10 })
+            .id('fontWeight_200')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight 200';
               this.textComputing0200_1 = this.measure.measureText({
@@ -188,7 +193,8 @@ struct TextCommonTextComputing0200 {
               })
             })
           Button('fontWeight_500')
-            .id('fontWeight_500').margin({ left: 10 })
+            .id('fontWeight_500')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight 500';
               this.textComputing0200_1 = this.measure.measureText({
@@ -212,11 +218,11 @@ struct TextCommonTextComputing0200 {
                 fontWeight: 500
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('fontWeight_-700')
-            .id('fontWeight_-700').margin({ left: 10 })
+            .id('fontWeight_-700')
             .onClick(() => {
               this.message = 'this message is test for measure FontWeight -700';
               this.textComputing0200_1 = this.measure.measureText({
@@ -240,7 +246,7 @@ struct TextCommonTextComputing0200 {
                 fontWeight: -700
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

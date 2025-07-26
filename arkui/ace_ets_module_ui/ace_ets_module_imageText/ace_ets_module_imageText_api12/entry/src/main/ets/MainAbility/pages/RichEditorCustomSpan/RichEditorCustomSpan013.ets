@@ -82,18 +82,18 @@ struct RichEditorCustomSpan013 {
           this.controller.setStyledString(this.richEditorStyledString);
           this.controller.setCaretOffset(this.richEditorStyledString.length);
         }
-      }).id('addImage')
+      }).id('addImage').height('5%')
       Button('clearStyles').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.richEditorStyledString.clearStyles();
         this.controller.setStyledString(this.richEditorStyledString);
-      }).id('clearStyles')
+      }).id('clearStyles').height('5%')
 
 
       Button('getStyles').onClick(() => {
         this.richEditorStyledString = this.controller.getStyledString();
         this.stylesInfo = JSON.stringify(this.richEditorStyledString.getStyles(0 , this.richEditorStyledString.length));
-      }).id('getStyles')
+      }).id('getStyles').height('5%')
 
       Text('stylesInfo:' + this.stylesInfo).id('stylesInfo')
 
@@ -113,14 +113,14 @@ struct RichEditorCustomSpan013 {
             this.richEditorStyledString.appendStyledString(this.styledString);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('addText')
+          }).id('addText').height('5%')
 
           Button('add custom').onClick(() => {
             this.richEditorStyledString = this.controller.getStyledString();
             this.richEditorStyledString.appendStyledString(this.style1);
             this.controller.setStyledString(this.richEditorStyledString);
             this.controller.setCaretOffset(this.richEditorStyledString.length);
-          }).id('addCustom')
+          }).id('addCustom').height('5%')
         }
 
       }

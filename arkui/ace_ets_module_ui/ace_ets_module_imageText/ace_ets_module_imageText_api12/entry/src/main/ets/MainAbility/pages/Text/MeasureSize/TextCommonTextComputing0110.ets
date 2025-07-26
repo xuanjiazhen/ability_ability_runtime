@@ -49,15 +49,16 @@ struct TextCommonTextComputing0110 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0110_1).key('textComputing0110_1')
-          Text('width: ' + this.textComputing0110_12).key('textComputing0110_12')
-          Text('width: ' + this.textComputing0110_2.width).key('textComputing0110_2')
-          Text('width: ' + this.textComputing0110_22.width).key('textComputing0110_22')
+          Text('width: ' + this.textComputing0110_1).key('textComputing0110_1').height('5%')
+          Text('width: ' + this.textComputing0110_12).key('textComputing0110_12').height('5%')
+          Text('width: ' + this.textComputing0110_2.width).key('textComputing0110_2').height('5%')
+          Text('width: ' + this.textComputing0110_22.width).key('textComputing0110_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('fontSize_20')
-            .id('fontSize_20').margin(20)
+            .id('fontSize_20')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontSize:20fp';
               this.textComputing0110_1 = this.measure.measureText({
@@ -82,7 +83,8 @@ struct TextCommonTextComputing0110 {
               })
             })
           Button('fontSize_$-30')
-            .id('fontSize_30').margin(20)
+            .id('fontSize_30')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontSize:$-30';
               this.textComputing0110_1 = this.measure.measureText({
@@ -106,11 +108,12 @@ struct TextCommonTextComputing0110 {
                 fontSize: '$-30'
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('fontSize_-10')
-            .id('fontSize_-10').margin({ left: 20 })
+            .id('fontSize_-10')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontSize -10';
               this.textComputing0110_1 = this.measure.measureText({
@@ -135,7 +138,8 @@ struct TextCommonTextComputing0110 {
               })
             })
           Button('fontSize_calc')
-            .id('fontSize_calc').margin({ left: 20 })
+            .id('fontSize_calc')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontSize calc(20%-20px)';
               this.textComputing0110_1 = this.measure.measureText({
@@ -159,10 +163,12 @@ struct TextCommonTextComputing0110 {
                 fontSize: 'calc(20%-20px)'
               })
             })
-        }.width('100%')
+        }.width('100%').height('5%')
 
         Button('fontSize_50%')
-          .id('fontSize_50%').margin(20)
+          .id('fontSize_50%')
+          .width('50%')
+          .height('5%')
           .onClick(() => {
             this.message = 'this message is test for measure fontSize 50%';
             this.textComputing0110_1 = this.measure.measureText({

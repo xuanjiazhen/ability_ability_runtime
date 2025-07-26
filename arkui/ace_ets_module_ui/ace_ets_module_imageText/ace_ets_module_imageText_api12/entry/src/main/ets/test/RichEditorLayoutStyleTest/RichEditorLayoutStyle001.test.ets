@@ -56,7 +56,7 @@ export default function RichEditorLayoutStyle001() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LAYOUTSTYLE_0100
-     * @tc.name  : Test the RichEditor LayoutStyle
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_LAYOUTSTYLE_0100
      * @tc.desc  : Test RichEditor LayoutStyle by not setting the margin value
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorLayoutStyle001() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorLayoutStyle001'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let imageStyle = await driver.findComponent(ON.id('imageStyle'));
       let imageStyleText = await imageStyle.getText();

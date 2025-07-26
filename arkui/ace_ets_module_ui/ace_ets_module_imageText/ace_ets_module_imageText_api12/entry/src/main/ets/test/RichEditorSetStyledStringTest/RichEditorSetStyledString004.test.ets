@@ -56,7 +56,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0011
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0011
      * @tc.desc  : SubStyledString retrieves the substring of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -68,9 +68,6 @@ export default function RichEditorSetStyledString004() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString004'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
 
       let add_text = await driver.findComponent(ON.id('add_text'));
       await add_text.click();
@@ -91,7 +88,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0012
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0012
      * @tc.desc  : Call getString to get the length of the property string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -103,9 +100,6 @@ export default function RichEditorSetStyledString004() {
       let rich = await driver.findComponent(ON.id('RichEditorSetStyledString004'));
       let getBounds = await rich.getBoundsCenter();
       await CommonFunc.sleep(500);
-
-      await driver.click(getBounds.x, getBounds.y);
-      await CommonFunc.sleep(1000);
 
       let get_length = await driver.findComponent(ON.id('get_length'));
       await get_length.click();
@@ -119,7 +113,7 @@ export default function RichEditorSetStyledString004() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0051
-     * @tc.name  : Test the RichEditor setStyledString
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_setStyledString_0051
      * @tc.desc  : Call appendStyledString to append a new attribute string to the end of the attribute string to test RichEditor setStyledString
      * @tc.size: MediumTest
      * @tc.type: Function

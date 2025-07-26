@@ -42,7 +42,7 @@ export default function TextCommonTextComputing2() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0050
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0050
      * @tc.desc  : Test MeasureTextSize when ConstraintWidth is not set and check the return width/size results
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -72,7 +72,7 @@ export default function TextCommonTextComputing2() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0060
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0060
      * @tc.desc  : Test MeasureTextSize when convertWidth passes the value for Resource, Resource, and check the return width/size result when it is tested.
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -105,7 +105,7 @@ export default function TextCommonTextComputing2() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0080
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0080
      * @tc.desc  : Test MeasureTextSize when ConstraintWidth passes to CALC (20%-50px), view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -138,7 +138,7 @@ export default function TextCommonTextComputing2() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0090
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0090
      * @tc.desc  : Test MeasureTextSize when ConstraintWidth passes to 90abc, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -172,7 +172,7 @@ export default function TextCommonTextComputing2() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0100
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0100
      * @tc.desc  : Test MeasureTextSize when ConstraintWidth passes to 50%, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

@@ -49,15 +49,16 @@ struct TextCommonTextComputing0010 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0010_1).key('textComputing0010_1')
-          Text('width: ' + this.textComputing0010_12).key('textComputing0010_12')
-          Text('width: ' + this.textComputing0010_2.width).key('textComputing0010_2')
-          Text('width: ' + this.textComputing0010_22.width).key('textComputing0010_22')
+          Text('width: ' + this.textComputing0010_1).key('textComputing0010_1').height('5%')
+          Text('width: ' + this.textComputing0010_12).key('textComputing0010_12').height('5%')
+          Text('width: ' + this.textComputing0010_2.width).key('textComputing0010_2').height('5%')
+          Text('width: ' + this.textComputing0010_22.width).key('textComputing0010_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('resetInChinese')
-            .id('resetInChinese').margin(20)
+            .id('resetInChinese')
+            .width('50%')
             .onClick(() => {
               this.message = '这个是用于测试文本计算接口的首行缩进变化下文本计算能力';
               this.textComputing0010_1 = this.measure.measureText({
@@ -78,7 +79,8 @@ struct TextCommonTextComputing0010 {
               })
             })
           Button('resetInChEn')
-            .id('resetInChEn').margin(20)
+            .id('resetInChEn')
+            .width('50%')
             .onClick(() => {
               this.message = '这个是test for文本计算接口的首行缩进变化下文本计算能力 measure measureTextSize';
               this.textComputing0010_1 = this.measure.measureText({
@@ -98,11 +100,12 @@ struct TextCommonTextComputing0010 {
                 maxLines: 2
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('resetInChEnJaHa')
-            .id('resetInChEnJaHa').margin({ left: 20 })
+            .id('resetInChEnJaHa')
+            .width('50%')
             .onClick(() => {
               this.message =
                 'ファーストラインのエンキデンス文本计算接口的Encement of the first line下文本첫 번째 줄의 제외计算能力';
@@ -124,7 +127,8 @@ struct TextCommonTextComputing0010 {
               })
             })
           Button('resetInChSym')
-            .id('resetInChSym').margin({ left: 20 })
+            .id('resetInChSym')
+            .width('50%')
             .onClick(() => {
               this.message = '_@#%^&这个是用于测试文本计算接口的首行缩进^&*变化下文本计算能力L{}}">PKLOPLJK';
               this.textComputing0010_1 = this.measure.measureText({
@@ -144,7 +148,7 @@ struct TextCommonTextComputing0010 {
                 maxLines: 2
               })
             })
-        }.width('100%')
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

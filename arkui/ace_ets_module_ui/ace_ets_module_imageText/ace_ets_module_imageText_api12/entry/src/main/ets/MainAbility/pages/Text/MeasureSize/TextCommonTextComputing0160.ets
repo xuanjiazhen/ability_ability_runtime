@@ -49,15 +49,16 @@ struct TextCommonTextComputing0160 {
             .margin(15)
             .fontSize(20)
             .fontColor(Color.Blue)
-          Text('width: ' + this.textComputing0160_1).key('textComputing0160_1')
-          Text('width: ' + this.textComputing0160_12).key('textComputing0160_12')
-          Text('width: ' + this.textComputing0160_2.width).key('textComputing0160_2')
-          Text('width: ' + this.textComputing0160_22.width).key('textComputing0160_22')
+          Text('width: ' + this.textComputing0160_1).key('textComputing0160_1').height('5%')
+          Text('width: ' + this.textComputing0160_12).key('textComputing0160_12').height('5%')
+          Text('width: ' + this.textComputing0160_2.width).key('textComputing0160_2').height('5%')
+          Text('width: ' + this.textComputing0160_22.width).key('textComputing0160_22').height('5%')
         }.width('95%').borderWidth(3)
 
         Row() {
           Button('fontStyle_normal')
-            .id('fontStyle_normal').margin(20)
+            .id('fontStyle_normal')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontStyle.Normal';
               this.textComputing0160_1 = this.measure.measureText({
@@ -82,7 +83,8 @@ struct TextCommonTextComputing0160 {
               })
             })
           Button('fontStyle_Italic')
-            .id('fontStyle_Italic').margin(20)
+            .id('fontStyle_Italic')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure FontStyle.Italic';
               this.textComputing0160_1 = this.measure.measureText({
@@ -106,11 +108,11 @@ struct TextCommonTextComputing0160 {
                 fontStyle: FontStyle.Italic
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
         Row() {
           Button('fontStyle-100')
-            .id('fontStyle-100').margin({ left: 20 })
+            .id('fontStyle-100')
             .onClick(() => {
               this.message = 'this message is test for measure FontStyle -100';
               this.textComputing0160_1 = this.measure.measureText({
@@ -134,12 +136,13 @@ struct TextCommonTextComputing0160 {
                 fontStyle: -100
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
 
 
         Row() {
           Button('fontFamily_res')
-            .id('fontFamily_res').margin({ left: 20 })
+            .id('fontFamily_res')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontFamily';
               this.textComputing0160_1 = this.measure.measureText({
@@ -165,7 +168,8 @@ struct TextCommonTextComputing0160 {
             })
 
           Button('fontFamily_oh')
-            .id('fontFamily_oh').margin({ left: 20 })
+            .id('fontFamily_oh')
+            .width('50%')
             .onClick(() => {
               this.message = 'this message is test for measure fontFamily';
               this.textComputing0160_1 = this.measure.measureText({
@@ -189,7 +193,7 @@ struct TextCommonTextComputing0160 {
                 fontFamily: 'HarmonyOS Sans'
               })
             })
-        }.width('100%').margin({ top: 30 })
+        }.width('100%').height('5%')
       }
       .height('100%')
       .width('100%')

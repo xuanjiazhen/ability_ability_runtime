@@ -42,7 +42,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0290
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0290
      * @tc.desc  : Test MeasureTextSize when letterSpacing passes to 10vp, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -75,7 +75,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0310
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0310
      * @tc.desc  : Test MeasureTextSize when letterSpacing passes to -5, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -108,7 +108,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0320
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0320
      * @tc.desc  : Test MeasureTextSize when letterSpacing passes to 20, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -141,7 +141,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0330
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0330
      * @tc.desc  : Test MeasureTextSize when textAlign passes to TextAlign.End, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -174,7 +174,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0340
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0340
      * @tc.desc  : Test MeasureTextSize when textAlign passes to TextAlign.JUSTIFY, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -207,7 +207,7 @@ export default function TextCommonTextComputing6() {
     });
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0360
-     * @tc.name  : Test the text computing power of the context
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_COMMON_TEXT_COMPUTING_0360
      * @tc.desc  : Test MeasureTextSize when textAlign passes to TextAlign.Start, view the return width/size result result
      * @tc.size: MediumTest
      * @tc.type: Function

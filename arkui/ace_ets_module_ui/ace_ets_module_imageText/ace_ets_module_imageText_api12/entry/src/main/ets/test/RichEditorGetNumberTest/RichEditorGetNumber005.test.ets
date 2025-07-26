@@ -56,7 +56,7 @@ export default function RichEditorGetNumber005() {
 
     /**
      * @tc.number: SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0005
-     * @tc.name  : Test the RichEditor Text Line
+     * @tc.name  : SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_GET_NUMBEROF_TEXT_LINES_0005
      * @tc.desc  : Test RichEditor Text Line by inputting multiple image spans and forming natural line breaks
      * @tc.size: MediumTest
      * @tc.type: Function
@@ -67,8 +67,6 @@ export default function RichEditorGetNumber005() {
       let driver = Driver.create();
       let rich = await driver.findComponent(ON.id('RichEditorGetNumber005'));
       let pointCenter = await rich.getBoundsCenter();
-      await driver.click(pointCenter.x, pointCenter.y);
-      await CommonFunc.sleep(1000);
 
       let getLineCount = await driver.findComponent(ON.id('getLineCount'));
       await getLineCount.click();
