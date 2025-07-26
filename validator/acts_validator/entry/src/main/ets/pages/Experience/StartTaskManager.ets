@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import router from '@ohos.router';
-import { CustomContainer } from '../common/ExperienceCustomContainer';
+import { CustomContainer } from '../common/TimeExperienceCustomContainer';
 import FirstDialog from '../model/FirstDialog';
 import context from '@ohos.app.ability.common';
 import { AppInfoItem } from '../model/LocalConfigEntity';
@@ -24,22 +24,22 @@ import promptAction from '@ohos.promptAction';
 let AppNameList = ['图库'];
 let AppBundleNameList = ["com.ohos.photos"];
 let AppAbilityNameList = ["com.ohos.photos.MainAbility"];
-
 let abilityContext = getContext(this) as context.UIAbilityContext;
 
 @Entry
 @Component
 struct CustomContainerUser {
-  @State name: string = 'PhotoFps';
-  @State toSP_daemon: string = 'SP_daemon -editor fpsohtest com.ohos.photos 图库';
-  @State StepTips: string = '操作步骤：根据操作提示滑动图库测试帧率' + '\n' + '预期结果：帧率大于或等于55帧测试通过';
+  @State name: string = 'StartTaskManager';
+  @State toSP_daemon: string = 'SP_daemon -editor completeTime com.ohos.launcher ohtest';
+  @State StepTips: string = '操作步骤：根据操作提示打开任务管理器' + '\n' + '预期结果：打开任务管理器时延小于1000ms测试通过';
   @State Vue: boolean = false;
   @State StartEnable: boolean = true;
-  @State Fps: number = 0;
+  @State time: number = 0;
+  @State time1: string = '';
   @State select: number = 2;
-  @State appName: string = '图库';
-  @State appBundleName: string = 'com.ohos.photos';
-  @State appAbilityName: string = 'com.ohos.photos.MainAbility';
+  @State appName: string = '任务管理器';
+  @State appBundleName: string = "com.ohos.launcher";
+  @State appAbilityName: string = "com.ohos.launcher.MainAbility";
   @State appInfoList: Array<AppInfoItem> = globalThis.appList;
   scroller: Scroller = new Scroller();
 
@@ -127,9 +127,9 @@ struct CustomContainerUser {
             }
 
             Row() {
-              Text(`测试步骤:` + '\n' + '\n' + '\n' + '\n' + `1.在图库中预置500张图片` + '\n' + '\n' + '2.点击开始键进入图库' + '\n' + '\n' +
-                `3.点击悬浮球开始测试` + '\n' + '\n' + '4.滑动图库缩略图界面连续10s以上' + '\n' + '\n' + `5.待悬浮球倒计时结束显示为done后返回validator应用` + '\n' + '\n' +
-                `6.点击结束观察测试结果` + '\n' + '\n' + `7.若测试最高帧率大于或等于55帧则通过测试` + '\n' + '\n' + `注意事项:` + '\n' + '\n' +
+              Text(`测试步骤:` + '\n' + '\n' + '\n' + '\n' + `1.点击开始键进入桌面` + '\n' + '\n' + '2.点击悬浮球开始测试' + '\n' + '\n' +
+                `3.点击右下角方框开启任务管理器` + '\n' + '\n' + '4.待悬浮球倒计时结束显示为done后返回validator应用' + '\n' + '\n' + `5.点击结束观察测试结果` + '\n' + '\n' +
+                `6.若启动任务管理器时延小于1000ms则通过测试` + '\n' + '\n' + `注意事项:` + '\n' + '\n' +
                 `※1.若悬浮球显示连接失败，需重启设备并在run.bat中输入run validator拉起测试` + '\n' + '\n' + `※2.双击悬浮球中断测试，长按悬浮球提前结束测试` + '\n' + '\n' +
                 `※3.若无可测试应用，点击无可测试应用按钮`)
                 .fontColor(Color.White)
@@ -149,10 +149,9 @@ struct CustomContainerUser {
                     globalThis.ShowFloatingWindow();
                     this.StartEnable = !this.StartEnable;
                     let str: Want = {
-                      bundleName: this.appBundleName,
-                      abilityName: this.appAbilityName,
+                      bundleName: "com.ohos.launcher",
+                      abilityName: "com.ohos.launcher.MainAbility",
                     }
-
                     abilityContext.startAbility(str).then((data) => {
 
                     }).catch((error: BusinessError) => {
@@ -171,23 +170,14 @@ struct CustomContainerUser {
                   .onClick(() => {
                     this.StartEnable = !this.StartEnable;
                     let report : string = globalThis.resultNum;
-                    // let reg = /fps:(\d+)/g;
-                    let regexp: RegExp = new RegExp('fps:(\\d+)', 'g')
-                    if (regexp == null){
-                      this.Fps = 0;
-                    } else {
-                      let matches = report.match(regexp);
-                      if (matches == null) {
-                        this.Fps = 0;
-                      }
-                      else {
-                        let fpsValues = matches.map(match => parseInt(match.substring(4)));
-                        let maxFps = Math.max(...fpsValues);
-                        this.Fps = maxFps;
-                        if (maxFps >= 55) {
-                          this.Vue = true;
-                        }
-                      }
+                    let head: number = report.indexOf(":");
+                    this.time1 = report.substring(head + 1);
+                    this.time = parseFloat(this.time1);
+                    let time = this.time;
+                    if (0 < time && time < 1000) {
+                      this.Vue = true;
+                    } else if (isNaN(this.time)) {
+                      this.time = -1000;
                     }
                     globalThis.HideFloatingWindow();
                   })
@@ -195,13 +185,12 @@ struct CustomContainerUser {
             }
 
             Row() {
-              Text('\n' + '\n' + `测试结果：` + this.Fps + '帧')
+              Text('\n' + '\n' + `启动任务管理器时延：` + this.time + 'ms')
                 .fontColor(Color.White)
                 .fontSize('24fp')
             }
           }
-        }
-        .scrollBarColor(Color.White) // 滚动条颜色
+        }.scrollBarColor(Color.White) // 滚动条颜色
         .scrollBarWidth(10)
       }
     }
@@ -221,7 +210,8 @@ struct CustomContainerUser {
         name: $name,
         Vue: $Vue,
         StartEnable: $StartEnable,
-        Fps: $Fps,
+        time: $time,
+        time1: $time1,
         appName: $appName,
         appBundleName: $appBundleName,
         appAbilityName: $appAbilityName,

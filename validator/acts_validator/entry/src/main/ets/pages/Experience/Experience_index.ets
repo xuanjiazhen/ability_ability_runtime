@@ -44,7 +44,8 @@ struct IndexPage {
   @State result: string = '';
   @State TEST: number = 0;
   private TestCaseList: TestCase[] = [
-    { title: 'PhotoFps', uri: 'pages/Experience/PhotoFps' },
+    { title: 'StartTaskManager', uri: 'pages/Experience/StartTaskManager' },
+    { title: 'StartNotification', uri: 'pages/Experience/StartNotification' },
   ]
   @State ColorObject: Object[] = VarColor;
   @State ColorTrue: number[] = [];
