@@ -51,7 +51,6 @@ async function createAVTranscoder(done: Function, context: common.UIAbilityConte
     if (transcoder) {
       mTranscoder = transcoder;
       mTranscoder.fdSrc = await globalThis.abilityContext.resourceManager.getRawFd('H264_AAC.mp4');
-      // mTranscoder.fdSrc = await context.resourceManager.getRawFd('H264_AAC.mp4');
       mTranscoder.fdDst = await getFd('output.mp4');
       console.info(TAG, testName + ' Succeeded in creating AVTranscoder, fd: ' + mTranscoder.fdSrc.fd + ', offset: ' +
       mTranscoder.fdSrc.offset + ', length: ' + mTranscoder.fdSrc.length + ', fdDst: ' + mTranscoder.fdDst);
