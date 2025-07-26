@@ -234,7 +234,7 @@ ErrCode AbilityToolCommand::RunAsTestCommand()
         return OHOS::ERR_INVALID_VALUE;
     }
 
-    if (!aaShellCmd_.get()->IsTestCommandIntegrity(params)) {
+    if (!aaShellCmd_.get()->IsTestCommandIntegrity(params, false)) {
         TAG_LOGE(AAFwkTag::AA_TOOL, "invalid params");
         resultReceiver_ = ABILITY_TOOL_HELP_LACK_OPTIONS + "\n";
         resultReceiver_.append(ABILITY_TOOL_HELP_MSG_TEST);

@@ -2269,18 +2269,23 @@ ErrCode AbilityManagerShellCommand::RunAsTestCommand()
         }
     }
 
-    if (!IsTestCommandIntegrity(params)) {
+    if (!IsTestCommandIntegrity(params, true)) {
         return OHOS::ERR_INVALID_VALUE;
     }
 
     return StartUserTest(params);
 }
 
-bool AbilityManagerShellCommand::IsTestCommandIntegrity(const std::map<std::string, std::string>& params)
+bool AbilityManagerShellCommand::IsTestCommandIntegrity(const std::map<std::string, std::string>& params, bool isAATool)
 {
     TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
 
-    std::vector<std::string> opts = { "-b" };
+    std::vector<std::string> opts;
+    if (isAATool) {
+        opts = { "-b" };
+    } else {
+        opts = { "-b", "-s unittest" };
+    }
     for (auto opt : opts) {
         auto it = params.find(opt);
         if (it == params.end()) {

@@ -229,7 +229,7 @@ public:
     std::string GetAaToolErrorInfo(std::string errorCode, std::string message, std::string cause,
         std::vector<std::string> solutions);
     void CheckStartAbilityResult(ErrCode& result);
-    bool IsTestCommandIntegrity(const std::map<std::string, std::string>& params);
+    bool IsTestCommandIntegrity(const std::map<std::string, std::string>& params, bool isAATool);
     ErrCode StartUserTest(const std::map<std::string, std::string>& params);
 
 private:
