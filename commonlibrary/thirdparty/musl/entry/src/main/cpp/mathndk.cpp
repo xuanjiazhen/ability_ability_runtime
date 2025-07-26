@@ -31,7 +31,7 @@
 #define FAIL (-1)
 #define SUCCESS 1
 #define MAGICNUM (-0.5385416161050316)
-#define MAGICYNFNUM (-0.5385416746139526)
+#define MAGICYNFNUM (-0.538542)
 #define PARAM_FAIL (-1)
 #define PARAM_0 0
 #define PARAM_1 1
@@ -2895,7 +2895,7 @@ static napi_value Yn(napi_env env, napi_callback_info info)
 }
 static napi_value Ynf(napi_env env, napi_callback_info info)
 {
-    double ret = ynf(PARAM_3, PARAM_30);
+    float ret = ynf(PARAM_3, PARAM_30);
     napi_value result = nullptr;
     if (ret == MAGICYNFNUM) {
         napi_create_double(env, PARAM_0, &result);
