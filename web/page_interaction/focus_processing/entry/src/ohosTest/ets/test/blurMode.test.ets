@@ -21,7 +21,7 @@ import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-let emitKey = "blurMode01";
+let emitKey = "";
 export default function webViewSrollableJsunit() {
   describe('blurOnKeyboardHideModeTest',  () =>{
     beforeAll(async  (done: Function) =>{
@@ -80,7 +80,8 @@ export default function webViewSrollableJsunit() {
      *tc.desic test blurMode01 interface when choose callback mode.
      */
     it('blurMode01',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async  (done: Function) =>{
-      emitKey="blurMode02";
+      emitKey="blurMode01";
+      Utils.emitEvent(emitKey, 10);
       Utils.registerEvent("blurMode01",true,20241133,done);
       sendEventByKey('blurOnKeyboardHideMode01',10,'');
     })
@@ -92,6 +93,7 @@ export default function webViewSrollableJsunit() {
    */
     it('blurMode02',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,async  (done: Function) =>{
       emitKey="blurMode02";
+      Utils.emitEvent(emitKey, 10);
       Utils.registerEvent("blurMode02",true,20241134,done);
       sendEventByKey('blurOnKeyboardHideMode01',10,'');
     })
