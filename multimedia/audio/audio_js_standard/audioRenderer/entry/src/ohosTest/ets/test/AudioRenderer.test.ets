@@ -2750,9 +2750,9 @@ export default function audioRendererTest() {
       expect(audio.AudioStreamDeviceChangeReason.REASON_OLD_DEVICE_UNAVAILABLE).assertEqual(2);
       console.info(`AudioStreamDeviceChangeReason: ${JSON.stringify(audio.AudioStreamDeviceChangeReason.REASON_OVERRODE)}`);
       expect(audio.AudioStreamDeviceChangeReason.REASON_OVERRODE).assertEqual(3);
-            console.info(`AudioStreamDeviceChangeReason: ${JSON.stringify(audio.AudioStreamDeviceChangeReason.REASON_SESSION_ACTIVATEDE)}`);
+      console.info(`AudioStreamDeviceChangeReason: ${JSON.stringify(audio.AudioStreamDeviceChangeReason.REASON_SESSION_ACTIVATEDE)}`);
       expect(audio.AudioStreamDeviceChangeReason.REASON_SESSION_ACTIVATEDE).assertEqual(4);
-            console.info(`AudioStreamDeviceChangeReason: ${JSON.stringify(audio.AudioStreamDeviceChangeReason.REASON_STREAM_PRIORITY_CHANGED)}`);
+      console.info(`AudioStreamDeviceChangeReason: ${JSON.stringify(audio.AudioStreamDeviceChangeReason.REASON_STREAM_PRIORITY_CHANGED)}`);
       expect(audio.AudioStreamDeviceChangeReason.REASON_STREAM_PRIORITY_CHANGED).assertEqual(5);
       done();
     })
