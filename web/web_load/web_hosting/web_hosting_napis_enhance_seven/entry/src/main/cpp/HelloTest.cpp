@@ -19,7 +19,14 @@
 #include "string"
 #include "web/arkweb_scheme_handler.h"
 #include "web/arkweb_interface.h"
+#include "web/native_interface_arkweb.h"
+#include <thread>
 
+#undef LOG_TAG
+#define LOG_TAG "ss-handler"
+
+int32_t g_testSaveCookieSyncThreadResult = -1;
+int32_t g_testSaveCookieAsyncCallback = -1;
 
 char *GetStringValue(napi_env env, napi_value value)
 {
@@ -100,6 +107,103 @@ static napi_value GetFetchCookieSync(napi_env env, napi_callback_info info)
     return resultValue;
 }
 
+static napi_value GetSaveCookieSyncThreadResult(napi_env env, napi_callback_info info)
+{
+    napi_value resultValue;
+    napi_create_int32(env, g_testSaveCookieSyncThreadResult, &resultValue);
+    return resultValue;
+}
+
+static napi_value GetSaveCookieAsyncCallbackResult(napi_env env, napi_callback_info info)
+{
+    napi_value resultValue;
+    napi_create_int32(env, g_testSaveCookieAsyncCallback, &resultValue);
+    return resultValue;
+}
+
+static void SaveCookieAsyncCallback(ArkWeb_ErrorCode errorCode)
+{
+    OH_LOG_INFO(LOG_APP, "OH_ArkWeb_OnCookieSaveCallback errorCode:%{public}d", errorCode);
+    g_testSaveCookieAsyncCallback = (int)errorCode;
+    OH_LOG_INFO(LOG_APP, "OH_ArkWeb_OnCookieSaveCallback g_testSaveCookieAsyncCallback:%{public}d",
+        g_testSaveCookieAsyncCallback);
+}
+
+static void SaveCookieAsyncThreadFun()
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncThreadFun start");
+    OH_ArkWeb_OnCookieSaveCallback onCookieSaveCallback = SaveCookieAsyncCallback;
+    OH_ArkWebCookieManager_SaveCookieAsync(onCookieSaveCallback);
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncThreadFun end");
+}
+
+static void SaveCookieSyncThreadFun()
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieSyncThreadFun start");
+    ArkWeb_ErrorCode errorCode = OH_ArkWebCookieManager_SaveCookieSync();
+    OH_LOG_INFO(LOG_APP, "OH_ArkWebCookieManager_SaveCookieSync errorCode:%{public}d", errorCode);
+    g_testSaveCookieSyncThreadResult = (int)errorCode;
+    OH_LOG_INFO(LOG_APP, "OH_ArkWebCookieManager_SaveCookieSync g_testSaveCookieSyncThreadResult:%{public}d",
+        g_testSaveCookieSyncThreadResult);
+}
+
+static napi_value SaveCookieAsyncThread(napi_env env, napi_callback_info info)
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncThread start");
+    g_testSaveCookieAsyncCallback = -1;
+    std::thread th(SaveCookieAsyncThreadFun);
+    th.join();
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsync saveCallback end");
+    napi_value resultValue;
+    napi_create_int32(env, 1, &resultValue);
+    return resultValue;
+}
+
+static napi_value SaveCookieAsyncCallback(napi_env env, napi_callback_info info)
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncCallback start");
+    g_testSaveCookieAsyncCallback = -1;
+    OH_ArkWeb_OnCookieSaveCallback onCookieSaveCallback = SaveCookieAsyncCallback;
+    OH_ArkWebCookieManager_SaveCookieAsync(onCookieSaveCallback);
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncCallback end");
+    napi_value resultValue;
+    napi_create_int32(env, 1, &resultValue);
+    return resultValue;
+}
+
+static napi_value SaveCookieAsyncNullptr(napi_env env, napi_callback_info info)
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncNullptr start");
+    OH_ArkWebCookieManager_SaveCookieAsync(nullptr);
+    OH_LOG_INFO(LOG_APP, "SaveCookieAsyncNullptr end");
+    napi_value resultValue;
+    napi_create_int32(env, 1, &resultValue);
+    return resultValue;
+}
+
+static napi_value SaveCookieSyncThread(napi_env env, napi_callback_info info)
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieSyncThread thread start");
+    g_testSaveCookieSyncThreadResult = -1;
+    std::thread th(SaveCookieSyncThreadFun);
+    th.join();
+    OH_LOG_INFO(LOG_APP, "SaveCookieSyncThread thread end");
+    napi_value resultValue;
+    napi_create_int32(env, 1, &resultValue);
+    return resultValue;
+}
+
+static napi_value SaveCookieSync(napi_env env, napi_callback_info info)
+{
+    OH_LOG_INFO(LOG_APP, "SaveCookieSync  start");
+    ArkWeb_ErrorCode errorCode = OH_ArkWebCookieManager_SaveCookieSync();
+    OH_LOG_INFO(LOG_APP, "SaveCookieSync OH_ArkWebCookieManager_SaveCookieSync errorCode:%{public}d", errorCode);
+    int retCode = (int)errorCode;
+    OH_LOG_INFO(LOG_APP, "SaveCookieSync OH_ArkWebCookieManager_SaveCookieSync retCode:%{public}d", retCode);
+    napi_value resultCode;
+    napi_create_int32(env, retCode, &resultCode);
+    return resultCode;
+}
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
@@ -107,6 +211,13 @@ static napi_value Init(napi_env env, napi_value exports)
     napi_property_descriptor desc[] = {
         {"setConfigCookieSync", nullptr, SetConfigCookieSync, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getFetchCookieSync", nullptr, GetFetchCookieSync, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveCookieSync", nullptr, SaveCookieSync, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveCookieSyncThread", nullptr, SaveCookieSyncThread, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveCookieAsyncNullptr", nullptr, SaveCookieAsyncNullptr, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveCookieAsyncThread", nullptr, SaveCookieAsyncThread, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveCookieAsyncCallback", nullptr, SaveCookieAsyncCallback, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getSaveCookieSyncThreadResult", nullptr, GetSaveCookieSyncThreadResult, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getSaveCookieAsyncCallbackResult", nullptr, GetSaveCookieAsyncCallbackResult, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

@@ -17,3 +17,10 @@
 
 export const setConfigCookieSync: (url:string, cookieValue:string, incognito:boolean, includeHttpOnly:boolean) => number;
 export const getFetchCookieSync: (url:string,  incognito:boolean, includeHttpOnly:boolean) => string;
+export const saveCookieSync: () => number;
+export const saveCookieSyncThread: () => number;
+export const saveCookieAsyncNullptr: () => number;
+export const saveCookieAsyncThread: () => number;
+export const saveCookieAsyncCallback: () => number;
+export const getSaveCookieSyncThreadResult: () => number;
+export const getSaveCookieAsyncCallbackResult: () => number;
