@@ -28,5 +28,5 @@ ohos_js_app_suite("media_xts_hap") {
   hap_name = "ActsMediaXtsTest"
   part_name = "player_framework"
   subsystem_name = "multimedia"
-  deps = [": ActsMediaXtsTest"]
+  deps = [ ":ActsMediaXtsTest" ]
 }
