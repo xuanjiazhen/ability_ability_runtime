@@ -15,6 +15,7 @@
 
 import { webview } from '@kit.ArkWeb';
 import Util from '../../test/Util';
+import { waitForExist } from '../../test/WaitTest.test';
 
 
 @Entry
@@ -22,6 +23,7 @@ import Util from '../../test/Util';
 struct WebComponent {
   @State controller: webview.WebviewController = new webview.WebviewController();
   schemeHandler: webview.WebSchemeHandler = new webview.WebSchemeHandler();
+  @State isComplete: number = -1;
 
   build(){
     Column() {
@@ -29,7 +31,8 @@ struct WebComponent {
       Button('runJavaScript')
         .key('runJavaScript')
         .onClick(async (event: ClickEvent) => {
-          console.log('isMainFrame ' + 'clicked!')
+          console.log('isMainFrame ' + 'clicked!');
+          await waitForExist(()=>this.isComplete, 'SUB_ACE_WEB_getRequestMethod', 0);
           await this.controller.runJavaScript('loadIframePage()')
         });
       Web({ src: $rawfile('main_page.html'), controller: this.controller })
@@ -42,6 +45,10 @@ struct WebComponent {
           if (details.isMainFrame === false) {
             Util.emitEvent(details.isMainFrame, 5010);
           }
+        })
+        .onPageEnd((event) => {
+          console.log('onPageEnd url==>' + event.url);
+          this.isComplete = 0;
         })
     }
   }
