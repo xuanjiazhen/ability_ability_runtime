@@ -820,6 +820,24 @@ function testInstallUserCertificate() {
     }
     done();
   });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_INSTALL_USER_CERTIFICATE_JS_0208
+   * @tc.name      : test_install_user_certificate_0208
+   * @tc.desc      : test securityManager installUserCertificate  without active admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_install_user_certificate_0208", Level.LEVEL2, async (done: Function) => {
+    try {
+      securityManager.installUserCertificate(SELFWANT, CERTIFICATE, INT_VALID_ACCOUNTID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001).assertTrue();
+    }
+    done();
+  });
 }
 
 function testGetUserCertificates() {
