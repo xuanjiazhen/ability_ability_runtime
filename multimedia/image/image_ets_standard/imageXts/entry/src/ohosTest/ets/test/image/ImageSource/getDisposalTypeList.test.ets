@@ -18,13 +18,14 @@ import common from '@ohos.app.ability.common';
 import { describe, it, expect, Level, beforeAll, beforeEach, afterEach, afterAll } from '@ohos/hypium';
 import { LOG_TAG, copyImageToSandbox } from '../../common';
 import { ErrorCode } from '../../CommonErrorCode';
+import { fileUri } from '@kit.CoreFileKit';
 
 const TAG = LOG_TAG + 'getDisposalTypeList';
 
 async function getDisposalTypeListPromiseTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
@@ -40,7 +41,7 @@ async function getDisposalTypeListPromiseTest(done: Function, testName: string, 
 async function getDisposalTypeListPromiseAbnormalTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
@@ -57,7 +58,6 @@ async function getDisposalTypeListPromiseAbnormalTest(done: Function, testName: 
     done();
   }
 }
-
 
 export default function imageSourceGetDisposalTypeListTest() {
   describe('imageSourceGetDisposalTypeListTest', () => {
