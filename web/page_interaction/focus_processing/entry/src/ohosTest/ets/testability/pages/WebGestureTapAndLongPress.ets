@@ -136,6 +136,7 @@ struct WebComponent {
             .borderColor(this.webborderColor1)
             .onFocus(() => {
               this.webborderColor1 = Color.Red;
+              console.log('gestureFocusMode' + this.flagType);
               if(this.flagType == 'webGestureTapClick') {
                 console.log('pbbbttwebGestureTapClick' + this.flagType + '55' )
                 //点击
