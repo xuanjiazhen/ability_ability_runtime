@@ -18,14 +18,13 @@ import common from '@ohos.app.ability.common';
 import { describe, it, expect, Level, beforeAll, beforeEach, afterEach, afterAll } from '@ohos/hypium';
 import { LOG_TAG, copyImageToSandbox } from '../../common';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { fileUri } from '@kit.CoreFileKit';
 
 const TAG = LOG_TAG + 'getFrameCount';
 
 async function getFrameCountPromiseTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
+    const path = 'file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let frameCount: number = await imageSourceApi.getFrameCount();
     imageSourceApi.release();
