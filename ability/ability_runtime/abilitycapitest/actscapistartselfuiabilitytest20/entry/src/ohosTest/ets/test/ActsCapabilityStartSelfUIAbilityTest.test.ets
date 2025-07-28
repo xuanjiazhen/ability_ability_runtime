@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { describe, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import osAccountNdk from 'libosaccountndk.so'
-import { Driver } from '@kit.TestKit';
 
 const OS_ACCOUNT_ERR_OK = 0;
 
@@ -23,26 +22,49 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
   describe('ActsCapabilityStartSelfUIAbilityTest', () => {
 
     /**
-     * @tc.number  : Acts_Capability_Start_Self_UIAbility_Test
-     * @tc.name    : Acts_Capability_Start_Self_UIAbility_Test
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level0
+     * @tc.number  : DestroyChildProcessConfigsParamInvalid
+     * @tc.name    : DestroyChildProcessConfigsParamInvalid
+     * @tc.desc    : Meta-capability testing.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Acts_Capability_Start_Self_UIAbility_Test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      try {
-        console.info("====>Acts_Capability_Start_Self_UIAbility_Test start====");
-        let result = osAccountNdk.DestroyChildProcessConfigsInvalid();
-        expect(401).assertEqual(result);
-        console.info("====>Acts_Capability_Start_Self_UIAbility_Test result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Acts_Capability_Start_Self_UIAbility_Test catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
-        done()
-      }
-    })
+    it('DestroyChildProcessConfigsParamInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>DestroyChildProcessConfigsParamInvalid start====");
+          let result = osAccountNdk.DestroyChildProcessConfigsParamInvalid();
+          expect(401).assertEqual(result);
+          console.info("====>DestroyChildProcessConfigsParamInvalid result: " + result);
+          done()
+        } catch (err) {
+          console.error("====>DestroyChildProcessConfigsParamInvalid catch err: " + err);
+          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          done()
+        }
+      })
 
+    /**
+     * @tc.number  : DestroyChildProcessConfigsNoError
+     * @tc.name    : DestroyChildProcessConfigsNoError
+     * @tc.desc    : Meta-capability testing.
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('DestroyChildProcessConfigsNoError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>DestroyChildProcessConfigsNoError start====");
+          let result = osAccountNdk.DestroyChildProcessConfigsNoError();
+          expect(0).assertEqual(result);
+          console.info("====>DestroyChildProcessConfigsNoError result: " + result);
+          done()
+        } catch (err) {
+          console.error("====>DestroyChildProcessConfigsNoError catch err: " + err);
+          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          done()
+        }
+      })
   })
 }
