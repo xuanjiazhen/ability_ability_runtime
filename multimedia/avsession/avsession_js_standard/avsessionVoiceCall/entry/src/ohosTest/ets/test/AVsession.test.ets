@@ -682,7 +682,7 @@ export default function abilityTest() {
 
     /* *
      * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_TOGGLEFAVORITE_3400
-     * @tc.name      : on(toggleFavorite) with avsession does not exit(errcode 6600102)
+     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_TOGGLEFAVORITE_3400
      * @tc.desc      : test on(toggleFavorite) errcode 6600102
      * @tc.size      : MediumTest
      * @tc.type      : Function
