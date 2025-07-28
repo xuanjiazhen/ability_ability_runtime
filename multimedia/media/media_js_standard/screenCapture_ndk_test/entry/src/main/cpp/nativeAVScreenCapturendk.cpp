@@ -1736,14 +1736,14 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     //测试错误码：OH_AVScreenCapture_StopScreenRecording
     OH_AVSCREEN_CAPTURE_ErrCode stopingResult = OH_AVScreenCapture_StopScreenRecording(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StopScreenRecording stopingResult = %{public}d", stopingResult);
-    if (stopingResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
+    if (stopingResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect stopingResult is 2");
     }
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
     if (stopResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
-        napi_throw_error((env), nullptr, "error : expect stopResult is 3");
+        napi_throw_error((env), nullptr, "error : expect stopResult is 2");
     }
 
     //测试错误码：OH_AVScreenCapture_SkipPrivacyMode
@@ -1894,8 +1894,8 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
         napi_throw_error((env), nullptr, "error : expect stopResult is 0 " );
     }
     screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
-        napi_throw_error((env), nullptr, "error : expect ResizeCanvas is 0 " );
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+        napi_throw_error((env), nullptr, "error : expect ResizeCanvas is 2 " );
     }
 
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
