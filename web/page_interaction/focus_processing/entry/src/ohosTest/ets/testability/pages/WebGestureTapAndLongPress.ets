@@ -84,7 +84,7 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapAndLongPress'));
+                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再点击web 抢焦点
                 await buttonTwo.click()
 
@@ -102,7 +102,7 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapAndLongPress'));
+                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再长按web 抢焦点
                 await buttonTwo.longClick()
               } catch (error) {
@@ -128,7 +128,7 @@ struct WebComponent {
 
         Column() {
           Web({ src: this.url, controller: this.controller })
-            .key('WebViewWebGestureTapAndLongPress')
+            .key('WebViewWebGestureTapButton')
             .gestureFocusMode(GestureFocusMode.GESTURE_TAP_AND_LONG_PRESS)
             .javaScriptAccess(true)
             .height(this.webHeight)
