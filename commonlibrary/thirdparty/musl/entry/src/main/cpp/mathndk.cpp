@@ -2895,7 +2895,8 @@ static napi_value Yn(napi_env env, napi_callback_info info)
     return result;
 }
 
-static int float_equal(float a, float b, float epsilon) {
+static int float_equal(float a, float b, float epsilon)
+{
     return fabs(a - b) < epsilon;
 }
 
