@@ -31,7 +31,7 @@ async function packToFileFromPixelmapSequencePromiseTest(done: Function, testNam
     const color = fileData.buffer;
     let imageSource = await image.createImageSource(color);
     let pixelMapList = await imageSource.createPixelMapList();
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path = 'file://' + testContext.filesDir + "/" + new Date().getTime() + fileName;
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     let Packer = image.createImagePacker();
     let data = await Packer.packToFileFromPixelmapSequence(pixelMapList, file.fd, ops);
