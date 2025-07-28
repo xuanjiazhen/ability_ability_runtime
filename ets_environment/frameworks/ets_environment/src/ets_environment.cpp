@@ -232,6 +232,7 @@ bool ETSEnvironment::Initialize()
     options.push_back(ani_option { bootString.data(), nullptr });
     options.push_back(ani_option { "--ext:--compiler-enable-jit=false", nullptr });
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
+    options.push_back(ani_option { "--ext:taskpool-support-interop=true", nullptr });
     ani_options optionsPtr = { options.size(), options.data() };
     ani_status status = ANI_ERROR;
     if ((status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.aniVm_)) != ANI_OK) {
@@ -331,6 +332,10 @@ std::string ETSEnvironment::GetErrorProperty(ani_error aniError, const char *pro
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "GetErrorProperty called");
     auto aniEnv = GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
+        return "";
+    }
     std::string propertyValue;
     ani_status status = ANI_ERROR;
     ani_type errorType = nullptr;
@@ -515,6 +520,21 @@ void ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath)
     ark::ets::ETSAni::Postfork(env, options);
 }
 
+void ETSEnvironment::PreloadSystemClass(const char *className)
+{
+    ani_env* env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
+        return;
+    }
+
+    ani_class cls = nullptr;
+    if (env->FindClass(className, &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Find preload class failed");
+        return;
+    }
+}
+
 ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
 {
     static ETSEnvFuncs funcs {
@@ -545,6 +565,9 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath) {
             ETSEnvironment::GetInstance()->PostFork(napiEnv, aotPath);
+        },
+        .PreloadSystemClass = [](const char *className) {
+            ETSEnvironment::GetInstance()->PreloadSystemClass(className);
         }
     };
     return &funcs;

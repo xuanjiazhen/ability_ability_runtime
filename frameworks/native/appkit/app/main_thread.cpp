@@ -1958,8 +1958,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
     if (!IsEtsAPP(appInfo) &&
-        (appLaunchData.IsNeedPreloadModule() ||
-        appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE)) {
+        appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
         PreloadModule(entryHapModuleInfo, application_->GetRuntime());
         if (appMgr_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");

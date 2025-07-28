@@ -36,6 +36,7 @@ struct ETSEnvFuncs {
         void *&obj, void *&ref) = nullptr;
     void (*FinishPreload)() = nullptr;
     void (*PostFork)(void *napiEnv, const std::string &aotPath) = nullptr;
+    void (*PreloadSystemClass)(const char *className) = nullptr;
 };
 }
 #endif // OHOS_ABILITY_RUNTIME_ETS_INTERFACE_H
