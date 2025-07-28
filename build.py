@@ -19,7 +19,7 @@ import os
 import sys
 import subprocess
 import shutil
-import logging 
+import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,6 +50,7 @@ class XtsBuild:
         self._gn_args = {}
         self._other_args = {}
         self._build_target = []
+        self._arkts_static = False
 
     def usage(self):
         print(usage_info)
@@ -75,6 +76,11 @@ class XtsBuild:
             os.environ['target_subsystem'] = cmdline.get('target_subsystem')
         if cmdline.get('xts_suitetype'):
             os.environ['XTS_SUITETYPE'] = cmdline.get('xts_suitetype')
+        else:
+            os.environ['XTS_SUITETYPE'] = "bin,hap_dynamic"
+        _suitetype_list = os.environ['XTS_SUITETYPE'].split(',')
+        if "hap_static" in _suitetype_list:
+            self._arkts_static = True
 
         self._gn_args['build_xts'] = 'true'
         if cmdline.get('system_size') == 'standard':
@@ -121,6 +127,9 @@ class XtsBuild:
         return ret.returncode
 
     def get_accurate_targets(self):
+        if os.environ.get("XTS_SUITETYPE") == "hap_static":
+            logging.info("hap_static task use full build")
+            return self._build_target
         accurate_dir = "{}/test/xts/tools/ci".format(self._code_root_dir)
         sys.path.append(accurate_dir)
         import generate_accurate_targets as gat
@@ -153,6 +162,8 @@ class XtsBuild:
             build_command = "{} --build-target {}".format(build_command, i)
         for i in self._other_args:
             build_command = "{} --{}={}".format(build_command, i, self._other_args.get(i))
+        if self._arkts_static:
+            build_command = "{} {}".format(build_command, "--prebuilts-sdk-gn-args ")
         logging.info("build_command: {}".format(build_command))
 
         # 执行编译命令
