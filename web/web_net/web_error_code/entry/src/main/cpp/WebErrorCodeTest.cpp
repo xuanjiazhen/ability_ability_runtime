@@ -218,7 +218,6 @@ static napi_value WebBlanklessErrInvalidArgs(napi_env env, napi_callback_info in
     return result;
 }
 
-//ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED = -3,
 static napi_value WebBlanklessErrControllerNotInited(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrControllerNotInited start..");
@@ -231,7 +230,6 @@ static napi_value WebBlanklessErrControllerNotInited(napi_env env, napi_callback
     return result;
 }
 
-//ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH = -4,
 static napi_value WebBlanklessErrKeyNotMatch(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrKeyNotMatch start..");
@@ -244,7 +242,6 @@ static napi_value WebBlanklessErrKeyNotMatch(napi_env env, napi_callback_info in
     return result;
 }
 
-//ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE = -5,
 static napi_value WebBlanklessErrSignificantChange(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrSignificantChange start..");
@@ -257,7 +254,6 @@ static napi_value WebBlanklessErrSignificantChange(napi_env env, napi_callback_i
     return result;
 }
 
-//ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT = 801,
 static napi_value WebBlanklessDeviceNotSupport(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport start..");
