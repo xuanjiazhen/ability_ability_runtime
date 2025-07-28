@@ -77,7 +77,7 @@ export default function AVPlayerStabilityTest() {
           console.info(TAG, 'this fdNumber is :' + JSON.stringify(fdNumber));
           fdNumbers.push(fdNumber.fd);
           videos.push(fdNumber);
-        })
+        });
       }
       for (let i = 0; i < 10; i++) {
         if (!globalThis.value) {
@@ -104,6 +104,9 @@ export default function AVPlayerStabilityTest() {
 
     afterAll(async () => {
       console.info(TAG, 'afterAll case');
+      for (let i = 0; i < fdNumbers.length; i++) {
+        await mediaTestBase.closeFdNumber(fdNumbers[i]);
+      }
       videos = [];
       fdNumbers = [];
     });

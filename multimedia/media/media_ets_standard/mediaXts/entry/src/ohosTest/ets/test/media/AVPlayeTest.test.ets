@@ -304,7 +304,7 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
     count++;
     console.info(TAG + 'endOfStream success');
     avPlayer?.off('endOfStream');
-  })
+  });
   avPlayer?.on('stateChange', async (state, reason) => {
     console.info(TAG, testName + ' setOnCallback state =' + state);
     switch (state) {
@@ -394,7 +394,7 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
       default:
         break;
     }
-  })
+  });
 }
 
 async function testEndOfStream(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null, done: Function,
@@ -614,6 +614,25 @@ async function testSubtitleUpdateListening(src: string | media.AVFileDescriptor,
     setOnCallback(avPlayer, done, testName);
     setSource(avPlayer, src, testName);
     setSubtitle(avPlayer, subtitleSrc, testName);
+  });
+}
+
+async function testSubtitle(src: string | media.AVFileDescriptor, subtitleSrc: string | media.AVFileDescriptor,
+  avPlayer: media.AVPlayer | null, done: Function, testName: string) {
+  console.info(TAG, testName + ` case media source: ${src}`);
+  media.createAVPlayer((err, video) => {
+    if (typeof (video) !== 'undefined') {
+      console.info(TAG, testName + ' case createAVPlayer success');
+      avPlayer = video;
+      setOnCallback(avPlayer, done, testName);
+      setSource(avPlayer, src, testName);
+      setSubtitle(avPlayer, subtitleSrc, testName);
+    }
+    if (err != null) {
+      console.error(TAG, testName + ` case createAVPlayer error, errMessage is ${err?.message},${err?.code}`);
+      expect().assertFail();
+      done();
+    }
   });
 }
 
@@ -2133,7 +2152,7 @@ export default function AVPlayerTest() {
     it('addSubtitleFromFd_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'addSubtitleFromFd_promise_001';
       if (fileDescriptor && subtitleFdSrc) {
-        await testSubtitleUpdateListening(fileDescriptor, subtitleFdSrc, avPlayer, subtitleUpdateON, done, testName);
+        await testSubtitle(fileDescriptor, subtitleFdSrc, avPlayer, done, testName);
       }
     })
 
@@ -2148,8 +2167,7 @@ export default function AVPlayerTest() {
     it('addSubtitleFromUrl_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'addSubtitleFromUrl_promise_001';
       if (fileDescriptor && subtitleFdSrc) {
-        await testSubtitleUpdateListening(fileDescriptor, `fd://${subtitleFdSrc.fd}`, avPlayer, subtitleUpdateON, done,
-          testName);
+        await testSubtitle(fileDescriptor, `fd://${subtitleFdSrc.fd}`, avPlayer, done, testName);
       }
     })
 

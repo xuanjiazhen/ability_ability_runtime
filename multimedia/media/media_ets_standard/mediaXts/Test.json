@@ -35,6 +35,10 @@
       "pre-push": [],
       "push": [
         "./resource/media/H264_AAC.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
+        "./resource/media/AVPlayer/H264_NONE.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
+        "./resource/media/codec/demuxer/srt_2800.srt -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
+        "./resource/media/metadata/mjpeg_mp3.mp3 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
+        "./resource/media/metadata/H264_AAC_Matedata.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/AVPlayer/h263_aac.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/AVPlayer/h263_mp3.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
         "./resource/media/AVPlayer/MPEG2_AAC.mp4 -> /data/app/el2/100/base/ohos.acts.multimedia.media.xts/haps/entry_test/files/",
@@ -91,7 +95,7 @@
         "hilog -Q pidon",
         "hilog -Q domainon",
         "sleep 5",
-        "rm -rf /data/app/el2/100/database/ohos.acts.multimedia.media.xts/*",
+        "rm -rf /data/app/el2/100/base/ohos.acts.multimedia.media.xts/*",
         "kill -9 `pidof ohos.acts.multimedia.media.xts`"
       ]
     }
