@@ -16,6 +16,7 @@ import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
 import { JsProxyObject } from '../../test/Interfaces';
 import business_error, { BusinessError } from '@ohos.base';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -58,6 +59,7 @@ struct webController {
   @State registerJavaScriptProxyFlag: boolean = false
   @State zoomAccess: boolean = false
   @State requestFocus: boolean = false
+  @State isComplete: number = -1
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
@@ -364,14 +366,17 @@ struct webController {
 
             case "testBackward001": {
               try {
-                this.controller.clearHistory()
-                this.controller.loadUrl({ url: "resource://rawfile/webPart1index.html" });
-                await Utils.sleep(2000);
-                this.controller.loadUrl({ url: "http://appgallery.huawei.com/" })
-                await Utils.sleep(2000);
-                this.controller.backward()
-                await Utils.sleep(2000);
-                this.controller.runJavaScript({ script: "getTitle()", callback: (res) => {
+                this.controller.clearHistory();
+                this.isComplete = -1;
+                this.controller.loadUrl({ url: 'resource://rawfile/webPart1index.html' });
+                await waitForExist(()=>this.isComplete, this.str, 0);
+                this.isComplete = -1;
+                this.controller.loadUrl({ url: 'http://appgallery.huawei.com/' })
+                await waitForExist(()=>this.isComplete, this.str, 0);
+                this.isComplete = -1;
+                this.controller.backward();
+                await waitForExist(()=>this.isComplete, this.str, 0);
+                this.controller.runJavaScript({ script: 'getTitle()', callback: (res) => {
                   Utils.emitEvent(res, 31016)
                 } })
               } catch (error) {
@@ -551,8 +556,9 @@ struct webController {
         })
         .onPageEnd((event) => {
           if (event) {
+            this.isComplete = 0
             this.pageEnd = event.url
-            console.log("onPageEnd==>")
+            console.log('onPageEnd==>')
           }
         })
         .onRefreshAccessedHistory((event) => {
