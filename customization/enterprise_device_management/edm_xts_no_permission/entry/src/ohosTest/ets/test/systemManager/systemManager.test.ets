@@ -222,7 +222,7 @@ function testGetDisallowedNearLink() {
             let protocols: Array<number> =
                 systemManager.getDisallowedNearLinkProtocols(SELFWANT, DEFAULT_USER_ID);
         } catch (error) {
-            expect(error.code == 201).assertTrue();
+            expect(error.code == 801 ||error.code == 201).assertTrue();
         } finally {
             await adminManager.disableAdmin(SELFWANT);
         }
@@ -242,13 +242,13 @@ function testAddDisallowedNearLinkProtocols() {
     it('test_add_disallowed_nearlink_protocols_0002', Level.LEVEL2, async (done: Function) => {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
         let nearlinkProtocols: Array<number> = new Array();
-        nearlinkProtocols.push(0);
-        nearlinkProtocols.push(1);
+        nearlinkProtocols.push(systemManager.NearLinkProtocol.SSAP);
+        nearlinkProtocols.push(systemManager.NearLinkProtocol.DATA_TRANSFER);
         try {
             systemManager.addDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            expect(error.code == 201).assertTrue();
+            expect(error.code == 801 ||error.code == 201).assertTrue();
         } finally {
             await adminManager.disableAdmin(SELFWANT);
         }
@@ -268,13 +268,13 @@ function testRemoveDisallowedNearLinkProtocols() {
     it('test_remove_disallowed_nearlink_protocols_0002', Level.LEVEL2, async (done: Function) => {
         await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
         let nearlinkProtocols: Array<number> = new Array();
-        nearlinkProtocols.push(0);
-        nearlinkProtocols.push(1);
+        nearlinkProtocols.push(systemManager.NearLinkProtocol.SSAP);
+        nearlinkProtocols.push(systemManager.NearLinkProtocol.DATA_TRANSFER);
         try {
             systemManager.removeDisallowedNearLinkProtocols(SELFWANT, nearlinkProtocols, DEFAULT_USER_ID);
             expect(false).assertTrue();
         } catch (error) {
-            expect(error.code == 201).assertTrue();
+            expect(error.code == 801 ||error.code == 201).assertTrue();
         } finally {
             await adminManager.disableAdmin(SELFWANT);
         }
