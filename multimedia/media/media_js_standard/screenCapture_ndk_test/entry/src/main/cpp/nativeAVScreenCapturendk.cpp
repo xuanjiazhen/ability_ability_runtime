@@ -994,6 +994,10 @@ static napi_value normalAVScreenCaptureShowCursorTest(napi_env env, napi_callbac
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
 
+    screenCaptureResult = OH_AVScreenCapture_ShowCursor(screenCaptureNormal, false);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect ShowCursor is 0 but = %{public}d" + screenCaptureResult);
+    }
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
         result = AV_SCREEN_CAPTURE_ERR_OK;
@@ -1895,7 +1899,18 @@ static napi_value normalAVScreenCaptureStrategyForBFramesEncodingFalse(napi_env 
     if (screenCaptureNormal == nullptr) {
         napi_throw_error((env), nullptr, "error: expect screenCaptureNormal is not nullptr");
     }
-    OH_AVScreenCapture_CaptureStrategy* strategy = OH_AVScreenCapture_CreateCaptureStrategy();
+    OH_AVScreenCapture_CaptureStrategy* strategy = nullptr;
+    OH_AVSCREEN_CAPTURE_ErrCode resultStrategy = OH_AVScreenCapture_StrategyForBFramesEncoding(strategy, false);
+    OH_LOG_INFO(LOG_APP, "StrategyForBFramesEncoding resultStrategy = %{public}d", resultStrategy);
+    if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect resultStrategy is 3 ");
+    }
+    resultStrategy = OH_AVScreenCapture_StrategyForPickerPopUp(strategy, false);
+    OH_LOG_INFO(LOG_APP, "StrategyForBFramesEncoding resultStrategy = %{public}d", resultStrategy);
+    if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+        napi_throw_error((env), nullptr, "error : expect resultStrategy is 3 ");
+    }
+    strategy = OH_AVScreenCapture_CreateCaptureStrategy();
     OH_AVSCREEN_CAPTURE_ErrCode result = OH_AVScreenCapture_StrategyForBFramesEncoding(strategy, false);
     if (result == AV_SCREEN_CAPTURE_ERR_OK) {
         result = OH_AVScreenCapture_SetCaptureStrategy(screenCaptureNormal, strategy);
