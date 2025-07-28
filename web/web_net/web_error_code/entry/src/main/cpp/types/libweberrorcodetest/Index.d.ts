@@ -30,7 +30,13 @@ export const webBlanklessErrControllerNotInited: () => number;
 export const webBlanklessErrKeyNotMatch: () => number;
 export const webBlanklessErrSignificantChange: () => number;
 export const webBlanklessDeviceNotSupport: () => number;
-
+export const webAnyNativeAPI: () => number;
+export const webNativeComponent: () => number;
+export const webNativeController: () => number;
+export const webNativeWebMessagePort: () => number;
+export const webNativeWebMessage: () => number;
+export const webNativeCookieManger: () => number;
+export const webNativeJavaScriptValue: () => number;
 
 
 

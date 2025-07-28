@@ -14,12 +14,14 @@
  */
 
 #include "napi/native_api.h"
+#include "web/arkweb_interface.h"
 #include "web/arkweb_scheme_handler.h"
 #include <cstdint>
 #include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
+
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
 {
@@ -266,6 +268,118 @@ static napi_value WebBlanklessDeviceNotSupport(napi_env env, napi_callback_info 
     return result;
 }
 
+static napi_value WebAnyNativeAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebAnyNativeAPI start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COMPONENT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebAnyNativeAPI end..");
+    return result;
+}
+
+static napi_value WebNativeComponent(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeComponent start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COMPONENT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeComponent end..");
+    return result;
+}
+
+static napi_value WebNativeController(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeController start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_CONTROLLER;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeController end..");
+    return result;
+}
+
+static napi_value WebNativeWebMessagePort(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessagePort start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_WEB_MESSAGE_PORT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessagePort end..");
+    return result;
+}
+
+static napi_value WebNativeWebMessage(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessage start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_WEB_MESSAGE;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessage end..");
+    return result;
+}
+
+static napi_value WebNativeCookieManger(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeCookieManger start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COOKIE_MANAGER;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeCookieManger end..");
+    return result;
+}
+
+static napi_value WebNativeJavaScriptValue(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeJavaScriptValue start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_JAVASCRIPT_VALUE;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeJavaScriptValue end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -297,6 +411,15 @@ static napi_value Init(napi_env env, napi_value exports)
         {"webBlanklessErrSignificantChange", nullptr, WebBlanklessErrSignificantChange, nullptr, nullptr, nullptr,
          napi_default, nullptr},
         {"webBlanklessDeviceNotSupport", nullptr, WebBlanklessDeviceNotSupport, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+        {"webAnyNativeAPI", nullptr, WebAnyNativeAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+
+        {"webNativeComponent", nullptr, WebNativeComponent, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webNativeController", nullptr, WebNativeController, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webNativeWebMessagePort", nullptr, WebNativeWebMessagePort, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webNativeWebMessage", nullptr, WebNativeWebMessage, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webNativeCookieManger", nullptr, WebNativeCookieManger, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webNativeJavaScriptValue", nullptr, WebNativeJavaScriptValue, nullptr, nullptr, nullptr, napi_default,
          nullptr},
     };
 

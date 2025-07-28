@@ -378,5 +378,144 @@ export default function ActsWebErrorCodeTest() {
       }
     })
 
+    /**
+     * @tc.number  : SUB_OH_WebAnyNativeAPI_100
+     * @tc.name    : SUB_OH_WebAnyNativeAPI_100
+     * @tc.desc    : test ArkWeb_AnyNativeAPI Test size
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_WebAnyNativeAPI_100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_WebAnyNativeAPI_100 start====");
+        let result: number = webCode.webAnyNativeAPI();
+        console.info("====>SUB_OH_WebAnyNativeAPI_100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_WebAnyNativeAPI_100 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_100
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_100
+     * @tc.desc    : test ARKWEB_NATIVE_COMPONENT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_100 start====");
+        let result: number = webCode.webNativeComponent();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_100 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_100 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_200
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_200
+     * @tc.desc    : test ARKWEB_NATIVE_CONTROLLER
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_200 start====");
+        let result: number = webCode.webNativeController();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_200 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_200 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_300
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_300
+     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE_PORT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_300 start====");
+        let result: number = webCode.webNativeWebMessagePort();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_300 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_300 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_400
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_400
+     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_400 start====");
+        let result: number = webCode.webNativeWebMessage();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_400 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_400 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_500
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_500
+     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_500 start====");
+        let result: number = webCode.webNativeCookieManger();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_500 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_500 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_NATIVE_APIVariantKind_600
+     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_600
+     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_NATIVE_APIVariantKind_600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_600 start====");
+        let result: number = webCode.webNativeJavaScriptValue();
+        console.info("====>SUB_OH_NATIVE_APIVariantKind_600 result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_NATIVE_APIVariantKind_600 catch err: " + err);
+      }
+    })
   })
 }
