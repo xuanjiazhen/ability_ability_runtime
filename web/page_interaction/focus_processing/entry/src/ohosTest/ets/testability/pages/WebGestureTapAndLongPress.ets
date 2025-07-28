@@ -87,6 +87,7 @@ struct WebComponent {
                 let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再点击web 抢焦点
                 await buttonTwo.click()
+                await Utils.sleep(2000);
 
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
@@ -105,6 +106,7 @@ struct WebComponent {
                 let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再长按web 抢焦点
                 await buttonTwo.longClick()
+                await Utils.sleep(2000);
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
               }
@@ -129,7 +131,7 @@ struct WebComponent {
         Column() {
           Web({ src: this.url, controller: this.controller })
             .key('WebViewWebGestureTapButton')
-            .gestureFocusMode(GestureFocusMode.DEFAULT)
+            .gestureFocusMode(GestureFocusMode.GESTURE_TAP_AND_LONG_PRESS)
             .javaScriptAccess(true)
             .height(this.webHeight)
             .borderWidth(2)
