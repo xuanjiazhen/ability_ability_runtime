@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 {
   "module": {
     "name": "entry",
@@ -68,42 +67,15 @@
         "name": "ohos.permission.MEDIA_LOCATION",
         "reason": "$string:reason",
         "usedScene": {
-          "when": "always"
+          "when": 'always'
         }
       },
+
       {
         "name": "ohos.permission.GET_BUNDLE_INFO",
         "reason": "$string:reason",
         "usedScene": {
-          "when": "always"
-        }
-      },
-      {
-        "name": "ohos.permission.READ_MEDIA",
-        "reason": "$string:reason",
-        "usedScene": {
-          "when": "always"
-        }
-      },
-      {
-        "name": "ohos.permission.WRITE_IMAGEVIDEO",
-        "reason": "$string:reason",
-        "usedScene": {
-          "when": "always"
-        }
-      },
-      {
-        "name": "ohos.permission.READ_IMAGEVIDEO",
-        "reason": "$string:reason",
-        "usedScene": {
-          "when": "always"
-        }
-      },
-      {
-        "name": "ohos.permission.CAMERA",
-        "reason": "$string:reason",
-        "usedScene": {
-          "when": "always"
+          "when": 'always'
         }
       }
     ]
