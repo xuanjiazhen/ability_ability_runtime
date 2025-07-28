@@ -24,7 +24,6 @@ import media from '@ohos.multimedia.media';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { JSON } from '@kit.ArkTS';
 import { LOG_TAG, SLEEP_TIME_2000 } from '../Constants';
-import fileio from '@ohos.fileio';
 
 const TAG = LOG_TAG + 'MediaTestBase';
 const CODECMIMEVALUE = ['video/avc', 'audio/mp4a-latm', 'audio/mpeg'];
@@ -124,46 +123,14 @@ export default class MediaTestBase {
     }
   }
 
-  async getFdReadRaw(pathName: string, done: Function) {
-    let fileDescriptor: media.AVFileDescriptor = {
-      fd: 0,
-      offset: 0,
-      length: 0
-    };
-    console.info(TAG, 'globalThis.abilityContext getFdRead PathName : ' + pathName);
-    try {
-      if (globalThis.abilityContext == null || globalThis.abilityContext == undefined) {
-        console.error(TAG, 'globalThis.abilityContext is null');
-        done();
-        return fileDescriptor;
-      }
-      // 1. 获取资源管理器
-      let rawFileDescriptor = await (globalThis.abilityContext as Context).resourceManager.getRawFdSync(pathName);
-
-      fileDescriptor = {
-        fd: rawFileDescriptor.fd,
-        offset: rawFileDescriptor.offset,
-        length: rawFileDescriptor.length
-      };
-      console.info(TAG,
-        'getAVFileDescriptor ok rawFileDescriptor =' + JSON.stringify(rawFileDescriptor) + ', pathName = ' + pathName);
-      return fileDescriptor;
-    } catch (error) {
-      console.error(TAG, `getAVFileDescriptor fail: ${error?.message}, code : ${error?.code}`);
-      done();
-    }
-    return fileDescriptor;
-  }
-
   async getFdRead(pathName: string, done: Function) {
     let fdReturn: number = 0;
     pathName = globalThis.abilityContext.filesDir + '/' + pathName;
-    console.log("pathName is " + pathName)
-    await fileio.open(pathName).then((fdNumber) => {
-      this.isFileOpen(fdNumber, done)
-      fdReturn = fdNumber;
-      console.info('[fileio]case open fd success, fd is ' + fdReturn);
-    })
+    console.log(TAG, 'pathName is ' + pathName);
+    let file = await fs.openSync(pathName);
+    this.isFileOpen(file, done);
+    fdReturn = file.fd;
+    console.info(TAG, 'case open fd success, fd is ' + fdReturn);
     return fdReturn;
   }
 
