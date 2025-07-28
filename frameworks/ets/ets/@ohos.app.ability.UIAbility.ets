@@ -19,7 +19,6 @@ import UIAbilityContext from 'application.UIAbilityContext';
 import Want from '@ohos.app.ability.Want';
 import window from '@ohos.window';
 import rpc from '@ohos.rpc';
-import { AbilityUtils } from './utils/AbilityUtils';
 import { CalleeImpl } from './application/Callee';
 
 export type OnReleaseCallback = (msg: string) => void;
@@ -46,21 +45,11 @@ export default class UIAbility extends Ability {
   private native nativeOnDestroyCallback(): void;
 
   private callOnDestroy(): boolean {
-    const derivedClassType = AbilityUtils.getClassType(this);
-    if (derivedClassType === undefined) {
-      this.onDestroy();
-      return false;
-    }
-    const uiAbilityClassType = AbilityUtils.getClassType(new UIAbility());
-    if (uiAbilityClassType === undefined) {
-      this.onDestroy();
-      return false;
-    }
-    if (AbilityUtils.isOverride(derivedClassType, "onDestroyAsync", uiAbilityClassType)) {
-      this.onDestroyAsync().then(() => this.nativeOnDestroyCallback());
+    let p = this.onDestroy();
+    if (p instanceof Promise) {
+      p.then(() => this.nativeOnDestroyCallback());
       return true;
     }
-    this.onDestroy();
     return false;
   }
 
@@ -84,12 +73,8 @@ export default class UIAbility extends Ability {
   onWindowStageRestore(windowStage: window.WindowStage): void {
   }
 
-  onDestroy(): void {
-  }
-
-  onDestroyAsync(): Promise<void> {
-    return new Promise<void>((resolve: (a: undefined) => void, reject: (err: Error) => void): void => {
-    });
+  onDestroy(): Promise<void> | undefined {
+    return undefined;
   }
 
   onForeground(): void {
