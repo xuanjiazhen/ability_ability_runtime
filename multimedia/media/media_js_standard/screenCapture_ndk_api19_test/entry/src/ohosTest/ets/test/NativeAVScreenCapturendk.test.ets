@@ -450,5 +450,185 @@ export default function nativeAVScreenCaptureNdkTest() {
     });
 
 
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0100
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0100
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0100', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0200
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0200
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0200', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0300
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0300
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0300', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0400
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0400
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0400', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0500
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0500
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0500', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0600
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0600
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0600', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0700
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0700
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0700', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0100
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0100
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0100', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0200
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0200
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0200', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0300
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0300
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0300', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0400
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0400
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0400', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0500
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0500
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0500', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700
+     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_CANVASROTATION_0001
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_CANVASROTATION_0001
+     * @tc.desc         normalSelectionCallback
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_CANVASROTATION_0001', Level.LEVEL0, async (done: Function) => {
+      await Utils.btnTextScreenCapture();
+      done();
+    });
   })
 }
