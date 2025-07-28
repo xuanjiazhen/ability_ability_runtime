@@ -273,11 +273,11 @@ export default function UiTest() {
     it('testFling', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async () => {
       await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
       await driver.delayMs(waitUiReadyMs)
-      let d = await display.getDefaultDisplaySync()
-      if (d.id == 999) {
+      if (display.getDisplayByIdSync(999) != null) {
         console.info('Can not create full screen application scene')
         return
       }
+      let d = await display.getDefaultDisplaySync()
       let window = await driver.findWindow({bundleName: 'com.uitestScene.acts'})
       try {
         await window.maximize()
