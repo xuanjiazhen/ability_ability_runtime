@@ -107,8 +107,13 @@ class RecordWriter {
       return true;
     } else {
       const objType = Type.of(obj);
-      if (objType instanceof ArrayType) {
-        this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
+      if (objType instanceof ClassType) {
+        let newWantParams = new NativeWantParams();
+        if (this.writeClassValueToNative(obj, objType as ClassType, newWantParams) != true) {
+          localWantParams?.setParam(key, '{}');
+        } else {
+          localWantParams?.setParam(key, newWantParams);
+        }
       } else {
         //this.buffer.append('null');
         localWantParams?.setParam(key, 'null');
@@ -228,7 +233,7 @@ class RecordWriter {
         case 'boolean':
           complexArray.boolList.push((element as Boolean).unboxed());
         case 'number':
-          if (typeof element === 'number' && Number.isInteger(element)) {
+          if (element instanceof Int) {
             const num = element as number;
             if (num > int32Min && num < int32Max) {
               complexArray.intlist.push((element as int).unboxed());
@@ -241,14 +246,14 @@ class RecordWriter {
                 complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
                 complexArray.intlist = [];
               }
-              complexArray.doubleList.push((element as double).unboxed());
+              complexArray.doubleList.push((element as number).unboxed());
             }
           } else {
             if (complexArray.intlist.length > 0) {
               complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
               complexArray.intlist = [];
             }
-            complexArray.doubleList.push((element as double).unboxed());
+            complexArray.doubleList.push((element as number).unboxed());
           }
         case 'object':
           complexArray.objectList.push(element);
@@ -269,7 +274,7 @@ class RecordWriter {
       // consistent with napi behavior
       wantParams.setParam("length", localArr.length as int);
     } else {
-      if (this.writeRecordToNative(arr[i] as Record<string, valueType>, wantParams)!= true) {
+      if (this.writeRecordToNative(arr as Record<string, valueType>, wantParams)!= true) {
         hilog.error(DOMAIN_ID, TAG, `write array member To native failed`);
         return false;
       }
@@ -378,6 +383,90 @@ class RecordWriter {
       hilog.error(DOMAIN_ID, TAG, `null record`);
     }
     return isSuccess;
+  }
+
+  private writeClassValueToNative(obj: Object, objType: ClassType, wantParams: NativeWantParams): boolean {
+    //const currentBuffer = this.buffer
+    // we need this local buffer to discard empty object prolog: '{','\n',<space> and replace it with '{}'
+    //this.buffer = new StringBuilder("{")
+
+    const writableFields = this.getWritableFields(objType, reflect.Value.of(obj) as ClassValue);
+
+    let isSuccess = false;
+    if (writableFields.length > 0) {
+        //this.path.add(obj)
+        this.checkReferencesCycle(obj);
+        this.store.add(obj);
+        isSuccess = this.writeClassFields(writableFields, wantParams);
+        //this.path.delete(obj);
+        this.store.delete(obj);
+    }
+
+    return isSuccess;
+  }
+
+  private writeField(fieldName: string, fieldVal: NullishType, wantParams: NativeWantParams): boolean {
+    if (fieldVal === undefined) {
+      return false;
+    }
+
+    const fieldValType = Type.of(fieldVal);
+    if (fieldValType instanceof LambdaType) {
+      return false;
+    }
+
+    this.checkReferencesCycle(fieldVal);
+    //this.writeObject(fieldVal)
+    return this.writeObjectToNative(fieldName, fieldVal, wantParams);
+  }
+
+  private writeClassFields(writableFields: Array<[Field, reflect.Value]>, wantParams: NativeWantParams): boolean {
+    const FIELD_TYPE = 0
+    const FIELD_VALUE = 1
+
+    let isSuccess = false;
+    for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
+        const fieldTypeValuePair = writableFields[fieldIdx];
+
+        const objField = fieldTypeValuePair[0] as Field;
+        const objFieldValue = fieldTypeValuePair[1] as reflect.Value;
+
+        //isSuccess = this.writeField(objField.getName(), objFieldValue.getData(), wantParams, isSuccess);
+        if (this.writeField(objField.getName(), objFieldValue.getData(), wantParams) == true) {
+          isSuccess= true;
+        }
+    }
+
+    return isSuccess;
+  }
+
+  private findKeyIndex(field: Field, fields: Array<[Field, reflect.Value]>): number {
+    return fields.findIndex((value: [Field, reflect.Value], index: number, array:Array<[Field, reflect.Value]>)
+      => {return value[0].getName() == field.getName()});
+  }
+
+  private getWritableFields(classType: ClassType, classValue: ClassValue): Array<[Field, reflect.Value]> {
+    const writableFields = new Array<[Field, reflect.Value]>();
+    let fieldRename : string | undefined = undefined;
+
+    const fieldsCount = classValue.getFieldsNum();
+    for (let fieldIdx = 0; fieldIdx < fieldsCount; fieldIdx++) {
+      const field = classType.getField(fieldIdx);
+      if (field.isStatic()) {
+        continue;
+      }
+      const index: number = this.findKeyIndex(field, writableFields);
+      const fieldValue = classValue.getField(fieldIdx);
+
+      const fieldTypeValuePair: [Field, reflect.Value] = [field, fieldValue];
+      if (fieldRename != undefined || index == -1) {
+          writableFields.push(fieldTypeValuePair);
+      } else {
+          writableFields[index] = fieldTypeValuePair;
+      }
+    }
+
+    return writableFields;
   }
 
   private checkReferencesCycle(obj: Object): void {
