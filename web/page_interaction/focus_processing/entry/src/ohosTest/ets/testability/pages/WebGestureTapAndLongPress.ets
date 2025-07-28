@@ -129,7 +129,7 @@ struct WebComponent {
         Column() {
           Web({ src: this.url, controller: this.controller })
             .key('WebViewWebGestureTapButton')
-            .gestureFocusMode(GestureFocusMode.GESTURE_TAP_AND_LONG_PRESS)
+            .gestureFocusMode(GestureFocusMode.DEFAULT)
             .javaScriptAccess(true)
             .height(this.webHeight)
             .borderWidth(2)
