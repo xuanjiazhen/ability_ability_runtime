@@ -27,6 +27,14 @@ const TEST_ARKWEB_LIBRARY_OPEN_FAILURE = 17100105;
 const TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND = 17100106;
 const TEST_ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED = 17100107;
 
+const TEST_ARKWEB_BLANKLESS_SUCCESS = 0;
+const TEST_ARKWEB_BLANKLESS_ERR_UNKNOWN = -1;
+const TEST_ARKWEB_BLANKLESS_ERR_INVALID_ARGS = -2;
+const TEST_ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED = -3;
+const TEST_ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH = -4;
+const TEST_ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE = -5;
+const TEST_ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT = 801;
+
 
 export default function ActsWebErrorCodeTest() {
   describe('ActsWebErrorCodeTest', () => {
@@ -230,6 +238,145 @@ export default function ActsWebErrorCodeTest() {
       }
     })
 
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0100
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0100
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_SUCCESS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0100 start====");
+        let result: number = webCode.webBlanklessSuccess();
+        console.info("====>SUB_OH_BLANKLESS_Code_0100 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_SUCCESS);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0100 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0200
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0200
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_SUCCESS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0200 start====");
+        let result: number = webCode.webBlanklessErrUnknown();
+        console.info("====>SUB_OH_BLANKLESS_Code_0200 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_UNKNOWN);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0200 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0300
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0300
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0300 start====");
+        let result: number = webCode.webBlanklessErrInvalidArgs();
+        console.info("====>SUB_OH_BLANKLESS_Code_0300 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_INVALID_ARGS);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0300 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0400
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0400
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0400 start====");
+        let result: number = webCode.webBlanklessErrControllerNotInited();
+        console.info("====>SUB_OH_BLANKLESS_Code_0400 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0400 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0500
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0500
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0500 start====");
+        let result: number = webCode.webBlanklessErrKeyNotMatch();
+        console.info("====>SUB_OH_BLANKLESS_Code_0500 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0500 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0600
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0600
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0600 start====");
+        let result: number = webCode.webBlanklessErrSignificantChange();
+        console.info("====>SUB_OH_BLANKLESS_Code_0600 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0600 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_OH_BLANKLESS_Code_0700
+     * @tc.name    : SUB_OH_BLANKLESS_Code_0700
+     * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_OH_BLANKLESS_Code_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>SUB_OH_BLANKLESS_Code_0700 start====");
+        let result: number = webCode.webBlanklessDeviceNotSupport();
+        console.info("====>SUB_OH_BLANKLESS_Code_0700 result====", result);
+        expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT);
+        done();
+      } catch (err) {
+        console.error("====>SUB_OH_BLANKLESS_Code_0700 catch err: " + err);
+      }
+    })
 
   })
 }

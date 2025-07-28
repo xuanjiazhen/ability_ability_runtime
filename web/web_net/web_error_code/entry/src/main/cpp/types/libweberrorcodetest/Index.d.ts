@@ -23,7 +23,13 @@ export const webErrorInvaledCookieValue: () => number;
 export const webErrorLibraryOpenFailure: () => number;
 export const webErrorLibraySymbolNotFound: () => number;
 export const webErrorCookeManagerNotInitialized: () => number;
-
+export const webBlanklessSuccess: () => number;
+export const webBlanklessErrUnknown: () => number;
+export const webBlanklessErrInvalidArgs: () => number;
+export const webBlanklessErrControllerNotInited: () => number;
+export const webBlanklessErrKeyNotMatch: () => number;
+export const webBlanklessErrSignificantChange: () => number;
+export const webBlanklessDeviceNotSupport: () => number;
 
 
 

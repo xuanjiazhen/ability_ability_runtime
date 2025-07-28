@@ -181,6 +181,95 @@ static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback
     return result;
 }
 
+static napi_value WebBlanklessSuccess(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_SUCCESS;
+    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "https://www.example.com", true);
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrUnknown(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_UNKNOWN;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "test");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrInvalidArgs(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrInvalidArgs start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_INVALID_ARGS;
+    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrInvalidArgs end..");
+    return result;
+}
+
+//ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED = -3,
+static napi_value WebBlanklessErrControllerNotInited(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrControllerNotInited start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrControllerNotInited end..");
+    return result;
+}
+
+//ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH = -4,
+static napi_value WebBlanklessErrKeyNotMatch(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrKeyNotMatch start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "testtest");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrKeyNotMatch end..");
+    return result;
+}
+
+//ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE = -5,
+static napi_value WebBlanklessErrSignificantChange(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrSignificantChange start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("test", "test000");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrSignificantChange end..");
+    return result;
+}
+
+//ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT = 801,
+static napi_value WebBlanklessDeviceNotSupport(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport start..");
+    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
+    ArkWeb_BlanklessInfo ret = OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+
+    napi_value result;
+    napi_create_int32(env, ret.errCode, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -200,7 +289,19 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"webErrorCookeManagerNotInitialized", nullptr, WebErrorCookeManagerNotInitialized, nullptr, nullptr, nullptr,
          napi_default, nullptr},
-        
+        {"webBlanklessSuccess", nullptr, WebBlanklessSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webBlanklessErrUnknown", nullptr, WebBlanklessErrUnknown, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webBlanklessErrInvalidArgs", nullptr, WebBlanklessErrInvalidArgs, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+
+        {"webBlanklessErrControllerNotInited", nullptr, WebBlanklessErrControllerNotInited, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"webBlanklessErrKeyNotMatch", nullptr, WebBlanklessErrKeyNotMatch, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+        {"webBlanklessErrSignificantChange", nullptr, WebBlanklessErrSignificantChange, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"webBlanklessDeviceNotSupport", nullptr, WebBlanklessDeviceNotSupport, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
