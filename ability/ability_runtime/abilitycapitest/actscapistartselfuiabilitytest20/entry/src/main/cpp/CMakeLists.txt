@@ -11,5 +11,5 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(osaccountndk SHARED ActScapiStartSelfUiAbilityTest20Test.cpp)
-target_link_libraries(osaccountndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so libchild_process.so)
+add_library(osaccountndk SHARED ActsCapiStartSelfUiAbilityTest20Test_test.cpp native_child_demo.cpp)
+target_link_libraries(osaccountndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so libchild_process.so libability_runtime.so libability_base_want.so libpixelmap.so)

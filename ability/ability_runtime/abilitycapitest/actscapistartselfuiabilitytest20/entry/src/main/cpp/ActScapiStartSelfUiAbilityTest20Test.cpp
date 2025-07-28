@@ -14,18 +14,19 @@
  */
 
 #include "AbilityKit/native_child_process.h"
-#include "hilog/log.h"
 #include "napi/native_api.h"
+#include <cstdint>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
+#include "AbilityKit/ability_runtime/application_context.h"
+
 namespace {
 static const uint32_t MAX_NAME_LENGTH = 1024;
 }
 
-static napi_value DestroyChildProcessConfigsInvalid(napi_env env, napi_callback_info info)
+static napi_value DestroyChildProcessConfigsParamInvalid(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "DestroyChildProcessConfigsInvalid");
-    Ability_ChildProcessConfigs *configs;
+    Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
     if (ret == NCP_ERR_INVALID_PARAM) {
         // 错误处理
@@ -36,16 +37,30 @@ static napi_value DestroyChildProcessConfigsInvalid(napi_env env, napi_callback_
     return nullptr;
 }
 
+static napi_value DestroyChildProcessConfigsNoError(napi_env env, napi_callback_info info)
+{
+    Ability_ChildProcessConfigs *configs = OH_Ability_CreateChildProcessConfigs();
+    Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
+    if (ret == NCP_NO_ERROR) {
+        // 错误处理
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
+}
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        { "DestroyChildProcessConfigsInvalid",
-            nullptr, DestroyChildProcessConfigsInvalid, nullptr, nullptr, nullptr, napi_default, nullptr }
+        {"DestroyChildProcessConfigsParamInvalid",
+            nullptr, DestroyChildProcessConfigsParamInvalid, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"DestroyChildProcessConfigsNoError",
+            nullptr, DestroyChildProcessConfigsNoError, nullptr, nullptr, nullptr, napi_default, nullptr}
     };
 
-    napi_define_properties(env, exports, (desc) / sizeof(desc[0]), desc);
+    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }
 EXTERN_C_END

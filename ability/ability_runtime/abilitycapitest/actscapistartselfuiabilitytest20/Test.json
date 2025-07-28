@@ -2,16 +2,16 @@
     "description": "Configuration for ActsCapabilityStartSelfUIAbilityTest Tests",
     "driver": {
         "type": "OHJSUnitTest",
-        "test-timeout": "180000",
-        "bundle-name": "com.acts.ActsCapabilityStartSelfUIAbilityTest",
+        "test-timeout": "600000",
+        "bundle-name": "com.acts.actscapistartselfuiabilitytest20test",
         "module-name": "entry_test",
         "shell-timeout": "600000",
-        "testcase-timeout": 60000
+        "testcase-timeout":"30000",
+        "compile-mode":"esmodule"
     },
     "kits": [{
         "test-file-name": [
-            "ActsCapabilityStartSelfUIAbilityTest.hap",
-            "ActsOsAccountNdkMainTest.hap"
+            "ActsCapiStartSelfUiAbilityTest20Test.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true
@@ -19,10 +19,7 @@
         "type": "ShellKit",
         "run-command": [
             "power-shell wakeup",
-            "power-shell setmode 602",
-            "power-shell timeout -o 86400000",
-            "hidumper -s 3301 -a -t"
+            "power-shell setmode 602"
         ]
-
     }]
 }

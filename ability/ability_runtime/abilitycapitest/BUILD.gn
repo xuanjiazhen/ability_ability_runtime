@@ -19,6 +19,7 @@ group("abilitycapitest") {
     deps = [
       "actscapistartselfuiabilityrely:ActsCapiStartSelfUiAbilityRely",
       "actscapistartselfuiabilitytest:ActsCapiStartSelfUiAbilityTest",
+      "actscapistartselfuiabilitytest20:ActsCapiStartSelfUiAbilityTest20Test"
     ]
   }
 }
