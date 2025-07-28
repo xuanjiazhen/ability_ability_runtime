@@ -2895,7 +2895,7 @@ static napi_value Yn(napi_env env, napi_callback_info info)
     return result;
 }
 
-static int float_equal(float a, float b, float epsilon)
+static int FloatEqual(float a, float b, float epsilon)
 {
     return fabs(a - b) < epsilon;
 }
@@ -2904,7 +2904,7 @@ static napi_value Ynf(napi_env env, napi_callback_info info)
 {
     float ret = ynf(PARAM_3, PARAM_30);
     napi_value result = nullptr;
-    if (float_equal(ret, MAGICYNFNUM, EPSILON_1)) {
+    if (FloatEqual(ret, MAGICYNFNUM, EPSILON_1)) {
         napi_create_double(env, PARAM_0, &result);
     } else {
         napi_create_double(env, PARAM_UNNORMAL, &result);
