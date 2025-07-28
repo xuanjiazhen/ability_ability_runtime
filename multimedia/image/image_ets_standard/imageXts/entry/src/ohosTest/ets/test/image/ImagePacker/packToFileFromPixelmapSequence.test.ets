@@ -23,11 +23,11 @@ import { ErrorCode } from '../../CommonErrorCode';
 const TAG = LOG_TAG + 'packToFileFromPixelmapSequence';
 
 async function packToFileFromPixelmapSequencePromiseTest(done: Function, testName: string, pathUri: string,
-  ops: image.PackingOptionsForSequence) {
+  ops: image.PackingOptionsForSequence,fileName:string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
     const resourceMgr = testContext.resourceManager;
-    const fileData = await resourceMgr.getRawFileContent(pathUri);
+    const fileData = await resourceMgr.getRawFileContent(fileName);
     const color = fileData.buffer;
     let imageSource = await image.createImageSource(color);
     let pixelMapList = await imageSource.createPixelMapList();
@@ -45,11 +45,11 @@ async function packToFileFromPixelmapSequencePromiseTest(done: Function, testNam
 }
 
 async function packToFileFromPixelmapSequenceAbnormalPromiseTest(done: Function, testName: string, pathUri: string,
-  ops: image.PackingOptionsForSequence) {
+  ops: image.PackingOptionsForSequence,fileName:string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
     const resourceMgr = testContext.resourceManager;
-    const fileData = await resourceMgr.getRawFileContent(pathUri);
+    const fileData = await resourceMgr.getRawFileContent(fileName);
     const color = fileData.buffer;
     let imageSource = await image.createImageSource(color);
     let pixelMapList = await imageSource.createPixelMapList();
@@ -104,7 +104,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -126,7 +126,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 65535
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -148,7 +148,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -170,7 +170,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -192,7 +192,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -214,7 +214,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -236,7 +236,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -258,7 +258,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -279,7 +279,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -300,7 +300,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         disposalTypes: [3, 3, 3]
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -320,7 +320,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -340,7 +340,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -360,7 +360,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -380,7 +380,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })*/
 
     /**
@@ -400,7 +400,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -420,7 +420,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -440,7 +440,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })*/
 
     /**
@@ -460,7 +460,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -480,7 +480,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequencePromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -500,7 +500,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         delayTimeList: [100, 100, 100],
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops,fileName);
     })*/
 
     /**
@@ -522,7 +522,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 0
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -544,7 +544,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: -1
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops,fileName);
     })
 
     /**
@@ -566,7 +566,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
         loopCount: 65536
       };
       await copyImageToSandbox(fileName, path);
-      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops);
+      await packToFileFromPixelmapSequenceAbnormalPromiseTest(done, testName, path, ops,fileName);
     })
   })
 }

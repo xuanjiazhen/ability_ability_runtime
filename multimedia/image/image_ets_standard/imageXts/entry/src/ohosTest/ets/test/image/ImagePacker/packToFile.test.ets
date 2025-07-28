@@ -215,13 +215,13 @@ async function packToFilePixelMapAbnormalCallbackTest(done: Function, testName: 
 }
 
 async function packToFilePicturePromiseTest(done: Function, testName: string, pathUri: string,
-  packOpts: image.PackingOption) {
+  packOpts: image.PackingOption,filename:string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
     const path: string = 'file://' + testContext.filesDir + "/" + pathUri;
     const imagePackerApi: image.ImagePacker = await image.createImagePacker();
     const resourceMgr = testContext.resourceManager;
-    const rawFile = await resourceMgr.getRawFileContent(pathUri);
+    const rawFile = await resourceMgr.getRawFileContent(filename);
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     let ops: image.SourceOptions = {
       sourceDensity: 98,
@@ -1644,7 +1644,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })
 
     /**
@@ -1667,7 +1667,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })
 
     /**
@@ -1690,7 +1690,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })
 
     /**
@@ -1713,7 +1713,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1736,7 +1736,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1759,7 +1759,7 @@ export default function imagePackerPackToFileTest() {
          needsPackProperties: true
        };
        await copyImageToSandbox(fileName, path);
-       await packToFilePicturePromiseTest(done, testName, path, packOpts);
+       await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
      })*/
 
     /**
@@ -1782,7 +1782,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1805,7 +1805,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1828,7 +1828,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1851,7 +1851,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1874,7 +1874,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1897,7 +1897,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1920,7 +1920,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1943,7 +1943,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1966,7 +1966,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })*/
 
     /**
@@ -1989,7 +1989,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: true
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })
 
     /**
@@ -2012,7 +2012,7 @@ export default function imagePackerPackToFileTest() {
         needsPackProperties: false
       };
       await copyImageToSandbox(fileName, path);
-      await packToFilePicturePromiseTest(done, testName, path, packOpts);
+      await packToFilePicturePromiseTest(done, testName, path, packOpts,fileName);
     })
   })
 }

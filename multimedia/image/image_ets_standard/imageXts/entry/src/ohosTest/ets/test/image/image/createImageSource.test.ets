@@ -731,7 +731,7 @@ export default function createImageSourceTest() {
      */
     it('createImageSource_rawfile_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_rawfile_promise_001';
-      const path = new Date().getTime() + 'test.jpg'
+      const path ='test.jpg'
       await createImageSourceRawfilePromiseTest(done, testName, path);
     })
 
@@ -746,7 +746,7 @@ export default function createImageSourceTest() {
     it('createImageSource_rawfile_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_rawfile_promise_001';
       let sourceOptions: image.SourceOptions = { sourceDensity: 120 };
-      const path = new Date().getTime() + 'test6.gif'
+      const path = 'test6.gif'
       await createImageSourceRawfilePromiseTest(done, testName, path, sourceOptions);
     })
 
@@ -768,7 +768,7 @@ export default function createImageSourceTest() {
           width: 100
         }
       };
-      const path = new Date().getTime() + 'test6.gif';
+      const path = 'test6.gif';
       await createImageSourceRawfilePromiseTest(done, testName, path, sourceOptions);
     })
   })
