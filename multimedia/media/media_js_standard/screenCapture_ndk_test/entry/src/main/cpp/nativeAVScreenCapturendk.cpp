@@ -1119,7 +1119,7 @@ static napi_value normalAVScreenCaptureShowCursorWithParaNullTrue(napi_env env, 
     //测试错误码：OH_AVScreenCapture_ReleaseVideoBuffer
     OH_AVSCREEN_CAPTURE_ErrCode microResult = OH_AVScreenCapture_SetMicrophoneEnabled(nullptr,
         isMicrophone);
-    if (microResult != AV_SCREEN_CAPTURE_ERR_OK) {
+    if (microResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect microResult is 3");
     }
     microResult = OH_AVScreenCapture_SetMicrophoneEnabled(screenCaptureNormal,
@@ -1839,12 +1839,12 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     //测试错误码：OH_AVScreenCapture_SetCanvasRotation
     bool isRotation = true;
     screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect SetCanvasRotation is 2");
     }
     //测试错误码：OH_AVScreenCapture_ExcludeContent
     screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, nullptr);
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect ExcludeContent is 2");
     }
     screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(nullptr, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
@@ -1856,7 +1856,7 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
         napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 3");
     }
     screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, g_FrameRate);
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 2");
     }
     
@@ -1872,7 +1872,7 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
         napi_throw_error((env), nullptr, "error : expect stopResult is 0 but = %{public}d" + screenCaptureResult);
     }
     screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect ResizeCanvas is 0 but = %{public}d" + screenCaptureResult);
     }
 
@@ -1902,12 +1902,12 @@ static napi_value normalAVScreenCaptureStrategyForBFramesEncodingFalse(napi_env 
     OH_AVScreenCapture_CaptureStrategy* strategy = nullptr;
     OH_AVSCREEN_CAPTURE_ErrCode resultStrategy = OH_AVScreenCapture_StrategyForBFramesEncoding(strategy, false);
     OH_LOG_INFO(LOG_APP, "StrategyForBFramesEncoding resultStrategy = %{public}d", resultStrategy);
-    if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+    if (resultStrategy != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect resultStrategy is 3 ");
     }
     resultStrategy = OH_AVScreenCapture_StrategyForPickerPopUp(strategy, false);
     OH_LOG_INFO(LOG_APP, "StrategyForBFramesEncoding resultStrategy = %{public}d", resultStrategy);
-    if (releaseResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+    if (resultStrategy != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect resultStrategy is 3 ");
     }
     strategy = OH_AVScreenCapture_CreateCaptureStrategy();
