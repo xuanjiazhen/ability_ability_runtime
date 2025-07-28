@@ -15,7 +15,7 @@
 #include <limits>
 #include "dataobs_mgr_changeinfo.h"
 #include "dataobs_utils.h"
-#include "datashare_log.h"
+#include "dataobs_log.h"
 #include "securec.h"
 
 namespace OHOS {

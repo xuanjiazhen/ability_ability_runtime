@@ -20,7 +20,7 @@
 
 #include "data_ability_observer_proxy.h"
 #include "dataobs_mgr_errors.h"
-#include "datashare_log.h"
+#include "dataobs_log.h"
 #include "ipc_skeleton.h"
 #include "common_utils.h"
 #include "hilog_tag_wrapper.h"
