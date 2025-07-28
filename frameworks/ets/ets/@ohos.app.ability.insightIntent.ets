@@ -18,6 +18,8 @@ import wantConstant from '@ohos.app.ability.wantConstant';
 
 namespace insightIntent {
 
+  export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
   export enum ExecuteMode {
     UI_ABILITY_FOREGROUND = 0,
     UI_ABILITY_BACKGROUND = 1,
@@ -27,14 +29,14 @@ namespace insightIntent {
 
   export interface ExecuteResult {
     code: int;
-    result?: Record<string, Object>;
+    result?: RecordData;
     uris?: Array<string>;
     flags?: int;
   }
 
   export class ExecuteResultInner implements ExecuteResult{
     code: int;
-    result?: Record<string, Object>;
+    result?: RecordData;
     uris?: Array<string>;
     flags?: int;
   }

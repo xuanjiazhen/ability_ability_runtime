@@ -23,12 +23,14 @@ export default namespace insightIntentDriver {
 
   loadLibrary("insight_intent_driver_ani_kit.z")
 
+  export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
   export interface ExecuteParam {
     bundleName: string;
     moduleName: string;
     abilityName: string;
     insightIntentName: string;
-    insightIntentParam: Record<string, Object>;
+    insightIntentParam: RecordData;
     executeMode: insightIntent.ExecuteMode;
     displayId?: long;
     uris?: Array<string>;
