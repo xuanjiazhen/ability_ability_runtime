@@ -24,6 +24,7 @@ import media from '@ohos.multimedia.media';
 import { fileIo as fs } from '@kit.CoreFileKit';
 import { JSON } from '@kit.ArkTS';
 import { LOG_TAG, SLEEP_TIME_2000 } from '../Constants';
+import fileio from '@ohos.fileio';
 
 const TAG = LOG_TAG + 'MediaTestBase';
 const CODECMIMEVALUE = ['video/avc', 'audio/mp4a-latm', 'audio/mpeg'];
@@ -123,7 +124,7 @@ export default class MediaTestBase {
     }
   }
 
-  async getFdRead(pathName: string, done: Function) {
+  async getFdReadRaw(pathName: string, done: Function) {
     let fileDescriptor: media.AVFileDescriptor = {
       fd: 0,
       offset: 0,
@@ -152,6 +153,18 @@ export default class MediaTestBase {
       done();
     }
     return fileDescriptor;
+  }
+
+  async getFdRead(pathName: string, done: Function) {
+    let fdReturn: number = 0;
+    pathName = globalThis.abilityContext.filesDir + '/' + pathName;
+    console.log("pathName is " + pathName)
+    await fileio.open(pathName).then((fdNumber) => {
+      this.isFileOpen(fdNumber, done)
+      fdReturn = fdNumber;
+      console.info('[fileio]case open fd success, fd is ' + fdReturn);
+    })
+    return fdReturn;
   }
 
   async closeFdNumber(fdNumber: number) {
@@ -299,7 +312,10 @@ export default class MediaTestBase {
 
   async getFileDescriptorFromFileDir(filename: string, done: Function): Promise<media.AVFileDescriptor> {
     let fileDescriptor: media.AVFileDescriptor;
-    fileDescriptor = await this.getFdRead(filename, done);
+    let fd = await this.getFdRead(filename, done);
+    fileDescriptor = {
+      fd: fd
+    };
     return fileDescriptor;
   }
 }

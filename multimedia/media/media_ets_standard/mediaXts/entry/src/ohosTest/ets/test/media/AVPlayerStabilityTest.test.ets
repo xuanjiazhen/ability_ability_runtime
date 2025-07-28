@@ -43,35 +43,22 @@ import {
 import media from '@ohos.multimedia.media';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level } from '@ohos/hypium';
 import { LOG_TAG, PLAY_TIME, SLEEP_TIME_500, VIDEO_SOURCES } from '../Constants';
+import fileio from '@ohos.fileio';
 
 const TAG = LOG_TAG + "AVPlayerStabilityTest";
 
-async function getStageFdRead(pathName: string): Promise<media.AVFileDescriptor> {
-  let fileDescriptor: media.AVFileDescriptor = {
-    fd: 0,
-    offset: 0,
-    length: 0
+async function getStageFdRead(pathName: string) {
+  let fdReturn: number = 0;
+  let fileDescriptor: media.AVFileDescriptor;
+  pathName = globalThis.abilityContext.filesDir + '/' + pathName;
+  console.log(TAG, 'pathName is ' + pathName);
+  await fileio.open(pathName).then((fdNumber) => {
+    fdReturn = fdNumber;
+    console.info(TAG, '[fileio]case open fd success, fd is ' + fdReturn);
+  });
+  fileDescriptor = {
+    fd: fdReturn
   };
-  try {
-    if (globalThis.abilityContext == null || globalThis.abilityContext == undefined) {
-      console.error(TAG, 'getStageFdRead globalThis.abilityContext is null');
-      expect().assertFail();
-      return fileDescriptor;
-    }
-    // 1. 获取资源管理器
-    let rawFileDescriptor = await (globalThis.abilityContext as Context).resourceManager.getRawFdSync(pathName);
-    fileDescriptor = {
-      fd: rawFileDescriptor.fd,
-      offset: rawFileDescriptor.offset,
-      length: rawFileDescriptor.length
-    };
-    console.info(TAG, 'getAVFileDescriptor ok rawFileDescriptor =' + JSON.stringify(rawFileDescriptor) +
-      ',pathName =' + pathName);
-    return fileDescriptor;
-  } catch (error) {
-    console.error(TAG, `getAVFileDescriptor fail: ${error.message}, code : ${error.code}`);
-    expect().assertFail();
-  }
   return fileDescriptor;
 }
 

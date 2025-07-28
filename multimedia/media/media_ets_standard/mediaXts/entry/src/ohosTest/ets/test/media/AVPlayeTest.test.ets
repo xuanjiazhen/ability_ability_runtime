@@ -595,13 +595,13 @@ async function subtitleUpdateON(avPlayer: media.AVPlayer, done: Function, testNa
       expect(false).assertTrue();
       done();
     }
-  })
+  });
 }
 
 async function testSubtitleUpdateListening(src: string | media.AVFileDescriptor,
-  subtitleSrc: string | media.AVFileDescriptor,
-  avPlayer: media.AVPlayer | null, subtitleUpdateListening: Function, done: Function, testName: string) {
-  console.info(TAG, testName + ` case media source: ${src}`)
+  subtitleSrc: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null, subtitleUpdateListening: Function,
+  done: Function, testName: string) {
+  console.info(TAG, testName + ` case media source: ${src}`);
   media.createAVPlayer((err, video) => {
     if (err) {
       console.error(TAG, testName + ` case createAVPlayer error, errMessage is ${err?.message},${err?.code}`);
