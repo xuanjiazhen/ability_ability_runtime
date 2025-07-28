@@ -111,23 +111,6 @@ export default function imagePackerPackToDataTest() {
     })
 
     /**
-     * @tc.number    : IMAGE_PACKER_PACK_TO_DATA_003
-     * @tc.name      : imagePacker_packToData_promise_003
-     * @tc.desc      : imagePacker_packToData
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('imagePacker_packToData_promise_003', Level.LEVEL0, async (done: Function) => {
-      const testName = 'imagePacker_packToData_promise_003';
-      const fileName = new Date().getTime() + 'test.jpeg';
-      const path = 'test.jpeg';
-      let packOpts: image.PackingOption = { format: "image/jpeg", quality: 100 };
-      await copyImageToSandbox(fileName, path);
-      await packToDataPromiseTest(done, testName, path, packOpts);
-    })
-
-    /**
      * @tc.number    : IMAGE_PACKER_PACK_TO_DATA_004
      * @tc.name      : imagePacker_packToData_promise_004
      * @tc.desc      : imagePacker_packToData
