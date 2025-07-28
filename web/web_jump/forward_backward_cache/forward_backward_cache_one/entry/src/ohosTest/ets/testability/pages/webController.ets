@@ -17,6 +17,7 @@ import Utils from '../../test/Utils';
 import { JsProxyObject } from '../../test/Interfaces';
 import business_error, { BusinessError } from '@ohos.base';
 import { waitForExist } from '../../test/WaitTest.test';
+import { URL } from '../../test/Config.test';
 
 @Entry
 @Component
@@ -371,7 +372,7 @@ struct webController {
                 this.controller.loadUrl({ url: 'resource://rawfile/webPart1index.html' });
                 await waitForExist(()=>this.isComplete, this.str, 0);
                 this.isComplete = -1;
-                this.controller.loadUrl({ url: 'http://appgallery.huawei.com/' })
+                this.controller.loadUrl({ url: URL });
                 await waitForExist(()=>this.isComplete, this.str, 0);
                 this.isComplete = -1;
                 this.controller.backward();
