@@ -1180,6 +1180,7 @@ static napi_value normalAVScreenCaptureStrategyForKeepCaptureDuringCallTrue(napi
     }
 
     OH_AVSCREEN_CAPTURE_ErrCode result = OH_AVScreenCapture_StrategyForKeepCaptureDuringCall(strategy, true);
+    OH_LOG_INFO(LOG_APP, "StrategyForKeepCaptureDuringCall result = %{public}d", result);
     if (result == AV_SCREEN_CAPTURE_ERR_OK) {
         result = OH_AVScreenCapture_SetCaptureStrategy(screenCaptureNormal, strategy);
     }
@@ -1217,6 +1218,7 @@ static napi_value normalAVScreenCaptureContentChangedCallback(napi_env env, napi
 
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureContentChange, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureContentChange);
+    OH_LOG_INFO(LOG_APP, "StartScreenCapture result2 = %{public}d", result2);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
@@ -1235,6 +1237,7 @@ static napi_value normalAVScreenCaptureContentChangedTestStop(napi_env env, napi
     usleep(g_recordTimeOne);
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(screenCaptureContentChange);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureContentChange);
+    OH_LOG_INFO(LOG_APP, "Release result2 = %{public}d", result2);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result1 == AV_SCREEN_CAPTURE_ERR_OK && result2 == AV_SCREEN_CAPTURE_ERR_OK) {
@@ -1269,6 +1272,7 @@ static napi_value normalAVScreenCaptureSetCaptureAreaTest(napi_env env, napi_cal
 
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StartScreenCapture result2 = %{public}d", result2);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result1 == AV_SCREEN_CAPTURE_ERR_OK && result2 == AV_SCREEN_CAPTURE_ERR_OK) {
@@ -1300,6 +1304,7 @@ static napi_value normalAVScreenCaptureSetCaptureAreaTestStop(napi_env env, napi
     usleep(g_recordTimeOne);
 
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture result1 = %{public}d", result1);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureNormal);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
@@ -1371,6 +1376,7 @@ static napi_value normalAVScreenCaptureStrategyForPrivacyMaskModeDisplay(napi_en
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureStrategyForPrivacyMaskMode, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(
         screenCaptureStrategyForPrivacyMaskMode);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StartScreenCapture result2 = %{public}d", result2);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
@@ -1389,6 +1395,7 @@ static napi_value normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop(napi_e
     usleep(g_recordTimeOne);
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(
         screenCaptureStrategyForPrivacyMaskMode);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StopScreenCapture result1 = %{public}d", result1);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureStrategyForPrivacyMaskMode);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
@@ -1423,6 +1430,7 @@ static napi_value normalAVScreenCaptureSelectionCallbackSuccess(napi_env env, na
 
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StartScreenCapture result2 = %{public}d", result2);
 
     OH_AVSCREEN_CAPTURE_ErrCode result = AV_SCREEN_CAPTURE_ERR_OK;
     if (result2 == AV_SCREEN_CAPTURE_ERR_OK) {
@@ -1446,6 +1454,7 @@ static napi_value normalAVScreenCaptureSelectionCallbackStop(napi_env env, napi_
 {
     usleep(g_recordTimeHalf);
     OH_AVSCREEN_CAPTURE_ErrCode result1 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StopScreenCapture result1 = %{public}d", result1);
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_Release(screenCaptureNormal);
 
     int32_t result = TEST_FAILED;
@@ -1720,7 +1729,7 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     //测试错误码：OH_AVScreenCapture_StopScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode stopResult = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StopScreenCapture stopResult = %{public}d", stopResult);
-    if (stopResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
+    if (stopResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
         napi_throw_error((env), nullptr, "error : expect stopResult is 3");
     }
 
