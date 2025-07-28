@@ -3149,6 +3149,36 @@ static napi_value NewGetImagePropertyWithNull(napi_env env, napi_callback_info i
     return result;
 }
 
+static napi_value NewPackingOptionsGetMimeType(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = NUM_1;
+
+    napi_get_undefined(env, &result);
+
+    if (napi_get_cb_info(env, info, &argCount, argValue, nullptr, nullptr) != napi_ok || argCount < NUM_1) {
+        return result;
+    }
+
+    void *ptr = nullptr;
+    napi_get_value_external(env, argValue[NUM_0], &ptr);
+    OH_PackingOptions *packingOptions = reinterpret_cast<OH_PackingOptions *>(ptr);
+
+    char mimeTypeBuf[MAX_BUFFER_SIZE];
+    Image_MimeType mimeType = {nullptr, 1024};
+    mimeType.data = mimeTypeBuf;
+
+    Image_ErrorCode errorCode = OH_PackingOptions_GetMimeTypeWithNull(packingOptions, &mimeType);
+    if (errorCode != IMAGE_SUCCESS) {
+        napi_create_int32(env, errorCode, &result);
+        return result;
+    }
+    
+    napi_create_string_utf8(env, mimeType.data, mimeType.size, &result);
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports) {
     napi_property_descriptor desc[] = {
@@ -3267,6 +3297,8 @@ static napi_value Init(napi_env env, napi_value exports) {
         {"GetImageSourceSupportedFormatsError", nullptr, GetImageSourceSupportedFormatsError,
             nullptr, nullptr, nullptr, napi_default, nullptr},
         {"NewGetImagePropertyWithNull", nullptr, NewGetImagePropertyWithNull, 
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"NewPackingOptionsGetMimeType", nullptr, NewPackingOptionsGetMimeType,
             nullptr, nullptr, nullptr, napi_default, nullptr}
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
