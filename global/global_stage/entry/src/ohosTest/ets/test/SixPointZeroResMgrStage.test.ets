@@ -3,9 +3,9 @@ import Ability from '@ohos.app.ability.UIAbility'
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium'
 import { GlobalContext } from '../test/global';
 
-export default function SixPointZero_resMgrStageTest() {
-  describe("SixPointZero_resMgrStageTest", () => {
-    console.log('*************start SixPointZero_resMgrStageTest*************');
+export default function SixPointZeroResMgrStageTest() {
+  describe("SixPointZeroResMgrStageTest", () => {
+    console.log('*************start SixPointZeroResMgrStageTest*************');
     let resContext: Context;
     let res: resourceManager.ResourceManager;
 
