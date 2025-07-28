@@ -186,7 +186,7 @@ public:
     inline static const std::string PARAM_RESV_START_TIME = "";
     inline static const std::string PARAM_ABILITY_RECOVERY_RESTART = "";
     inline static const std::string PARAM_ASSERT_FAULT_SESSION_ID = "";
-    inline static const std::string PARM_LAUNCH_REASON_MESSAGE = "";
+    inline static const std::string PARAM_LAUNCH_REASON_MESSAGE = "";
     inline static const std::string PARAM_APP_AUTO_STARTUP_LAUNCH_REASON = "";
     inline static const std::string PARAM_APP_CLONE_INDEX_KEY = "";
     inline static const std::string APP_INSTANCE_KEY = "";

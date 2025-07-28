@@ -6245,7 +6245,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, UpdateAbilityRecordLaunchReason_0001, Te
     request.abilityInfo.isStageBasedModel = true;
     request.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     std::string launchReasonMsg = "test_launch_reason";
-    request.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, launchReasonMsg);
+    request.want.SetParam(Want::PARAM_LAUNCH_REASON_MESSAGE, launchReasonMsg);
     auto record = AbilityRecord::CreateAbilityRecord(request);
     mgr->UpdateAbilityRecordLaunchReason(request, record);
     EXPECT_NE(record, nullptr);

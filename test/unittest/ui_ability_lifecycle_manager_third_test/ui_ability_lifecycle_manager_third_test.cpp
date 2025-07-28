@@ -607,7 +607,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateAbilityRecordLaunchReason_005
     EXPECT_NE(mgr, nullptr);
 
     AbilityRequest abilityRequest;
-    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, std::string("HeavenlyMe"));
+    abilityRequest.want.SetParam(Want::PARAM_LAUNCH_REASON_MESSAGE, std::string("HeavenlyMe"));
     auto abilityRecord = std::make_shared<AbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->lifeCycleStateInfo_.launchParam.launchReasonMessage = "HelloWorld";
@@ -630,7 +630,7 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, UpdateAbilityRecordLaunchReason_006
     want.SetParam(Want::PARAM_ABILITY_RECOVERY_RESTART, true);
 
     AbilityRequest abilityRequest;
-    abilityRequest.want.SetParam(Want::PARM_LAUNCH_REASON_MESSAGE, std::string(""));
+    abilityRequest.want.SetParam(Want::PARAM_LAUNCH_REASON_MESSAGE, std::string(""));
     auto abilityRecord = std::make_shared<AbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->lifeCycleStateInfo_.launchParam.launchReasonMessage = "HelloWorld";
