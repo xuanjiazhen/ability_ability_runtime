@@ -139,7 +139,9 @@ export async function getCameraPermission(): Promise<void> {
     let testContext: common.UIAbilityContext =
       AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
     atManager.requestPermissionsFromUser(testContext, [
-      'ohos.permission.CAMERA'
+      'ohos.permission.CAMERA',
+      'ohos.permission.READ_IMAGEVIDEO',
+      'ohos.permission.WRITE_IMAGEVIDEO'
     ], (err: BusinessError, data: PermissionRequestResult) => {
       if (err) {
         console.error(`requestPermissionsFromUser fail, err->${JSON.stringify(err)}`);
