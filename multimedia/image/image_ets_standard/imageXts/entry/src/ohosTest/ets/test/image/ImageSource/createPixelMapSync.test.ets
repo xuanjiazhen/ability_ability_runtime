@@ -24,7 +24,7 @@ async function createPixelMapSyncPromiseTest(done: Function, testName: string, p
   options?: image.DecodingOptions) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+   const path = 'file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let pixelMap: image.PixelMap = imageSourceApi.createPixelMapSync(options);
     imageSourceApi.release();
@@ -67,7 +67,7 @@ export default function imageSourceCreatePixelMapSyncTest() {
     it('imageSource_createPixelMapSync_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapSync_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+     const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: false,
@@ -92,7 +92,7 @@ export default function imageSourceCreatePixelMapSyncTest() {
     it('imageSource_createPixelMapSync_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapSync_promise_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+     const path = new Date().getTime() + 'test.svg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -117,7 +117,7 @@ export default function imageSourceCreatePixelMapSyncTest() {
     it('imageSource_createPixelMapSync_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapSync_promise_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+     const path = new Date().getTime() + 'test.svg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -142,7 +142,7 @@ export default function imageSourceCreatePixelMapSyncTest() {
     it('imageSource_createPixelMapSync_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapSync_promise_004';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+     const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapSyncPromiseTest(done, testName, path);
     })

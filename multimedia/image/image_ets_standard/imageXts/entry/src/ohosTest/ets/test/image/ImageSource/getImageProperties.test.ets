@@ -85,7 +85,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = [image.PropertyKey.IMAGE_WIDTH, image.PropertyKey.IMAGE_LENGTH];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesPromiseTest(done, testName, path, PropertyKey);
@@ -102,7 +102,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = [image.PropertyKey.IMAGE_WIDTH];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesPromiseTest(done, testName, path, PropertyKey);
@@ -119,7 +119,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_promise_003';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = [image.PropertyKey.IMAGE_LENGTH];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesPromiseTest(done, testName, path, PropertyKey);
@@ -136,7 +136,7 @@ export default function imageSourceGetImagePropertiesTest() {
     /*it('imageSource_getImageProperties_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = [image.PropertyKey.IMAGE_DESCRIPTION];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesPromiseTest(done, testName, path, PropertyKey);
@@ -153,7 +153,7 @@ export default function imageSourceGetImagePropertiesTest() {
     /*it('imageSource_getImageProperties_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_promise_005';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       let PropertyKey = [image.PropertyKey.IMAGE_LENGTH];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesPromiseTest(done, testName, path, PropertyKey);
@@ -170,7 +170,7 @@ export default function imageSourceGetImagePropertiesTest() {
     /*it('imageSource_getImageProperties_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_abnormal_promise_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       let PropertyKey = [image.PropertyKey.IMAGE_LENGTH];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesAbnormalPromiseTest(done, testName, path, PropertyKey);
@@ -187,7 +187,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_abnormal_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_abnormal_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = [];
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesAbnormalPromiseTest(done, testName, path, PropertyKey);
@@ -204,7 +204,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_abnormal_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_abnormal_promise_003';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = undefined;
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesAbnormalPromiseTest(done, testName, path, PropertyKey);
@@ -221,7 +221,7 @@ export default function imageSourceGetImagePropertiesTest() {
     it('imageSource_getImageProperties_abnormal_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageProperties_abnormal_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = null;
       await copyImageToSandbox(fileName, path);
       await getImagePropertiesAbnormalPromiseTest(done, testName, path, PropertyKey);

@@ -95,7 +95,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_001';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -117,7 +117,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_002';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 99,
@@ -139,7 +139,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_003';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 1,
@@ -161,7 +161,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_004';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -183,7 +183,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_005';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -205,7 +205,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_006';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -227,7 +227,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_007';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -249,7 +249,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_008';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -271,7 +271,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_009', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_009';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -292,7 +292,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_010', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_010';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -313,7 +313,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_011', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_011';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -333,7 +333,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_012', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_012';
-      let path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const fileName = 'test.jpg';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -353,7 +353,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_013', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_013';
-      let path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       const fileName = 'test.svg';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -373,7 +373,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     /*it('imagePacker_packToFileFromPixelmapSequence_promise_014', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_014';
-      let path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       const fileName = 'test.jpeg';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -393,7 +393,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_015', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_015';
-      let path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       const fileName = 'test7.png';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -413,7 +413,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_016', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_016';
-      let path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       const fileName = 'test8.bmp';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -433,7 +433,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     /*it('imagePacker_packToFileFromPixelmapSequence_promise_017', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_017';
-      let path = 'test_aisr.dng';
+      const path = new Date().getTime() + 'test_aisr.dng';
       const fileName = 'test_aisr.dng';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -453,7 +453,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_018', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_018';
-      let path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       const fileName = 'test_aisr.ico';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -473,7 +473,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_promise_019', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_promise_019';
-      let path = 'test_exif_empty2.webp';
+      const path = new Date().getTime() + 'test_exif_empty2.webp';
       const fileName = 'test_exif_empty2.webp';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -493,7 +493,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     /*it('imagePacker_packToFileFromPixelmapSequence_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_abnormal_promise_001';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: -1,
@@ -513,7 +513,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_abnormal_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_abnormal_promise_002';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -535,7 +535,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_abnormal_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_abnormal_promise_003';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,
@@ -557,7 +557,7 @@ export default function imagePackerPackToFileFromPixelmapSequenceTest() {
      */
     it('imagePacker_packToFileFromPixelmapSequence_abnormal_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToFileFromPixelmapSequence_abnormal_promise_004';
-      let path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       const fileName = 'test6.gif';
       let ops: image.PackingOptionsForSequence = {
         frameCount: 3,

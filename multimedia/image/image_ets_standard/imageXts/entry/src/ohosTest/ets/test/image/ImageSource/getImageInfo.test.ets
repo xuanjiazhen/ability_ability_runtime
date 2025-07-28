@@ -152,7 +152,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_callback_001';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoIndexCallbackTest(done, testName, path, index);
@@ -169,7 +169,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_callback_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoIndexCallbackTest(done, testName, path, index);
@@ -186,7 +186,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_callback_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoCallbackTest(done, testName, path);
     })
@@ -202,7 +202,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_callback_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_callback_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoCallbackTest(done, testName, path);
     })
@@ -218,7 +218,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_promise_001';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoPromiseTest(done, testName, path, index);
@@ -235,7 +235,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoPromiseTest(done, testName, path, index);
@@ -252,7 +252,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_promise_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoPromiseTest(done, testName, path);
     })
@@ -268,7 +268,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfo_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfo_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoPromiseTest(done, testName, path);
     })
@@ -284,7 +284,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfoSync_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfoSync_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoSyncPromiseTest(done, testName, path);
     })
@@ -300,7 +300,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfoSync_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfoSync_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoSyncPromiseTest(done, testName, path, index);
@@ -317,7 +317,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfoSync_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfoSync_promise_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getImageInfoSyncPromiseTest(done, testName, path);
     })
@@ -333,7 +333,7 @@ export default function imageSourceGetImageInfoTest() {
     it('imageSource_getImageInfoSync_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getImageInfoSync_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const index = 0;
       await copyImageToSandbox(fileName, path);
       await getImageInfoSyncPromiseTest(done, testName, path, index);

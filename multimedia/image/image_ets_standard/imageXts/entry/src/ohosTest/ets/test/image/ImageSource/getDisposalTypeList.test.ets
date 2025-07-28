@@ -18,14 +18,13 @@ import common from '@ohos.app.ability.common';
 import { describe, it, expect, Level, beforeAll, beforeEach, afterEach, afterAll } from '@ohos/hypium';
 import { LOG_TAG, copyImageToSandbox } from '../../common';
 import { ErrorCode } from '../../CommonErrorCode';
-import { fileUri } from '@kit.CoreFileKit';
 
 const TAG = LOG_TAG + 'getDisposalTypeList';
 
 async function getDisposalTypeListPromiseTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
+    const path = 'file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
@@ -41,7 +40,7 @@ async function getDisposalTypeListPromiseTest(done: Function, testName: string, 
 async function getDisposalTypeListPromiseAbnormalTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
+    const path = 'file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
@@ -89,7 +88,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseTest(done, testName, path);
     })
@@ -105,7 +104,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path =  new Date().getTime() +'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -121,7 +120,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -137,7 +136,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_003';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -153,7 +152,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_004';
       const fileName = 'test8.bmp';
-      const path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -169,7 +168,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_005';
       const fileName = 'test_aisr.dng';
-      const path = 'test_aisr.dng';
+      const path = new Date().getTime() + 'test_aisr.dng';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -185,7 +184,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_006';
       const fileName = 'test_aisr.ico';
-      const path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -201,7 +200,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_007';
       const fileName = 'test_aisr.dng';
-      const path = 'test_aisr.dng';
+      const path = new Date().getTime() + 'test_aisr.dng';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })
@@ -217,7 +216,7 @@ export default function imageSourceGetDisposalTypeListTest() {
     it('imageSource_getDisposalTypeList_promise_abnormal_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDisposalTypeList_promise_abnormal_008';
       const fileName = 'test_exif_empty2.webp';
-      const path = 'test_exif_empty2.dng';
+      const path = new Date().getTime() + 'test_exif_empty2.dng';
       await copyImageToSandbox(fileName, path);
       await getDisposalTypeListPromiseAbnormalTest(done, testName, path);
     })

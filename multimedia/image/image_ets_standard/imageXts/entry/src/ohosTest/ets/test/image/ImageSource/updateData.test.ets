@@ -129,7 +129,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = false;
       const offset = 0;
@@ -149,7 +149,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = 0;
@@ -169,7 +169,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_promise_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = 100;
@@ -189,7 +189,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(9999);
       const isFinished = true;
       const offset = 9999;
@@ -209,7 +209,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_promise_005';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = 0;
@@ -229,7 +229,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_abnormal_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = null;
@@ -249,7 +249,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_abnormal_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_abnormal_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = undefined;
@@ -269,7 +269,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_abnormal_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_abnormal_promise_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = undefined;
       const offset = undefined;
@@ -289,7 +289,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_abnormal_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_abnormal_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array = '汉字';
       const isFinished = '汉字';
       const offset = '汉字';
@@ -309,7 +309,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = false;
       const offset = 0;
@@ -329,7 +329,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = 0;
@@ -349,7 +349,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(100);
       const isFinished = true;
       const offset = 100;
@@ -369,7 +369,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_callback_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(9999);
       const isFinished = true;
       const offset = 9999;
@@ -389,7 +389,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     it('imageSource_updateData_callback_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_005';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array: ArrayBuffer = new ArrayBuffer(0);
       const isFinished = true;
       const offset = 0;
@@ -409,7 +409,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_callback_abnormal_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_abnormal_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array = undefined;
       const isFinished = undefined;
       const offset = undefined;
@@ -429,7 +429,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_callback_abnormal_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_abnormal_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array = '汉字';
       const isFinished = '汉字';
       const offset = '汉字';
@@ -449,7 +449,7 @@ export default function imageSourceUpdateDataPropertyTest() {
     /*it('imageSource_updateData_callback_abnormal_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_updateData_callback_abnormal_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const array = null;
       const isFinished = null;
       const offset = null;

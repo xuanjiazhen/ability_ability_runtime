@@ -45,7 +45,7 @@ async function createImageSourceFdPromiseTest(done: Function, testName: string, 
   SourceOptions?: image.SourceOptions) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path ='file://' + testContext.filesDir + "/" + pathUri;
     let file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
     const imageSourceApi: image.ImageSource =
       SourceOptions ? image.createImageSource(file.fd, SourceOptions) : image.createImageSource(file.fd);
@@ -122,7 +122,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -138,7 +138,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_002';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -154,7 +154,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_003';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -170,7 +170,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_004';
       const fileName = 'test_exif_empty2.webp';
-      const path = 'test_exif_empty2.webp';
+      const path = new Date().getTime() + 'test_exif_empty2.webp';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -186,7 +186,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_005';
       const fileName = 'test_dng.dng';
-      const path = 'test_dng.dng';
+      const path = new Date().getTime() + 'test_dng.dng';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -202,7 +202,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_006';
       const fileName = 'test_aisr.ico';
-      const path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -218,7 +218,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_007';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -234,7 +234,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_008';
       const fileName = 'test8.bmp';
-      const path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -249,7 +249,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_009', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_009';
       const fileName = 'test.jpg';
-      const path = '全是汉字的.jpg';
+      const path = new Date().getTime() + '全是汉字的.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -265,7 +265,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_010', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_010';
       const fileName = 'test.jpg';
-      const path = '_sad123汉字组合.jpg';
+      const path = new Date().getTime() + '_sad123汉字组合.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -281,7 +281,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_011', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_011';
       const fileName = 'test.jpg';
-      const path = '5446421.jpg';
+      const path = new Date().getTime() + '5446421.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -296,7 +296,7 @@ export default function createImageSourceTest() {
     it('createImageSource_promise_012', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_promise_012';
       const fileName = 'test.jpg';
-      const path = genRandomStr(100) + '.jpg';
+      const path = new Date().getTime() + genRandomStr(100) + '.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
     })
@@ -320,7 +320,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -344,7 +344,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -368,7 +368,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -392,7 +392,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test_exif_empty2.webp';
-      const path = 'test_exif_empty2.webp';
+      const path = new Date().getTime() + 'test_exif_empty2.webp';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -416,7 +416,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test_dng.dng';
-      const path = 'test_dng.dng';
+      const path = new Date().getTime() + 'test_dng.dng';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -440,7 +440,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test_aisr.ico';
-      const path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -464,7 +464,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -488,7 +488,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test8.bmp';
-      const path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
@@ -513,7 +513,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.jpg';
-      const path = '全是汉字的.jpg';
+      const path = new Date().getTime() + '全是汉字的.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -537,7 +537,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.jpg';
-      const path = '_sad123汉字组合.jpg';
+      const path = new Date().getTime() + '_sad123汉字组合.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -561,7 +561,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.jpg';
-      const path = '5446421.jpg';
+      const path = new Date().getTime() + '5446421.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -585,7 +585,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test.jpg';
-      const path = genRandomStr(100) + '.jpg';
+      const path = new Date().getTime() + genRandomStr(100) + '.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourcePromiseTest(done, testName, path, sourceOptions);
     })
@@ -601,7 +601,7 @@ export default function createImageSourceTest() {
     it('createImageSource_fd_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_fd_promise_001';
       const fileName = 'test.jpg';
-      const path = genRandomStr(100) + '.jpg';
+      const path = new Date().getTime() + genRandomStr(100) + '.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourceFdPromiseTest(done, testName, path);
     })
@@ -617,7 +617,7 @@ export default function createImageSourceTest() {
     it('createImageSource_fd_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_fd_promise_002';
       const fileName = 'test8.bmp';
-      const path = genRandomStr(100) + '.bmp';
+      const path = new Date().getTime() + genRandomStr(100) + '.bmp';
       await copyImageToSandbox(fileName, path);
       await createImageSourceFdPromiseTest(done, testName, path);
     })
@@ -634,7 +634,7 @@ export default function createImageSourceTest() {
       const testName = 'createImageSource_fd_promise_003';
       let sourceOptions: image.SourceOptions = { sourceDensity: 120 };
       const fileName = 'test.jpg';
-      const path = genRandomStr(100) + '.jpg';
+      const path = new Date().getTime() + genRandomStr(100) + '.jpg';
       await copyImageToSandbox(fileName, path);
       await createImageSourceFdPromiseTest(done, testName, path, sourceOptions);
     })
@@ -658,7 +658,7 @@ export default function createImageSourceTest() {
         }
       };
       const fileName = 'test8.bmp';
-      const path = genRandomStr(100) + '.bmp';
+      const path = new Date().getTime() + genRandomStr(100) + '.bmp';
       await copyImageToSandbox(fileName, path);
       await createImageSourceFdPromiseTest(done, testName, path, sourceOptions);
     })
@@ -731,7 +731,7 @@ export default function createImageSourceTest() {
      */
     it('createImageSource_rawfile_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_rawfile_promise_001';
-      const path = 'test.jpg'
+      const path = new Date().getTime() + 'test.jpg'
       await createImageSourceRawfilePromiseTest(done, testName, path);
     })
 
@@ -746,7 +746,7 @@ export default function createImageSourceTest() {
     it('createImageSource_rawfile_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'createImageSource_rawfile_promise_001';
       let sourceOptions: image.SourceOptions = { sourceDensity: 120 };
-      const path = 'test6.gif'
+      const path = new Date().getTime() + 'test6.gif'
       await createImageSourceRawfilePromiseTest(done, testName, path, sourceOptions);
     })
 
@@ -768,7 +768,7 @@ export default function createImageSourceTest() {
           width: 100
         }
       };
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await createImageSourceRawfilePromiseTest(done, testName, path, sourceOptions);
     })
   })

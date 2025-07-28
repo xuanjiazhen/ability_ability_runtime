@@ -117,7 +117,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -142,7 +142,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: false,
@@ -167,7 +167,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -192,7 +192,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -217,7 +217,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_005';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -239,7 +239,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_006';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true
@@ -259,7 +259,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_007';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {};
       await copyImageToSandbox(fileName, path);
       await createPixelMapListPromiseTest(done, testName, path, decodingOptions);
@@ -276,7 +276,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_008';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapListPromiseTest(done, testName, path);
     })
@@ -292,7 +292,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_promise_009', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_promise_009';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapListPromiseTest(done, testName, path);
     })
@@ -308,7 +308,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapListCallbackTest(done, testName, path);
     })
@@ -324,7 +324,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapListCallbackTest(done, testName, path);
     })
@@ -340,7 +340,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -365,7 +365,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: false,
@@ -390,7 +390,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_005';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -415,7 +415,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_006';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -440,7 +440,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_007';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true,
@@ -462,7 +462,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_008';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: true
@@ -482,7 +482,7 @@ export default function imageSourceCreatePixelMapListTest() {
     it('imageSource_createPixelMapList_callback_009', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapList_callback_009';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {};
       await copyImageToSandbox(fileName, path);
       await createPixelMapListCallbackOptionsTest(done, testName, path, decodingOptions);

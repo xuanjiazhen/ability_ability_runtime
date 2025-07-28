@@ -87,7 +87,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/jpeg", quality: 98 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -104,7 +104,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path =  new Date().getTime() +'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/jpeg", quality: 0 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -120,7 +120,7 @@ export default function imagePackerPackToDataTest() {
      */
     it('imagePacker_packToData_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_003';
-      const fileName = 'test.jpeg';
+      const fileName = new Date().getTime() + 'test.jpeg';
       const path = 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/jpeg", quality: 100 };
       await copyImageToSandbox(fileName, path);
@@ -138,7 +138,7 @@ export default function imagePackerPackToDataTest() {
     /*it('imagePacker_packToData_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 100 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -155,7 +155,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_005';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 90 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -172,7 +172,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_006';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 0 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -189,7 +189,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_007';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 10 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -206,7 +206,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_008';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 100 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -223,7 +223,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_009', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_009';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/png", quality: 100 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -240,7 +240,7 @@ export default function imagePackerPackToDataTest() {
     /*it('imagePacker_packToData_promise_010', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_010';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/heic", quality: 10 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -257,7 +257,7 @@ export default function imagePackerPackToDataTest() {
     /*it('imagePacker_packToData_promise_011', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_011';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let packOpts: image.PackingOption = { format: "image/heif", quality: 10 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);
@@ -274,7 +274,7 @@ export default function imagePackerPackToDataTest() {
     it('imagePacker_packToData_promise_012', Level.LEVEL0, async (done: Function) => {
       const testName = 'imagePacker_packToData_promise_012';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       let packOpts: image.PackingOption = { format: "image/webp", quality: 100 };
       await copyImageToSandbox(fileName, path);
       await packToDataPromiseTest(done, testName, path, packOpts);

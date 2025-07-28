@@ -88,7 +88,7 @@ export default function imageSourceReleaseTest() {
     it('imageSource_release_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_release_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       await copyImageToSandbox(fileName, path);
       await releasePromiseTest(done, testName, path);
     })
@@ -104,7 +104,7 @@ export default function imageSourceReleaseTest() {
     it('imageSource_release_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_release_callback_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       await copyImageToSandbox(fileName, path);
       await releaseCallbackTest(done, testName, path);
     })

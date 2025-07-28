@@ -87,7 +87,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = image.PropertyKey.IMAGE_WIDTH;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -105,7 +105,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = image.PropertyKey.IMAGE_LENGTH;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -123,7 +123,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_003';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = image.PropertyKey.X_RESOLUTION;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -141,7 +141,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let PropertyKey = image.PropertyKey.Y_RESOLUTION;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -159,7 +159,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_005';
       const fileName = 'test7.png';
-      const path = 'test7.png'
+      const path = new Date().getTime() + 'test7.png'
       let PropertyKey = image.PropertyKey.IMAGE_WIDTH;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -177,7 +177,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_006';
       const fileName = 'test7.png';
-      const path = 'test7.png'
+      const path = new Date().getTime() + 'test7.png'
       let PropertyKey = image.PropertyKey.IMAGE_LENGTH;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -195,7 +195,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_007';
       const fileName = 'test7.png';
-      const path = 'test7.png'
+      const path = new Date().getTime() + 'test7.png'
       let PropertyKey = image.PropertyKey.X_RESOLUTION;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -213,7 +213,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_promise_008';
       const fileName = 'test7.png';
-      const path = 'test7.png'
+      const path = new Date().getTime() + 'test7.png'
       let PropertyKey = image.PropertyKey.Y_RESOLUTION;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -231,7 +231,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_abnormal_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg'
+      const path = new Date().getTime() + 'test.jpg'
       let PropertyKey = image.PropertyKey.Y_RESOLUTION;
       let value = 120;
       await copyImageToSandbox(fileName, path);
@@ -249,7 +249,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_abnormal_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_abnormal_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg'
+      const path = new Date().getTime() + 'test.jpg'
       let PropertyKey = undefined;
       let value = '120';
       await copyImageToSandbox(fileName, path);
@@ -267,7 +267,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_abnormal_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_abnormal_promise_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg'
+      const path = new Date().getTime() + 'test.jpg'
       let PropertyKey = undefined;
       let value = undefined;
       await copyImageToSandbox(fileName, path);
@@ -285,7 +285,7 @@ export default function imageSourceModifyImagePropertyTest() {
     it('imageSource_modifyImageProperty_abnormal_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperty_abnormal_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg'
+      const path = new Date().getTime() + 'test.jpg'
       let PropertyKey = null;
       let value = null;
       await copyImageToSandbox(fileName, path);

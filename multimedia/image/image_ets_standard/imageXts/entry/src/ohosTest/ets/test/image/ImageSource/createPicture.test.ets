@@ -67,7 +67,7 @@ export default function imageSourceCreatePictureTest() {
     it('imageSource_createPicture_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPicture_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let options: image.DecodingOptionsForPicture = {
         desiredAuxiliaryPictures: [image.AuxiliaryPictureType.GAINMAP]
       };
@@ -86,7 +86,7 @@ export default function imageSourceCreatePictureTest() {
     it('imageSource_createPicture_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPicture_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let options: image.DecodingOptionsForPicture = {
         desiredAuxiliaryPictures: [image.AuxiliaryPictureType.DEPTH_MAP]
       };
@@ -105,7 +105,7 @@ export default function imageSourceCreatePictureTest() {
     it('imageSource_createPicture_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPicture_promise_003';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let options: image.DecodingOptionsForPicture = {
         desiredAuxiliaryPictures: [image.AuxiliaryPictureType.UNREFOCUS_MAP]
       };
@@ -124,7 +124,7 @@ export default function imageSourceCreatePictureTest() {
     it('imageSource_createPicture_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPicture_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let options: image.DecodingOptionsForPicture = {
         desiredAuxiliaryPictures: [image.AuxiliaryPictureType.LINEAR_MAP]
       };
@@ -143,7 +143,7 @@ export default function imageSourceCreatePictureTest() {
     it('imageSource_createPicture_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPicture_promise_005';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let options: image.DecodingOptionsForPicture = {
         desiredAuxiliaryPictures: [image.AuxiliaryPictureType.FRAGMENT_MAP]
       };

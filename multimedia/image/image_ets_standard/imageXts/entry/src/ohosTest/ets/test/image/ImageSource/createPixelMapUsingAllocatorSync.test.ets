@@ -72,7 +72,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: true,
         desiredSize: { width: 3072, height: 4096 },
@@ -97,7 +97,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: false,
         desiredSize: { width: 3072, height: 4096 },
@@ -122,7 +122,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_003';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: false,
         desiredSize: { width: 3072, height: 4096 },
@@ -147,7 +147,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     /*it('imageSource_createPixelMapUsingAllocatorSync_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_004';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: false,
         desiredSize: { width: 3072, height: 4096 },
@@ -172,7 +172,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     /*it('imageSource_createPixelMapUsingAllocatorSync_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_005';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions = undefined
       const allocatorType = image.AllocatorType.SHARE_MEMORY;
       await copyImageToSandbox(fileName, path);
@@ -190,7 +190,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_006';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: false,
         desiredSize: { width: 3072, height: 4096 },
@@ -215,7 +215,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_007';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions: image.DecodingOptions = {
         editable: false,
         desiredSize: { width: 3072, height: 4096 },
@@ -240,7 +240,7 @@ export default function imageSourceCreatePixelMapUsingAllocatorSyncTest() {
     it('imageSource_createPixelMapUsingAllocatorSync_promise_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMapUsingAllocatorSync_promise_008';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       const decodingOptions = undefined;
       const allocatorType = undefined;
       await copyImageToSandbox(fileName, path);

@@ -25,7 +25,7 @@ async function modifyImagePropertiesPromiseTest(done: Function, testName: string
   keyValues: Record<PropertyKey, string | null>, checkKey: image.PropertyKey[]) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path ='file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     await imageSourceApi.modifyImageProperties(keyValues);
     await imageSourceApi.getImageProperties(checkKey);
@@ -88,7 +88,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.IMAGE_WIDTH]: "1024",
         [image.PropertyKey.IMAGE_LENGTH]: "1024"
@@ -109,7 +109,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_002';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.IMAGE_LENGTH]: "1024"
       };
@@ -129,7 +129,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_003';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.IMAGE_WIDTH]: "1024"
       };
@@ -149,7 +149,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_004';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.X_RESOLUTION]: "1024",
         [image.PropertyKey.Y_RESOLUTION]: "1024"
@@ -170,7 +170,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_005';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.Y_RESOLUTION]: "1024"
       };
@@ -190,7 +190,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_006';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.X_RESOLUTION]: "1024"
       };
@@ -210,7 +210,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_promise_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_promise_007';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {
         [image.PropertyKey.X_RESOLUTION]: "1024",
         [image.PropertyKey.Y_RESOLUTION]: "1024",
@@ -233,7 +233,7 @@ export default function imageSourceModifyImagePropertiesTest() {
     it('imageSource_modifyImageProperties_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_modifyImageProperties_abnormal_promise_001';
       const fileName = 'test.jpeg';
-      const path = 'test.jpeg';
+      const path = new Date().getTime() + 'test.jpeg';
       let keyValues: Record<PropertyKey, string | null> = {};
       let checkKey = [image.PropertyKey.IMAGE_WIDTH, image.PropertyKey.IMAGE_LENGTH];
       await copyImageToSandbox(fileName, path);

@@ -41,7 +41,7 @@ async function createPixelMapPromiseTest(done: Function, testName: string, pathU
 async function createPixelMapCallbackTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path ='file://' + testContext.filesDir + "/" + pathUri;
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     imageSourceApi.createPixelMap((err: BusinessError, pixelMap: image.PixelMap) => {
       imageSourceApi.release();
@@ -114,7 +114,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: false,
@@ -139,7 +139,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_promise_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       let decodingOptions: image.DecodingOptions = {
         sampleSize: 1,
         editable: false,
@@ -164,7 +164,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_promise_003';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await createPixelMapPromiseTest(done, testName, path);
     })
@@ -180,7 +180,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_promise_004';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await createPixelMapPromiseTest(done, testName, path);
     })
@@ -196,7 +196,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_callback_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapCallbackTest(done, testName, path);
     })
@@ -212,7 +212,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_callback_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapCallbackTest(done, testName, path);
     })
@@ -228,7 +228,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_callback_003';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await createPixelMapCallbackTest(done, testName, path);
     })
@@ -244,7 +244,7 @@ export default function imageSourceCreatePixelMapTest() {
     it('imageSource_createPixelMap_callback_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_createPixelMap_callback_004';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await createPixelMapCallbackTest(done, testName, path);
     })
@@ -269,7 +269,7 @@ export default function imageSourceCreatePixelMapTest() {
         index: 0
       };
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await createPixelMapDecodingOptionsCallbackTest(done, testName, path, decodingOptions);
     })
@@ -294,7 +294,7 @@ export default function imageSourceCreatePixelMapTest() {
         index: 0
       };
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapDecodingOptionsCallbackTest(done, testName, path, decodingOptions);
     })
@@ -319,7 +319,7 @@ export default function imageSourceCreatePixelMapTest() {
         index: 0
       };
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await createPixelMapDecodingOptionsCallbackTest(done, testName, path, decodingOptions);
     })
@@ -344,7 +344,7 @@ export default function imageSourceCreatePixelMapTest() {
         index: 0
       };
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await createPixelMapDecodingOptionsCallbackTest(done, testName, path, decodingOptions);
     })

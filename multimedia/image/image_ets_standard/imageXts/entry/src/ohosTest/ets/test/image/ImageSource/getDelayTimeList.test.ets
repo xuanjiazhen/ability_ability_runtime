@@ -143,7 +143,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_promise_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListPromiseTest(done, testName, path);
     })
@@ -159,7 +159,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_promise_002';
       const fileName = 'test_exif_empty2.webp';
-      const path = 'test_exif_empty2.webp';
+      const path = new Date().getTime() + 'test_exif_empty2.webp';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListPromiseTest(done, testName, path);
     })
@@ -175,7 +175,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_001';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -191,7 +191,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_002';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -207,7 +207,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_003';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -223,7 +223,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_004';
       const fileName = 'test8.bmp';
-      const path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -239,7 +239,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_005';
       const fileName = 'test_aisr.dng';
-      const path = 'test_aisr.dng';
+      const path = new Date().getTime() + 'test_aisr.dng';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -255,7 +255,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_promise_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_promise_006';
       const fileName = 'test_aisr.ico';
-      const path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListAbnormalPromiseTest(done, testName, path);
     })
@@ -271,7 +271,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_callback_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackTest(done, testName, path);
     })
@@ -287,7 +287,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_callback_002';
       const fileName = 'test_exif_empty2.webp';
-      const path = 'test_exif_empty2.webp';
+      const path = new Date().getTime() + 'test_exif_empty2.webp';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackTest(done, testName, path);
     })
@@ -303,7 +303,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
@@ -319,7 +319,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_004', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_004';
       const fileName = 'test7.png';
-      const path = 'test7.png';
+      const path = new Date().getTime() + 'test7.png';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
@@ -335,7 +335,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_005', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_005';
       const fileName = 'test8.bmp';
-      const path = 'test8.bmp';
+      const path = new Date().getTime() + 'test8.bmp';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
@@ -351,7 +351,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_006', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_006';
       const fileName = 'test_aisr.dng';
-      const path = 'test_aisr.dng';
+      const path = new Date().getTime() + 'test_aisr.dng';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
@@ -367,7 +367,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_007', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_007';
       const fileName = 'test_aisr.ico';
-      const path = 'test_aisr.ico';
+      const path = new Date().getTime() + 'test_aisr.ico';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
@@ -383,7 +383,7 @@ export default function imageSourceGetDelayTimeListTest() {
     it('imageSource_getDelayTimeList_abnormal_callback_008', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getDelayTimeList_abnormal_callback_008';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getDelayTimeListCallbackAbnormalTest(done, testName, path);
     })
