@@ -251,11 +251,11 @@ export default function HttpRequestDataCATest() {
         httpRequest.request("https://localhost:"+ port, options, (err: Error, data: http.HttpResponse) => {
           if (!err) {
             console.info(`${caseName} request success data is `+JSON.stringify(data));
-            ExpectTrue(data.responseCode == 200);
+            ExpectFail();
             done();
           } else {
             console.error(`${caseName} request err is `+JSON.stringify(err));
-            ExpectFail();
+            ExpectTrue(err.code == 2300060);
             done();
           }
         });
