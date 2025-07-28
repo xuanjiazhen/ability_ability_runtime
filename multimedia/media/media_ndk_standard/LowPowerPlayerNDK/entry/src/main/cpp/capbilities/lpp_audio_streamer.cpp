@@ -27,6 +27,7 @@
 LppAudioStreamer::~LppAudioStreamer()
 {
     if (lppAudioStreamer_ != nullptr) {
+        AVCODEC_SAMPLE_LOGI("lppAudioStreamer_  is nullptr");
         Release();
     }
 }
@@ -45,14 +46,16 @@ int32_t LppAudioStreamer::SetCallback(LppUserData *lppUserData)
     int32_t ret = AV_ERR_OK;
     AVCODEC_SAMPLE_LOGI("====== lppAudioStreamer_ SetCallback ======");
     lppAudioStreamerCallback_ = OH_LowPowerAudioSinkCallback_Create();
-    OH_LowPowerAudioSinkCallback_SetDataNeededListener(lppAudioStreamerCallback_, LppCallback::OnDataNeeded,
+    ret = OH_LowPowerAudioSinkCallback_SetDataNeededListener(lppAudioStreamerCallback_, LppCallback::OnDataNeeded,
                                                        lppUserData);
-    OH_LowPowerAudioSinkCallback_SetPositionUpdateListener(lppAudioStreamerCallback_, LppCallback::OnPositionUpdated,
+    AVCODEC_SAMPLE_LOGI("SetDataNeededListener ret:::%{public}d ", ret);
+    ret = OH_LowPowerAudioSinkCallback_SetPositionUpdateListener(lppAudioStreamerCallback_, LppCallback::OnPositionUpdated,
                                                            lppUserData);
+    AVCODEC_SAMPLE_LOGI("SetPositionUpdateListener ret:::%{public}d ", ret);
     ret = OH_LowPowerAudioSink_RegisterCallback(lppAudioStreamer_, lppAudioStreamerCallback_);
     CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Set callback failed, ret::: %{public}d", ret);
 
-    AVCODEC_SAMPLE_LOGI("OH_LowPowerAudioSink_RegisterCallback ret:::%{public}d ", ret);
+    AVCODEC_SAMPLE_LOGI("RegisterCallback ret:::%{public}d ", ret);
     return ret;
 }
 
