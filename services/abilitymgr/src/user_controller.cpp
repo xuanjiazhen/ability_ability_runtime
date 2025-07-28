@@ -20,6 +20,7 @@
 #include "mock_session_manager_service.h"
 #include "os_account_manager_wrapper.h"
 #include "scene_board_judgement.h"
+#include "user_controller/user_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -53,12 +54,10 @@ UserState UserItem::GetState()
     return curState_;
 }
 
-UserController::UserController()
+UserController& UserController::GetInstance()
 {
-}
-
-UserController::~UserController()
-{
+    static UserController instance;
+    return instance;
 }
 
 void UserController::Init()
@@ -71,18 +70,19 @@ void UserController::Init()
     if (eventHandler_) {
         return;
     }
-    eventHandler_ = std::make_shared<UserEventHandler>(handler, shared_from_this());
+    eventHandler_ = std::make_shared<UserEventHandler>(handler);
 }
 
 void UserController::ClearAbilityUserItems(int32_t userId)
 {
+    UserManager::GetInstance().ClearUserId(userId);
     std::lock_guard<ffrt::mutex> guard(userLock_);
     if (userItems_.count(userId)) {
         userItems_.erase(userId);
     }
 }
 
-int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool isAppRecovery)
+int UserController::StartUser(int32_t userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery)
 {
     if (userId == U1_USER_ID) {
         return StartNoHeadUser(userId, callback);
@@ -96,7 +96,7 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
         return INVALID_USERID_VALUE;
     }
 
-    if (IsCurrentUser(userId)) {
+    if (IsCurrentUser(userId, displayId)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "StartUser current:%{public}d", userId);
         if (callback != nullptr) {
             callback->OnStartUserDone(userId, ERR_OK);
@@ -119,13 +119,13 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
         return INVALID_USERID_VALUE;
     }
 
-    if (GetCurrentUserId() != USER_ID_NO_HEAD && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+    auto oldUserId = GetCurrentUserId(displayId);
+    if (oldUserId != USER_ID_NO_HEAD && !Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         // start freezing screen
         SetFreezingNewUserId(userId);
         DelayedSingleton<AbilityManagerService>::GetInstance()->StartFreezingScreen();
     }
 
-    auto oldUserId = GetCurrentUserId();
     auto userItem = GetOrCreateUserItem(userId);
     auto state = userItem->GetState();
     if (state == STATE_STOPPING || state == STATE_SHUTDOWN) {
@@ -136,7 +136,7 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
         return ERR_DEAD_OBJECT;
     }
 
-    SetCurrentUserId(userId);
+    SetCurrentUserId(userId, displayId);
     if (state == STATE_BOOTING) {
         // send user start msg.
         SendSystemUserStart(userId);
@@ -145,7 +145,7 @@ int UserController::StartUser(int32_t userId, sptr<IUserCallback> callback, bool
     SendSystemUserCurrent(oldUserId, userId);
     SendReportUserSwitch(oldUserId, userId, userItem);
     SendUserSwitchTimeout(oldUserId, userId, userItem);
-    return MoveUserToForeground(oldUserId, userId, callback, isAppRecovery);
+    return MoveUserToForeground(oldUserId, userId, displayId, callback, isAppRecovery);
 }
 
 int32_t UserController::StartNoHeadUser(int32_t userId, sptr<IUserCallback> callback) const
@@ -253,18 +253,19 @@ int32_t UserController::LogoutUser(int32_t userId, sptr<IUserCallback> callback)
     }
     abilityManagerService->ClearUserData(userId);
     appScheduler->SetEnableStartProcessFlagByUserId(userId, false);
-    if (IsCurrentUser(userId)) {
-        SetCurrentUserId(0);
-    }
     appScheduler->KillProcessesByUserId(userId, system::GetBoolParameter(DEVELOPER_MODE_STATE, false), callback);
     ClearAbilityUserItems(userId);
     return 0;
 }
 
-int32_t UserController::GetCurrentUserId()
+int32_t UserController::GetCurrentUserId(uint64_t displayId)
 {
-    std::lock_guard<ffrt::mutex> guard(userLock_);
-    return currentUserId_;
+    return UserManager::GetInstance().GetCurrentUserId(displayId);
+}
+
+bool UserController::GetDisplayIdByUserId(int32_t userId, uint64_t &displayId)
+{
+    return UserManager::GetInstance().GetDisplayIdByUserId(userId, displayId);
 }
 
 std::shared_ptr<UserItem> UserController::GetUserItem(int32_t userId)
@@ -278,17 +279,19 @@ std::shared_ptr<UserItem> UserController::GetUserItem(int32_t userId)
     return nullptr;
 }
 
+bool UserController::IsCurrentUser(int32_t userId, uint64_t displayId)
+{
+    int32_t oldUserId = GetCurrentUserId(displayId);
+    if (oldUserId == userId) {
+        return true;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "current:%{public}d", oldUserId);
+    return false;
+}
+
 bool UserController::IsCurrentUser(int32_t userId)
 {
-    int32_t oldUserId = GetCurrentUserId();
-    if (oldUserId == userId) {
-        auto userItem = GetUserItem(userId);
-        if (userItem) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "IsCurrentUserId current:%{public}d", userId);
-            return true;
-        }
-    }
-    return false;
+    return UserManager::GetInstance().IsCurrentUser(userId);
 }
 
 bool UserController::IsExistOsAccount(int32_t userId) const
@@ -311,22 +314,22 @@ std::shared_ptr<UserItem> UserController::GetOrCreateUserItem(int32_t userId)
     return userItem;
 }
 
-void UserController::SetCurrentUserId(int32_t userId)
+void UserController::SetCurrentUserId(int32_t userId, uint64_t displayId)
 {
     std::lock_guard<ffrt::mutex> guard(userLock_);
-    currentUserId_ = userId;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "set current userId: %{public}d", userId);
-    DelayedSingleton<AppScheduler>::GetInstance()->SetCurrentUserId(userId);
+    UserManager::GetInstance().SetCurrentUserId(userId, displayId);
+    DelayedSingleton<AppScheduler>::GetInstance()->SetCurrentUserId(static_cast<int32_t>(displayId));
 }
 
-int UserController::MoveUserToForeground(int32_t oldUserId, int32_t newUserId, sptr<IUserCallback> callback,
-    bool isAppRecovery)
+int UserController::MoveUserToForeground(int32_t oldUserId, int32_t newUserId, uint64_t displayId,
+    sptr<IUserCallback> callback, bool isAppRecovery)
 {
     auto manager = DelayedSingleton<AbilityManagerService>::GetInstance();
     if (!manager) {
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
-    auto ret = manager->SwitchToUser(oldUserId, newUserId, callback, isAppRecovery);
+    auto ret = manager->SwitchToUser(oldUserId, newUserId, displayId, callback, isAppRecovery);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser failed: %{public}d", ret);
     }

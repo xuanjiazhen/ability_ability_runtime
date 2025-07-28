@@ -22,11 +22,9 @@
 
 namespace OHOS {
 namespace AAFwk {
-class UserController;
 class UserEventHandler : public EventHandlerWrap {
 public:
-    UserEventHandler(
-        const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<UserController> &owner);
+    UserEventHandler(const std::shared_ptr<TaskHandlerWrap> &taskHandler);
     virtual ~UserEventHandler() = default;
 
     static constexpr uint32_t EVENT_SYSTEM_USER_START = 10;
@@ -42,9 +40,6 @@ public:
      * @param event, inner event loop.
      */
     void ProcessEvent(const EventWrap &event) override;
-
-private:
-    std::weak_ptr<UserController> controller_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

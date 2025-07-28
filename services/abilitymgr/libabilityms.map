@@ -93,6 +93,7 @@
       *UpdateCallerInfoUtil*;
       *UriUtils*;
       *UserController*;
+      *UserEventHandler*;
       *UnlockScreenManager*;
       *WantSenderInfo*;
       *SenderInfo*;

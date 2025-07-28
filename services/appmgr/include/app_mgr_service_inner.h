@@ -447,7 +447,7 @@ public:
      * @return ERR_OK ,return back success，others fail.
      */
     virtual int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
-        std::vector<std::string> &instanceKeys, int32_t userId = -1);
+        std::vector<std::string> &instanceKeys, int32_t userId);
 
     /**
      * GetRunningProcessesByBundleType, Obtains information about application processes by bundle type.
@@ -2033,7 +2033,6 @@ private:
     void SendHiSysEvent(int32_t innerEventId, std::shared_ptr<AppRunningRecord> appRecord);
     int FinishUserTestLocked(
         const std::string &msg, const int64_t &resultCode, const std::shared_ptr<AppRunningRecord> &appRecord);
-    int32_t GetCurrentAccountId() const;
     void SendReStartProcessEvent(AAFwk::EventInfo &eventInfo, int32_t appUid);
     void SendAppLaunchEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void InitAppWaitingDebugList();
@@ -2071,8 +2070,6 @@ private:
     void UnSubscribeScreenOffEvent();
     int32_t RestartExitKeepAliveProcess(const std::vector<ExitResidentProcessInfo> &exitProcessInfos);
     bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
-    int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
-        std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord);
     bool IsAllowedNWebPreload(const std::string &processName);

@@ -543,7 +543,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartUser_001, TestSize.Level1)
     int userId = 0;
     sptr<IUserCallback> callback = new MockIUserCallback();
     bool isAppRecovery = false;
-    auto retCode = abilityMs_->StartUser(userId, callback, isAppRecovery);
+    auto retCode = abilityMs_->StartUser(userId, 0, callback, isAppRecovery);
     EXPECT_EQ(retCode, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartUser_001 end");
 }
@@ -620,8 +620,6 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_001, TestSize.Level
     int32_t userId = -1;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    abilityMs->userController_ = std::make_shared<UserController>();
-    EXPECT_NE(abilityMs->userController_, nullptr);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
     EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
     bool result = abilityMs->IsSceneBoardReady(userId);
@@ -642,7 +640,6 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, IsSceneBoardReady_002, TestSize.Level
     int32_t userId = 100;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
-    abilityMs->userController_ = nullptr;
     abilityMs->subManagersHelper_ = nullptr;
     bool result = abilityMs->IsSceneBoardReady(userId);
     EXPECT_FALSE(result);

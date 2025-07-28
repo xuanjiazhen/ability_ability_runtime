@@ -793,7 +793,7 @@ HWTEST_F(AppMgrStubTest, GetAllRunningInstanceKeysByBundleName_001, TestSize.Lev
     int32_t userId = -1;
     data.WriteInt32(userId);
 
-    EXPECT_CALL(*mockAppMgrService_, GetAllRunningInstanceKeysByBundleName(_, _, _)).Times(1);
+    EXPECT_CALL(*mockAppMgrService_, GetAllRunningInstanceKeysByBundleName(_, _)).Times(1);
 
     auto result = mockAppMgrService_->OnRemoteRequest(
         static_cast<uint32_t>(AppMgrInterfaceCode::GET_All_RUNNING_INSTANCE_KEYS_BY_BUNDLENAME), data, reply, option);
