@@ -21,6 +21,7 @@
 #include "ani_common_want.h"
 #include "ani_extension_window.h"
 #include "ets_error_utils.h"
+#include "ets_ui_extension_callback.h"
 #include "ets_ui_extension_context.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
@@ -35,12 +36,18 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
+namespace {
 constexpr int32_t ERR_FAILURE = -1;
 const char* UI_EXTENSION_CONTENT_SESSION_CLASS_NAME =
     "L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;";
 const char* UI_EXTENSION_CONTENT_SESSION_CLEANER_CLASS_NAME =
     "L@ohos/app/ability/UIExtensionContentSession/Cleaner;";
+const std::string UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
+const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
+constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
+    "Lstd/core/String;Lescompat/Record;Lapplication/AbilityStartCallback/AbilityStartCallback;:L@ohos/base/"
+    "BusinessError;";
+} // namespace
 
 EtsUIExtensionContentSession* EtsUIExtensionContentSession::GetEtsContentSession(ani_env *env, ani_object obj)
 {
@@ -170,6 +177,17 @@ ani_object EtsUIExtensionContentSession::NativeGetUIExtensionHostWindowProxy(ani
     return object;
 }
 
+ani_object EtsUIExtensionContentSession::NativeStartAbilityByTypeSync(
+    ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback)
+{
+    auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
+    ani_object object = nullptr;
+    if (etsContentSession != nullptr) {
+        object = etsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
+    }
+    return object;
+}
+
 EtsUIExtensionContentSession::EtsUIExtensionContentSession(
     sptr<AAFwk::SessionInfo> sessionInfo, sptr<Rosen::Window> uiWindow,
     std::weak_ptr<AbilityRuntime::Context> &context,
@@ -264,7 +282,9 @@ ani_object EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(ani_
         ani_native_function {"nativeSetReceiveDataCallback", nullptr,
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataCallback)},
         ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)}
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)},
+        ani_native_function {"nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByTypeSync)}
     };
     status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (status != ANI_OK) {
@@ -569,6 +589,77 @@ void EtsUIExtensionContentSession::SetReceiveDataForResultCallbackRegister(ani_e
     isSyncRegistered_ = true;
 }
 
+ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
+    ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback)
+{
+    std::string type;
+    AAFwk::WantParams wantParam;
+    if (!CheckStartAbilityByTypeParam(env, aniType, aniWantParam, type, wantParam)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "check startAbilityByCall param failed");
+        return nullptr;
+    }
+    wantParam.SetParam(UIEXTENSION_TARGET_TYPE_KEY, AAFwk::String::Box(type));
+    AAFwk::Want want;
+    want.SetParams(wantParam);
+    if (wantParam.HasParam(FLAG_AUTH_READ_URI_PERMISSION)) {
+        want.SetFlags(wantParam.GetIntParam(FLAG_AUTH_READ_URI_PERMISSION, 0));
+        wantParam.Remove(FLAG_AUTH_READ_URI_PERMISSION);
+    }
+#ifdef SUPPORT_SCREEN
+    InitDisplayId(want);
+#endif
+    ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    ani_vm *vm = nullptr;
+    if (env->GetVM(&vm) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "get vm failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Get vm failed.");
+        return aniObject;
+    }
+    std::shared_ptr<EtsUIExtensionCallback> uiExtensionCallback = std::make_shared<EtsUIExtensionCallback>(vm);
+    uiExtensionCallback->SetEtsCallbackObject(startCallback);
+    if (uiWindow_ == nullptr || uiWindow_->GetUIContent() == nullptr) {
+        return aniObject;
+    }
+#ifdef SUPPORT_SCREEN
+    Ace::ModalUIExtensionCallbacks callback;
+    callback.onError = [uiExtensionCallback](int arg, const std::string &str1, const std::string &str2) {
+        uiExtensionCallback->OnError(arg);
+    };
+    callback.onRelease = [uiExtensionCallback](const auto &arg) { uiExtensionCallback->OnRelease(arg); };
+    Ace::ModalUIExtensionConfig config;
+    int32_t sessionId = uiWindow_->GetUIContent()->CreateModalUIExtension(want, callback, config);
+    if (sessionId == 0) {
+        return aniObject;
+    } else {
+        uiExtensionCallback->SetUIContent(uiWindow_->GetUIContent());
+        uiExtensionCallback->SetSessionId(sessionId);
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    }
+#endif // SUPPORT_SCREEN
+    return aniObject;
+}
+
+bool EtsUIExtensionContentSession::CheckStartAbilityByTypeParam(
+    ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return false;
+    }
+    if (!AppExecFwk::GetStdString(env, aniType, type)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "parse type failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: Failed to parse type! Type must be a string.");
+        return false;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, aniWantParam, wantParam)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "parse wantParam failed");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parameter error: Failed to parse wantParam, must be a Record<string, Object>.");
+        return false;
+    }
+    return true;
+}
+
 void EtsUIExtensionContentSession::CallReceiveDataCallbackForResult(ani_vm* vm, ani_ref callbackRef,
     const AAFwk::WantParams& wantParams, AAFwk::WantParams& retWantParams)
 {
@@ -619,5 +710,24 @@ sptr<Rosen::Window> EtsUIExtensionContentSession::GetUIWindow()
 {
     return uiWindow_;
 }
+#ifdef SUPPORT_SCREEN
+void EtsUIExtensionContentSession::InitDisplayId(AAFwk::Want &want)
+{
+    auto context = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context_.lock());
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        return;
+    }
+
+    auto window = context->GetWindow();
+    if (window == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null window");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::UI_EXT, "window displayId %{public}" PRIu64, window->GetDisplayId());
+    want.SetParam(AAFwk::Want::PARAM_RESV_DISPLAY_ID, static_cast<int32_t>(window->GetDisplayId()));
+}
+#endif
 } // namespace AbilityRuntime
 } // namespace OHOS
