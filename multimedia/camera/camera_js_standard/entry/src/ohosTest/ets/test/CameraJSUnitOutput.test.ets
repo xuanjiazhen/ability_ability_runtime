@@ -77,7 +77,6 @@ let metadataOutput: cameraObj.MetadataOutput;
 let videoSurfaceId: string;
 let receiver: image.ImageReceiver;
 let videoProfilesArray: Array<cameraObj.VideoProfile>;
-
 let mMetadataObjectTypeArray: Array<cameraObj.MetadataObjectType> | undefined;
 let mMetadataObjectArray: Array<cameraObj.MetadataObject>;
 
@@ -291,7 +290,6 @@ export default function cameraJSUnitOutput() {
     cameraSession.commitConfig();
     cameraSession.start();
   }
-
 
   describe('cameraJSUnitOutput', () => {
     console.info(TAG + '----------cameraJSUnitOutput begin--------------')
@@ -1717,6 +1715,7 @@ export default function cameraJSUnitOutput() {
       console.info(`photo output stop listen on captureReady success`);
       expect(true).assertTrue()
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -1936,8 +1935,9 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output start listen on estimatedCaptureDuration success`);
       expect(true).assertTrue()
-
+ 
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2000,6 +2000,7 @@ export default function cameraJSUnitOutput() {
       console.info(`photo output stop listen on estimatedCaptureDuration success`);
       expect(true).assertTrue()
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2145,7 +2146,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output start listen on photoAvailable success`);
       expect(true).assertTrue()
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2265,6 +2266,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output stop listen on photoAvailable success`);
       expect(true).assertTrue()
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2296,7 +2298,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output start listen on photoAssetAvailable success`);
       expect(true).assertTrue()
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2335,6 +2337,7 @@ export default function cameraJSUnitOutput() {
       console.info(`photo output stop listen on photoAssetAvailable success`);
       expect(true).assertTrue()
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2378,6 +2381,7 @@ export default function cameraJSUnitOutput() {
       expect(1 == 1).assertTrue();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_CAPTURE_START_0100 success");
       photoOutput.capture();
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2425,6 +2429,7 @@ export default function cameraJSUnitOutput() {
                   "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_CAPTURE_START_WITH_INFO_0100 success");
       photoOutput.capture();
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2473,6 +2478,7 @@ export default function cameraJSUnitOutput() {
       expect(1 == 1).assertTrue();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_FRAME_SHUTTER_0100 success");
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2503,7 +2509,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output start listen on frameShutterEnd success`);
       expect(true).assertTrue()
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2542,6 +2548,7 @@ export default function cameraJSUnitOutput() {
       console.info(`photo output stop listen on frameShutterEnd success`);
       expect(true).assertTrue()
       await sleep(1000);
+      photoOutput.release()
       done();
     })
 
@@ -2584,6 +2591,7 @@ export default function cameraJSUnitOutput() {
       })
       expect(1 == 1).assertTrue();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_CAPTURE_END_0100 success");
+      photoOutput.release()
       await sleep(1000);
       done();
 
@@ -2616,7 +2624,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(`photo output start listen on captureReady success`);
       expect(true).assertTrue()
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2654,6 +2662,7 @@ export default function cameraJSUnitOutput() {
       })
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_ERROR_0100 success");
       expect(1 == 1).assertTrue();
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2691,6 +2700,7 @@ export default function cameraJSUnitOutput() {
         expect(1 == 1).assertFalse();
         console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_CALLBACK_OFF_ERROR_0100 failed");        
       }
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2723,7 +2733,7 @@ export default function cameraJSUnitOutput() {
         console.info(`photoOutput enableMovingPhoto failed + ${JSON.stringify(err)}`)
         expect(true).assertFalse()
       }
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2755,10 +2765,10 @@ export default function cameraJSUnitOutput() {
         console.info(`photoOutput enableMovingPhoto failed + ${JSON.stringify(err)}`)
         expect(err.code == 7400101 ).assertTrue()
       }
-
+      photoOutput.release()
       await sleep(1000);
       done();
-    })    
+    })   
 
 
 
@@ -2788,7 +2798,7 @@ export default function cameraJSUnitOutput() {
         console.info(`photoOutput enableMovingPhoto failed + ${JSON.stringify(err)}`)
         expect(err.code == 7400101 ).assertTrue()
       }
-
+      photoOutput.release()
       await sleep(1000);
       done();
     })
@@ -2904,8 +2914,8 @@ export default function cameraJSUnitOutput() {
         console.info(TAG +
           `Entering SUB_MULTIMEDIA_CAMERA_VIDEO_OUTPUT_GET_SUPPORTED_FRAME_RATES_0100 createVideoOutput parse err + ${JSON.stringify(videoProfilesArray)} + ${videoSurfaceId}`)
       }
-      videoOutput.release();
       await sleep(1000);
+      await videoOutput.release();
       done();
     })
 
@@ -2974,6 +2984,9 @@ export default function cameraJSUnitOutput() {
       let supportedFrameRates = videoOutput.getSupportedFrameRates()
       console.info(`supportedFrameRates:  + ${JSON.stringify(supportedFrameRates)}`)
       expect(isEmpty(supportedFrameRates)).assertFalse()
+      // 释放会话
+      await videoOutput.release()
+      await cameraSession.release();
       done()
     })
 
@@ -3005,6 +3018,8 @@ export default function cameraJSUnitOutput() {
         console.info(`videoOutput set FrameRate failed`)
         expect().assertFalse;
       }
+      await videoOutput.release();
+      await cameraSession.release();
       done()
     })
 
@@ -3075,6 +3090,8 @@ export default function cameraJSUnitOutput() {
         console.info(`videoOutput set FrameRate failed: ` + err.code)
         expect(err.code == cameraObj.CameraErrorCode.INVALID_ARGUMENT).assertTrue();
       }
+      cameraInput.close()
+      videoOutput.release()
       await captureSession.release();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_VIDEO_OUTPUT_SET_FRAME_RATE_0200 PASS");
       await sleep(1000);
@@ -3136,6 +3153,7 @@ export default function cameraJSUnitOutput() {
         expect(err.code == cameraObj.CameraErrorCode.UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS).assertTrue();
         // expect(err.code == 7400110).assertTrue();
       }
+      videoOutput2.release()
       stopCameraSession()
       done()
     })
@@ -3170,6 +3188,9 @@ export default function cameraJSUnitOutput() {
       let activeFrameRate = videoOutput.getActiveFrameRate();
       console.info(`videoOutput get FrameRate success:  + ${JSON.stringify(activeFrameRate)}`) 
       expect(activeFrameRate["min"] == supportedFrameRates[0]['min']).assertTrue()
+      // 关闭会话
+      await videoOutput.release()
+      await cameraSession.release();
       done()
     })
 
@@ -3240,7 +3261,7 @@ export default function cameraJSUnitOutput() {
         expect(isEmpty(videoProfilesArray)).assertFalse();
         if (videoProfilesArray && videoSurfaceId) {
           videoOutput = cameraManager.createVideoOutput(videoProfilesArray, videoSurfaceId);
-          photoOutput.release(async (err) => {
+          videoOutput.release(async (err) => {
             if (!err) {
               expect(true).assertTrue();
               console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PHOTO_OUTPUT_RELEASE_CALLBACK_0100 success");
@@ -3467,6 +3488,9 @@ export default function cameraJSUnitOutput() {
         console.info(`previewOutput set FrameRate failed: ` + err.code)
         expect(err.code == cameraObj.CameraErrorCode.INVALID_ARGUMENT).assertTrue();
       }
+      // 释放资源
+      await cameraInput.close()
+      await previewOutput.release()
       await captureSession.release();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PREVIEW_OUTPUT_SET_FRAME_RATE_0200 PASS");
       await sleep(1000);
@@ -3535,8 +3559,13 @@ export default function cameraJSUnitOutput() {
         console.info(`previewOutput set FrameRate failed: ` + err.code)
         expect(err.code == cameraObj.CameraErrorCode.UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS).assertTrue();
       }
+      // 关闭会话
+      videoOutput2.release()
+      await stopCameraSession()
       await cameraSession.release();
       console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_PREVIEW_OUTPUT_SET_FRAME_RATE_0300 PASS");
+      // 关闭previewOutput
+      await previewOutput.release();
       await sleep(1000);
       done();
     })
@@ -3566,6 +3595,8 @@ export default function cameraJSUnitOutput() {
         console.info(`get activeProfile failed: ${JSON.stringify(err.code)}`)
         expect().assertFail()
       }
+      // 关闭previewOutput
+      await previewOutput.release();
       await sleep(1000);
       done();
     })

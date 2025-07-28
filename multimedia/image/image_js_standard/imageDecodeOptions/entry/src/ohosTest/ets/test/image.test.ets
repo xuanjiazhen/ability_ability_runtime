@@ -3181,7 +3181,7 @@ export default function imageDecodeOptions() {
          * @tc.type     : Functional
          * @tc.level    : Level 1
          */
-        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0100", 0, async (done: Function) => {
+        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0100", Level.LEVEL0, async (done: Function) => {
             try {
                 await getFd("jpeg_test_1440x1920.jpg");
                 const imageSourceApi = image.createImageSource(fdNumber);
@@ -3236,7 +3236,7 @@ export default function imageDecodeOptions() {
         * @tc.type     : Functional
         * @tc.level    : Level 1
         */
-        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0200", 0, async (done: Function) => {
+        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0200", Level.LEVEL0, async (done: Function) => {
             try {
                 await getFd("jpeg_test_1440x1920.jpg");
                 const imageSourceApi = image.createImageSource(fdNumber);
@@ -3292,7 +3292,7 @@ export default function imageDecodeOptions() {
         * @tc.type     : Functional
         * @tc.level    : Level 1
         */
-        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0300", 0, async (done: Function) => {
+        it("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_CropAndScaleStrategy_0300", Level.LEVEL0, async (done: Function) => {
             try {
                 await getFd("jpeg_test_1440x1920.jpg");
                 const imageSourceApi = image.createImageSource(fdNumber);

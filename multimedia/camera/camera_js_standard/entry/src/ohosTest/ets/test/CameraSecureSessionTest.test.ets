@@ -494,6 +494,7 @@ export default function cameraSecureSessionTest() {
         mCameraSession.off('error', (err) => {
           if (err) {
             console.error(`Secure session error code: ${err.code}`)
+            expect().assertFail()
           } else {
             console.info(`Secure session success to turn off listen on error`)
           }
@@ -525,6 +526,7 @@ export default function cameraSecureSessionTest() {
         mCameraSession.on('focusStateChange', (err) => {
           if (err) {
             console.error(`Secure session error code: ${err.code}`)
+            expect().assertFail()
           } else {
             console.info(`Secure session success to listen on error`)
           }
