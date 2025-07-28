@@ -8877,15 +8877,20 @@ export default function imagePicture() {
       let options: image.ImagePropertyOptions = { index: 0, defaultValue: '9999' }
       let fileName = 'FragmentMap.dat'
       let imageSourceApi = await getImageSource(fileName, "uri")
-      imageSourceApi.getImageProperty(null, options).then((data: string) => {
-        console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
-        expect().assertFail();
+      try {
+        imageSourceApi.getImageProperty(null, options).then((data: string) => {
+          console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
+          expect().assertFail();
+          done();
+        }).catch((error: BusinessError) => {
+          console.error(tag + ' Failed to get the value of the specified attribute key of the image.');
+          expect().assertFail();
+          done();
+        })
+      } catch (e) {
+        expect(e.message).assertContain("undefined");
         done();
-      }).catch((error: BusinessError) => {
-        console.error(tag + ' Failed to get the value of the specified attribute key of the image.');
-        expect(error.code == 62980137).assertTrue();
-        done();
-      })
+      }
       done();
     })
 
