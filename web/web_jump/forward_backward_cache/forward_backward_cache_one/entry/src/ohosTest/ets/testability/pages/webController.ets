@@ -17,7 +17,6 @@ import Utils from '../../test/Utils';
 import { JsProxyObject } from '../../test/Interfaces';
 import business_error, { BusinessError } from '@ohos.base';
 import { waitForExist } from '../../test/WaitTest.test';
-import { URL } from '../../test/Config.test';
 
 @Entry
 @Component
@@ -369,15 +368,15 @@ struct webController {
               try {
                 this.controller.clearHistory();
                 this.isComplete = -1;
-                this.controller.loadUrl({ url: 'resource://rawfile/webPart1index.html' });
+                this.controller.loadUrl({ url: "resource://rawfile/webPart1index.html" });
                 await waitForExist(()=>this.isComplete, this.str, 0);
                 this.isComplete = -1;
-                this.controller.loadUrl({ url: URL });
+                this.controller.loadUrl({ url: "http://appgallery.huawei.com/" })
                 await waitForExist(()=>this.isComplete, this.str, 0);
                 this.isComplete = -1;
                 this.controller.backward();
                 await waitForExist(()=>this.isComplete, this.str, 0);
-                this.controller.runJavaScript({ script: 'getTitle()', callback: (res) => {
+                this.controller.runJavaScript({ script: "getTitle()", callback: (res) => {
                   Utils.emitEvent(res, 31016)
                 } })
               } catch (error) {
@@ -559,7 +558,7 @@ struct webController {
           if (event) {
             this.isComplete = 0
             this.pageEnd = event.url
-            console.log('onPageEnd==>')
+            console.log("onPageEnd==>")
           }
         })
         .onRefreshAccessedHistory((event) => {
