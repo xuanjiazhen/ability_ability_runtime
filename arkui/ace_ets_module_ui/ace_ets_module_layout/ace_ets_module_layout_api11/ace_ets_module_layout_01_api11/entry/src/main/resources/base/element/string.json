@@ -87,6 +87,10 @@
     {
         "name": "color",
         "value": "#FF008000"
+    },
+    {
+      "name": "test",
+      "value": "test"
     }
   ]
 }
