@@ -24,7 +24,9 @@ export default class OhLppPlayerNDKTestBase {
   SYNCAUDIO_EVENT = 'syncAudioNative';
   CREATE_PREPARE_NATIVE_EVENT = 'createPrepareNative';
   VIDEO_CREATE_BYMIME_EVENT = 'VideoSink_CreateByMime';
+  VIDEO_CREATE_NULL_EVENT = 'VideoSink_CreateByNULL';
   AUDIO_CREATE_BYMIME_EVENT = 'AudioSink_CreateByMime';
+  AUDIO_CREATE_NULL_EVENT = 'AudioSink_CreateByNULL';
   VIDEO_CB_CREATE_CALLBACK_EVENT = 'VideoSinkCallback_Create';
   VIDEO_CB_SET_DATA_LISTENER_EVENT = 'Video_OnDataNeeded';
   VIDEO_CB_SET_ERROR_LISTENER_EVENT = 'Video_OnError';
@@ -146,8 +148,20 @@ export default class OhLppPlayerNDKTestBase {
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
+        case this.VIDEO_CREATE_NULL_EVENT:
+          this.result = lpPlayer.createLppVideoNativeNull();
+          expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+
         case this.AUDIO_CREATE_BYMIME_EVENT:
           this.result = lpPlayer.createLppAudioNative();
+          expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+
+        case this.AUDIO_CREATE_NULL_EVENT:
+          this.result = lpPlayer.createLppAudioNativeNull();
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;

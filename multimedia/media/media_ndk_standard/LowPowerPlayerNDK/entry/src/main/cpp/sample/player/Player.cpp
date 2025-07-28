@@ -116,6 +116,20 @@ int32_t Player::CreateLppAudioStreamer()
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
+int32_t Player::CreateLppAudioStreamerNull()
+{
+    AVCODEC_SAMPLE_LOGW("Create IN");
+    if (lppAudioStreamer_ == nullptr) {
+        AVCODEC_SAMPLE_LOGE("lppAudioStreamer_ is Release, should init");
+        return -1;
+    }
+    lppAudioStreamer_->Create("");
+    lppContext_ = new LppUserData;
+    lppAudioStreamer_->SetCallback(lppContext_);
+    AVCODEC_SAMPLE_LOGW("Create OUT");
+    return AVCODEC_SAMPLE_ERR_OK;
+}
+
 int32_t Player::AudioStreamerSetParameter()
 {
     int32_t ret = lppAudioStreamer_->SetParameter(sampleInfo_);
@@ -161,6 +175,30 @@ int32_t Player::CreateLppVideoStreamer()
     sampleInfo_.window = NativeXComponentSample::PluginManager::GetInstance()->pluginWindow_;
 //     video/avc
     lppVideoStreamer_->Create(sampleInfo_.videoCodecMime.c_str());
+    lppVideoContext_ = new LppUserData;
+    int64_t durationNum = 100012;
+    lppVideoContext_->num = durationNum;
+    int32_t ret = lppVideoStreamer_->SetCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetCallback ret:::%{public}d", ret);
+    ret = lppVideoStreamer_->SetErrorCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetErrorCallback ret:::%{public}d", ret);
+    ret = lppVideoStreamer_->SetFirstFrameDecodedCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetFirstFrameDecoded ret:::%{public}d", ret);
+    AVCODEC_SAMPLE_LOGW("Create OUT");
+    return AVCODEC_SAMPLE_ERR_OK;
+}
+
+int32_t Player::CreateLppVideoStreamerNull()
+{
+    AVCODEC_SAMPLE_LOGW("Create IN");
+    if (lppVideoStreamer_ == nullptr) {
+        AVCODEC_SAMPLE_LOGE("lppVideoStreamer_ is Release, should init");
+        return -1;
+    }
+    AVCODEC_SAMPLE_LOGI("QZM FORMAT : %{public}s", sampleInfo_.videoCodecMime.c_str());
+    sampleInfo_.window = NativeXComponentSample::PluginManager::GetInstance()->pluginWindow_;
+//     video/avc
+    lppVideoStreamer_->Create("");
     lppVideoContext_ = new LppUserData;
     int64_t durationNum = 100012;
     lppVideoContext_->num = durationNum;

@@ -53,11 +53,13 @@ public:
     int32_t CreateLppSet();
     int32_t SyncAudio();
     int32_t CreateLppAudioStreamer();
+    int32_t CreateLppAudioStreamerNull();
     int32_t AudioStreamerConfigure();
     int32_t AudioStreamerSetParameter();
     int32_t AudioStreamerGetParameter();
     int32_t AudioStreamerPrepare();
     int32_t CreateLppVideoStreamer();
+    int32_t CreateLppVideoStreamerNull();
     int32_t VideoStreamerConfigure();
     int32_t VideoStreamerSetParameter();
     int32_t VideoStreamerGetParameter();

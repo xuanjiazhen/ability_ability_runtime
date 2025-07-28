@@ -378,10 +378,30 @@ napi_value PlayerNative::CreateLppAudioStreamer(napi_env env, napi_callback_info
     return result;
 }
 
+napi_value PlayerNative::CreateLppAudioStreamerNull(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("CreateLppAudioStreamerNull in");
+    int32_t ret = Player::GetInstance().CreateLppAudioStreamerNull();
+    AVCODEC_SAMPLE_LOGI("CreateLppAudioStreamerNull out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
 napi_value PlayerNative::CreateLppVideoStreamer(napi_env env, napi_callback_info info)
 {
     AVCODEC_SAMPLE_LOGI("CreateLppVideoStreamer in");
     int32_t ret = Player::GetInstance().CreateLppVideoStreamer();
+    AVCODEC_SAMPLE_LOGI("CreateLppVideoStreamer out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+
+napi_value PlayerNative::CreateLppVideoStreamerNull(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("CreateLppVideoStreamer in");
+    int32_t ret = Player::GetInstance().CreateLppVideoStreamerNull();
     AVCODEC_SAMPLE_LOGI("CreateLppVideoStreamer out");
     napi_value result = nullptr;
     napi_create_int32(env, ret, &result);
@@ -553,7 +573,11 @@ static napi_value Init(napi_env env, napi_value exports)
             nullptr},
         {"createLppAudioNative", nullptr, PlayerNative::CreateLppAudioStreamer, nullptr, nullptr, nullptr,
             napi_default, nullptr},
+        {"createLppAudioNativeNull", nullptr, PlayerNative::CreateLppAudioStreamerNull, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
         {"createLppVideoNative", nullptr, PlayerNative::CreateLppVideoStreamer, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"createLppVideoNativeNull", nullptr, PlayerNative::CreateLppVideoStreamerNull, nullptr, nullptr, nullptr,
             napi_default, nullptr},
         {"audioStreamerConfigure", nullptr, PlayerNative::AudioStreamerConfigure, nullptr, nullptr, nullptr,
             napi_default, nullptr},

@@ -35,7 +35,9 @@ public:
     static napi_value CreateLppSet(napi_env env, napi_callback_info info);
     static napi_value SyncAudio(napi_env env, napi_callback_info info);
     static napi_value CreateLppAudioStreamer(napi_env env, napi_callback_info info);
+    static napi_value CreateLppAudioStreamerNull(napi_env env, napi_callback_info info);
     static napi_value CreateLppVideoStreamer(napi_env env, napi_callback_info info);
+    static napi_value CreateLppVideoStreamerNull(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerSetParameter(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerGetParameter(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerConfigure(napi_env env, napi_callback_info info);

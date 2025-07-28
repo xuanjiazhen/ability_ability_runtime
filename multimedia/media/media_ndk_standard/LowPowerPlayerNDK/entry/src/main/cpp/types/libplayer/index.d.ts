@@ -25,7 +25,9 @@ export const InitFdNative: (
 export const createLppSetNative: () => number
 export const syncAudioNative: () => number
 export const createLppAudioNative: () => number
+export const createLppAudioNativeNull: () => number
 export const createLppVideoNative: () => number
+export const createLppVideoNativeNull: () => number
 export const audioStreamerConfigure: () => number
 export const audioSetParameterNative: () => number
 export const audioGetParameterNative: () => number

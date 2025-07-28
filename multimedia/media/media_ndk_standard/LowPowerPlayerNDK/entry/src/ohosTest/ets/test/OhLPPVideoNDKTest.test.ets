@@ -45,6 +45,50 @@ export default function OhLPPVideoNDKTest() {
     })
 
     /**
+     * @tc.number     : TESTOHLPPVIDEO_NULL_ERROREVENT_0100
+     * @tc.name       : TESTOHLPPVIDEO_NULL_ERROREVENT_0100
+     * @tc.desc       : Prepare the playback environment and asynchronously cache media data.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('TESTOHLPPVIDEO_NULL_ERROREVENT_0100', Level.LEVEL0, async (done: Function) => {
+      console.info(`TESTOHLPPVIDEO_NULL_ERROREVENT_0100 test start `);
+
+      let mySteps: string[] = new Array(
+        //set filename
+        lppBase.VIDEO_CREATE_NULL_EVENT,
+        //createPrepareNative
+        lppBase.VIDEO_PREPARE_ERROR_EVENT,
+        //video start decoder
+        lppBase.VIDEO_START_DECODER_ERROR_EVENT,
+        //video first frame
+        lppBase.VIDEO_RENDER_FIRSTFRAME_ERROR_EVENT,
+        //video start rendering
+        lppBase.VIDEO_START_RENDER_ERROR_EVENT,
+        //set speed
+        lppBase.VIDEO_SET_SPEED_ERROR_EVENT,
+        //video stop
+        lppBase.VIDEO_STOP_ERROR_EVENT,
+        lppBase.VIDEO_RESUME_ERROR_EVENT,
+        lppBase.VIDEO_PAUSE_ERROR_EVENT,
+        // destory
+        lppBase.VIDEO_DESTROY_EVENT,
+        //done recorder
+        lppBase.END_EVENT
+      );
+      errorCode = 0;
+      let config: ESObject = {
+        sucCode: 0,
+        speed: 2,
+        errorCode: 3,
+        fdPath: "H264_AAC.mp4"
+      }
+      await lppBase.toNextStep(config, "",  mySteps, errorCode, done);
+      console.info(`TESTOHLPPVIDEO_NULL_ERROREVENT_0100 test end `);
+    });
+
+    /**
      * @tc.number     : TESTOHLPPVIDEO_MP4_ERROREVENT_0100
      * @tc.name       : TESTOHLPPVIDEO_MP4_ERROREVENT_0100
      * @tc.desc       : Prepare the playback environment and asynchronously cache media data.
