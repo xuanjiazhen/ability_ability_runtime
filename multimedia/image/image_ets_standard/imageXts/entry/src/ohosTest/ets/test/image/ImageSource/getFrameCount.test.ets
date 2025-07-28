@@ -18,13 +18,14 @@ import common from '@ohos.app.ability.common';
 import { describe, it, expect, Level, beforeAll, beforeEach, afterEach, afterAll } from '@ohos/hypium';
 import { LOG_TAG, copyImageToSandbox } from '../../common';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { fileUri } from '@kit.CoreFileKit';
 
 const TAG = LOG_TAG + 'getFrameCount';
 
 async function getFrameCountPromiseTest(done: Function, testName: string, pathUri: string) {
   try {
     let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
-    const path = 'file://' + testContext.filesDir + "/" + pathUri;
+    const path = fileUri.getUriFromPath(testContext.filesDir + "/" + pathUri);
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let frameCount: number = await imageSourceApi.getFrameCount();
     imageSourceApi.release();
@@ -90,7 +91,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_promise_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_promise_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() +'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getFrameCountPromiseTest(done, testName, path);
     })
@@ -106,7 +107,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_promise_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_promise_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getFrameCountPromiseTest(done, testName, path);
     })
@@ -122,7 +123,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_promise_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_promise_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getFrameCountPromiseTest(done, testName, path);
     })
@@ -138,7 +139,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_callback_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_callback_001';
       const fileName = 'test6.gif';
-      const path = 'test6.gif';
+      const path = new Date().getTime() + 'test6.gif';
       await copyImageToSandbox(fileName, path);
       await getFrameCountCallbackTest(done, testName, path);
     })
@@ -154,7 +155,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_callback_002', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_callback_002';
       const fileName = 'test.jpg';
-      const path = 'test.jpg';
+      const path = new Date().getTime() + 'test.jpg';
       await copyImageToSandbox(fileName, path);
       await getFrameCountCallbackTest(done, testName, path);
     })
@@ -170,7 +171,7 @@ export default function imageSourceGetFrameCountTest() {
     it('imageSource_getFrameCount_callback_003', Level.LEVEL0, async (done: Function) => {
       const testName = 'imageSource_getFrameCount_promise_003';
       const fileName = 'test.svg';
-      const path = 'test.svg';
+      const path = new Date().getTime() + 'test.svg';
       await copyImageToSandbox(fileName, path);
       await getFrameCountCallbackTest(done, testName, path);
     })

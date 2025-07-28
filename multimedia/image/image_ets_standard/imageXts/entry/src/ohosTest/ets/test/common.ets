@@ -512,7 +512,7 @@ export async function createVideoBySandBoxUri(testName: string, testContext: com
 export async function copyImageToSandbox(fileName: string, pathUri: string) {
   let testContext: common.UIAbilityContext = AppStorage.get('testContext') as common.UIAbilityContext;
   const rawFileContent = testContext.resourceManager.getRawFileContentSync(fileName);
-  const path = 'file://' + testContext.filesDir+ new Date().getTime()  + "/" + pathUri;
+  const path = testContext.filesDir + "/" + pathUri;
   const fd = await fs.open(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
   await fs.write(fd.fd, rawFileContent.buffer);
   await fs.close(fd);
