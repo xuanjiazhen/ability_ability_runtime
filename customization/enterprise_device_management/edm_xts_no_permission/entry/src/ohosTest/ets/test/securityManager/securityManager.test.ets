@@ -16,7 +16,7 @@
 import { describe, expect, it, beforeAll, Level } from '@ohos/hypium';
 import { ENTINFO1, INVALID_WANT, SELFHAPNAME, SELFWANT, TEST_TOKEN_ID, TEST_CLIPBOARD_POLICY,
   WATERMARK_BUNDLE_NAME, DEFAULT_USER_ID, getPixelMap, PIXEL_MAP, getCurrentUserId, CURRENT_USER_ID,
-  TEST_APP_INSTANCE_1, TEST_PERMISSION_MANAGED_STATE_GRANTED, TEST_PERMISSION_LIST_1,
+  TEST_APP_INSTANCE, TEST_PERMISSION_MANAGED_STATE_GRANTED, TEST_PERMISSION_LIST_1,
   TEST_PERMISSION_1 } from '../commom';
 
 import adminManager from '@ohos.enterprise.adminManager';
@@ -493,7 +493,7 @@ function testSetPermissionManagedState() {
   it("test_set_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
+      securityManager.setPermissionManagedState(SELFWANT, TEST_APP_INSTANCE, TEST_PERMISSION_LIST_1, TEST_PERMISSION_MANAGED_STATE_GRANTED);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201).assertTrue();
@@ -516,7 +516,7 @@ function testGetPermissionManagedState() {
   it("test_get_permission_managed_state_0100", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE_1, TEST_PERMISSION_1);
+      securityManager.getPermissionManagedState(SELFWANT, TEST_APP_INSTANCE, TEST_PERMISSION_1);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201).assertTrue();
