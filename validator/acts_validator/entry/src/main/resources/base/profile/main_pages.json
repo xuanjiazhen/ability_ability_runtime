@@ -73,7 +73,6 @@
     "pages/Player/Player_index",
     "pages/Experience/Experience_index",
     "pages/Experience/StartTaskManager",
-    "pages/Experience/StartNotification",
     "pages/Player/PlayAudio",
     "pages/Player/PlayVideo",
     "pages/Player/PlayAudioList",
