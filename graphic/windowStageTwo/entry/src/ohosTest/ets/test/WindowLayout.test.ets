@@ -1257,12 +1257,13 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           subWindowClass = data;
           console.info(msgStr + 'Succeeded in creating the subwindow. Data: ' + JSON.stringify(data));
           await subWindowClass.setUIContent('testability/pages/First/index1');
-          await sleep(300);
           await subWindowClass.showWindow();
+          await sleep(300);
           let minWidth = Number(subWindowClass.getWindowLimits().minWidth);
           let minHeight = Number(subWindowClass.getWindowLimits().minHeight);
           console.log('Window WindowLimits:' + minWidth +' '+ minHeight);
           subWindowClass.resizeAsync(minWidth,minHeight);
+          await sleep(100);
           let subWindowRect1 = subWindowClass.getWindowProperties().windowRect;
           console.info(msgStr + 'Succeeded in get  subWindowRect1. Data: ' + JSON.stringify(subWindowRect1));
           let promise2 = subWindowClass.setFollowParentWindowLayoutEnabled(false);
