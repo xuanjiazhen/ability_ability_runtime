@@ -57,7 +57,8 @@ export default function gestureEventTest() {
       let node: Component = await driver.findComponent(ON.id('gestureEventTest_node'));
       let point = await node.getBoundsCenter();
       console.info("[gestureEventTest_0100] getBoundsCenter point.x: " + point.x + ", point.y: " + point.y);
-      await driver.swipe(Math.round(point.x - vp2px(50)), Math.round(point.y), Math.round(point.x + vp2px(50)), Math.round(point.y));
+      await driver.swipe(Math.round(point.x), Math.round(point.y), Math.round(point.x), Math.round(point.y + vp2px(50)));
+      console.info('gestureEventTest_0100 point x:=' + point.x + " y:=" + point.y);
       await CommonFunc.sleep(2000);
       let btn = await driver.findComponent(ON.id('getpanGestureInfo'));
       await btn.click()
