@@ -7233,6 +7233,17 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
             return ERR_OK;
         }
     }
+
+    if (appRunningManager_ && eventName == AppFreezeType::THREAD_BLOCK_6S ||
+        eventName == AppFreezeType::THREAD_BLOCK_3S) {
+        std::string appRunningUniqueId;
+        int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->
+            GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
+        TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueId=%{public}s", ret, appRunningUniqueId.c_str());
+        FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
+        nonConstFaultData.appRunningUniqueId = appRunningUniqueId;
+    }
+
     if (SubmitDfxFaultTask(faultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
     }
@@ -7428,6 +7439,8 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.eventId = faultData.eventId;
     newfaultData.needKillProcess = faultData.needKillProcess;
     newfaultData.appfreezeInfo = faultData.appfreezeInfo;
+    newfaultData.appRunningUniqueId = faultData.appRunningUniqueId;
+    newfaultData.procStatm = faultData.procStatm;
     return newfaultData;
 }
 

@@ -143,6 +143,13 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     faultData.timeoutMarkers = "";
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+        std::string procStatm;
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (statmStream) {
+            std::getline(statmStream, procStatm);
+            statmStream.close();
+        }
+        faultData.procStatm = procStatm;
     } else {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
     }
@@ -244,6 +251,13 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
+        std::string procStatm;
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (statmStream) {
+            std::getline(statmStream, procStatm);
+            statmStream.close();
+        }
+        faultData.procStatm = procStatm;
     } else {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
         isSixSecondEvent.store(true);

@@ -16,6 +16,7 @@
 #include "application_anr_listener.h"
 
 #include <sys/time.h>
+#include <fstream>
 #include "singleton.h"
 
 #include "app_mgr_client.h"
@@ -33,13 +34,26 @@ ApplicationAnrListener::~ApplicationAnrListener() {}
 
 void ApplicationAnrListener::OnAnr(int32_t pid, int32_t eventId) const
 {
+    std::string appRunningUniqueId;
+    int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->
+        GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
+    TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueIdRet=%{public}s", ret, appRunningUniqueId.c_str());
+
+    std::string procStatm;
+    std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+    if (statmStream) {
+        std::getline(statmStream, procStatm);
+        statmStream.close();
+    }
     AppExecFwk::AppFaultDataBySA faultData;
+    faultData.appRunningUniqueId = appRunningUniqueId;
+    faultData.statm = procStatm;
     faultData.faultType = AppExecFwk::FaultDataType::APP_FREEZE;
     faultData.pid = pid;
     faultData.errorObject.message = "User input does not respond!";
     faultData.errorObject.stack =  "\nDump tid stack start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
-    std::string stack = "";
+    std::string stack;
     if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
         stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
     }
