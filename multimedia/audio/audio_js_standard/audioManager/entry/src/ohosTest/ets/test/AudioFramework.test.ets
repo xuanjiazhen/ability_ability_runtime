@@ -6282,5 +6282,23 @@ export default function audioFramework() {
         expect(false).assertTrue();
       }
     })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0200
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0200
+     * @tc.desc      : enable
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it("SUB_MULTIMEDIA_AUDIO_ISSTREAMACTIVE_0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      try {
+        let audioStreamUsage:ESObject = '1';
+        let ret: boolean = audio.getAudioManager().getStreamManager().isStreamActive(audioStreamUsage);
+        expect(false).assertTrue();
+      } catch (err) {
+        expect(Number(err.code)).assertTrue(6800101);
+      }
+      done();
+    })
   })
 }
