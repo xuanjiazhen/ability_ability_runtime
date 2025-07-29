@@ -18,7 +18,7 @@ import { BusinessError } from '@kit.BasicServicesKit'
 import webView from '@ohos.web.webview';
 import Window from '@ohos.window';
 import common from '@ohos.app.ability.common';
-import Utils from '../../test/Utils.test';
+import Utils from '../../test/Utils';
 import { waitForExist} from '../../test/WaitTest.test';
 import events_emitter from '@ohos.events.emitter';
 import { Driver, ON,  Component } from '@ohos.UiTest';
@@ -84,7 +84,7 @@ struct WebOnFirstContentfulPaint1 {
           })
 
 
-        Web({ src: $rawfile("index.html"), controller: this.webController })
+        Web({ src: $rawfile("WebEnableDataDetector.html"), controller: this.webController })
           .enableDataDetector(true)
           .dataDetectorConfig({
             types: [0, 1, 2, 3, 4],
