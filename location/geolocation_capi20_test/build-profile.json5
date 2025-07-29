@@ -16,6 +16,19 @@
 {
   "app": {
     "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B1A883306E6B8205EDA15BC26D7E42BCC0093A0409E8575C11D8729A354486931C019D568A09F5B",
+          "profile": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p12",
+          "storePassword": "0000001BA73DD7BA8673237ADF7E4E196E071D00EF54E23977CC52AE6836C6D3382D6D51F97896ECB37E71"
+        }
+      }
     ],
     "products": [
       {

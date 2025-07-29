@@ -14,13 +14,13 @@
  */
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import osAccountNdk from 'libosaccountndk.so'
+import LocationCApi20Ndk from 'liblocationcapi20ndk.so'
 import { Driver } from '@kit.TestKit';
 
 const OS_ACCOUNT_ERR_OK = 0;
 
-export default function ActsOsAccountNdkTest() {
-  describe('ActsOsAccountNdkTest', () => {
+export default function ActsLocationCApi20NdkTest() {
+  describe('ActsLocationCApi20NdkTest', () => {
     /**
      * @tc.number  : OHLocationInfoGetAdditionalInfo_test
      * @tc.name    : OHLocationInfoGetAdditionalInfo_test
@@ -33,7 +33,7 @@ export default function ActsOsAccountNdkTest() {
       async (done: Function) => {
         try {
           console.info("====>OHLocationInfoGetAdditionalInfo_test start====");
-          let result = osAccountNdk.OHLocationInfoGetAdditionalInfo_test();
+          let result: number = LocationCApi20Ndk.OHLocationInfoGetAdditionalInfo_test();
           console.info("====>OHLocationInfoGetAdditionalInfo_test result: " + result);
           expect(401).assertEqual(result);
           done()

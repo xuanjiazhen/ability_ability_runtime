@@ -15,7 +15,6 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/libosaccountndk.so": "file:./src/main/cpp/types/libosaccountndk"
   },
   "author": "",
   "name": "entry",

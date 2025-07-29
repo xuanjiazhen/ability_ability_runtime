@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-import ActsOsAccountNdkTest from './ActsOsAccountNdkTest.test'
+
+import ActsLocationCApi20NdkTest from './ActsLocationCApi20NdkTest.test'
 
 export default function testsuite() {
-  ActsOsAccountNdkTest()
+  ActsLocationCApi20NdkTest()
 }
