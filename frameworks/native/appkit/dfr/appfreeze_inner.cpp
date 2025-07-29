@@ -143,6 +143,14 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     faultData.timeoutMarkers = "";
     if (isSixSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+        int32_t pid = static_cast<int32_t>(getpid());
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (statmStream) {
+            std::string procStatm;
+            std::getline(statmStream, procStatm);
+            statmStream.close();
+            faultData.procStatm = procStatm;
+        }
     } else {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
     }
@@ -224,6 +232,8 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.eventId = it->eventId;
         faultData.needKillProcess = it->needKillProcess;
         faultData.appfreezeInfo = it->appfreezeInfo;
+        faultData.appRunningUniqueId = it->appRunningUniqueId;
+        faultData.procStatm = it->procStatm;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
@@ -244,6 +254,14 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent)
 #ifdef APP_NO_RESPONSE_DIALOG
         isSixSecondEvent.store(false);
 #endif
+        int32_t pid = static_cast<int32_t>(getpid());
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (statmStream) {
+            std::string procStatm;
+            std::getline(statmStream, procStatm);
+            statmStream.close();
+            faultData.procStatm = procStatm;
+        }
     } else {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
         isSixSecondEvent.store(true);
