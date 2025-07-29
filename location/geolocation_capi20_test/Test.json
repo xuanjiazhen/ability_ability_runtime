@@ -10,7 +10,7 @@
     },
     "kits": [{
         "test-file-name": [
-            "geolocation_capi20_test.hap",
+            "ActslocationCApi20Test.hap",
             "ActsOsAccountNdkMainTest.hap"
         ],
         "type": "AppInstallKit",

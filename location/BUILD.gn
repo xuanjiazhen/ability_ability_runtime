@@ -20,6 +20,7 @@ group("location") {
       "geolocation_errorCode:ActslocationErrorCodeTest",
       "geolocation_nop:ActslocationNopTest",
       "geolocation_standard:ActslocationJsTest",
+      "geolocation_capi20_test:ActslocationCApi20Test",
     ]
   } else {
     deps = [
@@ -27,6 +28,7 @@ group("location") {
       "geolocation_errorCode:ActslocationErrorCodeTest",
       "geolocation_nop:ActslocationNopTest",
       "geolocation_standard:ActslocationJsTest",
+      "geolocation_capi20_test:ActslocationCApi20Test",
     ]
   }
 }

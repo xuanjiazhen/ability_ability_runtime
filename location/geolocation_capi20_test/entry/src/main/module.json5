@@ -20,8 +20,6 @@
     "description": "$string:module_desc",
     "mainElement": "MainAbility",
     "deviceTypes": [
-      "default",
-      "tablet"
     ],
     "deliveryWithInstall": true,
     "installationFree": false,

@@ -21,11 +21,11 @@ ohos_app_assist_suite("ActsOsAccountNdkMainTest") {
   part_name = "location"
 }
 
-ohos_js_app_suite("ActsOsAccountNdkTest") {
+ohos_js_app_suite("ActslocationCApi20Test") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "geolocation_capi20_test"
+  hap_name = "ActslocationCApi20Test"
   subsystem_name = "location"
   part_name = "location"
   deps = [ ":ActsOsAccountNdkMainTest" ]
