@@ -18,6 +18,7 @@ import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
+import { waitForExist } from '../../test/WaitTest.test';
 import web_webview from '@ohos.web.webview'
 import image from "@ohos.multimedia.image";
 import { BusinessError } from '@ohos.base';
@@ -25,129 +26,144 @@ import { BusinessError } from '@ohos.base';
 @Entry
 @Component
 struct getSurfaceId {
-  @State str: string = "emitSetUrlTrustList0100";
+  @State str: string = '';
   @State checkResult: number = 0;
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   controllerOne: web_webview.WebviewController = new web_webview.WebviewController();
   @State imagePixelMap: image.PixelMap | undefined = undefined;
-  urltrustList: string = "{\"UrlPermissionList\":[{\"host\":\"www.example.com\"}]}"
-  urltrustListTwo: string = "{\"UrlPermissionList\":[{\"scheme\":\"http\", \"host\":\"www.test.com\", \"port\":80, \"path\":\"test\"}]}"
-  urltrustListThree: string = "{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.163.com\", \"port\":443, \"path\":\"test\"}]}"
-  urltrustListFour: string = "{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.163.com\", \"port\":443, \"path\":\"test\"},{\"scheme\":\"http\", \"host\":\"www.163.com\", \"port\":80, \"path\":\"test\"}]}"
-  urltrustListFive: string = "{\"UrlPermissionList\":[{\"scheme\":\"http\", \"port\":80, \"path\":\"test\"}]}"
-  urltrustListSix: string = "{\"UrlPermissionList\":[{\"host\":\"www.baidu.com\"},{\"host\":\"www.163.com\", \"port\":80, \"path\":\"test\"}]}"
+  urltrustList: string = '{\"UrlPermissionList\":[{\"host\":\"www.example.com\"}]}'
+  urltrustListTwo: string = '{\"UrlPermissionList\":[{\"scheme\":\"http\", \"host\":\"www.test.com\", \"port\":80, \"path\":\"test\"}]}'
+  urltrustListThree: string = '{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.163.com\", \"port\":443, \"path\":\"test\"}]}'
+  urltrustListFour: string = '{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.163.com\", \"port\":443, \"path\":\"test\"},{\"scheme\":\"http\", \"host\":\"www.163.com\", \"port\":80, \"path\":\"test\"}]}'
+  urltrustListFive: string = '{\"UrlPermissionList\":[{\"scheme\":\"http\", \"port\":80, \"path\":\"test\"}]}'
+  urltrustListSix: string = '{\"UrlPermissionList\":[{\"host\":\"www.baidu.com\"},{\"host\":\"www.163.com\", \"port\":80, \"path\":\"test\"}]}'
 
-  
+  @State isReceive: number = -1
+  @State isPageEnd: number = -1
+  @State isWebInitPageEnd: number = -1
 
 
   onPageShow(){
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 728,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   private valueChangeCallBack = (eventData: ESObject) => {
-    console.info("webOnSslError page valueChangeCallBack");
+    console.info('webOnSslError page valueChangeCallBack');
     if (eventData != null) {
       console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1
       }
     }
+  }
+
+  onPageHide() {
+    events_emitter.off(728)
   }
 
   build() {
     Column() {
       Row() {
-        Button("getSurfaceId").key('getSurfaceIdButton').onClick(async () => {
-          console.info("key==>" + this.str)
+        Button('getSurfaceId').key('getSurfaceIdButton').onClick(async () => {
+          await waitForExist(()=>this.isReceive, 'getSurfaceIdButton_isReceive', 1, 1000)
+          await waitForExist(()=>this.isWebInitPageEnd, 'webInitPage_isPageEnd', 1, 1000)
+          console.info('key==>' + this.str)
+          this.isReceive = -1
+          this.isPageEnd = -1
           switch (this.str) {
-            case "emitSetUrlTrustList0100": {
+            case 'emitSetUrlTrustList0100': {
               try {
                 this.controller.clearMatches();
                 this.controller.loadUrl('www.example.com');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0100_isPageEnd_example', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 1;
                 this.controller.setUrlTrustList(this.urltrustList);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('https://www.baidu.com');
-                await Utils.sleep(5000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0100_isPageEnd_baidu', 1, 1000)
+                this.isPageEnd = -1;
                 this.controller.searchAllAsync('返回');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0200": {
+            case 'emitSetUrlTrustList0200': {
               try {
                 this.controller.clearMatches();
                 this.controller.loadUrl('www.example.com');
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0200_isPageEnd_example', 1, 1000)
+                this.isPageEnd = -1;
                 await Utils.sleep(2000);
                 this.controller.setUrlTrustList('');
                 await Utils.sleep(2000);
                 this.controller.loadUrl('https://www.baidu.com');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0200_isPageEnd_baidu', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 2;
-                await Utils.sleep(2000);
                 this.controller.searchAllAsync('百度一下');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0300": {
+            case 'emitSetUrlTrustList0300': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListTwo);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('https://www.test.com/test');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0300_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 3;
-                await Utils.sleep(2000);
                 this.controller.searchAllAsync('返回');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0400": {
+            case 'emitSetUrlTrustList0400': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListThree);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('http://www.163.com/test');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0400_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 4;
-                await Utils.sleep(2000);
                 this.controller.searchAllAsync('返回');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0500": {
+            case 'emitSetUrlTrustList0500': {
               try {
                 this.controller.clearMatches();
                 await Utils.sleep(2000);
                 this.controller.setUrlTrustList(this.urltrustListFour);
                 await Utils.sleep(4000);
                 this.controller.loadUrl('http://www.163.com/test');
-                await Utils.sleep(20000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0400_isPageEnd_163', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 5;
-                await Utils.sleep(10000);
                 this.controller.searchAllAsync('网易首页');
-                await Utils.sleep(2000);
-                this.controller.loadUrl('https://www.baidu.com');
-                await Utils.sleep(2000);
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0600": {
+            case 'emitSetUrlTrustList0600': {
               try {
+                this.controller.loadUrl('https://www.baidu.com');
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0600_isPageEnd_baidu', 1, 1000)
+                this.isPageEnd = -1;
                 this.controller.removeCache(true);
                 await Utils.sleep(2000);
                 this.controller.clearMatches();
@@ -155,32 +171,31 @@ struct getSurfaceId {
                 this.controller.setUrlTrustList(this.urltrustListFour);
                 await Utils.sleep(4000);
                 this.controller.loadUrl('https://www.163.com/test');
-                await Utils.sleep(20000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0600_isPageEnd_163', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 6;
-                await Utils.sleep(10000);
                 this.controller.searchAllAsync('网易首页');
-                await Utils.sleep(2000);
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0700": {
+            case 'emitSetUrlTrustList0700': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListThree);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('https://163.com/test');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList0700_isPageEnd_163', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 7;
-                await Utils.sleep(2000);
                 this.controller.searchAllAsync('返回');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList0800": {
+            case 'emitSetUrlTrustList0800': {
               try {
                 this.controllerOne.setUrlTrustList(this.urltrustListThree);
               } catch (error) {
@@ -189,7 +204,7 @@ struct getSurfaceId {
               }
               break;
             }
-            case "emitSetUrlTrustList0900": {
+            case 'emitSetUrlTrustList0900': {
               try {
                 this.controllerOne.setUrlTrustList(this.urltrustListThree);
               } catch (error) {
@@ -198,7 +213,7 @@ struct getSurfaceId {
               }
               break;
             }
-            case "emitSetUrlTrustList1000": {
+            case 'emitSetUrlTrustList1000': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListFive);
@@ -208,61 +223,61 @@ struct getSurfaceId {
               }
               break;
             }
-            case "emitSetUrlTrustList1100": {
+            case 'emitSetUrlTrustList1100': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListSix);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('www.baidu.com');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList1100_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 9;
-                await Utils.sleep(3000);
                 this.controller.searchAllAsync('百度一下');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList1200": {
+            case 'emitSetUrlTrustList1200': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListSix);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('www.163.com:80/test');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList1200_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 10;
-                await Utils.sleep(3000);
                 this.controller.searchAllAsync('网易首页');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList1300": {
+            case 'emitSetUrlTrustList1300': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustList);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('www.example.com');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList1300_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 11;
-                await Utils.sleep(3000);
                 this.controller.searchAllAsync('Domain');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
               break;
             }
-            case "emitSetUrlTrustList1400": {
+            case 'emitSetUrlTrustList1400': {
               try {
                 this.controller.clearMatches();
                 this.controller.setUrlTrustList(this.urltrustListSix);
                 this.controller.setUrlTrustList(this.urltrustList);
                 await Utils.sleep(2000);
                 this.controller.loadUrl('www.example.com');
-                await Utils.sleep(2000);
+                await waitForExist(()=>this.isPageEnd, 'emitSetUrlTrustList1400_isPageEnd', 1, 1000)
+                this.isPageEnd = -1;
                 this.checkResult = 12;
-                await Utils.sleep(3000);
                 this.controller.searchAllAsync('Domain');
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
@@ -278,8 +293,8 @@ struct getSurfaceId {
       Web({src: 'www.example.com', controller: this.controller, renderMode: RenderMode.ASYNC_RENDER})
       .onSearchResultReceive(ret => {
           if (ret) {
-            console.log("on search result receive:" + "[cur]" + ret.activeMatchOrdinal +
-              "[total]" + ret.numberOfMatches + "[isDone]" + ret.isDoneCounting);
+            console.log('on search result receive:' + '[cur]' + ret.activeMatchOrdinal +
+              '[total]' + ret.numberOfMatches + '[isDone]' + ret.isDoneCounting);
             if(ret.isDoneCounting == false){
               return;
             }
@@ -339,6 +354,16 @@ struct getSurfaceId {
               this.checkResult = 0;
             }
           }
+        })
+        .onPageBegin((event) => {
+            console.log('onPageBegin url:' + event.url)
+        })
+        .onPageEnd((event) => {
+            console.log('onPageEnd url:' + event.url)
+            this.isPageEnd = 1
+            if(this.isWebInitPageEnd == -1) {
+                this.isWebInitPageEnd = 1
+            }
         })
     }
   }
