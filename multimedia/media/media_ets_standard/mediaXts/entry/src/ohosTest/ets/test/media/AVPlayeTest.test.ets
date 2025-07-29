@@ -530,8 +530,6 @@ function setAVPlayerSeekContinuousCb(avPlayer: media.AVPlayer | null, seekTime: 
         break;
       case RELEASED:
         expect(avPlayer?.state).assertEqual(RELEASED);
-        await avPlayer?.release().then(() => {
-        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         done();
         break;
       case ERROR:
