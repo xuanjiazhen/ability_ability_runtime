@@ -74,6 +74,7 @@ public:
 
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
+    std::weak_ptr<AbilityRuntime::UIExtensionContext> GetWorkContext() { return context_; }
 
 private:
     void OnTerminateSelf(ani_env *env, ani_object obj, ani_object callback);

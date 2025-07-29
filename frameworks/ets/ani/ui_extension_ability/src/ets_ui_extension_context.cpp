@@ -537,6 +537,10 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         return nullptr;
     }
     std::unique_ptr<EtsUIExtensionContext> etsContext = std::make_unique<EtsUIExtensionContext>(context);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsContext");
+        return nullptr;
+    }
     if ((status = env->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(etsContext.release()))) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
@@ -569,8 +573,15 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
-    if ((status = env->Object_SetFieldByName_Long(contextObj, "nativeContext", (ani_long)context.get())) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+    auto workContext = new (std::nothrow)
+        std::weak_ptr<AbilityRuntime::UIExtensionContext>(etsContext->GetWorkContext());
+    if (workContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null workContext");
+        return nullptr;
+    }
+    if (!ContextUtil::SetNativeContextLong(env, contextObj, (ani_long)workContext)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "SetNativeContextLong failed");
+        delete workContext;
         return nullptr;
     }
     if (!EtsUIExtensionContext::BindNativePtrCleaner(env)) {
