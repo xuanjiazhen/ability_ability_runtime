@@ -405,5 +405,28 @@ describe('fileio_open', function () {
       done();
     }
   });
+
+  /**
+   * @tc.number SUB_DF_FILEIO_OPEN_ASYNC_1200
+   * @tc.name fileio_test_open_async_012
+   * @tc.desc Test openASync() interfaces.
+   * @tc.size MEDIUM
+   * @tc.type Functoin
+   * @tc.level Level 0
+   * @tc.require
+   */
+  it('fileio_test_open_async_012', Level.LEVEL0, async function (done) {
+    let fpath = await nextFileName('fileio_test_open_async_012');
+    try {
+      fileio.open(fpath, function (err, fd) {
+        expect(fd !== null).assertTrue();
+        expect(fileio.closeSync(fd) !== null).assertTrue();
+        expect(fileio.unlinkSync(fpath) !== null).assertTrue();
+        done();
+      });
+    } catch (e) {
+      expect(null).assertFail();
+    }
+  });
 });
 }
