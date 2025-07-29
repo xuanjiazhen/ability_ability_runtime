@@ -71,10 +71,10 @@ export default function PinchGestureBasic01Test() {
       let driver: Driver = Driver.create();
       await CommonFunc.sleep(1000);
       let pointers: PointerMatrix = PointerMatrix.create(2,2);
-      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.1),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.3),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(1,0,{x: Math.round(areaObj1.right - areaWidth1 * 0.1),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(1,1,{x: Math.round(areaObj1.right - areaWidth1 * 0.3),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.7),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(1,0,{x: Math.round(areaObj1.right - areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(1,1,{x: Math.round(areaObj1.right - areaWidth1 * 0.7),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
       await driver.injectMultiPointerAction(pointers);
       await CommonFunc.sleep(4000);
       // 拖动之后重新获取当前区域的位置信息
@@ -114,9 +114,9 @@ export default function PinchGestureBasic01Test() {
       await CommonFunc.sleep(200);
       let text6 = getInspectorByKey('PinchGestureBasic01_pinchCenterX');
       let obj6: ESObject = JSON.parse(text6);
-      console.log('PinchGestureBasic01Test_0010 obj6 $attrs content',vp2px(Number(obj6.$attrs.content)),(vp2px(Number(obj6.$attrs.content)))- ((Math.round(areaObj1.left + areaWidth1 * 0.3) + (Math.round(areaObj1.right - areaWidth1 * 0.3) - Math.round(areaObj1.left + areaWidth1 * 0.3))/2) - areaObj1.left))
+      console.log('PinchGestureBasic01Test_0010 obj6 $attrs content',vp2px(Number(obj6.$attrs.content)),(vp2px(Number(obj6.$attrs.content)))- ((Math.round(areaObj1.left + areaWidth1 * 0.7) + (Math.round(areaObj1.right - areaWidth1 * 0.7) - Math.round(areaObj1.left + areaWidth1 * 0.7))/2) - areaObj1.left))
       console.log('PinchGestureBasic01Test_0010 obj6 $attrs pinchCenterX',obj6.$attrs.content, Number(obj6.$attrs.content), vp2px(Number(obj6.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj6.$attrs.content)))- ((Math.round(areaObj1.left + areaWidth1 * 0.3) + (Math.round(areaObj1.right - areaWidth1 * 0.3) - Math.round(areaObj1.left + areaWidth1 * 0.3))/2) - areaObj1.left))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj6.$attrs.content)))- ((Math.round(areaObj1.left + areaWidth1 * 0.7) + (Math.round(areaObj1.right - areaWidth1 * 0.7) - Math.round(areaObj1.left + areaWidth1 * 0.7))/2) - areaObj1.left))) <= 1).assertTrue();
 
       await CommonFunc.sleep(200);
       let text7 = getInspectorByKey('PinchGestureBasic01_pinchCenterY');
@@ -136,9 +136,9 @@ export default function PinchGestureBasic01Test() {
       await CommonFunc.sleep(200);
       let text10 = getInspectorByKey('PinchGestureBasic01_fingerList_globalX');
       let obj10: ESObject = JSON.parse(text10);
-      console.log('RotatioroundnGestureBasicTest_0010 obj10 $attrs content',vp2px(Number(obj10.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.3) - windowOffsetX)
+      console.log('RotatioroundnGestureBasicTest_0010 obj10 $attrs content',vp2px(Number(obj10.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.7) - windowOffsetX)
       console.log('PinchGestureBasic01Test_0010 obj10 $attrs fingerList_globalX',obj10.$attrs.content, Number(obj10.$attrs.content), vp2px(Number(obj10.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj10.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.3) - windowOffsetX))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj10.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.7) - windowOffsetX))) <= 1).assertTrue();
 
       // fingerList[0]
       await CommonFunc.sleep(200);
@@ -152,9 +152,9 @@ export default function PinchGestureBasic01Test() {
       await CommonFunc.sleep(200);
       let text12 = getInspectorByKey('PinchGestureBasic01_fingerList_localX');
       let obj12: ESObject = JSON.parse(text12);
-      console.log('PinchGestureBasic01Test_0010 obj12 $attrs content',vp2px(Number(obj12.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.3) - areaObj1.left)
+      console.log('PinchGestureBasic01Test_0010 obj12 $attrs content',vp2px(Number(obj12.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.7) - areaObj1.left)
       console.log('PinchGestureBasic01Test_0010 obj12 $attrs localX',obj12.$attrs.content, Number(obj12.$attrs.content), vp2px(Number(obj12.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj12.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.3) - areaObj1.left))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj12.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.7) - areaObj1.left))) <= 1).assertTrue();
 
       // fingerList[0]
       await CommonFunc.sleep(200);
@@ -175,9 +175,9 @@ export default function PinchGestureBasic01Test() {
       await CommonFunc.sleep(200);
       let text10f = getInspectorByKey('PinchGestureBasic01_fingerList1_globalX');
       let obj10f: ESObject = JSON.parse(text10f);
-      console.log('PinchGestureBasic01Test_0010 obj10f $attrs content',vp2px(Number(obj10f.$attrs.content)),Math.round(areaObj1.right - areaWidth1 * 0.3) - windowOffsetX)
+      console.log('PinchGestureBasic01Test_0010 obj10f $attrs content',vp2px(Number(obj10f.$attrs.content)),Math.round(areaObj1.right - areaWidth1 * 0.7) - windowOffsetX)
       console.log('PinchGestureBasic01Test_0010 obj10f $attrs fingerList1_globalX',obj10f.$attrs.content, Number(obj10f.$attrs.content), vp2px(Number(obj10f.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj10f.$attrs.content)))- (Math.round(areaObj1.right - areaWidth1 * 0.3) - windowOffsetX))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj10f.$attrs.content)))- (Math.round(areaObj1.right - areaWidth1 * 0.7) - windowOffsetX))) <= 1).assertTrue();
 
       // fingerList[1]
       await CommonFunc.sleep(200);
@@ -191,9 +191,9 @@ export default function PinchGestureBasic01Test() {
       await CommonFunc.sleep(200);
       let text12f = getInspectorByKey('PinchGestureBasic01_fingerList1_localX');
       let obj12f: ESObject = JSON.parse(text12f);
-      console.log('PinchGestureBasic01Test_0010 obj12f $attrs content',vp2px(Number(obj12f.$attrs.content)),Math.round(areaObj1.right - areaWidth1 * 0.3) - areaObj1.left)
+      console.log('PinchGestureBasic01Test_0010 obj12f $attrs content',vp2px(Number(obj12f.$attrs.content)),Math.round(areaObj1.right - areaWidth1 * 0.7) - areaObj1.left)
       console.log('PinchGestureBasic01Test_0010 obj12f $attrs localX',obj12f.$attrs.content, Number(obj12f.$attrs.content), vp2px(Number(obj12f.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj12f.$attrs.content)))- (Math.round(areaObj1.right - areaWidth1 * 0.3) - areaObj1.left))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj12f.$attrs.content)))- (Math.round(areaObj1.right - areaWidth1 * 0.7) - areaObj1.left))) <= 1).assertTrue();
 
       // fingerList[1]
       await CommonFunc.sleep(200);

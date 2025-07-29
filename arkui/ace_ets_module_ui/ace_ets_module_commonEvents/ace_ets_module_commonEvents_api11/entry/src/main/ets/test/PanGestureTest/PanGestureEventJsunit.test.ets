@@ -64,8 +64,8 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       let bottom = colum.bottom
       let left = colum.left
       let right = colum.right
-      await driver.swipe(Math.round(left + 100), Math.round((top + bottom) / 2),
-        Math.round(right - 100), Math.round((top + bottom) / 2));
+      await driver.swipe(Math.round(left + (colum.right - colum.left)/2), Math.round((top + bottom) / 2),
+        Math.round(right - (colum.right - colum.left)*0.1), Math.round((top + bottom) / 2));
       await CommonFunc.sleep(2000);
       let textComponent = await driver.findComponent(BY.key('velocityX'));
       let text = await textComponent.getText();
@@ -85,8 +85,8 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       let bottom = colum.bottom
       let left = colum.left
       let right = colum.right
-      await driver.swipe(Math.round(left + 100), Math.round((top + bottom) / 2),
-        Math.round(right - 100), Math.round((top + bottom) / 2));
+      await driver.swipe(Math.round(left + (colum.right - colum.left)/2), Math.round((top + bottom) / 2),
+        Math.round(right - (colum.right - colum.left)*0.1), Math.round((top + bottom) / 2));
       await CommonFunc.sleep(2000);
       let textComponent = await driver.findComponent(BY.key('velocityY'));
       let text = await textComponent.getText();
@@ -106,8 +106,8 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       let bottom = colum.bottom
       let left = colum.left
       let right = colum.right
-      await driver.swipe(Math.round(left + 100), Math.round((top + bottom) / 2),
-        Math.round(right - 100), Math.round((top + bottom) / 2));
+      await driver.swipe(Math.round(left + (colum.right - colum.left)/2), Math.round((top + bottom) / 2),
+        Math.round(right - (colum.right - colum.left)*0.1), Math.round((top + bottom) / 2));
       await CommonFunc.sleep(2000);
        let textComponent = await driver.findComponent(BY.key('velocity'));
       let text = await textComponent.getText();

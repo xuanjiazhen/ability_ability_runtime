@@ -77,10 +77,10 @@ export default function PinchGestureHandlerAllowedTypesTest() {
       let driver: Driver = Driver.create();
       await CommonFunc.sleep(1000);
       let pointers: PointerMatrix = PointerMatrix.create(2,2);
-      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.1),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.3),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(1,0,{x: Math.round(areaObj1.right - areaWidth1 * 0.1),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
-      pointers.setPoint(1,1,{x: Math.round(areaObj1.right - areaWidth1 * 0.3),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.7),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(1,0,{x: Math.round(areaObj1.right - areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
+      pointers.setPoint(1,1,{x: Math.round(areaObj1.right - areaWidth1 * 0.7),y: Math.round(areaObj1.top + areaHeight1 * 0.5) });
       await driver.injectMultiPointerAction(pointers);
       await CommonFunc.sleep(4000);
       let text1 = getInspectorByKey('PinchGestureHandlerAllowedTypes_result');
@@ -105,7 +105,7 @@ export default function PinchGestureHandlerAllowedTypesTest() {
       let obj3: ESObject = JSON.parse(text3);
       console.log('PinchGestureHandlerAllowedTypesTest_0010 obj3 $attrs content',obj3.$attrs.content,obj3)
       expect(obj3.$attrs.content).assertEqual('allowed types default');
- 
+
       // change types to invalid types
       await CommonFunc.sleep(1000);
       let button3 = await driver.findComponent(ON.id('Invalid_type'));
@@ -129,4 +129,3 @@ export default function PinchGestureHandlerAllowedTypesTest() {
     });
   })
 }
-

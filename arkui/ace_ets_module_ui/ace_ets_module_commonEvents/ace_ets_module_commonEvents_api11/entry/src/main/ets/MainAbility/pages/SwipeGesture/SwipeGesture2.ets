@@ -21,14 +21,15 @@ struct SwipeGesture2 {
   @State speed: number = 1
 
   build() {
+    Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
     Column() {
       Column() {
         Text('PanGesture offset:X:' + this.offsetX + 'Y:' + this.offsetY).key('Swipe3')
         Text(String(Math.round(this.rotateAngle))).key('Swipe4')
       }
       .key('SwipeGesture2')
-      .height(150)
-      .width(200)
+      .height("90%")
+      .width("100%")
       .backgroundColor(0x008000)
       .translate({x: this.offsetX, y: this.offsetY})
       .gesture(
@@ -41,8 +42,11 @@ struct SwipeGesture2 {
           })
       )
     }
-    .height(150)
-    .width(200)
+    .height("25%")
+    .width("50%")
     .backgroundColor(0xffa500)
+  }
+  .height('100%')
+  .width('100%')
   }
 }

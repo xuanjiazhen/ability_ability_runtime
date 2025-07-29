@@ -84,7 +84,8 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       await CommonFunc.sleep(1000);
       let colum = CommonFunc.getComponentRectOnScreen('PanGesture3');
       let top = colum.top
-      await driver.swipe(Math.round(globalThis.winLeft + 100), Math.round(top + 100), Math.round(globalThis.winLeft + 500), Math.round(top + 500))
+      //await driver.swipe(Math.round(globalThis.winLeft + 100), Math.round(top + 100), Math.round(globalThis.winLeft + 500), Math.round(top + 500))
+      await driver.swipe(Math.round(colum.left+(colum.right - colum.left)/2), Math.round(colum.bottom), Math.round(colum.right), Math.round(top), 600)
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('PanGesture3_1');
       let obj: ESObject = JSON.parse(strJson);
@@ -97,4 +98,3 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
 
   })
 }
-
