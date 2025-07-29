@@ -23,7 +23,6 @@ struct PanGesture1 {
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.All })
 
   build() {
-    // 使用 Flex 布局，设置主轴和交叉轴居中
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
       Column() {
         Column() {
@@ -59,7 +58,6 @@ struct PanGesture1 {
       .width("50%")
       .backgroundColor(0xffa500)
     }
-    // 设置 Flex 布局的宽度和高度为全屏
     .height('100%')
     .width('100%')
   }
