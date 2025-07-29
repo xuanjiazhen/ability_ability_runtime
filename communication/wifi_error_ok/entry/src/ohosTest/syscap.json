@@ -4,7 +4,6 @@
         "custom": [
             {
                 "xts": [
-                    "SystemCapability.DistributedHardware.DeviceManager",
                     "SystemCapability.Communication.WiFi.STA"
                 ]
             }
