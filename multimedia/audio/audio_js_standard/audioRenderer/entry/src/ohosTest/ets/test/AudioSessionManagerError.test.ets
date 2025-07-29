@@ -141,6 +141,5 @@ export default function audioSessionManagerErrorTest() {
         done();
       }
     })
-
   })
 }
