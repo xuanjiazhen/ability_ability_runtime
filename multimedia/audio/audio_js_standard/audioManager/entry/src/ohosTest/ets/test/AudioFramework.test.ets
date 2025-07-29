@@ -6296,7 +6296,7 @@ export default function audioFramework() {
         let ret: boolean = audio.getAudioManager().getStreamManager().isStreamActive(audioStreamUsage);
         expect(false).assertTrue();
       } catch (err) {
-        expect(Number(err.code)).assertTrue(6800101);
+        expect(Number(err.code)).assertEqual(6800101);
       }
       done();
     })
