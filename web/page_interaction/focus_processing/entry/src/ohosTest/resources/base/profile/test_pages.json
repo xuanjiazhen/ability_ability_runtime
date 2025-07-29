@@ -3,7 +3,9 @@
     "testability/pages/WebInitTest",
     "testability/pages/OnRequestSelected",
     "testability/pages/webController",
-	"testability/pages/blurMode"
+	"testability/pages/blurMode",
+    "testability/pages/WebGestureFocusMode",
+    "testability/pages/WebGestureTapAndLongPress"
   ]
 }
 

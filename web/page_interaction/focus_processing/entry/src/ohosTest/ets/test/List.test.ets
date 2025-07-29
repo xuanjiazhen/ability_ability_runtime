@@ -16,11 +16,14 @@ import webController from './WebController.test'
 import OnRequestSelected from './OnRequestSelected.test'
 import webInitTest from './WebInitTest.test'
 import blurMode from './blurMode.test'
-
+import WebGestureFocusMode from './WebGestureFocusMode.test'
+import WebGestureTapAndLongPress from './WebGestureTapAndLongPress.test'
 
 export default function testsuite() {
   webInitTest()
   OnRequestSelected()
   webController()
   blurMode();
+  WebGestureFocusMode()
+  WebGestureTapAndLongPress()
 }
