@@ -2725,6 +2725,7 @@ int AbilityManagerStub::RegisterRemoteOffListenerInner(MessageParcel &data, Mess
         return ERR_NULL_OBJECT;
     }
     int32_t result = RegisterOffListener(type, listener);
+    reply.WriteInt32(result);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d", result);
     return result;
 }
