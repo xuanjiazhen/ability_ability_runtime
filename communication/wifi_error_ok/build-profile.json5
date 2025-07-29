@@ -25,21 +25,7 @@
         "runtimeOS": "OpenHarmony"
       }
     ],
-    "signingConfigs": [
-      {
-        "name": "default",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BCCDE3D4118C556FED98C89ADDB3F5ED66B56D61FE6EC5E3DAA4A4A5E1F3B2C00739CB9677FFC7E",
-          "profile": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p12",
-          "storePassword": "0000001BCFC9D3197A4E6B4F3B53F69E29E903C79CF1E18C6A097609C8E3F7D1855BEF49E905640F9B730A"
-        }
-      }
-    ]
+    "signingConfigs": []
   },
   "modules": [
     {
