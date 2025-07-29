@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { describe, it, expect, Level } from '@ohos/hypium'
 import osAccountNdk from 'libosaccountndk.so'
 
 export default function ActsOsAccountNdkTest() {

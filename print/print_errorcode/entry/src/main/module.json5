@@ -19,7 +19,8 @@
     "type": "entry",
     "description": "$string:module_desc",
     "mainElement": "MainAbility",
-    "deviceTypes": [],
+    "deviceTypes": [
+    ],
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",

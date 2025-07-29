@@ -13,14 +13,6 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("print_ndk_main") {
-  testonly = true
-  certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsPrintNdkMainTest"
-  subsystem_name = "print"
-  part_name = "print_fwk"
-}
-
 ohos_js_app_suite("ActsPrintErrorCodeTest") {
   test_hap = true
   testonly = true
@@ -28,5 +20,4 @@ ohos_js_app_suite("ActsPrintErrorCodeTest") {
   hap_name = "ActsPrintErrorCodeTest"
   subsystem_name = "print"
   part_name = "print_fwk"
-  deps = [ ":print_ndk_main" ]
 }
