@@ -45,6 +45,7 @@ group("communication") {
       "wifi_ets_standard:ActsEtsWifiTest",
       "wifi_manager_nop:ActsManagerNopStageOhosTest",
       "wifi_p2p:ActsP2PJSTest",
+      "wifi_error_ok:ActsWifiCApiOkTest",
       "wifi_standard:ActsWifiJSTest",
     ]
   } else {
