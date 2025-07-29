@@ -81,8 +81,8 @@ export default function WebViewBypassVsyncCondition() {
 
     /*
     * @tc.number     : SUB_WEB_BYPASSVSYNCCONDITION_0200
-    * @tc.name       : emitBypassVsyncCondition01
-    * @tc.desc       : emitBypassVsyncCondition01
+    * @tc.name       : emitBypassVsyncCondition02
+    * @tc.desc       : emitBypassVsyncCondition02
     * @tc.size       : MediumTest
     * @tc.type       : Function
     * @tc.level      : Level 1
