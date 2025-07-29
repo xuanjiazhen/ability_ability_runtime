@@ -1,5 +1,5 @@
 {
-    "description": "Configuration for ActsLocationCApi20NdkTest Tests",
+    "description": "Configuration for ActsLocationCApi20Test Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "180000",

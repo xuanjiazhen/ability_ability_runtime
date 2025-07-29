@@ -1,6 +1,6 @@
 # the minimum version of CMake.
 cmake_minimum_required(VERSION 3.5.0)
-project(ActsLocationCApi20NdkTest)
+project(ActsLocationCApi20Test)
 
 set(NATIVERENDER_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -11,5 +11,5 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(locationcapi20ndk SHARED GeoLocationCApi20Test.cpp)
-target_link_libraries(locationcapi20ndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so liblocation_ndk.so)
+add_library(locationcapi20 SHARED GeoLocationCApi20Test.cpp)
+target_link_libraries(locationcapi20 PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so liblocation_ndk.so)

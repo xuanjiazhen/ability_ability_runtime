@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import ActsLocationCApi20NdkTest from './ActsLocationCApi20NdkTest.test'
+import ActsLocationCApi20Test from './ActsLocationCApi20Test.test'
 
 export default function testsuite() {
-  ActsLocationCApi20NdkTest()
+  ActsLocationCApi20Test()
 }

@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "app_name",
-      "value": "ActsLocationCApi20NdkTest"
+      "value": "ActsLocationCApi20Test"
     },
     {
       "name": "description_application",
-      "value": "ActsLocationCApi20NdkTest"
+      "value": "ActsLocationCApi20Test"
     }
   ]
 }
