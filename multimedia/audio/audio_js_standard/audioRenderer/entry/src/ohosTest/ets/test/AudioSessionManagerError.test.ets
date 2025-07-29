@@ -140,7 +140,6 @@ export default function audioSessionManagerErrorTest() {
         console.info(`${TAG}: error.code: ${error.code}, error.message: ${error.message}`);
         done();
       }
-
     })
   })
 }
