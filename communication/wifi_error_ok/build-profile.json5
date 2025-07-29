@@ -28,14 +28,15 @@
     "signingConfigs": [
       {
         "name": "default",
+        "type": "HarmonyOS",
         "material": {
-          "certpath": "C:/Users/niuniu/.ohos/config/openharmony/default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.cer",
+          "certpath": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B74A78DA114086ED83D20E48DF00E492D0B48AF877611E23EED29FDD475D120C8A87B4B92D17A5D",
-          "profile": "C:/Users/niuniu/.ohos/config/openharmony/default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p7b",
+          "keyPassword": "0000001BCCDE3D4118C556FED98C89ADDB3F5ED66B56D61FE6EC5E3DAA4A4A5E1F3B2C00739CB9677FFC7E",
+          "profile": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:/Users/niuniu/.ohos/config/openharmony/default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p12",
-          "storePassword": "0000001B1613755E740831FB66FAA6543A8C49003A6DA9C72D5BD6D3FDE5813274E20C946BBD03A8C7037B"
+          "storeFile": "C:\\Users\\niuniu\\.ohos\\config\\default_wifi_error_ok_8nsnZXVSA8wW4gmZWQ-sORbS5uO3O7C_09dK_185I44=.p12",
+          "storePassword": "0000001BCFC9D3197A4E6B4F3B53F69E29E903C79CF1E18C6A097609C8E3F7D1855BEF49E905640F9B730A"
         }
       }
     ]
