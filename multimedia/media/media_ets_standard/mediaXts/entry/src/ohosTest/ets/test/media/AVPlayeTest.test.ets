@@ -1382,6 +1382,7 @@ export default function AVPlayerTest() {
 
     afterEach(async () => {
       if (avPlayer != null) {
+        avPlayer.off('stateChange');
         await avPlayer.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }

@@ -42,24 +42,17 @@ import {
 } from './AVPlayerTestBase';
 import media from '@ohos.multimedia.media';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level } from '@ohos/hypium';
-import { LOG_TAG, PLAY_TIME, SLEEP_TIME_500, VIDEO_SOURCES } from '../Constants';
-import fileio from '@ohos.fileio';
+import { LOG_TAG, PLAY_TIME, SLEEP_TIME_20, SLEEP_TIME_500, VIDEO_SOURCES } from '../Constants';
+import { fileIo as fs } from '@kit.CoreFileKit';
 
 const TAG = LOG_TAG + "AVPlayerStabilityTest";
 
 async function getStageFdRead(pathName: string) {
-  let fdReturn: number = 0;
-  let fileDescriptor: media.AVFileDescriptor;
   pathName = globalThis.abilityContext.filesDir + '/' + pathName;
   console.log(TAG, 'pathName is ' + pathName);
-  await fileio.open(pathName).then((fdNumber) => {
-    fdReturn = fdNumber;
-    console.info(TAG, '[fileio]case open fd success, fd is ' + fdReturn);
-  });
-  fileDescriptor = {
-    fd: fdReturn
-  };
-  return fileDescriptor;
+  let file = await fs.open(pathName);
+  console.info(TAG, '[fileio]case open fd success, fd is ' + file.fd);
+  return file;
 }
 
 export default function AVPlayerStabilityTest() {
@@ -73,18 +66,19 @@ export default function AVPlayerStabilityTest() {
     beforeAll(async () => {
       console.info(TAG, 'beforeAll case');
       for (let i = 0; i < VIDEO_SOURCES.length; i++) {
-        await getStageFdRead(VIDEO_SOURCES[i]).then((fdNumber) => {
-          console.info(TAG, 'this fdNumber is :' + JSON.stringify(fdNumber));
-          fdNumbers.push(fdNumber.fd);
-          videos.push(fdNumber);
+        await getStageFdRead(VIDEO_SOURCES[i]).then((fileDescriptor) => {
+          console.info(TAG, 'this fdNumber is :' + JSON.stringify(fileDescriptor));
+          fdNumbers.push(fileDescriptor.fd);
+          videos.push(fileDescriptor);
         });
+        await mediaTestBase.msleepAsync(SLEEP_TIME_20);
       }
       for (let i = 0; i < 10; i++) {
         if (!globalThis.value) {
-          console.info("surfaceId is undefined");
+          console.info(TAG, 'surfaceId is undefined');
           await mediaTestBase.msleepAsync(SLEEP_TIME_500);
         } else {
-          console.info("surfaceId is " + globalThis.value);
+          console.info(TAG, 'surfaceId is ' + globalThis.value);
           break;
         }
       }
@@ -96,7 +90,8 @@ export default function AVPlayerStabilityTest() {
 
     afterEach(async () => {
       if (avPlayer != null) {
-        avPlayer.release().then(() => {
+        avPlayer.off('stateChange');
+        await avPlayer.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
       console.info(TAG, 'afterEach case');
