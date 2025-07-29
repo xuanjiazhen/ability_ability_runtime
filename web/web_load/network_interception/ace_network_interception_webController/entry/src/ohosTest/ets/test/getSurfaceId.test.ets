@@ -64,7 +64,7 @@ export default function getSurfaceId() {
 
      /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0100
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList0100
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -80,7 +80,7 @@ export default function getSurfaceId() {
 
      /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0200
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList0200
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -96,7 +96,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0300
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList0300
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -112,7 +112,7 @@ export default function getSurfaceId() {
 
      /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0400
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList0400
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -128,7 +128,7 @@ export default function getSurfaceId() {
 
      /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0500
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList0500
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -144,7 +144,7 @@ export default function getSurfaceId() {
 
      /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0600
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList0600
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -160,7 +160,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0700
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList0700
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -176,7 +176,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0800
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList0800
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -192,7 +192,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0900
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList0900
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -208,7 +208,7 @@ export default function getSurfaceId() {
 
     /*
      * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1000
-     * @tc.name       : testSetUrlTrustList
+     * @tc.name       : emitSetUrlTrustList1000
      * @tc.desc       : SetUrlTrustList
      * @tc.size       : MediumTest
      * @tc.type       : Function
@@ -224,7 +224,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1100
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList1100
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -240,7 +240,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1200
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList1200
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -256,7 +256,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1300
-    * @tc.name       : SetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList1300
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
@@ -272,7 +272,7 @@ export default function getSurfaceId() {
 
     /*
     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1400
-    * @tc.name       : testSetUrlTrustList
+    * @tc.name       : emitSetUrlTrustList1400
     * @tc.desc       : SetUrlTrustList
     * @tc.size       : MediumTest
     * @tc.type       : Function
