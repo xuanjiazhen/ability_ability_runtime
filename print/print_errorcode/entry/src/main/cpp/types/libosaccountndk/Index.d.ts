@@ -17,5 +17,4 @@ export const OhPrint2: () => Promise<number>;
 export const OhPrint3: () => Promise<number>;
 export const OhPrint4: () => Promise<number>;
 export const OhPrint5: () => Promise<number>;
-export const OhPrint6: () => Promise<number>;
 

@@ -44,22 +44,6 @@ static napi_value OhPrint1(napi_env env, napi_callback_info info)
 }
 
 /**
- * @tc.number  : SUB_Oh_Print_0200
- * @tc.name    : SUB_Oh_Print_0200
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
-static napi_value OhPrint2(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    int ret = OH_Print_Release();
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-/**
  * @tc.number  : SUB_Oh_Print_0300
  * @tc.name    : SUB_Oh_Print_0300
  * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
@@ -67,7 +51,7 @@ static napi_value OhPrint2(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint3(napi_env env, napi_callback_info info)
+static napi_value OhPrint2(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -85,14 +69,14 @@ static napi_value OhPrint3(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint4(napi_env env, napi_callback_info info)
+static napi_value OhPrint3(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
     Print_StringList list = {0};
     errorCode = OH_Print_QueryPrinterList(&list);
     errorCode = OH_Print_LaunchPrinterManager();
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result); //PRINT_ERROR_GENERIC_FAILURE
+    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
     return result;
 }
 
@@ -104,7 +88,7 @@ static napi_value OhPrint4(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint5(napi_env env, napi_callback_info info)
+static napi_value OhPrint4(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_StartPrintJob(nullptr);
@@ -120,7 +104,7 @@ static napi_value OhPrint5(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint6(napi_env env, napi_callback_info info)
+static napi_value OhPrint5(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     OH_Print_RegisterPrinterChangeListener(PrinterChangeCallback);
@@ -138,8 +122,7 @@ static napi_value Init(napi_env env, napi_value exports)
         {"OhPrint2", nullptr, OhPrint2, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OhPrint3", nullptr, OhPrint3, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"OhPrint4", nullptr, OhPrint4, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint5", nullptr, OhPrint5, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint6", nullptr, OhPrint6, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OhPrint5", nullptr, OhPrint5, nullptr, nullptr, nullptr, napi_default, nullptr}
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

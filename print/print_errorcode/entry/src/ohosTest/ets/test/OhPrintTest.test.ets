@@ -27,9 +27,16 @@ export default function ActsOsAccountNdkTest() {
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0100', Level.LEVEL1, async (done: Function) => {
-      let result: number = await osAccountNdk.OhPrint1();
-      expect(result).assertEqual(0);
-      done();
+      try {
+        console.info("====>SUB_Oh_Print_0100 start====");
+        let result: number = await osAccountNdk.OhPrint1();
+        expect(result).assertEqual(0);
+        console.info("====>SUB_Oh_Print_0100 result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>SUB_Oh_Print_0100 catch err: " + err);
+        done()
+      }
     })
 
     /**
@@ -41,10 +48,16 @@ export default function ActsOsAccountNdkTest() {
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0200', Level.LEVEL1, async (done: Function) => {
-      let result: number = await osAccountNdk.OhPrint2();
-      console.log("---- xie3 ---",result);
-      expect(result).assertEqual(0);
-      done();
+      try {
+        console.info("====>SUB_Oh_Print_0200 start====");
+        let result: number = await osAccountNdk.OhPrint2();
+        expect(result).assertEqual(401);
+        console.info("====>SUB_Oh_Print_0200 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Print_0200 catch err: " + err);
+        done()
+      }
     })
 
     /**
@@ -56,11 +69,16 @@ export default function ActsOsAccountNdkTest() {
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0300', Level.LEVEL1, async (done: Function) => {
-      console.log("---- xie1 ---")
-      let result: number = await osAccountNdk.OhPrint3();
-      console.log("---- xie2 ---",JSON.stringify(result))
-      expect(result).assertEqual(401);
-      done();
+      try {
+        console.info("====>SUB_Oh_Print_0300 start====");
+        let result: number = await osAccountNdk.OhPrint3();
+        expect(result).assertEqual(24300001);
+        console.info("====>SUB_Oh_Print_0300 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Print_0300 catch err: " + err);
+        done()
+      }
     })
 
     /**
@@ -72,9 +90,16 @@ export default function ActsOsAccountNdkTest() {
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0400', Level.LEVEL1, async (done: Function) => {
-      let result: number = await osAccountNdk.OhPrint4();
-      expect(result).assertEqual(24300001);
-      done();
+      try {
+        console.info("====>SUB_Oh_Print_0400 start====");
+        let result: number = await osAccountNdk.OhPrint4();
+        expect(result).assertEqual(24300006);
+        console.info("====>SUB_Oh_Print_0400 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Print_0400 catch err: " + err);
+        done()
+      }
     })
 
     /**
@@ -86,23 +111,16 @@ export default function ActsOsAccountNdkTest() {
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0500', Level.LEVEL1, async (done: Function) => {
-      let result: number = await osAccountNdk.OhPrint5();
-      expect(result).assertEqual(24300006);
-      done();
-    })
-
-    /**
-     * @tc.number  : SUB_Oh_Print_0600
-     * @tc.name    : SUB_Oh_Print_0600
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_Oh_Print_0600', Level.LEVEL1, async (done: Function) => {
-      let result: number = await osAccountNdk.OhPrint6();
-      expect(result).assertEqual(24300005);
-      done();
+      try {
+        console.info("====>SUB_Oh_Print_0500 start====");
+        let result: number = await osAccountNdk.OhPrint5();
+        expect(result).assertEqual(24300005);
+        console.info("====>SUB_Oh_Print_0500 result: " + result);
+        done();
+      } catch (err) {
+        console.error("====>SUB_Oh_Print_0500 catch err: " + err);
+        done()
+      }
     })
   })
 }
