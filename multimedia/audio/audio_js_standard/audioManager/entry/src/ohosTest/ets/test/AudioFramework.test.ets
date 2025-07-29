@@ -6298,7 +6298,6 @@ export default function audioFramework() {
       } catch (err) {
         expect(Number(err.code)).assertTrue(6800101);
       }
-      done();
     })
   })
 }
