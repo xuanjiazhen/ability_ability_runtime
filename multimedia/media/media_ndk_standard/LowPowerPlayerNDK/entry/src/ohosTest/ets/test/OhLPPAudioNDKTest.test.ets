@@ -83,19 +83,24 @@ export default function OhLPPAudioNDKTest() {
 
       let mySteps: string[] = new Array(
         //set filename
-        lppBase.AUDIO_CREATE_NULL_EVENT,
+        lppBase.INIT_FD_EVENT,
         //createPrepareNative
+        lppBase.AUDIO_CREATE_NULL_EVENT,
+        lppBase.AUDIO_SET_PARAMETER_ERROR_EVENT,
         lppBase.AUDIO_PREPARE_ERROR_EVENT,
         //video start decoder
         lppBase.AUDIO_START_ERROR_EVENT,
         //set speed
         lppBase.AUDIO_SET_SPEED_ERROR_EVENT,
+        lppBase.AUDIO_GET_PARAMETER_ERROR_EVENT,
         //video stop
         lppBase.AUDIO_STOP_ERROR_EVENT,
         lppBase.AUDIO_RESUME_ERROR_EVENT,
         lppBase.AUDIO_PAUSE_ERROR_EVENT,
+        lppBase.AUDIO_FLUSH_ERROR_EVENT,
+        lppBase.AUDIO_RESET_ERROR_EVENT,
         // destory
-        lppBase.AUDIO_DESTROY_EVENT,
+        lppBase.DESTROY_EVENT,
         //done recorder
         lppBase.END_EVENT
       );

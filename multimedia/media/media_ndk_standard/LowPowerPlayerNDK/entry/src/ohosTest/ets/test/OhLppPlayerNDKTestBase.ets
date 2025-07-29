@@ -43,12 +43,17 @@ export default class OhLppPlayerNDKTestBase {
   AUDIO_CB_SET_EOS_LISTENER_EVENT = 'Audio_OnAudioEos';
   VIDEO_CONFIGURE_EVENT = 'Video_Configure';
   VIDEO_REGISTER_CALLBACK_EVENT = 'Video_Register';
+  VIDEO_REGISTER_CALLBACK_ERROR_EVENT = 'Video_Register_error';
   VIDEO_SET_PARAMETER_EVENT = 'Video_SetParameter';
+  VIDEO_SET_PARAMETER_ERROR_EVENT = 'Video_SetParameter_error';
   VIDEO_GET_PARAMETER_EVENT = 'Video_GetParameter';
+  VIDEO_GET_PARAMETER_ERROR_EVENT = 'Video_GetParameter_error';
   VIDEO_SURFACE_EVENT = 'Video_Surface';
+  VIDEO_SURFACE_ERROR_EVENT = 'Video_Surface_error';
   VIDEO_PREPARE_EVENT = 'Video_Prepare';
   VIDEO_PREPARE_ERROR_EVENT = 'Video_Prepare_Error';
   VIDEO_SET_SYNC_AUDIO_EVENT = 'Video_SetSync_Audio';
+  VIDEO_SET_SYNC_AUDIO_ERROR_EVENT = 'Video_SetSync_Audio_error';
   VIDEO_START_DECODER_EVENT = 'Video_Start_Decoder_Audio';
   VIDEO_START_DECODER_ERROR_EVENT = 'Video_Start_Decoder_Error';
   VIDEO_RENDER_FIRSTFRAME_EVENT = 'Video_RenderFirstFrame';
@@ -72,16 +77,22 @@ export default class OhLppPlayerNDKTestBase {
   VIDEO_STOP_ERROR_EVENT = 'Video_Stop_Error';
   FLUSH_EVENT = 'Flush';
   VIDEO_FLUSH_EVENT = 'Video_Flush';
+  VIDEO_FLUSH_ERROR_EVENT = 'Video_Flush_error';
   RESET_EVENT = 'Reset';
   VIDEO_RESET_EVENT = 'Video_Reset';
+  VIDEO_RESET_ERROR_EVENT = 'Video_Reset_error';
   DESTROY_EVENT = 'Destroy';
   VIDEO_DESTROY_EVENT = 'Video_Destroy';
   AUDIO_CONFIGURE_EVENT = 'Audio_Configure';
   AUDIO_REGISTER_CALLBACK_EVENT = 'Audio_Register';
+  AUDIO_REGISTER_CALLBACK_ERROR_EVENT = 'Audio_Register_error';
   AUDIO_SET_PARAMETER_EVENT = 'Audio_SetParameter';
+  AUDIO_SET_PARAMETER_ERROR_EVENT = 'Audio_SetParameter_error';
   AUDIO_GET_PARAMETER_EVENT = 'Audio_GetParameter';
+  AUDIO_GET_PARAMETER_ERROR_EVENT = 'Audio_GetParameter_error';
   AUDIO_SET_VOLUME_UP_EVENT = 'Audio_SetVolume_up';
   AUDIO_SET_VOLUME_DOWN_EVENT = 'Audio_SetVolume_down';
+  AUDIO_SET_VOLUME_DOWN_ERROR_EVENT = 'Audio_SetVolume_down_error';
   AUDIO_PREPARE_EVENT = 'Audio_Prepare';
   AUDIO_PREPARE_ERROR_EVENT = 'Audio_Prepare_Error';
   AUDIO_START_EVENT = 'Audio_Start';
@@ -95,7 +106,9 @@ export default class OhLppPlayerNDKTestBase {
   AUDIO_STOP_EVENT = 'Audio_Stop';
   AUDIO_STOP_ERROR_EVENT = 'Audio_Stop_Error';
   AUDIO_FLUSH_EVENT = 'Audio_Flush';
+  AUDIO_FLUSH_ERROR_EVENT = 'Audio_Flush_error';
   AUDIO_RESET_EVENT = 'Audio_Reset';
+  AUDIO_RESET_ERROR_EVENT = 'Audio_Reset_error';
   AUDIO_DESTROY_EVENT = 'Audio_Destroy';
   WAIT_LPP_PLAYER_EVENT = 'wait_time';
   END_EVENT = 'end';
@@ -150,7 +163,7 @@ export default class OhLppPlayerNDKTestBase {
 
         case this.VIDEO_CREATE_NULL_EVENT:
           this.result = lpPlayer.createLppVideoNativeNull();
-          expect(this.result).assertEqual(SUCC);
+          expect(this.result).assertEqual(-1);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -162,7 +175,7 @@ export default class OhLppPlayerNDKTestBase {
 
         case this.AUDIO_CREATE_NULL_EVENT:
           this.result = lpPlayer.createLppAudioNativeNull();
-          expect(this.result).assertEqual(SUCC);
+          expect(this.result).assertEqual(-1);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -233,6 +246,11 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.VIDEO_SURFACE_ERROR_EVENT:
+          this.result = lpPlayer.videoSetSurfaceNative();
+          expect(this.result).assertEqual(config["errorCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.AUDIO_CONFIGURE_EVENT:
           this.result = lpPlayer.audioStreamerConfigure();
@@ -253,10 +271,20 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.VIDEO_SET_PARAMETER_ERROR_EVENT:
+          this.result = lpPlayer.videoStreamerSetParameter();
+          expect(this.result).assertEqual(config["errorCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.VIDEO_GET_PARAMETER_EVENT:
           this.result = lpPlayer.videoStreamerGetParameter();
           expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.VIDEO_GET_PARAMETER_ERROR_EVENT:
+          this.result = lpPlayer.videoStreamerGetParameter();
+          expect(this.result).assertEqual(config["errorCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -265,10 +293,20 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.AUDIO_SET_PARAMETER_ERROR_EVENT:
+          this.result = lpPlayer.audioSetParameterNative();
+          expect(this.result).assertEqual(config["errorCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.AUDIO_GET_PARAMETER_EVENT:
           this.result = lpPlayer.audioGetParameterNative();
           expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.AUDIO_GET_PARAMETER_ERROR_EVENT:
+          this.result = lpPlayer.audioGetParameterNative();
+          expect(this.result).assertEqual(config["errorCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -323,6 +361,9 @@ export default class OhLppPlayerNDKTestBase {
           break;
 
         case this.VIDEO_SET_SYNC_AUDIO_EVENT:
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.VIDEO_SET_SYNC_AUDIO_ERROR_EVENT:
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -494,10 +535,20 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.VIDEO_FLUSH_ERROR_EVENT:
+          this.result = lpPlayer.videoFlushNative();
+          expect(this.result).assertEqual(config["errorCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.AUDIO_FLUSH_EVENT:
           this.result = lpPlayer.audioFlushNative();
           expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.AUDIO_FLUSH_ERROR_EVENT:
+          this.result = lpPlayer.audioFlushNative();
+          expect(this.result).assertEqual(config["errorCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -542,10 +593,20 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.VIDEO_RESET_ERROR_EVENT:
+          this.result = lpPlayer.videoResetNative();
+          expect(this.result).assertEqual(config["errorCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.AUDIO_RESET_EVENT:
           this.result = lpPlayer.audioResetNative();
           expect(this.result).assertEqual(SUCC);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.AUDIO_RESET_ERROR_EVENT:
+          this.result = lpPlayer.audioResetNative();
+          expect(this.result).assertEqual(config["errorCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
@@ -556,14 +617,10 @@ export default class OhLppPlayerNDKTestBase {
           break;
 
         case this.VIDEO_DESTROY_EVENT:
-          this.result = lpPlayer.videoResetNative();
-          expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
         case this.AUDIO_DESTROY_EVENT:
-          this.result = lpPlayer.audioResetNative();
-          expect(this.result).assertEqual(SUCC);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 

@@ -119,15 +119,11 @@ int32_t Player::CreateLppAudioStreamer()
 int32_t Player::CreateLppAudioStreamerNull()
 {
     AVCODEC_SAMPLE_LOGW("Create IN");
-    if (lppAudioStreamer_ == nullptr) {
-        AVCODEC_SAMPLE_LOGE("lppAudioStreamer_ is Release, should init");
-        return -1;
-    }
     lppAudioStreamer_->Create("");
     lppContext_ = new LppUserData;
     lppAudioStreamer_->SetCallback(lppContext_);
     AVCODEC_SAMPLE_LOGW("Create OUT");
-    return AVCODEC_SAMPLE_ERR_OK;
+    return -1;
 }
 
 int32_t Player::AudioStreamerSetParameter()
@@ -191,10 +187,6 @@ int32_t Player::CreateLppVideoStreamer()
 int32_t Player::CreateLppVideoStreamerNull()
 {
     AVCODEC_SAMPLE_LOGW("Create IN");
-    if (lppVideoStreamer_ == nullptr) {
-        AVCODEC_SAMPLE_LOGE("lppVideoStreamer_ is Release, should init");
-        return -1;
-    }
     AVCODEC_SAMPLE_LOGI("QZM FORMAT : %{public}s", sampleInfo_.videoCodecMime.c_str());
     sampleInfo_.window = NativeXComponentSample::PluginManager::GetInstance()->pluginWindow_;
 //     video/avc
@@ -209,7 +201,7 @@ int32_t Player::CreateLppVideoStreamerNull()
     ret = lppVideoStreamer_->SetFirstFrameDecodedCallback(lppVideoContext_);
     AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetFirstFrameDecoded ret:::%{public}d", ret);
     AVCODEC_SAMPLE_LOGW("Create OUT");
-    return AVCODEC_SAMPLE_ERR_OK;
+    return -1;
 }
 
 int32_t Player::VideoStreamerConfigure()

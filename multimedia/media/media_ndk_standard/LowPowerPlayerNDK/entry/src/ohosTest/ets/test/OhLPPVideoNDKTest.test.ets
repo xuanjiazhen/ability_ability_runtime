@@ -57,7 +57,9 @@ export default function OhLPPVideoNDKTest() {
 
       let mySteps: string[] = new Array(
         //set filename
+        lppBase.INIT_FD_EVENT,
         lppBase.VIDEO_CREATE_NULL_EVENT,
+        lppBase.VIDEO_SET_PARAMETER_ERROR_EVENT,
         //createPrepareNative
         lppBase.VIDEO_PREPARE_ERROR_EVENT,
         //video start decoder
@@ -68,12 +70,15 @@ export default function OhLPPVideoNDKTest() {
         lppBase.VIDEO_START_RENDER_ERROR_EVENT,
         //set speed
         lppBase.VIDEO_SET_SPEED_ERROR_EVENT,
+        lppBase.VIDEO_GET_PARAMETER_ERROR_EVENT,
         //video stop
         lppBase.VIDEO_STOP_ERROR_EVENT,
         lppBase.VIDEO_RESUME_ERROR_EVENT,
         lppBase.VIDEO_PAUSE_ERROR_EVENT,
+        lppBase.VIDEO_FLUSH_ERROR_EVENT,
+        lppBase.VIDEO_RESET_ERROR_EVENT,
         // destory
-        lppBase.VIDEO_DESTROY_EVENT,
+        lppBase.DESTROY_EVENT,
         //done recorder
         lppBase.END_EVENT
       );
