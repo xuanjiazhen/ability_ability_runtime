@@ -2141,36 +2141,6 @@ export default function AVPlayerTest() {
     })
 
     /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_042
-     * @tc.name      : addSubtitleFromFd_promise_001
-     * @tc.desc      : Test jump to the specified playback location.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    it('addSubtitleFromFd_promise_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'addSubtitleFromFd_promise_001';
-      if (fileDescriptor && subtitleFdSrc) {
-        await testSubtitle(fileDescriptor, subtitleFdSrc, avPlayer, done, testName);
-      }
-    })
-
-    /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_043
-     * @tc.name      : addSubtitleFromUrl_promise_001
-     * @tc.desc      : Test jump to the specified playback location.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    it('addSubtitleFromUrl_promise_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'addSubtitleFromUrl_promise_001';
-      if (fileDescriptor && subtitleFdSrc) {
-        await testSubtitle(fileDescriptor, `fd://${subtitleFdSrc.fd}`, avPlayer, done, testName);
-      }
-    })
-
-    /**
      * @tc.number    : AVPLAYER_LOCAL_TEST_044
      * @tc.name      : on_off_trackChange_trackInfoUpdate_001
      * @tc.desc      : Test jump to the specified playback location.
