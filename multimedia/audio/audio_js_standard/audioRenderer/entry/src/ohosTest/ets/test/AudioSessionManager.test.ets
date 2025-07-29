@@ -549,16 +549,16 @@ export default function audioSessionManagerTest() {
     * @tc.level     : LEVEL2
     */
     it('SUB_MULTIMEDIA_AUDIO_AUDIOSESSION_SETAUDIOSESSIONSCENE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      let audioManager:audio.audioManager = audio.getAudioManager();
+      let audioManager:audio.AudioManager = audio.getAudioManager();
       let audioSessionManager:audio.AudioSessionManager = audioManager.getSessionManager();
       try {
         let audioSession:ESObject = "1";
-        audioSessionManager.setAudioSessionScene(AudioSessionScene);
+        audioSessionManager.setAudioSessionScene(audioSession);
         expect(false).assertTrue();
         done();
-      } catch (error:BusinessError) {
-        expect(Number(error.code)).assertEqual(6800101);
-        console.info(`${TAG}: error.code: ${error.code}, error.message: ${error.message}`);
+      } catch (err) {
+        expect(Number(err.code)).assertEqual(6800101);
+        console.info(`${TAG}: err.code: ${err.code}, err.message: ${err.message}`);
         done();
       }
     })
@@ -572,15 +572,15 @@ export default function audioSessionManagerTest() {
     * @tc.level     : LEVEL2
     */
     it('SUB_MULTIMEDIA_AUDIO_AUDIOSESSION_SETDEFAULTOUTPUTDEVICE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      let audioManager:audio.audioManager = audio.getAudioManager();
+      let audioManager:audio.AudioManager = audio.getAudioManager();
       let audioSessionManager:audio.AudioSessionManager = audioManager.getSessionManager();
       try {
         audioSessionManager.setDefaultOutputDevice(audio.DeviceType.INVALID);
         expect(false).assertTrue();
         done();
-      } catch (error:BusinessError) {
-        expect(Number(error.code)).assertEqual(6800101);
-        console.info(`${TAG}: error.code: ${error.code}, error.message: ${error.message}`);
+      } catch (err) {
+        expect(Number(err.code)).assertEqual(6800101);
+        console.info(`${TAG}: err.code: ${err.code}, err.message: ${err.message}`);
         done();
       }
     })
@@ -594,15 +594,15 @@ export default function audioSessionManagerTest() {
     * @tc.level     : LEVEL2
     */
     it('SUB_MULTIMEDIA_AUDIO_AUDIOSESSION_SETDEFAULTOUTPUTDEVICE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      let audioManager:audio.audioManager = audio.getAudioManager();
+      let audioManager:audio.AudioManager = audio.getAudioManager();
       let audioSessionManager:audio.AudioSessionManager = audioManager.getSessionManager();
       try {
         audioSessionManager.setDefaultOutputDevice(-1 as audio.DeviceType);
         expect(false).assertTrue();
         done();
-      } catch (error:BusinessError) {
-        expect(Number(error.code)).assertEqual(6800101);
-        console.info(`${TAG}: error.code: ${error.code}, error.message: ${error.message}`);
+      } catch (err) {
+        expect(Number(err.code)).assertEqual(6800101);
+        console.info(`${TAG}: err.code: ${err.code}, err.message: ${err.message}`);
         done();
       }
     })
@@ -616,16 +616,16 @@ export default function audioSessionManagerTest() {
     * @tc.level     : LEVEL2
     */
     it('SUB_MULTIMEDIA_AUDIO_AUDIOSESSION_SETDEFAULTOUTPUTDEVICE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      let audioManager:audio.audioManager = audio.getAudioManager();
+      let audioManager:audio.AudioManager = audio.getAudioManager();
       let audioSessionManager:audio.AudioSessionManager = audioManager.getSessionManager();
       try {
         let parm:ESObject = "1";
         audioSessionManager.setDefaultOutputDevice(parm);
         expect(false).assertTrue();
         done();
-      } catch (error:BusinessError) {
-        expect(Number(error.code)).assertEqual(6800101);
-        console.info(`${TAG}: error.code: ${error.code}, error.message: ${error.message}`);
+      } catch (err) {
+        expect(Number(err.code)).assertEqual(6800101);
+        console.info(`${TAG}: err.code: ${err.code}, err.message: ${err.message}`);
         done();
       }
     })
