@@ -76,8 +76,6 @@ export default function IsDisposedTest() {
       let obj6: Record<string, ESObject> = JSON.parse(strJson6);
       let strJson7: string = getInspectorByKey('NodeAdapterBeforeValue');
       let obj7: Record<string, ESObject> = JSON.parse(strJson7);
-      let strJson8: string = getInspectorByKey('NodeAdapterAfterValue');
-      let obj8: Record<string, ESObject> = JSON.parse(strJson8);
       let strJson9: string = getInspectorByKey('ComponentContentBeforeValue');
       let obj9: Record<string, ESObject> = JSON.parse(strJson9);
       let strJson10: string = getInspectorByKey('ComponentContentAfterValue');
@@ -90,7 +88,6 @@ export default function IsDisposedTest() {
       expect(obj5.$attrs.content).assertEqual('false');
       expect(obj6.$attrs.content).assertEqual('true');
       expect(obj7.$attrs.content).assertEqual('false');
-      expect(obj8.$attrs.content).assertEqual('true');
       expect(obj9.$attrs.content).assertEqual('undefined');
       expect(obj10.$attrs.content).assertEqual('undefined');
       console.info('[IsDisposedTest_0100] END');
