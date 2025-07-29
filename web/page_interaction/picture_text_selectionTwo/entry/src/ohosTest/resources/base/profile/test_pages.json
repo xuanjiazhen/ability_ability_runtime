@@ -6,7 +6,8 @@
     "testability/pages/webViewController",
     "testability/pages/webViewMenuShowResult",
 	"testability/pages/WebViewonOnContextMenuShow",
-	"testability/pages/WebViewonOnContextMenuShowTwo"
+	"testability/pages/WebViewonOnContextMenuShowTwo",
+	"testability/pages/WebViewBypassVsyncCondition"
   ]
 }
 
