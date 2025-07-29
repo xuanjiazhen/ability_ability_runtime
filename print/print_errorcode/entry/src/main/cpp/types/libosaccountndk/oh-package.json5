@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 {
-  "name": "libosaccountndk.so",
+  "name": "libprinterrorcode.so",
   "types": "./Index.d.ts",
   "version": "1.0.0",
   "description": "Function list of osaccount capi."

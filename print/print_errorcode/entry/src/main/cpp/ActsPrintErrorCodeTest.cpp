@@ -35,7 +35,7 @@ static constexpr int32_t ERROR_COMMON = -1;
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint1(napi_env env, napi_callback_info info)
+static napi_value OHPrintNoError(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -51,7 +51,7 @@ static napi_value OhPrint1(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint2(napi_env env, napi_callback_info info)
+static napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -69,7 +69,7 @@ static napi_value OhPrint2(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint3(napi_env env, napi_callback_info info)
+static napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -88,7 +88,7 @@ static napi_value OhPrint3(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint4(napi_env env, napi_callback_info info)
+static napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_StartPrintJob(nullptr);
@@ -104,7 +104,7 @@ static napi_value OhPrint4(napi_env env, napi_callback_info info)
  * @tc.size    : MediumTest
  * @tc.type    : Function
  */
-static napi_value OhPrint5(napi_env env, napi_callback_info info)
+static napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     OH_Print_RegisterPrinterChangeListener(PrinterChangeCallback);
@@ -118,11 +118,11 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"OhPrint1", nullptr, OhPrint1, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint2", nullptr, OhPrint2, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint3", nullptr, OhPrint3, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint4", nullptr, OhPrint4, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OhPrint5", nullptr, OhPrint5, nullptr, nullptr, nullptr, napi_default, nullptr}
+        {"OHPrintNoError", nullptr, OHPrintNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OHPrintInvalidParameter", nullptr, OHPrintInvalidParameter, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OHPrintGenericFailure", nullptr, OHPrintGenericFailure, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OHPrintInvalidPrintJob", nullptr, OHPrintInvalidPrintJob, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter, nullptr, nullptr, nullptr, napi_default, nullptr}
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
@@ -135,7 +135,7 @@ static napi_module demoModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
-    .nm_modname = "osaccountndk",
+    .nm_modname = "printerrorcode",
     .nm_priv = ((void *)0),
     .reserved = {0},
 };

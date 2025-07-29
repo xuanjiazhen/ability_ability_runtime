@@ -14,10 +14,10 @@
  */
 
 import { describe, it, expect, Level } from '@ohos/hypium'
-import osAccountNdk from 'libosaccountndk.so'
+import printerror from 'libprinterrorcode.so'
 
-export default function ActsOsAccountNdkTest() {
-  describe('ActsOsAccountNdkTest', () => {
+export default function ActsPrintErrorTest() {
+  describe('ActsPrintErrorTest', () => {
     /**
      * @tc.number  : SUB_Oh_Print_0100
      * @tc.name    : SUB_Oh_Print_0100
@@ -29,7 +29,7 @@ export default function ActsOsAccountNdkTest() {
     it('SUB_Oh_Print_0100', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_0100 start====");
-        let result: number = await osAccountNdk.OhPrint1();
+        let result: number = await printerror.OHPrintNoError();
         expect(result).assertEqual(0);
         console.info("====>SUB_Oh_Print_0100 result: " + result);
         done()
@@ -50,7 +50,7 @@ export default function ActsOsAccountNdkTest() {
     it('SUB_Oh_Print_0200', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_0200 start====");
-        let result: number = await osAccountNdk.OhPrint2();
+        let result: number = await printerror.OHPrintInvalidParameter();
         expect(result).assertEqual(401);
         console.info("====>SUB_Oh_Print_0200 result: " + result);
         done();
@@ -71,7 +71,7 @@ export default function ActsOsAccountNdkTest() {
     it('SUB_Oh_Print_0300', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_0300 start====");
-        let result: number = await osAccountNdk.OhPrint3();
+        let result: number = await printerror.OHPrintGenericFailure();
         expect(result).assertEqual(24300001);
         console.info("====>SUB_Oh_Print_0300 result: " + result);
         done();
@@ -92,7 +92,7 @@ export default function ActsOsAccountNdkTest() {
     it('SUB_Oh_Print_0400', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_0400 start====");
-        let result: number = await osAccountNdk.OhPrint4();
+        let result: number = await printerror.OHPrintInvalidPrintJob();
         expect(result).assertEqual(24300006);
         console.info("====>SUB_Oh_Print_0400 result: " + result);
         done();
@@ -113,7 +113,7 @@ export default function ActsOsAccountNdkTest() {
     it('SUB_Oh_Print_0500', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_0500 start====");
-        let result: number = await osAccountNdk.OhPrint5();
+        let result: number = await printerror.OHPrintInvalidPrinter();
         expect(result).assertEqual(24300005);
         console.info("====>SUB_Oh_Print_0500 result: " + result);
         done();

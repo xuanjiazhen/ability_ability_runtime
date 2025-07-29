@@ -11,5 +11,5 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(osaccountndk SHARED ActsPrintErrorCodeTest.cpp)
-target_link_libraries(osaccountndk PUBLIC libace_napi.z.so libohprint.so)
+add_library(printerrorcode SHARED ActsPrintErrorCodeTest.cpp)
+target_link_libraries(printerrorcode PUBLIC libace_napi.z.so libohprint.so)
