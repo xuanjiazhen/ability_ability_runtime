@@ -248,7 +248,7 @@ export default function HttpRequestDataCATest() {
           priority: 1,
           caData: certExpired
         };
-        httpRequest.request("https://localhost:"+ port, options, (err: Error, data: http.HttpResponse) => {
+        httpRequest.request("https://localhost:"+ port, options, (err: BusinessError, data: http.HttpResponse) => {
           if (!err) {
             console.info(`${caseName} request success data is `+JSON.stringify(data));
             ExpectFail();
