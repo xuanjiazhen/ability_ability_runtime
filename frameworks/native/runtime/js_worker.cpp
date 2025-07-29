@@ -395,6 +395,9 @@ bool AssetHelper::ReadFilePathData(const std::string& filePath, uint8_t** buff, 
 
     std::string newHapPath;
     size_t pos = filePath.find('/');
+    if (pos == std::string::npos) {
+        return false;
+    }
     if (!GetIsStageModel()) {
         newHapPath = (workerInfo_->hapPath).GetOriginString();
     } else {
