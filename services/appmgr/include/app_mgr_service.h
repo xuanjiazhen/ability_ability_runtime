@@ -805,6 +805,13 @@ public:
     int32_t DemoteCurrentFromCandidateMasterProcess() override;
 
     /**
+     * Revoke the master process privilege of the current process.
+     *
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t CancelCurrentMasterProcess() override;
+
+    /**
      * set browser channel for caller
      */
     virtual void SaveBrowserChannel(sptr<IRemoteObject> browser) override;

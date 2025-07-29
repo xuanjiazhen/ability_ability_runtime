@@ -1929,6 +1929,16 @@ int32_t AppMgrService::DemoteCurrentFromCandidateMasterProcess()
     return appMgrServiceInner_->DemoteCurrentFromCandidateMasterProcess();
 }
 
+int32_t AppMgrService::CancelCurrentMasterProcess()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    return appMgrServiceInner_->CancelCurrentMasterProcess();
+}
+
 int32_t AppMgrService::QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

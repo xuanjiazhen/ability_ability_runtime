@@ -544,7 +544,7 @@ napi_value JsApplication::OnPromoteCurrentToCandidateMasterProcess(napi_env env,
     };
     NapiAsyncTask::CompleteCallback complete = [errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*errCode == ERR_OK) {
-            TAG_LOGD(AAFwkTag::APPKIT, "promote to standby master process success");
+            TAG_LOGD(AAFwkTag::APPKIT, "promote to candidate master process success");
             task.ResolveWithNoError(env, CreateJsUndefined(env));
             return ;
         }
@@ -576,7 +576,7 @@ napi_value JsApplication::OnDemoteCurrentFromCandidateMasterProcess(napi_env env
     };
     NapiAsyncTask::CompleteCallback complete = [errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
         if (*errCode == ERR_OK) {
-            TAG_LOGD(AAFwkTag::APPKIT, "demote to standby master process success");
+            TAG_LOGD(AAFwkTag::APPKIT, "demote to candidate master process success");
             task.ResolveWithNoError(env, CreateJsUndefined(env));
             return ;
         }
@@ -584,6 +584,38 @@ napi_value JsApplication::OnDemoteCurrentFromCandidateMasterProcess(napi_env env
     };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsApplication::OnDemoteCurrentFromCandidateMasterProcess",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsApplication::CancelCurrentMasterProcess(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnCancelCurrentMasterProcess);
+}
+
+napi_value JsApplication::OnCancelCurrentMasterProcess(napi_env env, NapiCallbackInfo& info)
+{
+    auto errCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [errCode]() {
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        if (appMgrClient == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+            *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+            return;
+        }
+        *errCode = appMgrClient->CancelCurrentMasterProcess();
+    };
+    NapiAsyncTask::CompleteCallback complete = [errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        if (*errCode == ERR_OK) {
+            TAG_LOGD(AAFwkTag::APPKIT, "cancel current master process success");
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+            return ;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *errCode));
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsApplication::OnCancelCurrentMasterProcess",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }

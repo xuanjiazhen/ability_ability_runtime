@@ -1337,6 +1337,13 @@ public:
     int32_t DemoteCurrentFromCandidateMasterProcess();
 
     /**
+     * Revoke the master process privilege of the current process.
+     *
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t CancelCurrentMasterProcess();
+
+    /**
      * To clear the process by ability token.
      *
      * @param token the unique identification to the ability.

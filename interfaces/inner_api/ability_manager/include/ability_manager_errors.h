@@ -979,6 +979,16 @@ enum {
     ERR_PROCESS_START_INVALID_PID = 2097386,
 
     /**
+     * Result (2097387) The current process is not a master process.
+     */
+    ERROR_NOT_MASTER_PROCESS = 2097387,
+
+    /**
+     * Result (2097388) The current process is in onNewProcessRequest.
+     */
+    ERROR_NOT_ON_NEW_PROCESS_REQUEST_DONE = 2097388,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,

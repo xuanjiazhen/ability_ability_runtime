@@ -10357,6 +10357,36 @@ int32_t AppMgrServiceInner::DemoteCurrentFromCandidateMasterProcess()
     return ERR_OK;
 }
 
+int32_t AppMgrServiceInner::CancelCurrentMasterProcess()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!AAFwk::AppUtils::GetInstance().IsStartSpecifiedProcess()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Capability not support");
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT; 
+    }
+
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
+        return AAFwk::ERROR_NOT_MASTER_PROCESS;
+    }
+
+    if (!appRecord->GetIsMasterProcess()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Current process is not a master process");
+        return AAFwk::ERROR_NOT_MASTER_PROCESS;
+    }
+    
+    if (appRecord->IsNewProcessRequest()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "The current process is in onNewProcessRequest");
+        return AAFwk::ERROR_NOT_ON_NEW_PROCESS_REQUEST_DONE;    
+    }
+
+    appRecord->SetMasterProcess(false);
+
+    return ERR_OK;
+}
+
 void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord)
 {
     if (appRunningManager_ == nullptr) {

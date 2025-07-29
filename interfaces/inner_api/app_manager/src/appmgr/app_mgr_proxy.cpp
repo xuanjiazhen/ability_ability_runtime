@@ -2435,6 +2435,21 @@ int32_t AppMgrProxy::PromoteCurrentToCandidateMasterProcess(bool isInsertToHead)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::CancelCurrentMasterProcess()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_DATA;
+    }
+
+    PARCEL_UTIL_SENDREQ_NORET(AppMgrInterfaceCode::CANCEL_CURRENT_MASTER_PROCESS, data, reply, option);
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::DemoteCurrentFromCandidateMasterProcess()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

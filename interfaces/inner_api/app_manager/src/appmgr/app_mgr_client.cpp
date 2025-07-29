@@ -1693,6 +1693,17 @@ int32_t AppMgrClient::PromoteCurrentToCandidateMasterProcess(bool isInsertToHead
     return service->PromoteCurrentToCandidateMasterProcess(isInsertToHead);
 }
 
+int32_t AppMgrClient::CancelCurrentMasterProcess()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "Called");
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->CancelCurrentMasterProcess();
+}
+
 int32_t AppMgrClient::DemoteCurrentFromCandidateMasterProcess()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "Called");

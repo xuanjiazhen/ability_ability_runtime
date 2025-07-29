@@ -862,6 +862,13 @@ public:
      */
     int32_t DemoteCurrentFromCandidateMasterProcess() override;
 
+    /**
+     * Revoke the master process privilege of the current process.
+     *
+     * @return Return ERR_OK if success, others fail.
+     */
+    int32_t CancelCurrentMasterProcess() override;
+
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

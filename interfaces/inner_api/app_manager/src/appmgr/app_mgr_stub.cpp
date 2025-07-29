@@ -2041,6 +2041,18 @@ int32_t AppMgrStub::HandleDemoteCurrentFromCandidateMasterProcess(MessageParcel 
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleCancelCurrentMasterProcess(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    int32_t ret = CancelCurrentMasterProcess();
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return IPC_STUB_ERR;
+    }
+
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleQueryRunningSharedBundles(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "HandleQueryRunningSharedBundles call");
