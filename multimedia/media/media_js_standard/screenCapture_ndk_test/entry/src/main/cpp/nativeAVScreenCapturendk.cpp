@@ -1855,29 +1855,35 @@ static napi_value normalSelectionCallbackStop(napi_env env, napi_callback_info i
     }
     //测试错误码：OH_AVScreenCapture_ReleaseVideoBuffer
     OH_AVSCREEN_CAPTURE_ErrCode releaseBufferResult = OH_AVScreenCapture_ReleaseVideoBuffer(nullptr);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture releaseBufferResult = %{public}d", releaseBufferResult);
     if (releaseBufferResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect releaseBufferResult is 3");
     }
     //测试错误码：OH_AVScreenCapture_SetCanvasRotation
     bool isRotation = true;
     screenCaptureResult = OH_AVScreenCapture_SetCanvasRotation(screenCaptureNormal, isRotation);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture SetCanvasRotation = %{public}d", screenCaptureResult);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect SetCanvasRotation is 2");
     }
     //测试错误码：OH_AVScreenCapture_ExcludeContent
     screenCaptureResult = OH_AVScreenCapture_ExcludeContent(screenCaptureNormal, nullptr);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture ExcludeContent = %{public}d", screenCaptureResult);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect ExcludeContent is 2");
     }
     screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(nullptr, DEFAULT_WIDTH, DEFAULT_HEIGHT); // 768 width 1280 height
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture ResizeCanvas = %{public}d", screenCaptureResult);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect ResizeCanvas is 0 " );
     }
     screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, g_aFlag);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture SetMaxVideoFrameRate = %{public}d", screenCaptureResult);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 3");
     }
     screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(screenCaptureNormal, g_FrameRate);
+    OH_LOG_INFO(LOG_APP, "StopScreenCapture SetMaxVideoFrameRate = %{public}d", screenCaptureResult);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 2");
     }
