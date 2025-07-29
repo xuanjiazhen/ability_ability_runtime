@@ -1725,13 +1725,13 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     OH_AVSCREEN_CAPTURE_ErrCode startingResult = OH_AVScreenCapture_StartScreenRecording(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StartScreenRecording startingResult = %{public}d", startingResult);
     if (startingResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
-        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+        napi_throw_error((env), nullptr, "error : expect startingResult is 2");
     }
     //测试错误码：OH_AVScreenCapture_StartScreenCapture
     OH_AVSCREEN_CAPTURE_ErrCode startResult = OH_AVScreenCapture_StartScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "StartScreenCapture startResult = %{public}d", startResult);
     if (startResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
-        napi_throw_error((env), nullptr, "error : expect startResult is 3");
+        napi_throw_error((env), nullptr, "error : expect startResult is 2");
     }
     //测试错误码：OH_AVScreenCapture_StopScreenRecording
     OH_AVSCREEN_CAPTURE_ErrCode stopingResult = OH_AVScreenCapture_StopScreenRecording(screenCaptureNormal);
