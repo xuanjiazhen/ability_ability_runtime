@@ -20,7 +20,9 @@ import AudioRendererInterruptUnitTest from './AudioRenderInterrupt.test'
 import maxAmplitudeFor from './MaxAmplitudeFor.test'
 import call from  '@ohos.telephony.call'
 import audioSessionManagerTest from  './AudioSessionManager.test'
+import audioSessionManagerErrorTest from  './audioSessionManagerError.test'
 import audioLoudnessGainTest from  './AudioLoudnessGain.test'
+
 
 let voice = call.hasVoiceCapability()
 export default function testsuite() {
