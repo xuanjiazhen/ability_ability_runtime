@@ -24,7 +24,7 @@ export default function ConnectivityTest() {
 
     /*
      * @tc.number     : SUB_ConnectivityKit_Get_Wifi_Status_0100
-     * @tc.name       : Get_Wifi_Status_0100
+     * @tc.name       : Get_Wifi_Status_TEST_0100
      * @tc.desc       : testing OH_Wifi_IsWifiEnabled interface
      * @tc.size       : MediumTest
      * @tc.type       : Function
