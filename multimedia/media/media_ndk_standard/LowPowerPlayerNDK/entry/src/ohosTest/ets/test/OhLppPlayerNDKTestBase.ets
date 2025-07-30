@@ -28,6 +28,7 @@ export default class OhLppPlayerNDKTestBase {
   AUDIO_CREATE_BYMIME_EVENT = 'AudioSink_CreateByMime';
   AUDIO_CREATE_NULL_EVENT = 'AudioSink_CreateByNULL';
   VIDEO_CB_CREATE_CALLBACK_EVENT = 'VideoSinkCallback_Create';
+  VIDEO_CB_CREATE_CALLBACK_NULL_EVENT = 'VideoSinkCallback_Create_Null';
   VIDEO_CB_SET_DATA_LISTENER_EVENT = 'Video_OnDataNeeded';
   VIDEO_CB_SET_ERROR_LISTENER_EVENT = 'Video_OnError';
   VIDEO_CB_SET_RENDERSTART_LISTENER_EVENT = 'Video_OnRenderStart';
@@ -38,6 +39,7 @@ export default class OhLppPlayerNDKTestBase {
   VIDEO_CB_SET_EOS_LISTENER_EVENT = 'Video_OnEos';
   AUDIO_CB_SET_CALLBACK_EVENT = 'AudioSink_SetCallback';
   AUDIO_CB_CREATE_CALLBACK_EVENT = 'AudioSinkCallback_Create';
+  AUDIO_CB_CREATE_CALLBACK_NULL_EVENT = 'AudioSinkCallback_Create_Null';
   AUDIO_CB_SET_POSITION_UPDATE_LISTENER_EVENT = 'Audio_OnPositionUpdate';
   AUDIO_CB_SET_DATA_LISTENER_EVENT = 'Audio_OnAudioDataNeeded';
   AUDIO_CB_SET_ERROR_LISTENER_EVENT = 'Audio_OnAudioError';
@@ -190,6 +192,11 @@ export default class OhLppPlayerNDKTestBase {
           expect(this.result).assertEqual(config["sucCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
+        case this.VIDEO_CB_CREATE_CALLBACK_NULL_EVENT:
+          this.result = lpPlayer.VideoStreamerSetCallbackCreateNull();
+          expect(this.result).assertEqual(config["sucCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
 
         case this.VIDEO_CB_SET_TARGET_STARTFRAME_EVENT:
           this.result = lpPlayer.VideoStreamerSetTargetStartFrame();
@@ -203,6 +210,16 @@ export default class OhLppPlayerNDKTestBase {
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;
 
+        case this.VIDEO_CB_SET_DATA_LISTENER_EVENT:
+          this.result = lpPlayer.VideoStreamerSetDataNeededListener();
+          expect(this.result).assertEqual(config["sucCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.VIDEO_CB_SET_STREAMCHANGE_LISTENER_EVENT:
+          this.result = lpPlayer.VideoStreamerSetStreamChangedListener();
+          expect(this.result).assertEqual(config["sucCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
         case this.VIDEO_CB_SET_RENDERSTART_LISTENER_EVENT:
           this.result = lpPlayer.VideoStreamerSetRenderStartCallback();
           expect(this.result).assertEqual(config["sucCode"]);
@@ -234,6 +251,11 @@ export default class OhLppPlayerNDKTestBase {
           break;
         case this.AUDIO_CB_CREATE_CALLBACK_EVENT:
           this.result = lpPlayer.AudioStreamerSetCallbackCreate();
+          expect(this.result).assertEqual(config["sucCode"]);
+          this.toNextStep(config, fdPath, steps, errorCode, done);
+          break;
+        case this.AUDIO_CB_CREATE_CALLBACK_NULL_EVENT:
+          this.result = lpPlayer.AudioStreamerSetCallbackCreateNull();
           expect(this.result).assertEqual(config["sucCode"]);
           this.toNextStep(config, fdPath, steps, errorCode, done);
           break;

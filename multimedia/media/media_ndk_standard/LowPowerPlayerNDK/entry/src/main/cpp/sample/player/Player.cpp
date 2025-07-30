@@ -158,6 +158,12 @@ int32_t Player::AudioSetErrorCallback()
     AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetErrorCallback ret:::%{public}d", ret);
     return ret;
 }
+int32_t Player::AudioStreamerSetCallbackCreateNull()
+{
+    int32_t ret = lppAudioStreamer_->SetCallbackCreateNull(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetCallbackCreateNull ret:::%{public}d", ret);
+    return ret;
+}
 int32_t Player::AudioStreamerSetCallbackCreate()
 {
     int32_t ret = lppAudioStreamer_->SetCallbackCreate(lppContext_);
@@ -257,6 +263,24 @@ int32_t Player::CreateLppVideoStreamerNull()
     return -1;
 }
 
+int32_t Player::VideoStreamerSetCallbackCreateNull()
+{
+    int32_t ret = lppVideoStreamer_->SetCallbackCreateNull(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetCallbackCreateNull ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetDataNeededListener()
+{
+    int32_t ret = lppVideoStreamer_->SetDataNeededListener(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetDataNeededListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetStreamChangedListener()
+{
+    int32_t ret = lppVideoStreamer_->SetStreamChangedListener(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetStreamChangedListener ret:::%{public}d", ret);
+    return ret;
+}
 int32_t Player::VideoStreamerSetCallback()
 {
     int32_t ret = lppVideoStreamer_->SetCallback(lppVideoContext_);
@@ -308,32 +332,14 @@ int32_t Player::VideoStreamerreturnFrames()
 int32_t Player::VideoStreamerSetTargetStartFrame()
 {
     AVCODEC_SAMPLE_LOGI("============== Seek ACC IN ===============");
-    int64_t targetPts = seekTime * 1000;
+    int64_t targetPts = LIP_SYNC_BALANCE_VALUE * 1000;
     AVCODEC_SAMPLE_LOGI("SetTargetStartFrame %{public}ld", targetPts);
-    // 暂停
-    Pause();
-    // Flush
-    Flush();
-    // seek
-    demuxer_->Seek(seekTime, SEEK_MODE_PREVIOUS_SYNC);
-    // 音频读取到对应帧
-    ReadToAudioTargetPts(targetPts);
     int ret = 0;
     // 给视频设置回调和TargetPts
     if (lppVideoStreamer_ != nullptr) {
         ret = lppVideoStreamer_->SetTargetStartFrame(targetPts, LppCallback::OnTargetArrived, WAIT_OUT_TIME,
                                                          lppVideoContext_);
         AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetTargetStartFrame ret:::%{public}d", ret);
-        lppVideoStreamer_->Resume();
-    }
-    // 等待返回
-    std::unique_lock<std::mutex> lock(lppVideoContext_->seekMutex_);
-
-    lppVideoContext_->seekReturn_ = false;
-    lock.unlock();
-    // 返回成功，启动音频
-    if (lppAudioStreamer_ != nullptr) {
-        lppAudioStreamer_->Start();
     }
     AVCODEC_SAMPLE_LOGI("============== Seek ACC OUT ===============");
     return ret;

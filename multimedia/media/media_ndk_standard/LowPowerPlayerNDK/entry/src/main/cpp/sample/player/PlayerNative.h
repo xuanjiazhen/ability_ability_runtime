@@ -41,6 +41,7 @@ public:
     static napi_value AudioStreamerSetParameter(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerGetParameter(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerConfigure(napi_env env, napi_callback_info info);
+    static napi_value AudioStreamerSetCallbackCreateNull(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerSetCallbackCreate(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerSetDataNeededListener(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerSetPositionUpdateListener(napi_env env, napi_callback_info info);

@@ -42,6 +42,36 @@ int32_t LppVideoStreamer::Create(const std::string &codecMime)
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
+int32_t LppVideoStreamer::SetCallbackCreateNull(LppUserData *lppUserData)
+{
+    AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ SetCallbackCreateNull ======");
+    int32_t ret = AV_ERR_OK;
+    lppVideoStreamerCallback_ = OH_LowPowerVideoSinkCallback_Create();
+    lppVideoStreamerCallback_ = nullptr;
+    ret = OH_LowPowerVideoSink_RegisterCallback(lppVideoStreamer_, lppVideoStreamerCallback_);
+    CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Set callback failed, ret::: %{public}d", ret);
+
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSink_RegisterCallback ret:::%{public}d ", ret);
+    return ret;
+}
+int32_t LppVideoStreamer::SetDataNeededListener(LppUserData *lppUserData)
+{
+    AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ SetCallback ======");
+    int32_t ret = AV_ERR_OK;
+    ret = OH_LowPowerVideoSinkCallback_SetDataNeededListener(lppVideoStreamerCallback_, LppCallback::OnDataNeededVideo,
+                                                       lppUserData);
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSinkCallback_SetDataNeededListener ret:::%{public}d ", ret);
+    return ret;
+}
+int32_t LppVideoStreamer::SetStreamChangedListener(LppUserData *lppUserData)
+{
+    AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ SetStreamChangedListener ======");
+    int32_t ret = AV_ERR_OK;
+    ret = OH_LowPowerVideoSinkCallback_SetStreamChangedListener(
+        lppVideoStreamerCallback_, LppCallback::OH_LowPowerVideoSink_OnStreamChanged, lppUserData);
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSinkCallback_SetStreamChangedListener ret:::%{public}d ", ret);
+    return ret;
+}
 int32_t LppVideoStreamer::SetCallback(LppUserData *lppUserData)
 {
     AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ SetCallback ======");

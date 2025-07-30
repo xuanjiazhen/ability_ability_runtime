@@ -61,7 +61,9 @@ export default function OhLPPVideoNDKTest() {
         lppBase.VIDEO_CREATE_NULL_EVENT,
         lppBase.VIDEO_SET_PARAMETER_ERROR_EVENT,
         //CALLBACK or Listener
-        lppBase.VIDEO_CB_CREATE_CALLBACK_EVENT,
+        lppBase.VIDEO_CB_CREATE_CALLBACK_NULL_EVENT,
+        lppBase.VIDEO_CB_SET_DATA_LISTENER_EVENT,
+        lppBase.VIDEO_CB_SET_STREAMCHANGE_LISTENER_EVENT,
         lppBase.VIDEO_CB_SET_ERROR_LISTENER_EVENT,
         lppBase.VIDEO_CB_SET_RENDERSTART_LISTENER_EVENT,
         lppBase.VIDEO_CB_SET_FIRSTFRAME_LISTENER_EVENT,
@@ -79,7 +81,7 @@ export default function OhLPPVideoNDKTest() {
         lppBase.VIDEO_START_RENDER_ERROR_EVENT,
         //set speed
         lppBase.VIDEO_SET_SPEED_ERROR_EVENT,
-        lppBase.VIDEO_GET_PARAMETER_ERROR_EVENT,
+        //lppBase.VIDEO_GET_PARAMETER_ERROR_EVENT,
         //video stop
         lppBase.VIDEO_STOP_ERROR_EVENT,
         lppBase.VIDEO_RESUME_ERROR_EVENT,

@@ -54,6 +54,7 @@ public:
     int32_t SyncAudio();
     int32_t CreateLppAudioStreamer();
     int32_t CreateLppAudioStreamerNull();
+    int32_t AudioStreamerSetCallbackCreateNull();
     int32_t AudioStreamerSetCallbackCreate();
     int32_t AudioStreamerSetDataNeededListener();
     int32_t AudioStreamerSetPositionUpdateListener();
@@ -63,13 +64,16 @@ public:
     int32_t AudioreturnFrames();
     int32_t AudioCallbackDestroy();
     int32_t AudioDestroy();
-    int32_t CreateLppVideoStreamerNull();
+    int32_t AudioSetInterruptListener();
     int32_t AudioStreamerConfigure();
     int32_t AudioStreamerSetParameter();
     int32_t AudioStreamerGetParameter();
     int32_t AudioStreamerPrepare();
     int32_t CreateLppVideoStreamer();
     int32_t CreateLppVideoStreamerNull();
+    int32_t VideoStreamerSetCallbackCreateNull();
+    int32_t VideoStreamerSetDataNeededListener();
+    int32_t VideoStreamerSetStreamChangedListener();
     int32_t VideoStreamerSetCallback();
     int32_t VideoStreamerSetErrorCallback();
     int32_t VideoStreamerSetFirstFrameDecodedCallback();

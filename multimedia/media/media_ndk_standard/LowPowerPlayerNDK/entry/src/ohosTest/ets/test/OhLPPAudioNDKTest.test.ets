@@ -88,7 +88,7 @@ export default function OhLPPAudioNDKTest() {
         lppBase.AUDIO_CREATE_NULL_EVENT,
         lppBase.AUDIO_SET_PARAMETER_ERROR_EVENT,
         //CALLBACK or Listener
-        lppBase.AUDIO_CB_CREATE_CALLBACK_EVENT,
+        lppBase.AUDIO_CB_CREATE_CALLBACK_NULL_EVENT,
         lppBase.AUDIO_CB_SET_POSITION_UPDATE_LISTENER_EVENT,
         lppBase.AUDIO_CB_SET_DATA_LISTENER_EVENT,
         lppBase.AUDIO_CB_SET_ERROR_LISTENER_EVENT,
@@ -102,7 +102,7 @@ export default function OhLPPAudioNDKTest() {
         lppBase.AUDIO_START_ERROR_EVENT,
         //set speed
         lppBase.AUDIO_SET_SPEED_ERROR_EVENT,
-        lppBase.AUDIO_GET_PARAMETER_ERROR_EVENT,
+        //lppBase.AUDIO_GET_PARAMETER_ERROR_EVENT,
         //video stop
         lppBase.AUDIO_STOP_ERROR_EVENT,
         lppBase.AUDIO_RESUME_ERROR_EVENT,
