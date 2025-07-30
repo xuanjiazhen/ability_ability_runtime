@@ -26,7 +26,7 @@ export default function ActsCommonEventErrorTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('TestCommonEventNoError', Level.LEVEL2, async (done: Function) => {
+    it('testCommonEventNoError0100', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>TestCommonEventNoError start====");
         let result: number = commoneventerror.TestCommonEventNoError();
