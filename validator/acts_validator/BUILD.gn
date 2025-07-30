@@ -15,6 +15,8 @@ import("//test/xts/tools/build/suite.gni")
 
 ohos_js_app_suite("acts_validator_test") {
   certificate_profile = "./signature/openharmony_sx.p7b"
+  testonly = true
+  test_hap = true
   hap_name = "validator"
   part_name = "acts"
 }
