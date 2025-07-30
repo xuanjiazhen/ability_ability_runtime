@@ -60,6 +60,15 @@ export default function OhLPPVideoNDKTest() {
         lppBase.INIT_FD_EVENT,
         lppBase.VIDEO_CREATE_NULL_EVENT,
         lppBase.VIDEO_SET_PARAMETER_ERROR_EVENT,
+        //CALLBACK or Listener
+        lppBase.VIDEO_CB_CREATE_CALLBACK_EVENT,
+        lppBase.VIDEO_CB_SET_ERROR_LISTENER_EVENT,
+        lppBase.VIDEO_CB_SET_RENDERSTART_LISTENER_EVENT,
+        lppBase.VIDEO_CB_SET_FIRSTFRAME_LISTENER_EVENT,
+        lppBase.VIDEO_CB_SET_TARGET_STARTFRAME_EVENT,
+        lppBase.VIDEO_CB_RETURN_FRAMES_EVENT,
+        lppBase.VIDEO_CB_SET_EOS_LISTENER_EVENT,
+
         //createPrepareNative
         lppBase.VIDEO_PREPARE_ERROR_EVENT,
         //video start decoder
@@ -78,13 +87,14 @@ export default function OhLPPVideoNDKTest() {
         lppBase.VIDEO_FLUSH_ERROR_EVENT,
         lppBase.VIDEO_RESET_ERROR_EVENT,
         // destory
-        lppBase.DESTROY_EVENT,
+        lppBase.VIDEO_CALLBACKDESTROY_EVENT,
+        lppBase.VIDEO_DESTROY_EVENT,
         //done recorder
         lppBase.END_EVENT
       );
       errorCode = 0;
       let config: ESObject = {
-        sucCode: 0,
+        sucCode: 3,
         speed: 2,
         errorCode: 3,
         fdPath: "H264_AAC.mp4"

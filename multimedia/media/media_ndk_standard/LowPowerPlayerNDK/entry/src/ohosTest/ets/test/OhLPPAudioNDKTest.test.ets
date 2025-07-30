@@ -87,6 +87,16 @@ export default function OhLPPAudioNDKTest() {
         //createPrepareNative
         lppBase.AUDIO_CREATE_NULL_EVENT,
         lppBase.AUDIO_SET_PARAMETER_ERROR_EVENT,
+        //CALLBACK or Listener
+        lppBase.AUDIO_CB_CREATE_CALLBACK_EVENT,
+        lppBase.AUDIO_CB_SET_POSITION_UPDATE_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_DATA_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_ERROR_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_INTERRUPT_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_DEVICE_CHANGE_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_RETURN_FRAMES_EVENT,
+        lppBase.AUDIO_CB_SET_EOS_LISTENER_EVENT,
+
         lppBase.AUDIO_PREPARE_ERROR_EVENT,
         //video start decoder
         lppBase.AUDIO_START_ERROR_EVENT,
@@ -100,13 +110,14 @@ export default function OhLPPAudioNDKTest() {
         lppBase.AUDIO_FLUSH_ERROR_EVENT,
         lppBase.AUDIO_RESET_ERROR_EVENT,
         // destory
-        lppBase.DESTROY_EVENT,
+        lppBase.AUDIO_CALLBACKDESTROY_EVENT,
+        lppBase.AUDIO_DESTROY_EVENT,
         //done recorder
         lppBase.END_EVENT
       );
       errorCode = 0;
       let config: ESObject = {
-        sucCode: 0,
+        sucCode: 3,
         speed: 2,
         errorCode: 3,
         fdPath: "H264_AAC.mp4"

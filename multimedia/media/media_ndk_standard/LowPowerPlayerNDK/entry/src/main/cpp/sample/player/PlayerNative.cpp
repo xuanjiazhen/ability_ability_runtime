@@ -437,6 +437,106 @@ napi_value PlayerNative::AudioStreamerConfigure(napi_env env, napi_callback_info
     return result;
 }
 
+
+napi_value PlayerNative::AudioSetErrorCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioSetErrorCallback in");
+    int32_t ret = Player::GetInstance().AudioSetErrorCallback();
+    AVCODEC_SAMPLE_LOGI("AudioSetErrorCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioStreamerSetCallbackCreate(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetCallbackCreate in");
+    int32_t ret = Player::GetInstance().AudioStreamerSetCallbackCreate();
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetCallbackCreate out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioStreamerSetDataNeededListener(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetDataNeededListener in");
+    int32_t ret = Player::GetInstance().AudioStreamerSetDataNeededListener();
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetDataNeededListener out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioStreamerSetPositionUpdateListener(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetPositionUpdateListener in");
+    int32_t ret = Player::GetInstance().AudioStreamerSetPositionUpdateListener();
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetPositionUpdateListener out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioStreamerSetCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetCallback in");
+    int32_t ret = Player::GetInstance().AudioStreamerSetCallback();
+    AVCODEC_SAMPLE_LOGI("AudioStreamerSetCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioSetInterruptListener(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioSetInterruptListener in");
+    int32_t ret = Player::GetInstance().AudioSetInterruptListener();
+    AVCODEC_SAMPLE_LOGI("AudioSetInterruptListener out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioSetEosCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioSetEosCallback in");
+    int32_t ret = Player::GetInstance().AudioSetEosCallback();
+    AVCODEC_SAMPLE_LOGI("AudioSetEosCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioSetOnDeviceChanged(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioSetOnDeviceChanged in");
+    int32_t ret = Player::GetInstance().AudioSetOnDeviceChanged();
+    AVCODEC_SAMPLE_LOGI("AudioSetOnDeviceChanged out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioreturnFrames(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioreturnFrames in");
+    int32_t ret = Player::GetInstance().AudioreturnFrames();
+    AVCODEC_SAMPLE_LOGI("AudioreturnFrames out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioCallbackDestroy(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioCallbackDestroy in");
+    int32_t ret = Player::GetInstance().AudioCallbackDestroy();
+    AVCODEC_SAMPLE_LOGI("AudioCallbackDestroy out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::AudioDestroy(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("AudioDestroy in");
+    int32_t ret = Player::GetInstance().AudioDestroy();
+    AVCODEC_SAMPLE_LOGI("AudioDestroy out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
 napi_value PlayerNative::AudioStreamerPrepare(napi_env env, napi_callback_info info)
 {
     AVCODEC_SAMPLE_LOGI("AudioStreamerPrepare in");
@@ -447,6 +547,87 @@ napi_value PlayerNative::AudioStreamerPrepare(napi_env env, napi_callback_info i
     return result;
 }
 
+napi_value PlayerNative::VideoStreamerSetCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetCallback in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetCallback();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerSetErrorCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetErrorCallback in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetErrorCallback();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetErrorCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerSetFirstFrameDecodedCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetFirstFrameDecodedCallback in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetFirstFrameDecodedCallback();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetFirstFrameDecodedCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerSetRenderStartCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetRenderStartCallback in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetRenderStartCallback();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetRenderStartCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerSetEosCallback(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetEosCallback in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetEosCallback();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetEosCallback out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerCallbackDestroy(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerCallbackDestroy in");
+    int32_t ret = Player::GetInstance().VideoStreamerCallbackDestroy();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerCallbackDestroy out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerDestroy(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerDestroy in");
+    int32_t ret = Player::GetInstance().VideoStreamerDestroy();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerDestroy out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerreturnFrames(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerreturnFrames in");
+    int32_t ret = Player::GetInstance().VideoStreamerreturnFrames();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerreturnFrames out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
+napi_value PlayerNative::VideoStreamerSetTargetStartFrame(napi_env env, napi_callback_info info)
+{
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetTargetStartFrame in");
+    int32_t ret = Player::GetInstance().VideoStreamerSetTargetStartFrame();
+    AVCODEC_SAMPLE_LOGI("VideoStreamerSetTargetStartFrame out");
+    napi_value result = nullptr;
+    napi_create_int32(env, ret, &result);
+    return result;
+}
 napi_value PlayerNative::VideoStreamerConfigure(napi_env env, napi_callback_info info)
 {
     AVCODEC_SAMPLE_LOGI("VideoStreamerConfigure in");
@@ -581,12 +762,52 @@ static napi_value Init(napi_env env, napi_value exports)
             napi_default, nullptr},
         {"audioStreamerConfigure", nullptr, PlayerNative::AudioStreamerConfigure, nullptr, nullptr, nullptr,
             napi_default, nullptr},
+        {"AudioSetErrorCallback", nullptr, PlayerNative::AudioSetErrorCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioStreamerSetCallbackCreate", nullptr, PlayerNative::AudioStreamerSetCallbackCreate, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioStreamerSetDataNeededListener", nullptr, PlayerNative::AudioStreamerSetDataNeededListener, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioStreamerSetPositionUpdateListener", nullptr, PlayerNative::AudioStreamerSetPositionUpdateListener, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioStreamerSetCallback", nullptr, PlayerNative::AudioStreamerSetCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioSetInterruptListener", nullptr, PlayerNative::AudioSetInterruptListener, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioSetEosCallback", nullptr, PlayerNative::AudioSetEosCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioSetOnDeviceChanged", nullptr, PlayerNative::AudioSetOnDeviceChanged, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioreturnFrames", nullptr, PlayerNative::AudioreturnFrames, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioCallbackDestroy", nullptr, PlayerNative::AudioCallbackDestroy, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"AudioDestroy", nullptr, PlayerNative::AudioDestroy, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
         {"audioSetParameterNative", nullptr, PlayerNative::AudioStreamerSetParameter, nullptr, nullptr, nullptr,
          napi_default, nullptr},
         {"audioGetParameterNative", nullptr, PlayerNative::AudioStreamerGetParameter, nullptr, nullptr, nullptr,
          napi_default, nullptr},
         {"audioPrepareNative", nullptr, PlayerNative::AudioStreamerPrepare, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"VideoStreamerSetCallback", nullptr, PlayerNative::VideoStreamerSetCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerSetErrorCallback", nullptr, PlayerNative::VideoStreamerSetErrorCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerSetFirstFrameDecodedCallback", nullptr, PlayerNative::VideoStreamerSetFirstFrameDecodedCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerSetRenderStartCallback", nullptr, PlayerNative::VideoStreamerSetRenderStartCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerSetEosCallback", nullptr, PlayerNative::VideoStreamerSetEosCallback, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerCallbackDestroy", nullptr, PlayerNative::VideoStreamerCallbackDestroy, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerDestroy", nullptr, PlayerNative::VideoStreamerDestroy, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerreturnFrames", nullptr, PlayerNative::VideoStreamerreturnFrames, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
+        {"VideoStreamerSetTargetStartFrame", nullptr, PlayerNative::VideoStreamerSetTargetStartFrame, nullptr, nullptr, nullptr,
+            napi_default, nullptr},
         {"videoConfigureNative", nullptr, PlayerNative::VideoStreamerConfigure, nullptr, nullptr, nullptr,
             napi_default, nullptr},
         {"videoStreamerSetParameter", nullptr, PlayerNative::VideoStreamerSetParameter, nullptr, nullptr, nullptr,
