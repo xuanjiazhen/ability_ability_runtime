@@ -79,8 +79,10 @@ import getBurstAssetsTest from './photoAccessHelper/photoAccessHelper/getBurstAs
 import registerChangeTest from './photoAccessHelper/photoAccessHelper/registerChange.test';
 import releaseTest from './photoAccessHelper/photoAccessHelper/release.test';
 import MediaAssetChangeRequestConstructorTest from './photoAccessHelper/MediaAssetChangeRequest/constructor.test';
+import provisionResourcesTest from './provisionResources.test';
 
 export default function testsuite() {
+  provisionResourcesTest();
   MediaAlbumChangeRequestSetAlbumNameTest();
   MediaAssetChangeRequestSetOrientationTest();
   sendablePhotoAccessHelperGetAlbumsTest();
