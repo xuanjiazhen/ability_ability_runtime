@@ -44,6 +44,9 @@ const int32_t g_channelCount = 2; // 2:g_channelCount value
 const int32_t g_latencyMode = 0;
 const int32_t g_sampleFormat = 1;
 const int32_t g_frameSize = 240; // 240:g_frameSize value
+const int32_t CHANNEL_LAYOUT = 3;
+const int32_t ENCODING_TYPE = 0;
+const int32_t NORMAL_RATE = 32000;
 bool g_flag = false;
 bool g_mark = false;
 static std::string g_filePath = "/data/storage/el2/base/haps/entry_test/files/test_44100_2.wav";
@@ -82,6 +85,15 @@ const std::set<OH_AudioStream_Usage> VALID_OH_STREAM_USAGES = {
     AUDIOSTREAM_USAGE_AUDIOBOOK,
     AUDIOSTREAM_USAGE_NAVIGATION,
     AUDIOSTREAM_USAGE_VIDEO_COMMUNICATION
+};
+
+const std::set<OH_AudioStream_SourceType> VALID_OH_SOURCE_TYPES = {
+    AUDIOSTREAM_SOURCE_TYPE_MIC,
+    AUDIOSTREAM_SOURCE_TYPE_VOICE_RECOGNITION,
+    AUDIOSTREAM_SOURCE_TYPE_PLAYBACK_CAPTURE,
+    AUDIOSTREAM_SOURCE_TYPE_VOICE_COMMUNICATION,
+    AUDIOSTREAM_SOURCE_TYPE_VOICE_MESSAGE,
+    AUDIOSTREAM_SOURCE_TYPE_CAMCORDER
 };
 
 void uDelay(int time)//time*1000为秒数 
@@ -153,6 +165,20 @@ void MyOnRingerModeChangeCallback(void *userData, OH_AudioRingerMode ringerMode)
 {
     (void)userData;
     LOG("MyOnRingerModeChangeCallback, ringerMode is %{public}d", ringerMode);
+}
+
+void MyAudioCapturerOnFastStatusChangeCallback(OH_AudioCapturer* capturer, void* userData,
+    OH_AudioStream_FastStatus status)
+{
+    (void)userData;
+    LOG("MyAudioCapturerOnFastStatusChangeCallback, status is %{public}d", status);
+}
+
+void MyAudioRendererOnFastStatusChangeCallback(OH_AudioRenderer* renderer, void* userData,
+    OH_AudioStream_FastStatus status)
+{
+    (void)userData;
+    LOG("MyAudioRendererOnFastStatusChangeCallback, status is %{public}d", status);
 }
 
 static napi_value CreateAudioStreamBuilder(napi_env env, napi_callback_info info)
@@ -7218,6 +7244,258 @@ static napi_value AudioManagerGetDirectPlaybackSupportTest_005(napi_env env, nap
     return res;
 }
 
+static napi_value AudioCaptureGetFastStatus_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioCapturer *audioCapturer = nullptr;
+    OH_AudioStream_FastStatus fastStatus;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioCapturer_GetFastStatus(audioCapturer, &fastStatus);
+    if (res != AUDIOSTREAM_ERROR_INVALID_PARAM) {
+        LOG("OH_AudioCapturer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioCapturer_Release(audioCapturer);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioCapturer_Release(audioCapturer);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioCaptureGetFastStatus_002(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateCapturerBuilder();
+    napi_value result;
+    OH_AudioCapturer *audioCapturer;
+    OH_AudioStream_FastStatus fastStatus;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateCapturer(builder, &audioCapturer);
+
+    OH_AudioCapturer_Release(audioCapturer);
+    res = OH_AudioCapturer_GetFastStatus(audioCapturer, &fastStatus);
+    if (res != AUDIOSTREAM_ERROR_ILLEGAL_STATE) {
+        LOG("OH_AudioCapturer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioCapturer_Release(audioCapturer);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioCapturer_Release(audioCapturer);
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioCaptureGetFastStatus_003(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateCapturerBuilder();
+    napi_value result;
+    OH_AudioCapturer *audioCapturer;
+    OH_AudioStream_FastStatus fastStatus;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateCapturer(builder, &audioCapturer);
+
+    res = OH_AudioCapturer_GetFastStatus(audioCapturer, &fastStatus);
+    if (res != AUDIOSTREAM_SUCCESS) {
+        LOG("OH_AudioCapturer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioCapturer_Release(audioCapturer);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioCapturer_Release(audioCapturer);
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioRendererGetFastStatus_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioRenderer *audioRenderer = nullptr;
+    OH_AudioStream_FastStatus fastStatus;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioRenderer_GetFastStatus(audioRenderer, &fastStatus);
+    if (res != AUDIOSTREAM_ERROR_INVALID_PARAM) {
+        LOG("OH_AudioRenderer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioRenderer_Release(audioRenderer);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioRenderer_Release(audioRenderer);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioRendererGetFastStatus_002(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateRenderBuilder();
+    napi_value result;
+    OH_AudioRenderer *audioRenderer;
+    OH_AudioStream_FastStatus fastStatus;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+
+    OH_AudioRenderer_Release(audioRenderer);
+    res = OH_AudioRenderer_GetFastStatus(audioRenderer, &fastStatus);
+    if (res != AUDIOSTREAM_ERROR_ILLEGAL_STATE) {
+        LOG("OH_AudioRenderer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioRenderer_Release(audioRenderer);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioRenderer_Release(audioRenderer);
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioRendererGetFastStatus_003(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateRenderBuilder();
+    napi_value result;
+    OH_AudioRenderer *audioRenderer;
+    OH_AudioStream_FastStatus fastStatus;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+
+    res = OH_AudioRenderer_GetFastStatus(audioRenderer, &fastStatus);
+    if (res != AUDIOSTREAM_SUCCESS) {
+        LOG("OH_AudioRenderer_GetFastStatus FAILED, res is %{public}d", res);
+        OH_AudioRenderer_Release(audioRenderer);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    OH_AudioRenderer_Release(audioRenderer);
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamManagerIsFastPlaybackSupported_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamManager *streamManager;
+    OH_AudioStreamInfo streamInfo;
+    napi_value result;
+    OH_AudioCommon_Result res = OH_AudioManager_GetAudioStreamManager(&streamManager);
+    if (res != AUDIOCOMMON_RESULT_SUCCESS) {
+        LOG("OH_AudioManager_GetAudioStreamManager FAILED, res is %{public}d", res);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    streamInfo.samplingRate = NORMAL_RATE;
+    streamInfo.channelLayout = (OH_AudioChannelLayout)CHANNEL_LAYOUT;
+    streamInfo.encodingType = (OH_AudioStream_EncodingType)ENCODING_TYPE;
+    streamInfo.sampleFormat = (OH_AudioStream_SampleFormat)g_sampleFormat;
+
+    bool isFastStatus = false;
+    for (auto usage : VALID_OH_STREAM_USAGES) {
+        isFastStatus = OH_AudioStreamManager_IsFastPlaybackSupported(streamManager, &streamInfo, usage);
+    }
+
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamManagerIsFastRecordingSupported_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamManager *streamManager;
+    OH_AudioStreamInfo streamInfo;
+    napi_value result;
+    OH_AudioCommon_Result res = OH_AudioManager_GetAudioStreamManager(&streamManager);
+    if (res != AUDIOCOMMON_RESULT_SUCCESS) {
+        LOG("OH_AudioManager_GetAudioStreamManager FAILED, res is %{public}d", res);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+
+    streamInfo.samplingRate = NORMAL_RATE;
+    streamInfo.channelLayout = (OH_AudioChannelLayout)CHANNEL_LAYOUT;
+    streamInfo.encodingType = (OH_AudioStream_EncodingType)ENCODING_TYPE;
+    streamInfo.sampleFormat = (OH_AudioStream_SampleFormat)g_sampleFormat;
+
+    bool isFastStatus = false;
+    for (auto source : VALID_OH_SOURCE_TYPES) {
+        isFastStatus = OH_AudioStreamManager_IsFastRecordingSupported(streamManager, &streamInfo, source);
+    }
+
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamBuilderSetCapturerFastStatusChangeCallback_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = nullptr;
+    void *userData = nullptr;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback(builder, nullptr, userData);
+    if (res != AUDIOSTREAM_ERROR_INVALID_PARAM) {
+        LOG("OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback FAILED, res is %{public}d", res);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamBuilderSetCapturerFastStatusChangeCallback_002(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateCapturerBuilder();
+    void *userData = nullptr;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback(builder,
+        MyAudioCapturerOnFastStatusChangeCallback, userData);
+    if (res != AUDIOSTREAM_SUCCESS) {
+        LOG("OH_AudioStreamBuilder_SetCapturerFastStatusChangeCallback FAILED, res is %{public}d", res);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamBuilderSetRendererFastStatusChangeCallback_001(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = nullptr;
+    void *userData = nullptr;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback(builder, nullptr, userData);
+    if (res != AUDIOSTREAM_ERROR_INVALID_PARAM) {
+        LOG("OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback FAILED, res is %{public}d", res);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
+static napi_value AudioStreamBuilderSetRendererFastStatusChangeCallback_002(napi_env env, napi_callback_info info)
+{
+    OH_AudioStreamBuilder *builder = CreateRenderBuilder();
+    void *userData = nullptr;
+    napi_value result;
+    OH_AudioStream_Result res = OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback(builder,
+        MyAudioRendererOnFastStatusChangeCallback, userData);
+    if (res != AUDIOSTREAM_SUCCESS) {
+        LOG("OH_AudioStreamBuilder_SetRendererFastStatusChangeCallback FAILED, res is %{public}d", res);
+        OH_AudioStreamBuilder_Destroy(builder);
+        napi_create_int32(env, TEST_FAIL, &result);
+        return result;
+    }
+    OH_AudioStreamBuilder_Destroy(builder);
+    napi_create_int32(env, TEST_PASS, &result);
+    return result;
+}
+
 EXTERN_C_START
 napi_property_descriptor desc1[] = {
     {"audioManagerGetAudioStreamManagerTest_001", nullptr, AudioManagerGetAudioStreamManagerTest_001,
@@ -7727,6 +8005,30 @@ napi_property_descriptor desc3[] = {
         AudioVolumeManagerUnregisterRingerModeChangeCallback_003, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioVolumeManagerUnregisterRingerModeChangeCallback_004", nullptr, 
         AudioVolumeManagerUnregisterRingerModeChangeCallback_004, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioCaptureGetFastStatus_001", nullptr, AudioCaptureGetFastStatus_001,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioCaptureGetFastStatus_002", nullptr, AudioCaptureGetFastStatus_002,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioCaptureGetFastStatus_003", nullptr, AudioCaptureGetFastStatus_003,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioRendererGetFastStatus_001", nullptr, AudioRendererGetFastStatus_001,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioRendererGetFastStatus_002", nullptr, AudioRendererGetFastStatus_002,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioRendererGetFastStatus_003", nullptr, AudioRendererGetFastStatus_003,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamManagerIsFastPlaybackSupported_001", nullptr, AudioStreamManagerIsFastPlaybackSupported_001,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamManagerIsFastRecordingSupported_001", nullptr, AudioStreamManagerIsFastRecordingSupported_001,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamBuilderSetCapturerFastStatusChangeCallback_001", nullptr,
+        AudioStreamBuilderSetCapturerFastStatusChangeCallback_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamBuilderSetCapturerFastStatusChangeCallback_002", nullptr,
+        AudioStreamBuilderSetCapturerFastStatusChangeCallback_002, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamBuilderSetRendererFastStatusChangeCallback_001", nullptr,
+        AudioStreamBuilderSetRendererFastStatusChangeCallback_001, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioStreamBuilderSetRendererFastStatusChangeCallback_002", nullptr,
+        AudioStreamBuilderSetRendererFastStatusChangeCallback_002, nullptr, nullptr, nullptr, napi_default, nullptr},
 };
 static napi_value Init(napi_env env, napi_value exports)
 {
