@@ -264,7 +264,7 @@ static napi_value normalAVScreenCaptureTestStop(napi_env env, napi_callback_info
     double averageFrameNum = static_cast<double>(totalFrameNum / (g_recordTimeOne / g_recordTimeOne));
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StopScreenCapture result2 = %{public}d", result2);
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+    if (result2 != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect StopScreenCapture is 0");
     }
     screenCaptureResult = OH_AVScreenCapture_ReleaseContentFilter(nullptr);
