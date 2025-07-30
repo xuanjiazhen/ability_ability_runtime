@@ -15,6 +15,7 @@
 {
   "license": "",
   "devDependencies": {
+     "@types/liblocationcapi20.so": "file:./src/main/cpp/types/liblocationcapi20"
   },
   "author": "",
   "name": "entry",

@@ -14,10 +14,9 @@
  */
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import LocationCApi20 from 'liblocationcapi20.so'
-import { Driver } from '@kit.TestKit';
+import locationcapi20 from 'liblocationcapi20.so'
 
-const OS_ACCOUNT_ERR_OK = 0;
+const OS_LOCATION_ERR_OK = 0;
 
 export default function ActsLocationCApi20Test() {
   describe('ActsLocationCApi20Test', () => {
@@ -33,13 +32,13 @@ export default function ActsLocationCApi20Test() {
       async (done: Function) => {
         try {
           console.info("====>OHLocationInfoGetAdditionalInfo_test start====");
-          let result: number = LocationCApi20.OHLocationInfoGetAdditionalInfo_test();
+          let result: number = locationcapi20.OHLocationInfoGetAdditionalInfo_test();
           console.info("====>OHLocationInfoGetAdditionalInfo_test result: " + result);
           expect(401).assertEqual(result);
           done()
         } catch (err) {
           console.error("====>OHLocationInfoGetAdditionalInfo_test catch err: " + err);
-          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          expect(false).assertEqual(OS_LOCATION_ERR_OK);
           done()
         }
       })
