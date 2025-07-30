@@ -19,15 +19,15 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 
-static CommonEvent_Subscriber *g_subscriber  = nullptr;
-static bool g_isOrdered  = false;
-static bool g_isFinished  = false;
-static CommonEvent_SubscribeInfo *g_subscribeInfo  = nullptr;
+static CommonEvent_Subscriber *g_subscriber = nullptr;
+static bool g_isOrdered = false;
+static bool g_isFinished = false;
+static CommonEvent_SubscribeInfo *g_subscribeInfo = nullptr;
 static void IsOrderedCallback001(const CommonEvent_RcvData *data)
 {
-    if (g_subscriber  != nullptr) {
-        g_isOrdered  = OH_CommonEvent_IsOrderedCommonEvent(g_subscriber );
-        g_isFinished  = OH_CommonEvent_FinishCommonEvent(g_subscriber );
+    if (g_subscriber != nullptr) {
+        g_isOrdered = OH_CommonEvent_IsOrderedCommonEvent(g_subscriber );
+        g_isFinished = OH_CommonEvent_FinishCommonEvent(g_subscriber );
     }
 }
 
@@ -36,8 +36,8 @@ static napi_value TestCommonEventNoError(napi_env env, napi_callback_info info)
     napi_value result;
     const char *events[] = {CesCapiTest::COMMON_EVENT_TEST};
     int32_t eventsNum = sizeof(events) / sizeof(char *);
-    g_subscribeInfo  = OH_CommonEvent_CreateSubscribeInfo(events, eventsNum);
-    g_subscriber  = OH_CommonEvent_CreateSubscriber(g_subscribeInfo , IsOrderedCallback001);
+    g_subscribeInfo = OH_CommonEvent_CreateSubscribeInfo(events, eventsNum);
+    g_subscriber = OH_CommonEvent_CreateSubscriber(g_subscribeInfo , IsOrderedCallback001);
     int32_t retResult = OH_CommonEvent_Subscribe(g_subscriber );
     napi_create_int32(env, retResult, &result);
     return result;
