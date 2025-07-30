@@ -24,6 +24,7 @@ struct PanGesture3 {
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.All })
 
   build() {
+    Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
     Column() {
       Column() {
         Text('PinchGesture center:(' + this.scaleX + ',' + this.scaleY + ')').key('Pan5')
@@ -31,8 +32,8 @@ struct PanGesture3 {
         Text(String(Math.round(this.offsetY))).key('PanGesture3_2')
       }
       .key('PanGesture3')
-      .height(150)
-      .width(200)
+      .height("90%")
+      .width("100%")
       .backgroundColor(0x008000)
       .scale({ x: this.scaleX, y: this.scaleY, z: 1 })
       .translate({ x: this.offsetX, y: this.offsetY, z: 0 })
@@ -54,8 +55,11 @@ struct PanGesture3 {
           })
       )
     }
-    .height(150)
-    .width(200)
+    .height("25%")
+    .width("50%")
     .backgroundColor(0xffa500)
+    }
+    .height('100%')
+    .width('100%')
   }
 }
