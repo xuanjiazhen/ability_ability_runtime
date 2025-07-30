@@ -6,24 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>index</title>
     <style>
-	#pageHeight{
-	  height:1300px
-	}
 	div{
 	    text-align:center
 	}
-     #file {
-        height:600px;
-        width:500px;
-        position:absolute;
-        top:0;
-        left:10%;
-        z-index:99999
-     }
+   .box {
+        width:100vp;
+        height: 200px;
+        background-color: orange;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+       }
     </style>
 </head>
 <body>
-<input id="file" type="file" value="file"  webkitdirectory/>
+<div class="box">
+    <input id="file" type="file" value="file"  webkitdirectory/>
+</div>
+
 </body>
 <script>
 

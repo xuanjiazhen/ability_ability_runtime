@@ -68,6 +68,7 @@ struct webViewDefaultFontSizeWithMinLogical {
                 console.log("fonsize of emitdefaultFontSizeHalfAndminFontSizeHalf is :" + this.defaultFontSize + this.minFontSize);
                 this.controller.runJavaScript("getPageFontsize()", (error, result) => {
                   this.checkEleResult = JSON.parse(result)
+                  await Utils.sleep(2000)
                   console.log(`The getPageFontsize() return value is: ${result}`);
                   Utils.emitEvent(this.checkEleResult[1], 330)
                 })
