@@ -764,8 +764,8 @@ OH_AVErrCode AudioBufferAacEncDemo::SetParameter(OH_AVCodec *codec, OH_AVFormat 
 }
 
 OH_AVErrCode AudioBufferAacEncDemo::Configure(OH_AVCodec* codec, OH_AVFormat* format, int32_t channel,
-                                                 int32_t sampleRate, int64_t bitRate, int32_t sampleFormat,
-                                                 int32_t syncMode)
+                                              int32_t sampleRate, int64_t bitRate, int32_t sampleFormat,
+                                              int32_t syncMode)
 {
     if (codec == nullptr || format == nullptr) {
         return AV_ERR_INVALID_VAL;
