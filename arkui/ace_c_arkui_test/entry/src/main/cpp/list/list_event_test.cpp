@@ -134,7 +134,7 @@ static OnReachEndCallBack reachEnd = [](std::shared_ptr<ListComponent> list, boo
 };
 
 static OnScrollCallBack scroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     list->SetListScrollBarWidth(SIZE_70);
@@ -148,7 +148,7 @@ static OnScrollCallBack scroll = [](std::shared_ptr<ListComponent> list) {
 };
 
 static OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     list->SetListScrollBarWidth(SIZE_70);
@@ -170,7 +170,7 @@ static OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<ListComponent>
 };
 
 static OnWillDidScrollCallBack willScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     list->SetListScrollBarWidth(SIZE_70);
@@ -185,7 +185,7 @@ static OnWillDidScrollCallBack willScroll = [](std::shared_ptr<ListComponent> li
 };
 
 static OnWillDidScrollCallBack didScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     list->SetListScrollBarWidth(SIZE_70);
@@ -199,7 +199,7 @@ static OnWillDidScrollCallBack didScroll = [](std::shared_ptr<ListComponent> lis
 };
 
 static OnScrollFrameBeginCallBack scrollFrameBegin = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     list->SetListScrollBarWidth(SIZE_70);
