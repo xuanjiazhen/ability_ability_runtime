@@ -16,5 +16,5 @@
   "name": "libwifindk.so",
   "types": "./Index.d.ts",
   "version": "1.0.0",
-  "description": "Function list of Device Manager capi."
+  "description": "Function list of wifi status capi."
 }
