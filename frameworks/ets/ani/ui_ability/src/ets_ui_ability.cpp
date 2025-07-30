@@ -643,7 +643,28 @@ void EtsUIAbility::RestorePageStack(const Want &want)
     if (IsRestorePageStack(want)) {
         std::string pageStack;
         GetPageStackFromWant(want, pageStack);
-        // to be done: AniSetUIContent
+        auto window = scene_->GetMainWindow();
+        if (window == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null window");
+            return;
+        }
+        if (abilityContext_->GetEtsContentStorage() == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null etsContentStorage");
+            return;
+        }
+        auto etsNativeRef = reinterpret_cast<AppExecFwk::ETSNativeReference*>(abilityContext_->GetEtsContentStorage());
+        if (etsNativeRef) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null etsNativeRef");
+            return;
+        }
+        auto env = etsRuntime_.GetAniEnv();
+        if (!env) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "env not found Ability.sts");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::UIABILITY, "AniSetUIContent");
+        window->NapiSetUIContent(pageStack, env, reinterpret_cast<ani_object>(etsNativeRef->aniRef),
+            Rosen::BackupAndRestoreType::CONTINUATION);
     }
 }
 

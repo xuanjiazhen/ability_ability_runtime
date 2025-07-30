@@ -30,6 +30,7 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import image from '@ohos.multimedia.image';
+import { LocalStorage } from '@ohos.arkui.stateManagement';
 
 class Cleaner {
   public ptr: long = 0;
@@ -139,6 +140,9 @@ export default class UIAbilityContext extends Context {
   private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
+
+  private native nativeRestoreWindowStage(localStorage: LocalStorage): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -527,7 +531,6 @@ hideAbility(): Promise<void> {
     });
   }
 
-
   setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
@@ -542,5 +545,9 @@ hideAbility(): Promise<void> {
       });
     });
     return p;
+  }
+
+  restoreWindowStage(localStorage: LocalStorage): void {
+    this.nativeRestoreWindowStage(localStorage);
   }
 }

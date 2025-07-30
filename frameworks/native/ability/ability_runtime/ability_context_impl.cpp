@@ -744,6 +744,17 @@ ErrCode AbilityContextImpl::RestoreWindowStage(napi_env env, napi_value contentS
     return ERR_OK;
 }
 
+ErrCode AbilityContextImpl::RestoreWindowStage(int *contentStorage)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    if (isHook_) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "RestoreWindowStage is hook module");
+        return ERR_NOT_SUPPORTED;
+    }
+    etsContentStorage_ = contentStorage;
+    return ERR_OK;
+}
+
 ErrCode AbilityContextImpl::StartAbilityByCall(
     const AAFwk::Want& want, const std::shared_ptr<CallerCallBack>& callback, int32_t accountId)
 {

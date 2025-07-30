@@ -33,6 +33,7 @@
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_ui_extension_callback.h"
+#include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "want.h"
@@ -69,6 +70,7 @@ const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
     "Lstd/core/String;Lescompat/Record;Lapplication/AbilityStartCallback/AbilityStartCallback;:L@ohos/base/"
     "BusinessError;";
+constexpr const char* SIGNATURE_RESTORE_WINDOW_STAGE = "Larkui/stateManagement/storage/localStorage/LocalStorage;:V";
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
@@ -464,6 +466,18 @@ void EtsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, 
     etsContext->OnSetAbilityInstanceInfo(env, aniObj, labelObj, iconObj, callback);
 }
 #endif
+
+void EtsAbilityContext::RestoreWindowStage(
+    ani_env *env, ani_object aniObj, ani_object localStorageObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "RestoreWindowStage called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnRestoreWindowStage(env, aniObj, localStorageObj);
+}
 
 int32_t EtsAbilityContext::GenerateRequestCode()
 {
@@ -1118,6 +1132,31 @@ void EtsAbilityContext::OnOpenAtomicService(
     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
 }
 
+void EtsAbilityContext::OnRestoreWindowStage(
+    ani_env *env, ani_object aniObj, ani_object localStorageObj)
+{
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_ref global = nullptr;
+    if ((status = env->GlobalReference_Create(localStorageObj, &global)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+    AppExecFwk::ETSNativeReference* etsNativeRef = new AppExecFwk::ETSNativeReference();
+    etsNativeRef->aniRef = global;
+    auto errcode = context->RestoreWindowStage(reinterpret_cast<int *>(etsNativeRef));
+    if (errcode != 0) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1536,6 +1575,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
 #endif
+            ani_native_function { "nativeRestoreWindowStage", SIGNATURE_RESTORE_WINDOW_STAGE,
+                reinterpret_cast<void *>(EtsAbilityContext::RestoreWindowStage) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
