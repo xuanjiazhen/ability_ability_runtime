@@ -21,23 +21,23 @@ const OS_LOCATION_ERR_OK = 0;
 export default function ActsLocationCApi20Test() {
   describe('ActsLocationCApi20Test', () => {
     /**
-     * @tc.number  : OHLocationInfoGetAdditionalInfo_test
-     * @tc.name    : OHLocationInfoGetAdditionalInfo_test
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
+     * @tc.number  : SUB_LocationKit_GetAdditionalInfo_Test_0100
+     * @tc.name    : SUB_LocationKit_GetAdditionalInfo_Test_0100
+     * @tc.desc    : test OHLocationInfoGetAdditionalInfo.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('OHLocationInfoGetAdditionalInfo_test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_LocationKit_GetAdditionalInfo_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>OHLocationInfoGetAdditionalInfo_test start====");
+          console.info("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 start====");
           let result: number = locationcapi20.OHLocationInfoGetAdditionalInfo_test();
-          console.info("====>OHLocationInfoGetAdditionalInfo_test result: " + result);
+          console.info("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 result: " + result);
           expect(401).assertEqual(result);
           done()
         } catch (err) {
-          console.error("====>OHLocationInfoGetAdditionalInfo_test catch err: " + err);
+          console.error("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 catch err: " + err);
           expect(false).assertEqual(OS_LOCATION_ERR_OK);
           done()
         }
