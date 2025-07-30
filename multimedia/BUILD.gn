@@ -132,10 +132,10 @@ group("multimedia") {
       "photoAccess/photoAccess:photoAccess_js_hap",
       "photoAccess/photoAccessSendable:photoAccess_sendable_hap",
       "photoAccess/pickerView:TextPickerTest",
+      "photoAccess/photoAccess_ets_standard/photoAccessXts:photoAccessXts_ets_hap",
       "videoProcess/detail_enhancer_image_ndk:ActsDetailEnhancerImageNdkUnitTest",
       "videoProcess/detail_enhancer_video_ndk:ActsDetailEnhancerVideoNdkUnitTest",
       "videoProcess/moduletest/video:ActsVpeVideoNativModuleTest",
-      "photoAccess/photoAccess_ets_standard/photoAccessXts:photoAccessXts_ets_hap",
     ]
   } else {
     deps += [
