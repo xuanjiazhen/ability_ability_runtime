@@ -54,6 +54,9 @@ public:
     static napi_value AudioCallbackDestroy(napi_env env, napi_callback_info info);
     static napi_value AudioDestroy(napi_env env, napi_callback_info info);
     static napi_value AudioStreamerPrepare(napi_env env, napi_callback_info info);
+    static napi_value VideoStreamerSetCallbackCreateNull(napi_env env, napi_callback_info info);
+    static napi_value VideoStreamerSetDataNeededListener(napi_env env, napi_callback_info info);
+    static napi_value VideoStreamerSetStreamChangedListener(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerSetCallback(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerSetErrorCallback(napi_env env, napi_callback_info info);
     static napi_value VideoStreamerSetFirstFrameDecodedCallback(napi_env env, napi_callback_info info);

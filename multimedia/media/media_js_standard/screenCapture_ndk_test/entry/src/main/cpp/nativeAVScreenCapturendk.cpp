@@ -253,10 +253,6 @@ static napi_value normalAVScreenCaptureTestStop(napi_env env, napi_callback_info
     } else {
         napi_throw_error((env), nullptr, "error : expect skipResult is 9 or 0");
     }
-    screenCaptureResult = OH_AVScreenCapture_ResizeCanvas(screenCaptureNormal, width, height); // 768 width 1280 height
-    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
-        napi_throw_error((env), nullptr, "error : expect ResizeCanvas is 0 " );
-    }
     screenCaptureResult = OH_AVScreenCapture_SetMaxVideoFrameRate(nullptr, maxFrameRate);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect SetMaxVideoFrameRate is 3");
@@ -267,9 +263,13 @@ static napi_value normalAVScreenCaptureTestStop(napi_env env, napi_callback_info
     int32_t totalFrameNum = frameNum.load();
     double averageFrameNum = static_cast<double>(totalFrameNum / (g_recordTimeOne / g_recordTimeOne));
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StopScreenCapture(screenCaptureNormal);
+    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_StopScreenCapture result2 = %{public}d", result2);
+    if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
+        napi_throw_error((env), nullptr, "error : expect StopScreenCapture is 0");
+    }
     screenCaptureResult = OH_AVScreenCapture_ReleaseContentFilter(nullptr);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
-        napi_throw_error((env), nullptr, "error : expect StopScreenCapture is 3");
+        napi_throw_error((env), nullptr, "error : expect ReleaseContentFilter is 3");
     }
     screenCaptureResult = OH_AVScreenCapture_ReleaseContentFilter(g_contentFilter);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {

@@ -927,7 +927,15 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0400', Level.LEVEL0, async (done: Function) => {
-      await Utils.btnTextScreenCapture();
+      
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureSelectionCallbackSuccess();
+      console.info(Tag + "normalAVScreenCaptureSelectionCallbackSuccess-------------result:" + result);
+      expect(result).assertEqual(0);
+      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureSelectionCallbackStop();
+      console.info(Tag + "normalAVScreenCaptureSelectionCallbackSuccess-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      expect(isShowDialog).assertEqual(0);
       done();
     });
     /**
@@ -939,7 +947,16 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0500', Level.LEVEL0, async (done: Function) => {
-      await Utils.btnTextScreenCapture();
+      
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureContentChangedCallback();
+      console.info(Tag + "normalAVScreenCaptureContentChangedCallback-------------res:" + result);
+      expect(result).assertEqual(0);
+
+      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureContentChangedTestStop();
+      console.info(Tag + "normalAVScreenCaptureContentChangedTestStop-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      expect(isShowDialog).assertEqual(0);
       done();
     });
     /**
@@ -951,7 +968,16 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600', Level.LEVEL0, async (done: Function) => {
-      await Utils.btnTextScreenCapture();
+      
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureSetCaptureAreaTest();
+      console.info(Tag + "normalAVScreenCaptureSetCaptureAreaTest-------------res:" + result);
+      expect(result).assertEqual(0);
+
+      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureSetCaptureAreaTestStop();
+      console.info(Tag + "normalAVScreenCaptureSetCaptureAreaTestStop-------------resultStop:" + resultStop);
+      expect(resultStop).assertEqual(0);
+      expect(isShowDialog).assertEqual(0);
       done();
     });
     /**
@@ -963,7 +989,17 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700', Level.LEVEL0, async (done: Function) => {
-      await Utils.btnTextScreenCapture();
+      
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeScreen();
+      console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeScreen-------------res:" + result);
+      expect(result).assertEqual(0);
+
+      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop();
+      console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop-------------resultStop:" +
+        resultStop);
+      expect(resultStop).assertEqual(0);
+      expect(isShowDialog).assertEqual(0);
       done();
     });
     /**
@@ -975,7 +1011,16 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_SCREEN_CAPTURE_CANVASROTATION_0001', Level.LEVEL0, async (done: Function) => {
-      await Utils.btnTextScreenCapture();
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeDisplay();
+      console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeDisplay-------------res:" + result);
+      expect(result).assertEqual(0);
+
+      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
+      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop();
+      console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeTestStop-------------resultStop:" +
+        resultStop);
+      expect(resultStop).assertEqual(0);
+      expect(isShowDialog).assertEqual(0);
       done();
     });
   })

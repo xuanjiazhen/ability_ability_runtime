@@ -75,7 +75,7 @@ export default class Utils {
     }
   }
   static async btnTextScreenCaptureCancel() {
-    let button = await driver.waitForComponent(ON.text("取消"), 1000)
+    let button = await driver.waitForComponent(ON.text("不允许"), 1000)
     if (button == null) {
       return 1;
     } else {
