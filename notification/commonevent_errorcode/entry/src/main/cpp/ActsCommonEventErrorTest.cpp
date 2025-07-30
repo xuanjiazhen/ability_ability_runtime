@@ -19,34 +19,26 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 
-static CommonEvent_Subscriber *subscriber = nullptr;
-static bool isOrdered = false;
-static bool isFinished = false;
-static CommonEvent_SubscribeInfo *subscribeInfo = nullptr;
+static CommonEvent_Subscriber *g_subscriber  = nullptr;
+static bool g_isOrdered  = false;
+static bool g_isFinished  = false;
+static CommonEvent_SubscribeInfo *g_subscribeInfo  = nullptr;
 static void IsOrderedCallback001(const CommonEvent_RcvData *data)
 {
-    if (subscriber != nullptr) {
-        isOrdered = OH_CommonEvent_IsOrderedCommonEvent(subscriber);
-        isFinished = OH_CommonEvent_FinishCommonEvent(subscriber);
+    if (g_subscriber  != nullptr) {
+        g_isOrdered  = OH_CommonEvent_IsOrderedCommonEvent(g_subscriber );
+        g_isFinished  = OH_CommonEvent_FinishCommonEvent(g_subscriber );
     }
 }
 
-/**
- * @tc.number  : TestCommonEventNoError
- * @tc.name    : TestCommonEventNoError
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value TestCommonEventNoError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     const char *events[] = {CesCapiTest::COMMON_EVENT_TEST};
     int32_t eventsNum = sizeof(events) / sizeof(char *);
-    subscribeInfo = OH_CommonEvent_CreateSubscribeInfo(events, eventsNum);
-    subscriber = OH_CommonEvent_CreateSubscriber(subscribeInfo, IsOrderedCallback001);
-    int32_t retResult = OH_CommonEvent_Subscribe(subscriber);
+    g_subscribeInfo  = OH_CommonEvent_CreateSubscribeInfo(events, eventsNum);
+    g_subscriber  = OH_CommonEvent_CreateSubscriber(g_subscribeInfo , IsOrderedCallback001);
+    int32_t retResult = OH_CommonEvent_Subscribe(g_subscriber );
     napi_create_int32(env, retResult, &result);
     return result;
 }
@@ -68,7 +60,7 @@ static napi_module demoModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
-    .nm_modname = "osaccountndk",
+    .nm_modname = "commoneventerrorcode",
     .nm_priv = ((void *)0),
     .reserved = {0},
 };

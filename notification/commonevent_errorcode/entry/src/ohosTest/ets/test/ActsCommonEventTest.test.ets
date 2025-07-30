@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { describe, it, expect, Level } from '@ohos/hypium'
 import commoneventerror from 'libcommoneventerrorcode.so'
 
 export default function ActsCommonEventErrorTest() {
   describe('ActsCommonEventErrorTest', () => {
     /**
-     * @tc.number  : TestCommonEventNoError
-     * @tc.name    : TestCommonEventNoError
+     * @tc.number  : SUB_CommonEvent_NoError_0100
+     * @tc.name    : testCommonEventNoError0100
      * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
      * @tc.level   : Level0
      * @tc.size    : MediumTest
