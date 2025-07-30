@@ -189,9 +189,9 @@ int32_t LppVideoStreamer::GetParameter(const SampleInfo &sampleInfo)
     AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ GetParameter ======");
     OH_AVFormat *format = OH_AVFormat_Create();
     CHECK_AND_RETURN_RET_LOG(format != nullptr, AVCODEC_SAMPLE_ERR_ERROR, "AVFormat create failed");
-    // int ret = OH_LowPowerVideoSink_GetParameter(lppVideoStreamer_, format);
-    // CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Configure failed, ret::: %{public}d", ret);
-    return 0;
+    int ret = OH_LowPowerVideoSink_GetParameter(lppVideoStreamer_, format);
+    CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Configure failed, ret::: %{public}d", ret);
+    return ret;
 }
 
 int32_t LppVideoStreamer::Prepare()
