@@ -364,24 +364,6 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartExtensionAbilityInner_004, TestSi
 
 /*
  * Feature: AbilityManagerService
- * Function: StartAbilityWithSpecifyTokenId
- * FunctionPoints: AbilityManagerService StartAbilityWithSpecifyTokenId
- */
-HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityWithSpecifyTokenId_002, TestSize.Level1)
-{
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    Want want;
-    sptr<IRemoteObject> callerToken;
-    uint32_t specifyTokenId = 0;
-    int32_t userId = 0;
-    int32_t requestCode = 0;
-    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
-    auto result = abilityMs->StartAbilityWithSpecifyTokenId(want, callerToken, specifyTokenId, userId, requestCode);
-    EXPECT_NE(result, ERR_INVALID_CONTINUATION_FLAG);
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: StartUIAbilityBySCB
  * FunctionPoints: AbilityManagerService StartUIAbilityBySCB
  */

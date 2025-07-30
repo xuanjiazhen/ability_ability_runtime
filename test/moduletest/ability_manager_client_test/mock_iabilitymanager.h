@@ -40,15 +40,6 @@ public:
     {
         return 0;
     }
-    int StartAbilityWithSpecifyTokenId(
-        const Want &want,
-        const sptr<IRemoteObject> &callerToken,
-        uint32_t specifyTokenId,
-        int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) override
-    {
-        return 0;
-    }
     int32_t StartAbilityByInsightIntent(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
