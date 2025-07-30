@@ -461,8 +461,6 @@ enum class AbilityManagerInterfaceCode {
     DELEGATOR_DO_ABILITY_FOREGROUND = 1122,
     DELEGATOR_DO_ABILITY_BACKGROUND = 1123,
     GET_TOP_ABILITY_TOKEN         = 1124,
-    // ipc id for starting ability with specify token id(1125)
-    START_ABILITY_WITH_SPECIFY_TOKENID = 1125,
     REGISTER_ABILITY_FIRST_FRAME_STATE_OBSERVER = 1126,
     UNREGISTER_ABILITY_FIRST_FRAME_STATE_OBSERVER = 1127,
     // ipc for get ability state by persistent id

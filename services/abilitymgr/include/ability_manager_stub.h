@@ -96,7 +96,6 @@ private:
     int StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartSelfUIAbilityWithStartOptionsInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInner(MessageParcel &data, MessageParcel &reply);
-    int StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply);
     int StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityByUIContentSessionForOptionsInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityAsCallerByTokenInner(MessageParcel &data, MessageParcel &reply);

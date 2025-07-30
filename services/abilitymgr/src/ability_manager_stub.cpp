@@ -108,9 +108,6 @@ int AbilityManagerStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_ADD_CALLER) {
         return StartAbilityAddCallerInner(data, reply);
     }
-    if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_WITH_SPECIFY_TOKENID) {
-        return StartAbilityInnerSpecifyTokenId(data, reply);
-    }
     if (interfaceCode == AbilityManagerInterfaceCode::START_ABILITY_AS_CALLER_BY_TOKEN) {
         return StartAbilityAsCallerByTokenInner(data, reply);
     }
@@ -1395,26 +1392,6 @@ int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &re
     int32_t userId = data.ReadInt32();
     int requestCode = data.ReadInt32();
     int32_t result = StartAbility(*want, userId, requestCode);
-    reply.WriteInt32(result);
-    return NO_ERROR;
-}
-
-int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply)
-{
-    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
-    if (want == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
-        return ERR_INVALID_VALUE;
-    }
-
-    sptr<IRemoteObject> callerToken = nullptr;
-    if (data.ReadBool()) {
-        callerToken = data.ReadRemoteObject();
-    }
-    int32_t specifyTokenId = data.ReadInt32();
-    int32_t userId = data.ReadInt32();
-    int requestCode = data.ReadInt32();
-    int32_t result = StartAbilityWithSpecifyTokenId(*want, callerToken, specifyTokenId, userId, requestCode);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

@@ -677,17 +677,6 @@ int32_t AbilityManagerService::StartAbilityByFreeInstall(const Want &want, sptr<
     return ret;
 }
 
-int AbilityManagerService::StartAbilityWithSpecifyTokenId(const Want &want, const sptr<IRemoteObject> &callerToken,
-    uint32_t specifyTokenId, int32_t userId, int requestCode)
-{
-    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility with specialId, current process not foundation process");
-        return CHECK_PERMISSION_FAILED;
-    }
-    return StartAbilityWithSpecifyTokenIdInner(want, callerToken, specifyTokenId, false, userId, requestCode);
-}
-
 int AbilityManagerService::StartAbilityWithSpecifyTokenIdInner(const Want &want, const sptr<IRemoteObject> &callerToken,
     uint32_t specifyTokenId, bool isPendingWantCaller, int32_t userId, int requestCode)
 {
