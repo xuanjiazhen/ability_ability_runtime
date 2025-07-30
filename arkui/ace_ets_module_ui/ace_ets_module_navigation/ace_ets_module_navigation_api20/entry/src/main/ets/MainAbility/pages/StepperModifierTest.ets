@@ -82,7 +82,7 @@ export default struct StepperModifierTest {
               .id('changeId1')
           }
         }
-      //  .nextLabel('StepperNext1')
+        .nextLabel('StepperNext1')
         .status(this.firstState)
         // 第二个步骤页
         StepperItem() {
