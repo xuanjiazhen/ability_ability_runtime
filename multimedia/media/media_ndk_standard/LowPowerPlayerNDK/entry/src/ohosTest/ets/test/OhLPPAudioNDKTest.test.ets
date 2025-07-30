@@ -72,7 +72,7 @@ export default function OhLPPAudioNDKTest() {
 
     /**
      * @tc.number     : TESTOHLPPAUDIO_NULL_ERROREVENT_0100
-     * @tc.name       : TESTOHLPPVIDEO_NULL_ERROREVENT_0100
+     * @tc.name       : TESTOHLPPAUDIO_NULL_ERROREVENT_0100
      * @tc.desc       : Prepare the playback environment and asynchronously cache media data.
      * @tc.size       : MediumTest
      * @tc.type       : Function
