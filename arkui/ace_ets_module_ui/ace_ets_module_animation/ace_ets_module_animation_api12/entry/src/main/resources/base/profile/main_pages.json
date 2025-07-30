@@ -13,7 +13,7 @@
         "MainAbility/pages/CurvePage",
         "MainAbility/pages/Particle",
         "MainAbility/pages/SimpleAnimatorOptionsPage",
-        "MainAbility/pages/Blur"
-
+        "MainAbility/pages/Blur",
+        "MainAbility/pages/ParticleModifierTest"
     ]
 }
