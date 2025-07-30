@@ -244,7 +244,7 @@ AppExecFwk::ElementName DialogSessionManager::GetWantElement(const Want &want)
     AppExecFwk::BundleInfo bundleInfo;
     if (!IN_PROCESS_CALL(bms->GetBundleInfo(want.GetBundle(),
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
-        bundleInfo, abilityMgr->GetUserId()))) {
+        bundleInfo, abilityMgr->GetCallerUserId()))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleInfo failed");
         return want.GetElement();
     }

@@ -93,9 +93,9 @@ HWTEST_F(UserControllerTest, StartUserTest_0100, TestSize.Level0)
 {
     UserController userController;
     userController.GetOrCreateUserItem(1000);
-    userController.SetCurrentUserId(1000);
+    userController.SetCurrentUserId(1000, 0);
     sptr<TestUserCallback> callback = new TestUserCallback();
-    userController.StartUser(1000, callback);
+    userController.StartUser(1000, 0, callback);
     EXPECT_TRUE(callback->errCode_ == 0);
 }
 
@@ -109,7 +109,7 @@ HWTEST_F(UserControllerTest, StartUserTest_0200, TestSize.Level0)
 {
     UserController userController;
     sptr<TestUserCallback> callback = new TestUserCallback();
-    userController.StartUser(666, callback);
+    userController.StartUser(666, 0, callback);
     EXPECT_TRUE(callback->errCode_ != 0);
 }
 
@@ -196,7 +196,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0100, TestSize.Level1)
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
-    EXPECT_TRUE(userController.GetCurrentUserId() == 0);
+    EXPECT_TRUE(userController.GetCurrentUserId(0) == 0);
 }
 
 /**
@@ -212,7 +212,7 @@ HWTEST_F(UserControllerTest, LogoutUserTest_0200, TestSize.Level1)
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         EXPECT_EQ(result, INVALID_USERID_VALUE);
     }
-    EXPECT_TRUE(userController.GetCurrentUserId() == 0);
+    EXPECT_TRUE(userController.GetCurrentUserId(0) == 0);
 }
 
 /**
@@ -240,7 +240,7 @@ HWTEST_F(UserControllerTest, HandleContinueUserSwitchTest_0100, TestSize.Level2)
     UserController userController;
     auto userItem = std::make_shared<UserItem>(1000);
     userController.HandleContinueUserSwitch(1000, 1000, userItem);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -256,7 +256,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchDoneTest_0100, TestSize.Level2)
     userController.SendUserSwitchDone(1000);
     userController.Init();
     userController.SendUserSwitchDone(1001);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -273,7 +273,7 @@ HWTEST_F(UserControllerTest, SendContinueUserSwitchTest_0200, TestSize.Level2)
     userController.SendContinueUserSwitch(1000, 1000, userItem);
     userController.Init();
     userController.SendContinueUserSwitch(1000, 1000, userItem);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -290,7 +290,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchTimeoutTest_0100, TestSize.Level2)
     userController.SendUserSwitchTimeout(1000, 1000, userItem);
     userController.Init();
     userController.SendUserSwitchTimeout(1000, 1000, userItem);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -307,7 +307,7 @@ HWTEST_F(UserControllerTest, SendReportUserSwitchTest_0100, TestSize.Level2)
     userController.SendReportUserSwitch(1000, 1000, userItem);
     userController.Init();
     userController.SendReportUserSwitch(1000, 1000, userItem);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -323,7 +323,7 @@ HWTEST_F(UserControllerTest, SendSystemUserCurrentTest_0100, TestSize.Level2)
     userController.SendSystemUserCurrent(1000, 1000);
     userController.Init();
     userController.SendSystemUserCurrent(1000, 1000);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
 }
 
@@ -339,8 +339,87 @@ HWTEST_F(UserControllerTest, SendSystemUserStartTest_0100, TestSize.Level2)
     userController.SendSystemUserStart(1000);
     userController.Init();
     userController.SendSystemUserStart(1000);
-    auto result = userController.GetCurrentUserId();
+    auto result = userController.GetCurrentUserId(0);
     EXPECT_TRUE(result == 0);
+}
+
+/**
+ * @tc.name: GetDisplayIdByUserIdTest_0100
+ * @tc.desc: GetDisplayIdByUserId Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UserControllerTest, GetDisplayIdByUserId_0100, TestSize.Level1)
+{
+    UserController userController;
+    int32_t userId = 201;
+    uint64_t displayIdParam = 11;
+    userController.SetCurrentUserId(userId, displayIdParam);
+    uint64_t displayId = 0;
+    auto ret = userController.GetDisplayIdByUserId(userId, displayId);
+    EXPECT_EQ(displayId, displayIdParam);
+}
+
+/**
+ * @tc.name: IsCurrentUserTest_0100
+ * @tc.desc: IsCurrentUser Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UserControllerTest, IsCurrentUser_0100, TestSize.Level1)
+{
+    UserController userController;
+    int32_t userId = 201;
+    uint64_t displayIdParam = 11;
+    userController.SetCurrentUserId(userId, displayIdParam);
+    auto result = userController.IsCurrentUser(userId, displayIdParam);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsCurrentUserTest_0200
+ * @tc.desc: IsCurrentUser Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UserControllerTest, IsCurrentUser_0200, TestSize.Level1)
+{
+    UserController userController;
+    int32_t userId = 202;
+    uint64_t displayIdParam = 11;
+    auto result = userController.IsCurrentUser(userId, displayIdParam);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsCurrentUserTest_0300
+ * @tc.desc: IsCurrentUser Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UserControllerTest, IsCurrentUser_0300, TestSize.Level1)
+{
+    UserController userController;
+    int32_t userId = 202;
+    int32_t displayIdParam = 11;
+    auto result = userController.IsCurrentUser(userId);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: MoveUserToForegroundTest_0100
+ * @tc.desc: MoveUserToForeground Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UserControllerTest, MoveUserToForeground_0100, TestSize.Level1)
+{
+    UserController userController;
+    int32_t oldUserId = 0;
+    int32_t newUserId = 100;
+    int32_t displayId = 0;
+    auto result = userController.MoveUserToForeground(oldUserId, newUserId, displayId, nullptr, false);
+    EXPECT_EQ(result, 0);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

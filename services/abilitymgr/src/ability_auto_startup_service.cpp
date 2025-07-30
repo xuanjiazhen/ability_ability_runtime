@@ -250,7 +250,7 @@ int32_t AbilityAutoStartupService::CheckAutoStartupData(const std::string &bundl
     int32_t appIndex = 0;
     AppExecFwk::BundleInfo bundleInfo;
     int32_t userId = uid / AppExecFwk::Constants::BASE_USER_RANGE;
-    int32_t validUserId = GetValidUserId(userId);
+    int32_t validUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId();
     if (!GetBundleInfo(bundleName, validUserId, appIndex, bundleInfo)) {
         return INNER_ERR;
     }
@@ -298,7 +298,7 @@ void AbilityAutoStartupService::ExecuteCallbacks(bool isCallOn, const AutoStartu
         " accessTokenId: %{public}s, setterUserId: %{public}d, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId, info.userId);
-    int32_t currentUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId();
+    int32_t currentUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId();
     bool isUserIdMatch = (info.userId == currentUserId);
     bool isUserIdU0OrU1 = (U0_USER_ID == info.userId) || (U1_USER_ID == info.userId);
     if (!isUserIdMatch && !isUserIdU0OrU1) {
@@ -406,20 +406,6 @@ bool AbilityAutoStartupService::CheckSelfApplication(const std::string &bundleNa
     return GetSelfApplicationBundleName() == bundleName ? true : false;
 }
 
-int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
-{
-    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "userId = %{public}d.", userId);
-    int32_t validUserId = userId;
-
-    if (userId == -1) {
-        validUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
-    }
-    if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
-        validUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId();
-    }
-    return validUserId;
-}
-
 bool AbilityAutoStartupService::GetBundleInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
     AppExecFwk::BundleInfo &bundleInfo)
 {
@@ -466,7 +452,7 @@ bool AbilityAutoStartupService::GetAbilityData(const AutoStartupInfo &info, Auto
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId);
     AppExecFwk::BundleInfo bundleInfo;
-    int32_t validUserId = GetValidUserId(info.userId);
+    int32_t validUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId();
     if (!GetBundleInfo(info.bundleName, validUserId, info.appCloneIndex, bundleInfo)) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "GetBundleInfo fail");
         return false;

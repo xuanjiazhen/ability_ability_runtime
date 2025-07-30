@@ -50,8 +50,7 @@ void UserEventHandlerTest::TearDown(void)
 HWTEST_F(UserEventHandlerTest, ProcessEvent_001, TestSize.Level1)
 {
     std::shared_ptr<TaskHandlerWrap> runner;
-    std::weak_ptr<UserController> owner;
-    std::shared_ptr<UserEventHandler> handler = std::make_shared<UserEventHandler>(runner, owner);
+    std::shared_ptr<UserEventHandler> handler = std::make_shared<UserEventHandler>(runner);
     EventWrap event(0);
     handler->ProcessEvent(event);
     EXPECT_TRUE(handler != nullptr);
