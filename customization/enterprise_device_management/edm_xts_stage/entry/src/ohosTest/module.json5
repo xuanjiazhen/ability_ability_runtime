@@ -186,6 +186,9 @@
       },
       {
         "name": "ohos.permission.ENTERPRISE_SET_WALLPAPER"
+      },
+      {
+        "name": "ohos.permission.ENTERPRISE_MANAGE_USER_GRANT_PERMISSION"
       }
     ]
   }

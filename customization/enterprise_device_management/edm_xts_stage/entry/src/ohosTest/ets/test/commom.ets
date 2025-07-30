@@ -94,6 +94,7 @@ const SUBSCRIBE_INVALID_EVENTS: Array<number> = [20, 21];
 
 const TEST_APP_ID_1: string = "test_app_id_1";
 const TEST_APP_ID_2: string = "test_app_id_2";
+const TEST_REAL_APP_ID_1: string = "1220095211531676480";
 const TEST_POLICIES: string = "test_policies";
 const TEST_POLICY_NAME: string = "test_policy_name";
 const TEST_POLICY_VALUE: string = "\"test_policy_value\"";
@@ -209,6 +210,28 @@ const DOMAIN_ACCOUNT_POLICY1: accountManager.DomainAccountPolicy = {
 const DEFAULT_APP_INDEX = 0;
 const INVALID_APP_INDEX = -1;
 
+const TEST_APP_INSTANCE: securityManager.ApplicationInstance = {
+  appIdentifier: TEST_REAL_APP_ID_1,
+  appIndex: DEFAULT_APP_INDEX,
+  accountId: CURRENT_USER_ID
+}
+
+const TEST_INVALID_APP_INSTANCE: securityManager.ApplicationInstance = {
+  appIdentifier: TEST_APP_ID_1,
+  appIndex: DEFAULT_APP_INDEX,
+  accountId: CURRENT_USER_ID
+}
+
+const TEST_PERMISSION_MANAGED_STATE_GRANTED: securityManager.PermissionManagedState = securityManager.PermissionManagedState.GRANTED;
+
+const TEST_PERMISSION_MANAGED_STATE_DENIED: securityManager.PermissionManagedState = securityManager.PermissionManagedState.DENIED;
+
+const TEST_PERMISSION_MANAGED_STATE_DEFAULT: securityManager.PermissionManagedState = securityManager.PermissionManagedState.DEFAULT;
+
+const TEST_PERMISSION_LIST_1: Array<string> = ['ohos.permission.APPROXIMATELY_LOCATION'];
+
+const TEST_PERMISSION_1: string = 'ohos.permission.APPROXIMATELY_LOCATION';
+
 export {
   BUNDLENAME1, ENTINFO1, SELFWANT, AUTOSTARTAPP1, AUTOSTARTAPP2, SELFHAPNAME, COMPANYNAME2, DESCRIPTION2,
   ENTINFO2, NETWORK_ETH_LOCAL, NETWORK_ETH_INVALID, DEFAULT_USER_ID, INVALID_USER_ID,
@@ -219,5 +242,7 @@ export {
   PIXEL_MAP, WATERMARK_BUNDLE_NAME, TEST_BUNDLENAME, PARAMETERS_LOWER_BOUND, INVALID_PARAMETERS,
   INVALID_PARAMETERS_LOWER_THAN_UPPER_BOUND,INVALID_BUNDLE_NAME, CURRENT_USER_ID, getCurrentUserId,
   DOMAIN_ACCOUNT_INFO1, DOMAIN_ACCOUNT_POLICY1, DEFAULT_APP_INDEX, INVALID_APP_INDEX, bundleNamesInit, BUNDLE_NAME_200,
-  BUNDLE_NAME_201
+  BUNDLE_NAME_201, TEST_PERMISSION_MANAGED_STATE_GRANTED, TEST_PERMISSION_MANAGED_STATE_DENIED,
+  TEST_PERMISSION_MANAGED_STATE_DEFAULT, TEST_APP_INSTANCE, TEST_PERMISSION_LIST_1,
+  TEST_PERMISSION_1, TEST_INVALID_APP_INSTANCE
 }
