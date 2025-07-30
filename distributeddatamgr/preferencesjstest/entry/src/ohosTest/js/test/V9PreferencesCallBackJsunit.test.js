@@ -51,7 +51,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name has delete get flush String callback interface test
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0100
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0200
          * @tc.desc flush String callback interface test
          * @tc.size MediumTest
@@ -108,7 +108,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.get()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0200
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0900
          * @tc.desc mPreference.get()
          * @tc.size MediumTest
@@ -134,7 +134,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.get()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0300
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0800
          * @tc.desc mPreference.get()
          * @tc.size MediumTest
@@ -160,7 +160,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.getAll()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0400
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0700
          * @tc.desc mPreference.getAll()
          * @tc.size MediumTest
@@ -187,7 +187,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.has()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0500
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1100
          * @tc.desc mPreference.has()
          * @tc.size MediumTest
@@ -209,7 +209,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.has()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0600
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1000
          * @tc.desc mPreference.has()
          * @tc.size MediumTest
@@ -235,7 +235,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.put()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0700
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1700
          * @tc.desc mPreference.put()
          * @tc.size MediumTest
@@ -257,7 +257,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.put()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0800
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1500
          * @tc.desc mPreference.put()
          * @tc.size MediumTest
@@ -282,7 +282,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.delete()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_0900
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0500
          * @tc.desc mPreference.delete()
          * @tc.size MediumTest
@@ -308,7 +308,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.delete()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1000
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0400
          * @tc.desc mPreference.delete()
          * @tc.size MediumTest
@@ -333,7 +333,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.clear()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1100
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0300
          * @tc.desc mPreference.clear()
          * @tc.size MediumTest
@@ -358,7 +358,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.flush()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1200
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0600
          * @tc.desc mPreference.flush()
          * @tc.size MediumTest
@@ -383,7 +383,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.on()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1300
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_0100
          * @tc.desc mPreference.on()
          * @tc.size MediumTest
@@ -411,7 +411,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.on()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1400
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1600
          * @tc.desc mPreference.on()
          * @tc.size MediumTest
@@ -437,7 +437,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name mPreference.off()
+         * @tc.name SUB_DDM_JSPREFERENCEV9_CALLBACK_1500
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1400
          * @tc.desc mPreference.off()
          * @tc.size MediumTest
@@ -461,7 +461,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name  mPreference.off()
+         * @tc.name  SUB_DDM_JSPREFERENCEV9_CALLBACK_1600
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1200
          * @tc.desc  mPreference.off()
          * @tc.size MediumTest
@@ -487,7 +487,7 @@ export default function preferencesV9CallbackTest(){
         })
 
         /**
-         * @tc.name  mPreference.off()
+         * @tc.name  SUB_DDM_JSPREFERENCEV9_CALLBACK_1700
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceV9JsApiCallbackTest_1300
          * @tc.desc  mPreference.off()
          * @tc.size MediumTest

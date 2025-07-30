@@ -52,7 +52,7 @@ describe('relationalStoreDeleteTest', function () {
     console.info(TAG + '*************Unit Test Begin*************');
     
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0100
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest
@@ -104,7 +104,7 @@ describe('relationalStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0002
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0200
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest
@@ -157,7 +157,7 @@ describe('relationalStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0003
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0300
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest
@@ -214,7 +214,7 @@ describe('relationalStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0004
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0400
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest
@@ -267,7 +267,7 @@ describe('relationalStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0005
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0500
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest
@@ -321,7 +321,7 @@ describe('relationalStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name RelationalStore delete test
+     * @tc.name testRdbStoreDelete0006
      * @tc.number SUB_DistributedData_RelationalStore_SDK_DeleteJsAPITest_0600
      * @tc.desc RelationalStore delete test
      * @tc.size   : MediumTest

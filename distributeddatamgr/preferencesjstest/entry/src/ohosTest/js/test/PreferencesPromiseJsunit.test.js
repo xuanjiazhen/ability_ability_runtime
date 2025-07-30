@@ -50,7 +50,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put StringArray promise interface test
+         * @tc.name testPreferencesPutStringArray0131
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0800
          * @tc.desc put StringArray promise interface test
          * @tc.size MediumTest
@@ -73,7 +73,7 @@ export default function preferencesPromiseTest(){
         });
 
         /**
-         * @tc.name put NumberArray promise interface test
+         * @tc.name testPreferencesPutNumberArray0132
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0700
          * @tc.desc put NumberArray promise interface test
          * @tc.size MediumTest
@@ -96,7 +96,7 @@ export default function preferencesPromiseTest(){
         });
 
         /**
-         * @tc.name put BoolArray promise interface test
+         * @tc.name testPreferencesPutBoolArray0133
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0600
          * @tc.desc put BoolArray promise interface test
          * @tc.size MediumTest
@@ -119,7 +119,7 @@ export default function preferencesPromiseTest(){
         });
 
         /**
-         * @tc.name getAll promise interface test
+         * @tc.name testPreferencesGetAll0001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1000
          * @tc.desc getAll promise interface test
          * @tc.size MediumTest
@@ -166,7 +166,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name clear promise interface test
+         * @tc.name testPreferencesClear0011
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_2100
          * @tc.desc clear promise interface test
          * @tc.size MediumTest
@@ -187,7 +187,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name has string interface test
+         * @tc.name testPreferencesHasKey0031
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0900
          * @tc.desc has string interface test
          * @tc.size MediumTest
@@ -206,7 +206,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name has int interface test
+         * @tc.name testPreferencesHasKey0032
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1700
          * @tc.desc has int interface test
          * @tc.size MediumTest
@@ -226,7 +226,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name has float interface test
+         * @tc.name testPreferencesHasKey0033
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1500
          * @tc.desc has float interface test
          * @tc.size MediumTest
@@ -245,7 +245,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name has boolean interface test
+         * @tc.name testPreferencesHasKey0034
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1300
          * @tc.desc has boolean interface test
          * @tc.size MediumTest
@@ -264,7 +264,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name has long interface test
+         * @tc.name testPreferencesHasKey0035
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1800
          * @tc.desc has long interface test
          * @tc.size MediumTest
@@ -284,7 +284,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get string promise interface test
+         * @tc.name testPreferencesGetDefValue0061
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1100
          * @tc.desc get string promise interface test
          * @tc.size MediumTest
@@ -303,7 +303,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get float promise interface test
+         * @tc.name testPreferencesGetFloat0071
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1400
          * @tc.desc get float promise interface test
          * @tc.size MediumTest
@@ -323,7 +323,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get int promise interface test
+         * @tc.name testPreferencesGetInt0081
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1600
          * @tc.desc get int promise interface test
          * @tc.size MediumTest
@@ -343,7 +343,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get long promise interface test
+         * @tc.name testPreferencesGetLong0091
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1900
          * @tc.desc get long promise interface test
          * @tc.size MediumTest
@@ -363,7 +363,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get String promise interface test
+         * @tc.name tesPreferencesGetString101
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_2000
          * @tc.desc get String promise interface test
          * @tc.size MediumTest
@@ -384,7 +384,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put boolean promise interface test
+         * @tc.name testPreferencesPutBoolean0121
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0100
          * @tc.desc put boolean promise interface test
          * @tc.size MediumTest
@@ -403,7 +403,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put float promise interface test
+         * @tc.name testPreferencesPutFloat0131
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0200
          * @tc.desc put float promise interface test
          * @tc.size MediumTest
@@ -422,7 +422,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put int promise interface test
+         * @tc.name testPreferencesPutInt0141
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0300
          * @tc.desc put int promise interface test
          * @tc.size MediumTest
@@ -441,7 +441,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put long promise interface test
+         * @tc.name testPreferencesPutLong0151
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0400
          * @tc.desc put long promise interface test
          * @tc.size MediumTest
@@ -459,7 +459,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name put String promise interface test
+         * @tc.name testPreferencesPutString0161
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_0500
          * @tc.desc put String promise interface test
          * @tc.size MediumTest
@@ -477,7 +477,7 @@ export default function preferencesPromiseTest(){
         })
 
         /**
-         * @tc.name get string promise interface test
+         * @tc.name testPreferencesGetDefValue00162
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceJsApiPromiseTest_1200
          * @tc.desc get string promise interface test
          * @tc.size MediumTest

@@ -12,19 +12,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import SingleKvStorePromiseTest from './SingleKvStoreKVPromiseJsTest.js'
-import deviceKvStoreCallbackTest from './DeviceKvStoreKVCallbackJsTest.js'
-import deviceKvStorePromiseTest from './DeviceKvStoreKVPromiseJsTest.js'
-import kvManagerCallbackTest from './KvManagerKVCallbackJsTest.js'
-import KVManagerPromiseTest from './KvManagerKVPromiseJsTest.js'
-import KvStoreResultSetTest from './KvStoreResultSetKVJsTest.js'
-import queryTest from './QueryKVJsTest.js'
-import SingleKvStoreCallbackTest from './SingleKvStoreKVCallbackJsTest.js'
-import FieldNodeTest from './FieldNodeJsTest.js'
-import schemaTest from './SchemaJsTest.js'
-import singleKvStoreEnumTest from './SingleKvStoreEnumJsTest.js'
-import kvStoreBackupPromiseJsunittest from './KvStoreBackupPromiseJsTest.js'
-import kvStoreBackupCallbackJsunittest from './KvStoreBackupCallbackJsTest.js'
+import SingleKvStorePromiseTest from './SingleKvStoreKVPromiseJsTest.test.js'
+import deviceKvStoreCallbackTest from './DeviceKvStoreKVCallbackJsTest.test.js'
+import deviceKvStorePromiseTest from './DeviceKvStoreKVPromiseJsTest.test.js'
+import kvManagerCallbackTest from './KvManagerKVCallbackJsTest.test.js'
+import KVManagerPromiseTest from './KvManagerKVPromiseJsTest.test.js'
+import KvStoreResultSetTest from './KvStoreResultSetKVJsTest.test.js'
+import queryTest from './QueryKVJsTest.test.js'
+import SingleKvStoreCallbackTest from './SingleKvStoreKVCallbackJsTest.test.js'
+import FieldNodeTest from './FieldNodeJsTest.test.js'
+import schemaTest from './SchemaJsTest.test.js'
+import singleKvStoreEnumTest from './SingleKvStoreEnumJsTest.test.js'
+import kvStoreBackupPromiseJsunittest from './KvStoreBackupPromiseJsTest.test.js'
+import kvStoreBackupCallbackJsunittest from './KvStoreBackupCallbackJsTest.test.js'
 export default function testsuite() {
     SingleKvStorePromiseTest()
     deviceKvStoreCallbackTest()

@@ -134,7 +134,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0100
-     * @tc.name [JS-API8]KvStoreResultSet.GetCount()
+     * @tc.name testKvStoreResultSetGetCount001
      * @tc.desc Test Js Api KvStoreResultSet.GetCount()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -154,7 +154,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0200
-     * @tc.name [JS-API8]KvStoreResultSet.GetCount()
+     * @tc.name testKvStoreResultSetGetCount002
      * @tc.desc Test Js Api KvStoreResultSet.GetCount()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -186,7 +186,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0300
-     * @tc.name [JS-API8]KvStoreResultSet.GetCount()
+     * @tc.name testKvStoreResultSetGetCount003
      * @tc.desc Test Js Api KvStoreResultSet.GetCount()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -205,7 +205,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0400
-     * @tc.name [JS-API8]KvStoreResultSet.GetCount()
+     * @tc.name testKvStoreResultSetGetCount004
      * @tc.desc Test Js Api KvStoreResultSet.GetCount()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -224,7 +224,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0900
-     * @tc.name [JS-API8]KvStoreResultSet.GetPosition()
+     * @tc.name testKvStoreResultSetGetPosition001
      * @tc.desc Test Js Api KvStoreResultSet.GetPosition()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -244,7 +244,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1000
-     * @tc.name [JS-API8]KvStoreResultSet.GetPosition()
+     * @tc.name testKvStoreResultSetGetPosition002
      * @tc.desc Test Js Api KvStoreResultSet.GetPosition()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -268,7 +268,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1100
-     * @tc.name [JS-API8]KvStoreResultSet.GetPosition()
+     * @tc.name testKvStoreResultSetGetPosition003
      * @tc.desc Test Js Api KvStoreResultSet.GetPosition()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -287,7 +287,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1200
-     * @tc.name [JS-API8]KvStoreResultSet.GetPosition()
+     * @tc.name testKvStoreResultSetGetPosition004
      * @tc.desc Test Js Api KvStoreResultSet.GetPosition()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -306,7 +306,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3300
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToFirst()
+     * @tc.name testKvStoreResultSetMoveToFirst001
      * @tc.desc Test Js Api KvStoreResultSet.MoveToFirst()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -326,7 +326,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3400
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToFirst()
+     * @tc.name testKvStoreResultSetMoveToFirst002
      * @tc.desc Test Js Api KvStoreResultSet.MoveToFirst()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -349,7 +349,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3500
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToFirst()
+     * @tc.name testKvStoreResultSetMoveToFirst003
      * @tc.desc Test Js Api KvStoreResultSet.MoveToFirst()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -368,7 +368,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3600
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToFirst()
+     * @tc.name testKvStoreResultSetMoveToFirst004
      * @tc.desc Test Js Api KvStoreResultSet.MoveToFirst()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -387,7 +387,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3700
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToFirst()
+     * @tc.name testKvStoreResultSetMoveToFirst005
      * @tc.desc Test Js Api KvStoreResultSet.MoveToFirst()testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -408,7 +408,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3800
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToLast()
+     * @tc.name testKvStoreResultSetMoveToLast001
      * @tc.desc Test Js Api KvStoreResultSet.MoveToLast()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -428,7 +428,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3900
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToLast()
+     * @tc.name testKvStoreResultSetMoveToLast002
      * @tc.desc Test Js Api KvStoreResultSet.MoveToLast()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -448,7 +448,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4000
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToLast()
+     * @tc.name testKvStoreResultSetMoveToLast003
      * @tc.desc Test Js Api KvStoreResultSet.MoveToLast()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -467,7 +467,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4100
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToLast()
+     * @tc.name testKvStoreResultSetMoveToLast004
      * @tc.desc Test Js Api KvStoreResultSet.MoveToLast()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -486,7 +486,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4200
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToNext()
+     * @tc.name testKvStoreResultSetMoveToNext001
      * @tc.desc Test Js Api KvStoreResultSet.MoveToNext()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -506,7 +506,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4300
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToNext()
+     * @tc.name testKvStoreResultSetMoveToNext002
      * @tc.desc Test Js Api KvStoreResultSet.MoveToNext()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -528,7 +528,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4400
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToNext()
+     * @tc.name testKvStoreResultSetMoveToNext003
      * @tc.desc Test Js Api KvStoreResultSet.MoveToNext()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -547,7 +547,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4500
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToNext()
+     * @tc.name testKvStoreResultSetMoveToNext004
      * @tc.desc Test Js Api KvStoreResultSet.MoveToNext()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -566,7 +566,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_5000
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPrevious()
+     * @tc.name testKvStoreResultSetMoveToPrevious001
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPrevious()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -586,7 +586,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_5100
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPrevious()
+     * @tc.name testKvStoreResultSetMoveToPrevious002
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPrevious()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -611,7 +611,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_5200
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPrevious()
+     * @tc.name testKvStoreResultSetMoveToPrevious003
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPrevious()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -630,7 +630,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_5300
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPrevious()
+     * @tc.name testKvStoreResultSetMoveToPrevious004
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPrevious()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -649,7 +649,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_5400
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPrevious()
+     * @tc.name testKvStoreResultSetMoveToPrevious005
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPrevious()testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -673,7 +673,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2900
-     * @tc.name [JS-API8]KvStoreResultSet.Move()
+     * @tc.name testKvStoreResultSetMove001
      * @tc.desc Test Js Api KvStoreResultSet.Move()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -692,7 +692,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3000
-     * @tc.name [JS-API8]KvStoreResultSet.Move()
+     * @tc.name testKvStoreResultSetMove002
      * @tc.desc Test Js Api KvStoreResultSet.Move()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -715,7 +715,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3100
-     * @tc.name [JS-API8]KvStoreResultSet.Move()
+     * @tc.name testKvStoreResultSetMove003
      * @tc.desc Test Js Api KvStoreResultSet.Move()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -739,7 +739,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_3200
-     * @tc.name [JS-API8]KvStoreResultSet.Move()
+     * @tc.name testKvStoreResultSetMove004
      * @tc.desc Test Js Api KvStoreResultSet.Move()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -758,7 +758,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4600
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPosition()
+     * @tc.name testKvStoreResultSetMoveToPosition001
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPosition()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -777,7 +777,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4700
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPosition()
+     * @tc.name testKvStoreResultSetMoveToPosition002
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPosition()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -796,7 +796,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4800
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPosition()
+     * @tc.name testKvStoreResultSetMoveToPosition003
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPosition()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -815,7 +815,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_4900
-     * @tc.name [JS-API8]KvStoreResultSet.MoveToPosition()
+     * @tc.name testKvStoreResultSetMoveToPosition004
      * @tc.desc Test Js Api KvStoreResultSet.MoveToPosition()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -837,7 +837,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2100
-     * @tc.name [JS-API8]KvStoreResultSet.IsFirst()
+     * @tc.name testKvStoreResultSetIsFirst001
      * @tc.desc Test Js Api KvStoreResultSet.IsFirst()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -857,7 +857,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2200
-     * @tc.name [JS-API8]KvStoreResultSet.IsFirst()
+     * @tc.name testKvStoreResultSetIsFirst002
      * @tc.desc Test Js Api KvStoreResultSet.IsFirst()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -881,7 +881,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2300
-     * @tc.name [JS-API8]KvStoreResultSet.IsFirst()
+     * @tc.name testKvStoreResultSetIsFirst003
      * @tc.desc Test Js Api KvStoreResultSet.IsFirst()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -900,7 +900,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2400
-     * @tc.name [JS-API8]KvStoreResultSet.IsFirst()
+     * @tc.name testKvStoreResultSetIsFirst004
      * @tc.desc Test Js Api KvStoreResultSet.IsFirst()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -919,7 +919,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2500
-     * @tc.name [JS-API8]KvStoreResultSet.IsLast()
+     * @tc.name testKvStoreResultSetIsLast001
      * @tc.desc Test Js Api KvStoreResultSet.IsLast()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -939,7 +939,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2600
-     * @tc.name [JS-API8]KvStoreResultSet.IsLast()
+     * @tc.name testKvStoreResultSetIsLast002
      * @tc.desc Test Js Api KvStoreResultSet.IsLast()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -960,7 +960,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2700
-     * @tc.name [JS-API8]KvStoreResultSet.IsLast()
+     * @tc.name testKvStoreResultSetIsLast003
      * @tc.desc Test Js Api KvStoreResultSet.IsLast()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -979,7 +979,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2800
-     * @tc.name [JS-API8]KvStoreResultSet.IsLast()
+     * @tc.name testKvStoreResultSetIsLast004
      * @tc.desc Test Js Api KvStoreResultSet.IsLast()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -998,7 +998,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1700
-     * @tc.name [JS-API8]KvStoreResultSet.IsBeforeFirst()
+     * @tc.name testKvStoreResultSetIsBeforeFirst001
      * @tc.desc Test Js Api KvStoreResultSet.IsBeforeFirst()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1018,7 +1018,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1800
-     * @tc.name [JS-API8]KvStoreResultSet.IsBeforeFirst()
+     * @tc.name testKvStoreResultSetIsBeforeFirst002
      * @tc.desc Test Js Api KvStoreResultSet.IsBeforeFirst()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1040,7 +1040,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1900
-     * @tc.name [JS-API8]KvStoreResultSet.IsBeforeFirst()
+     * @tc.name testKvStoreResultSetIsBeforeFirst003
      * @tc.desc Test Js Api KvStoreResultSet.IsBeforeFirst()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1059,7 +1059,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_2000
-     * @tc.name [JS-API8]KvStoreResultSet.IsBeforeFirst()
+     * @tc.name testKvStoreResultSetIsBeforeFirst004
      * @tc.desc Test Js Api KvStoreResultSet.IsBeforeFirst()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1078,7 +1078,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1300
-     * @tc.name [JS-API8]KvStoreResultSet.IsAfterLast()
+     * @tc.name testKvStoreResultSetIsAfterLast001
      * @tc.desc Test Js Api KvStoreResultSet.IsAfterLast()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1098,7 +1098,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1400
-     * @tc.name [JS-API8]KvStoreResultSet.IsAfterLast()
+     * @tc.name testKvStoreResultSetIsAfterLast002
      * @tc.desc Test Js Api KvStoreResultSet.IsAfterLast()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1124,7 +1124,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1500
-     * @tc.name [JS-API8]KvStoreResultSet.IsAfterLast()
+     * @tc.name testKvStoreResultSetIsAfterLast003
      * @tc.desc Test Js Api KvStoreResultSet.IsAfterLast()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1143,7 +1143,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_1600
-     * @tc.name [JS-API8]KvStoreResultSet.IsAfterLast()
+     * @tc.name testKvStoreResultSetIsAfterLast004
      * @tc.desc Test Js Api KvStoreResultSet.IsAfterLast()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1162,7 +1162,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0500
-     * @tc.name [JS-API8]KvStoreResultSet.GetEntry()
+     * @tc.name testKvStoreResultSetGetEntry001
      * @tc.desc Test Js Api KvStoreResultSet.GetEntry()testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1184,7 +1184,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0600
-     * @tc.name [JS-API8]KvStoreResultSet.GetEntry()
+     * @tc.name testKvStoreResultSetGetEntry002
      * @tc.desc Test Js Api KvStoreResultSet.GetEntry()testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1212,7 +1212,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0700
-     * @tc.name [JS-API8]KvStoreResultSet.GetEntry()
+     * @tc.name testKvStoreResultSetGetEntry003
      * @tc.desc Test Js Api KvStoreResultSet.GetEntry()testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1231,7 +1231,7 @@ describe('kvStoreResultSetTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreResultSetJsApiTest_0800
-     * @tc.name [JS-API8]KvStoreResultSet.GetEntry()
+     * @tc.name testKvStoreResultSetGetEntry004
      * @tc.desc Test Js Api KvStoreResultSet.GetEntry()testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function

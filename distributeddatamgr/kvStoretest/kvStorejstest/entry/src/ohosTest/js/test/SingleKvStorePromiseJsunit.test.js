@@ -123,7 +123,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0670
-     * @tc.name [JS-API8]SingleKvStore.Put(String)
+     * @tc.name testSingleKvStorePutString001
      * @tc.desc Test Js Api SingleKvStore.Put(String)  testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -147,7 +147,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0680
-     * @tc.name [JS-API8]SingleKvStore.Put(String)
+     * @tc.name testSingleKvStorePutString002
      * @tc.desc Test Js Api SingleKvStore.Put(String)  testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -172,7 +172,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0690
-     * @tc.name [JS-API8]SingleKvStore.Put(String)
+     * @tc.name testSingleKvStorePutString003
      * @tc.desc Test Js Api SingleKvStore.Put(String)  testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -197,7 +197,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0700
-     * @tc.name [JS-API8]SingleKvStore.Put(String)
+     * @tc.name testSingleKvStorePutString004
      * @tc.desc Test Js Api SingleKvStore.Put(String)  testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -233,7 +233,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0390
-     * @tc.name [JS-API8]SingleKvStoreGetString.
+     * @tc.name testSingleKvStoreGetString001
      * @tc.desc Test Js Api SingleKvStoreGetString testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -265,7 +265,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0400
-     * @tc.name [JS-API8]SingleKvStoreGetString.
+     * @tc.name testSingleKvStoreGetString002
      * @tc.desc Test Js Api SingleKvStoreGetString testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -288,7 +288,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0630
-     * @tc.name [JS-API8]SingleKvStore.Put(Int)
+     * @tc.name testSingleKvStorePutInt001
      * @tc.desc Test Js Api SingleKvStore.Put(Int)  testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -313,7 +313,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0640
-     * @tc.name [JS-API8]SingleKvStore.Put(Int)
+     * @tc.name testSingleKvStorePutInt002
      * @tc.desc Test Js Api SingleKvStore.Put(Int)  testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -346,7 +346,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0650
-     * @tc.name [JS-API8]SingleKvStore.Put(Int)
+     * @tc.name testSingleKvStorePutInt003
      * @tc.desc Test Js Api SingleKvStore.Put(Int)  testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -379,7 +379,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0660
-     * @tc.name [JS-API8]SingleKvStore.Put(Int)
+     * @tc.name testSingleKvStorePutInt004
      * @tc.desc Test Js Api SingleKvStore.Put(Int)  testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -412,7 +412,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0270
-     * @tc.name [JS-API8]SingleKvStoreGetInt.
+     * @tc.name testSingleKvStoreGetInt001
      * @tc.desc Test Js Api SingleKvStoreGetInt testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -444,7 +444,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0610
-     * @tc.name [JS-API8]SingleKvStore.Put(Bool)
+     * @tc.name testSingleKvStorePutBool001
      * @tc.desc Test Js Api SingleKvStore.Put(Bool)  testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -469,7 +469,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0210
-     * @tc.name [JS-API8]SingleKvStoreGetBool.
+     * @tc.name testSingleKvStoreGetBool001
      * @tc.desc Test Js Api SingleKvStoreGetBool testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -502,7 +502,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0620
-     * @tc.name [JS-API8]SingleKvStore.Put(Float)
+     * @tc.name testSingleKvStorePutFloat001
      * @tc.desc Test Js Api SingleKvStore.Put(Float)  testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -527,7 +527,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0240
-     * @tc.name [JS-API8]SingleKvStoreGetFloat.
+     * @tc.name testSingleKvStoreGetFloat001
      * @tc.desc Test Js Api SingleKvStoreGetFloat testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -560,7 +560,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0250
-     * @tc.name [JS-API8]SingleKvStoreGetFloat.
+     * @tc.name testSingleKvStoreGetFloat002
      * @tc.desc Test Js Api SingleKvStoreGetFloat testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -593,7 +593,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0260
-     * @tc.name [JS-API8]SingleKvStoreGetFloat.
+     * @tc.name testSingleKvStoreGetFloat003
      * @tc.desc Test Js Api SingleKvStoreGetFloat testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -626,7 +626,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0140
-     * @tc.name [JS-API8]SingleKvStoreDeleteString.
+     * @tc.name testSingleKvStoreDeleteString001
      * @tc.desc Test Js Api SingleKvStoreDeleteString testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -659,7 +659,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0150
-     * @tc.name [JS-API8]SingleKvStoreDeleteString.
+     * @tc.name testSingleKvStoreDeleteString002
      * @tc.desc Test Js Api SingleKvStoreDeleteString testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -695,7 +695,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0160
-     * @tc.name [JS-API8]SingleKvStoreDeleteString.
+     * @tc.name testSingleKvStoreDeleteString003
      * @tc.desc Test Js Api SingleKvStoreDeleteString testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -720,7 +720,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0130
-     * @tc.name [JS-API8]SingleKvStoreDeleteInt.
+     * @tc.name testSingleKvStoreDeleteInt001
      * @tc.desc Test Js Api SingleKvStoreDeleteInt testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -752,7 +752,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0120
-     * @tc.name [JS-API8]SingleKvStoreDeleteFloat.
+     * @tc.name testSingleKvStoreDeleteFloat001
      * @tc.desc Test Js Api SingleKvStoreDeleteFloat testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -784,7 +784,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0110
-     * @tc.name [JS-API8]SingleKvStoreDeleteBool.
+     * @tc.name testSingleKvStoreDeleteBool001
      * @tc.desc Test Js Api SingleKvStoreDeleteBool testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -816,7 +816,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0490
-     * @tc.name [JS-API8]SingleKvStoreOnChange.
+     * @tc.name testSingleKvStoreOnChange001
      * @tc.desc Test Js Api SingleKvStoreOnChange testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -844,7 +844,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0500
-     * @tc.name [JS-API8]SingleKvStoreOnChange.
+     * @tc.name testSingleKvStoreOnChange002
      * @tc.desc Test Js Api SingleKvStoreOnChange testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -872,7 +872,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0510
-     * @tc.name [JS-API8]SingleKvStoreOnChange.
+     * @tc.name testSingleKvStoreOnChange003
      * @tc.desc Test Js Api SingleKvStoreOnChange testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -900,7 +900,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0520
-     * @tc.name [JS-API8]SingleKvStoreOnSyncComplete.
+     * @tc.name testSingleKvStoreOnSyncComplete001
      * @tc.desc Test Js Api SingleKvStoreOnSyncComplete testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -935,7 +935,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0530
-     * @tc.name [JS-API8]SingleKvStoreOnSyncComplete.
+     * @tc.name testSingleKvStoreOnSyncComplete002
      * @tc.desc Test Js Api SingleKvStoreOnSyncComplete testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -970,7 +970,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0540
-     * @tc.name [JS-API8]SingleKvStoreOnSyncComplete.
+     * @tc.name testSingleKvStoreOnSyncComplete003
      * @tc.desc Test Js Api SingleKvStoreOnSyncComplete testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1005,7 +1005,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0410
-     * @tc.name [JS-API8]SingleKvStoreOffChange.
+     * @tc.name testSingleKvStoreOffChange001
      * @tc.desc Test Js Api SingleKvStoreOffChange testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1028,7 +1028,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0420
-     * @tc.name [JS-API8]SingleKvStoreOffChange.
+     * @tc.name testSingleKvStoreOffChange002
      * @tc.desc Test Js Api SingleKvStoreOffChange testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1056,7 +1056,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0430
-     * @tc.name [JS-API8]SingleKvStoreOffChange.
+     * @tc.name testSingleKvStoreOffChange003
      * @tc.desc Test Js Api SingleKvStoreOffChange testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1084,7 +1084,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0440
-     * @tc.name [JS-API8]SingleKvStoreOffChange.
+     * @tc.name testSingleKvStoreOffChange004
      * @tc.desc Test Js Api SingleKvStoreOffChange testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1107,7 +1107,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0450
-     * @tc.name [JS-API8]SingleKvStoreOffSyncComplete.
+     * @tc.name testSingleKvStoreOffSyncComplete001
      * @tc.desc Test Js Api SingleKvStoreOffSyncComplete testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1130,7 +1130,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0460
-     * @tc.name [JS-API8]SingleKvStoreOffSyncComplete.
+     * @tc.name testSingleKvStoreOffSyncComplete002
      * @tc.desc Test Js Api SingleKvStoreOffSyncComplete testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1157,7 +1157,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0470
-     * @tc.name [JS-API8]SingleKvStoreOffSyncComplete.
+     * @tc.name testSingleKvStoreOffSyncComplete003
      * @tc.desc Test Js Api SingleKvStoreOffSyncComplete testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1185,7 +1185,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0480
-     * @tc.name [JS-API8]SingleKvStoreOffSyncComplete.
+     * @tc.name testSingleKvStoreOffSyncComplete004
      * @tc.desc Test Js Api SingleKvStoreOffSyncComplete testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1208,7 +1208,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0820
-     * @tc.name [JS-API8]SingleKvStoreSetSyncRange.
+     * @tc.name testSingleKvStoreSetSyncRange001
      * @tc.desc Test Js Api SingleKvStoreSetSyncRange testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1235,7 +1235,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0830
-     * @tc.name [JS-API8]SingleKvStoreSetSyncRange.
+     * @tc.name testSingleKvStoreSetSyncRange002
      * @tc.desc Test Js Api SingleKvStoreSetSyncRange testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1262,7 +1262,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0840
-     * @tc.name [JS-API8]SingleKvStoreSetSyncRange.
+     * @tc.name testSingleKvStoreSetSyncRange003
      * @tc.desc Test Js Api SingleKvStoreSetSyncRange testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1289,7 +1289,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0550
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch001
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1325,7 +1325,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0560
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch002
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1371,7 +1371,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0570
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch003
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1417,7 +1417,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0580
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch004
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1463,7 +1463,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0590
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch005
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1510,7 +1510,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0600
-     * @tc.name [JS-API8]SingleKvStore.PutBatch()
+     * @tc.name testSingleKvStorePutBatch006
      * @tc.desc Test Js Api SingleKvStore.PutBatch()  testcase 006
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1557,7 +1557,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0080
-     * @tc.name [JS-API8]SingleKvStoreDeleteBatch.
+     * @tc.name testSingleKvStoreDeleteBatch001
      * @tc.desc Test Js Api SingleKvStoreDeleteBatch testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1604,7 +1604,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0090
-     * @tc.name [JS-API8]SingleKvStoreDeleteBatch.
+     * @tc.name testSingleKvStoreDeleteBatch002
      * @tc.desc Test Js Api SingleKvStoreDeleteBatch testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1629,7 +1629,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0100
-     * @tc.name [JS-API8]SingleKvStoreDeleteBatch.
+     * @tc.name testSingleKvStoreDeleteBatch003
      * @tc.desc Test Js Api SingleKvStoreDeleteBatch testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1674,7 +1674,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0850
-     * @tc.name [JS-API8]SingleKvStorestartTransaction.
+     * @tc.name testSingleKvStorestartTransaction001
      * @tc.desc Test Js Api SingleKvStorestartTransaction testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1730,7 +1730,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0860
-     * @tc.name [JS-API8]SingleKvStorestartTransaction.
+     * @tc.name testSingleKvStorestartTransaction002
      * @tc.desc Test Js Api SingleKvStorestartTransaction testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1786,7 +1786,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0870
-     * @tc.name [JS-API8]SingleKvStorestartTransaction.
+     * @tc.name testSingleKvStorestartTransaction003
      * @tc.desc Test Js Api SingleKvStorestartTransaction testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1809,7 +1809,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0880
-     * @tc.name [JS-API8]SingleKvStorestartTransaction.
+     * @tc.name testSingleKvStorestartTransaction004
      * @tc.desc Test Js Api SingleKvStorestartTransaction testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1832,7 +1832,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0890
-     * @tc.name [JS-API8]SingleKvStorestartTransaction.
+     * @tc.name testSingleKvStorestartTransaction005
      * @tc.desc Test Js Api SingleKvStorestartTransaction testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1855,7 +1855,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0050
-     * @tc.name [JS-API8]SingleKvStoreCommit.
+     * @tc.name testSingleKvStoreCommit001
      * @tc.desc Test Js Api SingleKvStoreCommit testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1878,7 +1878,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0060
-     * @tc.name [JS-API8]SingleKvStoreCommit.
+     * @tc.name testSingleKvStoreCommit002
      * @tc.desc Test Js Api SingleKvStoreCommit testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1901,7 +1901,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0070
-     * @tc.name [JS-API8]SingleKvStoreCommit.
+     * @tc.name testSingleKvStoreCommit003
      * @tc.desc Test Js Api SingleKvStoreCommit testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1924,7 +1924,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0750
-     * @tc.name [JS-API8]SingleKvStoreRollback.
+     * @tc.name testSingleKvStoreRollback001
      * @tc.desc Test Js Api SingleKvStoreRollback testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1947,7 +1947,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0760
-     * @tc.name [JS-API8]SingleKvStoreRollback.
+     * @tc.name testSingleKvStoreRollback002
      * @tc.desc Test Js Api SingleKvStoreRollback testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1970,7 +1970,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0770
-     * @tc.name [JS-API8]SingleKvStoreRollback.
+     * @tc.name testSingleKvStoreRollback003
      * @tc.desc Test Js Api SingleKvStoreRollback testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1993,7 +1993,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0170
-     * @tc.name [JS-API8]SingleKvStoreEnableSync.
+     * @tc.name testSingleKvStoreEnableSync001
      * @tc.desc Test Js Api SingleKvStoreEnableSync testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2018,7 +2018,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0180
-     * @tc.name [JS-API8]SingleKvStoreEnableSync.
+     * @tc.name testSingleKvStoreEnableSync002
      * @tc.desc Test Js Api SingleKvStoreEnableSync testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2043,7 +2043,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0190
-     * @tc.name [JS-API8]SingleKvStoreEnableSync.
+     * @tc.name testSingleKvStoreEnableSync003
      * @tc.desc Test Js Api SingleKvStoreEnableSync testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2066,7 +2066,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0200
-     * @tc.name [JS-API8]SingleKvStoreEnableSync.
+     * @tc.name testSingleKvStoreEnableSync004
      * @tc.desc Test Js Api SingleKvStoreEnableSync testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2088,8 +2088,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0710
-     * @tc.name [JS-API8]SingleKvStoreRemoveDeviceData.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0711
+     * @tc.name testSingleKvStoreRemoveDeviceData001
      * @tc.desc Test Js Api SingleKvStoreRemoveDeviceData testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2127,8 +2127,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0720
-     * @tc.name [JS-API8]SingleKvStoreRemoveDeviceData.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0721
+     * @tc.name testSingleKvStoreRemoveDeviceData002
      * @tc.desc Test Js Api SingleKvStoreRemoveDeviceData testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2150,8 +2150,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0730
-     * @tc.name [JS-API8]SingleKvStoreRemoveDeviceData.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0731
+     * @tc.name testSingleKvStoreRemoveDeviceData003
      * @tc.desc Test Js Api SingleKvStoreRemoveDeviceData testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2174,8 +2174,8 @@ describe('singleKvStorePromiseTest', function () {
 
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0740
-     * @tc.name [JS-API8]SingleKvStoreRemoveDeviceData.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0741
+     * @tc.name testSingleKvStoreRemoveDeviceData004
      * @tc.desc Test Js Api SingleKvStoreRemoveDeviceData testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2197,8 +2197,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0780
-     * @tc.name [JS-API8]SingleKvStoreSetSyncParam.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0781
+     * @tc.name testSingleKvStoreSetSyncParam001
      * @tc.desc Test Js Api SingleKvStoreSetSyncParam testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2223,8 +2223,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0790
-     * @tc.name [JS-API8]SingleKvStoreSetSyncParam.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0791
+     * @tc.name testSingleKvStoreSetSyncParam002
      * @tc.desc Test Js Api SingleKvStoreSetSyncParam testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2246,8 +2246,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0800
-     * @tc.name [JS-API8]SingleKvStoreSetSyncParam.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0801
+     * @tc.name testSingleKvStoreSetSyncParam003
      * @tc.desc Test Js Api SingleKvStoreSetSyncParam testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2269,8 +2269,8 @@ describe('singleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0810
-     * @tc.name [JS-API8]SingleKvStoreSetSyncParam.
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0811
+     * @tc.name testSingleKvStoreSetSyncParam004
      * @tc.desc Test Js Api SingleKvStoreSetSyncParam testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2293,7 +2293,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DISTRIBUTEDDATAMGR_SINGLEKVSTORE_GETSECURITYLEVEL_0100
-     * @tc.name [JS-API8]SingleKvStoreGetSecurityLevel.
+     * @tc.name testSingleKvStoreGetSecurityLevel001
      * @tc.desc Test Js Api SingleKvStoreGetSecurityLevel testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2318,7 +2318,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0360
-     * @tc.name [JS-API8]SingleKvStoreGetSecurityLevel.
+     * @tc.name testSingleKvStoreGetSecurityLevel002
      * @tc.desc Test Js Api SingleKvStoreGetSecurityLevel testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2341,7 +2341,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0370
-     * @tc.name [JS-API8]SingleKvStoreGetSecurityLevel.
+     * @tc.name testSingleKvStoreGetSecurityLevel003
      * @tc.desc Test Js Api SingleKvStoreGetSecurityLevel testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2364,7 +2364,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0380
-     * @tc.name [JS-API8]SingleKvStoreGetSecurityLevel.
+     * @tc.name testSingleKvStoreGetSecurityLevel004
      * @tc.desc Test Js Api SingleKvStoreGetSecurityLevel testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2387,7 +2387,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0280
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet001
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2440,7 +2440,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0290
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet002
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2474,7 +2474,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0300
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet003
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2499,7 +2499,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0310
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet004
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2524,7 +2524,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0320
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet005
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2579,7 +2579,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0330
-     * @tc.name [JS-API8]SingleKvStoreGetResultSet.
+     * @tc.name testSingleKvStoreGetResultSet006
      * @tc.desc Test Js Api SingleKvStoreGetResultSet testcase 006
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2634,7 +2634,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0010
-     * @tc.name [JS-API8]SingleKvStoreCloseResultSet.
+     * @tc.name testSingleKvStoreCloseResultSet001
      * @tc.desc Test Js Api SingleKvStoreCloseResultSet testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2660,7 +2660,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0020
-     * @tc.name [JS-API8]SingleKvStoreCloseResultSet.
+     * @tc.name testSingleKvStoreCloseResultSet002
      * @tc.desc Test Js Api SingleKvStoreCloseResultSet testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2694,7 +2694,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0030
-     * @tc.name [JS-API8]SingleKvStoreCloseResultSet.
+     * @tc.name testSingleKvStoreCloseResultSet003
      * @tc.desc Test Js Api SingleKvStoreCloseResultSet testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2720,7 +2720,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0040
-     * @tc.name [JS-API8]SingleKvStoreCloseResultSet.
+     * @tc.name testSingleKvStoreCloseResultSet004
      * @tc.desc Test Js Api SingleKvStoreCloseResultSet testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2739,7 +2739,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0340
-     * @tc.name [JS-API8]SingleKvStoreGetResultSize.
+     * @tc.name testSingleKvStoreGetResultSize001
      * @tc.desc Test Js Api SingleKvStoreGetResultSize testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2785,7 +2785,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0350
-     * @tc.name [JS-API8]SingleKvStoreGetResultSize.
+     * @tc.name testSingleKvStoreGetResultSize002
      * @tc.desc Test Js Api SingleKvStoreGetResultSize testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2831,7 +2831,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0220
-     * @tc.name [JS-API8]SingleKvStoreGetEntries.
+     * @tc.name testSingleKvStoreGetEntries001
      * @tc.desc Test Js Api SingleKvStoreGetEntries testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2881,7 +2881,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0230
-     * @tc.name [JS-API8]SingleKvStoreGetEntries.
+     * @tc.name testSingleKvStoreGetEntries002
      * @tc.desc Test Js Api SingleKvStoreGetEntries testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2931,7 +2931,7 @@ describe('singleKvStorePromiseTest', function () {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0900
-     * @tc.name [JS-API8]SingleKvStoreChangeNotification.
+     * @tc.name testSingleKvStoreChangeNotification101
      * @tc.desc Test Js Api SingleKvStoreChangeNotification testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2957,7 +2957,7 @@ describe('singleKvStorePromiseTest', function () {
 	
     /**
     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0910
-    * @tc.name [JS-API8]SingleKvStoreChangeNotification.
+    * @tc.name testSingleKvStoreChangeNotification102
     * @tc.desc Test Js Api SingleKvStoreChangeNotification testcase 002
     * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2986,7 +2986,7 @@ describe('singleKvStorePromiseTest', function () {
 	
     /**
     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvStoreJsApiTest_0920
-    * @tc.name [JS-API8]SingleKvStoreChangeNotification.
+    * @tc.name testSingleKvStoreChangeNotification103
     * @tc.desc Test Js Api SingleKvStoreChangeNotification testcase 003
     * @tc.size   : MediumTest
      * @tc.type   : Function

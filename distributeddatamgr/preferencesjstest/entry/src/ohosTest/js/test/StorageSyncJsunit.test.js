@@ -44,7 +44,7 @@ export default function storageSyncTest() {
             storage.deleteStorageSync(PATH);
         })
         /**
-         * @tc.name Clear test
+         * @tc.name testClear001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiCallbackTest_0100
          * @tc.desc Clear test
          * @tc.size MediumTest
@@ -61,7 +61,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name Constructor test
+         * @tc.name testConstructor002
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0100
          * @tc.desc Constructor test
          * @tc.size MediumTest
@@ -73,7 +73,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put string sync interface test
+         * @tc.name testHasKey003
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_2000
          * @tc.desc put string sync interface test
          * @tc.size MediumTest
@@ -86,7 +86,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put int sync interface test
+         * @tc.name testHasKey004
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1800
          * @tc.desc put int sync interface test
          * @tc.size MediumTest
@@ -99,7 +99,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put boolean sync interface test
+         * @tc.name testHasKey005
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1600
          * @tc.desc put boolean sync interface test
          * @tc.size MediumTest
@@ -112,7 +112,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put long sync interface test
+         * @tc.name testHasKey006
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1900
          * @tc.desc put long sync interface test
          * @tc.size MediumTest
@@ -125,7 +125,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put float sync interface test
+         * @tc.name testHasKey007
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1700
          * @tc.desc put float sync interface test
          * @tc.size MediumTest
@@ -138,7 +138,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put boolean sync interface test
+         * @tc.name testGetBoolean005
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1500
          * @tc.desc put boolean sync interface test
          * @tc.size MediumTest
@@ -151,7 +151,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name get defaultValue sync interface test
+         * @tc.name testGetDefValue006
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0300
          * @tc.desc get defaultValue sync interface test
          * @tc.size MediumTest
@@ -168,7 +168,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put float sync interface test
+         * @tc.name testGetFloat007
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0400
          * @tc.desc put float sync interface test
          * @tc.size MediumTest
@@ -183,7 +183,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put int sync interface test
+         * @tc.name testGetInt008
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0600
          * @tc.desc put int sync interface test
          * @tc.size MediumTest
@@ -197,7 +197,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put long sync interface test
+         * @tc.name testGetLong009
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0800
          * @tc.desc put long sync interface test
          * @tc.size MediumTest
@@ -212,7 +212,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put String & int sync interface test
+         * @tc.name testGetString10
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1000
          * @tc.desc put String & int sync interface test
          * @tc.size MediumTest
@@ -229,7 +229,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put boolean sync interface test
+         * @tc.name testPutBoolean012
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0200
          * @tc.desc put boolean sync interface test
          * @tc.size MediumTest
@@ -245,7 +245,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put float sync interface test
+         * @tc.name testPutFloat013
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0500
          * @tc.desc put float sync interface test
          * @tc.size MediumTest
@@ -261,7 +261,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put int sync interface test
+         * @tc.name testPutInt014
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0700
          * @tc.desc put int sync interface test
          * @tc.size MediumTest
@@ -277,7 +277,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put long sync interface test
+         * @tc.name testPutLong015
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_0900
          * @tc.desc put long sync interface test
          * @tc.size MediumTest
@@ -293,7 +293,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put String sync interface test
+         * @tc.name testPutString016
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1100
          * @tc.desc put String sync interface test
          * @tc.size MediumTest
@@ -310,7 +310,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name put interface test
+         * @tc.name testRegisterObserver001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1200
          * @tc.desc put interface test
          * @tc.size MediumTest
@@ -327,7 +327,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name repeat on interface test
+         * @tc.name testRegisterObserver002
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1300
          * @tc.desc repeat on interface test
          * @tc.size MediumTest
@@ -346,7 +346,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name off interface test
+         * @tc.name testUnRegisterObserver001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiAsyncTest_1400
          * @tc.desc off interface test
          * @tc.size MediumTest
@@ -364,7 +364,7 @@ export default function storageSyncTest() {
         })
 
         /**
-         * @tc.name get defaultValue callback interface test
+         * @tc.name testGetDefValue001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageJsApiCallbackTest_0600
          * @tc.desc get defaultValue callback interface test
          * @tc.size MediumTest

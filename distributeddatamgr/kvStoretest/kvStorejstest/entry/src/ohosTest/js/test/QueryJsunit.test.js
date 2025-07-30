@@ -20,7 +20,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0960
-     * @tc.name [JS-API8]Query.Reset().
+     * @tc.name testReset001
      * @tc.desc Test Js Api Query.Reset() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -47,7 +47,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0970
-     * @tc.name [JS-API8]Query.Reset().
+     * @tc.name testReset002
      * @tc.desc Test Js Api Query.Reset() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -79,7 +79,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0980
-     * @tc.name [JS-API8]Query.Reset().
+     * @tc.name testReset003
      * @tc.desc Test Js Api Query.Reset() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -106,7 +106,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0990
-     * @tc.name [JS-API8]Query.Reset().
+     * @tc.name testReset004
      * @tc.desc Test Js Api Query.Reset() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -131,7 +131,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0170
-     * @tc.name [JS-API8]Query.EqaulTo().
+     * @tc.name testEqaulTo001
      * @tc.desc Test Js Api Query.EqaulTo() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -158,7 +158,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0180
-     * @tc.name [JS-API8]Query.EqualTo().
+     * @tc.name testEqualTo002
      * @tc.desc Test Js Api Query.EqualTo() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -182,7 +182,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0190
-     * @tc.name [JS-API8]Query.EqualTo().
+     * @tc.name testEqualTo003
      * @tc.desc Test Js Api Query.EqualTo() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -205,7 +205,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0200
-     * @tc.name [JS-API8]Query.EqualTo().
+     * @tc.name testEqualTo004
      * @tc.desc Test Js Api Query.EqualTo() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -229,7 +229,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0680
-     * @tc.name [JS-API8]Query.NotEqualTo().
+     * @tc.name testNotEqualTo001
      * @tc.desc Test Js Api Query.NotEqualTo() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -256,7 +256,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0690
-     * @tc.name [JS-API8]Query.NotEqualTo().
+     * @tc.name testNotEqualTo002
      * @tc.desc Test Js Api Query.NotEqualTo() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -282,7 +282,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0700
-     * @tc.name [JS-API8]Query.NotEqualTo().
+     * @tc.name testNotEqualTo003
      * @tc.desc Test Js Api Query.NotEqualTo() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -305,7 +305,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0710
-     * @tc.name [JS-API8]Query.NotEqualTo().
+     * @tc.name testNotEqualTo004
      * @tc.desc Test Js Api Query.NotEqualTo() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -327,7 +327,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0250
-     * @tc.name [JS-API8]Query.GreaterThan().
+     * @tc.name testGreaterThan001
      * @tc.desc Test Js Api Query.GreaterThan() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -354,7 +354,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0300
-     * @tc.name [JS-API8]Query.GreatThan().
+     * @tc.name testGreatThan002
      * @tc.desc Test Js Api Query.GreatThan() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -380,7 +380,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0310
-     * @tc.name [JS-API8]Query.GreatThan().
+     * @tc.name testGreatThan003
      * @tc.desc Test Js Api Query.GreatThan() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -403,7 +403,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0320
-     * @tc.name [JS-API8]Query.GreatThan().
+     * @tc.name testGreatThan004
      * @tc.desc Test Js Api Query.GreatThan() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -426,7 +426,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0510
-     * @tc.name [JS-API8]Query.LessThan().
+     * @tc.name testLessThan001
      * @tc.desc Test Js Api Query.LessThan() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -452,7 +452,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0520
-     * @tc.name [JS-API8]Query.LessThan().
+     * @tc.name testLessThan002
      * @tc.desc Test Js Api Query.LessThan() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -478,7 +478,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0530
-     * @tc.name [JS-API8]Query.LessThan().
+     * @tc.name testLessThan003
      * @tc.desc Test Js Api Query.LessThan() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -500,7 +500,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0540
-     * @tc.name [JS-API8]Query.LessThan().
+     * @tc.name testLessThan004
      * @tc.desc Test Js Api Query.LessThan() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -523,7 +523,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0260
-     * @tc.name [JS-API8]Query.GreaterThanOrEqualTo().
+     * @tc.name testGreaterThanOrEqualTo001
      * @tc.desc Test Js Api Query.GreaterThanOrEqualTo() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -550,7 +550,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0270
-     * @tc.name [JS-API8]Query.GreaterThanOrEqualTo().
+     * @tc.name testGreaterThanOrEqualTo002
      * @tc.desc Test Js Api Query.GreaterThanOrEqualTo() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -578,7 +578,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0280
-     * @tc.name [JS-API8]Query.GreaterThanOrEqualTo().
+     * @tc.name testGreaterThanOrEqualTo003
      * @tc.desc Test Js Api Query.GreaterThanOrEqualTo() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -601,7 +601,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0290
-     * @tc.name [JS-API8]Query.GreaterThanOrEqualTo().
+     * @tc.name testGreaterThanOrEqualTo004
      * @tc.desc Test Js Api Query.GreaterThanOrEqualTo() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -624,7 +624,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0550
-     * @tc.name [JS-API8]Query.LessThanOrEqualTo().
+     * @tc.name testLessThanOrEqualTo001
      * @tc.desc Test Js Api Query.LessThanOrEqualTo() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -651,7 +651,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0560
-     * @tc.name [JS-API8]Query.LessThanOrEqualTo().
+     * @tc.name testLessThanOrEqualTo002
      * @tc.desc Test Js Api Query.LessThanOrEqualTo() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -677,7 +677,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0570
-     * @tc.name [JS-API8]Query.LessThanOrEqualTo().
+     * @tc.name testLessThanOrEqualTo003
      * @tc.desc Test Js Api Query.LessThanOrEqualTo() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -699,7 +699,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0580
-     * @tc.name [JS-API8]Query.LessThanOrEqualTo().
+     * @tc.name testLessThanOrEqualTo004
      * @tc.desc Test Js Api Query.LessThanOrEqualTo() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -722,7 +722,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0470
-     * @tc.name [JS-API8]Query.IsNull().
+     * @tc.name testIsNull001
      * @tc.desc Test Js Api Query.IsNull() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -747,7 +747,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0480
-     * @tc.name [JS-API8]Query.IsNull().
+     * @tc.name testIsNull002
      * @tc.desc Test Js Api Query.IsNull() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -771,7 +771,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0490
-     * @tc.name [JS-API8]Query.IsNull().
+     * @tc.name testIsNull003
      * @tc.desc Test Js Api Query.IsNull() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -794,7 +794,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0500
-     * @tc.name [JS-API8]Query.IsNull().
+     * @tc.name testIsNull004
      * @tc.desc Test Js Api Query.IsNull() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -834,7 +834,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0330
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber001
      * @tc.desc Test Js Api Query.InNumber() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -887,7 +887,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0340
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber002
      * @tc.desc Test Js Api Query.InNumber() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -914,7 +914,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0350
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber003
      * @tc.desc Test Js Api Query.InNumber() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -937,7 +937,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0360
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber004
      * @tc.desc Test Js Api Query.InNumber() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -960,7 +960,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0370
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber005
      * @tc.desc Test Js Api Query.InNumber() testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -986,7 +986,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0380
-     * @tc.name [JS-API8]Query.InNumber().
+     * @tc.name testInNumber006
      * @tc.desc Test Js Api Query.InNumber() testcase 006
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1025,7 +1025,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0390
-     * @tc.name [JS-API8]Query.InString().
+     * @tc.name testInString001
      * @tc.desc Test Js Api Query.InString() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1050,7 +1050,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0400
-     * @tc.name [JS-API8]Query.InString().
+     * @tc.name testInString002
      * @tc.desc Test Js Api Query.InString() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1076,7 +1076,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0410
-     * @tc.name [JS-API8]Query.InString().
+     * @tc.name testInString003
      * @tc.desc Test Js Api Query.InString() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1099,7 +1099,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0420
-     * @tc.name [JS-API8]Query.InString().
+     * @tc.name testInString004
      * @tc.desc Test Js Api Query.InString() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1122,7 +1122,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0720
-     * @tc.name [JS-API8]Query.NotInNumber().
+     * @tc.name testNotInNumber001
      * @tc.desc Test Js Api Query.NotInNumber() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1147,7 +1147,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0730
-     * @tc.name [JS-API8]Query.NotInNumber().
+     * @tc.name testNotInNumber002
      * @tc.desc Test Js Api Query.NotInNumber() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1171,7 +1171,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0740
-     * @tc.name [JS-API8]Query.NotInNumber().
+     * @tc.name testNotInNumber003
      * @tc.desc Test Js Api Query.NotInNumber() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1194,7 +1194,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0750
-     * @tc.name [JS-API8]Query.NotInNumber().
+     * @tc.name testNotInNumber004
      * @tc.desc Test Js Api Query.NotInNumber() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1218,7 +1218,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0760
-     * @tc.name [JS-API8]Query.NotInString().
+     * @tc.name testNotInString001
      * @tc.desc Test Js Api Query.NotInString() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1243,7 +1243,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0770
-     * @tc.name [JS-API8]Query.NotInString().
+     * @tc.name testNotInString002
      * @tc.desc Test Js Api Query.NotInString() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1267,7 +1267,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0780
-     * @tc.name [JS-API8]Query.NotInString().
+     * @tc.name testNotInString003
      * @tc.desc Test Js Api Query.NotInString() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1290,7 +1290,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0790
-     * @tc.name [JS-API8]Query.NotInString().
+     * @tc.name testNotInString004
      * @tc.desc Test Js Api Query.NotInString() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1313,7 +1313,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0590
-     * @tc.name [JS-API8]Query.Like().
+     * @tc.name testLike001
      * @tc.desc Test Js Api Query.Like() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1338,7 +1338,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0600
-     * @tc.name [JS-API8]Query.Like().
+     * @tc.name testLike002
      * @tc.desc Test Js Api Query.Like() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1362,7 +1362,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0610
-     * @tc.name [JS-API8]Query.Like().
+     * @tc.name testLike003
      * @tc.desc Test Js Api Query.Like() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1385,7 +1385,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0620
-     * @tc.name [JS-API8]Query.Like().
+     * @tc.name testLike004
      * @tc.desc Test Js Api Query.Like() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1408,7 +1408,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1040
-     * @tc.name [JS-API8]Query.Unlike().
+     * @tc.name testUnlike001
      * @tc.desc Test Js Api Query.Unlike() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1432,7 +1432,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1050
-     * @tc.name [JS-API8]Query.Unlike().
+     * @tc.name testUnlike002
      * @tc.desc Test Js Api Query.Unlike() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1456,7 +1456,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1060
-     * @tc.name [JS-API8]Query.Unlike().
+     * @tc.name testUnlike003
      * @tc.desc Test Js Api Query.Unlike() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1479,7 +1479,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1070
-     * @tc.name [JS-API8]Query.Unlike().
+     * @tc.name testUnlike004
      * @tc.desc Test Js Api Query.Unlike() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1502,7 +1502,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0010
-     * @tc.name [JS-API8]Query.And().
+     * @tc.name testAnd001
      * @tc.desc Test Js Api Query.And() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1528,7 +1528,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0020
-     * @tc.name [JS-API8]Query.And().
+     * @tc.name testAnd002
      * @tc.desc Test Js Api Query.And() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1552,7 +1552,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0030
-     * @tc.name [JS-API8]Query.And().
+     * @tc.name testAnd003
      * @tc.desc Test Js Api Query.And() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1576,7 +1576,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0040
-     * @tc.name [JS-API8]Query.And().
+     * @tc.name testAnd004
      * @tc.desc Test Js Api Query.And() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1599,7 +1599,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0800
-     * @tc.name [JS-API8]Query.Or().
+     * @tc.name testOr001
      * @tc.desc Test Js Api Query.Or() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1625,7 +1625,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0810
-     * @tc.name [JS-API8]Query.Or().
+     * @tc.name testOr002
      * @tc.desc Test Js Api Query.Or() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1650,7 +1650,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0820
-     * @tc.name [JS-API8]Query.Or().
+     * @tc.name testOr003
      * @tc.desc Test Js Api Query.Or() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1676,7 +1676,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0830
-     * @tc.name [JS-API8]Query.Or().
+     * @tc.name testOr004
      * @tc.desc Test Js Api Query.Or() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1699,7 +1699,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0840
-     * @tc.name [JS-API8]Query.OrderByAsc().
+     * @tc.name testOrderByAsc001
      * @tc.desc Test Js Api Query.OrderByAsc() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1724,7 +1724,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0850
-     * @tc.name [JS-API8]Query.OrderByAsc().
+     * @tc.name testOrderByAsc002
      * @tc.desc Test Js Api Query.OrderByAsc() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1748,7 +1748,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0860
-     * @tc.name [JS-API8]Query.OrderByAsc().
+     * @tc.name testOrderByAsc003
      * @tc.desc Test Js Api Query.OrderByAsc() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1771,7 +1771,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0870
-     * @tc.name [JS-API8]Query.OrderByAsc().
+     * @tc.name testOrderByAsc004
      * @tc.desc Test Js Api Query.OrderByAsc() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1794,7 +1794,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0880
-     * @tc.name [JS-API8]Query.OrderByDesc().
+     * @tc.name testOrderByDesc001
      * @tc.desc Test Js Api Query.OrderByDesc() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1819,7 +1819,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0890
-     * @tc.name [JS-API8]Query.OrderByDesc().
+     * @tc.name testOrderByDesc002
      * @tc.desc Test Js Api Query.OrderByDesc() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1843,7 +1843,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0900
-     * @tc.name [JS-API8]Query.OrderByDesc().
+     * @tc.name testOrderByDesc003
      * @tc.desc Test Js Api Query.OrderByDesc() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1866,7 +1866,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0910
-     * @tc.name [JS-API8]Query.OrderByDesc().
+     * @tc.name testOrderByDesc004
      * @tc.desc Test Js Api Query.OrderByDesc() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1889,7 +1889,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0630
-     * @tc.name [JS-API8]Query.Limit().
+     * @tc.name testLimit001
      * @tc.desc Test Js Api Query.Limit() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1914,7 +1914,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0640
-     * @tc.name [JS-API8]Query.Limit().
+     * @tc.name testLimit002
      * @tc.desc Test Js Api Query.Limit() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1939,7 +1939,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0650
-     * @tc.name [JS-API8]Query.Limit().
+     * @tc.name testLimit003
      * @tc.desc Test Js Api Query.Limit() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1963,7 +1963,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0660
-     * @tc.name [JS-API8]Query.Limit().
+     * @tc.name testLimit004
      * @tc.desc Test Js Api Query.Limit() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -1986,7 +1986,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0670
-     * @tc.name [JS-API8]Query.Limit().
+     * @tc.name testLimit005
      * @tc.desc Test Js Api Query.Limit() testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2010,7 +2010,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0430
-     * @tc.name [JS-API8]Query.IsNotNull().
+     * @tc.name testIsNotNull001
      * @tc.desc Test Js Api Query.IsNotNull() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2034,7 +2034,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0440
-     * @tc.name [JS-API8]Query.IsNotNull().
+     * @tc.name testIsNotNull002
      * @tc.desc Test Js Api Query.IsNotNull() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2058,7 +2058,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0450
-     * @tc.name [JS-API8]Query.IsNotNull().
+     * @tc.name testIsNotNull003
      * @tc.desc Test Js Api Query.IsNotNull() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2081,7 +2081,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0460
-     * @tc.name [JS-API8]Query.IsNotNull().
+     * @tc.name testIsNotNull004
      * @tc.desc Test Js Api Query.IsNotNull() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2104,7 +2104,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0050
-     * @tc.name [JS-API8]Query.BeginGroup().
+     * @tc.name testBeginGroup001
      * @tc.desc Test Js Api Query.BeginGroup() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2130,7 +2130,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0060
-     * @tc.name [JS-API8]Query.BeginGroup().
+     * @tc.name testBeginGroup002
      * @tc.desc Test Js Api Query.BeginGroup() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2158,7 +2158,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0070
-     * @tc.name [JS-API8]Query.BeginGroup().
+     * @tc.name testBeginGroup003
      * @tc.desc Test Js Api Query.BeginGroup() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2181,7 +2181,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0080
-     * @tc.name [JS-API8]Query.BeginGroup().
+     * @tc.name testBeginGroup004
      * @tc.desc Test Js Api Query.BeginGroup() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2204,7 +2204,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0130
-     * @tc.name [JS-API8]Query.EndGroup().
+     * @tc.name testEndGroup001
      * @tc.desc Test Js Api Query.EndGroup() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2229,7 +2229,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0140
-     * @tc.name [JS-API8]Query.EndGroup().
+     * @tc.name testEndGroup002
      * @tc.desc Test Js Api Query.EndGroup() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2255,7 +2255,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0150
-     * @tc.name [JS-API8]Query.EndGroup().
+     * @tc.name testEndGroup003
      * @tc.desc Test Js Api Query.EndGroup() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2278,7 +2278,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0160
-     * @tc.name [JS-API8]Query.EndGroup().
+     * @tc.name testEndGroup004
      * @tc.desc Test Js Api Query.EndGroup() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2301,7 +2301,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0920
-     * @tc.name [JS-API8]Query.PrefixKey().
+     * @tc.name testPrefixKey001
      * @tc.desc Test Js Api Query.PrefixKey() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2325,7 +2325,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0930
-     * @tc.name [JS-API8]Query.PrefixKey().
+     * @tc.name testPrefixKey002
      * @tc.desc Test Js Api Query.PrefixKey() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2348,7 +2348,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0940
-     * @tc.name [JS-API8]Query.PrefixKey().
+     * @tc.name testPrefixKey003
      * @tc.desc Test Js Api Query.PrefixKey() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2371,7 +2371,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0950
-     * @tc.name [JS-API8]Query.PrefixKey().
+     * @tc.name testPrefixKey004
      * @tc.desc Test Js Api Query.PrefixKey() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2394,7 +2394,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1000
-     * @tc.name [JS-API8]Query.SetSuggestIndex().
+     * @tc.name testSetSuggestIndex001
      * @tc.desc Test Js Api Query.SetSuggestIndex() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2418,7 +2418,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1010
-     * @tc.name [JS-API8]Query.SetSuggestIndex().
+     * @tc.name testSetSuggestIndex002
      * @tc.desc Test Js Api Query.SetSuggestIndex() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2441,7 +2441,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1020
-     * @tc.name [JS-API8]Query.SetSuggestIndex().
+     * @tc.name testSetSuggestIndex003
      * @tc.desc Test Js Api Query.SetSuggestIndex() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2464,7 +2464,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_1030
-     * @tc.name [JS-API8]Query.SetSuggestIndex().
+     * @tc.name testSetSuggestIndex004
      * @tc.desc Test Js Api Query.SetSuggestIndex() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2487,7 +2487,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0090
-     * @tc.name [JS-API8]Query.DeviceId().
+     * @tc.name testDeviceId001
      * @tc.desc Test Js Api Query.DeviceId() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2512,7 +2512,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0100
-     * @tc.name [JS-API8]Query.DeviceId().
+     * @tc.name testDeviceId002
      * @tc.desc Test Js Api Query.DeviceId() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2536,7 +2536,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0110
-     * @tc.name [JS-API8]Query.DeviceId().
+     * @tc.name testDeviceId003
      * @tc.desc Test Js Api Query.DeviceId() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2559,7 +2559,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0120
-     * @tc.name [JS-API8]Query.DeviceId().
+     * @tc.name testDeviceId004
      * @tc.desc Test Js Api Query.DeviceId() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2582,7 +2582,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0210
-     * @tc.name [JS-API8]Query.GetSqlLike().
+     * @tc.name testGetSqlLike001
      * @tc.desc Test Js Api Query.GetSqlLike() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2608,7 +2608,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0220
-     * @tc.name [JS-API8]Query.GetSqlLike().
+     * @tc.name testGetSqlLike002
      * @tc.desc Test Js Api Query.GetSqlLike() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2638,7 +2638,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0230
-     * @tc.name [JS-API8]Query.GetSqlLike().
+     * @tc.name testGetSqlLike003
      * @tc.desc Test Js Api Query.GetSqlLike() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -2662,7 +2662,7 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreQueryJsApiTest_0240
-     * @tc.name [JS-API8]Query.GetSqlLike().
+     * @tc.name testGetSqlLike004
      * @tc.desc Test Js Api Query.GetSqlLike() testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function

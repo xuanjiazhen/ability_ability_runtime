@@ -51,7 +51,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1900
-         * @tc.name putSync StringArray interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0100
          * @tc.desc putSync StringArray interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -71,7 +71,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1700
-         * @tc.name putSync numberArr interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0200
          * @tc.desc putSync numberArr interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -91,7 +91,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1300
-         * @tc.name putSync boolArr interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0300
          * @tc.desc putSync boolArr interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -111,7 +111,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0300
-         * @tc.name getAllSync interface test
+         * @tc.name SUB_DDM_Preferences_GetAllSync_0100
          * @tc.desc getAllSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -150,7 +150,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0100
-         * @tc.name clearSync interface test
+         * @tc.name SUB_DDM_Preferences_ClearSync_0100
          * @tc.desc clearSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -168,7 +168,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2900
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0100
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -184,7 +184,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2700
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0200
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -200,7 +200,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2600
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0300
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -216,7 +216,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2500
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0400
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -232,7 +232,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2800
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0500
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -248,7 +248,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2400
-         * @tc.name hasSync interface test
+         * @tc.name SUB_DDM_Preferences_HasSync_0600
          * @tc.desc hasSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -264,7 +264,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0800
-         * @tc.name getSync interface test
+         * @tc.name SUB_DDM_Preferences_GetSync_0100
          * @tc.desc getSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -295,7 +295,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0500
-         * @tc.name getSync interface test
+         * @tc.name SUB_DDM_Preferences_GetSync_0300
          * @tc.desc getSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -311,7 +311,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0600
-         * @tc.name getSync interface test
+         * @tc.name SUB_DDM_Preferences_GetSync_0400
          * @tc.desc getSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -327,7 +327,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0700
-         * @tc.name getSync interface test
+         * @tc.name SUB_DDM_Preferences_GetSync_0500
          * @tc.desc getSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -344,7 +344,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1200
-         * @tc.name putSync interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0400
          * @tc.desc putSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -363,7 +363,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1400
-         * @tc.name putSync interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0500
          * @tc.desc putSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -382,7 +382,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1500
-         * @tc.name putSync interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0600
          * @tc.desc putSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -401,7 +401,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1600
-         * @tc.name putSync interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0700
          * @tc.desc putSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -420,7 +420,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1800
-         * @tc.name putSync interface test
+         * @tc.name SUB_DDM_Preferences_PutSync_0800
          * @tc.desc putSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -439,7 +439,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0200
-         * @tc.name deleteSync interface test
+         * @tc.name SUB_DDM_Preferences_deleteSync_0100
          * @tc.desc deleteSync interface test
          * @tc.size MediumTest
          * @tc.type Function
@@ -455,7 +455,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2000
-         * @tc.name removePreferencesFromCacheSync interface test
+         * @tc.name SUB_DDM_Preferences_removePreferencesFromCacheSync_0100
          * @tc.desc removePreferencesFromCacheSync interface test
          * @tc.size MediumTest
          * @tc.type Function

@@ -130,7 +130,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         console.info(TAG + "*************Unit Test Begin*************")
 
         /**
-         * @tc.name RelationalStore Backup Restore test
+         * @tc.name RdbBackupRestoreCallbackTest_0100
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0100
          * @tc.desc RelationalStore backup and restore function test
          * @tc.size MediumTest
@@ -201,7 +201,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore Backup test
+         * @tc.name RdbBackupRestoreCallbackTest_0200
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0200
          * @tc.desc RelationalStore backup function test
          * @tc.size MediumTest
@@ -221,7 +221,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0300
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0300
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -244,7 +244,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0400
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0400
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -268,7 +268,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0500
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0500
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -315,7 +315,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0600
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0600
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -340,7 +340,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0700
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0700
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -373,7 +373,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0800
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0800
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -388,7 +388,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_0900
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_0900
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -403,7 +403,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_1000
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_1000
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -422,7 +422,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
             console.info(TAG + "************* RdbBackupRestoreCallbackTest_1000 end *************")
         })
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_1100
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_1100
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -459,7 +459,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_1200
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_1200
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest
@@ -483,7 +483,7 @@ export default function relationalStoreBackupRestoreCallbackTest() {
         })
 
         /**
-         * @tc.name RelationalStore BackupRestore test
+         * @tc.name RdbBackupRestoreCallbackTest_1300
          * @tc.number SUB_DistributedData_RelationalStore_SDK_BackupRestoreJsAPITest_1300
          * @tc.desc RelationalStore restore function test
          * @tc.size MediumTest

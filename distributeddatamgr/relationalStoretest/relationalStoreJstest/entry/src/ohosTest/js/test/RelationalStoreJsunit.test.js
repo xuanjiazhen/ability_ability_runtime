@@ -203,7 +203,7 @@ describe('relationalStoreTest', function () {
     })
 
     /**
-     * @tc.name testRdbStore000
+     * @tc.name testRdbStore0007
      * @tc.type Function
      * @tc.level Level 2
      * @tc.size MediumTest

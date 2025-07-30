@@ -57,7 +57,7 @@ export default function rdbstoreInsertTest() {
         console.info(TAG + "*************Unit Test Begin*************");
 
         /**
-         * @tc.name rdb insert test
+         * @tc.name testRdbStoreInsert0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0100
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -126,7 +126,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb insert test
+         * @tc.name testRdbStoreInsert0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0200
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -156,7 +156,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb insert test
+         * @tc.name testRdbStoreInsert0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0300
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -191,7 +191,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb insert test
+         * @tc.name testRdbStoreInsert0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0400
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -220,7 +220,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0500
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -287,7 +287,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0600
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -371,7 +371,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0700
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -481,7 +481,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0800
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -537,7 +537,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_0900
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -600,7 +600,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1000
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -643,7 +643,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertPromise0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1100
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -667,10 +667,9 @@ export default function rdbstoreInsertTest() {
 
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1200
          * @tc.desc rdb insert test
-         * zheg s
          * @tc.size   : MediumTest
          * @tc.type   : Function
          * @tc.level  : Level 2
@@ -759,7 +758,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1300
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -831,7 +830,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1400
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -938,7 +937,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1500
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -994,7 +993,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1600
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -1061,7 +1060,7 @@ export default function rdbstoreInsertTest() {
         })
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1700
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest
@@ -1113,7 +1112,7 @@ export default function rdbstoreInsertTest() {
 
 
         /**
-         * @tc.name rdb batchInsert test
+         * @tc.name testRdbStorebatchInsertCallback0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBInsertJsAPITest_1800
          * @tc.desc rdb insert test
          * @tc.size   : MediumTest

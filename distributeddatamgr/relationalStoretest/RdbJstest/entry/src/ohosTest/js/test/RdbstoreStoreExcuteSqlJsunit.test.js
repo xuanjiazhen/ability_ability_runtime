@@ -47,7 +47,7 @@ export default function rdbstoreStoreExcuteSqlTest() {
         })
     
         /**
-         * @tc.name resultSet ExcuteSql normal test
+         * @tc.name ExcuteSqlTest0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0340
          * @tc.desc resultSet ExcuteSql normal test
          * @tc.size   : MediumTest
@@ -127,7 +127,7 @@ export default function rdbstoreStoreExcuteSqlTest() {
         })
     
         /**
-         * @tc.name resultSet ExcuteSql normal test
+         * @tc.name ExcuteSqlTest0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0350
          * @tc.desc resultSet ExcuteSql normal test
          * @tc.size   : MediumTest
@@ -205,7 +205,7 @@ export default function rdbstoreStoreExcuteSqlTest() {
         })
     
         /**
-         * @tc.name resultSet ExcuteSql normal test
+         * @tc.name ExcuteSqlTest0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0360
          * @tc.desc resultSet ExcuteSql normal test
          * @tc.size   : MediumTest
@@ -304,7 +304,7 @@ export default function rdbstoreStoreExcuteSqlTest() {
         })
     
         /**
-         * @tc.name resultSet ExcuteSql normal test
+         * @tc.name ExcuteSqlTest0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0370
          * @tc.desc resultSet ExcuteSql normal test
          * @tc.size   : MediumTest

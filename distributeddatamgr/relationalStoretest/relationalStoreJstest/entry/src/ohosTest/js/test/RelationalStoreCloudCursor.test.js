@@ -516,8 +516,8 @@ export default function relationalStoreCloudCursor() {
       })
 
         /**
-         * @tc.name query with cursor
-         * @tc.number  SUB_DistributedData_RelationalStore_SDK_CloudCursorJsAPITest_0900
+         * @tc.name testRdbQueryWithCursor0009
+         * @tc.number  SUB_DistributedData_RelationalStore_SDK_CloudCursorJsAPITest_0901
          * @tc.desc query with cursor, and get all columns，and DATA_STATUS_FIELD
          * @tc.size MediumTest
          * @tc.type Function

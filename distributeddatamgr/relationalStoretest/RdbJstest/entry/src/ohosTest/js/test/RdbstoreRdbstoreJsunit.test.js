@@ -52,7 +52,7 @@ describe('rdbStoreTest', function () {
     console.info(TAG + "*************Unit Test Begin*************");
 
     /**
-     * @tc.name rdb store getRdbStore test
+     * @tc.name testRdbStore0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_0900
      * @tc.desc rdb store getRdbStore test
      * @tc.size   : MediumTest
@@ -75,7 +75,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store getRdbStore and create table
+     * @tc.name testRdbStore0002
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1000
      * @tc.desc rdb store getRdbStore and create table
      * @tc.size   : MediumTest
@@ -102,7 +102,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb storegetRdbStore with wrong path
+     * @tc.name testRdbStore0003
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1100
      * @tc.desc rdb store getRdbStore with wrong path
      * @tc.size   : MediumTest
@@ -132,7 +132,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store deleteRdbStore
+     * @tc.name testRdbStore0004
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1200
      * @tc.desc rdb store deleteRdbStore
      * @tc.size   : MediumTest
@@ -153,7 +153,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store deleteRdbStore
+     * @tc.name testRdbStore0005
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1300
      * @tc.desc rdb store deleteRdbStore
      * @tc.size   : MediumTest
@@ -175,7 +175,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store getRdbStore test
+     * @tc.name testRdbStore0006
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1400
      * @tc.desc rdb store getRdbStore test
      * @tc.size   : MediumTest
@@ -203,7 +203,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store getRdbStore test
+     * @tc.name testRdbStore0007
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1500
      * @tc.desc rdb store getRdbStore test
      * @tc.size   : MediumTest
@@ -231,7 +231,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store deleteRdbStore test
+     * @tc.name testRdbStore0008
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1600
      * @tc.desc rdb store deleteRdbStore test
      * @tc.size   : MediumTest
@@ -252,7 +252,7 @@ describe('rdbStoreTest', function () {
     })
 
     /**
-     * @tc.name rdb store deleteRdbStore test
+     * @tc.name testRdbStore0009
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBTransactionJsAPITest_1700
      * @tc.desc rdb store deleteRdbStore test
      * @tc.size   : MediumTest

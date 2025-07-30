@@ -49,7 +49,7 @@ describe('rdbStoreDeleteTest', function () {
     console.info(TAG + '*************Unit Test Begin*************');
     
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0100
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -101,7 +101,7 @@ describe('rdbStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0002
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0200
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -154,7 +154,7 @@ describe('rdbStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0003
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0300
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -211,7 +211,7 @@ describe('rdbStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0004
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0400
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -264,7 +264,7 @@ describe('rdbStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0005
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0500
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -318,7 +318,7 @@ describe('rdbStoreDeleteTest', function () {
     })
 
     /**
-     * @tc.name rdb delete test
+     * @tc.name testRdbStoreDelete0006
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0600
      * @tc.desc rdb delete test
      * @tc.size   : MediumTest
@@ -373,7 +373,7 @@ describe('rdbStoreDeleteTest', function () {
         console.info(TAG + '************* testRdbStoreDelete0006 end *************');
     })
     /**
-     * @tc.name setDistributedTables success
+     * @tc.name dataRdbTest001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0700
      * @tc.desc setDistributedTables success
      * @tc.size   : MediumTest
@@ -409,7 +409,7 @@ describe('rdbStoreDeleteTest', function () {
           })
       
           /**
-           * @tc.name update success
+           * @tc.name dataRdbTest002
            * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0800
            * @tc.desc update success
            * @tc.size   : MediumTest
@@ -453,7 +453,7 @@ describe('rdbStoreDeleteTest', function () {
           })
       
           /**
-           * @tc.name query success
+           * @tc.name dataRdbTest003
            * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_0900
            * @tc.desc query success
            * @tc.size   : MediumTest
@@ -489,7 +489,7 @@ describe('rdbStoreDeleteTest', function () {
             console.info(TAG + "************* dataRdbTest003 end *************");
           })
           /**
-           * @tc.name querysql success
+           * @tc.name dataRdbTest004
            * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_1000
            * @tc.desc querysql success
            * @tc.size   : MediumTest
@@ -524,7 +524,7 @@ describe('rdbStoreDeleteTest', function () {
           })
       
           /**
-           * @tc.name executesql success
+           * @tc.name dataRdbTest005
            * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_1100
            * @tc.desc executesql success
            * @tc.size   : MediumTest
@@ -568,8 +568,8 @@ describe('rdbStoreDeleteTest', function () {
             console.info(TAG + "************* dataRdbTest005 end *************");
           })
     /**
-     * @tc.name isNotNull errcode is 401
-     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_1000
+     * @tc.name dataRdbTest006
+     * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBDeleteJsAPITest_1001
      * @tc.desc isNotNull errcode is 401
      * @tc.size   : MediumTest
      * @tc.type   : Function

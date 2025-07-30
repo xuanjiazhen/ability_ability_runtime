@@ -142,7 +142,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1100
          * @tc.desc Test Js Api DeviceKvStore.Put(String) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(String) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTSTRING_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -169,7 +169,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1200
          * @tc.desc Test Js Api DeviceKvStore.Put(String) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(String) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTSTRING_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -200,7 +200,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2900
          * @tc.desc Test Js Api DeviceKvStore.Get(String) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(String) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETSTRING_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -227,7 +227,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2800
          * @tc.desc Test Js Api DeviceKvStore.Get(String) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(String) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETSTRING_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -254,7 +254,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0700
          * @tc.desc Test Js Api DeviceKvStore.Put(Int) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Int) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTINT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -281,7 +281,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0800
          * @tc.desc Test Js Api DeviceKvStore.Put(Int) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Int) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTINT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -309,7 +309,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1000
          * @tc.desc Test Js Api DeviceKvStore.Put(Int) testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Int) testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTINT_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -337,7 +337,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0900
          * @tc.desc Test Js Api DeviceKvStore.Put(Int) testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Int) testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTINT_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -365,7 +365,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1400
          * @tc.desc Test Js Api DeviceKvStore.Get(Int) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(Int) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETINT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -392,7 +392,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1600
          * @tc.desc Test Js Api DeviceKvStore.Get(Int) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(Int) testcase 00
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETINT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -419,7 +419,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0200
          * @tc.desc Test Js Api DeviceKvStore.Put(Bool) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Bool) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBOOLEAN_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -442,7 +442,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1500
          * @tc.desc Test Js Api DeviceKvStore.Get(Bool) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(Bool) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETBOOLEAN_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -469,7 +469,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1300
          * @tc.desc Test Js Api DeviceKvStore.Get(Bool) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(Bool) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETBOOLEAN_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -496,7 +496,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0300
          * @tc.desc Test Js Api DeviceKvStore.Put(Float) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Float) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTFLOAT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -519,7 +519,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0600
          * @tc.desc Test Js Api DeviceKvStore.Put(Float) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Float) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTFLOAT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -548,7 +548,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0400
          * @tc.desc Test Js Api DeviceKvStore.Put(Float) testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Float) testcase 00
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTFLOAT_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -577,7 +577,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0500
          * @tc.desc Test Js Api DeviceKvStore.Put(Float) testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Float) testcase 00
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTFLOAT_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -606,7 +606,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2700
          * @tc.desc Test Js Api DeviceKvStore.Get(Float) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(Float) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETFLOAT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -633,7 +633,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6000
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteString() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteString() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETESTRING_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -660,7 +660,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6100
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteString() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteString() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETESTRING_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -687,7 +687,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5800
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteInt() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteInt() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEINT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -714,7 +714,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5900
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteInt() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteInt() testcase 00
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEINT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -741,7 +741,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5600
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteFloat() testcase 001
          * @tc.type: FUNC
-         * @tc.name issueNumber
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEFLOAT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -768,7 +768,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5700
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteFloat() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteFloat() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEFLOAT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -795,7 +795,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5400
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteBool() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteBool() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEBOOLEAN_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -822,7 +822,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5500
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteBool() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteBool() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEBOOLEAN_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -849,7 +849,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1900
          * @tc.desc Test Js Api DeviceKvStore.9.OnChange() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnChange() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONCHANGE_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -876,7 +876,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2100
          * @tc.desc Test Js Api DeviceKvStore.9.OnChange() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnChange() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONCHANGE_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -903,7 +903,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1700
          * @tc.desc Test Js Api DeviceKvStore.9.OnChange() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnChange() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONCHANGE_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -930,7 +930,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2000
          * @tc.desc Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONSYNCCOMPLETE_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -965,7 +965,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2200
          * @tc.desc Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONSYNCCOMPLETE_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1000,7 +1000,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_1800
          * @tc.desc Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.OnSyncComplete() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ONSYNCCOMPLETE_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1035,7 +1035,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7200
          * @tc.desc Test Js Api DeviceKvStore.9.SetSyncRange() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.SetSyncRange() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_SETSYNCRANGE_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1060,7 +1060,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7100
          * @tc.desc Test Js Api DeviceKvStore.9.SetSyncRange() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.SetSyncRange() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_SETSYNCRANGE_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1085,7 +1085,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7000
          * @tc.desc Test Js Api DeviceKvStore.9.SetSyncRange() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.SetSyncRange() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_SETSYNCRANGE_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1110,7 +1110,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4700
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1153,7 +1153,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4600
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1196,7 +1196,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4500
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1239,7 +1239,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4400
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1282,7 +1282,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4300
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 005
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 005
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0500
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1326,7 +1326,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4800
          * @tc.desc Test Js Api DeviceKvStore.Put(Batch) testcase 006
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Put(Batch) testcase 006
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_PUTBATCH_0600
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1370,7 +1370,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5300
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteBatch() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteBatch() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEBATCH_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1412,7 +1412,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5100
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteBatch() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteBatch() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEBATCH_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1436,7 +1436,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5200
          * @tc.desc Test Js Api DeviceKvStore.9.DeleteBatch() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.DeleteBatch() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_DELETEBATCH_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1477,7 +1477,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4200
          * @tc.desc Test Js Api DeviceKvStore.9.startTransaction() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.startTransaction() testcase 00
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_STARTTRANSACTION_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1522,7 +1522,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4100
          * @tc.desc Test Js Api DeviceKvStore.9.startTransaction() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.startTransaction() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_STARTTRANSACTION_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1567,7 +1567,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4000
          * @tc.desc Test Js Api DeviceKvStore.9.startTransaction() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.startTransaction() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_STARTTRANSACTION_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1593,7 +1593,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3900
          * @tc.desc Test Js Api DeviceKvStore.9.startTransaction() testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.startTransaction() testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_STARTTRANSACTION_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1619,7 +1619,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3800
          * @tc.desc Test Js Api DeviceKvStore.9.startTransaction() testcase 005
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.startTransaction() testcase 005
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_STARTTRANSACTION_0500
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1645,7 +1645,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7700
          * @tc.desc Test Js Api DeviceKvStore.9.Commit() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Commit() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_COMMIT_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1671,7 +1671,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7800
          * @tc.desc Test Js Api DeviceKvStore.9.Commit() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Commit() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_COMMIT_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1697,7 +1697,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7600
          * @tc.desc Test Js Api DeviceKvStore.9.Commit() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Commit() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_COMMIT_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1723,7 +1723,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7400
          * @tc.desc Test Js Api DeviceKvStore.9.Rollback() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Rollback() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ROLLBACK_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1749,7 +1749,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7500
          * @tc.desc Test Js Api DeviceKvStore.9.Rollback() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Rollback() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ROLLBACK_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1775,7 +1775,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_7300
          * @tc.desc Test Js Api DeviceKvStore.9.Rollback() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.Rollback() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ROLLBACK_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1801,7 +1801,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6700
          * @tc.desc Test Js Api DeviceKvStore.9.EnableSync() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.EnableSync() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ENABLESYNC_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1829,7 +1829,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6600
          * @tc.desc Test Js Api DeviceKvStore.9.EnableSync() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.EnableSync() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ENABLESYNC_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1857,7 +1857,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6800
          * @tc.desc Test Js Api DeviceKvStore.9.EnableSync() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.EnableSync() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ENABLESYNC_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1883,7 +1883,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6900
          * @tc.desc Test Js Api DeviceKvStore.9.EnableSync() testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.EnableSync() testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_ENABLESYNC_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1909,7 +1909,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6200
          * @tc.desc Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_REMOVEDEVICEDATA_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1946,7 +1946,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6300
          * @tc.desc Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_REMOVEDEVICEDATA_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1972,7 +1972,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6500
          * @tc.desc Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_REMOVEDEVICEDATA_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -1998,7 +1998,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_6400
          * @tc.desc Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.RemoveDeviceData() testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_REMOVEDEVICEDATA_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2024,7 +2024,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3000
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2069,7 +2069,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_0100
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2098,7 +2098,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3400
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2122,7 +2122,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3500
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2146,7 +2146,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3200
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 005
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 005
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0500
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2193,7 +2193,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3100
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 006
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 006
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0600
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2241,7 +2241,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3300
          * @tc.desc Test Js Api DeviceKvStore.GetResultSet() testcase 007
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetResultSet() testcase 007
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSET_0700
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2288,7 +2288,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2400
          * @tc.desc Test Js Api DeviceKvStore.9.CloseResultSet() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.CloseResultSet() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_CLOSERESULTSET_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2317,7 +2317,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2600
          * @tc.desc Test Js Api DeviceKvStore.9.CloseResultSet() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.CloseResultSet() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_CLOSERESULTSET_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2350,7 +2350,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2300
          * @tc.desc Test Js Api DeviceKvStore.9.CloseResultSet() testcase 003
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.CloseResultSet() testcase 003
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_CLOSERESULTSET_0300
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2378,7 +2378,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_2500
          * @tc.desc Test Js Api DeviceKvStore.9.CloseResultSet() testcase 004
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.9.CloseResultSet() testcase 004
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_CLOSERESULTSET_0400
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2408,7 +2408,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3700
          * @tc.desc Test Js Api DeviceKvStore.Get(ResultSize) testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(ResultSize) testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSIZE_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2450,7 +2450,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_3600
          * @tc.desc Test Js Api DeviceKvStore.Get(ResultSize) testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.Get(ResultSize) testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETRESULTSIZE_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2491,7 +2491,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_5000
          * @tc.desc Test Js Api DeviceKvStore.GetEntries() testcase 001
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetEntries() testcase 001
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETENTRIES_0100
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */
@@ -2539,7 +2539,7 @@ export default function deviceKvStoreCallbackTest(){
          * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVCallbackJsApiTest_4900
          * @tc.desc Test Js Api DeviceKvStore.GetEntries() testcase 002
          * @tc.type: FUNC
-         * @tc.name Test Js Api DeviceKvStore.GetEntries() testcase 002
+         * @tc.name SUB_DDM_DKV_DEVICESTORE_GETENTRIES_0200
          * @tc.size: MediumTest
          * @tc.level: Level 2
          */

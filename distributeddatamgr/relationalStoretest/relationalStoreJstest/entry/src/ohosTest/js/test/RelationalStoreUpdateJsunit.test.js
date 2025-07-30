@@ -49,7 +49,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdate0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0100
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -121,7 +121,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdate0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0200
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -175,7 +175,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdate0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0300
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -222,7 +222,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdate0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0400
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -269,7 +269,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0500
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -368,7 +368,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0600
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -466,7 +466,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0700
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -564,7 +564,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0800
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -662,7 +662,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_0900
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -760,7 +760,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1000
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -841,7 +841,7 @@ export default function relationalStoreUpdateTest() {
 
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1100
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -940,7 +940,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0008
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1200
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -1020,7 +1020,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0009
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1300
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -1119,7 +1119,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0010
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1400
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -1199,7 +1199,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0011
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1500
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -1298,7 +1298,7 @@ export default function relationalStoreUpdateTest() {
         })
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0012
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1600
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest
@@ -1380,7 +1380,7 @@ export default function relationalStoreUpdateTest() {
 
 
         /**
-         * @tc.name resultSet Update test
+         * @tc.name testRdbStoreUpdateWithConflictResolution0013
          * @tc.number SUB_DistributedData_RelationalStore_SDK_UpdateJsAPITest_1700
          * @tc.desc resultSet Update test
          * @tc.size   : MediumTest

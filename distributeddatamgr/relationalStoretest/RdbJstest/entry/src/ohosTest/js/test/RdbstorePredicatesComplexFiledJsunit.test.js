@@ -60,7 +60,7 @@ describe('rdbStorePredicatesComplexFiledTest', function () {
     }
 
     /**
-     * @tc.name resultSet Update test
+     * @tc.name SUB_DDM_AppDataFWK_JSRDB_Predicates_ComplexFiled_0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0380
      * @tc.desc resultSet Update test
      * @tc.size   : MediumTest
@@ -89,7 +89,7 @@ describe('rdbStorePredicatesComplexFiledTest', function () {
     })
 
     /**
-     * @tc.name resultSet Update test
+     * @tc.name SUB_DDM_AppDataFWK_JSRDB_Predicates_ComplexFiled_0002
      * @tc.number SUB_DistributedData_RelationalStore_SDK_RDBPredicatesJsAPITest_0390
      * @tc.desc resultSet Update test
      * @tc.size   : MediumTest

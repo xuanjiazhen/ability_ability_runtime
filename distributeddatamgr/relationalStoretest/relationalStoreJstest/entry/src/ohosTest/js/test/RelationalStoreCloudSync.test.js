@@ -135,7 +135,7 @@ export default function relationalStoreCloudSyncTest() {
 
 
         /**
-         * @tc.name get modify time using wrong table null
+         * @tc.name testRdbStoreGetModifyTime0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0100
          * @tc.desc rdb get modify time using wrong table null
          * @tc.size   : MediumTest
@@ -160,7 +160,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong table undefined
+         * @tc.name testRdbStoreGetModifyTime0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0200
          * @tc.desc rdb get modify time using wrong table undefined
          * @tc.size   : MediumTest
@@ -185,7 +185,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong table 123456
+         * @tc.name testRdbStoreGetModifyTime0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0300
          * @tc.desc rdb get modify time using wrong table 123456
          * @tc.size   : MediumTest
@@ -209,7 +209,7 @@ export default function relationalStoreCloudSyncTest() {
             console.log(TAG + "************* testRdbStoreGetModifyTime0003 end *************");
         })
         /**
-         * @tc.name get modify time using wrong columnName null
+         * @tc.name testRdbStoreGetModifyTime0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0400
          * @tc.desc rdb get modify time using wrong columnName null
          * @tc.size   : MediumTest
@@ -234,7 +234,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong columnName undefined
+         * @tc.name testRdbStoreGetModifyTime0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0500
          * @tc.desc rdb get modify time using wrong columnName undefined
          * @tc.size   : MediumTest
@@ -259,7 +259,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong columnName 123456
+         * @tc.name testRdbStoreGetModifyTime0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0600
          * @tc.desc rdb get modify time using wrong columnName 123456
          * @tc.size   : MediumTest
@@ -284,7 +284,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong PRIKey null
+         * @tc.name testRdbStoreGetModifyTime0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0700
          * @tc.desc rdb get modify time using wrong PRIKey null
          * @tc.size   : MediumTest
@@ -309,7 +309,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong PRIKey undefined
+         * @tc.name testRdbStoreGetModifyTime0008
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0800
          * @tc.desc rdb get modify time using wrong PRIKey undefined
          * @tc.size   : MediumTest
@@ -334,7 +334,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using wrong PRIKey 123
+         * @tc.name testRdbStoreGetModifyTime0009
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_0900
          * @tc.desc rdb get modify time using wrong PRIKey 123
          * @tc.size   : MediumTest
@@ -360,7 +360,7 @@ export default function relationalStoreCloudSyncTest() {
 
 
         /**
-         * @tc.name get modify time using wrong primary key type
+         * @tc.name testRdbStoreCloudSync0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1000
          * @tc.desc rdb get modify time using wrong primary key type
          * @tc.size   : MediumTest
@@ -386,7 +386,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using string primary key type and callback method
+         * @tc.name testRdbStoreCloudSync0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1100
          * @tc.desc get modify time using string primary key type and callback method
          * @tc.size   : MediumTest
@@ -414,7 +414,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using string primary key type and promise method
+         * @tc.name testRdbStoreCloudSync0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1200
          * @tc.desc get modify time using string primary key type and promise method
          * @tc.size   : MediumTest
@@ -441,7 +441,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using rowid and callback method
+         * @tc.name testRdbStoreCloudSync0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1300
          * @tc.desc get modify time using rowid and callback method
          * @tc.size   : MediumTest
@@ -469,7 +469,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using rowid and promise method
+         * @tc.name testRdbStoreCloudSync0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1400
          * @tc.desc get modify time using rowid and promise method
          * @tc.size   : MediumTest
@@ -496,7 +496,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time, but not set distributed table
+         * @tc.name testRdbStoreCloudSync0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1500
          * @tc.desc get modify time, but not set distributed table
          * @tc.size   : MediumTest
@@ -532,7 +532,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using int primary key type and callback method
+         * @tc.name testRdbStoreCloudSync0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1600
          * @tc.desc get modify time using int primary key type and callback method
          * @tc.size   : MediumTest
@@ -560,7 +560,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name get modify time using int primary key type and promise method
+         * @tc.name testRdbStoreCloudSync0008
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1700
          * @tc.desc get modify time using int primary key type and promise method
          * @tc.size   : MediumTest
@@ -587,7 +587,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with no table, SyncMode is SYNC_MODE_TIME_FIRST and callback method
+         * @tc.name testRdbStoreCloudSync0009
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1800
          * @tc.desc cloud sync with no table, SyncMode is SYNC_MODE_TIME_FIRST and callback method
          * @tc.size   : MediumTest
@@ -620,7 +620,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with no table, SyncMode is SYNC_MODE_TIME_FIRST and promise method
+         * @tc.name testRdbStoreCloudSync0010
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_1900
          * @tc.desc cloud sync with no table, SyncMode is SYNC_MODE_TIME_FIRST and promise method
          * @tc.size   : MediumTest
@@ -652,7 +652,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with table, SyncMode is SYNC_MODE_TIME_FIRST and callback method
+         * @tc.name testRdbStoreCloudSync0011
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2000
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_TIME_FIRST and callback method
          * @tc.size   : MediumTest
@@ -686,7 +686,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with table, SyncMode is SYNC_MODE_TIME_FIRST and promise method
+         * @tc.name testRdbStoreCloudSync0012
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2100
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_TIME_FIRST and promise method
          * @tc.size   : MediumTest
@@ -720,7 +720,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with table, SyncMode is SYNC_MODE_NATIVE_FIRST and promise method
+         * @tc.name testRdbStoreCloudSync0013
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2200
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_NATIVE_FIRST and promise method
          * @tc.size   : MediumTest
@@ -754,7 +754,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
+         * @tc.name testRdbStoreCloudSync0014
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2300
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -788,7 +788,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong no SyncMode
+         * @tc.name testRdbStoreCloudSync0015
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2400
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -812,7 +812,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong SyncMode err
+         * @tc.name testRdbStoreCloudSync0016
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2500
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -837,7 +837,7 @@ export default function relationalStoreCloudSyncTest() {
             console.log(TAG + "************* testRdbStoreCloudSync0016 end *************");
         })
         /**
-         * @tc.name cloud sync with wrong SyncMode null
+         * @tc.name testRdbStoreCloudSyncTable0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2600
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -862,7 +862,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong SyncMode undefined
+         * @tc.name testRdbStoreCloudSyncTable0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2700
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -887,7 +887,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong SyncMode 123
+         * @tc.name testRdbStoreCloudSyncTable0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2800
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -912,7 +912,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong table null
+         * @tc.name testRdbStoreCloudSyncTable0004
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_2900
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -936,7 +936,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong table undefined
+         * @tc.name testRdbStoreCloudSyncTable0005
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3000
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -960,7 +960,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong table 123
+         * @tc.name testRdbStoreCloudSyncTable0006
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3100
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -984,7 +984,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong table ""
+         * @tc.name testRdbStoreCloudSyncTable0007
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3200
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1008,7 +1008,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong table "table123"
+         * @tc.name testRdbStoreCloudSyncTable0008
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3300
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1032,7 +1032,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong Progess null
+         * @tc.name testRdbStoreCloudSyncTable0009
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3400
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1057,7 +1057,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong Progess undefined
+         * @tc.name testRdbStoreCloudSyncTable0010
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3500
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1082,7 +1082,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong Progess "progess"
+         * @tc.name testRdbStoreCloudSyncTable0011
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3600
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1107,7 +1107,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with wrong Progess no
+         * @tc.name testRdbStoreCloudSyncTable0012
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3700
          * @tc.desc cloud sync with table, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1132,7 +1132,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with RdbPredicates, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
+         * @tc.name testRdbCloudSyncFirst0001
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3800
          * @tc.desc cloud sync with RdbPredicates, SyncMode is SYNC_MODE_CLOUD_FIRST and promise method
          * @tc.size   : MediumTest
@@ -1159,7 +1159,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with RdbPredicates, SyncMode is SYNC_MODE_CLOUD_FIRST and callback method
+         * @tc.name testRdbCloudSyncFirst0002
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_3900
          * @tc.desc cloud sync with RdbPredicates, SyncMode is SYNC_MODE_CLOUD_FIRST and callback method
          * @tc.size   : MediumTest
@@ -1187,7 +1187,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
         /**
-         * @tc.name cloud sync with exception parameter, SyncMode is SYNC_MODE_CLOUD_FIRST and callback method
+         * @tc.name testRdbCloudSyncFirst0003
          * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4000
          * @tc.desc cloud sync with exception parameter, SyncMode is SYNC_MODE_CLOUD_FIRST and callback method
          * @tc.size   : MediumTest
@@ -1213,7 +1213,7 @@ export default function relationalStoreCloudSyncTest() {
         })
 
     /**
-     * @tc.name subscribe test
+     * @tc.name testRdbCloudAutoSyncProgress0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4100
      * @tc.desc normal testcase for autoSyncProgress of interface 'on'
      * @tc.size   : MediumTest
@@ -1239,7 +1239,7 @@ export default function relationalStoreCloudSyncTest() {
     })
 
     /**
-     * @tc.name subscribe test
+     * @tc.name testRdbCloudAutoSyncProgress0002
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4200
      * @tc.desc normal testcase for autoSyncProgress of interface 'off'
      * @tc.size   : MediumTest
@@ -1265,7 +1265,7 @@ export default function relationalStoreCloudSyncTest() {
     })
 
     /**
-     * @tc.name subscribe test
+     * @tc.name testRdbCloudAutoSyncProgress0003
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4300
      * @tc.desc normal testcase for autoSyncProgress of interface 'off'
      * @tc.size   : MediumTest
@@ -1287,7 +1287,7 @@ export default function relationalStoreCloudSyncTest() {
     })
 
     /**
-     * @tc.name subscribe test
+     * @tc.name testRdbCloudAutoSyncProgress0004
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4400
      * @tc.desc normal testcase for autoSyncProgress of interface 'off'
      * @tc.size   : MediumTest
@@ -1309,7 +1309,7 @@ export default function relationalStoreCloudSyncTest() {
     })
 
     /**
-     * @tc.name subscribe test
+     * @tc.name testRdbCloudAutoSyncProgress0005
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4500
      * @tc.desc normal testcase for autoSyncProgress of interface 'off'
      * @tc.size   : MediumTest
@@ -1331,7 +1331,7 @@ export default function relationalStoreCloudSyncTest() {
     })
 
     /**
-     * @tc.name lockCloudContainer with RdbPredicates, SyncMode is relationalStore.RdbPredicates and promise method
+     * @tc.name testRdbCloudlockCloudContainer0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4600
      * @tc.desc lockCloudContainer with RdbPredicates, SyncMode is relationalStore.RdbPredicates and promise method
      * @tc.size   : MediumTest
@@ -1355,7 +1355,7 @@ export default function relationalStoreCloudSyncTest() {
     })
     
     /**
-     * @tc.name unlockCloudContainer with RdbPredicates, relationalStore.RdbPredicates promise method
+     * @tc.name testRdbCloudUnlockCloudContainer0001
      * @tc.number SUB_DistributedData_RelationalStore_SDK_CloudSyncJsAPITest_4700
      * @tc.desc unlockCloudContainer RdbPredicates, relationalStore.RdbPredicates and promise method
      * @tc.size   : MediumTest

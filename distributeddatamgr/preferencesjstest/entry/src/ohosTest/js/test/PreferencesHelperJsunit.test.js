@@ -41,7 +41,7 @@ export default function preferencesHelperTest(){
             await dataPreferences.deletePreferences(context, NAME);
         })
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3000
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -57,7 +57,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name getPreferences interface test
+         * @tc.name testGetPreferencesHelper002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2300
          * @tc.desc getPreferences interface test
          * @tc.size MediumTest
@@ -78,7 +78,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name removePreferencesFromCache interface test
+         * @tc.name testRemovePreferencesFromCache001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2100
          * @tc.desc removePreferencesFromCache interface test
          * @tc.size MediumTest
@@ -97,7 +97,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name deletePreferences interface test
+         * @tc.name testDeletePreferencesHelper002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_2200
          * @tc.desc deletePreferences interface test
          * @tc.size MediumTest
@@ -116,7 +116,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name put interface test
+         * @tc.name testPreferencesRegisterObserver001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1000
          * @tc.desc put interface test
          * @tc.size MediumTest
@@ -137,7 +137,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name repeat on interface test
+         * @tc.name testPreferencesRegisterObserver002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_1100
          * @tc.desc repeat on interface test
          * @tc.size MediumTest
@@ -159,7 +159,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name off interface test
+         * @tc.name testPreferencesUnRegisterObserver001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0900
          * @tc.desc off interface test
          * @tc.size MediumTest
@@ -179,7 +179,7 @@ export default function preferencesHelperTest(){
         })
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncinterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3100
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest

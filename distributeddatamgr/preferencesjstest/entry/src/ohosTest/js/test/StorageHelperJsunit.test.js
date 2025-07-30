@@ -38,7 +38,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name getStorageSync interface test
+         * @tc.name testGetStorageHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0500
          * @tc.desc getStorageSync interface test
          * @tc.size MediumTest
@@ -54,7 +54,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name getStorage interface test
+         * @tc.name testGetStorageHelper002
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0700
          * @tc.desc getStorage interface test
          * @tc.size MediumTest
@@ -75,7 +75,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name getStorage callback interface test
+         * @tc.name testGetStorageCallback0020
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0600
          * @tc.desc getStorage callback interface test
          * @tc.size MediumTest
@@ -93,7 +93,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name removeStorageFromCacheSync interface test
+         * @tc.name testRemoveStorageFromCache001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0800
          * @tc.desc removeStorageFromCacheSync interface test
          * @tc.size MediumTest
@@ -113,7 +113,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name removeStorageFromCache promise interface test
+         * @tc.name testRemoveStorageFromCache002
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0900
          * @tc.desc removeStorageFromCache promise interface test
          * @tc.size MediumTest
@@ -132,7 +132,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name removeStorageFromCache callback interface test
+         * @tc.name testRemoveStorageFromCache004
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0400
          * @tc.desc removeStorageFromCache callback interface test
          * @tc.size MediumTest
@@ -149,7 +149,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name deleteStorageSync interface test
+         * @tc.name testDeleteStorageHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0100
          * @tc.desc deleteStorageSync interface test
          * @tc.size MediumTest
@@ -171,7 +171,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name deleteStorage interface test
+         * @tc.name testDeleteStorageHelper002
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0200
          * @tc.desc deleteStorage interface test
          * @tc.size MediumTest
@@ -190,7 +190,7 @@ export default function storageHelperTest() {
         })
 
         /**
-         * @tc.name deleteStorag callback interface test
+         * @tc.name testDeleteStoragCallback0070
          * @tc.number SUB_DistributedData_Preference_SDK_StorageSyncTest_0300
          * @tc.desc deleteStorage interface test
          * @tc.size MediumTest

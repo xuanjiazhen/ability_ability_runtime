@@ -161,7 +161,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testDeletePreferencesPromiseHelper001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
+        it('testDeletePreferencesPromiseHelper002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
             const options = {
                 name: 'test_preferences',
                 dataGroupId: "123456"
@@ -250,7 +250,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesSyncInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesSyncInvalidInterface002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             try {
                 const options = {
                     name: 'test_preferences',
@@ -301,7 +301,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesSyncInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesSyncInvalidInterface003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             try {
                 const options = {
                     name: null,
@@ -329,7 +329,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesSyncInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesSyncInvalidInterface004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             try {
                 dataPreferences.removePreferencesFromCacheSync(context, { name: null})
                 expect().assertFail();
@@ -375,7 +375,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesflushInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesflushInvalidInterface002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             let observer = (key) => {
                 console.info("The key " + key + " changed.");
               }
@@ -474,7 +474,7 @@ export default function preferencesErrCodeHelperTest(){
          * @tc.level Level 2
          */
 
-        it('testPreferencesOnObserver0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
+        it('testPreferencesOnObserver0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
             try {
                 await mPreferences.clear();
                 await mPreferences.on('dataChange', function (undefine) {
@@ -612,7 +612,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesDeleteSyncInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesDeleteSyncInvalidInterface002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             try {
                 mPreferences.hasSync(undefine);
                 expect().assertFail();
@@ -635,7 +635,7 @@ export default function preferencesErrCodeHelperTest(){
          */
 
 
-        it('testGetPreferencesDeleteSyncInvalidInterface001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
+        it('testGetPreferencesDeleteSyncInvalidInterface003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function () {
             try {
                 mPreferences.getAll((err, undefine) => {
                     if (err) {
@@ -724,7 +724,7 @@ export default function preferencesErrCodeHelperTest(){
 
         /**
         * @tc.name getPreferencesCallback interface test
-        * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5700
+        * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5701
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
         * @tc.type Function
@@ -953,7 +953,7 @@ export default function preferencesErrCodeHelperTest(){
 
         /**
         * @tc.name removePreferencesFromCacheSync interface test
-        * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5800
+        * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5801
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
         * @tc.type Function

@@ -20,7 +20,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0400
-     * @tc.name [JS-API8]FieldNode.AppendChild().
+     * @tc.name testAppendChild001
      * @tc.desc Test Js Api FieldNode.AppendChild() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -48,7 +48,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0100
-     * @tc.name [JS-API8]FieldNode.AppendChild().
+     * @tc.name testAppendChild002
      * @tc.desc Test Js Api FieldNode.AppendChild() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -70,7 +70,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0600
-     * @tc.name [JS-API8]FieldNode.AppendChild().
+     * @tc.name testAppendChild003
      * @tc.desc Test Js Api FieldNode.AppendChild() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -90,7 +90,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0500
-     * @tc.name [JS-API8]FieldNode.ToJson().
+     * @tc.name testToJson001
      * @tc.desc Test Js Api FieldNode.ToJson() testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -109,7 +109,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0200
-     * @tc.name [JS-API8]FieldNode.ToJson().
+     * @tc.name testToJson002
      * @tc.desc Test Js Api FieldNode.ToJson() testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -128,7 +128,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0300
-     * @tc.name [JS-API8]FieldNode.ToJson().
+     * @tc.name testToJson003
      * @tc.desc Test Js Api FieldNode.ToJson() testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -148,7 +148,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0700
-     * @tc.name [JS-API8]FieldNode.default.
+     * @tc.name testdefault001
      * @tc.desc Test Js Api FieldNode.default testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -168,7 +168,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0800
-     * @tc.name [JS-API8]FieldNode.nullable.
+     * @tc.name testnullable001
      * @tc.desc Test Js Api FieldNode.nullable testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -188,7 +188,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_1400
-     * @tc.name [JS-API8]FieldNode.type.STRING
+     * @tc.name testtype001
      * @tc.desc Test Js Api FieldNode.type testcase 001
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -209,7 +209,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_1300
-     * @tc.name [JS-API8]FieldNode.type.INTEGER
+     * @tc.name testtype002
      * @tc.desc Test Js Api FieldNode.type testcase 002
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -230,7 +230,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_1200
-     * @tc.name [JS-API8]FieldNode.type.FLOAT
+     * @tc.name testtype003
      * @tc.desc Test Js Api FieldNode.type testcase 003
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -251,7 +251,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_1000
-     * @tc.name [JS-API8]FieldNode.type.BYTE_ARRAY
+     * @tc.name testtype004
      * @tc.desc Test Js Api FieldNode.type testcase 004
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -272,7 +272,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_0900
-     * @tc.name [JS-API8]FieldNode.type.BOOLEAN
+     * @tc.name testtype005
      * @tc.desc Test Js Api FieldNode.type testcase 005
      * @tc.size   : MediumTest
      * @tc.type   : Function
@@ -294,7 +294,7 @@ describe('fieldNodeTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_KvStoreSchemaJsApiTest_1100
-     * @tc.name [JS-API8]FieldNode.type.DOUBLE
+     * @tc.name testtype006
      * @tc.desc Test Js Api FieldNode.type testcase 006
      * @tc.size   : MediumTest
      * @tc.type   : Function
