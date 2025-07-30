@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import wifindk from 'libwifindk.so'
+import wifindktest from 'libwifindk.so'
 
 const KEY_CODE_EVENT_OK = 0;
 const KEY_CODE_EVENT_ERROR = 1
@@ -23,22 +23,22 @@ export default function ConnectivityTest() {
   describe('ConnectivityTest', () => {
 
     /*
-     * @tc.number     : Get_Wifi_Status_0100
+     * @tc.number     : SUB_ConnectivityKit_Get_Wifi_Status_0100
      * @tc.name       : Get_Wifi_Status_0100
      * @tc.desc       : testing OH_Wifi_IsWifiEnabled interface
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 1
      */
-    it('Get_Wifi_Status_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('Get_Wifi_Status_TEST_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>Get_Wifi_Status_0100 start====");
-          let result: number = wifindk.GetWifiStatus();
+          console.info("====>Get_Wifi_Status_TEST_0100 start====");
+          let result: number = wifindktest.GetWifiStatus();
           expect(KEY_CODE_EVENT_OK).assertEqual(result);
           done()
         } catch (err) {
-          console.error("====>Get_Wifi_Status_0100 catch err: " + err);
+          console.error("====>Get_Wifi_Status_TEST_0100 catch err: " + err);
           expect(false).assertEqual(KEY_CODE_EVENT_ERROR);
           done()
         }
