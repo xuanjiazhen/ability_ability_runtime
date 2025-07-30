@@ -417,8 +417,10 @@ describe('fileio_open', function () {
    */
   it('fileio_test_open_async_012', Level.LEVEL0, async function (done) {
     let fpath = await nextFileName('fileio_test_open_async_012');
+    expect(prepareFile(fpath, FILE_CONTENT)).assertTrue();
+
     try {
-      fileio.open(fpath, function (err, fd) {
+      fileio.open(fpath, (err, fd) => {
         expect(fd !== null).assertTrue();
         expect(fileio.closeSync(fd) !== null).assertTrue();
         expect(fileio.unlinkSync(fpath) !== null).assertTrue();
