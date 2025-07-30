@@ -136,6 +136,7 @@ group("multimedia") {
       "videoProcess/detail_enhancer_image_ndk:ActsDetailEnhancerImageNdkUnitTest",
       "videoProcess/detail_enhancer_video_ndk:ActsDetailEnhancerVideoNdkUnitTest",
       "videoProcess/moduletest/video:ActsVpeVideoNativModuleTest",
+      "image/image_ets_standard/imageXts:imageXts_ets_hap",
     ]
   } else {
     deps += [
