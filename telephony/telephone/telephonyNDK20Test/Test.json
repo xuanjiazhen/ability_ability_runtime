@@ -3,7 +3,7 @@
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "180000",
-        "bundle-name": "com.acts.TelephonyNdk20.test",
+        "bundle-name": "com.acts.actsosaccountndktest",
         "module-name": "entry_test",
         "shell-timeout": "600000",
         "testcase-timeout": 60000
