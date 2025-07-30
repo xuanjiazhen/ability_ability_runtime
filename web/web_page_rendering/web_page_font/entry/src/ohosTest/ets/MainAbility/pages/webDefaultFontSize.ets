@@ -66,7 +66,7 @@ struct webDefaultFontSize {
                 this.controller.runJavaScript({
                   script: "getPageFontsize()", callback: (result) => {
                     this.checkEleResult = JSON.parse(result)
-                    await Utils.sleep(2000)
+                    Utils.sleep(2000)
                     Utils.emitEvent(this.checkEleResult[1], 432)
                     console.log(`The getPageFontsize() return value is: ${result}`);
                   }
@@ -85,7 +85,7 @@ struct webDefaultFontSize {
                 this.controller.runJavaScript({
                   script: "getPageFontsize()", callback: (result) => {
                     this.checkEleResult = JSON.parse(result)
-                    await Utils.sleep(2000)
+                    Utils.sleep(2000)
                     Utils.emitEvent(this.checkEleResult[1], 434)
                     console.log(`The getPageFontsize() return value is: ${result}`);
                   }
