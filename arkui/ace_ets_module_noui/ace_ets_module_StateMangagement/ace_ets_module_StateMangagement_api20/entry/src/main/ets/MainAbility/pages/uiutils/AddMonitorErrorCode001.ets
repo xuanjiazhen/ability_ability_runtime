@@ -38,7 +38,7 @@ class B {
 @ObservedV2
 class A {
   @Trace public a: number = 0;
-  invalidPath: number | string = 0;
+  public invalidPath: number | string = 0;
 
   onChange(mon: IMonitor) {
     mon.dirty.forEach((path: string) => {
