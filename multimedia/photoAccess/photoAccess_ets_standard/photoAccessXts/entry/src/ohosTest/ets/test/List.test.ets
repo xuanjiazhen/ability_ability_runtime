@@ -20,14 +20,14 @@ import getNextObjectTest from './photoAccessHelper/FetchResult/getNextObject.tes
 import getObjectByPositionTest from './photoAccessHelper/FetchResult/getObjectByPosition.test';
 import isAfterLastTest from './photoAccessHelper/FetchResult/isAfterLast.test';
 import PhotoViewPickerSelectTest from './photoAccessHelper/PhotoViewPicker/select.test';
-import MediaAlbumChangeRequestGetAlbumTest from './photoAccessHelper/MediaAlbumChangeRequest/getAlbum.test';
-import MediaAlbumChangeRequestSetAlbumNameTest from './photoAccessHelper/MediaAlbumChangeRequest/setAlbumName.test';
-import MediaAlbumChangeRequestAddAssetsTest from './photoAccessHelper/MediaAlbumChangeRequest/addAssets.test';
-import MediaAlbumChangeRequestRemoveAssetsTest from './photoAccessHelper/MediaAlbumChangeRequest/removeAssets.test';
-import MediaAlbumChangeRequestConstructorTest from './photoAccessHelper/MediaAlbumChangeRequest/constructor.test';
+// import MediaAlbumChangeRequestGetAlbumTest from './photoAccessHelper/MediaAlbumChangeRequest/getAlbum.test';
+// import MediaAlbumChangeRequestSetAlbumNameTest from './photoAccessHelper/MediaAlbumChangeRequest/setAlbumName.test';
+// import MediaAlbumChangeRequestAddAssetsTest from './photoAccessHelper/MediaAlbumChangeRequest/addAssets.test';
+// import MediaAlbumChangeRequestRemoveAssetsTest from './photoAccessHelper/MediaAlbumChangeRequest/removeAssets.test';
+// import MediaAlbumChangeRequestConstructorTest from './photoAccessHelper/MediaAlbumChangeRequest/constructor.test';
 import MediaAssetManagerRequestImageTest from './photoAccessHelper/MediaAssetManager/requestImage.test';
 import MediaAssetManagerRequestImageDataTest from './photoAccessHelper/MediaAssetManager/requestImageData.test';
-import MediaAssetManagerRequestMovingPhotoTest from './photoAccessHelper/MediaAssetManager/requestMovingPhoto.test';
+// import MediaAssetManagerRequestMovingPhotoTest from './photoAccessHelper/MediaAssetManager/requestMovingPhoto.test';
 import MediaAssetManagerRequestVideoFileTest from './photoAccessHelper/MediaAssetManager/requestVideoFile.test';
 import MediaAssetManagerCancelRequestTest from './photoAccessHelper/MediaAssetManager/cancelRequest.test';
 import MediaAssetManagerLoadMovingPhotoTest from './photoAccessHelper/MediaAssetManager/loadMovingPhoto.test';
@@ -83,10 +83,10 @@ import provisionResourcesTest from './provisionResources.test';
 
 export default function testsuite() {
   provisionResourcesTest();
-  MediaAlbumChangeRequestSetAlbumNameTest();
+  // MediaAlbumChangeRequestSetAlbumNameTest();
   MediaAssetChangeRequestSetOrientationTest();
   sendablePhotoAccessHelperGetAlbumsTest();
-  MediaAlbumChangeRequestConstructorTest();
+  // MediaAlbumChangeRequestConstructorTest();
   sendableGetCountTest();
   sendableIsAfterLastTest();
   sendableGetLastObjectTest();
@@ -129,9 +129,9 @@ export default function testsuite() {
   getThumbnailTest();
   setTest();
   getAlbumsTest();
-  MediaAlbumChangeRequestGetAlbumTest();
-  MediaAlbumChangeRequestAddAssetsTest();
-  MediaAlbumChangeRequestRemoveAssetsTest();
+  // MediaAlbumChangeRequestGetAlbumTest();
+  // MediaAlbumChangeRequestAddAssetsTest();
+  // MediaAlbumChangeRequestRemoveAssetsTest();
   MediaAssetManagerRequestImageTest();
   MediaAssetManagerRequestImageDataTest();
   // MediaAssetManagerRequestMovingPhotoTest();

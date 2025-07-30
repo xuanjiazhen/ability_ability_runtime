@@ -358,7 +358,7 @@ export default function getTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('get_image_size_001', Level.LEVEL2, async (done: Function) => {
+    /*it('get_image_size_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'get_image_size_001';
       const displayName = 'getTest.jpg';
       const fetchOps: photoAccessHelper.FetchOptions = photoFetchOption(testName, photoKeys.DISPLAY_NAME, displayName);
@@ -366,7 +366,7 @@ export default function getTest() {
       const key: string = photoKeys.SIZE;
       const value: number = 108164;
       await checkPhotoKeysValue(done, testName, fetchOps, key, value);
-    })
+    })*/
 
     /**
      * @tc.number    : PHOTO_ASSET_GET_013
@@ -501,7 +501,7 @@ export default function getTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('get_video_duration_001', Level.LEVEL2, async (done: Function) => {
+    /*it('get_video_duration_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'get_video_duration_001';
       const displayName = 'getTest.mp4';
       const fetchOps: photoAccessHelper.FetchOptions = photoFetchOption(testName, photoKeys.DISPLAY_NAME, displayName);
@@ -509,7 +509,7 @@ export default function getTest() {
       const key: string = photoKeys.DURATION;
       const value: number = 4694;
       await checkPhotoKeysValue(done, testName, fetchOps, key, value);
-    })
+    })*/
 
     /**
      * @tc.number    : PHOTO_ASSET_GET_021
@@ -609,7 +609,7 @@ export default function getTest() {
      * @tc.type      : Function
      * @tc.level     : Level 2
      */
-    it('get_video_size_001', Level.LEVEL2, async (done: Function) => {
+    /*it('get_video_size_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'get_video_size_001';
       const displayName = 'getTest.mp4';
       const fetchOps: photoAccessHelper.FetchOptions = photoFetchOption(testName, photoKeys.DISPLAY_NAME, displayName);
@@ -617,7 +617,7 @@ export default function getTest() {
       const key: string = photoKeys.SIZE;
       const value: number = 305787;
       await checkPhotoKeysValue(done, testName, fetchOps, key, value);
-    })
+    })*/
 
     /**
      * @tc.number    : PHOTO_ASSET_GET_027

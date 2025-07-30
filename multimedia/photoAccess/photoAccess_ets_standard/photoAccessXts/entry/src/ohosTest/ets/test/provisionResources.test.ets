@@ -97,7 +97,7 @@ export default function provisionResourcesTest() {
       ];
       await pushCreateAsset(testContext,fileNames);
       await checkResourceAsset(done, testNum, fileNames);
-    });
+    })
 
     /**
      * @tc.number    : SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0200
@@ -115,43 +115,43 @@ export default function provisionResourcesTest() {
       ];
       await pushCreateAsset(testContext,fileNames);
       await checkResourceAsset(done, testNum, fileNames);
-    });
+    })
 
     /**
-     * @tc.number    : SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0800
-     * @tc.name      : sub_media_photoAccess_provision_check_assets_008
+     * @tc.number    : SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0300
+     * @tc.name      : sub_media_photoAccess_provision_check_assets_003
      * @tc.desc      : Provision mediaAssets and check mediaAssets
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('sub_media_photoAccess_provision_check_assets_008', Level.LEVEL0, async (done:Function)=> {
-      const testNum = 'SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0800';
+    it('sub_media_photoAccess_provision_check_assets_003', Level.LEVEL0, async (done:Function)=> {
+      const testNum = 'SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0300';
       const fileNames = [
         "01.mp4", "cloneTest.mp4", "getTest.mp4", "getThumb.mp4",
         "modifyCb01.mp4","modifyCb02.mp4",
       ];
       await pushCreateAsset(testContext,fileNames);
       await checkResourceAsset(done, testNum, fileNames);
-    });
+    })
 
     /**
-     * @tc.number    : SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0900
-     * @tc.name      : sub_media_photoAccess_provision_check_assets_009
+     * @tc.number    : SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0400
+     * @tc.name      : sub_media_photoAccess_provision_check_assets_004
      * @tc.desc      : Provision mediaAssets and check mediaAssets
      * @tc.size      : MEDIUM
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('sub_media_photoAccess_provision_check_assets_009', Level.LEVEL0, async (done:Function)=> {
-      const testNum = 'SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0900';
+    it('sub_media_photoAccess_provision_check_assets_004', Level.LEVEL0, async (done:Function)=> {
+      const testNum = 'SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0400';
       const fileNames = [
         "modifyCb03.mp4", "modifyCb04.mp4", "modifyCb05.mp4", "modifyCb06.mp4","modifyCb07.mp4","modifyPro01.mp4",
         "modifyPro02.mp4", "modifyPro03.mp4", "modifyPro04.mp4", "modifyPro05.mp4","modifyPro06.mp4","modifyPro07.mp4","testGetAsset.mp4"
       ];
       await pushCreateAsset(testContext,fileNames);
       await checkResourceAsset(done, testNum, fileNames);
-    });
+    })
 
     /**
      * @tc.number    : SUB_MEDIA_PHOTOACCESS_CHECK_ASSETS_COUNT_001
@@ -174,7 +174,6 @@ export default function provisionResourcesTest() {
         expect(false).assertTrue();
         done();
       }
-    });
-
+    })
   });
 }
