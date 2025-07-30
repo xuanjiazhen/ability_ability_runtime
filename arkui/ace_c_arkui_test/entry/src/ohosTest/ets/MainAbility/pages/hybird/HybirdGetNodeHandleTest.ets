@@ -22,6 +22,7 @@ function mixedRow() {
     Text('Hello, World!')
       .backgroundColor(Color.Gray)
   }
+  .id('row')
   .width(200)
   .height(200)
   .backgroundColor(Color.Green)
@@ -43,7 +44,7 @@ struct HybirdGetNodeHandleTest {
       CommonView({
         pageTag: this.PAGE_TAG,
       }).onAppear(() => {
-        render.hybirdGetNodeHandleTest(this.PAGE_TAG);
+        render.hybirdGetNodeHandleTest(this.PAGE_TAG, createMixedRow, this.getUIContext());
       })
     }
   }
