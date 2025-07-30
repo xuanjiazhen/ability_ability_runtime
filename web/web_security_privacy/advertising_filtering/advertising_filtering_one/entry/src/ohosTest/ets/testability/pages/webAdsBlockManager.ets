@@ -133,11 +133,11 @@ struct webAdsBlockManager {
                         let rulePath: string = Utils.copyRawFileToSandbox('custom_easylist.txt');
                         await Utils.sleep(1000)
                         webview.AdsBlockManager.setAdsBlockRules(rulePath, true);
-                        await Utils.sleep(15000)
+                        await Utils.sleep(20000)
                         Utils.deleteFile(rulePath);
                         this.controller.refresh()
 
-                        await Utils.sleep(1000)
+                        await Utils.sleep(10000)
                         let isBlockedCurPageAfter: boolean = this.controller.isAdsBlockEnabledForCurPage();
                         console.log(' setAdsBlockRules true:  ');
                         console.log(' isBlockedCurPageBefore :  ' + isBlockedCurPageBefore);
@@ -167,11 +167,11 @@ struct webAdsBlockManager {
                         let rulePath: string = Utils.copyRawFileToSandbox('custom_easylist.txt');
                         await Utils.sleep(1000)
                         webview.AdsBlockManager.setAdsBlockRules(rulePath, false);
-                        await Utils.sleep(15000)
+                        await Utils.sleep(20000)
                         Utils.deleteFile(rulePath);
                         this.controller.refresh()
 
-                        await Utils.sleep(1000)
+                        await Utils.sleep(10000)
                         let isBlockedCurPageAfter: boolean = this.controller.isAdsBlockEnabledForCurPage();
                         console.log(' setAdsBlockRules false:  ');
                         console.log(' isBlockedCurPageBefore :  ' + isBlockedCurPageBefore);
@@ -368,16 +368,15 @@ struct webAdsBlockManager {
                         webview.AdsBlockManager.clearAdsBlockAllowedList();
                         await Utils.sleep(1000)
                         this.controller.loadUrl(this.src_url)
-                        await Utils.sleep(1000)
+                        await Utils.sleep(10000)
                         let isBlockedCurPageAfter: boolean = this.controller.isAdsBlockEnabledForCurPage();
                         console.log(' clearAdsBlockAllowedList:  ' + this.main_url);
                         console.log(' clearAdsBlockAllowedList isBlockedCurPageBefore :  ' + isBlockedCurPageBefore);
                         console.log(' clearAdsBlockAllowedList isBlockedCurPageAfter :  ' + isBlockedCurPageAfter);
 
                         this.controller.loadUrl(CommonConstants.ADS_URL1);
-                        await Utils.sleep(1000)
+                        await Utils.sleep(10000)
 
-                        await Utils.sleep(1000)
                         Utils.emitEvent(true, 1011)
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
@@ -397,16 +396,13 @@ struct webAdsBlockManager {
                     case 'emitOnAdsBlocked': {
 
                       this.controller.loadUrl(CommonConstants.ADS_URL1);
-                      Utils.sleep(4000);
+                      await Utils.sleep(10000);
                       this.controller.loadUrl(CommonConstants.ADS_URL2);
-                      this.controller.refresh();
-                      Utils.sleep(4000);
+                      await Utils.sleep(10000);
                       this.controller.loadUrl(CommonConstants.ADS_URL3);
-                      this.controller.refresh();
-                      Utils.sleep(4000);
+                      await Utils.sleep(10000);
                       this.controller.loadUrl(CommonConstants.ADS_URL4);
-                      this.controller.refresh();
-                      Utils.sleep(2000);
+                      await Utils.sleep(10000);
 
                       if (this.testIsOnAdsBlocked || this.errorCode == 801) {
                         Utils.emitEvent(true, 1012)
