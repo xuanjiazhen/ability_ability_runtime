@@ -74,4 +74,5 @@ describe('fileio_hash', function () {
       expect(null).assertFail();
     }
   });
-});}
+});
+}
