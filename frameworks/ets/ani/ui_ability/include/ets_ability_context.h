@@ -94,6 +94,14 @@ public:
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
     static void NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled);
 
+#ifdef SUPPORT_GRAPHICS
+public:
+    static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+private:
+    void OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+        ani_object callback);
+#endif
 private:
     void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
