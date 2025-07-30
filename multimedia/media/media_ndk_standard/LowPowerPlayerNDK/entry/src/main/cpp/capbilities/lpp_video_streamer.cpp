@@ -47,10 +47,12 @@ int32_t LppVideoStreamer::SetCallback(LppUserData *lppUserData)
     AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ SetCallback ======");
     int32_t ret = AV_ERR_OK;
     lppVideoStreamerCallback_ = OH_LowPowerVideoSinkCallback_Create();
-    OH_LowPowerVideoSinkCallback_SetDataNeededListener(lppVideoStreamerCallback_, LppCallback::OnDataNeededVideo,
+    ret = OH_LowPowerVideoSinkCallback_SetDataNeededListener(lppVideoStreamerCallback_, LppCallback::OnDataNeededVideo,
                                                        lppUserData);
-    OH_LowPowerVideoSinkCallback_SetStreamChangedListener(
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSinkCallback_SetDataNeededListener ret:::%{public}d ", ret);
+    ret = OH_LowPowerVideoSinkCallback_SetStreamChangedListener(
         lppVideoStreamerCallback_, LppCallback::OH_LowPowerVideoSink_OnStreamChanged, lppUserData);
+    AVCODEC_SAMPLE_LOGI("OH_LowPowerVideoSinkCallback_SetStreamChangedListener ret:::%{public}d ", ret);
     ret = OH_LowPowerVideoSink_RegisterCallback(lppVideoStreamer_, lppVideoStreamerCallback_);
     CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Set callback failed, ret::: %{public}d", ret);
 
@@ -157,9 +159,9 @@ int32_t LppVideoStreamer::GetParameter(const SampleInfo &sampleInfo)
     AVCODEC_SAMPLE_LOGI("====== lppVideoStreamer_ GetParameter ======");
     OH_AVFormat *format = OH_AVFormat_Create();
     CHECK_AND_RETURN_RET_LOG(format != nullptr, AVCODEC_SAMPLE_ERR_ERROR, "AVFormat create failed");
-    int ret = OH_LowPowerVideoSink_GetParameter(lppVideoStreamer_, format);
-    CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Configure failed, ret::: %{public}d", ret);
-    return ret;
+    // int ret = OH_LowPowerVideoSink_GetParameter(lppVideoStreamer_, format);
+    // CHECK_AND_RETURN_RET_LOG(ret == AV_ERR_OK, ret, "Configure failed, ret::: %{public}d", ret);
+    return 0;
 }
 
 int32_t LppVideoStreamer::Prepare()

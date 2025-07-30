@@ -33,6 +33,9 @@ public:
 
     int32_t Create(const std::string &codecMime);
     
+    int32_t SetCallbackCreate(LppUserData *lppUserData);
+    int32_t SetDataNeededListener(LppUserData *lppUserData);
+    int32_t SetPositionUpdateListener(LppUserData *lppUserData);
     int32_t SetCallback(LppUserData *lppUserData);
     int32_t SetErrorCallback(LppUserData *lppUserData);
     int32_t SetInterruptListener(LppUserData *lppUserData);
