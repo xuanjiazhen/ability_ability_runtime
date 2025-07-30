@@ -6,6 +6,8 @@
         "MainAbility/pages/PanGesture/observer",
         "MainAbility/pages/Color/colorMetrics",
         "MainAbility/pages/GestureRecognizer/onTouchTestDone",
-        "MainAbility/pages/NodeRenderState/nodeRenderState"
+        "MainAbility/pages/NodeRenderState/nodeRenderState",
+        "MainAbility/pages/HitTestBehavior/BlockDescendants",
+        "MainAbility/pages/HitTestBehavior/BlockHierarchy"
     ]
 }

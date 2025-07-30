@@ -19,6 +19,8 @@ import PanGestureTest from './PanGestureTest/observer.test';
 import colorMetricsTest from './ColorTest/colorMetrics.test';
 import onTouchTestDoneTest from './GestureRecognizerTest/onTouchTestDone.test';
 import nodeRenderStateTest from './NodeRenderStateTest/nodeRenderState.test';
+import BlockDescendantsTest from './HitTestBehaviorTest/BlockDescendants.test';
+import BlockHierarchyTest from './HitTestBehaviorTest/BlockHierarchy.test';
 
 export default function testsuite() {
   getDisplayId();
@@ -27,4 +29,6 @@ export default function testsuite() {
   colorMetricsTest();
   onTouchTestDoneTest();
   nodeRenderStateTest();
+  BlockDescendantsTest();
+  BlockHierarchyTest();
 }
