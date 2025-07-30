@@ -10,8 +10,7 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActslocationCApi20Test.hap",
-            "ActslocationCApiMainTest.hap"
+            "ActslocationCApi20Test.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true

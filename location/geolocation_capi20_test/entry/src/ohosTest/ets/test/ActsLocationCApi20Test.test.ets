@@ -24,11 +24,11 @@ export default function ActsLocationCApi20Test() {
      * @tc.number  : OHLocationInfoGetAdditionalInfo_test
      * @tc.name    : OHLocationInfoGetAdditionalInfo_test
      * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('OHLocationInfoGetAdditionalInfo_test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
+    it('OHLocationInfoGetAdditionalInfo_test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>OHLocationInfoGetAdditionalInfo_test start====");
