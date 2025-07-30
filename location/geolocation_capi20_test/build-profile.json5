@@ -22,11 +22,11 @@
         "material": {
           "certpath": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BDB1DAA12BE15A291A43CE9B44F3C2BB076DB412D8CFC027A3594E6F0369B46A81FAA8E5FD10787",
+          "keyPassword": "0000001A770FF86CEC422A261FC9A5AEBAEACA81F08EAD74D09982E14536F366B47C530E60453E764596",
           "profile": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "C:\\Users\\lenovo\\.ohos\\config\\default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p12",
-          "storePassword": "0000001B944A06313CB0739FDAC248403DEED37E7A2A7236EDAED021264D3229AE852EB053FD43548699A2"
+          "storePassword": "0000001A7C5EF421F987F7565040E103F7838492ADB6EAFDAE0D79AE1BACB5D606F6BB93EAEDEB421F7B"
         }
       }
     ],

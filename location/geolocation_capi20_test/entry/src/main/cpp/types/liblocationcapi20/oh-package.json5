@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 {
-  "name": "liblocationcapi20ndk.so",
+  "name": "liblocationcapi20.so",
   "types": "./Index.d.ts",
   "version": "1.0.0",
   "description": "Function list of locationcapi20 capi."

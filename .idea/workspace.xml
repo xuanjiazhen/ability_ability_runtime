@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7a60b492-6c3e-442a-a5de-da9e6230867d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/BUILD.gn" beforeDir="false" afterPath="$PROJECT_DIR$/location/BUILD.gn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/BUILD.gn" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/BUILD.gn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/Test.json" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/Test.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/main/module.json5" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/main/module.json5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/main/syscap.json" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/main/syscap.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/ohosTest/module.json5" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/ohosTest/module.json5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/ohosTest/syscap.json" beforeDir="false" afterPath="$PROJECT_DIR$/location/geolocation_capi20_test/entry/src/ohosTest/syscap.json" afterDir="false" />
-    </list>
+    <list default="true" id="7a60b492-6c3e-442a-a5de-da9e6230867d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
