@@ -93,7 +93,7 @@ export default function provisionResourcesTest() {
       const testNum = 'SUB_MEDIA_PHOTOACCESS_PROVISION_CHECK_ASSETS_0100';
       const fileNames = [
         "01.jpg", "cloneTest.jpg", "getTest.jpg", "getThumb.jpg", "modifyCb01.jpg", "modifyCb02.jpg",
-        "modifyCb03.jpg", "modifyCb04.jpg","modifyCb05.jpg", "modifyCb07.jpg", "modifyPro01.jpg"
+        "modifyCb03.jpg", "modifyCb04.jpg","modifyCb05.jpg", "modifyCb07.jpg"
       ];
       await pushCreateAsset(testContext,fileNames);
       await checkResourceAsset(done, testNum, fileNames);
