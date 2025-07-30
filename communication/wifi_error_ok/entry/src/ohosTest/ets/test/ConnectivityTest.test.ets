@@ -23,22 +23,22 @@ export default function ConnectivityTest() {
   describe('ConnectivityTest', () => {
 
     /*
-     * @tc.number     : SUB_ConnectivityKit_Get_Wifi_Status_0100
-     * @tc.name       : Get_Wifi_Status_TEST_0100
+     * @tc.number     : SUB_ConnectivityKit_GetWifiStatus_0100
+     * @tc.name       : testConnectivityKitGetWifiStatus0100
      * @tc.desc       : testing OH_Wifi_IsWifiEnabled interface
      * @tc.size       : MediumTest
      * @tc.type       : Function
      * @tc.level      : Level 1
      */
-    it('Get_Wifi_Status_TEST_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testConnectivityKitGetWifiStatus0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>Get_Wifi_Status_TEST_0100 start====");
+          console.info("====>testConnectivityKitGetWifiStatus0100 start====");
           let result: number = wifindktest.GetWifiStatus();
           expect(KEY_CODE_EVENT_OK).assertEqual(result);
           done()
         } catch (err) {
-          console.error("====>Get_Wifi_Status_TEST_0100 catch err: " + err);
+          console.error("====>testConnectivityKitGetWifiStatus0100 catch err: " + err);
           expect(false).assertEqual(KEY_CODE_EVENT_ERROR);
           done()
         }
