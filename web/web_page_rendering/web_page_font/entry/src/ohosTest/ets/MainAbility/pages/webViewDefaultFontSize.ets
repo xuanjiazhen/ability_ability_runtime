@@ -66,7 +66,7 @@ struct webViewDefaultFontSize {
                 console.log("fonsize of emitdefaultFontSize73AndminFontSize1 is :" + this.defaultFontSize + this.minFontSize);
                 this.controller.runJavaScript("getPageFontsize()", (error, result) => {
                   this.checkEleResult = JSON.parse(result)
-                  await Utils.sleep(2000)
+                  Utils.sleep(2000)
                   console.log(`The getPageFontsize() return value is: ${result}`);
                   Utils.emitEvent(this.checkEleResult[1], 332)
                 })
@@ -83,7 +83,7 @@ struct webViewDefaultFontSize {
                 console.log("fonsize of emitdefaultFontSize73AndminFontSize73 is :" + this.defaultFontSize + this.minFontSize);
                 this.controller.runJavaScript("getPageFontsize()", (error, result) => {
                   this.checkEleResult = JSON.parse(result)
-                  await Utils.sleep(2000)
+                  Utils.sleep(2000)
                   console.log(`The getPageFontsize() return value is: ${result}`);
                   Utils.emitEvent(this.checkEleResult[1], 334)
                 })

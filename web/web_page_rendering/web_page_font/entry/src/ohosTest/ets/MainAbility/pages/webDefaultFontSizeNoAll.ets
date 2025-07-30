@@ -64,7 +64,7 @@ struct webDefaultFontSizeNoAll {
                 this.controller.runJavaScript({
                   script: "getPageFontsize()", callback: (result) => {
                     this.checkEleResult = JSON.parse(result)
-                    await Utils.sleep(2000)
+                    Utils.sleep(2000)
                     Utils.emitEvent(this.checkEleResult[1], 440)
                     console.log(`The getPageFontsize() return value is: ${result}`);
                   }
