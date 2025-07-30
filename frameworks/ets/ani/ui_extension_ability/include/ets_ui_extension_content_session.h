@@ -85,6 +85,8 @@ public:
     static ani_object NativeGetUIExtensionHostWindowProxy(ani_env *env, ani_object obj);
     static ani_object NativeStartAbilityByTypeSync(
         ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback);
+    static void NativeSetWindowPrivacyMode(
+        ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj);
 
     void SendData(ani_env *env, ani_object object, ani_object data);
     void LoadContent(ani_env *env, ani_object object, ani_string path, ani_object storage);
@@ -95,6 +97,8 @@ public:
     void SetReceiveDataCallback(ani_env *env, ani_object functionObj);
     static void CallReceiveDataCallback(ani_vm *vm, ani_ref callbackRef, const AAFwk::WantParams &wantParams);
     void SetReceiveDataForResultCallback(ani_env *env, ani_object object);
+    void SetWindowPrivacyMode(
+        ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj);
     static void CallReceiveDataCallbackForResult(
         ani_vm *vm, ani_ref callbackRef, const AAFwk::WantParams &wantParams, AAFwk::WantParams &retWantParams);
     std::shared_ptr<AbilityRuntime::Context> GetContext();
@@ -107,6 +111,8 @@ private:
     ani_object StartAbilityByTypeSync(ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     bool CheckStartAbilityByTypeParam(
         ani_env *env, ani_string aniType, ani_ref aniWantParam, std::string &type, AAFwk::WantParams &wantParam);
+    void SetWindowPrivacyModeInner(ani_env *env, ani_boolean isPrivacyMode, ani_object callbackObj,
+        ani_vm *etsVm, ani_ref callbackRef);
 
     sptr<AAFwk::SessionInfo> sessionInfo_;
     sptr<Rosen::Window> uiWindow_;
