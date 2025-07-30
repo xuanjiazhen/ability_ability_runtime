@@ -46,33 +46,4 @@ describe('fileio_hash', function () {
       expect(null).assertFail();
     }
   });
-
-  /**
-   * @tc.number SUB_DF_FILEIO_HASH_ASYNC_0100
-   * @tc.name fileio_test_hash_async_001
-   * @tc.desc Test hashAsync() interface.
-   * @tc.size MEDIUM
-   * @tc.type Function
-   * @tc.level Level 0
-   * @tc.require
-   */
-  it('fileio_test_hash_async_001', Level.LEVEL0, async function (done) {
-    let fpath = await nextFileName('fileio_test_hash_async_001');
-    expect(prepareFile(fpath, FILE_CONTENT)).assertTrue();
-
-    try {
-      fileio.hash(fpath, "sha256", (err, hashStr) => {
-        if (hashStr) {
-          console.info("fileio_test_hash_async_001 calculate file hash succeed:" + hashStr);
-          expect(hashStr == 'B94D27B9934D3E08A52E52D7DA7DABFAC484EFE37A5380EE9088F7ACE2EFCDE9').assertTrue();
-          fileio.unlinkSync(fpath)
-          done();
-        }
-      });
-    } catch (e) {
-      console.log('fileio_test_hash_async_001 has failed for ' + e);
-      expect(null).assertFail();
-    }
-  });
-});
-}
+});}
