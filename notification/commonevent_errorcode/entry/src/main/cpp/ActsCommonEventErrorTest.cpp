@@ -47,7 +47,8 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"testCommonEventNoError0100", nullptr, testCommonEventNoError0100, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testCommonEventNoError0100", nullptr, testCommonEventNoError0100, nullptr, nullptr, nullptr, napi_default,
+        nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
