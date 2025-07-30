@@ -98,7 +98,10 @@ export const VIDEO_SOURCES = [
   'mpeg2_aac_720p_30r.ts',
   'mpeg2_mp3_480p_25r.ts',
   'mpeg4_aac_720p_30r.ts',
-  'mpeg4_mp3_480p_25r.ts',
+  'mpeg4_mp3_480p_25r.ts'
+];
+
+export const VIDEO_SOURCES2 = [
   'h264_320x240_60.ts',
   'h263_1408x1152_30.ts',
   'MPEG2.ts',
@@ -123,6 +126,6 @@ export const VIDEO_SOURCES = [
   'flac_48ksr_16kbr_1ch.flac',
   'H264_MP3_1s.mp4',
   'H264_AAC.m3u8'
-]
+];
 
 export const TEST_MP3_FILE = '01.mp3';
