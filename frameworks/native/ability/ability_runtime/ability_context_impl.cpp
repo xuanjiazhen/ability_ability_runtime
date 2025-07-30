@@ -1319,7 +1319,7 @@ ErrCode AbilityContextImpl::AddCompletionHandler(const std::string &requestId, O
 void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
     const std::string &message)
 {
-    std::shared_ptr<OnRequestResultElement> result = nullptr;
+    std::shared_ptr<OnRequestResultElement> result;
     {
         std::lock_guard lock(onRequestResultMutex_);
         for (auto iter = onRequestResults_.begin(); iter != onRequestResults_.end(); iter++) {
@@ -1330,10 +1330,25 @@ void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const Ap
             }
         }
     }
-
     if (result != nullptr) {
         TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
         result->onRequestSuccess_(element, message);
+        return;
+    }
+    std::shared_ptr<OnAtomicRequestResult> atomicResult;
+    {  
+        std::lock_guard lock(onAtomicRequestResultMutex_);
+        for (auto iter = onAtomicRequestResults_.begin(); iter != onAtomicRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                std::shared_ptr<OnAtomicRequestResult> atomicResult = *iter;
+                onAtomicRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (atomicResult != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestSuccess", requestId.c_str());
+        atomicResult->onRequestSuccess_(atomicResult->appId_);
         return;
     }
 
@@ -1341,9 +1356,9 @@ void AbilityContextImpl::OnRequestSuccess(const std::string &requestId, const Ap
 }
 
 void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
-    const std::string &message)
+    const std::string &message, int32_t resultCode)
 {
-    std::shared_ptr<OnRequestResultElement> result = nullptr;
+    std::shared_ptr<OnRequestResultElement> result;
     {
         std::lock_guard lock(onRequestResultMutex_);
         for (auto iter = onRequestResults_.begin(); iter != onRequestResults_.end(); iter++) {
@@ -1354,10 +1369,28 @@ void AbilityContextImpl::OnRequestFailure(const std::string &requestId, const Ap
             }
         }
     }
-
     if (result != nullptr) {
         TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
         result->onRequestFailure_(element, message);
+        return;
+    }
+    std::shared_ptr<OnAtomicRequestResult> atomicResult;
+    {
+        std::lock_guard lock(onAtomicRequestResultMutex_);
+        for (auto iter = onAtomicRequestResults_.begin(); iter != onAtomicRequestResults_.end(); iter++) {
+            if ((*iter)->requestId_ == requestId) {
+                atomicResult = *iter;
+                onAtomicRequestResults_.erase(iter);
+                break;
+            }
+        }
+    }
+    if (atomicResult != nullptr) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s, call onRequestFailure", requestId.c_str());
+        int32_t failureCode = 0;
+        std::string failureMessage;
+        GetFailureInfoByMessage(message, failureCode, failureMessage, resultCode);
+        atomicResult->onRequestFailure_(atomicResult->appId_, failureCode, failureMessage);
         return;
     }
 
@@ -1406,6 +1439,40 @@ ErrCode AbilityContextImpl::SetOnNewWantSkipScenarios(int32_t scenarios)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return AAFwk::AbilityManagerClient::GetInstance()->SetOnNewWantSkipScenarios(token_, scenarios);
+}
+
+ErrCode AbilityContextImpl::AddCompletionHandlerForAtomicService(const std::string &requestId,
+    OnAtomicRequestSuccess onRequestSucc, OnAtomicRequestFailure onRequestFail, const std::string &appId)
+{
+    if (onRequestSucc == nullptr || onRequestFail == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "either func is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lock(onAtomicRequestResultMutex_);
+    for (auto iter = onAtomicRequestResults_.begin(); iter != onAtomicRequestResults_.end(); iter++) {
+        if ((*iter)->requestId_ == requestId) {
+            TAG_LOGI(AAFwkTag::CONTEXT, "requestId=%{public}s already exists", requestId.c_str());
+            return ERR_OK;
+        }
+    }
+    onAtomicRequestResults_.emplace_back(std::make_shared<OnAtomicRequestResult>(
+        requestId, appId, onRequestSucc, onRequestFail));
+    return ERR_OK;
+}
+
+void AbilityContextImpl::GetFailureInfoByMessage(
+    const std::string &message, int32_t &failureCode, std::string &failureMessage, int32_t resultCode)
+{
+    if (resultCode == USER_CANCEL) {
+        failureCode = static_cast<int32_t>(FailureCode::FAILURE_CODE_USER_CANCEL);
+        failureMessage = "User cancelled redirection";
+    } else if (message.find("User refused redirection") != std::string::npos) {
+        failureCode = static_cast<int32_t>(FailureCode::FAILURE_CODE_USER_REFUSE);
+        failureMessage = "User refused redirection";
+    } else {
+        failureCode = static_cast<int32_t>(FailureCode::FAILURE_CODE_SYSTEM_MALFUNCTION);
+        failureMessage = "failed to open atomicservice";
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
