@@ -167,8 +167,6 @@ private:
     void OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object callbackObj);
 
-    void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
-        AAFwk::Want &want);
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
     int32_t GenerateRequestCode();
