@@ -714,7 +714,7 @@ export default class OhLppPlayerNDKTestBase {
       }
     } catch (error) {
       console.log('toNextStep error', error);
-      done();
+      expect().assertFail();
     }
 
   }
