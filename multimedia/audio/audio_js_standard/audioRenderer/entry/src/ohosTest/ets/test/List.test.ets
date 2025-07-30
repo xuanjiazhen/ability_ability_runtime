@@ -30,6 +30,7 @@ export default function testsuite() {
         AudioRendererInterruptUnitTest()
         AudioEffectTest()
         maxAmplitudeFor()
+        audioSessionManagerErrorTest()
     }else{
         audioRendererTestPc();
     }
