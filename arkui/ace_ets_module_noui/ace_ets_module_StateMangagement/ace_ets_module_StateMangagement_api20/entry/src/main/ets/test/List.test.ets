@@ -22,7 +22,8 @@ import ConsumeDefault0240 from './consumeTest/ConsumeDefault0240.test';
 import AddMonitor001 from './uiutilsTest/AddMonitor001.test';
 import AddMonitor002 from './uiutilsTest/AddMonitor002.test';
 import MakeBinding001 from './uiutilsTest/MakeBinding001.test';
-
+import AddMonitor003 from './uiutilsTest/AddMonitor003.test';
+import AddMonitorErrorCode001 from './uiutilsTest/AddMonitorErrorCode001.test';
 export default function testsuite() {
     Consume0020Test();
     Consume0030Test();
@@ -33,4 +34,6 @@ export default function testsuite() {
     AddMonitor001();
     AddMonitor002();
     MakeBinding001();
+    AddMonitor003();
+    AddMonitorErrorCode001();
 }
