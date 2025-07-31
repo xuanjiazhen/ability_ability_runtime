@@ -1579,6 +1579,34 @@ static napi_value QueueApiTest015(napi_env env, napi_callback_info info)
     return flag;
 }
 
+static napi_value QueueApiTest016(napi_env env, napi_callback_info info)
+{
+    int result = 0;
+    ffrt_queue_attr_t queue_attr;
+    (void)ffrt_queue_attr_init(&queue_attr);
+
+    ffrt_queue_attr_set_thread_mode(&queue_attr, true);
+    ffrt_queue_t queue_handle = ffrt_queue_create(ffrt_queue_serial, "test_queue", &queue_attr);
+    if (queue_handle == nullptr) {
+        result += 1;
+    }
+    int a = 0;
+    std::function<void()>&& basicFunc = [&a]() {
+        a += 1;
+    };
+    ffrt_queue_submit(queue_handle, create_function_wrapper(basicFunc, ffrt_function_kind_queue), nullptr);
+    if (!ffrt_queue_attr_get_thread_mode(&queue_attr)) {
+        result += 1;
+    }
+
+    // 销毁队列
+    ffrt_queue_attr_destroy(&queue_attr);
+    ffrt_queue_destroy(queue_handle);
+    napi_value flag = nullptr;
+    napi_create_double(env, result, &flag);
+    return flag;
+}
+
 static napi_value QueueCancelTest001(napi_env env, napi_callback_info info)
 {
     int result = 0;
@@ -3970,6 +3998,7 @@ static napi_value Init(napi_env env, napi_value exports)
         { "queueApiTest013", nullptr, QueueApiTest013, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "queueApiTest014", nullptr, QueueApiTest014, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "queueApiTest015", nullptr, QueueApiTest015, nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "queueApiTest016", nullptr, QueueApiTest016, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "queueCancelTest001", nullptr, QueueCancelTest001, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "queueCancelTest003", nullptr, QueueCancelTest003, nullptr, nullptr, nullptr, napi_default, nullptr },
         { "queueCancelTest004", nullptr, QueueCancelTest004, nullptr, nullptr, nullptr, napi_default, nullptr },
