@@ -14,10 +14,14 @@
  */
 
 class StepperModifier implements AttributeModifier<StepperAttribute> {
-  currentIndex: number;
+  private currentIndex: number;
 
   constructor(currentIndex?: number) {
     this.currentIndex = currentIndex!;
+  }
+
+  getCurrentIndex() {
+    return this.currentIndex;
   }
 
   applyNormalAttribute(instance: StepperAttribute): void {
@@ -68,7 +72,7 @@ export default struct StepperModifierTest {
 
   build() {
       Stepper({
-         index: this.stepperModifier.currentIndex
+         index: this.stepperModifier.getCurrentIndex()
       }) {
         // 第一个步骤页
         StepperItem() {
