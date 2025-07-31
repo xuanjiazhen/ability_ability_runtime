@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 {
-  "modelVersion": "5.0.2",
-  "description": "Please describe the basic information.",
-  "dependencies": {
-  },
+  "license": "",
   "devDependencies": {
-    "@ohos/hypium": "1.0.19",
-    "@ohos/hamock": "1.0.1-rc2"
-  }
+    "@ohos/hypium": "1.0.6"
+  },
+  "author": "",
+  "name": "com.example.formsystemhost",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "version": "1.0.0",
+  "dependencies": {}
 }
-
