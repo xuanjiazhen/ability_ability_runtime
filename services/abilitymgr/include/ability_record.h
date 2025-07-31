@@ -598,6 +598,16 @@ public:
         return killReason_;
     }
 
+    inline void SetIsKillPrecedeStart(bool isKillPrecedeStart)
+    {
+        isKillPrecedeStart_ = isKillPrecedeStart;
+    }
+
+    inline bool GetIsKillPrecedeStart()
+    {
+        return isKillPrecedeStart_;
+    }
+
     void PostCancelStartingWindowHotTask();
 
     /**
@@ -1513,6 +1523,7 @@ private:
     bool isPrepareTerminate_ = false;
 
     std::string killReason_ = "";
+    bool isKillPrecedeStart_ = false;
     std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<Want> lastWant_ = nullptr;
     std::atomic_bool isLastWantBackgroundDriven_ = false;

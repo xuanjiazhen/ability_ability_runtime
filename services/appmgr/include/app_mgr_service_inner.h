@@ -982,7 +982,7 @@ public:
     int32_t NotifyAppStatusByCommonEventName(const std::string &bundleName, const std::string &eventName,
         const Want &want);
 
-    int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation");
+    int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation", bool isKillPrecedeStart);
 
     int32_t KillSubProcessBypidInner(const pid_t pid, const std::string &reason,
         AAFwk::EventInfo &eventInfo);

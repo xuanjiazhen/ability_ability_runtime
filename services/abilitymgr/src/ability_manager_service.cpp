@@ -11826,10 +11826,10 @@ int32_t AbilityManagerService::KillProcessWithPrepareTerminate(const std::vector
     return uiAbilityManager->TryPrepareTerminateByPids(pids);
 }
 
-bool AbilityManagerService::ProcessLowMemoryKill(int32_t pid, const ExitReason &reason)
+bool AbilityManagerService::ProcessLowMemoryKill(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    if (reason.reason != Reason::REASON_RESOURCE_CONTROL || reason.exitMsg != GlobalConstant::LOW_MEMORY_KILL) {
+    if (!isKillPrecedeStart) {
         return false;
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
@@ -11841,7 +11841,7 @@ bool AbilityManagerService::ProcessLowMemoryKill(int32_t pid, const ExitReason &
         return true;
     }
     // set ability record kill reason
-    uiAbilityManager->RecordPidKilling(pid, GlobalConstant::LOW_MEMORY_KILL);
+    uiAbilityManager->RecordPidKilling(pid, isKillPrecedeStart);
     return false;
 }
 
@@ -11849,20 +11849,24 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    bool isKillPrecedeStart =
+        (reason.reason == Reason::REASON_RESOURCE_CONTROL && reason.exitMsg == GlobalConstant::LOW_MEMORY_KILL) ||
+            reason.shouldSkipKillInStartup;
     EventInfo eventInfo;
     eventInfo.callerPid = IPCSkeleton::GetCallingPid();
     eventInfo.pid = pid;
     eventInfo.exitMsg = reason.exitMsg;
     eventInfo.shouldKillForeground = reason.shouldKillForeground;
-    auto ret = KillProcessWithReasonInner(pid, reason);
+    auto ret = KillProcessWithReasonInner(pid, reason, isKillPrecedeStart);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "KillProcessWithReason ret: %{public}d", ret);
-    if (reason.reason == Reason::REASON_RESOURCE_CONTROL && reason.exitMsg == GlobalConstant::LOW_MEMORY_KILL) {
-        eventHelper_.SendKillProcessWithReasonEvent(ret, "KillProcessWithReason", eventInfo);
+    if (isKillPrecedeStart) {
+            eventHelper_.SendKillProcessWithReasonEvent(ret, "KillProcessWithReason", eventInfo);
     }
     return ret;
 }
 
-int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const ExitReason &reason)
+int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const ExitReason &reason,
+    bool isKillPrecedeStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool supportShell = AmsConfigurationParameter::GetInstance().IsSupportAAKillWithReason();
@@ -11883,7 +11887,7 @@ int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const Exi
         }
     }
 
-    if (ProcessLowMemoryKill(pid, reason)) {
+    if (ProcessLowMemoryKill(pid, reason, isKillPrecedeStart)) {
         // if app is already starting, return
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);
         return ERR_KILL_APP_WHILE_STARTING;
@@ -11895,7 +11899,7 @@ int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const Exi
     }
     std::vector<int32_t> pidToBeKilled = { pid };
     return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
-        reason.exitMsg, true));
+        reason.exitMsg, true, isKillPrecedeStart)); //IPC方法多传递一个入参-isKillPrecedeStart
 }
 
 int32_t AbilityManagerService::RegisterAutoStartupSystemCallback(const sptr<IRemoteObject> &callback)

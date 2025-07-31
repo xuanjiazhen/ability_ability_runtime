@@ -1054,6 +1054,18 @@ public:
         return killReason_;
     }
 
+    inline void SetIsKillPrecedeStart(bool isKillPrecedeStart)
+    {
+        std::lock_guard<ffrt::mutex> lock(isKillPrecedeStartLock_); //todo：需要加锁吗？
+        isKillPrecedeStart_ = isKillPrecedeStart;
+    }
+
+    inline bool GetIsKillPrecedeStart() const
+    {
+        std::lock_guard<ffrt::mutex> lock(isKillPrecedeStartLock_);
+        return isKillPrecedeStart_;
+    }
+
     void AddAppLifecycleEvent(const std::string &msg);
 
     void SetNWebPreload(const bool isAllowedNWebPreload);
@@ -1297,6 +1309,7 @@ private:
     sptr<IRemoteObject> browserHost_;
     std::shared_ptr<Configuration> delayConfiguration_ = std::make_shared<Configuration>();
     std::string killReason_ = "";
+    bool isKillPrecedeStart_ = false;
     int32_t rssValue_ = 0;
     int32_t pssValue_ = 0;
     bool reasonExist_ = false;
@@ -1306,6 +1319,7 @@ private:
     std::shared_ptr<StartupTaskData> startupTaskData_ = nullptr;
     ffrt::mutex startupTaskDataLock_;
     mutable ffrt::mutex killReasonLock_;
+    mutable ffrt::mutex isKillPrecedeStartLock_;
 
     bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     int64_t timeStamp_ = 0; // the flag of BackUpMainControlProcess

@@ -164,12 +164,12 @@ void UIAbilityLifecycleManager::RemoveStartingPid(pid_t pid)
     TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}d not found", pid);
 }
 
-void UIAbilityLifecycleManager::RecordPidKilling(pid_t pid, const std::string &reason)
+void UIAbilityLifecycleManager::RecordPidKilling(pid_t pid, bool isKillPrecedeStart)
 {
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (second && pid == second->GetPid()) {
-            second->SetKillReason(reason);
+            second->SetIsKillPrecedeStart(isKillPrecedeStart);
         }
     }
 }
@@ -277,7 +277,7 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GenerateAbilityRecord(
     std::shared_ptr<AbilityRecord> uiAbilityRecord = nullptr;
     auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
-        (iter->second != nullptr) && (iter->second->GetKillReason() == GlobalConstant::LOW_MEMORY_KILL);
+        (iter->second != nullptr) && (iter->second->GetIsKillPrecedeStart())
     if (iter == sessionAbilityMap_.end() || isLowMemKill) {
         uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         auto abilityInfo = abilityRequest.abilityInfo;
@@ -2243,7 +2243,7 @@ void UIAbilityLifecycleManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abi
         NotifySCBToHandleException(abilityRecord,
             static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_PERMISSION_UPDATE),
             "kill process for permission update", needClearCallerLink);
-    } else if (abilityRecord->GetKillReason() == GlobalConstant::LOW_MEMORY_KILL) {
+    } else if (abilityRecord->GetIsKillPrecedeStart()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "kill by low memory");
         NotifySCBToHandleException(abilityRecord,
             static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_LOW_MEMORY_KILL),
