@@ -308,7 +308,8 @@ void EtsAbilityContext::StartServiceExtensionAbility(ani_env *env, ani_object an
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
         return;
     }
-    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj);
+    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
 }
 
 void EtsAbilityContext::OpenLink(ani_env *env, ani_object aniObj, ani_string aniLink,
@@ -401,7 +402,8 @@ ani_long EtsAbilityContext::ConnectServiceExtensionAbility(ani_env *env, ani_obj
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return FAILED_CODE;
     }
-    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj);
+    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
 }
 
 void EtsAbilityContext::DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
@@ -449,6 +451,58 @@ void EtsAbilityContext::OpenAtomicService(
         return;
     }
     etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
+}
+
+ani_long EtsAbilityContext::ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+void EtsAbilityContext::DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "DisconnectAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnDisconnectServiceExtensionAbility(env, aniObj, connectId, callback);
+}
+
+void EtsAbilityContext::StartAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+void EtsAbilityContext::StopAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStopServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
 }
 
 #ifdef SUPPORT_SCREEN
@@ -741,7 +795,7 @@ void EtsAbilityContext::OnReportDrawnCompleted(ani_env *env, ani_object aniObj, 
 }
 
 void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
-    ani_object callbackobj)
+    ani_object callbackobj, AppExecFwk::ExtensionAbilityType extensionType)
 {
     ani_object errorObject = nullptr;
     ErrCode ret = ERR_OK;
@@ -759,13 +813,47 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
         AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
     }
-    ret = context->StartServiceExtensionAbility(want);
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        ret = context->StartServiceExtensionAbility(want);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        ret = context->StartAppServiceExtensionAbility(want);
+    }
     if (ret == ERR_OK) {
         errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
         errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     }
     AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
+}
+
+void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnStopServiceExtensionAbility");
+    ani_object aniObject = nullptr;
+    ErrCode ret = ERR_OK;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "context is nullptr");
+        ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapWant failed");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant failed");
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        return;
+    }
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        ret = context->StopServiceExtensionAbility(want);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        ret = context->StopAppServiceExtensionAbility(want);
+    }
+    aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
 }
 
 void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
@@ -938,7 +1026,7 @@ void EtsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
 }
 
 ani_long EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
-    ani_object connectOptionsObj)
+    ani_object connectOptionsObj, AppExecFwk::ExtensionAbilityType extensionType)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OnConnectServiceExtensionAbility call");
     if (env == nullptr) {
@@ -968,7 +1056,12 @@ ani_long EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_o
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return FAILED_CODE;
     }
-    auto innerErrCode = context->ConnectAbility(want, connection);
+    int32_t innerErrCode = 0;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        innerErrCode = context->ConnectAbility(want, connection);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
+    }
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
     if (errcode) {
         connection->CallEtsFailed(errcode);
@@ -1531,6 +1624,16 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
             ani_native_function { "nativeChangeAbilityVisibility", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
+            ani_native_function { "nativeConnectAppServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(EtsAbilityContext::ConnectAppServiceExtensionAbility) },
+            ani_native_function { "nativeDisconnectAppServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(EtsAbilityContext::DisconnectAppServiceExtensionAbility) },
+            ani_native_function { "nativeStartAppServiceExtensionAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::ConnectAppServiceExtensionAbility) },
+            ani_native_function { "nativeStopAppServiceExtensionAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::StopAppServiceExtensionAbility) },
 #ifdef SUPPORT_GRAPHICS
             ani_native_function { "nativeSetAbilityInstanceInfo",
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
