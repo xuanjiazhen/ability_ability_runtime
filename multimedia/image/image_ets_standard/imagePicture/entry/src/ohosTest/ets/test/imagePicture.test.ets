@@ -8888,7 +8888,7 @@ export default function imagePicture() {
           done();
         })
       } catch (e) {
-        expect(true).assertTrue();
+        expect(e.message).assertContain("async context unwrap failed");
         done();
       }
       done();
