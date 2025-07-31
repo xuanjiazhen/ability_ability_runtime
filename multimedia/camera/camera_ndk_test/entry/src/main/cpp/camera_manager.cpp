@@ -2914,6 +2914,46 @@ Camera_ErrorCode NDKCamera::UnegisterAutoDeviceSwitchStatusCallback(int useCaseC
     return ret_;
 }
  
+void CameraSystemPressureLevelCallback(Camera_CaptureSession* session,
+    Camera_SystemPressureLevel* systemPressureLevel)
+{
+    LOG("CameraSystemPressureLevelCallback is called.");
+}
+ 
+Camera_ErrorCode NDKCamera::RegisterSystemPressureLevel(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(captureSession_,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(nullptr,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(captureSession_, nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_RegisterSystemPressureLevelChangeCallback failed.");
+    }
+    return ret_;
+}
+ 
+Camera_ErrorCode NDKCamera::UnregisterSystemPressureLevel(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(captureSession_,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(nullptr,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(captureSession_, nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback failed.");
+    }
+    return ret_;
+}
+
 void CameraFoldStatusInfoCallback(Camera_Manager *cameraManager, Camera_FoldStatusInfo *foldStatusInfo)
 {
     LOG("CameraFoldStatusInfoCallback is called.");
