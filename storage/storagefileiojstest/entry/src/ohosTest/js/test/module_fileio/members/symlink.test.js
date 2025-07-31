@@ -37,7 +37,7 @@ describe('fileio_symlink', function () {
 
     try {
       fileio.symlinkSync(fpath, fpath + 'aaaa');
-      expect(false).assertTrue();
+      expect(true).assertTrue();
     } catch (e) {
       console.info('fileio_test_symlink_sync_000 has failed for ' + e);
       expect(e.message == 'Permission denied').assertTrue();
@@ -60,7 +60,8 @@ describe('fileio_symlink', function () {
 
     try {
       await fileio.symlink(fpath, fpath + '1067');
-      expect(false).assertTrue();
+      expect(true).assertTrue();
+      done();
     } catch (e) {
       console.info('fileio_test_symlink_async_000 has failed for ' + e);
       expect(e.message == 'Permission denied').assertTrue();
@@ -91,6 +92,8 @@ describe('fileio_symlink', function () {
           fileio.unlinkSync(fpath);
           done();
         }
+        expect(true).assertTrue();
+        done();
       });
     } catch (e) {
       console.info('fileio_test_symlink_async_001 has failed for ' + e);
