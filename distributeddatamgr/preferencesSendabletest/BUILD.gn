@@ -16,6 +16,7 @@ import("//test/xts/tools/build/suite.gni")
 ohos_js_app_suite("preferencesSendable_ets_test") {
   hap_name = "ActsPreferencesSendableTest"
   testonly = true
+  build_modules = [ "entry" ]
   part_name = "preferences"
   subsystem_name = "distributeddatamgr"
   certificate_profile = "signature/openharmony_sx.p7b"
