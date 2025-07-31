@@ -42,6 +42,7 @@ export default function abilityTest() {
     let keyItem: Key = {code:0x49, pressedTime:2, deviceId:0};
     let event:KeyEvent = {id:1, deviceId:0, actionTime:1, screenId:1, windowId:1, action:2, key:keyItem, unicodeChar:0, keys:[keyItem], ctrlKey:false, altKey:false, shiftKey:false, logoKey:false, fnKey:false, capsLock:false, numLock:false, scrollLock:false};
     let event1: string = 'aaa'
+    let customdata: Record<string,string> = {'customData': 'appdata'}
 
 
     let invalidSession = async (validFunc:Function) => {
@@ -682,8 +683,8 @@ export default function abilityTest() {
 
     /* *
      * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_TOGGLEFAVORITE_3400
-     * @tc.name      : on(taggleFavorite) with avsession does not exit(errcode 6600102)
-     * @tc.desc      : test on(taggleFavorite) errcode 6600102
+     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_TOGGLEFAVORITE_3400
+     * @tc.desc      : test on(toggleFavorite) errcode 6600102
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level2
@@ -706,7 +707,7 @@ export default function abilityTest() {
     })
 
     /* *
-     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_3500
+     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_3500
      * @tc.name      : off(toggleFavorite) with avsession does not exit(errcode 6600102)
      * @tc.desc      : test off(toggleFavorite) errcode 6600102
      * @tc.size      : MediumTest
@@ -2637,7 +2638,7 @@ export default function abilityTest() {
     * @tc.type      : Function
     * @tc.level     : Level 2
     */
-    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_SETEXTRAS_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       await session.setExtras({extras : [123,'123']}, (err: BusinessError) => {
         if (err) {
           console.error(`setExtras BusinessError: code: ${err.code}, message: ${err.message}`);
@@ -2814,7 +2815,7 @@ export default function abilityTest() {
     * @tc.type      : Function
     * @tc.level     : Level 3
     */
-    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_SENDAVKEYEVENT_ERRORCODE_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       await controller.sendAVKeyEvent(event1).then(() => {
         console.info('SendAVKeyEvent Successfully');
       }).catch((err: BusinessError) => {
@@ -3016,16 +3017,16 @@ export default function abilityTest() {
     })
 
    /* *
-    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
-    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300
-    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300
+    * @tc.desc      : Testing off(toggleFavorite) errcode 6600101
     * @tc.size      : MediumTest
     * @tc.type      : Function
     * @tc.level     : Level 3
     */
-    it('SUB_MULTIMEDIA_AVSESSION_OFF_TAGGLEFAVORITE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_TOGGLEFAVORITE_ERRORCODE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       try{
-        await session.off('taggleFavorite')
+        await session.off('toggleFavorite')
       }catch(err){
         console.error(`off BusinessError: code: ${err.code}, message: ${err.message}`);
         expect(err.code).assertEqual(6600101);
@@ -3037,7 +3038,7 @@ export default function abilityTest() {
    /* *
     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DESTORY_ERRORCODE_0500
-    * @tc.desc      : Testing off(taggleFavorite) errcode 6600101
+    * @tc.desc      : Testing off(toggleFavorite) errcode 6600101
     * @tc.size      : MediumTest
     * @tc.type      : Function
     * @tc.level     : Level 3
@@ -3053,6 +3054,427 @@ export default function abilityTest() {
       await sleep(300);
       done();
     })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SETAVQUEUEITEMS_CALLBACK_3000
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SETAVQUEUEITEMS_CALLBACK_3000
+    * @tc.desc      : Testing call getOutputDevice(callback)  set launchClientData
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SETAVQUEUEITEMS_CALLBACK_3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let queueItemDescription_1: avSession.AVMediaDescription = {
+        assetId: '001',
+        title: 'music_name',
+        subtitle: 'music_sub_name',
+        description: 'music_description',
+        launchClientData: 'any',
+        extras: {extras:'any'}
+      };
+      let queueItem_1: avSession.AVQueueItem = {
+        itemId: 1,
+        description: queueItemDescription_1
+      };
+      let queueItemDescription_2: avSession.AVMediaDescription = {
+        assetId: '002',
+        title: 'music_name',
+        subtitle: 'music_sub_name',
+        description: 'music_description',
+        launchClientData: 'any',
+        extras: {extras:'any'}
+      };
+      let queueItem_2: avSession.AVQueueItem = {
+        itemId: 2,
+        description: queueItemDescription_2
+      };
+      let queueItemsArray: avSession.AVQueueItem[] = [queueItem_1, queueItem_2];
+      await session.setAVQueueItems(queueItemsArray, (err: BusinessError) => {
+        if (err) {
+          console.error(`SetAVQueueItems BusinessError: code: ${err.code}, message: ${err.message}`);
+          expect(false).assertTrue();
+        } else {
+          controller.getAVQueueItems().then((items: avSession.AVQueueItem[]) => {
+            console.info(`GetAVQueueItems : SUCCESS : length : ${items.length}`);
+            expect(items[0].description?.launchClientData).assertEqual(queueItem_1.description?.launchClientData);
+            done();
+          }).catch((err: BusinessError) => {
+            console.error(`GetAVQueueItems BusinessError: code: ${err.code}, message: ${err.message}`);
+          });
+          console.info('SetAVQueueItems successfully');
+        }
+        done();
+      });
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0100
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0100
+    * @tc.desc      : Testing call sendCustomData(data) of avsession
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      console.info('avsession sendCustomData Start');
+      await session.sendCustomData(customdata).then(() => {
+        console.info('avsession sendCustomData Successfully');
+      }).catch((err: BusinessError) => {
+        console.info(`avsession sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(false).assertTrue();
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0200
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0200
+    * @tc.desc      : Testing call sendCustomData(data) of controller
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      console.info('controller sendCustomData Start');
+      await controller.sendCustomData(customdata).then(() => {
+        console.info('controller sendCustomData Successfully');
+      }).catch((err: BusinessError) => {
+        console.info(`controller sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(false).assertTrue();
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0300
+    * @tc.desc      : Testing call sendCustomData(data) of session errcode 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      try{
+        await session.sendCustomData(customdata);
+      } catch(err) {
+        console.info(`session sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600102);
+      };
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0400
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0400
+    * @tc.desc      : Testing call sendCustomData(data) of session errcode 401
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let customdata1: string = 'appdata'
+      console.info('session sendCustomData Start');
+      await session.sendCustomData(customdata1).then(() => {
+        console.info('session sendCustomData Successfully');
+      }).catch((err: BusinessError) => {
+        console.info(`session sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(401);
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0500
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0500
+    * @tc.desc      : Testing call sendCustomData(data) of controller errcode 6600103
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.destroy();
+      try{
+        await controller.sendCustomData(customdata);
+      } catch(err) {
+        console.info(`controller sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600103);
+      };
+      await sleep(300);
+      done();
+    })
+
+  /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0600
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0600
+    * @tc.desc      : Testing call sendCustomData(data) of session errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let customdata2: Record<string,string>  = {'appdata' : 'aaa'}
+      console.info('session sendCustomData Start');
+      await session.sendCustomData(customdata2).then(() => {
+        console.info('session sendCustomData Successfully');
+      }).catch((err: BusinessError) => {
+        console.info(`session sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      });
+      await sleep(300);
+      done();
+    })
+
+  /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0700
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0700
+    * @tc.desc      : Testing call sendCustomData(data) of controller errcode 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let customdata2: Record<string,string>  = {'appdata' : 'aaa'}
+      console.info('controller sendCustomData Start');
+      await controller.sendCustomData(customdata2).then(() => {
+        console.info('controller sendCustomData Successfully');
+      }).catch((err: BusinessError) => {
+        console.info(`controller sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600101);
+      });
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0800
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0800
+    * @tc.desc      : Testing call sendCustomData(data) of controller errcode 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_SENDCUSTOMDATA_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      try{
+        await controller.sendCustomData(customdata);
+      } catch(err) {
+        console.info(`controller sendCustomData BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600102);
+      };
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0100
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0100
+    * @tc.desc      : Testing call on(customDataChange) of session
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`session on_customDataChange Successfully ${data}`)
+        session.off('customDataChange');
+        expect(true).assertTrue();
+        done();
+      })    
+      await session.sendCustomData(customdata);
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0200
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0200
+    * @tc.desc      : Testing call on(customDataChange) of session 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      try{
+        await session.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`on_customDataChange Successfully ${data}`);
+        });
+      } catch(err) {
+        console.info(`session on_customDataChange BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600102);
+      };
+      await sleep(300);
+      done();
+    })    
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0300
+    * @tc.desc      : Testing call on(customDataChange) of controller
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`session on_customDataChange Successfully ${data}`)
+        controller.off('customDataChange');
+        expect(true).assertTrue();
+        done();
+      })    
+      await controller.sendCustomData(customdata);
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0400
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0400
+    * @tc.desc      : Testing call on(customDataChange) of controller 6600103
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_ON_CUSTOMDATACHANGE_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.destroy();
+      try{
+        await controller.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`on_customDataChange Successfully ${data}`);
+        });
+      } catch(err) {
+        console.info(`controller on_customDataChange BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600103);
+      };
+      await sleep(300);
+      done();
+    })    
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0100
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0100
+    * @tc.desc      : Testing call off(customDataChange) of session
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`session on_customDataChange Successfully ${data}`);
+        expect(false).assertTrue();
+        done();
+      })
+      await session.off('customDataChange');
+      console.info('session off_customDataChange end')    
+      await session.sendCustomData(customdata);
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0200
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0200
+    * @tc.desc      : Testing call off(customDataChange) of session 6600101
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      try{
+        await session.off('customDataChange');
+      } catch(err) {
+        console.info(`session off_customDataChangeBusinessError: code: ${err.code}, message: ${err.message}`);    
+        expect(err.code).assertEqual(6600101);
+      };
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0300
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0300
+    * @tc.desc      : Testing call off(customDataChange) of controller
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.on('customDataChange',(data: Record<string,string>) => {
+        console.info(`controller on_customDataChange Successfully ${data}`);
+        expect(false).assertTrue();
+        done();
+      })
+      await controller.off('customDataChange');
+      console.info('controller off_customDataChange end')    
+      await controller.sendCustomData(customdata);
+      await sleep(300);
+      done();
+    })
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0400
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0400
+    * @tc.desc      : Testing call off(customDataChange) of controller 6600103
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await controller.destroy();
+      try{
+        await controller.off('customDataChange');
+      } catch(err) {
+        console.info(`controller off_customDataChange BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600103);
+      };
+      await sleep(300);
+      done();
+    })   
+
+   /* *
+    * @tc.number    : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0500
+    * @tc.name      : SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0500
+    * @tc.desc      : Testing call off(customDataChange) of controller 6600102
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    * @tc.level     : Level 2
+    */
+
+    it('SUB_MULTIMEDIA_AVSESSION_OFF_CUSTOMDATACHANGE_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      await session.destroy();
+      try{
+        await session.off('customDataChange');
+      } catch(err) {
+        console.info(`session off_customDataChange BusinessError: code: ${err.code}, message: ${err.message}`);
+        expect(err.code).assertEqual(6600102);
+      };
+      await sleep(300);
+      done();
+    })   
+
+
 
 
   })
