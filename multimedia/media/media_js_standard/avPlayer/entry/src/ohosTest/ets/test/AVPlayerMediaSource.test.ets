@@ -45,7 +45,7 @@ export default function AVPlayerMediaSource() {
       * @tc.type      : Function Test
       * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0100', Level.LEVEL0, async (done: Function) => {
       console.info('AVPlayerMediaSource success');
       let mediaSource = media.createMediaSourceWithUrl("http://xxx", header);
       let playStrategy: media.PlaybackStrategy = {
@@ -67,7 +67,7 @@ export default function AVPlayerMediaSource() {
       * @tc.type      : Function Test
       * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0200', Level.LEVEL0, async (done: Function) => {
       let header: Record<string, string> = {
         "User-Agent": "User-Agent-Value"
       };
@@ -84,7 +84,7 @@ export default function AVPlayerMediaSource() {
       * @tc.type      : Function Test
       * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0300', Level.LEVEL0, async (done: Function) => {
       let streams : Array<media.MediaStream> = [];
       for (let i = 0; i < 5; i++) {
         streams.push({url:
@@ -105,7 +105,7 @@ export default function AVPlayerMediaSource() {
       * @tc.type      : Function Test
       * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0400', Level.LEVEL0, async (done: Function) => {
       let streams : Array<media.MediaStream> = [];
       const maxStreamNum = 10;
       for (let i = 0; i < maxStreamNum + 1; i++) {
@@ -127,7 +127,7 @@ export default function AVPlayerMediaSource() {
     * @tc.type      : Function Test
     * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0500', Level.LEVEL0, async (done: Function) => {
       let streams : Array<media.MediaStream> = [];
       let mediaSource = media.createMediaSourceWithStreamData(streams);
       expect(mediaSource != undefined).assertFalse();

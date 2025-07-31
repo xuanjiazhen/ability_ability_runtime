@@ -62,7 +62,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0100', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0100 start')
 
       let mySteps = new Array(
@@ -112,7 +112,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0101', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0101', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0101 start')
 
       let mySteps = new Array(
@@ -332,7 +332,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0200', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0200 start')
       let result: number = myScreenCaptureNdk.OHAVMuxerByAddTrackH265();
       if (result != 0) {
@@ -381,7 +381,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0201', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0201', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0201 start')
       let result: number = myScreenCaptureNdk.OHAVMuxerByAddTrackH265();
       if (result != 0) {
@@ -435,7 +435,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0300', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_0300 start')
       try {
         await media.reportAVScreenCaptureUserChoice(-1, "-1")
@@ -455,7 +455,7 @@ export default function AVScreenCaptureRecorderTest() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_FILLMODE_001', 0, async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_FILLMODE_001', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_FILLMODE_001 start')
 
       let mySteps = new Array(

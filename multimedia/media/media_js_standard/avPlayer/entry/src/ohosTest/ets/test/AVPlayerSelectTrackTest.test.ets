@@ -16,7 +16,7 @@
 import MediaTestBase from './MediaTestBase';
 import media from '@ohos.multimedia.media'
 import { setSource } from './AVPlayerTestBase';
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium';
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
 
 const VIDEO_SOURCE = 'H264_AAC_AAC_multiAudio.mp4';
 const PLAY_TIME = 3000;
@@ -288,7 +288,7 @@ export default function AVPlayerSelectTrackTest() {
         * @tc.type      : Function test
         * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
 
       let preparedOperation = async () => {
         await getAudioTracks();
@@ -325,7 +325,7 @@ export default function AVPlayerSelectTrackTest() {
         * @tc.type      : Function test
         * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
 
       let preparedOperation = async () => {
         await getAudioTracks();
@@ -360,7 +360,7 @@ export default function AVPlayerSelectTrackTest() {
         * @tc.type      : Function test
         * @tc.level     : Level0
     */
-    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_ON_0000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_ON_0000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       console.info('SUB_MULTIMEDIA_MEDIA_VIDEO_PLAYER_SELECTTRACK_FUNC_ON_0000 called');
       let preparedOperation = async () => {
         await getAudioTracks();

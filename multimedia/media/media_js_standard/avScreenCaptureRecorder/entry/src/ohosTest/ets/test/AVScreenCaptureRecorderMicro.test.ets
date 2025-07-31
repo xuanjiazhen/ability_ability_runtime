@@ -66,7 +66,7 @@ export default function AVScreenCaptureRecorderMicro() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1100', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1100 start')
 
       let mySteps = new Array(
@@ -116,7 +116,7 @@ export default function AVScreenCaptureRecorderMicro() {
         * @tc.type      : Performance test
         * @tc.level     : Level 1
     */
-    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1200', Level.LEVEL0, async (done: Function) => {
       console.info(mediaTestBase.TAG + 'SUB_MULTIMEDIA_MEDIA_AVSCREENCAPTURERECORDER_1200 start')
       let result: number = myScreenCaptureNdk.OHAVMuxerByAddTrackH265();
       if (result != 0) {
