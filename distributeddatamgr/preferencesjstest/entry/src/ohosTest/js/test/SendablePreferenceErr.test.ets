@@ -239,7 +239,7 @@ export default function sendablePreferencesErrTest() {
 
 
         /**
-        * @tc.name removePreferencesFromCacheSync interface test
+        * @tc.name testPreferencesRemovePreferencesFromCacheSyncErr0100
         * @tc.number SUB_DistributedData_SendablePreference_SDK_PreferenceEtsApiPromiseErrTest_0700
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -275,7 +275,7 @@ export default function sendablePreferencesErrTest() {
 
 
         /**
-        * @tc.name getPreferencesDeletePreferences interface test
+        * @tc.name testSendablePreferencesDeletePreferencesPromiseErr0100
         * @tc.number SUB_DistributedData_SendablePreference_SDK_PreferenceEtsApiPromiseErrTest_0800
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -311,7 +311,7 @@ export default function sendablePreferencesErrTest() {
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testSendablePreferencesgetPreferencesSyncErr0100
         * @tc.number SUB_DistributedData_SendablePreference_SDK_PreferenceEtsApiPromiseErrTest_0900
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -347,7 +347,7 @@ export default function sendablePreferencesErrTest() {
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testSendablePreferencesgetPreferencesPromiseErr0100
         * @tc.number SUB_DistributedData_SendablePreference_SDK_PreferenceEtsApiPromiseErrTest_1000
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest

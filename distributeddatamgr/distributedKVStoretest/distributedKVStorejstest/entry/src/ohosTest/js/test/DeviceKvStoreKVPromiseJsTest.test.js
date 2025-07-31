@@ -149,7 +149,7 @@ describe('deviceKvStorePromiseTest', function () {
      * @tc.number SUB_DistributedData_KVStore_SDK_DeviceKVPromiseJsApiTest_1300
      * @tc.desc Test Js Api DeviceKvStore.Put(String) testcase 001
      * @tc.type: FUNC
-     * @tc.name Test Js Api DeviceKvStore.Put(String) testcase 001
+     * @tc.name SUB_DDM_DKV_DEVICEKVSTORE_PUTSTRING_PROMISE_0100
      * @tc.size: MediumTest
      * @tc.level: Level 2
      */

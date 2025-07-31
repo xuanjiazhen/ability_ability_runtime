@@ -45,7 +45,7 @@ export default function preferencesErrCodeHelperTest(){
         })
 
          /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesPromiseinterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3300
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -67,7 +67,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesCallbackinterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3400
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -95,7 +95,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncInvalidInterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3500
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -123,7 +123,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testDeletePreferencesPromiseHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3600
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -152,7 +152,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name deletePreferencesSync interface test
+         * @tc.name testDeletePreferencesPromiseHelper002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3700
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -181,7 +181,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testremovePreferencesFromCachePromiseHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3800
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -209,7 +209,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name deletePreferencesSync interface test
+         * @tc.name testremovePreferencesFromCacheCallbackHelper001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_3900
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -241,7 +241,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncInvalidInterface002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4000
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -268,7 +268,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncinterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4100
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -292,7 +292,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncInvalidInterface003
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4200
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -320,7 +320,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesSyncInvalidInterface004
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4300
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -341,7 +341,7 @@ export default function preferencesErrCodeHelperTest(){
             }
         })
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesflushInvalidInterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4400
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -366,7 +366,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testGetPreferencesflushInvalidInterface002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4500
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -393,7 +393,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testPreferencesOnObserver0001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4600
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -418,7 +418,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testPreferencesOnObserver0005
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4700
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -442,7 +442,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testPreferencesOnObserver0002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4800
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -466,7 +466,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testPreferencesOnObserver0004
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_4900
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -496,7 +496,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesSync on interface test
+        * @tc.name testPreferencesOnErr0400
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5000
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -523,7 +523,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesSync off interface test
+        * @tc.name testPreferencesOffErr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5100
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -551,7 +551,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesSync off interface test
+        * @tc.name testPreferencesOffErr0200
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5200
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -579,7 +579,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferences_deleteSync interface test
+         * @tc.name testGetPreferencesDeleteSyncInvalidInterface001
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5300
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -603,7 +603,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferences_deleteSync interface test
+         * @tc.name testGetPreferencesDeleteSyncInvalidInterface002
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5400
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -626,7 +626,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferences_deleteSync interface test
+         * @tc.name testGetPreferencesDeleteSyncInvalidInterface003
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5500
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -653,7 +653,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-         * @tc.name getPreferencesSync interface test
+         * @tc.name testPreferencesOnObserver0003
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5600
          * @tc.desc getPreferencesSync interface test
          * @tc.size MediumTest
@@ -680,7 +680,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesCallbackErr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5700
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -723,7 +723,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesPromiserr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5701
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -757,7 +757,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesgetPreferencesSync0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5800
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -792,7 +792,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesDeletePreferencesCallbackErr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5900
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -836,7 +836,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesDeletePreferencesPromiserr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_6000
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -871,7 +871,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesRemovePreferencesFromCacheCallbackErr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_6100
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -916,7 +916,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name getPreferencesCallback interface test
+        * @tc.name testPreferencesRemovePreferencesFromCachePromiserr0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_6200
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
@@ -952,7 +952,7 @@ export default function preferencesErrCodeHelperTest(){
 
 
         /**
-        * @tc.name removePreferencesFromCacheSync interface test
+        * @tc.name testPreferencesremovePreferencesFromCacheSync0100
         * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_5801
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest

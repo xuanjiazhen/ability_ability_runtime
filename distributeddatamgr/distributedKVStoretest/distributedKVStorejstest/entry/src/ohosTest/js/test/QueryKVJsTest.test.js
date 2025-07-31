@@ -2321,8 +2321,8 @@ describe('queryTest', function() {
 
     /**
      * @tc.number SUB_DistributedData_KVStore_SDK_DisKVQueryJsApiTest_9300
-     * @tc.name Schema.constructor()
-     * @tc.desc SUB_DDM_DKV_QUERY_SCHEMA_0100
+     * @tc.name SUB_DDM_DKV_QUERY_SCHEMA_0100
+     * @tc.desc Schema.constructor()
      * @tc.size: MediumTest
      * @tc.level: Level 2
      */

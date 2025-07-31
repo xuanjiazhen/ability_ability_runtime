@@ -279,7 +279,7 @@ export default function PreferencesSyncTest() {
 
         /**
          * @tc.number SUB_DistributedData_Preference_SDK_PreferenceHelperTest_0400
-         * @tc.name getSync interface test
+         * @tc.name SUB_DDM_Preferences_GetSync_0200
          * @tc.desc getSync interface test
          * @tc.size MediumTest
          * @tc.type Function

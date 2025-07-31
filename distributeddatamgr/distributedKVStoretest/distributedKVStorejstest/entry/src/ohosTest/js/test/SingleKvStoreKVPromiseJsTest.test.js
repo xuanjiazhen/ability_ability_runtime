@@ -657,7 +657,7 @@ describe('SingleKvStorePromiseTest', function () {
     })
 
     /**
-     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvPromiseJsApiTest_0900
+     * @tc.number SUB_DistributedData_KVStore_SDK_SingleKvPromiseJsApiTest_0901
      * @tc.desc Test Js Api SingleKvStoreGetFloat testcase 002
      * @tc.type: FUNC
      * @tc.name SUB_DDM_DKV_SINGLEKVSTORE_GETFLOAT_PROMISE_0200
