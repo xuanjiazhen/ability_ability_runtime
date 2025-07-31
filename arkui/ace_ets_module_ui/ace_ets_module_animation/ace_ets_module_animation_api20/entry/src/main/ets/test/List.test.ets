@@ -15,8 +15,10 @@
 
 import FrameNodeAnimation from './FrameNodeAnimation.test'
 import ParticleEmitter from './ParticleEmitter.test'
+import Vector2TTest from './Vector2TTest.test'
 
 export default function testsuite() {
   FrameNodeAnimation();
   ParticleEmitter();
+  Vector2TTest();
 }
