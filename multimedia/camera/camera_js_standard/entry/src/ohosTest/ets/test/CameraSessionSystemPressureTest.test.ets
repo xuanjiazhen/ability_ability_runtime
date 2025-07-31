@@ -176,7 +176,7 @@ export default function cameraSessionSystemPressureTest() {
 
         /**
          * @tc.number    : SUB_MULTIMEDIA_CAMERA_SESSION_SYSTEM_PRESSURE_LEVEL_ON_0100
-         * @tc.name      : Check whether register system pressure callback is successful.
+         * @tc.name      : SUB_MULTIMEDIA_CAMERA_SESSION_SYSTEM_PRESSURE_LEVEL_ON_0100
          * @tc.desc      : Check whether register system pressure callback is successful.
          * @tc.size      : MEDIUM
          * @tc.type      : Function
@@ -238,7 +238,7 @@ export default function cameraSessionSystemPressureTest() {
 
         /**
          * @tc.number    : SUB_MULTIMEDIA_CAMERA_SESSION_SYSTEM_PRESSURE_LEVEL_OFF_0100
-         * @tc.name      : Check whether unregister system pressure callback is successful.
+         * @tc.name      : SUB_MULTIMEDIA_CAMERA_SESSION_SYSTEM_PRESSURE_LEVEL_OFF_0100
          * @tc.desc      : Check whether unregister system pressure callback is successful.
          * @tc.size      : MEDIUM
          * @tc.type      : Function

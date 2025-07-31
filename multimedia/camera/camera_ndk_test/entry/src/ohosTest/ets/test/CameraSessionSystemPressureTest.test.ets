@@ -258,6 +258,14 @@ function getCameraManagerInstance() {
       console.info('afterAll case');
     });
  
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionRegisterSystemPressureLevelTest100
+     * @tc.name      : testOHSessionRegisterSystempressureLevelTest100
+     * @tc.desc      : Checks if register systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
     it('testOHSessionRegisterSystempressureLevelTest100', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionRegisterSystempressureLevelTest100--------------");
         let ret = cameraObj.sessionRegisterSystemPressureLevel(Parameter_Setting.ALL_PARAMETER_OK);
@@ -266,6 +274,14 @@ function getCameraManagerInstance() {
         }
     })
  
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionRegisterSystemPressureLevelTest200
+     * @tc.name      : testOHSessionRegisterSystempressureLevelTest200
+     * @tc.desc      : Checks if register systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
     it('testOHSessionRegisterSystempressureLevelTest200', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionRegisterSystempressureLevelTest200--------------");
         let ret = cameraObj.sessionRegisterSystemPressureLevel(Parameter_Setting.FIRST_PARAMETER_ERROR);
@@ -274,6 +290,14 @@ function getCameraManagerInstance() {
         }
     })
  
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionRegisterSystemPressureLevelTest300
+     * @tc.name      : testOHSessionRegisterSystempressureLevelTest300
+     * @tc.desc      : Checks if register systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
     it('testOHSessionRegisterSystempressureLevelTest300', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionRegisterSystempressureLevelTest300--------------");
         let ret = cameraObj.sessionRegisterSystemPressureLevel(Parameter_Setting.SECOND_PARAMETER_ERROR);
@@ -282,6 +306,14 @@ function getCameraManagerInstance() {
         }
     })
  
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionUnregisterSystemPressureLevelTest100
+     * @tc.name      : testOHSessionUnregisterSystempressureLevelTest100
+     * @tc.desc      : Checks if unregister systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
     it('testOHSessionUnregisterSystempressureLevelTest100', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionUnregisterSystempressureLevelTest100--------------");
         let ret = cameraObj.sessionUnregisterSystemPressureLevel(Parameter_Setting.ALL_PARAMETER_OK);
@@ -290,7 +322,15 @@ function getCameraManagerInstance() {
         }
     })
  
-    it('testOHSessionUnregisterSystempressureLevelTest300', Level.LEVEL2, async () => {
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionUnregisterSystemPressureLevelTest200
+     * @tc.name      : testOHSessionUnregisterSystempressureLevelTest200
+     * @tc.desc      : Checks if unregister systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('testOHSessionUnregisterSystempressureLevelTest200', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionUnregisterSystempressureLevelTest300--------------");
         let ret = cameraObj.sessionUnregisterSystemPressureLevel(Parameter_Setting.FIRST_PARAMETER_ERROR);
         if (ret != 0) {
@@ -298,6 +338,14 @@ function getCameraManagerInstance() {
         }
     })
  
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_CAMERA_NDK_OHSessionUnregisterSystemPressureLevelTest300
+     * @tc.name      : testOHSessionUnregisterSystempressureLevelTest300
+     * @tc.desc      : Checks if unregister systemPressureLevel successful.
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
     it('testOHSessionUnregisterSystempressureLevelTest300', Level.LEVEL2, async () => {
         console.info("--------------testOHSessionUnregisterSystempressureLevelTest300--------------");
         let ret = cameraObj.sessionUnregisterSystemPressureLevel(Parameter_Setting.SECOND_PARAMETER_ERROR);
