@@ -225,7 +225,8 @@ ani_object EtsAbilityRouterMgr::WrapBusinessAbilityInfo(ani_env *env, const Busi
     return object;
 }
 
-bool EtsAbilityRouterMgr::SetBusinessAbilityInfo(ani_env *env, ani_class cls, ani_object object, const BusinessAbilityInfo &info)
+bool EtsAbilityRouterMgr::SetBusinessAbilityInfo(ani_env *env, ani_class cls, ani_object object,
+    const BusinessAbilityInfo &info)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null env");
@@ -242,8 +243,7 @@ bool EtsAbilityRouterMgr::SetBusinessAbilityInfo(ani_env *env, ani_class cls, an
         TAG_LOGE(AAFwkTag::SER_ROUTER, "moduleName failed status:%{public}d", status);
         return false;
     }
-    if ((status = env->Object_SetPropertyByName_Ref(object, "name",
-        GetAniString(env, info.abilityName))) != ANI_OK) {
+    if ((status = env->Object_SetPropertyByName_Ref(object, "name", GetAniString(env, info.abilityName))) != ANI_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "abilityName failed status:%{public}d", status);
         return false;
     }

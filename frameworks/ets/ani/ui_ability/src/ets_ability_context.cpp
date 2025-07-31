@@ -1199,7 +1199,7 @@ ani_long EtsAbilityContext::OnConnectServiceExtensionAbilityWithAccount(ani_env 
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return FAILED_CODE;
     }
-	auto selfToken = IPCSkeleton::GetSelfTokenID();
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
     if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "non system app forbidden to call");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
@@ -1545,6 +1545,38 @@ bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
     return isInstanceOf;
 }
 
+void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
+    ani_boolean isShow, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto etsContext = EtsAbilityContext::GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    bool showFlag = static_cast<bool>(isShow);
+    ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed, errCode: %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
+}
+
 void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
     AAFwk::StartOptions &options, std::string appId, ani_object callbackObj)
 {
@@ -1737,6 +1769,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeStartServiceExtensionAbilityWithAccount",
                 "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbilityWithAccount) },
+            ani_native_function { "nativeChangeAbilityVisibility", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
 #ifdef SUPPORT_GRAPHICS
             ani_native_function { "nativeSetAbilityInstanceInfo",
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
