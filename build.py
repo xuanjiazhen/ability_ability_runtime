@@ -160,7 +160,7 @@ class XtsBuild:
         for i in self._other_args:
             build_command = "{} --{}={}".format(build_command, i, self._other_args.get(i))
         if self._arkts_static:
-            build_command = "{} {}".format(build_command, "--prebuilts-sdk-gn-args ")
+            build_command = "{} {}".format(build_command, "--prebuilts-sdk-gn-args sdk_build_arkts=true")
         logging.info("build_command: {}".format(build_command))
 
         # 执行编译命令
