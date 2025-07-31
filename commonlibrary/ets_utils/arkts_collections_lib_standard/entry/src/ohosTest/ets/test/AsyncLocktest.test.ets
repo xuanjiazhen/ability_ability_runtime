@@ -52,7 +52,7 @@ export default function AsyncLocktest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_ASYNCLOCK_0100
-     * @tc.name      : AsyncLock0100
+     * @tc.name      : AsyncLocktest0100
      * @tc.desc      : AsyncLock query 10200030
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -81,7 +81,7 @@ export default function AsyncLocktest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_ASYNCLOCK_0200
-     * @tc.name      : AsyncLock0200
+     * @tc.name      : AsyncLocktest0200
      * @tc.desc      : AsyncLock lockAsync 401
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -110,7 +110,7 @@ export default function AsyncLocktest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_ASYNCLOCK_0300
-     * @tc.name      : AsyncLock0300
+     * @tc.name      : AsyncLocktest0300
      * @tc.desc      : AsyncLock lockAsync 401
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -140,7 +140,7 @@ export default function AsyncLocktest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_ASYNCLOCK_0400
-     * @tc.name      : AsyncLock0400
+     * @tc.name      : AsyncLocktest0400
      * @tc.desc      : AsyncLock lockAsync 401
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -174,7 +174,7 @@ export default function AsyncLocktest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_ASYNCLOCK_0500
-     * @tc.name      : AsyncLock0500
+     * @tc.name      : AsyncLocktest0500
      * @tc.desc      : AsyncLock lockAsync 10200031
      * @tc.size      : MediumTest
      * @tc.type      : Function
