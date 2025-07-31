@@ -243,7 +243,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
 }
 
 int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
-    bool subProcess)
+    bool subProcess, bool isKillPrecedeStart)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
