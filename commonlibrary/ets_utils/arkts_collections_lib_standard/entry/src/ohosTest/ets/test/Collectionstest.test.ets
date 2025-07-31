@@ -1189,7 +1189,7 @@ export default function collectionstest() {
 
     /**
      * @tc.number    : SUB_COOLLECTION_2200
-     * @tc.name      : Collectionstest2100
+     * @tc.name      : Collectionstest2200
      * @tc.desc      : Int16Array 10200012
      * @tc.size      : MediumTest
      * @tc.type      : Function
