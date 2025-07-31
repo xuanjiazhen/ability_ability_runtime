@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.acts.actscapistartselfuiabilitytest20test",
-    "vendor": "huawei",
+    "vendor": "test20test",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "icon": "$media:app_icon",

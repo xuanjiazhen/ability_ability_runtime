@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.acts.example.requestdialog",
-    "vendor": "huawei",
+    "vendor": "requestdialog",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

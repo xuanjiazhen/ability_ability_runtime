@@ -1,7 +1,7 @@
 {
   "app": {
     "bundleName": "ohos.acts.aafwk.test.fasupportfunction",
-    "vendor": "huawei",
+    "vendor": "fasupportfunction",
     "version": {
       "code": 1000000,
       "name": "1.0.0"
