@@ -203,7 +203,7 @@ export default function sendablePreferencesErrTest() {
 
 
     /**
-        * @tc.name testSendablePreferencesremovePreferencesFromCachePromiseErr0100
+        * @tc.name testPreferencesRemovePreferencesFromCachePromiserr0100
         * @tc.number SUB_DistributedData_SendablePreference_SDK_PreferenceEtsApiPromiseErrTest_0600
         * @tc.desc put PutNumber promise interface test
         * @tc.size MediumTest
