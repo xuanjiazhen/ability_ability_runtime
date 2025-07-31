@@ -18,8 +18,15 @@ import FormExtensionAbility from '@ohos.app.form.FormExtensionAbility';
 import formInfo from '@ohos.app.form.formInfo';
 import formProvider from '@ohos.app.form.formProvider';
 import Want from '@ohos.app.ability.Want';
+import CommonEventManager from '@ohos.commonEventManager';
 
 export default class EntryFormAbility extends FormExtensionAbility {
+
+  private formOnUpdataSizeEvent = "FMS_FormOnUpdateSize_commonEvent";
+
+  private publishUpdateSizeCallBack = () => {
+    console.debug(`====> formUpdateSizeEventCallBack ====>`);
+  }
 
   onAddForm(want: Want) {
     console.log('===>  onAddForm')
@@ -55,5 +62,13 @@ export default class EntryFormAbility extends FormExtensionAbility {
 
   onAcquireFormState(want: Want) {
     return formInfo.FormState.READY;
+  }
+
+  onSizeChanged(formId: string, newDimension: formInfo.FormDimension, newRect: formInfo.Rect): void {
+    console.info(`onSizeChanged param: formId:${formId} newDimesnion:${newDimension}, newRect:${JSON.stringify(newRect)}`);
+    let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
+      code: 0
+    };
+    CommonEventManager.publish(this.formOnUpdataSizeEvent, commonEventPublishData, this.publishUpdateSizeCallBack);
   }
 };
