@@ -29,7 +29,7 @@ export default function ActsCommonEventErrorTest() {
     it('testCommonEventNoError0100', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>TestCommonEventNoError start====");
-        let result: number = commoneventerror.TestCommonEventNoError();
+        let result: number = commoneventerror.testCommonEventNoError();
         expect(result).assertEqual(0);
         console.info("====>TestCommonEventNoError result: " + result);
         done()

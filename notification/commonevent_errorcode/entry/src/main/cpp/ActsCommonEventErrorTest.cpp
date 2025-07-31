@@ -31,7 +31,7 @@ static void IsOrderedCallback001(const CommonEvent_RcvData *data)
     }
 }
 
-static napi_value testCommonEventNoError0100(napi_env env, napi_callback_info info)
+static napi_value testCommonEventNoError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     const char *events[] = {CesCapiTest::COMMON_EVENT_TEST};
@@ -47,8 +47,8 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"testCommonEventNoError0100", nullptr, testCommonEventNoError0100, nullptr, nullptr, nullptr, napi_default,
-        nullptr},
+        {"testCommonEventNoError", nullptr, testCommonEventNoError, nullptr, nullptr, nullptr, napi_default,
+            nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
