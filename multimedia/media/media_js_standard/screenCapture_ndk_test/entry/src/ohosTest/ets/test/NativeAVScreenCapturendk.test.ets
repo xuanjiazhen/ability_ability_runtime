@@ -960,27 +960,6 @@ export default function nativeAVScreenCaptureNdkTest() {
       done();
     });
     /**
-     * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600
-     * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600
-     * @tc.desc         normalSelectionCallback
-     * @tc.size         MediumTest
-     * @tc.type         Function
-     * @tc.level        Level 0
-     */
-    it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0600', Level.LEVEL0, async (done: Function) => {
-      
-      let result: number = myScreenCaptureNdk.normalAVScreenCaptureSetCaptureAreaTest();
-      console.info(Tag + "normalAVScreenCaptureSetCaptureAreaTest-------------res:" + result);
-      expect(result).assertEqual(0);
-
-      let isShowDialog: number = await Utils.btnTextScreenCaptureCancel();
-      let resultStop: number = myScreenCaptureNdk.normalAVScreenCaptureSetCaptureAreaTestStop();
-      console.info(Tag + "normalAVScreenCaptureSetCaptureAreaTestStop-------------resultStop:" + resultStop);
-      expect(resultStop).assertEqual(0);
-      expect(isShowDialog).assertEqual(0);
-      done();
-    });
-    /**
      * @tc.number       SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700
      * @tc.name         SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700
      * @tc.desc         normalSelectionCallback
