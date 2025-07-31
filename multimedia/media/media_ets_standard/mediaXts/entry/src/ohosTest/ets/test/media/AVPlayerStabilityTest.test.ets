@@ -63,9 +63,7 @@ export default function AVPlayerStabilityTest() {
 
   let avPlayer: media.AVPlayer | null = null;
   let fdNumbers: number[] = [];
-  let videos: media.AVFileDescriptor[] = [];
   let mediaTestBase = new MediaTestBase();
-  let fileDescriptor0: media.AVFileDescriptor;
   let fileDescriptor: media.AVFileDescriptor;
 
   describe('AVPlayerStabilityTest', () => {
@@ -80,9 +78,6 @@ export default function AVPlayerStabilityTest() {
           break;
         }
       }
-      fileDescriptor0 = await getStageFdRead(VIDEO_SOURCES[0]);
-      console.info(TAG, 'this fdNumber is :' + JSON.stringify(fileDescriptor0));
-      videos.push(fileDescriptor0);
       await mediaTestBase.msleepAsync(SLEEP_TIME_20);
     });
 
@@ -104,9 +99,6 @@ export default function AVPlayerStabilityTest() {
 
     afterAll(async () => {
       console.info(TAG, 'afterAll case');
-      await mediaTestBase.closeFdNumber(fileDescriptor0.fd);
-      videos = [];
-      fdNumbers = [];
     });
 
     /**
@@ -862,7 +854,11 @@ export default function AVPlayerStabilityTest() {
     it('seek_avplayer_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'seek_avplayer_001';
       console.info(TAG, testName + ' start');
-      seekLoop(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      seekLoop(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -877,7 +873,11 @@ export default function AVPlayerStabilityTest() {
     it('seek_avplayer_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'seek_avplayer_002';
       console.info(TAG, testName + ' start');
-      seekLoopWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      seekLoopWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -892,7 +892,11 @@ export default function AVPlayerStabilityTest() {
     it('create_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'create_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      createTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      createTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -907,7 +911,11 @@ export default function AVPlayerStabilityTest() {
     it('prepare_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'prepare_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      prepareTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      prepareTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -922,7 +930,11 @@ export default function AVPlayerStabilityTest() {
     it('play_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'play_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      playTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      playTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -937,7 +949,11 @@ export default function AVPlayerStabilityTest() {
     it('pause_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'pause_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      pauseTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      pauseTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -952,7 +968,11 @@ export default function AVPlayerStabilityTest() {
     it('pause_avplayer_time_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'pause_avplayer_time_002';
       console.info(TAG, testName + ' start');
-      pauseTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      pauseTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -967,7 +987,11 @@ export default function AVPlayerStabilityTest() {
     it('stop_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'stop_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      stopTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      stopTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -982,7 +1006,11 @@ export default function AVPlayerStabilityTest() {
     it('stop_avplayer_time_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'stop_avplayer_time_002';
       console.info(TAG, testName + ' start');
-      stopTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      stopTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -997,7 +1025,11 @@ export default function AVPlayerStabilityTest() {
     it('reset_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'reset_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      resetTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      resetTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1012,7 +1044,11 @@ export default function AVPlayerStabilityTest() {
     it('reset_avplayer_time_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'reset_avplayer_time_002';
       console.info(TAG, testName + ' start');
-      await resetTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      await resetTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1027,7 +1063,11 @@ export default function AVPlayerStabilityTest() {
     it('release_avplayer_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'release_avplayer_time_001';
       console.info(TAG, testName + ' start');
-      releaseTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      releaseTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1042,7 +1082,11 @@ export default function AVPlayerStabilityTest() {
     it('release_avplayer_time_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'release_avplayer_time_002';
       console.info(TAG, testName + ' start');
-      releaseTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      releaseTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1057,7 +1101,11 @@ export default function AVPlayerStabilityTest() {
     it('getTrackDescription_time_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'getTrackDescription_time_001';
       console.info(TAG, testName + ' start');
-      getTrackDescriptionTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      getTrackDescriptionTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1072,7 +1120,11 @@ export default function AVPlayerStabilityTest() {
     it('getTrackDescription_time_002', Level.LEVEL3, async (done: Function) => {
       const testName = 'getTrackDescription_time_002';
       console.info(TAG, testName + ' start');
-      await getTrackDescriptionTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      await getTrackDescriptionTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1087,7 +1139,11 @@ export default function AVPlayerStabilityTest() {
     it('setSpeed_avplayer_001', Level.LEVEL3, async (done: Function) => {
       const testName = 'setSpeed_avplayer_001';
       console.info(TAG, testName + ' start');
-      setSpeedTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      setSpeedTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1102,7 +1158,11 @@ export default function AVPlayerStabilityTest() {
     it('setBitrate_avplayer_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'setBitrate_avplayer_001';
       console.info(TAG, testName + ' start');
-      setBitrateTimeWithoutCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      setBitrateTimeWithoutCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1117,7 +1177,11 @@ export default function AVPlayerStabilityTest() {
     it('setVolume_avplayer_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'setVolume_avplayer_001';
       console.info(TAG, testName + ' start');
-      setVolumeTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      setVolumeTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1132,7 +1196,11 @@ export default function AVPlayerStabilityTest() {
     it('on_off_startRenderFrame_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_startRenderFrame_001';
       console.info(TAG, testName + ' start');
-      firstFrameTime(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      firstFrameTime(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -1147,7 +1215,11 @@ export default function AVPlayerStabilityTest() {
     it('on_off_volumeChange_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_volumeChange_001';
       console.info(TAG, testName + ' start');
-      setVolumeTimeWithCallback(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      setVolumeTimeWithCallback(fileDescriptor, avPlayer, done, testName);
       offCallback(avPlayer, ['volumeChange'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1163,8 +1235,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_bitrateDone_availableBitrates_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_bitrateDone_availableBitrates_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerFun(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerFun(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['bitrateDone', 'availableBitrates'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1180,8 +1256,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_seekDone_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_seekDone_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerSeek(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerSeek(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['seekDone'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1197,8 +1277,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_speedDone_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_speedDone_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerFun(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerFun(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['speedDone'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1214,8 +1298,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_timeUpdate_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_timeUpdate_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerSeek(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerSeek(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['timeUpdate'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1231,8 +1319,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_durationUpdate_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_durationUpdate_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerSeek(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerSeek(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['durationUpdate'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1248,8 +1340,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_videoSizeChange_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_videoSizeChange_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerSeek(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerSeek(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['videoSizeChange'], testName);
       console.info(TAG, testName + ' end');
     })
@@ -1265,8 +1361,12 @@ export default function AVPlayerStabilityTest() {
     it('on_off_bufferingUpdate_audioInterrupt_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_bufferingUpdate_audioInterrupt_001';
       console.info(TAG, testName + ' start');
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
       let avPlayTest: PlayTest = { width: 720, height: 480, duration: 10034 };
-      testAVPlayerFun(videos[0], avPlayer, avPlayTest, PLAY_TIME, done, testName);
+      testAVPlayerFun(fileDescriptor, avPlayer, avPlayTest, PLAY_TIME, done, testName);
       offCallback(avPlayer, ['bufferingUpdate'], testName);
       offCallback(avPlayer, ['audioInterrupt'], testName);
       console.info(TAG, testName + ' end');

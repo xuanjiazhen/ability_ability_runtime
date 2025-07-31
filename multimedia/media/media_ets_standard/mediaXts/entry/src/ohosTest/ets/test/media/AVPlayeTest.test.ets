@@ -329,14 +329,14 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
         break;
       case PREPARED:
         console.info(TAG, testName + ' case prepare called');
-        avPlayer?.play().then(() => {
+        await avPlayer?.play().then(() => {
           console.info(TAG, testName + ' play called success');
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         break;
       case PLAYING:
         if (playCount == 0) {
           playCount++;
-          avPlayer?.pause().then(() => {
+          await avPlayer?.pause().then(() => {
             console.info(TAG, testName + ' play called success');
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         }
@@ -358,7 +358,7 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
       case STOPPED:
         expect(count).assertEqual(1);
         console.info(TAG, testName + ' case stop called');
-        avPlayer?.release().then(() => {
+        await avPlayer?.release().then(() => {
           console.info(TAG, testName + ' play stop success');
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         break;
@@ -371,11 +371,11 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
         expect(avPlayer.currentTime).assertEqual(avPlayer.duration);
         if (playCount == 1) {
           playCount++;
-          avPlayer?.play().then(() => {
+          await avPlayer?.play().then(() => {
             console.info(TAG, testName + ' play called success');
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         } else {
-          avPlayer?.stop().then(() => {
+          await avPlayer?.stop().then(() => {
             console.info(TAG, testName + ' play stop success');
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         }
@@ -387,7 +387,7 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
         break;
       case ERROR:
         expect().assertFail();
-        avPlayer?.release().then(() => {
+        await avPlayer?.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         avPlayer = null;
         break;
@@ -426,15 +426,15 @@ async function getPlaybackPosition(avPlayer: media.AVPlayer | null, done: Functi
           console.info(TAG, testName + ' avPlayer is null');
           break;
         }
-        avPlayer.prepare();
+        await avPlayer.prepare();
         break;
       case PREPARED:
-        avPlayer?.play();
+        await avPlayer?.play();
         break;
       case PLAYING:
         await sleep(SLEEP_TIME_3000);
         if (isFirstTime) {
-          avPlayer?.pause();
+          await avPlayer?.pause();
           isFirstTime = false;
         }
         break;
@@ -443,13 +443,13 @@ async function getPlaybackPosition(avPlayer: media.AVPlayer | null, done: Functi
           console.info(TAG, testName + ' avPlayer is null');
           break;
         }
-        avPlayer?.play()
+        await avPlayer?.play();
         playbackPosition = avPlayer.getPlaybackPosition();
         console.info(TAG, testName + ` AVPlayer getPlaybackPosition == ${playbackPosition} ms`);
         expect(playbackPosition).assertLargerOrEqual(0);
         break;
       case COMPLETED:
-        avPlayer?.release();
+        await avPlayer?.release();
         break;
       case RELEASED:
         avPlayer = null;
@@ -1611,7 +1611,7 @@ export default function AVPlayerTest() {
     it('on_off_endOfStream_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'on_off_endOfStream_001';
       if (fileDescriptor) {
-        testEndOfStream(fileDescriptor, avPlayer, done, testName);
+        await testEndOfStream(fileDescriptor, avPlayer, done, testName);
       }
     })
 
@@ -1626,7 +1626,7 @@ export default function AVPlayerTest() {
     it('getPlaybackPosition_001', Level.LEVEL0, async (done: Function) => {
       const testName = 'getPlaybackPosition_001';
       if (fileDescriptor) {
-        testGetPlaybackPosition(fileDescriptor, avPlayer, done, testName);
+        await testGetPlaybackPosition(fileDescriptor, avPlayer, done, testName);
       }
     })
 
