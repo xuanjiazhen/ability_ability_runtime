@@ -15,7 +15,7 @@
  */
  
 class ParticleModifier implements AttributeModifier<ParticleAttribute> {
-  bgColor: Color | string = Color.Black
+  private bgColor: Color | string = Color.Black
 
   constructor(color?: Color | string) {
     this.bgColor = color!
@@ -135,6 +135,6 @@ struct ParticleModifierTest {
           }
         ]
       }).width('50%').height('50%').attributeModifier(this.myModifier)
-    }.width("100%").height("100%").align(Alignment.Center)
+    }.width('100%').height('100%').align(Alignment.Center)
   }
 }
