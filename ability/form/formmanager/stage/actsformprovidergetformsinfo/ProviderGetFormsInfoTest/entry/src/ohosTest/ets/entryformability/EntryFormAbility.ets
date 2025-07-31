@@ -22,7 +22,7 @@ import CommonEventManager from '@ohos.commonEventManager';
 
 export default class EntryFormAbility extends FormExtensionAbility {
 
-  private formOnUpdataSizeEvent = "FMS_FormOnUpdateSize_commonEvent";
+  private formOnUpdataSizeEvent = 'FMS_FormOnUpdateSize_commonEvent';
 
   private publishUpdateSizeCallBack = () => {
     console.debug(`====> formUpdateSizeEventCallBack ====>`);
