@@ -1,12 +1,11 @@
 {
-    "description": "Configuration for ActsOsAccountNdkTest Tests",
+    "description": "Configuration for TelephonyNdk20Test Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "180000",
-        "bundle-name": "com.acts.actsosaccountndktest",
-        "module-name": "entry_test",
-        "shell-timeout": "600000",
-        "testcase-timeout": 60000
+        "shell-timeout": "180000",
+        "bundle-name": "com.acts.TelephonyNdk20.test",
+        "module-name": "entry_test"
     },
     "kits": [{
         "test-file-name": [
@@ -18,9 +17,7 @@
         "type": "ShellKit",
         "run-command": [
             "power-shell wakeup",
-            "power-shell setmode 602",
-            "power-shell timeout -o 86400000",
-            "hidumper -s 3301 -a -t"
+            "power-shell setmode 602"
         ]
 
     }]
