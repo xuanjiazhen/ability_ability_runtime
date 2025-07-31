@@ -30,8 +30,16 @@ export default class EntryFormAbility extends FormExtensionAbility {
 
   onAddForm(want: Want) {
     console.log('===>  onAddForm')
-    return formBindingData.createFormBindingData({
-    });
+    let param: Record<string, string> = {};
+    let wants = want?.parameters;
+    if(wants) {
+      let launchReason = wants['formInfo.FormParam.LAUNCH_REASON_KEY'] as number;
+      let originalFormId = wants[formInfo.FormParam.ORIGINAL_FORM_KEY] as string;
+      if (launchReason == formInfo.LaunchReason.FORM_SIZE_CHANGE) {
+        param = {'original_formid': originalFormId};
+      }
+    }
+    return formBindingData.createFormBindingData(param);
   }
 
   onCastToNormalForm(formId: string) {
@@ -64,7 +72,7 @@ export default class EntryFormAbility extends FormExtensionAbility {
     return formInfo.FormState.READY;
   }
 
-  onSizeChanged(formId: string, newDimension: formInfo.FormDimension, newRect: formInfo.Rect): void {
+    onSizeChanged(formId: string, newDimension: formInfo.FormDimension, newRect: formInfo.Rect): void {
     console.info(`onSizeChanged param: formId:${formId} newDimesnion:${newDimension}, newRect:${JSON.stringify(newRect)}`);
     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
       code: 0
