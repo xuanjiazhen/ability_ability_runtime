@@ -60,7 +60,6 @@ _all_test_packages = [
   "${ACTS_ROOT}/appbuild:appbuild",
   "${ACTS_ROOT}/window:window",
   "${ACTS_ROOT}/print:print",
-  "${ACTS_ROOT}/distributedhardware:distributedhardware",
 ]
 
 _all_test_packages_ivi = [
