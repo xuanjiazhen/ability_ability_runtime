@@ -22,6 +22,10 @@ import DrawForegroundTest from './DrawTest/DrawForegroundTest.test';
 import BuilderNodeOneTest from './LocalStorageTest/BuilderNodeOneTest.test';
 import BuilderNodeTwoTest from './LocalStorageTest/BuilderNodeTwoTest.test';
 import BuilderNodeThreeTest from './LocalStorageTest/BuilderNodeThreeTest.test';
+import bindControllerGrid from './FrameNodeTest/bindControllerGrid.test';
+import bindControllerList from './FrameNodeTest/bindControllerList.test';
+import bindControllerSwiper from './FrameNodeTest/bindControllerSwiper.test';
+import bindControllerWaterFlow from './FrameNodeTest/bindControllerWaterFlow.test';
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
 import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
 
@@ -36,6 +40,10 @@ export default function testsuite() {
   BuilderNodeOneTest();
   BuilderNodeTwoTest();
   BuilderNodeThreeTest();
+  bindControllerGrid();
+  bindControllerList();
+  bindControllerSwiper();
+  bindControllerWaterFlow();
   DarkModeTest();
   EnableProvideConsumeCrossingTest();
 }

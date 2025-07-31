@@ -10,6 +10,10 @@
         "MainAbility/pages/LocalStorage/BuilderNodeOneTest",
         "MainAbility/pages/LocalStorage/BuilderNodeTwoTest",
         "MainAbility/pages/LocalStorage/BuilderNodeThreeTest",
+        "MainAbility/pages/FrameNode/bindControllerGrid",
+        "MainAbility/pages/FrameNode/bindControllerList",
+        "MainAbility/pages/FrameNode/bindControllerSwiper",
+        "MainAbility/pages/FrameNode/bindControllerWaterFlow",
         "MainAbility/pages/UIAppearance/DarkModeTest",
         "MainAbility/pages/Context/IsDisposedTest",
         "MainAbility/pages/BuilderNode/EnableProvideConsumeCrossingTest"
