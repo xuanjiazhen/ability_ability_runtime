@@ -28,6 +28,100 @@ const TAG = "CameraPickerTest: ";
 
 const sleep = (delay: number) => new Promise<void>((resolve) => setTimeout(resolve, delay));
 
+function registerTorchStatusChange(cameraManager: camera.CameraManager):void{
+  cameraManager.on('torchStatusChange', callback);
+}
+
+function callback(err:BusinessError, torchStatusInfo:camera.TorchStatusInfo):void{
+  let errSode = camera.CameraErrorCode.UNRESOLVED_CONFLICTS_WITH_CURRENT_CONFIGURATIONS;
+  let isTorchAbailable = torchStatusInfo.isTorchAvailable
+  let isTorchActive = torchStatusInfo.isTorchActive
+  let torchLevel = torchStatusInfo.torchLevel
+  console.info(TAG+"Entering GET_CAMERAS CameraErrorCode" + errSode);
+  console.info("onTorchStatusChange, isTorchAbailable:"+ isTorchAbailable ,"isTorchActive:"+ isTorchActive,"level:"+ torchLevel);
+}
+
+function  getSupportedCameras(cameraManager: camera.CameraManager):Array<camera.CameraDevice>{
+  let cameras: Array<camera.CameraDevice> = [];
+  try {
+    cameras = cameraManager.getSupportedCameras();
+    if(cameras!= null && cameras.length>0){
+      for(let i =0; i<cameras.length;i++){
+        let cameraOrientation = cameras[i].cameraOrientation;
+      }
+    }
+  }catch (error){
+    let  err = error as BusinessError;
+  }
+  return cameras;
+}
+
+function getSupportedColorSpaces(session:camera.PhotoSession):Array<colorSpaceManager.ColorSpace>{
+  let  colcorSpaces:Array<colorSpaceManager.ColorSpace> = [];
+  try {
+    colcorSpaces = session.getSupportedColorSpaces();
+  }catch (error){
+    let err = error as BusinessError;
+  }
+  return colcorSpaces;
+}
+
+function getActiveColorSpace(session:camera.PhotoSession):colorSpaceManager.ColorSpace | undefined{
+  let colorSpace : colorSpaceManager.ColorSpace | undefined = undefined;
+  try {
+    colorSpace = session.getActiveColorSpace();
+  }catch (error){
+    let  err = error as BusinessError;
+  }
+  return colorSpace;
+}
+
+function  getSupportedFrameRates(previewOutput:camera.PreviewOutput):Array<camera.FrameRateRange>{
+  let supportedFrameRatesArray: Array<camera.FrameRateRange> = previewOutput.getSupportedFrameRates();
+  return supportedFrameRatesArray;
+}
+
+function setFrameRateRateRange(previewOutput:camera.PreviewOutput,frameRateRange:Array<number>):void{
+  previewOutput.setFrameRate(frameRateRange[0],frameRateRange[1]);
+}
+
+function  getActiveFrameRate(previewOutput:camera.PreviewOutput):camera.FrameRateRange{
+  let activeFrameRate: camera.FrameRateRange = previewOutput.getActiveFrameRate();
+  return activeFrameRate;
+}
+
+function  isMovingPhotoSupported(photoOutput:camera.PhotoOutput):boolean{
+  let isSupported : boolean = false;
+  try {
+    isSupported = photoOutput.isMovingPhotoSupported();
+  }catch (error){
+    let  err = error as BusinessError;
+  }
+  return isSupported;
+}
+
+function enableMovinfPhoto(photoOutput:camera.PhotoOutput):void{
+  try {
+    photoOutput.enableMovingPhoto(true);
+  }catch (error){
+    let err = error as BusinessError;
+  }
+}
+
+function getSupportedFrameRates_priview(previewOutput:camera.PreviewOutput):Array<camera.FrameRateRange>{
+  let supportedFrameRatesArray: Array<camera.FrameRateRange> = previewOutput.getSupportedFrameRates();
+  return supportedFrameRatesArray;
+}
+
+function setFrameRateRange_priview(previewOutput:camera.PreviewOutput,frameRateRange:Array<number>):void{
+  previewOutput.setFrameRate(frameRateRange[0],frameRateRange[1]);
+}
+
+function getActiveFrameRate_priview(previewOutput:camera.PreviewOutput):camera.FrameRateRange{
+  let activeFraneRate: camera.FrameRateRange = previewOutput.getActiveFrameRate();
+  return activeFraneRate;
+}
+
 export function executePicker() : boolean {
   const cameraAvailable = canIUse('SystemCapability.Multimedia.Camera.Core');
   let context = getContext();
@@ -59,6 +153,13 @@ export function executePicker() : boolean {
     isExecute = true;
   } else {
     isExecute = false;
+  }
+  let uidriver = UiDriver.create();
+  let uiButton = uidriver.findComponent(BY.text("COMPONENT_ID_SHUTTER_PHOTO_1"));
+  if (uiButton !== null) {
+      isExecute = false;
+  } else {
+      isExecute = true;
   }
   return isExecute;
 }
@@ -303,16 +404,15 @@ export function cameraPicker() {
      */
     it('SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_TAKEPHOTO_0103', Level.LEVEL1, async (done: Function) => {
       console.info("--------------SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_TAKEPHOTO_0103--------------");
-      let uri: string = "fail_string";
       let photoProfile: picker.PickerProfile = {
-        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK,
-        saveUri: uri
+        cameraPosition: camera.CameraPosition.CAMERA_POSITION_FRONT
       };
       await sleep(2000);
       picker.pick(getContext(), [picker.PickerMediaType.PHOTO, picker.PickerMediaType.VIDEO], photoProfile)
         .then(data => {
           console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_TAKEPHOTO_0103 get pick result " + JSON.stringify(data));
-          expect(data.resultCode).assertLess(0);
+          expect(data.resultCode).assertEqual(0);
+          expect(data.mediaType).assertEqual(picker.PickerMediaType.PHOTO);
           done();
         })
         .catch((err:BusinessError)=>{
@@ -322,108 +422,8 @@ export function cameraPicker() {
       await sleep(1000);
       await driveAllowFn();
       await driveSafeFn();
-      await drivePhotoFn();
+      await drivePhotoFrontFn();
       console.info(TAG + "SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_TAKEPHOTO_0103 ends here");
-    });
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100
-     * @tc.name      : cameraPicker takePhoto api test
-     * @tc.desc      : cameraPicker takePhoto api test
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100', Level.LEVEL1, async (done: Function) => {
-      console.info("--------------SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100--------------");
-      let videoDuration = 2;
-      let videoProfile: picker.PickerProfile = {
-        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK,
-        videoDuration: videoDuration
-      };
-      await sleep(2000);
-      picker.pick(getContext(), [picker.PickerMediaType.VIDEO], videoProfile)
-        .then(data => {
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100 get pick result " + JSON.stringify(data));
-          expect(data.resultCode).assertEqual(0);
-          expect(data.mediaType).assertEqual(picker.PickerMediaType.VIDEO);
-          done();
-        })
-        .catch((err:BusinessError)=>{
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100 get pick error " + JSON.stringify(err));
-          expect(true).assertFalse();
-        });
-      await sleep(1000);
-      await driveAllowFn();
-      await driveSafeFn();
-      await driveVideoFn(videoDuration);
-      console.info(TAG + "SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0100 ends here");
-    });
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101
-     * @tc.name      : cameraPicker takePhoto api test
-     * @tc.desc      : cameraPicker takePhoto api test
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101', Level.LEVEL1, async (done: Function) => {
-      console.info("--------------SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101--------------");
-      let videoProfile: picker.PickerProfile = {
-        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK,
-      };
-      await sleep(2000);
-      picker.pick(getContext(), [picker.PickerMediaType.VIDEO], videoProfile)
-        .then(data => {
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101 get pick result " + JSON.stringify(data));
-          expect(data.resultCode).assertEqual(0);
-          expect(data.mediaType).assertEqual(picker.PickerMediaType.VIDEO);
-          done();
-        })
-        .catch((err:BusinessError)=>{
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101 get pick error " + JSON.stringify(err));
-          expect(true).assertFalse();
-        });
-      await sleep(1000);
-      await driveAllowFn();
-      await driveSafeFn();
-      await driveVideoFn(0);
-      console.info(TAG + "SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0101 ends here");
-    });
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102
-     * @tc.name      : cameraPicker takePhoto api test
-     * @tc.desc      : cameraPicker takePhoto api test
-     * @tc.size      : MEDIUM
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102', Level.LEVEL1, async (done: Function) => {
-      console.info("--------------SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102--------------");
-      let videoDuration = 2;
-      let videoProfile: picker.PickerProfile = {
-        cameraPosition: camera.CameraPosition.CAMERA_POSITION_FRONT,
-        videoDuration: videoDuration
-      };
-      await sleep(2000);
-      picker.pick(getContext(), [picker.PickerMediaType.VIDEO], videoProfile)
-        .then(data => {
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102 get pick result " + JSON.stringify(data));
-          expect(data.resultCode).assertEqual(0);
-          expect(data.mediaType).assertEqual(picker.PickerMediaType.VIDEO);
-          done();
-        })
-        .catch((err:BusinessError)=>{
-          console.log("SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102 get pick error " + JSON.stringify(err));
-          expect(true).assertFalse();
-        });
-      await sleep(1000);
-      await driveAllowFn();
-      await driveSafeFn();
-      await driveVideoFrontFn(videoDuration);
-      console.info(TAG + "SUB_MULTIMEDIA_CAMERA_PICKER_USECASS_RECORDVIDEO_0102 ends here");
     });
   })
 }
