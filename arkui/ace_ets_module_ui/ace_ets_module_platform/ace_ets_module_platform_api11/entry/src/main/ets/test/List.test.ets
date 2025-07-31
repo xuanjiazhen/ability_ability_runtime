@@ -19,6 +19,7 @@ import videoJsunit2 from './video/VideoJsunit2.test';
 
 import videoOnFullscreenChangeJsunit from './video/video.test';
 import xcomponentGetXComponentContextJsunit from './XComponentTest/xcomponent.test';
+import XComponentNodeTest from './XComponentNode/XComponentNodeTest.test';
 
 export default function testsuite() {
   XComponentNodeChageJsSuit()
@@ -28,4 +29,5 @@ export default function testsuite() {
   videoOnFullscreenChangeJsunit()
   xcomponentGetXComponentContextJsunit()
 
+  XComponentNodeTest()
 }
