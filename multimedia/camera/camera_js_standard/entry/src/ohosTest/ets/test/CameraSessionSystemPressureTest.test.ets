@@ -95,7 +95,6 @@ export default function cameraSessionSystemPressureTest() {
             console.info(TAG + "getSupportedCameras FAILED");
             return false;
         }
-        //mCameraNum = 1;
         mCameraNum = mCameraDevicesArray.length;
         console.info(TAG + "getCameraSupportDevicesArray is: " + mCameraNum);
         console.info('Exit getCameraSupportDevicesArray');
