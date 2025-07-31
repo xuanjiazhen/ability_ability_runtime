@@ -61,7 +61,7 @@ export default function XComponentNodeTest() {
       if (AppStorage.get('XComponentNodePage_onDestroy') != undefined) {
         AppStorage.delete('XComponentNodePage_onDestroy');
       }
-      await Utils.sleep(500)
+      await CommonFunc.sleep(500)
       console.info("XComponentNodeTest after each called");
       done()
     })
@@ -76,7 +76,6 @@ export default function XComponentNodeTest() {
      */
     it('XComponentNodeTest_0010', Level.LEVEL2, async (done: Function) => {
       console.info('XComponentNodeTest_0010 START');
-      let driver = await Driver.create()
       await CommonFunc.sleep(1000);
 
       expect(AppStorage.get('XComponentNodePage_onCreate')).assertEqual('onCreate succ');
