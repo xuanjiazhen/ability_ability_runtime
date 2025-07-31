@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import events_emitter from '@ohos.events.emitter';
 import { JsProxyObject } from '../../test/Interfaces';
 import image from '@ohos.multimedia.image';
 import { Driver } from '@ohos.UiTest';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -40,18 +41,20 @@ struct webViewController {
   @State darkMode: WebDarkMode = WebDarkMode.Off
   @State forceDarkAccess: boolean = false
   @State userAgentPC:string = "";
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   no_error: string = "no error happened"
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133100,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133100)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -60,6 +63,7 @@ struct webViewController {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -80,6 +84,9 @@ struct webViewController {
     Column() {
       Row() {
         Button("WebViewController click").key('WebViewControllerButton').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           let webRect = Utils.getComponentRect('RowSize');
           let X = Utils.getRectHorizontalCenterX(webRect)
@@ -88,18 +95,19 @@ struct webViewController {
 
             case "testHistoryItemIcon001": {
               try {
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 let list = this.controller.getBackForwardEntries();
                 let historyItem = list.getItemAtIndex(list.currentIndex);
                 console.log("HistoryItem: " + JSON.stringify(historyItem));
                 this.icon = historyItem.icon;
                 if (this.icon != null) {
-                  Utils.emitEvent(true, 31023)
+                  Utils.emitEvent(true, 133110)
                 }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31023)
+                Utils.emitEvent(error.code, 133110)
               }
               break;
             }
@@ -108,16 +116,17 @@ struct webViewController {
             case "testHistoryItemHistoryUrl001": {
               try {
                 let historyItemString: string = ' '
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 let list = this.controller.getBackForwardEntries();
                 let historyItem = list.getItemAtIndex(list.currentIndex);
                 console.log("HistoryItem: " + JSON.stringify(historyItem));
                 historyItemString = historyItem.historyUrl;
-                Utils.emitEvent(historyItemString, 31024)
+                Utils.emitEvent(historyItemString, 133120)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31024)
+                Utils.emitEvent(error.code, 133120)
               }
               break;
             }
@@ -125,16 +134,17 @@ struct webViewController {
             case "testHistoryRawUrl001": {
               try {
                 let historyItemRawUrl: string = ' '
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 let list = this.controller.getBackForwardEntries();
                 let historyItem = list.getItemAtIndex(list.currentIndex);
                 console.log("HistoryItem: " + JSON.stringify(historyItem));
                 historyItemRawUrl = historyItem.historyRawUrl;
-                Utils.emitEvent(historyItemRawUrl, 31025)
+                Utils.emitEvent(historyItemRawUrl, 133130)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31025)
+                Utils.emitEvent(error.code, 133130)
               }
               break;
             }
@@ -142,46 +152,47 @@ struct webViewController {
             case "testHistoryItemTitle001": {
               try {
                 let historyItemTitle: string = ' '
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
                 let list = this.controller.getBackForwardEntries();
                 let historyItem = list.getItemAtIndex(list.currentIndex);
                 console.log("HistoryItem: " + JSON.stringify(historyItem));
                 historyItemTitle = historyItem.title;
-                Utils.emitEvent(historyItemTitle, 31026)
+                Utils.emitEvent(historyItemTitle, 133140)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31026)
+                Utils.emitEvent(error.code, 133140)
               }
               break;
             }
 
             case "testBackForwardListCurrentIndex001": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(2000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.controller.clearHistory()
                 let list = this.controller.getBackForwardEntries();
-                Utils.emitEvent(list.currentIndex, 31027)
+                Utils.emitEvent(list.currentIndex, 133150)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31027)
+                Utils.emitEvent(error.code, 133150)
               }
               break;
             }
 
             case "testBackForwardListCurrentSize001": {
               try {
-                this.controller.clearHistory()
-                await Utils.sleep(2000);
+                this.isPageEnd = -1;
                 this.controller.loadUrl("resource://rawfile/HistoryItem.html");
-                await Utils.sleep(2000);
+                await waitForExist(() => this.isPageEnd, this.str, 0);
+                this.controller.clearHistory()
                 let list = this.controller.getBackForwardEntries();
-                Utils.emitEvent(list.size, 31028)
+                Utils.emitEvent(list.size, 133160)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31028)
+                Utils.emitEvent(error.code, 133160)
               }
               break;
             }
@@ -202,6 +213,10 @@ struct webViewController {
         .fileAccess(true)
         .darkMode(this.darkMode)
         .forceDarkAccess(this.forceDarkAccess)
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
     .key('RowSize')
   }

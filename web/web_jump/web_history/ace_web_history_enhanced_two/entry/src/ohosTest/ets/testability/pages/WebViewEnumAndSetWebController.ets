@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import Utils from '../../test/Utils';
 import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
 import { Driver, ON } from '@ohos.UiTest';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @CustomDialog
 struct NewWebViewComp {
@@ -59,6 +60,8 @@ struct WebViewEnumAndSetWebController {
   @State MediaType: Number = 0
   @State userAgentPC:string = "";
   @State precomposedResult:boolean =  false;
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   handler: FullScreenExitHandler | null = null
   dialogController: CustomDialogController | null = null
   popController: webView.WebviewController | null = null;
@@ -66,14 +69,14 @@ struct WebViewEnumAndSetWebController {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133250,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133250)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -82,6 +85,7 @@ struct WebViewEnumAndSetWebController {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -90,13 +94,16 @@ struct WebViewEnumAndSetWebController {
     Column() {
       Row() {
         Button("web clicks").key('buttonEnumAndSetWebController').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitGetItemAtIndex": {
               try {
                 let res = this.controller.getBackForwardEntries()
                 let item = res.getItemAtIndex(0)
-                Utils.emitEvent(item.title, 1501)
+                Utils.emitEvent(item.title, 133260)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -120,6 +127,10 @@ struct WebViewEnumAndSetWebController {
         .blockNetwork(Boolean(this.block))
         .cacheMode(this.CacheMode)
         .javaScriptAccess(this.javaScriptAccess)
+        .onPageEnd((event) => {
+          console.log('web fullScreenEnter pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
     }
   }
 }

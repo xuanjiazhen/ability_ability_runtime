@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@oh
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 export default function webViewControllerPart3Test() {
@@ -34,12 +35,12 @@ export default function webViewControllerPart3Test() {
         if (!("WebViewControllerPart3" == pages.name)) {
           console.info("get WebViewControllerPart3 state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewControllerPart3 page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push WebViewControllerPart3 page error: " + err);
       }
+      await waitForComponent("WebViewControllerTestButton");
       done()
     });
 
@@ -49,7 +50,6 @@ export default function webViewControllerPart3Test() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("WebViewControllerPart3 beforeEach start");
       done();
     })
@@ -63,9 +63,8 @@ export default function webViewControllerPart3Test() {
     * @tc.level      : Level 0
     */
     it('testRestoreWebState001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("testRestoreWebState001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testRestoreWebState001", "index", 100083, done);
+      Utils.emitEvent("testRestoreWebState001", 133200)
+      Utils.registerEvent("testRestoreWebState001", "index", 133210, done);
       sendEventByKey('WebViewControllerTestButton', 10, '');
     })
 

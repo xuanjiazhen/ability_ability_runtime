@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
+import { waitForComponent } from './WaitTest.test';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
@@ -35,12 +36,12 @@ export default function webAttributeTest() {
         if (!("WebAttributeTest" == pages.name)) {
           console.info("get WebAttributeTest state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebAttributeTest page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push WebAttributeTest page error: " + err);
       }
+      await waitForComponent("WebAttributeTestButton");
       done()
     });
 
@@ -56,7 +57,6 @@ export default function webAttributeTest() {
 
     afterEach(async (done: Function) => {
       console.info("WebAttributeTest afterEach start");
-      await Utils.sleep(2000);
       console.info("WebAttributeTest afterEach end");
       done();
     })
@@ -71,10 +71,9 @@ export default function webAttributeTest() {
     * @tc.level       : Level 0
     */
     it('testOnRefreshAccessedHistory001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent("emitOnRefreshAccessedHistory001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnRefreshAccessedHistory001", "resource://rawfile/second.html", 60116, done);
-      Utils.registerEvent("testOnRefreshAccessedHistory001", false, 60117, done);
+      Utils.emitEvent("emitOnRefreshAccessedHistory001", 133000)
+      Utils.registerEvent("testOnRefreshAccessedHistory001", "resource://rawfile/second.html", 133010, done);
+      Utils.registerEvent("testOnRefreshAccessedHistory001", false, 133020, done);
       sendEventByKey('WebAttributeTestButton', 10, '');
     })
 
@@ -87,10 +86,9 @@ export default function webAttributeTest() {
     * @tc.level       : Level 1
     */
     it('testOnRefreshAccessedHistory002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitOnRefreshAccessedHistory002", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnRefreshAccessedHistory002", "resource://rawfile/second.html", 60118, done);
-      Utils.registerEvent("testOnRefreshAccessedHistory002", true, 60119, done);
+      Utils.emitEvent("emitOnRefreshAccessedHistory002", 133000)
+      Utils.registerEvent("testOnRefreshAccessedHistory002", "resource://rawfile/second.html", 133030, done);
+      Utils.registerEvent("testOnRefreshAccessedHistory002", true, 133040, done);
       sendEventByKey('WebAttributeTestButton', 10, '');
     })
 

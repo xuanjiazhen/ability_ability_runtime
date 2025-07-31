@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import events_emitter from '@ohos.events.emitter';
 import { JsProxyObject } from '../../test/Interfaces';
 import image from '@ohos.multimedia.image';
 import business_error from '@ohos.base'
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -41,18 +42,20 @@ struct webViewControllerPart2 {
   @State enterPageEnd: boolean = false
   @State numberOfMatches: number = 0
   @State searchNext: boolean = false
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   no_error: string = "no error happened"
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 133300,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(133300)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -61,6 +64,7 @@ struct webViewControllerPart2 {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -81,15 +85,17 @@ struct webViewControllerPart2 {
     Column() {
       Row() {
         Button("WebViewControllerPart2 click").key('WebViewControllerPart2Button').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
 
             case "testClearHistory001": {
               try {
                 this.controller.clearHistory()
-                await Utils.sleep(2000);
                 let accessStep = this.controller.accessStep(-1);
-                Utils.emitEvent(accessStep, 37000)
+                Utils.emitEvent(accessStep, 133310)
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
               }
@@ -109,6 +115,10 @@ struct webViewControllerPart2 {
           name: "backToEts",
           methodList: ["test", "toString"],
           controller: this.controller
+        })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
         })
     }
   }

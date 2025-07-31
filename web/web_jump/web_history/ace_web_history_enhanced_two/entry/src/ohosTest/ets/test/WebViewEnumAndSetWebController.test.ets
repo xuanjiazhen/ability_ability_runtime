@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import { afterEach, beforeAll, beforeEach, describe, it , TestType, Size, Level 
 import router from '@ohos.router';
 import Utils from './Utils';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
@@ -34,12 +35,12 @@ export default function WebViewEnumAndSetWebController() {
         if (!("webTwo" == pages.name)) {
           console.info("get WebViewEnumAndSetWebController state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push WebViewEnumAndSetWebController page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push WebViewEnumAndSetWebController page error: " + err);
       }
+      await waitForComponent("buttonEnumAndSetWebController");
       done()
     });
     beforeEach(async (done: Function) => {
@@ -48,14 +49,12 @@ export default function WebViewEnumAndSetWebController() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
 
     afterEach(async (done: Function) => {
       console.info("WebViewControllerDownloadTest afterEach start");
-      await Utils.sleep(2000);
       console.info("WebViewControllerDownloadTest afterEach end");
       done();
     })
@@ -70,9 +69,8 @@ export default function WebViewEnumAndSetWebController() {
     * @tc.level      : Level 1
     */
     it('testGetItemAtIndex001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("emitGetItemAtIndex", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testGetItemAtIndex001", "FullScreenTest", 1501, done);
+      Utils.emitEvent("emitGetItemAtIndex", 133250)
+      Utils.registerEvent("testGetItemAtIndex001", "FullScreenTest", 133260, done);
       sendEventByKey('buttonEnumAndSetWebController', 10, '');
     })
 

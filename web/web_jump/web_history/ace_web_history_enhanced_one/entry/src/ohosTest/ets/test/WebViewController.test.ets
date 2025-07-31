@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
+import { waitForComponent } from './WaitTest.test';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
@@ -35,12 +36,12 @@ export default function webViewController() {
         if (!("webViewController" == pages.name)) {
           console.info("get webViewController state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webViewController page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webViewController page error: " + err);
       }
+      await waitForComponent("WebViewControllerButton");
       done()
     });
 
@@ -50,7 +51,6 @@ export default function webViewController() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewController beforeEach start");
       done();
     })
@@ -64,9 +64,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testHistoryItemIcon001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHistoryItemIcon001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHistoryItemIcon001", true, 31023, done);
+      Utils.emitEvent("testHistoryItemIcon001", 133100)
+      Utils.registerEvent("testHistoryItemIcon001", true, 133110, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -79,9 +78,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testHistoryItemHistoryUrl001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHistoryItemHistoryUrl001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHistoryItemHistoryUrl001", "resource://rawfile/HistoryItem.html", 31024, done);
+      Utils.emitEvent("testHistoryItemHistoryUrl001", 133100)
+      Utils.registerEvent("testHistoryItemHistoryUrl001", "resource://rawfile/HistoryItem.html", 133120, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -94,9 +92,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testHistoryRawUrl001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHistoryRawUrl001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHistoryRawUrl001", "resource://rawfile/HistoryItem.html", 31025, done);
+      Utils.emitEvent("testHistoryRawUrl001", 133100)
+      Utils.registerEvent("testHistoryRawUrl001", "resource://rawfile/HistoryItem.html", 133130, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -109,9 +106,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testHistoryItemTitle001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testHistoryItemTitle001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testHistoryItemTitle001", "index", 31026, done);
+      Utils.emitEvent("testHistoryItemTitle001", 133100)
+      Utils.registerEvent("testHistoryItemTitle001", "index", 133140, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -124,9 +120,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testBackForwardListCurrentIndex001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testBackForwardListCurrentIndex001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testBackForwardListCurrentIndex001", 0, 31027, done);
+      Utils.emitEvent("testBackForwardListCurrentIndex001", 133100)
+      Utils.registerEvent("testBackForwardListCurrentIndex001", 0, 133150, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
@@ -139,9 +134,8 @@ export default function webViewController() {
     * @tc.level      : Level 1
     */
     it('testBackForwardListCurrentSize001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testBackForwardListCurrentSize001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testBackForwardListCurrentSize001", 1, 31028, done);
+      Utils.emitEvent("testBackForwardListCurrentSize001", 133100)
+      Utils.registerEvent("testBackForwardListCurrentSize001", 1, 133160, done);
       sendEventByKey('WebViewControllerButton', 10, '');
     })
 
