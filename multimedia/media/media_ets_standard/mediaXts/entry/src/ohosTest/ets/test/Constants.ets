@@ -98,10 +98,7 @@ export const VIDEO_SOURCES = [
   'mpeg2_aac_720p_30r.ts',
   'mpeg2_mp3_480p_25r.ts',
   'mpeg4_aac_720p_30r.ts',
-  'mpeg4_mp3_480p_25r.ts'
-];
-
-export const VIDEO_SOURCES2 = [
+  'mpeg4_mp3_480p_25r.ts',
   'h264_320x240_60.ts',
   'h263_1408x1152_30.ts',
   'MPEG2.ts',

@@ -98,7 +98,7 @@ async function stopRecording(testName: string) {
   if (mScreenCapture !== undefined) {
     await mScreenCapture.stopRecording().then(async () => {
       console.info(TAG, testName + ' Succeeded in stopping Recording.');
-      await sleep(SLEEP_TIME_20);
+      await sleep(SLEEP_TIME_200);
       console.info(TAG, testName + ' The current status is: ' + infoType);
     }).catch((error: BusinessError) => {
       console.error(TAG,
@@ -254,6 +254,7 @@ export default function AVScreenCaptureRecorderTest() {
         mScreenCapture = undefined;
       }
       infoType = -1;
+      console.info(TAG, 'afterEach end');
     });
 
     afterAll(async () => {

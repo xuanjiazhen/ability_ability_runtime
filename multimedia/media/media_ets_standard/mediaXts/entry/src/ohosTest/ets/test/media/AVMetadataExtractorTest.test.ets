@@ -545,21 +545,6 @@ export default function AVMetadataExtractorTest() {
     })
 
     /**
-     * @tc.number    : AV_METADATA_EXTRACTOR_TEST_013
-     * @tc.name      : fetchAlbumCover_video_callback_001
-     * @tc.desc      : fetch AlbumCover callback-mp4
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-/*
-    it('fetchAlbumCover_video_callback_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'fetchAlbumCover_video_callback_001';
-      await fetchAlbumCoverCallback(done, testName, fileDescriptor);
-    });
-*/
-
-    /**
      * @tc.number    : AV_METADATA_EXTRACTOR_TEST_014
      * @tc.name      : fetchAlbumCover_audio_callback_001
      * @tc.desc      : fetch AlbumCover callback-mp3
@@ -571,21 +556,6 @@ export default function AVMetadataExtractorTest() {
       const testName = 'fetchAlbumCover_audio_callback_001';
       await fetchAlbumCoverCallback(done, testName, fileDescriptor2);
     })
-
-    /**
-     * @tc.number    : AV_METADATA_EXTRACTOR_TEST_015
-     * @tc.name      : fetchAlbumCover_video_promise_001
-     * @tc.desc      : fetch AlbumCover promise-mp4
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-/*
-    it('fetchAlbumCover_video_promise_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'fetchAlbumCover_video_promise_001';
-      await fetchAlbumCoverPromise(done, testName, fileDescriptor);
-    });
-*/
 
     /**
      * @tc.number    : AV_METADATA_EXTRACTOR_TEST_016

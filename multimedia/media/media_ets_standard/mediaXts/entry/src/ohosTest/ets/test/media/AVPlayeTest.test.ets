@@ -370,7 +370,7 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
         expect(avPlayer.state).assertEqual(COMPLETED);
         expect(avPlayer.currentTime).assertEqual(avPlayer.duration);
         if (playCount == 1) {
-          playCount++
+          playCount++;
           avPlayer?.play().then(() => {
             console.info(TAG, testName + ' play called success');
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
@@ -508,15 +508,6 @@ function setAVPlayerSeekContinuousCb(avPlayer: media.AVPlayer | null, seekTime: 
         break;
       case PREPARED:
         expect(avPlayer?.state).assertEqual(PREPARED);
-        /*
-                let isSupported = avPlayer?.isSeekContinuousSupported();
-                console.info(TAG, testName + ` isSupported : ${isSupported}`);
-                if (!isSupported) {
-                  expect(true).assertTrue();
-                  done();
-                  return;
-                }
-        */
         avPlayer?.seek(seekTime, seekMode);
         await avPlayer?.play();
         break;
@@ -1730,23 +1721,6 @@ export default function AVPlayerTest() {
     })
 
     /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_019 // TODO 5400102
-     * @tc.name      : getSelectedTracks_promise_001
-     * @tc.desc      : Test jump to the specified playback location.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    /*
-        it('getSelectedTracks_promise_001', Level.LEVEL0, async (done: Function) => {
-          const testName = 'getSelectedTracks_promise_001';
-          if (fileDescriptor) {
-            await getSelectedTracksPromise(fileDescriptor, avPlayer, done, testName);
-          }
-        })
-    */
-
-    /**
      * @tc.number    : AVPLAYER_LOCAL_TEST_020
      * @tc.name      : selectTrack_promise_001
      * @tc.desc      : Test jump to the specified playback location.
@@ -1788,24 +1762,6 @@ export default function AVPlayerTest() {
         done();
       }
     })
-
-    /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_022 //TODO error-undefined
-     * @tc.name      : deselectTrack_promise_001
-     * @tc.desc      : Test jump to the specified playback location.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    /*
-        it('setMediaSource_promise_001', Level.LEVEL0, async (done: Function) => {
-          const testName = 'setMediaSource_promise_001';
-          let playbackStrategy: media.PlaybackStrategy = { preferredBufferDuration: 20 };
-          if (fileDescriptor_m3u8) {
-            setMediaSourcePromise(done, testName, fileDescriptor_m3u8, avPlayer, playbackStrategy);
-          }
-        });
-    */
 
     /**
      * @tc.number    : AVPLAYER_LOCAL_TEST_023

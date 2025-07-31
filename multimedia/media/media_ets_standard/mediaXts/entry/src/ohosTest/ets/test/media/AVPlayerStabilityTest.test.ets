@@ -55,24 +55,22 @@ async function getStageFdRead(pathName: string) {
   return file;
 }
 
+function openFileFailed() {
+  console.info(TAG, 'openFileFailed case file fail');
+}
+
 export default function AVPlayerStabilityTest() {
 
   let avPlayer: media.AVPlayer | null = null;
   let fdNumbers: number[] = [];
   let videos: media.AVFileDescriptor[] = [];
   let mediaTestBase = new MediaTestBase();
+  let fileDescriptor0: media.AVFileDescriptor;
+  let fileDescriptor: media.AVFileDescriptor;
 
   describe('AVPlayerStabilityTest', () => {
     beforeAll(async () => {
       console.info(TAG, 'beforeAll case');
-      for (let i = 0; i < VIDEO_SOURCES.length; i++) {
-        await getStageFdRead(VIDEO_SOURCES[i]).then((fileDescriptor) => {
-          console.info(TAG, 'this fdNumber is :' + JSON.stringify(fileDescriptor));
-          fdNumbers.push(fileDescriptor.fd);
-          videos.push(fileDescriptor);
-        });
-        await mediaTestBase.msleepAsync(SLEEP_TIME_20);
-      }
       for (let i = 0; i < 10; i++) {
         if (!globalThis.value) {
           console.info(TAG, 'surfaceId is undefined');
@@ -82,10 +80,15 @@ export default function AVPlayerStabilityTest() {
           break;
         }
       }
+      fileDescriptor0 = await getStageFdRead(VIDEO_SOURCES[0]);
+      console.info(TAG, 'this fdNumber is :' + JSON.stringify(fileDescriptor0));
+      videos.push(fileDescriptor0);
+      await mediaTestBase.msleepAsync(SLEEP_TIME_20);
     });
 
     beforeEach(async () => {
       console.info(TAG, 'beforeEach case');
+      await mediaTestBase.msleepAsync(SLEEP_TIME_500);
     });
 
     afterEach(async () => {
@@ -94,20 +97,20 @@ export default function AVPlayerStabilityTest() {
         await avPlayer.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
+      await mediaTestBase.closeFdNumber(fdNumbers[0]);
+      fdNumbers = [];
       console.info(TAG, 'afterEach case');
     });
 
     afterAll(async () => {
       console.info(TAG, 'afterAll case');
-      for (let i = 0; i < fdNumbers.length; i++) {
-        await mediaTestBase.closeFdNumber(fdNumbers[i]);
-      }
+      await mediaTestBase.closeFdNumber(fileDescriptor0.fd);
       videos = [];
       fdNumbers = [];
     });
 
     /**
-     * @tc.number    : AVPLAYER_STABILITY_TEST_001 //TODO 超时
+     * @tc.number    : AVPLAYER_STABILITY_TEST_001
      * @tc.name      : avplayer_func_promise_001
      * @tc.desc      : Local Video play source (H264_AAC)
      * @tc.size      : MediumTest
@@ -117,7 +120,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_001', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_001';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[0], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[0], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -132,7 +139,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_002', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_002';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[1], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[1], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -147,7 +158,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_003', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_003';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[2], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[2], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -162,7 +177,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_004', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_004';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[3], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[3], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -177,7 +196,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_005', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_005';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[4], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[4], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -192,7 +215,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_006', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_006';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[5], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[5], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -207,7 +234,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_007', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_007';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[6], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[6], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -222,7 +253,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_008', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_008';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[7], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[7], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -237,7 +272,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_009', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_009';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[8], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[8], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -252,7 +291,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_010', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_010';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[9], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[9], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -267,7 +310,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_011', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_011';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[10], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[10], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -282,7 +329,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_012', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_012';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[11], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[11], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -298,7 +349,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_013', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_013';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[12], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[12], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -313,7 +368,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_014', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_014';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[13], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[13], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -328,7 +387,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_015', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_015';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[14], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[14], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -343,7 +406,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_016', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_016';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[15], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[15], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -358,7 +425,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_017', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_017';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[16], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[16], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -373,7 +444,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_018', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_018';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[17], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[17], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -388,7 +463,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_019', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_019';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[18], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[18], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -403,7 +482,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_020', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_020';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[19], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[19], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -418,7 +501,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_021', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_021';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[20], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[20], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -433,7 +520,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_022', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_022';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[21], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[21], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -448,7 +539,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_023', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_023';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[22], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[22], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -463,7 +558,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_024', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_024';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[23], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[23], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -478,7 +577,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_025', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_025';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[24], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[24], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -493,7 +596,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_026', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_026';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[25], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[25], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -508,7 +615,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_027', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_027';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[26], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[26], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -523,7 +634,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_028', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_028';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[27], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[27], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -538,7 +653,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_029', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_029';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[28], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[28], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -553,7 +672,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_030', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_030';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[29], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[29], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -568,7 +691,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_031', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_031';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[30], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[30], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -583,7 +710,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_032', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_032';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[31], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[31], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -598,7 +729,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_033', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_033';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[32], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[32], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -613,7 +748,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_034', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_034';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[33], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[33], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -628,7 +767,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_035', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_035';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[34], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[34], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -643,7 +786,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_036', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_036';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[35], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[35], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -658,7 +805,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_037', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_037';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[36], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[36], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -673,7 +824,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_038', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_038';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[37], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[37], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
@@ -688,7 +843,11 @@ export default function AVPlayerStabilityTest() {
     it('avplayer_func_promise_039', Level.LEVEL2, async (done: Function) => {
       const testName = 'avplayer_func_promise_039';
       console.info(TAG, testName + ' start');
-      avPlayerPlay(videos[38], avPlayer, done, testName);
+      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[38], openFileFailed).then((res) => {
+        fileDescriptor = res;
+        fdNumbers.push(fileDescriptor.fd);
+      });
+      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 
