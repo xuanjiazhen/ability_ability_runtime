@@ -22,14 +22,14 @@ export default namespace missionManager {
   export native function nativeGetMissionInfo(deviceId: string, missionId: int,
     callback: AsyncCallbackWrapper<MissionInfo>): void;
 
-  export function clearAllMissions(callback: AsyncCallback<void>): void {
+  export function clearAllMissionsWithCallback(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       missionManager.nativeClearAllMissions(myCall);
     });
   }
 
-  export function clearAllMissions(): Promise<void> {
+  export function clearAllMissionsReturnsPromise(): Promise<void> {
     let p: Promise<void> =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -46,14 +46,19 @@ export default namespace missionManager {
     return p;
   }
 
-  export function getMissionInfo(deviceId: string, missionId: int, callback: AsyncCallback<MissionInfo>): void {
+  overload clearAllMissions {
+    clearAllMissionsWithCallback,
+    clearAllMissionsReturnsPromise
+  }
+
+  export function getMissionInfoWithDeviceIdMissionIdCallback(deviceId: string, missionId: int, callback: AsyncCallback<MissionInfo>): void {
     let myCall = new AsyncCallbackWrapper<MissionInfo>(callback);
     taskpool.execute((): void => {
       missionManager.nativeGetMissionInfo(deviceId, missionId, myCall);
     });
   }
 
-  export function getMissionInfo(deviceId: string, missionId: int): Promise<MissionInfo> {
+  export function getMissionInfoWithDeviceIdMissionIdReturnsPromise(deviceId: string, missionId: int): Promise<MissionInfo> {
     let p =
       new Promise<MissionInfo>((resolve: (data: MissionInfo) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<MissionInfo>((err: BusinessError | null, data: MissionInfo | undefined) => {
@@ -68,6 +73,11 @@ export default namespace missionManager {
         });
       });
     return p;
+  }
+
+  overload getMissionInfo {
+    getMissionInfoWithDeviceIdMissionIdCallback,
+    getMissionInfoWithDeviceIdMissionIdReturnsPromise
   }
 
   export type MissionInfo = _MissionInfo;

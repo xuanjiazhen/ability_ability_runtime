@@ -72,14 +72,14 @@ export default class UIExtensionContentSession {
     this.nativeSetReceiveDataForResultCallback(callback);
   }
 
-  terminateSelf(callback:AsyncCallback<void>): void {
+  terminateSelfWithCallback(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.terminateSelfSync(myCall);
     });
   }
 
-  terminateSelf(): Promise<void> {
+  terminateSelfReturnsPromise(): Promise<void> {
     let p = new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -95,14 +95,19 @@ export default class UIExtensionContentSession {
     return p;
   }
 
-  terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
+  overload terminateSelf {
+    terminateSelfWithCallback,
+    terminateSelfReturnsPromise
+  }
+
+  terminateSelfWithResultWithParameterCallback(parameter: AbilityResult, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.terminateSelfWithResultSync(parameter, myCall);
     });
   }
 
-  terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
+  terminateSelfWithResultWithParameterReturnsPromise(parameter: AbilityResult): Promise<void> {
     let p = new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -118,7 +123,12 @@ export default class UIExtensionContentSession {
     return p;
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+  overload terminateSelfWithResult {
+    terminateSelfWithResultWithParameterCallback,
+    terminateSelfWithResultWithParameterReturnsPromise
+  }
+
+  startAbilityByTypeWithTypeWantParamStartCallbackCallback(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError<void> => {
       return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
@@ -135,7 +145,7 @@ export default class UIExtensionContentSession {
     });
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>,
+  startAbilityByTypeWithTypeWantParamStartCallbackReturnsPromise(type: string, wantParam: Record<string, Object>,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError<void>) => void): void => {
       let p1 = taskpool.execute((): BusinessError<void> => {
@@ -153,5 +163,10 @@ export default class UIExtensionContentSession {
       });
     });
     return p;
+  }
+
+  overload startAbilityByType {
+    startAbilityByTypeWithTypeWantParamStartCallbackCallback,
+    startAbilityByTypeWithTypeWantParamStartCallbackReturnsPromise
   }
 }
