@@ -32,7 +32,7 @@ export default class EntryFormAbility extends FormExtensionAbility {
     console.log('===>  onAddForm')
     let param: Record<string, string> = {};
     let wants = want?.parameters;
-    if(wants) {
+    if (wants) {
       let launchReason = wants['formInfo.FormParam.LAUNCH_REASON_KEY'] as number;
       let originalFormId = wants[formInfo.FormParam.ORIGINAL_FORM_KEY] as string;
       if (launchReason == formInfo.LaunchReason.FORM_SIZE_CHANGE) {
