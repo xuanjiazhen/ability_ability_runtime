@@ -20,6 +20,42 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { Driver, ON } from '@kit.TestKit';
 import settings from '@ohos.settings';
 import * as LoadContentByName from '../testability/pages/WindowTest/LoadContentByName';
+import { StartOptions } from '@kit.AbilityKit';
+
+let sleep = (sleepMs: number) => new Promise<string>(resolve => setTimeout(resolve, sleepMs));
+
+async function startAbility(caseName: string, context: common.UIAbilityContext, options?: StartOptions) {
+  let want: Want = {
+    bundleName: AppStorage.get('bundleName'),
+    abilityName: 'StartTestAbility'
+  };
+  if (options) {
+    await context.startAbility(want, options).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  } else {
+    await context.startAbility(want).then(() => {
+      console.info(`${caseName} Succeeded in starting ability.`);
+    }).catch((err: BusinessError) => {
+      console.info(`${caseName} Failed in starting ability. Cause code: ${err.code}, message: ${err.message}`);
+    });
+  }
+  await sleep(1000)
+  let windowStageStart = AppStorage.get('windowStageStartTest') as window.WindowStage;
+  return windowStageStart
+}
+
+async function terminateAbility(caseName: string) {
+  let pageContext = AppStorage.get('contextTest') as common.UIAbilityContext
+  await pageContext.terminateSelf().then(() => {
+    console.log(`${caseName} terminateSelf success`);
+  }).catch((err: BusinessError) => {
+    console.error(`${caseName} terminateSelf fail, err: ${JSON.stringify(err)}`);
+  });
+  await sleep(1000)
+}
 
 export default function windowLayoutTest() {
   describe('windowLayoutTest', async () => {
@@ -3080,6 +3116,701 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
         expect().assertFail();
         done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0100
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithMainWindow
+     * @tc.desc      : 验证主窗on(type: 'rectChangeInGlobalDisplay')接口重复注册多次
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithMainWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithMainWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer = 0;
+      try {
+        const callback = (cb: window.RectChangeOptions) => {
+          console.log(caseName + ' cb: ' + JSON.stringify(cb));
+          timer++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback);
+        windowClass.on('rectChangeInGlobalDisplay', callback);
+        windowClass.on('rectChangeInGlobalDisplay', callback);
+        // 怎么测试？后续重复注册无效，返回err：ok
+        await windowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' timer: ' + timer);
+        expect(timer).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0200
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithMainWindowRegisterTwotimes
+     * @tc.desc      : 验证主窗on(type: 'rectChangeInGlobalDisplay')接口注册多次
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithMainWindowRegisterTwotimes', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithMainWindowRegisterTwotimes';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer1 = 0;
+      let timer2 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        const callback2 = (cb2: window.RectChangeOptions) => {
+          console.log(caseName + ' cb2: ' + JSON.stringify(cb2));
+          timer2++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback2);
+        await windowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' timer1: ' + timer1);
+        console.log(caseName + ' timer2: ' + timer2);
+        expect(timer1).assertEqual(1);
+        expect(timer2).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0300
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithMainWindowUnregister
+     * @tc.desc      : 验证主窗on(type: 'rectChangeInGlobalDisplay')接口解注册
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithMainWindowUnregister', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithMainWindowUnregister';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer1 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        await windowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay', callback1);
+        await windowClass.moveWindowTo(30, 30);
+        await sleep(200);
+        console.log(caseName + ' timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0400
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplayUnregisterOne
+     * @tc.desc      : 验证主窗on(type: 'rectChangeInGlobalDisplay')接口注册多次解注册其中一个
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplayUnregisterOne', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplayUnregisterOne';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer1 = 0;
+      let timer2 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        const callback2 = (cb2: window.RectChangeOptions) => {
+          console.log(caseName + ' cb2: ' + JSON.stringify(cb2));
+          timer2++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback2);
+        await windowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' before off, timer1: ' + timer1);
+        console.log(caseName + ' before off, timer2: ' + timer2);
+        expect(timer1).assertEqual(1);
+        expect(timer2).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay', callback1);
+        await windowClass.moveWindowTo(30, 30);
+        await sleep(200);
+        console.log(caseName + ' after off, timer1: ' + timer1);
+        console.log(caseName + ' after off, timer2: ' + timer2);
+        expect(timer1).assertEqual(2);
+        expect(timer2).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0500
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplayUnregisterAll
+     * @tc.desc      : 验证主窗on(type: 'rectChangeInGlobalDisplay')接口注册多次解注册所有
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplayUnregisterAll', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplayUnregisterAll';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer1 = 0;
+      let timer2 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        const callback2 = (cb2: window.RectChangeOptions) => {
+          console.log(caseName + ' cb2: ' + JSON.stringify(cb2));
+          timer2++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback2);
+        await windowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' before off, timer1: ' + timer1);
+        console.log(caseName + ' before off, timer2: ' + timer2);
+        expect(timer1).assertEqual(1);
+        expect(timer2).assertEqual(1);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await windowClass.moveWindowTo(30, 30);
+        await sleep(200);
+        console.log(caseName + ' after off, timer1: ' + timer1);
+        console.log(caseName + ' after off, timer2: ' + timer2);
+        expect(timer1).assertEqual(1);
+        expect(timer2).assertEqual(1);
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0600
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithDestoryedMainWindow
+     * @tc.desc      : 验证主窗销毁后调用on(type: 'rectChangeInGlobalDisplay')接口
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithDestoryedMainWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithDestoryedMainWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      await windowClass.destroyWindow();
+      let timer1 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        console.log(caseName + ' timer1: ' + timer1);
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300002)
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0700
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithSubWindow
+     * @tc.desc      : 验证子窗on(type: 'rectChangeInGlobalDisplay')接口注册多次解注册其中一个
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithSubWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithSubWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let subWindowClass = await windowStageStart.createSubWindow('testOnandOffRectChangeInGlobalDisplaywithSubWindow');
+      let timer1 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        subWindowClass.on('rectChangeInGlobalDisplay', callback1);
+        await subWindowClass.moveWindowTo(30, 30);
+        await sleep(200);
+        console.log(caseName + ' timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        subWindowClass.off('rectChangeInGlobalDisplay', callback1);
+        await subWindowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' after off, timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        await windowClass.destroyWindow();
+        await subWindowClass.destroyWindow();
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        await subWindowClass.destroyWindow();
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_ON_GLOBAL_RECT_0800
+     * @tc.name      : testOnandOffRectChangeInGlobalDisplaywithDialogWindow
+     * @tc.desc      : 验证dialog窗on(type: 'rectChangeInGlobalDisplay')接口注册多次解注册其中一个
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testOnandOffRectChangeInGlobalDisplaywithDialogWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testOnandOffRectChangeInGlobalDisplaywithDialogWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let config: window.Configuration = {
+        name: "testOnandOffRectChangeInGlobalDisplaywithSubWindow",
+        windowType: window.WindowType.TYPE_DIALOG,
+        ctx: context
+      };
+      let subWindowClass = await window.createWindow(config);
+      let timer1 = 0;
+      try {
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          timer1++;
+        };
+        subWindowClass.on('rectChangeInGlobalDisplay', callback1);
+        await subWindowClass.moveWindowTo(30, 30);
+        await sleep(200);
+        console.log(caseName + ' timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        subWindowClass.off('rectChangeInGlobalDisplay', callback1);
+        await subWindowClass.moveWindowTo(50, 50);
+        await sleep(200);
+        console.log(caseName + ' after off, timer1: ' + timer1);
+        expect(timer1).assertEqual(1);
+        await windowClass.destroyWindow();
+        await subWindowClass.destroyWindow();
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        await subWindowClass.destroyWindow();
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_MOVE_WINDOW_TO_GLOBAL_RECT_0100
+     * @tc.name      : testMoveWindowToGlobalDisplay
+     * @tc.desc      : 验证moveWindowToGlobalDisplay移动窗口位置正常
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testMoveWindowToGlobalDisplay', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testMoveWindowToGlobalDisplay';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let timer1 = 0;
+      let timer2 = 0;
+      try {
+        let cbData1: window.RectChangeOptions | undefined;
+        let cbData2: window.RectChangeOptions | undefined;
+        const callback1 = (cb1: window.RectChangeOptions) => {
+          console.log(caseName + ' cb1: ' + JSON.stringify(cb1));
+          cbData1 = cb1;
+          timer1++;
+        };
+        const callback2 = (cb2: window.RectChangeOptions) => {
+          console.log(caseName + ' cb2: ' + JSON.stringify(cb2));
+          cbData1 = cb2;
+          timer2++;
+        };
+        windowClass.on('rectChangeInGlobalDisplay', callback1);
+        windowClass.on('windowRectChange', callback2);
+        await windowClass.moveWindowToGlobalDisplay(30, 30);
+        await sleep(200)
+        console.log(caseName + ' timer1: ' + timer1);
+        console.log(caseName + ' timer2: ' + timer2);
+        expect(timer1).assertEqual(1);
+        expect(timer2).assertEqual(1);
+        expect(cbData1?.rect.left).assertEqual(cbData2?.rect.left);
+        expect(cbData1?.rect.top).assertEqual(cbData2?.rect.top);
+        expect(cbData1?.rect.width).assertEqual(cbData2?.rect.width);
+        expect(cbData1?.rect.height).assertEqual(cbData2?.rect.height);
+        windowClass.off('rectChangeInGlobalDisplay');
+        windowClass.off('windowRectChange');
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        windowClass.off('rectChangeInGlobalDisplay');
+        windowClass.off('windowRectChange');
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_MOVE_WINDOW_TO_GLOBAL_RECT_0200
+     * @tc.name      : testMoveWindowToGlobalDisplaywithDestoryedWindow
+     * @tc.desc      : 验证moveWindowToGlobalDisplay接口窗口状态异常调用
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testMoveWindowToGlobalDisplaywithDestoryedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testMoveWindowToGlobalDisplaywithDestoryedWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      await windowClass.destroyWindow();
+      try {
+        await windowClass.moveWindowToGlobalDisplay(30, 30);
+        await sleep(200);
+        await terminateAbility(caseName);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300002);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_MOVE_WINDOW_TO_GLOBAL_RECT_0200
+     * @tc.name      : testMoveWindowToGlobalDisplaywithDifferentWindowMode
+     * @tc.desc      : 验证moveWindowToGlobalDisplay接口全屏窗口调用
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testMoveWindowToGlobalDisplaywithDifferentWindowMode', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testMoveWindowToGlobalDisplaywithDifferentWindowMode';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      try {
+        let windowStatus = windowClass.getWindowStatus();
+        console.log(caseName + ' windowStatus: ' + JSON.stringify(windowStatus));
+        if (windowStatus == window.WindowStatusType.FLOATING) {
+          await windowClass.moveWindowToGlobalDisplay(100, 100);
+          await sleep(200);
+          await windowClass.maximize();
+          await sleep(200);
+          let windowStatus2 = windowClass.getWindowStatus();
+          console.log(caseName + ' windowStatus2: ' + JSON.stringify(windowStatus2));
+          expect(windowStatus2).assertEqual(window.WindowStatusType.MAXIMIZE);
+          await windowClass.moveWindowToGlobalDisplay(100, 100);
+          await sleep(200);
+          await windowClass.maximize(window.MaximizePresentation.ENTER_IMMERSIVE);
+          await sleep(200);
+          let windowStatus3 = windowClass.getWindowStatus();
+          console.log(caseName + ' windowStatus3: ' + JSON.stringify(windowStatus3));
+          // expect(windowStatus3).assertEqual(window.WindowStatusType.FULL_SCREEN);
+          await windowClass.moveWindowToGlobalDisplay(100, 100);
+          await sleep(200);
+          await terminateAbility(caseName);
+          expect().assertFail();
+          done();
+        } else {
+          await windowClass.moveWindowToGlobalDisplay(100, 100);
+          await sleep(200);
+          await terminateAbility(caseName);
+          expect().assertFail();
+          done();
+        }
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300010);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_MOVE_WINDOW_TO_GLOBAL_RECT_0300
+     * @tc.name      : testMoveWindowToGlobalDisplaywithPositionOutofRange
+     * @tc.desc      : 验证moveWindowToGlobalDisplay接口入参越界测试
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testMoveWindowToGlobalDisplaywithPositionOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const caseName = 'testMoveWindowToGlobalDisplaywithPositionOutofRange';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      try {
+        const maxInt = 2^31 - 1;
+        await windowClass.moveWindowToGlobalDisplay(maxInt, maxInt);
+        await sleep(200);
+        await terminateAbility(caseName);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300016);
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_CLIENT_AND_GLOBAL_DISPLAY_CHANGE_0100
+     * @tc.name      : testClientToGlobalDisplayandGlobalDisplayToClient
+     * @tc.desc      : 验证组件相对主窗和主屏的接口坐标转化场景
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level0
+     */
+    it('testClientToGlobalDisplayandGlobalDisplayToClient', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const caseName = 'testClientToGlobalDisplayandGlobalDisplayToClient';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      let subWindowClass = await windowStageStart.createSubWindow('testClientToGlobalDisplayandGlobalDisplayToClient')
+      try {
+        let position = subWindowClass.clientToGlobalDisplay(100, 100);
+        console.log(caseName + ' position: ' + JSON.stringify(position));
+        let position2 = subWindowClass.globalDisplayToClient(position.x, position.y);
+        console.log(caseName + ' position2: ' + JSON.stringify(position2));
+        expect(position2.x).assertEqual(100);
+        expect(position2.y).assertEqual(100);
+        await windowClass.destroyWindow()
+        await subWindowClass.destroyWindow()
+        await terminateAbility(caseName);
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow()
+        await subWindowClass.destroyWindow()
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_CLIENT_AND_GLOBAL_DISPLAY_CHANGE_0200
+     * @tc.name      : testClientToGlobalDisplaywithDestoryedWindow
+     * @tc.desc      : 验证clientToGlobalDisplay接口窗口异常状态调用
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testClientToGlobalDisplaywithDestoryedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testClientToGlobalDisplaywithDestoryedWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      await windowClass.destroyWindow()
+      try {
+        let position = windowClass.clientToGlobalDisplay(100, 100);
+        console.log(caseName + ' position: ' + JSON.stringify(position));
+        await terminateAbility(caseName);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300002)
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_CLIENT_AND_GLOBAL_DISPLAY_CHANGE_0300
+     * @tc.name      : testClientToGlobalDisplaywithPositionOutofRange
+     * @tc.desc      : 验证clientToGlobalDisplay接口入参越界
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testClientToGlobalDisplaywithPositionOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testClientToGlobalDisplaywithPositionOutofRange';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      await windowClass.destroyWindow()
+      try {
+        const maxInt = 2^31 - 1;
+        let position = windowClass.clientToGlobalDisplay(maxInt, maxInt);
+        console.log(caseName + ' position: ' + JSON.stringify(position));
+        await terminateAbility(caseName);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300016)
+          done();
+        }
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_FUNCTION_CLIENT_AND_GLOBAL_DISPLAY_CHANGE_0400
+     * @tc.name      : testGlobalDisplayToClientwithDestroyedWindow
+     * @tc.desc      : 验证globalDisplayToClient接口窗口异常状态调用
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testGlobalDisplayToClientwithDestroyedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testGlobalDisplayToClientwithDestroyedWindow';
+      console.log(caseName + 'begin.');
+      let windowStageStart = await startAbility(caseName, context);
+      let windowClass = windowStageStart.getMainWindowSync();
+      await windowClass.destroyWindow()
+      try {
+        let position = windowClass.globalDisplayToClient(100, 100);
+        console.log(caseName + ' position: ' + JSON.stringify(position));
+        await terminateAbility(caseName);
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await terminateAbility(caseName);
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300002)
+          done();
+        }
       }
     })
 
