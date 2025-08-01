@@ -28,6 +28,7 @@ import AVPlayerDrmTest from './media/AVPlayerDrmTest.test';
 export default function testsuite() {
   AVImageGeneratorTest();
   AVPlayerTest();
+  AVPlayerStabilityTest();
   AVPlayerDrmTest();
   AVRecorderTest();
   AVTranscoderTest();
@@ -36,5 +37,4 @@ export default function testsuite() {
   MediaSourceTest();
   MediaSourceLoadingRequestTest();
   SoundPoolTest();
-  AVPlayerStabilityTest();
 }

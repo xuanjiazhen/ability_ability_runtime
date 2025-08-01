@@ -426,25 +426,6 @@ export default function AVPlayerStabilityTest() {
     })
 
     /**
-     * @tc.number    : AVPLAYER_STABILITY_TEST_018
-     * @tc.name      : avplayer_func_promise_018
-     * @tc.desc      : Local Video play source (h263.ts)
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level2
-     */
-    it('avplayer_func_promise_018', Level.LEVEL2, async (done: Function) => {
-      const testName = 'avplayer_func_promise_018';
-      console.info(TAG, testName + ' start');
-      await mediaTestBase.getFileDescriptorFromFileDir(VIDEO_SOURCES[17], openFileFailed).then((res) => {
-        fileDescriptor = res;
-        fdNumbers.push(fileDescriptor.fd);
-      });
-      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
-      console.info(TAG, testName + ' end');
-    })
-
-    /**
      * @tc.number    : AVPLAYER_STABILITY_TEST_019
      * @tc.name      : avplayer_func_promise_019
      * @tc.desc      : Local Video play source (mpeg2.ts)

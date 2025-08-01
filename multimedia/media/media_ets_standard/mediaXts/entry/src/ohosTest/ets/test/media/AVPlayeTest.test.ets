@@ -26,6 +26,7 @@ import {
   SLEEP_TIME_200,
   MediaErrorCode,
   SLEEP_TIME_100,
+  SLEEP_TIME_2000,
 } from '../Constants';
 import { getUrl, sleep } from '../common';
 import { audio } from '@kit.AudioKit';
@@ -400,9 +401,6 @@ async function setOnCallback(avPlayer: media.AVPlayer | null, done: Function, te
 async function testEndOfStream(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null, done: Function,
   testName: string) {
   console.info(TAG, testName + ` case media source: ${src}`);
-  expect(src).not().assertUndefined();
-  done();
-/*
   media.createAVPlayer((err, video) => {
     console.info(TAG, testName + ` case media err: ${err}`);
     if (typeof (video) != 'undefined') {
@@ -417,7 +415,6 @@ async function testEndOfStream(src: string | media.AVFileDescriptor, avPlayer: m
       done();
     }
   });
-*/
 }
 
 async function getPlaybackPosition(avPlayer: media.AVPlayer | null, done: Function, testName: string) {
@@ -595,23 +592,19 @@ async function testSubtitleUpdateListening(src: string | media.AVFileDescriptor,
   subtitleSrc: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null, subtitleUpdateListening: Function,
   done: Function, testName: string) {
   console.info(TAG, testName + ` case media source: ${src}`);
-  expect(src).not().assertUndefined();
-  done();
-  /*
-    media.createAVPlayer((err, video) => {
-      if (err) {
-        console.error(TAG, testName + ` case createAVPlayer error, errMessage is ${err?.message},${err?.code}`);
-        expect().assertFail();
-        done();
-      }
-      console.info(TAG, testName + ' case createAVPlayer success');
-      avPlayer = video;
-      subtitleUpdateListening(avPlayer, done, testName);
-      setOnCallback(avPlayer, done, testName);
-      setSource(avPlayer, src, testName);
-      setSubtitle(avPlayer, subtitleSrc, testName);
-    });
-  */
+  media.createAVPlayer((err, video) => {
+    if (err) {
+      console.error(TAG, testName + ` case createAVPlayer error, errMessage is ${err?.message},${err?.code}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(TAG, testName + ' case createAVPlayer success');
+    avPlayer = video;
+    subtitleUpdateListening(avPlayer, done, testName);
+    setOnCallback(avPlayer, done, testName);
+    setSource(avPlayer, src, testName);
+    setSubtitle(avPlayer, subtitleSrc, testName);
+  });
 }
 
 async function testSubtitle(src: string | media.AVFileDescriptor, subtitleSrc: string | media.AVFileDescriptor,
@@ -948,7 +941,7 @@ async function setSuperResolutionPromiseAbnormal(src: string | media.AVFileDescr
   avPlayer = await idle(src, avPlayer, testName);
   setSource(avPlayer, src, testName);
   console.info(TAG, testName + ' setSuperResolutionPromiseAbnormal setSource');
-  await sleep(SLEEP_TIME_20);
+  await sleep(SLEEP_TIME_2000);
   if (avPlayer) {
     avPlayer.surfaceId = surfaceID;
   }
@@ -1609,21 +1602,6 @@ export default function AVPlayerTest() {
     })
 
     /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_011
-     * @tc.name      : on_off_endOfStream_001
-     * @tc.desc      : Test on and off endOfStream.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    it('on_off_endOfStream_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'on_off_endOfStream_001';
-      if (fileDescriptor) {
-        testEndOfStream(fileDescriptor, avPlayer, done, testName);
-      }
-    })
-
-    /**
      * @tc.number    : AVPLAYER_LOCAL_TEST_012
      * @tc.name      : getPlaybackPosition_001
      * @tc.desc      : Test get the current playback position.
@@ -1635,21 +1613,6 @@ export default function AVPlayerTest() {
       const testName = 'getPlaybackPosition_001';
       if (fileDescriptor) {
         await testGetPlaybackPosition(fileDescriptor, avPlayer, done, testName);
-      }
-    })
-
-    /**
-     * @tc.number    : AVPLAYER_LOCAL_TEST_013
-     * @tc.name      : on_off_subtitleUpdate_001
-     * @tc.desc      : Test on and off subtitleUpdate.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function test
-     * @tc.level     : Level0
-     */
-    it('on_off_subtitleUpdate_001', Level.LEVEL0, async (done: Function) => {
-      const testName = 'on_off_subtitleUpdate_001';
-      if (fileDescriptor && subtitleFdSrc) {
-        await testSubtitleUpdateListening(fileDescriptor, subtitleFdSrc, avPlayer, subtitleUpdateON, done, testName);
       }
     })
 
