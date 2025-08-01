@@ -75,7 +75,7 @@ private:
         auto adapter = std::make_shared<ItemAdapter<ListItemComponent>>(input);
 
         list->SetWidth(SIZE_110);
-        list->SetHeight(SIZE_200);
+        list->SetHeight(SIZE_150);
         list->SetListSpace(PARAM_10);
         list->SetBackgroundColor(COLOR_GRAY);
         list->SetLazyAdapter(adapter);

@@ -62,7 +62,7 @@ private:
         auto adapter = std::make_shared<ItemAdapter<FlowItemComponent>>(input);
 
         waterFlow->SetWidth(SIZE_110);
-        waterFlow->SetHeight(SIZE_200);
+        waterFlow->SetHeight(SIZE_150);
         waterFlow->SetWaterFlowRowsGap(SIZE_10);
         waterFlow->SetWaterFlowColumnsGap(SIZE_10);
         waterFlow->SetBackgroundColor(COLOR_GRAY);

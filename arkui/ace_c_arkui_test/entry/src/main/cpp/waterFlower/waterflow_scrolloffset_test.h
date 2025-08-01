@@ -44,8 +44,8 @@ private:
         auto input = std::vector<std::shared_ptr<Component>>();
         auto adapter = std::make_shared<ItemAdapter<FlowItemComponent>>(input);
 
-        waterFlow->SetWidth(SIZE_110);
-        waterFlow->SetHeight(SIZE_200);
+        waterFlow->SetWidth(SIZE_60);
+        waterFlow->SetHeight(SIZE_70);
         waterFlow->SetWaterFlowRowsGap(SIZE_10);
         waterFlow->SetWaterFlowColumnsGap(SIZE_10);
         waterFlow->SetBackgroundColor(COLOR_GRAY);
@@ -57,8 +57,8 @@ private:
 
         for (int i = PARAM_0; i < size; i++) {
             auto col = std::make_shared<ColumnComponent>();
-            col->SetWidth(SIZE_40);
-            col->SetHeight(SIZE_40);
+            col->SetWidth(SIZE_30);
+            col->SetHeight(SIZE_30);
             col->SetBackgroundColor(((i + PARAM_1) * COLOR_BASE / size) | COLOR_BLACK);
             col->SetBorderRadius(SIZE_10, SIZE_10, SIZE_10, SIZE_10);
             adapter->InsertItem(i, col);
