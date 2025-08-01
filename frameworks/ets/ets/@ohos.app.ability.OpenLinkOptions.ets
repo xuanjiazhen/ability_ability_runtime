@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 export default interface OpenLinkOptions {
     appLinkingOnly?: boolean;
-    parameters?: Record<string, Object>;
+    parameters?: RecordData;
 }
 
 class OpenLinkOptionsImpl implements OpenLinkOptions {
     appLinkingOnly?: boolean|undefined;
-    parameters?: Record<string, Object>|undefined;
-}
+    parameters?: RecordData|undefined;
+}
