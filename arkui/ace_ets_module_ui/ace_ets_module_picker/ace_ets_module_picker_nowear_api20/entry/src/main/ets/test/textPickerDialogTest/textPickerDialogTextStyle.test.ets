@@ -63,9 +63,9 @@ export default function textPickerDialogTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + textPicker);
       console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
-      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.minFontSize));
-      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.maxFontSize));
-      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.overflow));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle.minFontSize));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle.maxFontSize));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle.overflow));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('18.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('28.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
