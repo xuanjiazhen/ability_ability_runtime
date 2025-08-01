@@ -63,9 +63,9 @@ export default function textPickerDialogDisappearTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogDisappearTextStyleTest_0100] obj is: ' + textPicker);
       console.info('[textPickerDialogDisappearTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.disappearTextStyle));
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.minFontSize).assertEqual('18.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.minFontSize).assertEqual('18.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.maxFontSize).assertEqual('28.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await Utils.sleep(1000);
@@ -94,9 +94,9 @@ export default function textPickerDialogDisappearTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogDisappearTextStyleTest_0200] obj is: ' + textPicker);
       console.info('[textPickerDialogDisappearTextStyleTest_0200] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.disappearTextStyle));
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.minFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.maxFontSize).assertEqual('18.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.minFontSize).assertEqual('28.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.maxFontSize).assertEqual('18.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await Utils.sleep(1000);
@@ -125,9 +125,9 @@ export default function textPickerDialogDisappearTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogDisappearTextStyleTest_0300] obj is: ' + textPicker);
       console.info('[textPickerDialogDisappearTextStyleTest_0300] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.disappearTextStyle));
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.minFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.minFontSize).assertEqual('28.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.maxFontSize).assertEqual('28.00fp');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await Utils.sleep(1000);
@@ -156,9 +156,9 @@ export default function textPickerDialogDisappearTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogDisappearTextStyleTest_0400] obj is: ' + textPicker);
       console.info('[textPickerDialogDisappearTextStyleTest_0400] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.disappearTextStyle));
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.minFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.minFontSize).assertEqual('0.00px');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.maxFontSize).assertEqual('0.00px');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await Utils.sleep(1000);
@@ -187,9 +187,9 @@ export default function textPickerDialogDisappearTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogDisappearTextStyleTest_0500] obj is: ' + textPicker);
       console.info('[textPickerDialogDisappearTextStyleTest_0500] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.disappearTextStyle));
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.minFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.defaultTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.minFontSize).assertEqual('0.00px');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.maxFontSize).assertEqual('0.00px');
+      expect(JSON.parse(textPicker).$attrs.disappearTextStyle.overflow).assertEqual('TextOverflow.Ellipsis');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await Utils.sleep(1000);
