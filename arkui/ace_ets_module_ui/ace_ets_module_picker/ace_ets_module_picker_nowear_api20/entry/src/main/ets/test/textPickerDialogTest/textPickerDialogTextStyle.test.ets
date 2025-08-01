@@ -63,9 +63,12 @@ export default function textPickerDialogTextStyleTest() {
       let textPicker = JSON.stringify(obj.$children[1].$children[0].$children[0].$children[0])
       console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + textPicker);
       console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.minFontSize));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.maxFontSize));
+      console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.overflow));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('18.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -96,7 +99,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0200] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('28.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('18.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -127,7 +130,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0300] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('28.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -158,7 +161,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0400] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('0.00px');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -189,7 +192,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0500] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('0.00px');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Marquee');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
