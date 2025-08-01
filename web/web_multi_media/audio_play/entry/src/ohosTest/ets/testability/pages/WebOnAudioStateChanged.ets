@@ -131,7 +131,7 @@ struct WebOnAudioStateChanged {
         })
       }
 
-      Web({ src: $rawfile('audioTest.html'), controller: this.controller })
+      Web({ src: $rawfile('audioTest2.html'), controller: this.controller })
         .key('OnAudioStateChangedWebView')
         .javaScriptAccess(this.javaScriptAccess)
         .fileAccess(this.fileAccess)
