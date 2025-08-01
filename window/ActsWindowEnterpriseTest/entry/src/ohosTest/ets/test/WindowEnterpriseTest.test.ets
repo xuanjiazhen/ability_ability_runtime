@@ -205,8 +205,72 @@ export default function WindowEnterpriseTest() {
           }
       }
     });
-      
 
+      /**
+       * @tc.number    : SUB_BASIC_WMS_FUNCTION_GET_GLOBAL_RECT_0200
+       * @tc.name      : testGetVisibleWindowInfo
+       * @tc.desc      : 验证getVisibleWindowInfo接口可以正常获取到窗口的全局坐标
+       * @tc.size      : MediumTest
+       * @tc.type      : Function
+       * @tc.level     : Level 1
+       */
+      it('testGetVisibleWindowInfo', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        let caseName: string = 'testGetVisibleWindowInfo ';
+        console.log(caseName + 'begin');
+        let windowClass = windowStage.getMainWindowSync();
+        let subWindowClass = await windowStage.createSubWindow('testGetVisibleWindowInfo');
+        try {
+          let mainWindowRect = windowClass.getWindowProperties().windowRect;
+          console.log(`${caseName} : mainWindowRect: ${JSON.stringify(mainWindowRect)}`);
+          let x = mainWindowRect.left + mainWindowRect.width / 2;
+          let y = mainWindowRect.top + mainWindowRect.height / 2;
+          console.log(`${caseName} : x: ${x}`);
+          console.log(`${caseName} : y: ${y}`);
+          await subWindowClass.moveWindowTo(x, y)
+          await sleep(200);
+          let subWindowProperties = subWindowClass.getWindowProperties();
+          console.log(`${caseName} : subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+          window.getVisibleWindowInfo().then(async (infos: Array<window.WindowInfo>) => {
+            console.info(caseName + 'Succeeded in calling getVisibleWindowInfo.');
+            let isExit = false;
+            for (let i = 0; i < infos.length; i++) {
+              if (infos[i].windowId === subWindowProperties.id) {
+                isExit = true;
+                let info = infos[i].globalDisplayRect;
+                console.info(caseName + 'info: ' + JSON.stringify(info));
+                expect(info?.left).assertEqual(subWindowProperties.windowRect.left);
+                expect(info?.top).assertEqual(subWindowProperties.windowRect.top);
+                expect(info?.width).assertEqual(subWindowProperties.windowRect.width);
+                expect(info?.height).assertEqual(subWindowProperties.windowRect.height);
+                break;
+              }
+            }
+            if (!isExit) {
+              console.error(`${caseName} failed, there is no match windowId.`);
+              expect().assertFail();
+              await subWindowClass.destroyWindow()
+              done()
+            }
+            await subWindowClass.destroyWindow()
+            done();
+          }).catch(async (err: BusinessError) => {
+            console.error(caseName + 'Failed to call getVisibleWindowInfo. Cause: ' + JSON.stringify(err));
+            await subWindowClass.destroyWindow()
+            expect().assertFail();
+            done();
+          });
+        } catch (err) {
+          await subWindowClass.destroyWindow()
+          console.log(`${caseName} : failed, code: ${err.code}, msg: ${err.message}`);
+          if (err.code === 801) {
+            console.log(`${caseName} deviceType does not supported this Capability`);
+            done()
+          } else {
+            expect().assertFail();
+            done();
+          }
+        }
+      });
 
     })
 }
