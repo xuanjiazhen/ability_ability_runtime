@@ -16,6 +16,7 @@ import events_emitter from '@ohos.events.emitter';
 import webview from '@ohos.web.webview';
 import Utils from '../../test/Utils';
 import business_error from '@ohos.base';
+import { waitForExist} from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -29,7 +30,9 @@ struct webViewSetConnectionTimeout {
   @State imageAccess: boolean = true;
   @State onlineImageAccess: boolean = true;
   @State databaseAccess: boolean = true;
-  @State isFrameResourceType: boolean = false
+  @State isFrameResourceType: boolean = false;
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
   aboutToAppear(): void {
     if (this.emitKey == 'emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds') {
       webview.WebviewController.setConnectionTimeout(5);
@@ -37,7 +40,7 @@ struct webViewSetConnectionTimeout {
   }
   onPageShow() {
       let valueChangeEvent: events_emitter.InnerEvent = {
-          eventId: 10,
+          eventId: 14077,
           priority: events_emitter.EventPriority.LOW
       }
       events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
@@ -48,6 +51,7 @@ struct webViewSetConnectionTimeout {
           console.info('valueChangeCallBack:' + JSON.stringify(eventData));
           if (eventData.data != null && eventData.data.ACTION != null) {
               this.emitKey = eventData.data.ACTION;
+              this.isReceive = 0;
           }
       }
   }
@@ -59,8 +63,13 @@ struct webViewSetConnectionTimeout {
               .key('webViewSetConnectionTimeoutButton')
               .onClick(async () => {
                   console.info('key==>' + this.emitKey)
+                  await waitForExist(()=>this.isReceive, this.emitKey, 0);
+                  this.isReceive = -1;
+                  this.isPageEnd = -1;
                   this.controller.refresh()
-                  await Utils.sleep(2500);
+                  await waitForExist(()=>this.isPageEnd, this.emitKey, 0);
+                  this.isReceive = -1;
+                  this.isPageEnd = -1;
                   switch (this.emitKey) {
                     case 'emitWebViewSetConnectionTimeoutZeroSeconds': {
                       try {
@@ -68,7 +77,7 @@ struct webViewSetConnectionTimeout {
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent('Error', 8001);
+                        Utils.emitEvent('Error', 14078);
                       }
                       break;
                     }
@@ -78,7 +87,7 @@ struct webViewSetConnectionTimeout {
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent('Error', 8002);
+                        Utils.emitEvent('Error', 14079);
                       }
                       break;
                     }
@@ -88,7 +97,7 @@ struct webViewSetConnectionTimeout {
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent('Error', 8003);
+                        Utils.emitEvent('Error', 14080);
                       }
                       break;
                     }
@@ -98,7 +107,7 @@ struct webViewSetConnectionTimeout {
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
-                        Utils.emitEvent('Error', 8004);
+                        Utils.emitEvent('Error', 14081);
                       }
                       break;
                     }
@@ -109,6 +118,7 @@ struct webViewSetConnectionTimeout {
                       } catch (error) {
                         let e:business_error.BusinessError = error as business_error.BusinessError;
                         console.error(`ErrorCode: ${e.code},  Message: ${e.message}`);
+                        Utils.emitEvent('Error', 14082);
                       }
                       break;
                     }
@@ -128,10 +138,10 @@ struct webViewSetConnectionTimeout {
                     console.log('getErrorCode:' + event.error.getErrorCode())
                     let getErrorInfo = event.error.getErrorInfo()
                     if (this.emitKey == 'emitWebViewSetConnectionTimeoutTenSeconds') {
-                      Utils.emitEvent('Time_out', 8005);
+                      Utils.emitEvent('Time_out', 14082);
                     }
                     if (this.emitKey == 'emitWebViewSetConnectionAboutAppearTimeoutFiveSeconds') {
-                      Utils.emitEvent('Time_out', 24801);
+                      Utils.emitEvent('Time_out', 14083);
                     }
                   }
                 })
