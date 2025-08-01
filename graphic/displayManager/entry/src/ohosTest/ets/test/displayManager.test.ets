@@ -1825,5 +1825,388 @@ export default function displayTest() {
         }
       }
     })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0100
+     * @tc.name       : testConvertRelativeToGlobalCoordinatewithPositionOutofRange
+     * @tc.desc       : 验证convertRelativeToGlobalCoordinate接口position超出int32报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertRelativeToGlobalCoordinatewithPositionOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertRelativeToGlobalCoordinatewithPositionOutofRange";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let displayClass = display.getDefaultDisplaySync();
+        console.log(`${caseName} displayClass.id: ${displayClass.id}`);
+        const exceedMax = 2147483648;
+        let position: display.Position = {
+          x: exceedMax,
+          y: exceedMax
+        };
+        let param: display.RelativePosition = {
+          displayId: displayClass.id,
+          position: position
+        }
+        display.convertRelativeToGlobalCoordinate(param);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed. err: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(1400004)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0200
+     * @tc.name       : testConvertRelativeToGlobalCoordinatewithInvalidDisplayid
+     * @tc.desc       : 验证convertRelativeToGlobalCoordinate接口display<0或>=0且display不存在报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertRelativeToGlobalCoordinatewithInvalidDisplayid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertRelativeToGlobalCoordinatewithInvalidDisplayid";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let position: display.Position = {
+          x: 100,
+          y: 100
+        };
+        let param1: display.RelativePosition = {
+          displayId: -1,
+          position: position
+        }
+        display.convertRelativeToGlobalCoordinate(param1);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed1. err: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(1400004)
+      }
+
+      try {
+        let position: display.Position = {
+          x: 100,
+          y: 100
+        };
+        let param2: display.RelativePosition = {
+          displayId: 1,
+          position: position
+        }
+        display.convertRelativeToGlobalCoordinate(param2);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(1400004)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0300
+     * @tc.name       : testConvertRelativeToGlobalCoordinatewithVirtualDisplay
+     * @tc.desc       : 验证虚拟屏调用convertRelativeToGlobalCoordinate接口报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertRelativeToGlobalCoordinatewithVirtualDisplay', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertRelativeToGlobalCoordinatewithVirtualDisplay";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      class VirtualScreenOptions {
+        name: string = '';
+        width: number = 0;
+        height: number = 0;
+        density: number = 0;
+        surfaceId: string = '';
+      }
+      let option: VirtualScreenOptions = {
+        name: 'screen01',
+        width: 100,
+        height: 2340,
+        density: 2,
+        surfaceId: ''
+      };
+      try {
+        let screenId: number = await display.createVirtualScreen(option);
+        console.log(caseName + ' success in createVirtualScreen ' + screenId);
+        let displays = await display.getAllDisplays();
+        let outDisplayId = -1;
+        for (let i = 0; i< displays.length; i++) {
+          if (displays[i].id != 0) {
+            outDisplayId = displays[i].id;
+            break;
+          }
+        }
+        console.log(caseName + ' outDisplayId: ' + outDisplayId);
+        let position: display.Position = {
+          x: 50,
+          y: 50
+        };
+        let param: display.RelativePosition = {
+          displayId: outDisplayId,
+          position: position
+        }
+        display.convertRelativeToGlobalCoordinate(param);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect(e.code).assertEqual(1400004)
+          done()
+        }
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0400
+     * @tc.name       : testConvertRelativeToGlobalCoordinate
+     * @tc.desc       : 验证convertRelativeToGlobalCoordinate接口在除RK外的设备正常调用
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testConvertRelativeToGlobalCoordinate', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testConvertRelativeToGlobalCoordinate";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let result = display.getDisplayByIdSync(0);
+        console.log(`${caseName} display.getDisplayByIdSync(0): ${JSON.stringify(result)}`);
+        let width = result.width / 2;
+        let height = result.height / 2;
+        console.log(`${caseName} width: ${width}`);
+        console.log(`${caseName} height: ${height}`);
+
+        let position: display.Position = {
+          x: width,
+          y: height
+        };
+        let param: display.RelativePosition = {
+          displayId: 0,
+          position: position
+        }
+        let positionRes = display.convertRelativeToGlobalCoordinate(param);
+        console.log(`${caseName} positionRes: ${JSON.stringify(positionRes)}`);
+        expect(Math.abs(positionRes.x - width)).assertLargerOrEqual(0)
+        expect(Math.abs(positionRes.y - height)).assertLargerOrEqual(0)
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0500
+     * @tc.name       : testConvertGlobalToRelativeCoordinatewithPositionOutofRange
+     * @tc.desc       : 验证convertGlobalToRelativeCoordinate接口position超出int32报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertGlobalToRelativeCoordinatewithPositionOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertGlobalToRelativeCoordinatewithPositionOutofRange";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let displayClass = display.getDefaultDisplaySync();
+        console.log(`${caseName} displayClass.id: ${displayClass.id}`);
+        const exceedMax = 2147483648;
+        let position: display.Position = {
+          x: exceedMax,
+          y: exceedMax
+        };
+        display.convertGlobalToRelativeCoordinate(position, displayClass.id);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed. err: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(1400004)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0600
+     * @tc.name       : testConvertGlobalToRelativeCoordinatewithInvalidDisplayid
+     * @tc.desc       : 验证convertGlobalToRelativeCoordinate接口传入displayId<0报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertGlobalToRelativeCoordinatewithInvalidDisplayid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertGlobalToRelativeCoordinatewithInvalidDisplayid";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let position: display.Position = {
+          x: 50,
+          y: 50
+        };
+        display.convertGlobalToRelativeCoordinate(position, -1);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed. err: ${JSON.stringify(e)}`);
+        expect(e.code).assertEqual(1400004)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0700
+     * @tc.name       : testConvertGlobalToRelativeCoordinatewithVirtualDisplay
+     * @tc.desc       : 验证虚拟屏调用convertGlobalToRelativeCoordinate接口报1400004
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 3
+     */
+    it('testConvertGlobalToRelativeCoordinatewithVirtualDisplay', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let caseName = "testConvertGlobalToRelativeCoordinatewithVirtualDisplay";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      class VirtualScreenOptions {
+        name: string = '';
+        width: number = 0;
+        height: number = 0;
+        density: number = 0;
+        surfaceId: string = '';
+      }
+      let option: VirtualScreenOptions = {
+        name: 'screen01',
+        width: 100,
+        height: 2340,
+        density: 2,
+        surfaceId: ''
+      };
+      try {
+        let screenId: number = await display.createVirtualScreen(option);
+        console.log(caseName + ' success in createVirtualScreen ' + screenId);
+        let displays = await display.getAllDisplays();
+        let outDisplayId = -1;
+        for (let i = 0; i< displays.length; i++) {
+          if (displays[i].id != 0) {
+            outDisplayId = displays[i].id;
+            break;
+          }
+        }
+        console.log(caseName + ' outDisplayId: ' + outDisplayId);
+        let position: display.Position = {
+          x: 50,
+          y: 50
+        };
+        display.convertGlobalToRelativeCoordinate(position, outDisplayId);
+        expect().assertFail();
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect(e.code).assertEqual(1400004)
+          done()
+        }
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0800
+     * @tc.name       : testConvertGlobalToRelativeCoordinatewithDisplayid
+     * @tc.desc       : 验证convertGlobalToRelativeCoordinate接口，传入displayId，在除RK外的设备正常调用
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testConvertGlobalToRelativeCoordinatewithDisplayid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testConvertGlobalToRelativeCoordinatewithDisplayid";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let result = display.getDisplayByIdSync(0);
+        console.log(`${caseName} display.getDisplayByIdSync(0): ${JSON.stringify(result)}`);
+        let width = result.width / 2;
+        let height = result.height / 2;
+        console.log(`${caseName} width: ${width}`);
+        console.log(`${caseName} height: ${height}`);
+
+        let position: display.Position = {
+          x: width,
+          y: height
+        };
+        let relativePosition = display.convertGlobalToRelativeCoordinate(position, 0);
+        console.log(`${caseName} relativePosition: ${JSON.stringify(relativePosition)}`);
+        expect(Math.abs(relativePosition.position.x - width)).assertLargerOrEqual(0)
+        expect(Math.abs(relativePosition.position.y - height)).assertLargerOrEqual(0)
+        expect(relativePosition.displayId).assertEqual(0)
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_CONVERTCOORDINATE_0900
+     * @tc.name       : testConvertGlobalToRelativeCoordinatewithoutDisplayid
+     * @tc.desc       : 验证convertGlobalToRelativeCoordinate接口，不传入displayId，在除RK外的设备正常调用
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testConvertGlobalToRelativeCoordinatewithoutDisplayid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testConvertGlobalToRelativeCoordinatewithoutDisplayid";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let result = display.getDisplayByIdSync(0);
+        console.log(`${caseName} display.getDisplayByIdSync(0): ${JSON.stringify(result)}`);
+        let width = result.width / 2;
+        let height = result.height / 2;
+        console.log(`${caseName} width: ${width}`);
+        console.log(`${caseName} height: ${height}`);
+
+        let position: display.Position = {
+          x: width,
+          y: height
+        };
+        let relativePosition = display.convertGlobalToRelativeCoordinate(position);
+        console.log(`${caseName} relativePosition: ${JSON.stringify(relativePosition)}`);
+        expect(Math.abs(relativePosition.position.x - width)).assertLargerOrEqual(0)
+        expect(Math.abs(relativePosition.position.y - height)).assertLargerOrEqual(0)
+        expect(relativePosition.displayId).assertEqual(0)
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
+
+
   })
 }
