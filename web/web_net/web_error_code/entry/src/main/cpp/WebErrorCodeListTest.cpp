@@ -28,8 +28,8 @@ static char* GetArgsParamater(napi_env env, napi_callback_info info)
     napi_value args[1] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     size_t netErrorSize = 0;
-    char netErrorName [200] = "";
-    napi_get_value_string_utf8(env, args[0], netErrorName, 200, &netErrorSize);
+    char netErrorName [ERROR_NAME_SIZE] = "";
+    napi_get_value_string_utf8(env, args[0], netErrorName, ERROR_NAME_SIZE, &netErrorSize);
     return netErrorName;
 }
 
@@ -95,7 +95,7 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
     char* netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName); 
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
