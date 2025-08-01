@@ -16,7 +16,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level } from "@ohos/hypium";
 import { media } from "@kit.MediaKit";
 import { BusinessError } from "@kit.BasicServicesKit";
-import { LOG_TAG, SLEEP_TIME_20, SLEEP_TIME_200, SLEEP_TIME_500 } from "../Constants";
+import { LOG_TAG, SLEEP_TIME_20, SLEEP_TIME_200, SLEEP_TIME_2000, SLEEP_TIME_500 } from "../Constants";
 import { closeFd, driveFn, getFd, sleep } from "../common";
 import AVRecorderCommon from "./AVRecorderCommon";
 import { Permissions } from "@kit.AbilityKit";
@@ -80,7 +80,7 @@ async function startRecording(testName: string) {
     await mScreenCapture.startRecording().then(async () => {
       console.info(TAG, testName + ' Succeeded in starting Recording.');
       await driveFn();
-      await sleep(SLEEP_TIME_200);
+      await sleep(SLEEP_TIME_2000);
       console.info(TAG, testName + ' The current status is: ' + infoType);
       expect(infoType).assertEqual(media.AVScreenCaptureStateCode.SCREENCAPTURE_STATE_STARTED);
     }).catch((error: BusinessError) => {
