@@ -22,6 +22,17 @@
 
 static const int ERROR_NAME_SIZE = 200;
 
+static char* GetArgsParamater(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    size_t netErrorSize = 0;
+    char netErrorName [200] = "";
+    napi_get_value_string_utf8(env, args[0], netErrorName, 200, &netErrorSize);
+    return netErrorName;
+}
+
 static ArkWeb_NetError GetNetErrorByName(const char* name)
 {
     std::map<const char *, ArkWeb_NetError> netErrorMap = {
@@ -38,6 +49,17 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
         {"ARKWEB_ERR_INSUFFICIENT_RESOURCES", ArkWeb_NetError::ARKWEB_ERR_INSUFFICIENT_RESOURCES},
         {"ARKWEB_ERR_OUT_OF_MEMORY", ArkWeb_NetError::ARKWEB_ERR_OUT_OF_MEMORY},
         {"ARKWEB_ERR_UPLOAD_FILE_CHANGED", ArkWeb_NetError::ARKWEB_ERR_UPLOAD_FILE_CHANGED},
+        {"ARKWEB_ERR_SOCKET_NOT_CONNECTED", ArkWeb_NetError::ARKWEB_ERR_SOCKET_NOT_CONNECTED},
+        {"ARKWEB_ERR_FILE_EXISTS", ArkWeb_NetError::ARKWEB_ERR_FILE_EXISTS},
+        {"ARKWEB_ERR_FILE_PATH_TOO_LONG", ArkWeb_NetError::ARKWEB_ERR_FILE_PATH_TOO_LONG},
+        {"ARKWEB_ERR_FILE_NO_SPACE", ArkWeb_NetError::ARKWEB_ERR_FILE_NO_SPACE},
+        {"ARKWEB_ERR_FILE_VIRUS_INFECTED", ArkWeb_NetError::ARKWEB_ERR_FILE_VIRUS_INFECTED},
+        {"ARKWEB_ERR_BLOCKED_BY_CLIENT", ArkWeb_NetError::ARKWEB_ERR_BLOCKED_BY_CLIENT},
+        {"ARKWEB_ERR_NETWORK_CHANGED", ArkWeb_NetError::ARKWEB_ERR_NETWORK_CHANGED},
+        {"ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR", ArkWeb_NetError::ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR},
+        {"ARKWEB_ERR_SOCKET_CONNECTED", ArkWeb_NetError::ARKWEB_ERR_SOCKET_CONNECTED},
+        {"ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED",
+         ArkWeb_NetError::ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED},
     };
 
     auto it = netErrorMap.find(name);
@@ -50,14 +72,9 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
 napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError start..");
-    size_t argc = 1;
-    napi_value args[1] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    size_t netErrorSize = 0;
-    char netErrorName [ERROR_NAME_SIZE] = "";
-    napi_get_value_string_utf8(env, args[0], netErrorName, ERROR_NAME_SIZE, &netErrorSize);
-    
+    char* netErrorName = GetArgsParamater(env, info);
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
+
     ArkWeb_ResourceHandler* resourceHandler = nullptr;
     napi_value result;
     if (OH_ArkWebResourceHandler_DidFailWithError(resourceHandler, errorCode) == ARKWEB_ERROR_UNKNOWN) {
@@ -65,5 +82,28 @@ napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError end..");
+    return result;
+}
+
+napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError start..");
+
+    ArkWeb_Response* response = nullptr;
+    OH_ArkWeb_DestroyResponse(response);
+    const char* url = "www.example.com";
+    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
+
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName); 
+    ret = OH_ArkWebResponse_SetError(response, errorCode);
+    ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
+    
+    napi_value result;
+    if (errorCodeRes == ARKWEB_ERR_FAILED) {
+        napi_create_int32(env, 0, &result);
+    }
+
+    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
     return result;
 }

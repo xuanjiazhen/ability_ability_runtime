@@ -30,7 +30,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrIOPending', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrIOPending start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_IO_PENDING");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_IO_PENDING");
         console.info("====>testArkWebErrIOPending result====", result);
         expect(result).assertEqual(0);
         done();
@@ -50,7 +50,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFailed start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_FAILED");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FAILED");
         console.info("====>testArkWebErrFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -70,7 +70,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAboorted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAboorted start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_ABORTED");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_ABORTED");
         console.info("====>testArkWebErrAboorted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -90,7 +90,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInvaliedHandle', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInvaliedHandle start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_INVALID_HANDLE");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_INVALID_HANDLE");
         console.info("====>testArkWebErrInvaliedHandle result====", result);
         expect(result).assertEqual(0);
         done();
@@ -110,7 +110,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTimedOut start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_TIMED_OUT");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_TIMED_OUT");
         console.info("====>testArkWebErrTimedOut result====", result);
         expect(result).assertEqual(0);
         done();
@@ -130,7 +130,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileTooLarge', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileTooLarge start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_FILE_TOO_LARGE");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_TOO_LARGE");
         console.info("====>testArkWebErrFileTooLarge result====", result);
         expect(result).assertEqual(0);
         done();
@@ -150,7 +150,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrUnexpected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrUnexpected start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_UNEXPECTED");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UNEXPECTED");
         console.info("====>testArkWebErrUnexpected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -170,7 +170,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAccessDenied', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAccessDenied start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_ACCESS_DENIED");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_ACCESS_DENIED");
         console.info("====>testArkWebErrAccessDenied result====", result);
         expect(result).assertEqual(0);
         done();
@@ -190,7 +190,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNotImplemented', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNotImplemented start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_NOT_IMPLEMENTED");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_NOT_IMPLEMENTED");
         console.info("====>testArkWebErrNotImplemented result====", result);
         expect(result).assertEqual(0);
         done();
@@ -210,7 +210,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInsufficientResources', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInsufficientResources start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
         console.info("====>testArkWebErrInsufficientResources result====", result);
         expect(result).assertEqual(0);
         done();
