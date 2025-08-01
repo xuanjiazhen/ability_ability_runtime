@@ -26,3 +26,5 @@ export const createNativeNode: (content: NodeContent) => void;
 export const getKeyStr: () => string;
 export const getIndicatorStr: () => string;
 export const getMouseStr: () => string;
+export const createCrossLanguageXComponentNativeNode: (content: NodeContent, tag: string) => void;
+export const crossLanguageSetXComponentAttribute: (nodeId: string) => void;
