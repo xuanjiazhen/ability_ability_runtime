@@ -207,12 +207,12 @@ export default function formProviderTest() {
 
     /**
      * @tc.number: Test_Form_Provider_0730
-     * @tc.name: promise form getPublishedRunningFormInfos system interface interception test
+     * @tc.name: Test_Form_Provider_0730
      * @tc.desc:  Query the cards that the application has loaded on the desktop
      * @tc.level   3
      */
     it('Test_Form_Provider_0730', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
-      let TAG:string = 'Test_Form_Provider_0730';
+      let TAG: string = 'Test_Form_Provider_0730';
       hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} start`);
       formProvider.getPublishedRunningFormInfos().then((data: formInfo.RunningFormInfo[]) => {
         hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
@@ -238,7 +238,7 @@ export default function formProviderTest() {
 
     /**
      * @tc.number: Test_Form_Provider_0731
-     * @tc.name: promise form getPublishedRunningFormInfoById system interface interception test
+     * @tc.name: Test_Form_Provider_0731
      * @tc.desc:  Query the cards that the application has loaded on the desktop by formId
      * @tc.level   3
      */
