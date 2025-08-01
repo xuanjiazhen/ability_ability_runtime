@@ -405,7 +405,7 @@ void ConnectServerManager::RegisterConnectServerCallback(const ServerConnectCall
     std::lock_guard<std::mutex> lock(connectServerCallbackMutex_);
     for (const auto &callback : connectServerCallbacks_) {
         if (callback == connectServerCallback) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "callback exist");
+            TAG_LOGW(AAFwkTag::JSRUNTIME, "callback exist");
             return;
         }
     }
@@ -423,7 +423,7 @@ void ConnectServerManager::RegisterSendInstanceMessageCallback(
     std::lock_guard<std::mutex> lock(sendInstanceMessageCallbackMutex_);
     for (const auto &callback : sendInstanceMessageCallbacks_) {
         if (callback == sendInstanceMessageCallback) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "callback exist");
+            TAG_LOGW(AAFwkTag::JSRUNTIME, "callback exist");
             return;
         }
     }
