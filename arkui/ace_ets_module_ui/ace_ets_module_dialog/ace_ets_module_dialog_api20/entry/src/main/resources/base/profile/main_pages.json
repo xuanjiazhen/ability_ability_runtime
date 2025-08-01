@@ -12,6 +12,9 @@
     "MainAbility/pages/SheetType/enableFloatingDragBar",
     "MainAbility/pages/Menu/PreviewScaleMode",
     "MainAbility/pages/SheetType/keyboardAvoidMode",
-    "MainAbility/pages/Menu/AvailableLayoutArea"
+    "MainAbility/pages/Menu/AvailableLayoutArea",
+    "MainAbility/pages/bindMenu/mask",
+    "MainAbility/pages/bindMenu/maskColor",
+    "MainAbility/pages/bindMenu/maskBackgroundBlurStyle"
   ]
 }
