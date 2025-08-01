@@ -4337,6 +4337,55 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
         }
       }
     });
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_GETPIPSETTINGSWITCH_0100
+     * @tc.name       : testGetPiPSettingSwitchStatus
+     * @tc.desc       : 验证支持画中画的设备调用getpipsettingswitch接口，获取设置中自动启动画中画按钮状态
+     * @tc.size       : MediumTestTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testGetPiPSettingSwitchStatus', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      const message = 'testGetPiPSettingSwitchStatus!'
+      let pipController: pipWindow.PiPController | undefined = undefined;
+      let mXComponentController = new XComponentController();
+      let navId = "";
+      let config: pipWindow.PiPConfiguration = {
+        context: context1,
+        componentController: mXComponentController,
+        navigationId: navId,
+        templateType: pipWindow.PiPTemplateType.VIDEO_LIVE,
+        contentWidth: 500,
+        contentHeight: 500,
+        localStorage: undefined
+      };
+      try {
+        let promise = pipWindow.create(config);
+        promise.then(async (data) => {
+          pipController = data;
+          if (!pipController.isPiPSupported()) {
+            expect(true).assertTrue();
+            done();
+          } else {
+            console.log(`${message} Succeeded in creating pip controller, Data:${data}`)
+            let result = await pipController.getPiPSettingSwitch();
+            console.log(`${message} result: ${result}`)
+            expect(result).assertEqual(true);
+            done();
+          }
+        }).catch((err: BusinessError) => {
+          console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);
+          expect(err.code).assertEqual(801);
+          done();
+        });
+      } catch (err) {
+        console.error(`${message} Failed to test updateContentSize, Cause code ${err.code}, message ${err.message}`);
+        expect().assertFail();
+        done();
+      }
+    });
+
   })
 }
 
