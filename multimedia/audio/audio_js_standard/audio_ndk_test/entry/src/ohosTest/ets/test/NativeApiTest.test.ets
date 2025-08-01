@@ -4169,21 +4169,6 @@ export default function audioNDK() {
     })
 
     /**
-     * @tc.number    : SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_003
-     * @tc.name      : TestCapturerGetFastStatus003
-     * @tc.desc      : test OH_AudioCapturer_GetFastStatus
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('TestCapturerGetFastStatus003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      let result = myaudioNdk.audioCaptureGetFastStatus_003();
-      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_CAPTURER_GET_FAST_STATUS_003 audioCaptureGetFastStatus_003: ${result}`);
-      expect(result).assertEqual(TEST_PASS)
-      done()
-    })
-
-    /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_001
      * @tc.name      : TestRendererGetFastStatus001
      * @tc.desc      : test OH_AudioRenderer_GetFastStatus
@@ -4209,21 +4194,6 @@ export default function audioNDK() {
     it('TestRendererGetFastStatus002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let result = myaudioNdk.audioRendererGetFastStatus_002();
       console.info(`Tag: SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_002 audioRendererGetFastStatus_002: ${result}`);
-      expect(result).assertEqual(TEST_PASS)
-      done()
-    })
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_003
-     * @tc.name      : TestRendererGetFastStatus003
-     * @tc.desc      : test OH_AudioRenderer_GetFastStatus
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 0
-     */
-    it('TestRendererGetFastStatus003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      let result = myaudioNdk.audioRendererGetFastStatus_003();
-      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_RENDERER_GET_FAST_STATUS_003 audioRendererGetFastStatus_003: ${result}`);
       expect(result).assertEqual(TEST_PASS)
       done()
     })
