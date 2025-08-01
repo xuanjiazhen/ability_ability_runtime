@@ -45,7 +45,7 @@ export default function textPickerDialogTextStyleTest() {
     /**
      * @tc.number: textPickerDialogTextStyleTest_0100
      * @tc.name  : textPickerDialogTextStyleTest_0100
-     * @tc.desc  : To test the textStyle minFontSize:18 maxFontSize:28 TextOverflow.Ellipsis
+     * @tc.desc  : To test the textStyle minFontSize:18 maxFontSize:28 TextOverflow.MARQUEE
      * @tc.level : Level 0
      * @tc.type
      * @tc.size
@@ -65,7 +65,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0100] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('18.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -76,7 +76,7 @@ export default function textPickerDialogTextStyleTest() {
     /**
      * @tc.number: textPickerDialogTextStyleTest_0200
      * @tc.name  : textPickerDialogTextStyleTest_0200
-     * @tc.desc  : To test the textStyle minFontSize:28 maxFontSize:18 TextOverflow.Ellipsis
+     * @tc.desc  : To test the textStyle minFontSize:28 maxFontSize:18 TextOverflow.MARQUEE
      * @tc.level : Level 0
      * @tc.type
      * @tc.size
@@ -96,7 +96,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0200] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('28.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('18.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -107,7 +107,7 @@ export default function textPickerDialogTextStyleTest() {
     /**
      * @tc.number: textPickerDialogTextStyleTest_0300
      * @tc.name  : textPickerDialogTextStyleTest_0300
-     * @tc.desc  : To test the textStyle minFontSize:28 maxFontSize:28 TextOverflow.Ellipsis
+     * @tc.desc  : To test the textStyle minFontSize:28 maxFontSize:28 TextOverflow.MARQUEE
      * @tc.level : Level 0
      * @tc.type
      * @tc.size
@@ -127,7 +127,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0300] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('28.00fp');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('28.00fp');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -138,7 +138,7 @@ export default function textPickerDialogTextStyleTest() {
     /**
      * @tc.number: textPickerDialogTextStyleTest_0400
      * @tc.name  : textPickerDialogTextStyleTest_0400
-     * @tc.desc  : To test the textStyle minFontSize:undefined maxFontSize:undefined TextOverflow.Ellipsis
+     * @tc.desc  : To test the textStyle minFontSize:undefined maxFontSize:undefined TextOverflow.MARQUEE
      * @tc.level : Level 0
      * @tc.type
      * @tc.size
@@ -158,7 +158,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0400] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('0.00px');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -169,7 +169,7 @@ export default function textPickerDialogTextStyleTest() {
     /**
      * @tc.number: textPickerDialogTextStyleTest_0500
      * @tc.name  : textPickerDialogTextStyleTest_0500
-     * @tc.desc  : To test the textStyle minFontSize:null maxFontSize:null TextOverflow.Ellipsis
+     * @tc.desc  : To test the textStyle minFontSize:null maxFontSize:null TextOverflow.MARQUEE
      * @tc.level : Level 0
      * @tc.type
      * @tc.size
@@ -189,7 +189,7 @@ export default function textPickerDialogTextStyleTest() {
       console.info('[textPickerDialogTextStyleTest_0500] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.textStyle));
       expect(JSON.parse(textPicker).$attrs.textStyle.minFontSize).assertEqual('0.00px');
       expect(JSON.parse(textPicker).$attrs.textStyle.maxFontSize).assertEqual('0.00px');
-      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.Ellipsis');
+      expect(JSON.parse(textPicker).$attrs.textStyle.overflow).assertEqual('TextOverflow.MARQUEE');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
