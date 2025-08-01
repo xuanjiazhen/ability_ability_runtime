@@ -13,7 +13,7 @@
  * limitations under the License.
  */
  
-import KeyCodeNdkTest from './KeyCodeTest.test'
+import KeyCodeNdkTest from './nativekeycode/KeyCodeTest.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
