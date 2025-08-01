@@ -52,9 +52,9 @@ struct Index {
                 if (node) {
                   let observer = this.getUIContext().getUIObserver();
                   observer.on('nodeRenderState', node?.getUniqueId(), (state: NodeRenderState, node?: FrameNode) => {
-                    if (state === 0) {
+                    if (state === NodeRenderState.ABOUT_TO_RENDER_IN) {
                       this.notice = 'RENDER_IN';
-                    } else {
+                    } else if (state === NodeRenderState.ABOUT_TO_RENDER_OUT) {
                       this.notice = 'RENDER_OUT';
                     }
                     console.log('节点状态发生改变，当前状态：', state)
