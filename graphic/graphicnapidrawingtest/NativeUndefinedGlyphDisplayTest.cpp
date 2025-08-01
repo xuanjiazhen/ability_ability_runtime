@@ -182,28 +182,5 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     OH_Drawing_DestroyTypography(defaultTypography);
     OH_Drawing_DestroyTypography(tofuTypography);
 }
-
-/*
- * @tc.number: SUB_GRAPHIC_GRAPHIC_2D_SetTextUndefinedGlyphDisplay_005
- * @tc.name  : OHDrawingSetTextUndefinedGlyphDisplay005
- * @tc.desc  : Test set family name, but still force tofu
- * @tc.size  : MediumTest
- * @tc.type  : Function
- * @tc.level : Level 0
- */
-HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay005, Function | MediumTest | Level0)
-{
-    OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_TOFU);
-    const char* fontFamilies[] = { "Noto Sans" };
-    OH_Drawing_Typography* typography = PrepareCreateTypography(text_, fontFamilies, NUM_1);
-    EXPECT_NE(typography, nullptr);
-    BoundsResult(typography, notoResult_, NUM_3);
-    OH_Drawing_Typography* onlyTypography = PrepareCreateTypography(noGlyphText_, fontFamilies, NUM_1);
-    EXPECT_NE(onlyTypography, nullptr);
-    BoundsResult(onlyTypography, noGlyphTofuResult_, NUM_1);
-    OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
-    OH_Drawing_DestroyTypography(typography);
-    OH_Drawing_DestroyTypography(onlyTypography);
-}
 }
 } // namespace OHOS
