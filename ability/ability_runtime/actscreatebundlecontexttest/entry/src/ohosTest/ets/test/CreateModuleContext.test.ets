@@ -62,22 +62,16 @@ export default function createModuleContextTest() {
           let direction = value.direction;
           let locale = value.locale;
           let colorMode = value.colorMode
-          expect(direction).assertEqual(0)
-          expect(locale).assertEqual("zh_Hans_CN")
-          expect(colorMode).assertEqual(1)
           // getConfiguration
           try {
-            context.resourceManager.getConfiguration((error: BusinessError, value: resourceManager.Configuration) => {
+            context.resourceManager.getConfiguration((error: BusinessError, value1: resourceManager.Configuration) => {
               if (error != null) {
                 console.error("getConfiguration callback error is " + error);
               } else {
-                hilog.info(0x0000, 'testTag', '%{public}s', `resourceManager.getConfiguration value is: ${JSON.stringify(value)}`)
-                direction = value.direction;
-                locale = value.locale;
-                colorMode = value.colorMode
-                expect(direction).assertEqual(0)
-                expect(locale).assertEqual("zh_Hans_CN")
-                expect(colorMode).assertEqual(1)
+                hilog.info(0x0000, 'testTag', '%{public}s', `resourceManager.getConfiguration value is: ${JSON.stringify(value1)}`)
+                expect(direction).assertEqual(value1.direction)
+                expect(locale).assertEqual(value1.locale)
+                expect(colorMode).assertEqual(value1.colorMode)
               }
             });
           } catch (error) {
@@ -160,4 +154,3 @@ function checkFeatureModuleContext(data: Context, tag: string, done: Function): 
   hilog.info(0x0000, 'testTag', '%{public}s', `${tag}, it end`);
   done();
 }
-

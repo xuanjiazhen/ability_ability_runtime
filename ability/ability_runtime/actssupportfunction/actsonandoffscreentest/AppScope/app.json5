@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.actsonandoffscreentest",
-    "vendor": "huawei",
+    "vendor": "actsonandoffscreentest",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

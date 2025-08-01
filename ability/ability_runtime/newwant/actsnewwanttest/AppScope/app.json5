@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.newwanttest",
-    "vendor": "huawei",
+    "vendor": "newwanttest",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

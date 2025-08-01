@@ -15,7 +15,7 @@
 {
   "app": {
     "bundleName": "ohos.acts.aafwk.test.stagesupportfunction",
-    "vendor": "huawei",
+    "vendor": "stagesupportfunction",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,
