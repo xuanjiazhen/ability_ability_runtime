@@ -40,201 +40,201 @@ export default function ActsWebErrorCodeTest() {
   describe('ActsWebErrorCodeTest', () => {
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0100
-     * @tc.name    : SUB_OH_Web_Error_Code_0100
+     * @tc.name    : testArkWebErrorCode0100
      * @tc.desc    : test OH_Web_Error_Code Test Normal Scene
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0100 start====");
+        console.info("====>testArkWebErrorCode0100 start====");
         let result: number = webCode.webErrCodeSuccess();
-        console.info("====>SUB_OH_Web_Error_Code_0100 result====", result);
+        console.info("====>testArkWebErrorCode0100 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0100 catch err: " + err);
+        console.error("====>testArkWebErrorCode0100 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0200
-     * @tc.name    : SUB_OH_Web_Error_Code_0200
+     * @tc.name    : testArkWebErrorCode0200
      * @tc.desc    : test OH_Web_Error_Code Test Normal Scene
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0200 start====");
+        console.info("====>testArkWebErrorCode0200 start====");
         let result: number = webCode.webInitError();
-        console.info("====>SUB_OH_Web_Error_Code_0200 result====", result);
+        console.info("====>testArkWebErrorCode0200 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0200 catch err: " + err);
+        console.error("====>testArkWebErrorCode0200 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0300
-     * @tc.name    : SUB_OH_Web_Error_Code_0300
+     * @tc.name    : testArkWebErrorCode0300
      * @tc.desc    : test OH_Web_Error_Code Test UNKNOWN
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0300 start====");
+        console.info("====>testArkWebErrorCode0300 start====");
         let result: number = webCode.webErrorUnknow();
-        console.info("====>SUB_OH_Web_Error_Code_0300 result====", result);
+        console.info("====>testArkWebErrorCode0300 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_ERROR_UNKNOWN);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0300 catch err: " + err);
+        console.error("====>testArkWebErrorCode0300 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0400
-     * @tc.name    : SUB_OH_Web_Error_Code_0400
+     * @tc.name    : testArkWebErrorCode0400
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_INVALID_PARAM
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0400 start====");
+        console.info("====>testArkWebErrorCode0400 start====");
         let result: number = webCode.webErrorInvalidParam();
-        console.info("====>SUB_OH_Web_Error_Code_0400 result====", result);
+        console.info("====>testArkWebErrorCode0400 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_INVALID_PARAM);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0400 catch err: " + err);
+        console.error("====>testArkWebErrorCode0400 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0500
-     * @tc.name    : SUB_OH_Web_Error_Code_0500
+     * @tc.name    : testArkWebErrorCode0500
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_SCHEME_REGISTER_FAILED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0500 start====");
+        console.info("====>testArkWebErrorCode0500 start====");
         let result: number = webCode.webErrorSchemeRegitsterFailed();
-        console.info("====>SUB_OH_Web_Error_Code_0500 result====", result);
+        console.info("====>testArkWebErrorCode0500 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_SCHEME_REGISTER_FAILED);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0500 catch err: " + err);
+        console.error("====>testArkWebErrorCode0500 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0600
-     * @tc.name    : SUB_OH_Web_Error_Code_0600
+     * @tc.name    : testArkWebErrorCode0600
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_INVALID_URL
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0600 start====");
+        console.info("====>testArkWebErrorCode0600 start====");
         let result: number = webCode.webErrorInvaledURL();
-        console.info("====>SUB_OH_Web_Error_Code_0600 result====", result);
+        console.info("====>testArkWebErrorCode0600 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_INVALID_URL);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0600 catch err: " + err);
+        console.error("====>testArkWebErrorCode0600 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0700
-     * @tc.name    : SUB_OH_Web_Error_Code_0700
+     * @tc.name    : testArkWebErrorCode0700
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_INVALID_COOKIE_VALUE
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0700 start====");
+        console.info("====>testArkWebErrorCode0700 start====");
         let result: number = webCode.webErrorInvaledCookieValue();
-        console.info("====>SUB_OH_Web_Error_Code_0700 result====", result);
+        console.info("====>testArkWebErrorCode0700 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_INVALID_COOKIE_VALUE);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0700 catch err: " + err);
+        console.error("====>testArkWebErrorCode0700 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0800
-     * @tc.name    : SUB_OH_Web_Error_Code_0800
+     * @tc.name    : testArkWebErrorCode0800
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_LIBRARY_OPEN_FAILURE
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0800 start====");
+        console.info("====>testArkWebErrorCode0800 start====");
         let result: number = webCode.webErrorLibraryOpenFailure();
-        console.info("====>SUB_OH_Web_Error_Code_0800 result====", result);
+        console.info("====>testArkWebErrorCode0800 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_LIBRARY_OPEN_FAILURE);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0800 catch err: " + err);
+        console.error("====>testArkWebErrorCode0800 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_0900
-     * @tc.name    : SUB_OH_Web_Error_Code_0900
+     * @tc.name    : testArkWebErrorCode0900
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_LIBRARY_SYMBOL_NOT_FOUND
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_0900 start====");
+        console.info("====>testArkWebErrorCode0900 start====");
         let result: number = webCode.webErrorLibraySymbolNotFound();
-        console.info("====>SUB_OH_Web_Error_Code_0900 result====", result);
+        console.info("====>testArkWebErrorCode0900 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_0900 catch err: " + err);
+        console.error("====>testArkWebErrorCode0900 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_Web_Error_Code_1000
-     * @tc.name    : SUB_OH_Web_Error_Code_1000
+     * @tc.name    : testArkWebErrorCode1000
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Web_Error_Code_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebErrorCode1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Web_Error_Code_1000 start====");
+        console.info("====>testArkWebErrorCode1000 start====");
         let result: number = webCode.webErrorCookeManagerNotInitialized();
-        console.info("====>SUB_OH_Web_Error_Code_1000 result====", result);
+        console.info("====>testArkWebErrorCode1000 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Web_Error_Code_1000 catch err: " + err);
+        console.error("====>testArkWebErrorCode1000 catch err: " + err);
       }
     })
 
@@ -246,275 +246,275 @@ export default function ActsWebErrorCodeTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0100 start====");
+        console.info("====>testArkWebBlanklessErrorCode100 start====");
         let result: number = webCode.webBlanklessSuccess();
-        console.info("====>SUB_OH_BLANKLESS_Code_0100 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode100 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_SUCCESS);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0100 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode100 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0200
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0200
+     * @tc.name    : testArkWebBlanklessErrorCode200
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_SUCCESS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0200 start====");
+        console.info("====>testArkWebBlanklessErrorCode200 start====");
         let result: number = webCode.webBlanklessErrUnknown();
-        console.info("====>SUB_OH_BLANKLESS_Code_0200 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode200 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_UNKNOWN);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0200 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode200 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0300
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0300
+     * @tc.name    : testArkWebBlanklessErrorCode300
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0300 start====");
+        console.info("====>testArkWebBlanklessErrorCode300 start====");
         let result: number = webCode.webBlanklessErrInvalidArgs();
-        console.info("====>SUB_OH_BLANKLESS_Code_0300 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode300 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_INVALID_ARGS);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0300 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode300 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0400
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0400
+     * @tc.name    : testArkWebBlanklessErrorCode400
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0400 start====");
+        console.info("====>testArkWebBlanklessErrorCode400 start====");
         let result: number = webCode.webBlanklessErrControllerNotInited();
-        console.info("====>SUB_OH_BLANKLESS_Code_0400 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode400 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0400 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode400 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0500
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0500
+     * @tc.name    : testArkWebBlanklessErrorCode500
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0500 start====");
+        console.info("====>testArkWebBlanklessErrorCode500 start====");
         let result: number = webCode.webBlanklessErrKeyNotMatch();
-        console.info("====>SUB_OH_BLANKLESS_Code_0500 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode500 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0500 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode500 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0600
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0600
+     * @tc.name    : testArkWebBlanklessErrorCode600
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_INVALID_ARGS
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0600 start====");
+        console.info("====>testArkWebBlanklessErrorCode600 start====");
         let result: number = webCode.webBlanklessErrSignificantChange();
-        console.info("====>SUB_OH_BLANKLESS_Code_0600 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode600 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0600 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode600 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0700
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0700
+     * @tc.name    : testArkWebBlanklessErrorCode700
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_BLANKLESS_Code_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebBlanklessErrorCode700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_BLANKLESS_Code_0700 start====");
+        console.info("====>testArkWebBlanklessErrorCode700 start====");
         let result: number = webCode.webBlanklessDeviceNotSupport();
-        console.info("====>SUB_OH_BLANKLESS_Code_0700 result====", result);
+        console.info("====>testArkWebBlanklessErrorCode700 result====", result);
         expect(result).assertEqual(TEST_ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_BLANKLESS_Code_0700 catch err: " + err);
+        console.error("====>testArkWebBlanklessErrorCode700 catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_WebAnyNativeAPI_100
-     * @tc.name    : SUB_OH_WebAnyNativeAPI_100
+     * @tc.name    : testArkWebNativeAnyNativeAPI
      * @tc.desc    : test ArkWeb_AnyNativeAPI Test size
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_WebAnyNativeAPI_100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeAnyNativeAPI', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_WebAnyNativeAPI_100 start====");
+        console.info("====>testArkWebNativeAnyNativeAPI start====");
         let result: number = webCode.webAnyNativeAPI();
-        console.info("====>SUB_OH_WebAnyNativeAPI_100 result====", result);
+        console.info("====>testArkWebNativeAnyNativeAPI result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_WebAnyNativeAPI_100 catch err: " + err);
+        console.error("====>testArkWebNativeAnyNativeAPI catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_100
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_100
+     * @tc.name    : testArkWebNativeCompent
      * @tc.desc    : test ARKWEB_NATIVE_COMPONENT
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeCompent', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_100 start====");
+        console.info("====>testArkWebNativeCompent start====");
         let result: number = webCode.webNativeComponent();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_100 result====", result);
+        console.info("====>testArkWebNativeCompent result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_100 catch err: " + err);
+        console.error("====>testArkWebNativeCompent catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_200
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_200
+     * @tc.name    : testArkWebNativeController
      * @tc.desc    : test ARKWEB_NATIVE_CONTROLLER
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeController', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_200 start====");
+        console.info("====>testArkWebNativeController start====");
         let result: number = webCode.webNativeController();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_200 result====", result);
+        console.info("====>testArkWebNativeController result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_200 catch err: " + err);
+        console.error("====>testArkWebNativeController catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_300
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_300
+     * @tc.name    : testArkWebNativeWebMessagePort
      * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE_PORT
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeWebMessagePort', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_300 start====");
+        console.info("====>testArkWebNativeWebMessagePort start====");
         let result: number = webCode.webNativeWebMessagePort();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_300 result====", result);
+        console.info("====>testArkWebNativeWebMessagePort result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_300 catch err: " + err);
+        console.error("====>testArkWebNativeWebMessagePort catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_400
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_400
+     * @tc.name    : testArkWebNativeWebMessage
      * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeWebMessage', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_400 start====");
+        console.info("====>testArkWebNativeWebMessage start====");
         let result: number = webCode.webNativeWebMessage();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_400 result====", result);
+        console.info("====>testArkWebNativeWebMessage result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_400 catch err: " + err);
+        console.error("====>testArkWebNativeWebMessage catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_500
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_500
-     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
+     * @tc.name    : testArkWebNativeCookieManger
+     * @tc.desc    : test ARKWEB_NATIVE_COOKIE_MANAGER
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeCookieManger', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_500 start====");
+        console.info("====>testArkWebNativeCookieManger start====");
         let result: number = webCode.webNativeCookieManger();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_500 result====", result);
+        console.info("====>testArkWebNativeCookieManger result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_500 catch err: " + err);
+        console.error("====>testArkWebNativeCookieManger catch err: " + err);
       }
     })
 
     /**
      * @tc.number  : SUB_OH_NATIVE_APIVariantKind_600
-     * @tc.name    : SUB_OH_NATIVE_APIVariantKind_600
-     * @tc.desc    : test ARKWEB_NATIVE_WEB_MESSAGE
+     * @tc.name    : testArkWebNativeJavascriptValue
+     * @tc.desc    : test ARKWEB_NATIVE_JAVASCRIPT_VALUE
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_NATIVE_APIVariantKind_600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testArkWebNativeJavascriptValue', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_600 start====");
+        console.info("====>testArkWebNativeJavascriptValue start====");
         let result: number = webCode.webNativeJavaScriptValue();
-        console.info("====>SUB_OH_NATIVE_APIVariantKind_600 result====", result);
+        console.info("====>testArkWebNativeJavascriptValue result====", result);
         expect(result).assertEqual(0);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_NATIVE_APIVariantKind_600 catch err: " + err);
+        console.error("====>testArkWebNativeJavascriptValue catch err: " + err);
       }
     })
   })

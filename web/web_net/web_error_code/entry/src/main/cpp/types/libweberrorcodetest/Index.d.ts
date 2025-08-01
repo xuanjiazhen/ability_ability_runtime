@@ -37,6 +37,7 @@ export const webNativeWebMessagePort: () => number;
 export const webNativeWebMessage: () => number;
 export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
+export const webNetErrorDidFailWithError: (errName: string) => number;
 
 
 
