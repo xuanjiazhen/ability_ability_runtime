@@ -13,7 +13,7 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-group("appbuild") {
+ohos_xts_group("appbuild") {
   testonly = true
   if (is_standard_system) {
     deps = [ "cmake_test:cmake_test" ]
