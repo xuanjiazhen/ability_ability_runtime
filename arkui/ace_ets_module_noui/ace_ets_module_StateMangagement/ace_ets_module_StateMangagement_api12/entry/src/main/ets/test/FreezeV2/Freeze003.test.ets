@@ -88,7 +88,7 @@ export default function FreezeV2Child() {
         }
       }
       observer1.once('toastShow', callback1)
-
+      await CommonFunc.sleep(3000)
       console.info('FreezeV2Child_01 END');
       done()
     })
