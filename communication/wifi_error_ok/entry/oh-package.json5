@@ -14,9 +14,7 @@
  */
 {
   "license": "",
-  "devDependencies": {
-    "@types/libwifindk.so": "file:./src/main/cpp/types/libwifindk"
-  },
+  "devDependencies": {},
   "author": "",
   "name": "entry",
   "description": "Please describe the basic information.",
