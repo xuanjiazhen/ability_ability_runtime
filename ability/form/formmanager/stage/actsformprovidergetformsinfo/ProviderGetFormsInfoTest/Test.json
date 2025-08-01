@@ -13,7 +13,8 @@
       "test-file-name": [
         "ActsFormProviderGetFormsInfoTest.hap",
         "ActsFormProviderGetFormsInfoModule1.hap",
-        "ActsFormProviderGetFormsInfoModule2.hap"
+        "ActsFormProviderGetFormsInfoModule2.hap",
+        "StageFormSystemHost.hap"
       ],
       "type": "AppInstallKit",
       "cleanup-apps": true
