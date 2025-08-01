@@ -23,7 +23,8 @@
             "type": "ShellKit",
             "run-command": [
                 "power-shell wakeup",
-                "power-shell setmode 602"
+                "power-shell setmode 602",
+                "param set persist.sys.abilityms.support.ecologicalrulemgrservice false"
             ]
         }
     ]
