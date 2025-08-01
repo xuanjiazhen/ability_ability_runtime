@@ -204,5 +204,87 @@ export default function formProviderTest() {
       }
       hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} end`);
     })
+
+    /**
+     * @tc.number: Test_Form_Provider_0730
+     * @tc.name: promise form getPublishedRunningFormInfos system interface interception test
+     * @tc.desc:  Query the cards that the application has loaded on the desktop
+     * @tc.level   3
+     */
+    it('Test_Form_Provider_0730', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+      let TAG:string = 'Test_Form_Provider_0730';
+      hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} start`);
+      formProvider.getPublishedRunningFormInfos().then((data: formInfo.RunningFormInfo[]) => {
+        hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
+        `${TAG} formProvider getPublishedRunningFormInfos success, data: ${JSON.stringify(data)}`);
+        expect(data.length).assertEqual(1);
+        done();
+      }).catch((error: BusinessError) => {
+        if (error.code === ERROR_CODE) {
+          expect(error.code).assertEqual(ERROR_CODE);
+        } else if (error.code === ERROR_CODE2) {
+          expect(error.code).assertEqual(ERROR_CODE2);
+        } else if (error.code === ERROR_CODE3) {
+          expect(error.code).assertEqual(ERROR_CODE3);
+        } else {
+          hilog.info(DOMAIN, COMMON_TAG, '%{public}s',
+          `${TAG} formProvider getPublishedRunningFormInfos error: ${JSON.stringify(error)}`);
+          expect().assertFail();
+        }
+        done();
+      });
+      hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} end`);
+    })
+
+    /**
+     * @tc.number: Test_Form_Provider_0731
+     * @tc.name: promise form getPublishedRunningFormInfoById system interface interception test
+     * @tc.desc:  Query the cards that the application has loaded on the desktop by formId
+     * @tc.level   3
+     */
+    it('Test_Form_Provider_0731', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let TAG: string = 'Test_Form_Provider_0731';
+      hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} start`);
+      let formId: string = '0';
+      await formProvider.getPublishedRunningFormInfos().then((data: formInfo.RunningFormInfo[]) => {
+        hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
+        `${TAG} formProvider getPublishedRunningFormInfos success, data: ${JSON.stringify(data)}`);
+        if (data) {
+          formId = JSON.parse(JSON.stringify(data[0])).formId;
+        }
+      }).catch ((error: BusinessError) => {
+        if (error.code === ERROR_CODE) {
+          expect(error.code).assertEqual(ERROR_CODE);
+        } else if (error.code === ERROR_CODE2) {
+          expect(error.code).assertEqual(ERROR_CODE2);
+        } else if (error.code === ERROR_CODE3) {
+          expect(error.code).assertEqual(ERROR_CODE3);
+        } else {
+          hilog.info(DOMAIN, COMMON_TAG, '%{public}s',
+          `${TAG} formProvider getPublishedRunningFormInfos error: ${JSON.stringify(error)}`);
+          expect().assertFail();
+        }
+      });
+      hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} formId: ${formId}`);
+      formProvider.getPublishedRunningFormInfoById(formId).then((data: formInfo.RunningFormInfo) => {
+        hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
+        `${TAG} formProvider getPublishedRunningFormInfoById success, data: ${JSON.stringify(data)}`);
+        done();
+      }).catch ((error: BusinessError) => {
+        if (error.code === ERROR_CODE) {
+          expect(error.code).assertEqual(ERROR_CODE);
+        } else if (error.code === ERROR_CODE2) {
+          expect(error.code).assertEqual(ERROR_CODE2);
+        } else if (error.code === ERROR_CODE3) {
+          expect(error.code).assertEqual(ERROR_CODE3);
+        } else {
+          hilog.info(DOMAIN, COMMON_TAG, '%{public}s',
+          `${TAG} formProvider getPublishedRunningFormInfoById error: ${JSON.stringify(error)}`);
+          expect().assertFail();
+        }
+        done();
+      });
+      hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} end`);
+    });
   })
 }
