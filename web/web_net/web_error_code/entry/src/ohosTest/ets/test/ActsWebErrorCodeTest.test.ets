@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import webCode from 'libweberrorcodetest.so'
+import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
 
 const TEST_ARKWEB_SUCCESS = 0;
 const TEST_ARKWEB_INIT_ERROR = 17100001;
