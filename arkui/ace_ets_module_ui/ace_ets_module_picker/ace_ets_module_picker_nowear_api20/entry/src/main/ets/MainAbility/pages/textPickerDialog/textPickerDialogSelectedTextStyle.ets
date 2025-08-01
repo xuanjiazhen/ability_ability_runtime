@@ -44,7 +44,7 @@ struct TextPickerDialogSelectedTextStyle {
 
       Button('minFontSize:28 maxFontSize:28')
         .onClick(() => {
-          this.showDialog(28, 18)
+          this.showDialog(28, 28)
         })
         .id('btn3')
 

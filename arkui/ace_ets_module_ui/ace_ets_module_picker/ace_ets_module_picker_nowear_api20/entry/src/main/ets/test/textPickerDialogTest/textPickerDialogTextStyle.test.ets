@@ -29,7 +29,7 @@ export default function textPickerDialogTextStyleTest() {
         router.clear();
         let pages = router.getState();
         console.info('get textPickerDialogTextStyleTest state pages:' + JSON.stringify(pages));
-        if (!('TextPickerDialogTextStyle' === pages.name)) {
+        if (!('textPickerDialogTextStyle' === pages.name)) {
           console.info('get textPickerDialogTextStyleTest pages.name:' + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
           await CommonFunc.sleep(2500);
