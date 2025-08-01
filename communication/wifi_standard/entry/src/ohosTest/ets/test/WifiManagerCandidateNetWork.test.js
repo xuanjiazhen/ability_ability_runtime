@@ -73,10 +73,37 @@ async function clickRequestPermission() {
     }
 }
 
+async function scrollSearchLocation() {
+    try {
+        console.info('[wifi_js] scrollSearchLocation start');
+        let driver = Driver.create();
+        await driver.delayMs(2000);
+        let scrollBar = await driver.findComponent(ON.type('Scroll'));
+        let button = await scrollBar.scrollSearch(ON.type('Toggle'));
+        if (button != null) {
+            if (await button.isChecked()) {
+                console.info('[wifi_js] ohos.permission.LOCATION is open');
+                return;
+            } else {
+                await button.click();
+                await driver.delayMs(2000);
+                console.info('[wifi_js] scrollSearchLocation end');
+            }
+        } else {
+            console.info('[wifi_js] scrollSearch not find');
+            return;
+        }
+        
+    } catch (err) {
+        console.info('[wifi_js] scrollSearchLocation failed');
+    }
+}
+
 export default function actsWifiManagerCandidateNetWorkTest() {
     describe('actsWifiManagerCandidateNetWorkTest', function () {
         beforeAll(async function (done) {
             console.info('beforeAll case');
+            await scrollSearchLocation();
             await clickRequestPermission();
             done();
         })
