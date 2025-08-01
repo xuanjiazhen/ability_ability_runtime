@@ -7270,30 +7270,6 @@ static napi_value AudioCaptureGetFastStatus_002(napi_env env, napi_callback_info
     OH_AudioStream_FastStatus fastStatus;
     OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateCapturer(builder, &audioCapturer);
 
-    OH_AudioCapturer_Release(audioCapturer);
-    res = OH_AudioCapturer_GetFastStatus(audioCapturer, &fastStatus);
-    if (res != AUDIOSTREAM_ERROR_ILLEGAL_STATE) {
-        LOG("OH_AudioCapturer_GetFastStatus FAILED, res is %{public}d", res);
-        OH_AudioCapturer_Release(audioCapturer);
-        OH_AudioStreamBuilder_Destroy(builder);
-        napi_create_int32(env, TEST_FAIL, &result);
-        return result;
-    }
-
-    OH_AudioCapturer_Release(audioCapturer);
-    OH_AudioStreamBuilder_Destroy(builder);
-    napi_create_int32(env, TEST_PASS, &result);
-    return result;
-}
-
-static napi_value AudioCaptureGetFastStatus_003(napi_env env, napi_callback_info info)
-{
-    OH_AudioStreamBuilder *builder = CreateCapturerBuilder();
-    napi_value result;
-    OH_AudioCapturer *audioCapturer;
-    OH_AudioStream_FastStatus fastStatus;
-    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateCapturer(builder, &audioCapturer);
-
     res = OH_AudioCapturer_GetFastStatus(audioCapturer, &fastStatus);
     if (res != AUDIOSTREAM_SUCCESS) {
         LOG("OH_AudioCapturer_GetFastStatus FAILED, res is %{public}d", res);
@@ -7328,30 +7304,6 @@ static napi_value AudioRendererGetFastStatus_001(napi_env env, napi_callback_inf
 }
 
 static napi_value AudioRendererGetFastStatus_002(napi_env env, napi_callback_info info)
-{
-    OH_AudioStreamBuilder *builder = CreateRenderBuilder();
-    napi_value result;
-    OH_AudioRenderer *audioRenderer;
-    OH_AudioStream_FastStatus fastStatus;
-    OH_AudioStream_Result res = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
-
-    OH_AudioRenderer_Release(audioRenderer);
-    res = OH_AudioRenderer_GetFastStatus(audioRenderer, &fastStatus);
-    if (res != AUDIOSTREAM_ERROR_ILLEGAL_STATE) {
-        LOG("OH_AudioRenderer_GetFastStatus FAILED, res is %{public}d", res);
-        OH_AudioRenderer_Release(audioRenderer);
-        OH_AudioStreamBuilder_Destroy(builder);
-        napi_create_int32(env, TEST_FAIL, &result);
-        return result;
-    }
-
-    OH_AudioRenderer_Release(audioRenderer);
-    OH_AudioStreamBuilder_Destroy(builder);
-    napi_create_int32(env, TEST_PASS, &result);
-    return result;
-}
-
-static napi_value AudioRendererGetFastStatus_003(napi_env env, napi_callback_info info)
 {
     OH_AudioStreamBuilder *builder = CreateRenderBuilder();
     napi_value result;
@@ -8009,13 +7961,9 @@ napi_property_descriptor desc3[] = {
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureGetFastStatus_002", nullptr, AudioCaptureGetFastStatus_002,
         nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"audioCaptureGetFastStatus_003", nullptr, AudioCaptureGetFastStatus_003,
-        nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioRendererGetFastStatus_001", nullptr, AudioRendererGetFastStatus_001,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioRendererGetFastStatus_002", nullptr, AudioRendererGetFastStatus_002,
-        nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"audioRendererGetFastStatus_003", nullptr, AudioRendererGetFastStatus_003,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioStreamManagerIsFastPlaybackSupported_001", nullptr, AudioStreamManagerIsFastPlaybackSupported_001,
         nullptr, nullptr, nullptr, napi_default, nullptr},
