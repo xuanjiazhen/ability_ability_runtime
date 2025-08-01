@@ -22,6 +22,7 @@ import { Callback } from '@ohos.base';
 import common from '@ohos.app.ability.common';
 import { StartOptions } from '@kit.AbilityKit';
 import window from "@ohos.window";
+import { settings } from "@kit.BasicServicesKit";
 
 let sleep = (sleepMs: number) => new Promise<string>(resolve => setTimeout(resolve, sleepMs));
 async function startAbility(caseName: string, context: common.UIAbilityContext, options?: StartOptions) {
@@ -60,11 +61,22 @@ async function terminateAbility(caseName: string) {
 export default function windowPromiseTest(context: common.UIAbilityContext) {
   describe('windowPermissionCheck_test', () => {
     console.log('describe windowPermissionCheck_test start!!!')
-    let windowStage: ohosWindow.WindowStage;
-
+    let sleep = (sleepMs: number) => new Promise<string>(resolve => setTimeout(resolve, sleepMs));
+    let context: common.UIAbilityContext;
+    let windowStage: window.WindowStage;
+    let isAutoWindow: string = '';
+    let isPCStatus: string = '';
+    // Defines a test suite. Two parameters are supported: test suite name and test suite function.
     beforeAll(() => {
-      windowStage = AppStorage.get('windowStage') as ohosWindow.WindowStage;
-    })
+      context = AppStorage.get('context') as common.UIAbilityContext;
+      console.log('windowTest context: ' + JSON.stringify(context));
+      windowStage = AppStorage.get('windowStage') as window.WindowStage;  
+      isAutoWindow = settings.getValueSync(context, 'window_pcmode_switch_status', '',settings.domainName.USER_PROPERTY);
+      console.info(`isAutoWindow: ${JSON.stringify(isAutoWindow)}`);
+      isPCStatus = settings.getValueSync(context, 'isStatusBarExist', '', settings.domainName.USER_PROPERTY)
+      console.info(`beforeAll isPCStatus: `+ isPCStatus);
+    });
+
     /**
      * @tc.number    : SUB_BASIC_WMS_SPCIAL_XTS_PERMISSION_JS_API_0010
      * @tc.name      : testCreateFloatWindowPermission_Promise
@@ -291,6 +303,36 @@ export default function windowPromiseTest(context: common.UIAbilityContext) {
         done();
       }
     })
+    
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SETWINDOWCONTAINERCOLOR_0700
+     * @tc.name      : testMainwindowSetWindowContainerColorNoPermissonCorrectParam
+     * @tc.desc      : testMainwindowSetWindowContainerColorNoPermissonCorrectParam
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('testMainwindowSetWindowContainerColorNoPermissonCorrectParam', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName: string = 'testMainwindowSetWindowContainerColorNoPermissonCorrectParam ';
+      console.log(caseName + 'begin');
+      let windowStageStart = await startAbility(caseName, context);
+      try {
+        let windowClass = windowStageStart.getMainWindowSync();
+        windowClass.setWindowContainerColor("#0099FF","#CCCCCC");
+        await terminateAbility(caseName);
+        expect().assertFail()
+        done();
+      } catch (err) {
+        console.error(caseName + 'Failed. Cause: ' + JSON.stringify(err));
+        await terminateAbility(caseName);
+        if (isPCStatus == '') {
+          expect(err.code).assertEqual(801);
+        } else {
+          expect(err.code).assertEqual(201);
+        }
+        done()
+      }
+    });
 
   })
 }
