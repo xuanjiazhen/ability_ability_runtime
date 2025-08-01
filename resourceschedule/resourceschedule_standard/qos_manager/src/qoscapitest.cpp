@@ -181,3 +181,134 @@ HWTEST_F(QoSTestSuite, ThreadQoSNdkTest, Function | MediumTest | Level1)
     ret = OH_QoS_ResetThreadQoS();
     EXPECT_EQ(ret, -1);
 }
+
+/*
+ * @tc.number:SUB_RESOURCESCHEDULE_QOS_0100
+ * @tc.name: GewuCreateSessionTest
+ * @tc.desc: Verify the GewuCreateSession function
+ * @tc.size: MediumTest
+ * @tc.type: Function
+ * @tc.level: Level 1
+ */
+HWTEST_F(QoSTestSuite, GewuCreateSessionTest, Function | MediumTest | Level1)
+{
+    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    OH_QoS_GewuCreateSessionResult ret = OH_QoS_GewuCreateSession(attributes);
+    if (ret.error == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
+    {
+        GTEST_SKIP() << "Not support system, skip testCase";
+    }
+    else
+    {
+        EXPECT_EQ(ret.error, OH_QoS_GewuErrorCode::OH_QOS_GEWU_OK);
+
+        OH_QoS_GewuDestroySession(ret.session);
+
+        ret = OH_QoS_GewuCreateSession("");
+        EXPECT_EQ(ret.error, OH_QoS_GewuErrorCode::OH_QOS_GEWU_INVAL);
+    }
+}
+
+void MockCallback(void *context, const char *response)
+{
+    printf("Mock callback called. Response: %s\n", response);
+}
+
+/*
+ * @tc.number:SUB_RESOURCESCHEDULE_QOS_0200
+ * @tc.name: GewuSubmitRequestTest
+ * @tc.desc: Verify the GewuSubmitRequest function
+ * @tc.size: MediumTest
+ * @tc.type: Function
+ * @tc.level: Level 1
+ */
+HWTEST_F(QoSTestSuite, GewuSubmitRequestTest, Function | MediumTest | Level1)
+{
+    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
+    const char *request = "{\
+        \"type\": \"ChatComplete\",\
+        \"messages\": [\
+            {\
+                \"role\": \"developer\",\
+                \"content\": \"Your are a helpful assistant.\"\
+            },\
+            {\
+                \"role\": \"user\",\
+                \"content\": \"What is OpenHarmony\"\
+            }\
+        ],\
+        \"stream\": true\
+    }";
+    void *fakeContext = reinterpret_cast<void *>(0x1234);
+    OH_QoS_GewuOnResponse cb = MockCallback;
+    OH_QoS_GewuSubmitRequestResult ret = OH_QoS_GewuSubmitRequest(sessionResult.session, request, cb, fakeContext);
+    if (ret.error == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
+    {
+        GTEST_SKIP() << "Not support system, skip testCase";
+    }
+    else
+    {
+        EXPECT_EQ(ret.error, OH_QoS_GewuErrorCode::OH_QOS_GEWU_OK);
+
+        OH_QoS_GewuDestroySession(sessionResult.session);
+
+        ret = OH_QoS_GewuSubmitRequest(0, "", cb, fakeContext);
+        EXPECT_EQ(ret.error, OH_QoS_GewuErrorCode::OH_QOS_GEWU_INVAL);
+    }
+}
+
+/*
+ * @tc.number:SUB_RESOURCESCHEDULE_QOS_0300
+ * @tc.name: GewuAbortRequestTest
+ * @tc.desc: Verify the GewuAbortRequest function
+ * @tc.size: MediumTest
+ * @tc.type: Function
+ * @tc.level: Level 1
+ */
+HWTEST_F(QoSTestSuite, GewuAbortRequestTest, Function | MediumTest | Level1)
+{
+    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
+    OH_QoS_GewuErrorCode ret = OH_QoS_GewuAbortRequest(sessionResult.session, 0);
+    if (ret == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
+    {
+        GTEST_SKIP() << "Not support system, skip testCase";
+    }
+    else
+    {
+        EXPECT_EQ(ret, OH_QoS_GewuErrorCode::OH_QOS_GEWU_OK);
+
+        OH_QoS_GewuDestroySession(sessionResult.session);
+
+        ret = OH_QoS_GewuAbortRequest(0, 0);
+        EXPECT_EQ(ret, OH_QoS_GewuErrorCode::OH_QOS_GEWU_INVAL);
+    }
+}
+
+/*
+ * @tc.number:SUB_RESOURCESCHEDULE_QOS_0400
+ * @tc.name: GewuDestroySessionTest
+ * @tc.desc: Verify the GewuDestroySession function
+ * @tc.size: MediumTest
+ * @tc.type: Function
+ * @tc.level: Level 1
+ */
+HWTEST_F(QoSTestSuite, GewuDestroySessionTest, Function | MediumTest | Level1)
+{
+    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
+    OH_QoS_GewuErrorCode ret = OH_QoS_GewuDestroySession(sessionResult.session);
+    if (ret == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
+    {
+        GTEST_SKIP() << "Not support system, skip testCase";
+    }
+    else
+    {
+        EXPECT_EQ(ret, OH_QoS_GewuErrorCode::OH_QOS_GEWU_OK);
+
+        ret = OH_QoS_GewuDestroySession(0);
+        EXPECT_EQ(ret, OH_QoS_GewuErrorCode::OH_QOS_GEWU_INVAL);
+    }
+}
+

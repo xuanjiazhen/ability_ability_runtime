@@ -9,7 +9,16 @@
     },
     "kits": [
         {
+            "post-push": [
+                "chmod -R 777 /data/local/tmp/*"
+            ],
+            "pre-push": [
+                "mount -o rw,remount /",
+                "mkdir -p /data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4/",
+                "mkdir -p /data/local/tmp/"
+            ],
             "push": [
+                "./resource/qos/model/Qwen2.5-0.5B-CPU-Q4->/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4",
                 "ActsQoSCAPITest->/data/local/tmp/ActsQoSCAPITest"
             ],
             "type": "PushKit"
