@@ -18,7 +18,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from "@ohos/hypium"
 
 const BUNDLE_NAME = "ohos.acts.bundle.stage.test";
-const VENDOR = "huawei";
+const VENDOR = "example";
 const MODULE_NAME = "testModule";
 const SOURCE_DIR = "/data/app/el1/bundle/public/ohos.acts.bundle.stage.test/testModule";
 const ABILITY_NAME = "ohos.acts.bundle.stage.test.MainAbility";
