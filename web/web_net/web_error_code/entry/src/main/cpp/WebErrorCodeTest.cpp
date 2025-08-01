@@ -54,7 +54,7 @@ static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
     const char *historyUrl = "www";
     int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
     if (ret == ArkWeb_ErrorCode::ARKWEB_SUCCESS) {
-        napi_create_int32(env, ret, &result);    
+        napi_create_int32(env, ret, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess end..");

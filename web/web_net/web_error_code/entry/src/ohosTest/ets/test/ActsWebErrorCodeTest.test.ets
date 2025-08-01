@@ -240,7 +240,7 @@ export default function ActsWebErrorCodeTest() {
 
     /**
      * @tc.number  : SUB_OH_BLANKLESS_Code_0100
-     * @tc.name    : SUB_OH_BLANKLESS_Code_0100
+     * @tc.name    : testArkWebBlanklessErrorCode100
      * @tc.desc    : test OH_Web_Error_Code Test ARKWEB_BLANKLESS_SUCCESS
      * @tc.level   : Level1
      * @tc.size    : MediumTest

@@ -20,6 +20,8 @@
 #include "web/arkweb_scheme_handler.h"
 #include <hilog/log.h>
 
+static const int ERROR_NAME_SIZE = 200;
+
 static ArkWeb_NetError GetNetErrorByName(const char* name)
 {
     std::map<const char *, ArkWeb_NetError> netErrorMap = {
@@ -35,7 +37,7 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
         {"ARKWEB_ERR_NOT_IMPLEMENTED", ArkWeb_NetError::ARKWEB_ERR_NOT_IMPLEMENTED},
         {"ARKWEB_ERR_INSUFFICIENT_RESOURCES", ArkWeb_NetError::ARKWEB_ERR_INSUFFICIENT_RESOURCES},
         {"ARKWEB_ERR_OUT_OF_MEMORY", ArkWeb_NetError::ARKWEB_ERR_OUT_OF_MEMORY},
-        {"ARKWEB_ERR_UPLOAD_FILE_CHANGED", ArkWeb_NetError::ARKWEB_ERR_UPLOAD_FILE_CHANGED},        
+        {"ARKWEB_ERR_UPLOAD_FILE_CHANGED", ArkWeb_NetError::ARKWEB_ERR_UPLOAD_FILE_CHANGED},
     };
 
     auto it = netErrorMap.find(name);
@@ -52,8 +54,8 @@ napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
     napi_value args[1] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     size_t netErrorSize = 0;
-    char netErrorName [200] = "";
-    napi_get_value_string_utf8(env, args[0], netErrorName, 200, &netErrorSize);
+    char netErrorName [ERROR_NAME_SIZE] = "";
+    napi_get_value_string_utf8(env, args[0], netErrorName, ERROR_NAME_SIZE, &netErrorSize);
     
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
     ArkWeb_ResourceHandler* resourceHandler = nullptr;
