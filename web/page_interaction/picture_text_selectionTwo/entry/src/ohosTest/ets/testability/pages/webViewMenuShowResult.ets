@@ -124,17 +124,14 @@ struct WebViewMenuShowResult {
                 console.error(`Failed to request permissions from user. Code is ${error.code}, message is ${error.message}`);
               })
               await Utils.sleep(4000)
-              if (!(this.userAgentPC).includes("PC")) {
-                let buttontwo = await driver.findComponent(ON.text('仅本次允许'));
-                if(buttontwo) {
-                  await buttontwo.click();
-                } else {
-                  let buttontwo = await driver.findComponent(ON.text('始终允许'));
-                  await buttontwo.click();
-                }
+              let buttontwo = await driver.findComponent(ON.text('仅本次允许'));
+              let buttonThree = await driver.findComponent(ON.text('始终允许'));
+              if (buttontwo) {
+                await buttontwo.click();
+              } else if(buttonThree) {
+                await buttonThree.click();
               }
               await Utils.sleep(4000)
-              
               this.menuShowState = 'SelectAll'
               if ((this.userAgentPC).includes("PC")) {
                 this.controller.loadUrl("resource://rawfile/MenuTestPastePC.html")
