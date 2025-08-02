@@ -28,6 +28,7 @@ import bindControllerSwiper from './FrameNodeTest/bindControllerSwiper.test';
 import bindControllerWaterFlow from './FrameNodeTest/bindControllerWaterFlow.test';
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
 import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
+import DarkColorsTest from './ThemeTest/DarkColorsTest.test';
 
 export default function testsuite() {
   IsAvailableTest();
@@ -46,4 +47,5 @@ export default function testsuite() {
   bindControllerWaterFlow();
   DarkModeTest();
   EnableProvideConsumeCrossingTest();
+  DarkColorsTest();
 }
