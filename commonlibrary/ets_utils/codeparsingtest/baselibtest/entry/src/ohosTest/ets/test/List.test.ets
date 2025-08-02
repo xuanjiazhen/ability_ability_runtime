@@ -28,7 +28,7 @@ import hashMapTest from './hashmap/HashMap.test';
 import arkListTest from './arklist/ArkList.test';
 import arrayListTest from './arraylist/ArrayList.test';
 import xmlTest from './xml/Xml.test';
-import DynamicXmlTest from './xml/DynamicXml.test';
+import dynamicXmlTest from './xml/DynamicXml';
 import convertXmlTest from './convertxml/ConvertXml.test';
 import queueTest from './queue/Queue.test';
 import stackTest from './stack/Stack.test';
@@ -59,7 +59,7 @@ export default function testsuite() {
   arkListTest()
   arrayListTest()
   xmlTest()
-  DynamicXmlTest()
+  dynamicXmlTest()
   convertXmlTest()
   queueTest()
   stackTest()
