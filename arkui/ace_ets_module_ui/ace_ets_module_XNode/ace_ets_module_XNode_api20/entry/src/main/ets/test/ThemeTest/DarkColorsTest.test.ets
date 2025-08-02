@@ -22,7 +22,7 @@ export default function DarkColorsTest() {
     beforeEach(async (done: Function) => {
       console.info("DarkColorsTest beforeEach start");
       let options: router.RouterOptions = {
-        url: 'MainAbility/pages/ThemeTest/DarkColorsTest',
+        url: 'MainAbility/pages/Theme/DarkColorsTest',
       }
       try {
         router.clear();
