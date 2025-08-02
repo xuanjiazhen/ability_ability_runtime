@@ -17,6 +17,7 @@ group("storage") {
   if (is_standard_system) {
     deps = [
       "backupextensiontest:backupextension_js_test",
+      "backupextensionteststatic:backupextension_js_test_static",
       "storagebackupextensionjstest:storagebackupextension_js_test",
       "storagedownloadcloudsyncjstest:storagedownloadcloudsync_js_test",
       "storageenvironmentjstest:storageenvironment_js_test",
