@@ -26,6 +26,7 @@ import bindControllerGrid from './FrameNodeTest/bindControllerGrid.test';
 import bindControllerList from './FrameNodeTest/bindControllerList.test';
 import bindControllerSwiper from './FrameNodeTest/bindControllerSwiper.test';
 import bindControllerWaterFlow from './FrameNodeTest/bindControllerWaterFlow.test';
+import GetGlobalPositionOnDisplayTest from './FrameNodeTest/GetGlobalPositionOnDisplayTest.test';
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
 import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
 
@@ -44,6 +45,7 @@ export default function testsuite() {
   bindControllerList();
   bindControllerSwiper();
   bindControllerWaterFlow();
+  GetGlobalPositionOnDisplayTest();
   DarkModeTest();
   EnableProvideConsumeCrossingTest();
 }

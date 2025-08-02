@@ -14,6 +14,7 @@
         "MainAbility/pages/FrameNode/bindControllerList",
         "MainAbility/pages/FrameNode/bindControllerSwiper",
         "MainAbility/pages/FrameNode/bindControllerWaterFlow",
+        "MainAbility/pages/FrameNode/GetGlobalPositionOnDisplayTest",
         "MainAbility/pages/UIAppearance/DarkModeTest",
         "MainAbility/pages/Context/IsDisposedTest",
         "MainAbility/pages/BuilderNode/EnableProvideConsumeCrossingTest"
