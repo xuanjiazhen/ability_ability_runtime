@@ -18,7 +18,7 @@ import { LengthMetrics } from '@kit.ArkUI';
 @Entry
 @Component
 struct BackgroundIgnoresLayoutSafeAreaEdges {
-  @State LayoutSafeAreaEdge : LayoutSafeAreaEdge|null|undefined = LayoutSafeAreaEdge.TOP
+  @State layoutSafeArea : LayoutSafeAreaEdge|null|undefined = LayoutSafeAreaEdge.TOP
   @State str : string = '0'
   @Builder
   build() {
@@ -31,7 +31,7 @@ struct BackgroundIgnoresLayoutSafeAreaEdges {
           .border({ width: 1, color: Color.Red })
           .background(
             Color.Red,
-            { align: Alignment.Center , ignoresLayoutSafeAreaEdges: [ this.LayoutSafeAreaEdge ] }
+            { align: Alignment.Center , ignoresLayoutSafeAreaEdges: [ this.layoutSafeArea ] }
           )
       }
       .id('StackLayoutSafeAreaEdge')
@@ -41,42 +41,42 @@ struct BackgroundIgnoresLayoutSafeAreaEdges {
       .safeAreaPadding(LengthMetrics.vp(50))
       Row({space:5}){
         Button('null').onClick(() => {
-           this.LayoutSafeAreaEdge = null
+           this.layoutSafeArea = null
           }).width(55).height(25).id('LayoutSafeAreaEdgeNUll')
         Button('undefined').onClick(() => {
-          this.LayoutSafeAreaEdge = undefined
+          this.layoutSafeArea = undefined
         }).width(80).height(25).id('LayoutSafeAreaEdgeUndefined')
         Button('TOP').onClick(() => {
-          this.LayoutSafeAreaEdge = LayoutSafeAreaEdge.TOP
-          this.str = LayoutSafeAreaEdge.TOP.toString()//0
+          this.layoutSafeArea = LayoutSafeAreaEdge.TOP
+          this.str = LayoutSafeAreaEdge.TOP.toString()
         }).width(55).height(25).id('LayoutSafeAreaEdgeTop')
       }
       Row({space:5}){
         Button('START').onClick(() => {
-          this.LayoutSafeAreaEdge =  LayoutSafeAreaEdge.START
-          this.str = LayoutSafeAreaEdge.START.toString()//2
+          this.layoutSafeArea =  LayoutSafeAreaEdge.START
+          this.str = LayoutSafeAreaEdge.START.toString()
         }).width(60).height(25).id('LayoutSafeAreaEdgeStart')
         Button('BOTTOM').onClick(() => {
-          this.LayoutSafeAreaEdge = LayoutSafeAreaEdge.BOTTOM
-          this.str = LayoutSafeAreaEdge.BOTTOM.toString()//1
+          this.layoutSafeArea = LayoutSafeAreaEdge.BOTTOM
+          this.str = LayoutSafeAreaEdge.BOTTOM.toString()
         }).width(80).height(25).id('LayoutSafeAreaEdgeBottom')
         Button('END').onClick(() => {
-          this.LayoutSafeAreaEdge = LayoutSafeAreaEdge.END
-          this.str = LayoutSafeAreaEdge.END.toString()//3
+          this.layoutSafeArea = LayoutSafeAreaEdge.END
+          this.str = LayoutSafeAreaEdge.END.toString()
         }).width(55).height(25).id('LayoutSafeAreaEdgeEnd')
       }
       Row({space:1}){
         Button('VERTICAL').onClick(() => {
-          this.LayoutSafeAreaEdge =  LayoutSafeAreaEdge.VERTICAL
-          this.str = LayoutSafeAreaEdge.VERTICAL.toString()//4
+          this.layoutSafeArea =  LayoutSafeAreaEdge.VERTICAL
+          this.str = LayoutSafeAreaEdge.VERTICAL.toString()
         }).width(70).height(25).id('LayoutSafeAreaEdgeVertical')
         Button('HORIZONTAL').onClick(() => {
-          this.LayoutSafeAreaEdge = LayoutSafeAreaEdge.HORIZONTAL
-          this.str = LayoutSafeAreaEdge.HORIZONTAL.toString()//5
+          this.layoutSafeArea = LayoutSafeAreaEdge.HORIZONTAL
+          this.str = LayoutSafeAreaEdge.HORIZONTAL.toString()
         }).width(80).height(25).id('LayoutSafeAreaEdgeHorizontal')
         Button('ALL').onClick(() => {
-          this.LayoutSafeAreaEdge = LayoutSafeAreaEdge.ALL
-          this.str = LayoutSafeAreaEdge.ALL.toString()//6
+          this.layoutSafeArea = LayoutSafeAreaEdge.ALL
+          this.str = LayoutSafeAreaEdge.ALL.toString()
         }).width(50).height(25).id('LayoutSafeAreaEdgeAll')
         Text(this.str).width(10).height(25).id('BackgroundLayoutSafeAreaEdge')
       }
