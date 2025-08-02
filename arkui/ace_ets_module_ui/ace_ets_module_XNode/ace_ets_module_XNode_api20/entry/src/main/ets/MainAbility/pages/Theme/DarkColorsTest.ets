@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CustomColors, CustomDarkColors, CustomTheme } from "@ohos.arkui.theme"
+import { CustomColors, CustomDarkColors, CustomTheme } from '@ohos.arkui.theme'
 
 class AppColors implements CustomColors {
-  fontPrimary?: ResourceColor | undefined = '#FFCCBBFF'
+  public fontPrimary?: ResourceColor | undefined = '#FFCCBBFF'
 }
 class AppDarkColors implements CustomDarkColors {
-  fontPrimary?: ResourceColor | undefined = '#FFEEAAFF'
+  public fontPrimary?: ResourceColor | undefined = '#FFEEAAFF'
 }
 
 class AppTheme implements CustomTheme{
@@ -30,8 +30,7 @@ class AppTheme implements CustomTheme{
 @Component
 export struct FontPrimary {
   build() {
-    WithTheme({ theme: new AppTheme() , colorMode:ThemeColorMode.DARK})
-    {
+    WithTheme({ theme: new AppTheme() , colorMode:ThemeColorMode.DARK}) {
       Row() {
         Column() {
           Text('这是简单文本')
