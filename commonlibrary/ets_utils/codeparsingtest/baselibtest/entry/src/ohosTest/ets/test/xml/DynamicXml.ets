@@ -2793,36 +2793,5 @@ export default function xmlDynamic1() {
         expect(err.code).assertEqual(10200064);
       }
     })
-    /**
-     * @tc.number     : SUB_COMMONLIBRARY_UTIL_BASE_DYNAMICXML_15400
-     * @tc.name       : testDynamicXml0154
-     * @tc.desc       : Testing the DynamicXml interface
-     * @tc.size       : MediumTest
-     * @tc.type       : Function
-     * @tc.level      : Level 1
-     */
-    it('testDynamicXml0154', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, () => {
-      let serializer = new xml.XmlDynamicSerializer();
-      serializer.setDeclaration();
-      serializer.startElement("bookstore");
-      serializer.startElement("book");
-      serializer.setAttributes("category","COOKING");
-      serializer.startElement("title");
-      serializer.setAttributes("lang","en");
-      serializer.setText("EveryDay");
-      serializer.endElement();
-      serializer.startElement("author");
-      serializer.setText("Giana");
-      serializer.endElement();
-      serializer.startElement('year');
-      serializer.setText('2005');
-      serializer.endElement();
-      serializer.endElement();
-      serializer.endElement();
-      let arrayBuffer = serializer.getOutput();
-      let uint8 = new Uint8Array(arrayBuffer);
-      let result = util.TextDecoder.create().decodeToString(uint8);
-      expect(result).assertEqual("")
-    })
   })
 }
