@@ -676,6 +676,7 @@ EtsUIExtensionContext* EtsUIExtensionContext::GetEtsUIExtensionContext(ani_env *
     }
     etsContext = reinterpret_cast<EtsUIExtensionContext *>(etsContextLong);
     if (etsContext == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         TAG_LOGE(AAFwkTag::UI_EXT, "etsContext null");
         return nullptr;
     }

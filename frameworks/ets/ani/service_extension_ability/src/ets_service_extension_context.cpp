@@ -280,6 +280,10 @@ EtsServiceExtensionContext *EtsServiceExtensionContext::GetEtsAbilityContext(
         return nullptr;
     }
     auto weakContext = reinterpret_cast<EtsServiceExtensionContext *>(nativeContextLong);
+    if (weakContext == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        TAG_LOGE(AAFwkTag::UI_EXT, "weakContext null");
+    }
     return weakContext;
 }
 

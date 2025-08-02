@@ -72,16 +72,18 @@ export default class UIExtensionContentSession {
     this.nativeSetReceiveDataForResultCallback(callback);
   }
 
-  terminateSelf(callback:AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+  terminateSelf(callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.terminateSelfSync(myCall);
+      this.terminateSelfSync(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   terminateSelf(): Promise<void> {
-    let p = new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+    let p = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -89,22 +91,26 @@ export default class UIExtensionContentSession {
         }
       });
       taskpool.execute((): void => {
-        this.terminateSelfSync(myCall);
+        this.terminateSelfSync(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
     return p;
   }
 
   terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.terminateSelfWithResultSync(parameter, myCall);
+      this.terminateSelfWithResultSync(parameter, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
-    let p = new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+    let p = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -112,7 +118,9 @@ export default class UIExtensionContentSession {
         }
       });
       taskpool.execute((): void => {
-        this.terminateSelfWithResultSync(parameter, myCall);
+        this.terminateSelfWithResultSync(parameter, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
     return p;
@@ -129,7 +137,7 @@ export default class UIExtensionContentSession {
         callback(null, undefined);
       } else {
         callback(retError, undefined);
-      }      
+      }
     }, (err: Error): void => {
       callback(err as BusinessError, undefined);
     });

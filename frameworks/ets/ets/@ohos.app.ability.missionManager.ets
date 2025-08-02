@@ -23,16 +23,18 @@ export default namespace missionManager {
     callback: AsyncCallbackWrapper<MissionInfo>): void;
 
   export function clearAllMissions(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      missionManager.nativeClearAllMissions(myCall);
+      missionManager.nativeClearAllMissions(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   export function clearAllMissions(): Promise<void> {
     let p: Promise<void> =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError | null) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -40,31 +42,38 @@ export default namespace missionManager {
           }
         });
         taskpool.execute((): void => {
-          missionManager.nativeClearAllMissions(myCall);
+          missionManager.nativeClearAllMissions(asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
   export function getMissionInfo(deviceId: string, missionId: int, callback: AsyncCallback<MissionInfo>): void {
-    let myCall = new AsyncCallbackWrapper<MissionInfo>(callback);
+    let asyncCall = new AsyncCallbackWrapper<MissionInfo>(callback);
     taskpool.execute((): void => {
-      missionManager.nativeGetMissionInfo(deviceId, missionId, myCall);
+      missionManager.nativeGetMissionInfo(deviceId, missionId, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   export function getMissionInfo(deviceId: string, missionId: int): Promise<MissionInfo> {
     let p =
       new Promise<MissionInfo>((resolve: (data: MissionInfo) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<MissionInfo>((err: BusinessError | null, data: MissionInfo | undefined) => {
-          if (err == null || err.code == 0) {
-            resolve(data as MissionInfo);
-          } else {
-            reject(err);
-          }
-        });
+        let asyncCall =
+          new AsyncCallbackWrapper<MissionInfo>((err: BusinessError | null, data: MissionInfo | undefined) => {
+            if (err == null || err.code == 0) {
+              resolve(data as MissionInfo);
+            } else {
+              reject(err);
+            }
+          });
         taskpool.execute((): void => {
-          missionManager.nativeGetMissionInfo(deviceId, missionId, myCall);
+          missionManager.nativeGetMissionInfo(deviceId, missionId, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;

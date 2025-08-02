@@ -34,7 +34,7 @@ export default namespace application {
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
+        let asyncCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
           if (err == null || err.code == 0) {
             resolve(data as Context);
           } else {
@@ -42,7 +42,9 @@ export default namespace application {
           }
         });
         taskpool.execute((): void => {
-          application.nativeCreateModuleContext(context, "", moduleName, myCall);
+          application.nativeCreateModuleContext(context, "", moduleName, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
@@ -51,7 +53,7 @@ export default namespace application {
   export function createModuleContext(context: Context, bundleName: string, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
+        let asyncCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
           if (err == null || err.code == 0) {
             resolve(data as Context);
           } else {
@@ -59,7 +61,9 @@ export default namespace application {
           }
         });
         taskpool.execute((): void => {
-          application.nativeCreateModuleContext(context, bundleName, moduleName, myCall);
+          application.nativeCreateModuleContext(context, bundleName, moduleName, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
@@ -68,7 +72,7 @@ export default namespace application {
   export function createBundleContext(context: Context, bundleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
+        let asyncCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
           if (err == null || err.code == 0) {
             resolve(data as Context);
           } else {
@@ -76,17 +80,19 @@ export default namespace application {
           }
         });
         taskpool.execute((): void => {
-          application.nativeCreateBundleContext(context, bundleName, myCall);
+          application.nativeCreateBundleContext(context, bundleName, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
-    export function createPluginModuleContext(context: Context, pluginBundleName: string,
+  export function createPluginModuleContext(context: Context, pluginBundleName: string,
     pluginModuleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
+        let asyncCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
           if (err == null || err.code == 0) {
             resolve(data as Context);
           } else {
@@ -94,7 +100,9 @@ export default namespace application {
           }
         });
         taskpool.execute((): void => {
-          application.nativeCreatePluginModuleContext(context, pluginBundleName, pluginModuleName, myCall);
+          application.nativeCreatePluginModuleContext(context, pluginBundleName, pluginModuleName, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;

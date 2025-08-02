@@ -140,22 +140,26 @@ export default class UIAbilityContext extends Context {
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
   startAbility(want: Want, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbilitySync(want, myCall);
+      this.nativeStartAbilitySync(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbilitySync(want, options, myCall);
+      this.nativeStartAbilitySync(want, options, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startAbility(want: Want, options?: StartOptions): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -164,9 +168,9 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute((): void => {
         if (options == null) {
-          this.nativeStartAbilitySync(want, myCall);
+          this.nativeStartAbilitySync(want, asyncCall);
         } else {
-          this.nativeStartAbilitySync(want, options as StartOptions, myCall);
+          this.nativeStartAbilitySync(want, options as StartOptions, asyncCall);
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
@@ -175,23 +179,27 @@ export default class UIAbilityContext extends Context {
   }
 
   startAbilityForResult(want: Want, callback: AsyncCallback<AbilityResult, void>): void {
-    let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
+    let asyncCall = new AsyncCallbackWrapper<AbilityResult>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbilityForResult(want, myCall);
+      this.nativeStartAbilityForResult(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startAbilityForResult(want: Want, startOptions: StartOptions, callback: AsyncCallback<AbilityResult, void>): void {
-    let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
+    let asyncCall = new AsyncCallbackWrapper<AbilityResult>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbilityForResult(want, startOptions, myCall);
+      this.nativeStartAbilityForResult(want, startOptions, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startAbilityForResult(want: Want, startOptions?: StartOptions): Promise<AbilityResult> {
     return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void,
       reject: (err: BusinessError) => void): void => {
-      let myCall =
+      let asyncCall =
         new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
           if (err == null || err.code == 0) {
             resolve(data as AbilityResult);
@@ -201,9 +209,9 @@ export default class UIAbilityContext extends Context {
         });
       taskpool.execute((): void => {
         if (startOptions == null) {
-          this.nativeStartAbilityForResult(want, myCall);
+          this.nativeStartAbilityForResult(want, asyncCall);
         } else {
-          this.nativeStartAbilityForResult(want, startOptions as StartOptions, myCall);
+          this.nativeStartAbilityForResult(want, startOptions as StartOptions, asyncCall);
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
@@ -218,16 +226,18 @@ export default class UIAbilityContext extends Context {
   }
 
   terminateSelf(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeTerminateSelfSync(myCall);
+      this.nativeTerminateSelfSync(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   terminateSelf(): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -235,23 +245,27 @@ export default class UIAbilityContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativeTerminateSelfSync(myCall);
+          this.nativeTerminateSelfSync(asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
   terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeTerminateSelfWithResult(parameter, myCall);
+      this.nativeTerminateSelfWithResult(parameter, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -259,40 +273,52 @@ export default class UIAbilityContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativeTerminateSelfWithResult(parameter, myCall);
+          this.nativeTerminateSelfWithResult(parameter, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
   reportDrawnCompleted(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeReportDrawnCompletedSync(myCall);
+      this.nativeReportDrawnCompletedSync(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startServiceExtensionAbility(want: Want, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
-    this.nativeStartServiceExtensionAbility(want, myCall);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartServiceExtensionAbility(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
   }
 
   startServiceExtensionAbility(want: Want): Promise<void> {
-    return new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
           reject(err);
         }
       });
-      this.nativeStartServiceExtensionAbility(want, myCall);
+      taskpool.execute((): void => {
+        this.nativeStartServiceExtensionAbility(want, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 
   openLink(link: string, options?: OpenLinkOptions, callback?: AsyncCallback<AbilityResult, void>): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -304,7 +330,9 @@ export default class UIAbilityContext extends Context {
         callParam = new AsyncCallbackWrapper<AbilityResult>(callback);
       }
       taskpool.execute(() => {
-        this.nativeOpenLink(link, myCall, options, callParam);
+        this.nativeOpenLink(link, asyncCall, options, callParam);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
@@ -315,7 +343,7 @@ export default class UIAbilityContext extends Context {
 
   moveAbilityToBackground(): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -323,21 +351,25 @@ export default class UIAbilityContext extends Context {
         }
       });
       taskpool.execute(() => {
-        this.nativeMoveAbilityToBackground(syncCall);
+        this.nativeMoveAbilityToBackground(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
   requestModalUIExtension(pickerWant: Want, callback: AsyncCallback<void>): void {
-    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeRequestModalUIExtension(pickerWant, syncCall);
+      this.nativeRequestModalUIExtension(pickerWant, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   requestModalUIExtension(pickerWant: Want): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -345,14 +377,16 @@ export default class UIAbilityContext extends Context {
         }
       });
       taskpool.execute(() => {
-        this.nativeRequestModalUIExtension(pickerWant, syncCall);
+        this.nativeRequestModalUIExtension(pickerWant, asyncCall);
+      }).catch((err: BusinessError): void => {
+        reject(err);
       });
     });
   }
 
   backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -360,21 +394,23 @@ export default class UIAbilityContext extends Context {
         }
       });
       taskpool.execute(() => {
-        this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
+        this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
   setMissionLabel(label: string, callback: AsyncCallback<void>): void {
-    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeSetMissionLabel(label, syncCall);
+      this.nativeSetMissionLabel(label, asyncCall);
     });
   }
 
   setMissionLabel(label: string): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -382,7 +418,9 @@ export default class UIAbilityContext extends Context {
         }
       });
       taskpool.execute(() => {
-        this.nativeSetMissionLabel(label, syncCall);
+        this.nativeSetMissionLabel(label, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
@@ -392,9 +430,11 @@ export default class UIAbilityContext extends Context {
   }
 
   disconnectServiceExtensionAbility(connection: long, callback: AsyncCallback<void>): void {
-    let syncCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeDisconnectServiceExtensionAbility(connection, syncCall);
+      this.nativeDisconnectServiceExtensionAbility(connection, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
@@ -409,7 +449,9 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute((): void => {
         this.nativeDisconnectServiceExtensionAbility(connection, callback);
-      })
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 
@@ -428,45 +470,49 @@ export default class UIAbilityContext extends Context {
         callback(null, undefined);
       } else {
         callback(retError, undefined);
-      }    
+      }
     }, (err: Error): void => {
       callback(err as BusinessError, undefined);
     });
   }
 
   showAbility(): Promise<void> {
-  let p: Promise<void> =
-    new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
-        if (err == null || err.code == 0) {
-          resolve(undefined);
-        } else {
-          reject(err);
-        }
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeChangeAbilityVisibility(true, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
+        });
       });
-    taskpool.execute((): void => {
-      this.nativeChangeAbilityVisibility(true, myCall);
-    });
-  });
-  return p;
-}
+    return p;
+  }
 
-hideAbility(): Promise<void> {
-  let p: Promise<void> =
-    new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
-        if (err == null || err.code == 0) {
-          resolve(undefined);
-        } else {
-          reject(err);
-        }
+  hideAbility(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeChangeAbilityVisibility(false, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
+        });
       });
-    taskpool.execute((): void => {
-      this.nativeChangeAbilityVisibility(false, myCall);
-    });
-  });
-  return p;
-}
+    return p;
+  }
 
   startAbilityByType(type: string, wantParam: Record<string, Object>,
     startCallback: AbilityStartCallback): Promise<void> {
@@ -489,34 +535,40 @@ hideAbility(): Promise<void> {
   }
 
   openAtomicService(appId: string, options?: AtomicServiceOptions): Promise<AbilityResult> {
-    return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void, reject: (err: BusinessError) => void): void => {
-      let asyncCall = new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
-        if (err == null || err.code == 0) {
-          resolve(data as AbilityResult);
-        } else {
-          reject(err);
-        }
-      });
+    return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void,
+      reject: (err: BusinessError) => void): void => {
+      let asyncCall =
+        new AsyncCallbackWrapper<AbilityResult>((err: BusinessError | null, data: AbilityResult | undefined) => {
+          if (err == null || err.code == 0) {
+            resolve(data as AbilityResult);
+          } else {
+            reject(err);
+          }
+        });
       taskpool.execute(() => {
         this.nativeOpenAtomicService(appId, asyncCall, options);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
-
   setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
-    let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
-      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
-        if (err == null || err.code == 0) {
-          resolve(undefined);
-        } else {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeSetAbilityInstanceInfo(label, icon, asyncCall);
+        }).catch((err: BusinessError): void => {
           reject(err);
-        }
+        });
       });
-      taskpool.execute((): void => {
-        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
-      });
-    });
     return p;
   }
 }

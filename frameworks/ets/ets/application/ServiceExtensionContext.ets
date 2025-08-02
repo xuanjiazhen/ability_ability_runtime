@@ -73,37 +73,43 @@ export default class ServiceExtensionContext extends ExtensionContext {
   native nativeDisconnectServiceExtensionAbility(connection: long, callback: AsyncCallbackWrapper<void>): void;
 
   terminateSelf(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeTerminateSelf(myCall);
+      this.nativeTerminateSelf(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   terminateSelf(): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
-          if (err == null || err.code == 0) {
-            resolve(undefined);
-          } else {
-            reject(err);
-          }
-        });
-        taskpool.execute((): void => {
-          this.nativeTerminateSelf(myCall);
-        });
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
       });
+      taskpool.execute((): void => {
+        this.nativeTerminateSelf(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
   }
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbility(want, myCall);
+      this.nativeStartAbility(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startAbility(want: Want, options?: StartOptions): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -112,9 +118,9 @@ export default class ServiceExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         if (options == null) {
-          this.nativeStartAbility(want, myCall);
+          this.nativeStartAbility(want, asyncCall);
         } else {
-          this.nativeStartAbility(want, options as StartOptions, myCall);
+          this.nativeStartAbility(want, options as StartOptions, asyncCall);
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
@@ -123,37 +129,17 @@ export default class ServiceExtensionContext extends ExtensionContext {
   }
 
   startServiceExtensionAbility(want: Want, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeStartServiceExtensionAbility(want, myCall);
+      this.nativeStartServiceExtensionAbility(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   startServiceExtensionAbility(want: Want): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
-          if (err == null || err.code == 0) {
-            resolve(undefined);
-          } else {
-            reject(err);
-          }
-        });
-        taskpool.execute((): void => {
-          this.nativeStartServiceExtensionAbility(want, myCall);
-        });
-      });
-  }
-
-  stopServiceExtensionAbility(want: Want, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
-    taskpool.execute((): void => {
-      this.nativeStopServiceExtensionAbility(want, myCall);
-    });
-  }
-
-  stopServiceExtensionAbility(want: Want): Promise<void> {
-    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -161,7 +147,35 @@ export default class ServiceExtensionContext extends ExtensionContext {
         }
       });
       taskpool.execute((): void => {
-        this.nativeStopServiceExtensionAbility(want, myCall);
+        this.nativeStartServiceExtensionAbility(want, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  stopServiceExtensionAbility(want: Want, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStopServiceExtensionAbility(want, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
+  }
+
+  stopServiceExtensionAbility(want: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStopServiceExtensionAbility(want, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
@@ -174,6 +188,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
     let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeDisconnectServiceExtensionAbility(connection, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
@@ -188,7 +204,9 @@ export default class ServiceExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         this.nativeDisconnectServiceExtensionAbility(connection, asyncCall);
-      })
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 }

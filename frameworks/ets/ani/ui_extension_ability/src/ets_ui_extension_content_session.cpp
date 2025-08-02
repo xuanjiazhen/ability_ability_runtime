@@ -64,6 +64,7 @@ EtsUIExtensionContentSession* EtsUIExtensionContentSession::GetEtsContentSession
     }
     etsContentSession = reinterpret_cast<EtsUIExtensionContentSession *>(etsContentSessionLong);
     if (etsContentSession == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         TAG_LOGE(AAFwkTag::UI_EXT, "etsContentSession null");
         return nullptr;
     }

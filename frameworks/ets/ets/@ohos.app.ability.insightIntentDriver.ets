@@ -43,6 +43,8 @@ export default namespace insightIntentDriver {
     let pCallback = new AsyncCallbackWrapper<insightIntent.ExecuteResult>(callback);
     taskpool.execute((): void => {
       nativeExecuteSync(param, pCallback, true);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
@@ -60,6 +62,8 @@ export default namespace insightIntentDriver {
       });
       taskpool.execute((): void => {
         nativeExecuteSync(param, pCallback, false);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
     return pPromise;

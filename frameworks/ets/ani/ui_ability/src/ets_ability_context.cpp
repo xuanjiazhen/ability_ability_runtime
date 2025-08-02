@@ -211,6 +211,10 @@ EtsAbilityContext* EtsAbilityContext::GetEtsAbilityContext(ani_env *env, ani_obj
         return nullptr;
     }
     auto etsContext = reinterpret_cast<EtsAbilityContext *>(etsAbilityContextPtr);
+    if (etsContext == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        TAG_LOGE(AAFwkTag::UI_EXT, "etsAbilityContext null");
+    }
     return etsContext;
 }
 
@@ -1590,7 +1594,7 @@ ani_object CreateEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext>
     ani_ref abilityInfoRef = AppExecFwk::CommonFunAni::ConvertAbilityInfo(env, *abilityInfo);
     ani_status status = env->Object_SetFieldByName_Ref(contextObj, "abilityInfo", abilityInfoRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "Object_SetFieldByName_Ref status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "abilityInfo SetField status: %{public}d", status);
         return nullptr;
     }
 
@@ -1601,7 +1605,7 @@ ani_object CreateEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext>
     }
     ani_object configurationObj = AppExecFwk::WrapConfiguration(env, *configuration);
     if ((status = env->Object_SetFieldByName_Ref(contextObj, "config", configurationObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "Object_SetFieldByName_Ref status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "config SetField status: %{public}d", status);
         return nullptr;
     }
     return contextObj;
