@@ -61,7 +61,7 @@ export default function DarkColorsTest() {
       let obj: Record<string, ESObject> = JSON.parse(strJson);
       console.info("[DarkColorsTest_0100] component obj is: " + JSON.stringify(obj));
       console.info("[DarkColorsTest_0100] content obj is: " + JSON.stringify(obj.$attrs.fontColor));
-      expect(obj.$attrs.color).assertEqual('#FFEEAAFF');
+      expect(obj.$attrs.fontColor).assertEqual('#FFEEAAFF');
       console.info('[DarkColorsTest_0100] END');
       done();
     });
