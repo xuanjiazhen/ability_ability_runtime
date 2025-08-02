@@ -28,6 +28,7 @@ export default function AbilityStageContextEventHubTest() {
     let event2: string = 'com.example.eventhubinterthreadtest.event2';
     let event3: string = 'com.example.eventhubinterthreadtest.event3';
     let event4: string = 'com.example.eventhubinterthreadtest.event4';
+    let delay: number = 500;
   
     /*
      * @tc.number: SUB_Ability_AbilityRuntime_setEventHubMultithreadingEnabled_1300
@@ -183,7 +184,7 @@ export default function AbilityStageContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event1, emitData1);
-        }, 200);
+        }, delay);
         hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} end`);
       }
     })
@@ -239,7 +240,7 @@ export default function AbilityStageContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event2, emitData2);
-        }, 200);
+        }, delay);
       }
     })
     
@@ -323,7 +324,7 @@ export default function AbilityStageContextEventHubTest() {
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event3 triggered`);
           context?.eventHub.emit(event4, emitData4);
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event4 triggered`);
-        }, 200);
+        }, delay);
       }
     })
 
