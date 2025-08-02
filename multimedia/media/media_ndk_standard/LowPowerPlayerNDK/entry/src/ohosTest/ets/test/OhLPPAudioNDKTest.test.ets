@@ -71,6 +71,61 @@ export default function OhLPPAudioNDKTest() {
     })
 
     /**
+     * @tc.number     : TESTOHLPPAUDIO_NULL_ERROREVENT_0100
+     * @tc.name       : TESTOHLPPAUDIO_NULL_ERROREVENT_0100
+     * @tc.desc       : Prepare the playback environment and asynchronously cache media data.
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('TESTOHLPPAUDIO_NULL_ERROREVENT_0100', Level.LEVEL0, async (done: Function) => {
+      console.info(`TESTOHLPPAUDIO_NULL_ERROREVENT_0100 test start `);
+
+      let mySteps: string[] = new Array(
+        //set filename
+        lppBase.INIT_FD_EVENT,
+        //createPrepareNative
+        lppBase.AUDIO_CREATE_NULL_EVENT,
+        lppBase.AUDIO_SET_PARAMETER_ERROR_EVENT,
+        //CALLBACK or Listener
+        lppBase.AUDIO_CB_CREATE_CALLBACK_NULL_EVENT,
+        lppBase.AUDIO_CB_SET_POSITION_UPDATE_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_DATA_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_ERROR_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_INTERRUPT_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_DEVICE_CHANGE_LISTENER_EVENT,
+        lppBase.AUDIO_CB_SET_RETURN_FRAMES_EVENT,
+        lppBase.AUDIO_CB_SET_EOS_LISTENER_EVENT,
+
+        lppBase.AUDIO_PREPARE_ERROR_EVENT,
+        //video start decoder
+        lppBase.AUDIO_START_ERROR_EVENT,
+        //set speed
+        lppBase.AUDIO_SET_SPEED_ERROR_EVENT,
+        //lppBase.AUDIO_GET_PARAMETER_ERROR_EVENT,
+        //video stop
+        lppBase.AUDIO_STOP_ERROR_EVENT,
+        lppBase.AUDIO_RESUME_ERROR_EVENT,
+        lppBase.AUDIO_PAUSE_ERROR_EVENT,
+        lppBase.AUDIO_FLUSH_ERROR_EVENT,
+        lppBase.AUDIO_RESET_ERROR_EVENT,
+        // destory
+        lppBase.AUDIO_CALLBACKDESTROY_EVENT,
+        lppBase.AUDIO_DESTROY_EVENT,
+        //done recorder
+        lppBase.END_EVENT
+      );
+      errorCode = 0;
+      let config: ESObject = {
+        sucCode: 3,
+        speed: 2,
+        errorCode: 3,
+        fdPath: "H264_AAC.mp4"
+      }
+      await lppBase.toNextStep(config, "",  mySteps, errorCode, done);
+      console.info(`TESTOHLPPAUDIO_NULL_ERROREVENT_0100 test end `);
+    });
+    /**
      * @tc.number     : TESTOHLPPAUDIO_MP4_ERROREVENT_0100
      * @tc.name       : TESTOHLPPAUDIO_MP4_ERROREVENT_0100
      * @tc.desc       : Prepare the playback environment and asynchronously cache media data.
