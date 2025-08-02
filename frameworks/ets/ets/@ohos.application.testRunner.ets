@@ -14,6 +14,6 @@
  */
 
 export default interface TestRunner {
-    onPrepare(): void;
-    onRun(): void;
+    onPrepare: () => void;
+    onRun: () => void;
 }
