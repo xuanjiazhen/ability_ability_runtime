@@ -22,7 +22,7 @@
 #include <parcel.h>
 #include <pixel_map.h>
 #include <refbase.h>
-#include "window.h"
+#include "window_session_impl.h"
 #include "wm_common.h"
 #include "window_option.h"
 
@@ -34,7 +34,7 @@ Rect g_Rect;
 SystemBarProperty g_SystemBarProperty;
 Transform g_Transform;
 KeyboardAnimationConfig g_KeyboardAnimationConfig;
-class MockWindow : public Window {
+class MockWindow : public WindowSessionImpl {
 public:
     MockWindow() = default;
     virtual ~MockWindow() = default;
