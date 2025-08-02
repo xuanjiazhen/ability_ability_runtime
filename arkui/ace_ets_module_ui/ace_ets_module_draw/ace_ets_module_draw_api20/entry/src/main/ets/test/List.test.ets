@@ -25,6 +25,10 @@ import PolylineResourceTest from './Polyline/PolylineResourceTest';
 import RectResourceTest from './Rect/RectResourceTest';
 import ShapeResourceTest from './Shape/ShapeResourceTest';
 
+import StartImageAnalyzerErrorCodeTest1 from './CanvasRenderingContext2D/StartImageAnalyzerErrorCodeTest1';
+import CanvasEllipseTest from './CanvasRenderingContext2D/CanvasEllipseTest';
+import Matrix2DMultiplyTest from './CanvasRenderingContext2D/Matrix2DMultiplyTest';
+
 export default function testsuite() {
   RoundRectTest(); 
   CanvasGradientTest();
@@ -38,5 +42,9 @@ export default function testsuite() {
   PolylineResourceTest();
   RectResourceTest();
   ShapeResourceTest();
+
+  StartImageAnalyzerErrorCodeTest1();
+  CanvasEllipseTest();
+  Matrix2DMultiplyTest();
 
 }
