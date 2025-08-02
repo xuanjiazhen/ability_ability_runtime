@@ -17,6 +17,7 @@ group("sensors") {
   testonly = true
   if (is_standard_system) {
     deps = [
+      "ace_sensor_standard_static:ActsSensorJSApiStaticTest",
       "miscdevice_ndk:ActsMiscdeviceNdkTest",
       "miscdevice_standard:miscdevice_js_test",
       "miscdevice_standard_nop:miscdevice_nop_test",
