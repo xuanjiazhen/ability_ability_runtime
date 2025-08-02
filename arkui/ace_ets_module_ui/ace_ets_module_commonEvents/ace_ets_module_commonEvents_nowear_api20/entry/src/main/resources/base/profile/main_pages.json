@@ -5,6 +5,7 @@
         "MainAbility/pages/DragEvent/normalDrag",
         "MainAbility/pages/DragEvent/dragSpringLoading",
         "MainAbility/pages/frameNode/framenode",
-        "MainAbility/pages/DragEvent/enableInternalDropAnimation"
+        "MainAbility/pages/DragEvent/enableInternalDropAnimation",
+        "MainAbility/pages/UIContext/isActive"
     ]
 }

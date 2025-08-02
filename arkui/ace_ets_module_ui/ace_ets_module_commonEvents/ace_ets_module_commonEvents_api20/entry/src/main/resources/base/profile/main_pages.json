@@ -8,6 +8,7 @@
         "MainAbility/pages/GestureRecognizer/onTouchTestDone",
         "MainAbility/pages/NodeRenderState/nodeRenderState",
         "MainAbility/pages/HitTestBehavior/BlockDescendants",
-        "MainAbility/pages/HitTestBehavior/BlockHierarchy"
+        "MainAbility/pages/HitTestBehavior/BlockHierarchy",
+        "MainAbility/pages/Background/BackgroundOptions"
     ]
 }

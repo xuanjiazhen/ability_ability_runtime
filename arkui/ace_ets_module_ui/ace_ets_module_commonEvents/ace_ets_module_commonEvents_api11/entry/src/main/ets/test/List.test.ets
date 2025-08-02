@@ -81,6 +81,7 @@ import priorityGestureJsunit from './TapGestureTest/PriorityGestureJsunit.test.e
 import parallelGestureJsunit from './TapGestureTest/ParallelGestureJsunit.test.ets';
 import commonJsunit from './CommonJsunit.test.ets';
 import motionPathJsunit from './MotionPathJsunit.test.ets';
+import UtilsTest from './componentUtilsTest/Utils.test.ets';
 
 export default function testsuite() {
   dragAdaptationTest();
@@ -148,4 +149,5 @@ export default function testsuite() {
   OnClick1();
   OnClick2();
   OnClick3();
+  UtilsTest();
 }
