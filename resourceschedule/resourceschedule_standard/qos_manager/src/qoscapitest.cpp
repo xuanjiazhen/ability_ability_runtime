@@ -192,7 +192,8 @@ HWTEST_F(QoSTestSuite, ThreadQoSNdkTest, Function | MediumTest | Level1)
  */
 HWTEST_F(QoSTestSuite, GewuCreateSessionTest, Function | MediumTest | Level1)
 {
-    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    const char *attributes = "{\"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\","
+        "\"eval_settings\": \"{\\\"backend\\\": \\\"cpu\\\", \\\"max_ctx\\\": \\\"8192\\\"}\"}";
     OH_QoS_GewuCreateSessionResult ret = OH_QoS_GewuCreateSession(attributes);
     if (ret.error == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
     {
@@ -224,7 +225,8 @@ void MockCallback(void *context, const char *response)
  */
 HWTEST_F(QoSTestSuite, GewuSubmitRequestTest, Function | MediumTest | Level1)
 {
-    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    const char *attributes = "{\"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\","
+        "\"eval_settings\": \"{\\\"backend\\\": \\\"cpu\\\", \\\"max_ctx\\\": \\\"8192\\\"}\"}";
     OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
     const char *request = "{\
         \"type\": \"ChatComplete\",\
@@ -268,7 +270,8 @@ HWTEST_F(QoSTestSuite, GewuSubmitRequestTest, Function | MediumTest | Level1)
  */
 HWTEST_F(QoSTestSuite, GewuAbortRequestTest, Function | MediumTest | Level1)
 {
-    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    const char *attributes = "{\"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\","
+        "\"eval_settings\": \"{\\\"backend\\\": \\\"cpu\\\", \\\"max_ctx\\\": \\\"8192\\\"}\"}";
     OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
     OH_QoS_GewuErrorCode ret = OH_QoS_GewuAbortRequest(sessionResult.session, 0);
     if (ret == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
@@ -296,7 +299,8 @@ HWTEST_F(QoSTestSuite, GewuAbortRequestTest, Function | MediumTest | Level1)
  */
 HWTEST_F(QoSTestSuite, GewuDestroySessionTest, Function | MediumTest | Level1)
 {
-    const char *attributes = "{ \"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\" }";
+    const char *attributes = "{\"model\": \"/data/service/el1/public/gewu/Qwen2.5-0.5B-CPU-Q4\","
+        "\"eval_settings\": \"{\\\"backend\\\": \\\"cpu\\\", \\\"max_ctx\\\": \\\"8192\\\"}\"}";
     OH_QoS_GewuCreateSessionResult sessionResult = OH_QoS_GewuCreateSession(attributes);
     OH_QoS_GewuErrorCode ret = OH_QoS_GewuDestroySession(sessionResult.session);
     if (ret == OH_QoS_GewuErrorCode::OH_QOS_GEWU_NOSYS)
