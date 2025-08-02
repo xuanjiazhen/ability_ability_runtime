@@ -6,6 +6,7 @@
         "MainAbility/pages/DragEvent/dragSpringLoading",
         "MainAbility/pages/frameNode/framenode",
         "MainAbility/pages/DragEvent/enableInternalDropAnimation",
-        "MainAbility/pages/UIContext/isActive"
+        "MainAbility/pages/UIContext/isActive",
+        "MainAbility/pages/toolbar/ToolBarItem"
     ]
 }
