@@ -106,7 +106,7 @@ const double MAX_WIDTH = 800.0;
 const double RADIAN_TER = 180.0;
 const double LEFT_POS = 50.0;
 const double RIGHT_POS = 150.0;
-const char* EXISTFONTPATH = "/system/fonts/Roboto-Regular.ttf";
+const char* EXISTFONTPATH = "/system/fonts/HarmonyOS_Sans.ttf";
 const char* OHOS_THEME_FONT = "OhosThemeFont";
 
 static TypographyStyle* ConvertToOriginalText(OH_Drawing_TypographyStyle* style)
