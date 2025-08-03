@@ -18,6 +18,7 @@ group("actsshellcommandfunctionalitytest") {
   if (is_standard_system) {
     deps = [
       "ActsExecuteShellCommandTest:ActsExecuteShellCommandTest",
+      "ActsExecuteShellCommandTestStatic:ActsExecuteShellCommandStaticTest",
       "ActsKillProcessWithAccountCloseRelyHap:ActsKillProcessWithAccountCloseRelyHap",
       "actsshellcommandcontroltest:ActsShellCommandControlTest",
     ]
