@@ -1810,5 +1810,53 @@ export default function collectionstest() {
         done()
 
       })
+
+
+
+    /**
+     * @tc.number    : Collectionstest4400
+     * @tc.name      : Collectionstest4400
+     * @tc.desc      : Array 10200001
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest4400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest4400';
+        console.info(`${caseName} test start`);
+        let concatArray: collections.ConcatArray<string> = new collections.Array<string>('a', 'b', 'c');
+        try {
+          let res = concatArray[2871622679]
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200001)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+
+    /**
+     * @tc.number    : Collectionstest4500
+     * @tc.name      : Collectionstest4500
+     * @tc.desc      : Array 10200001
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest4500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest4500';
+        console.info(`${caseName} test start`);
+        let array: collections.Array<string> = new collections.Array<string>('a', 'b', 'c');
+        try {
+          let res = array[2871622679]
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200001)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
   })
 }

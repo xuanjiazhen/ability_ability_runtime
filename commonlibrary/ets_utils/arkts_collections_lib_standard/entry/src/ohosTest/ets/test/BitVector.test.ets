@@ -15,7 +15,136 @@
  */
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Level, Size } from '@ohos/hypium';
 import { ArkTSUtils, collections, taskpool } from '@kit.ArkTS';
+import { BusinessError } from '@kit.BasicServicesKit';
 
+
+@Concurrent
+export function testPush(index: number, bit: collections.BitVector) {
+  let tag = 'testPush'
+  try {
+    bit.push(index)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testPop(index: number, bit: collections.BitVector) {
+  let tag = 'testPop'
+  try {
+    bit.pop()
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testHas(index: number, bit: collections.BitVector) {
+  let tag = 'testHas'
+  try {
+    bit.has(index, 0, 4)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testSetBitsByRange(index: number, bit: collections.BitVector) {
+  let tag = 'testSetBitsByRange'
+  try {
+    bit.setBitsByRange(index, 0, 1)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testSetAllBits(index: number, bit: collections.BitVector) {
+  let tag = 'testSetAllBits'
+  try {
+    bit.setAllBits(index)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testGetBitsByRange(index: number, bit: collections.BitVector) {
+  let tag = 'testGetBitsByRange'
+  try {
+    bit.getBitsByRange(index, 0)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testResize(index: number, bit: collections.BitVector) {
+  let tag = 'testResize'
+  try {
+    bit.resize(index)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testGetBitCountByRange(index: number, bit: collections.BitVector) {
+  let tag = 'testPush'
+  try {
+    bit.getBitCountByRange(1, 0, 4)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testGetIndexOf(index: number, bit: collections.BitVector) {
+  let tag = 'testGetIndexOf'
+  try {
+    bit.getIndexOf(1, 0, 4)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testFlipBitByIndex(index: number, bit: collections.BitVector) {
+  let tag = 'testFlipBitByIndex'
+  try {
+    bit.flipBitByIndex(index)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testFlipBitsByRange(index: number, bit: collections.BitVector) {
+  let tag = 'testFlipBitsByRange'
+  try {
+    bit.flipBitsByRange(index, 0)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
+export function testValues(index: number, bit: collections.BitVector) {
+  let tag = 'testValues'
+  try {
+    let res = bit.values()
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+async function asyncSleep(time: number) {
+  return await new Promise<number>((resolve) => {
+    setTimeout(() => {
+      resolve(1)
+    }, time)
+  })
+}
 export function sleep(time: number): Promise<void> {
   return new Promise((re, je) => {
     setTimeout(() => {
@@ -989,6 +1118,439 @@ export default function BitVectortest() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04300
+     * @tc.name      : BitVectortest04300
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4300';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testPush, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.push(i)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04400
+     * @tc.name      : BitVectortest04400
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4400';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testPop, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.pop()
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04500
+     * @tc.name      : BitVectortest04500
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4500';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testHas, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.has(1, 0, 4)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04600
+     * @tc.name      : BitVectortest04600
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4600';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testSetBitsByRange, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.setBitsByRange(1, 0, 4)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04700
+     * @tc.name      : BitVectortest04700
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4700';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testSetAllBits, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.setAllBits(i)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04800
+     * @tc.name      : BitVectortest04800
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4800';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testGetBitsByRange, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.getBitsByRange(0, 1)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_04900
+     * @tc.name      : BitVectortest04900
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest4900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest4900';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testResize, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.resize(i)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05000
+     * @tc.name      : BitVectortest05000
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest5000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest5000';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testGetBitCountByRange, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.getBitCountByRange(0, 0, 4)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05100
+     * @tc.name      : BitVectortest05100
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest5100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest5100';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testGetIndexOf, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.getIndexOf(0, 0, 4)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05200
+     * @tc.name      : BitVectortest05200
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest5200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest5200';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testFlipBitByIndex, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.flipBitByIndex(1)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05300
+     * @tc.name      : BitVectortest05300
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest5300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest5300';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testFlipBitsByRange, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            bitVector.flipBitsByRange(0, 1)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05400
+     * @tc.name      : BitVectortest05400
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest5400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest5400';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testValues, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            let res = bitVector.values()
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+
 
   })
 }
