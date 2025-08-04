@@ -219,7 +219,7 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, INNER_ERR);
 
-    userId = userId < 0 ? DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() : userId;
+    userId = userId < 0 ? DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId() : userId;
     AppExecFwk::BundleInfo bundleInfo;
     if (!IN_PROCESS_CALL(bms->GetBundleInfo(
         bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {

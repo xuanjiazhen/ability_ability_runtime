@@ -415,7 +415,12 @@ int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
         validUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     }
     if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
-        validUserId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId();
+        auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (abilityMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null abilityMgr");
+            return false;
+        }
+        validUserId = abilityMgr->GetCallerUserId();
     }
     return validUserId;
 }

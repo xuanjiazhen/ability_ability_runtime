@@ -111,7 +111,7 @@ void AbilityKeepAliveService::GetValidUserId(int32_t &userId)
     }
 
     if (userId < 0) {
-        userId = abilityMgr->GetUserId();
+        userId = abilityMgr->GetCallerUserId();
     }
 }
 

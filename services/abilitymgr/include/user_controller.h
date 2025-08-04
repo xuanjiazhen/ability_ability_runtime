@@ -60,10 +60,12 @@ public:
     std::shared_ptr<UserItem> userItem;
 };
 
-class UserController : public std::enable_shared_from_this<UserController> {
+class UserController {
 public:
-    UserController();
-    virtual ~UserController();
+    UserController& operator=(const UserController&) = delete;
+    UserController(const UserController&) = delete;
+    virtual ~UserController() = default;
+    static UserController& GetInstance();
 
     void Init();
 
@@ -71,10 +73,11 @@ public:
      * Start user, if it is not running..
      *
      * @param userId id of started user.
+     * @param displayId logical screen id.
      * @param isForeground whether user should brout to foreground.
      * @return 0 if the user has been successfully started.
      */
-    int StartUser(int32_t userId, sptr<IUserCallback> callback, bool isAppRecovery = false);
+    int StartUser(int32_t userId, uint64_t displayId, sptr<IUserCallback> callback, bool isAppRecovery = false);
 
     /**
      * Stop user, if it is running..
@@ -92,7 +95,9 @@ public:
      */
     int32_t LogoutUser(int32_t userId, sptr<IUserCallback> callback = nullptr);
 
-    int32_t GetCurrentUserId();
+    int32_t GetCurrentUserId(uint64_t displayId);
+
+    bool GetDisplayIdByUserId(int32_t userId, uint64_t &displayId);
 
     std::shared_ptr<UserItem> GetUserItem(int32_t userId);
 
@@ -104,12 +109,15 @@ public:
 
     void ClearAbilityUserItems(int32_t userId);
 
-private:
     bool IsCurrentUser(int32_t userId);
+
+private:
+    UserController() = default;
+    bool IsCurrentUser(int32_t userId, uint64_t displayId);
     bool IsExistOsAccount(int32_t userId) const;
     std::shared_ptr<UserItem> GetOrCreateUserItem(int32_t userId);
-    void SetCurrentUserId(int32_t userId);
-    int MoveUserToForeground(int32_t oldUserId, int32_t newUserId, sptr<IUserCallback> callback,
+    void SetCurrentUserId(int32_t userId, uint64_t displayId);
+    int MoveUserToForeground(int32_t oldUserId, int32_t newUserId, uint64_t displayId, sptr<IUserCallback> callback,
         bool isAppRecovery = false);
     void UserBootDone(std::shared_ptr<UserItem> &item);
     void BroadcastUserBackground(int32_t userId);
@@ -138,8 +146,6 @@ private:
     void HandleUserSwitchDone(int32_t userId);
     int32_t StartNoHeadUser(int32_t userId, sptr<IUserCallback> callback) const;
 
-private:
-    int32_t currentUserId_ = USER_ID_NO_HEAD;
     int32_t freezingNewUserId_ = -1;
     std::shared_ptr<UserEventHandler> eventHandler_;
     std::unordered_map<int32_t, std::shared_ptr<UserItem>> userItems_;

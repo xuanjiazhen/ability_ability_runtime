@@ -28,6 +28,7 @@
 #include "mock_bundle_mgr.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
+#include "user_controller.h"
 #include "ui_service_mgr_client_mock.h"
 #include "mission_list_manager.h"
 
@@ -87,10 +88,6 @@ void StartAbilityImplicitModuleTest::OnStartAms() const
 
         abilityMs_->state_ = ServiceRunningState::STATE_RUNNING;
         abilityMs_->taskHandler_ = TaskHandlerWrap::CreateQueueHandler("StartAbilityImplicitModuleTest");
-        // init user controller.
-        abilityMs_->userController_ = std::make_shared<UserController>();
-        EXPECT_TRUE(abilityMs_->userController_);
-        abilityMs_->userController_->Init();
         abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
         abilityMs_->subManagersHelper_->InitSubManagers(MOCK_MAIN_USER_ID, true);
 
@@ -105,7 +102,7 @@ void StartAbilityImplicitModuleTest::OnStartAms() const
 
         DelayedSingleton<SystemDialogScheduler>::GetInstance()->SetDeviceType("phone");
         abilityMs_->SwitchManagers(0, false);
-        abilityMs_->userController_->SetCurrentUserId(MOCK_MAIN_USER_ID);
+        UserController::GetInstance().SetCurrentUserId(MOCK_MAIN_USER_ID, 0);
         return;
     }
 
