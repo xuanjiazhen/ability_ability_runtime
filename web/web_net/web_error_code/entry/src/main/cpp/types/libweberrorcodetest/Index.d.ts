@@ -37,6 +37,13 @@ export const webNativeWebMessagePort: () => number;
 export const webNativeWebMessage: () => number;
 export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
+export const NativeArkWebLoadDataInitError: () => number;
+export const loadData: (webName: string, caseNum: number) => number;
+export const GetBlanklessInfo: (webName: string, key: string) => number;
+export const SetBlanklessInfo: (webName: string, key: string) => number;
+export const JSBridgeData: (caseNum: number) => number;
+export const JSBridgeProxyData: (caseNum: number) => number;
+
 
 
 
