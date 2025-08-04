@@ -14,6 +14,7 @@
  */
 
 import hilog from '@ohos.hilog'
+import { RecordData } from '@ohos.base';
 
 type valueType = NullishType;
 const DOMAIN_ID = 0xD001300;
@@ -226,7 +227,7 @@ export default class Want {
   type?: string;
   flags?: int;
   action?: string;
-  parameters?: Record<string, Object>;
+  parameters?: RecordData;
   entities?: Array<string>;
   moduleName?: string;
 }
