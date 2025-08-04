@@ -111,10 +111,10 @@ export default function preferencesErrcodeTest() {
      * @tc.type Function
      * @tc.level Level 2
      */
-    it('testPreferencesOnObserver0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    it('testPreferenceOffErrTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       await mPreferences.clear();
       let observer = (key: lang.ISendable) => {
-        console.info('testPreferencesRegisterObserver001 keyValue' +
+        console.info('testPreferenceOffErrTest0100 keyValue' +
         mPreferences.getSync(KEY_STRING, "aaa"));
         expect('abcd').assertEqual(mPreferences.getSync(KEY_STRING, "aaa"));
         try {
