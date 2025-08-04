@@ -18,15 +18,14 @@ import ratingStarStyle from './RatingTest/ratingStarStyle.test';
 import SheetTypeTest from './SheetTypeTest/sheetTypeSide.test';
 import closeToastTest from './promptActionTest/closeToastTest.test';
 import dismissSheetActionTest from './SheetTypeTest/dismissSheetAction.test';
+import sheetTypeContentCoverTest from './SheetTypeTest/sheetTypeContentCover.test';
+import ModalTransitionTest from './SheetTypeTest/ModalTransition.test';
 import bindContentCoverTest from './BindContentCoverTest/bindContentCover.test';
 import selectModalModeTest from './MenuTest/selectModalMode.test';
 import PreviewScaleModeTest from './MenuTest/PreviewScaleModeTest.test';
 import AvailableLayoutAreaTest from './MenuTest/AvailableLayoutAreaTest.test';
 import bindSheetKeyboardAvoidMode from './SheetTypeTest/bindSheetKeyboardAvoidMode.test';
 import enableFloatingDragBarTest from './SheetTypeTest/enableFloatingDragBar.test';
-import maskTest from './bindMenuTest/mask.test';
-import maskColorTest from './bindMenuTest/maskColor.test';
-import maskBackgroundBlurStyleTest from './bindMenuTest/maskBackgroundBlurStyle.test';
 
 export default function testsuite() {
   menuSubMenuExpandSymbolTest();
@@ -35,13 +34,12 @@ export default function testsuite() {
   SheetTypeTest();
   closeToastTest();
   dismissSheetActionTest();
+  sheetTypeContentCoverTest();
+  ModalTransitionTest();
   bindContentCoverTest()
   selectModalModeTest();
   PreviewScaleModeTest();
   AvailableLayoutAreaTest();
   bindSheetKeyboardAvoidMode();
   enableFloatingDragBarTest();
-  maskTest();
-  maskColorTest();
-  maskBackgroundBlurStyleTest();
 }
