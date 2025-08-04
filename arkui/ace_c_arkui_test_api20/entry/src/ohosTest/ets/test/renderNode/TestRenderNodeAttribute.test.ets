@@ -333,48 +333,99 @@ export default function TestRenderNodeAttribute(){
      * @tc.level      : Level 1
      */
     it('TestAddRenderNode_001', Level.LEVEL1, async (done: Function) => {
-        expect(nativeFunc.TestAddRenderNode()).assertEqual(0)
-        done();
-      })
-  
-      /*
-       * @tc.number     : TestRemoveRenderNode_001
-       * @tc.name       : TestRemoveRenderNode_001
-       * @tc.desc       : Test RemoveRenderNode
-       * @tc.size       : MediumTest
-       * @tc.type       : Function
-       * @tc.level      : Level 1
-       */
-      it('TestRemoveRenderNode_001', Level.LEVEL1, async (done: Function) => {
-        expect(nativeFunc.TestRemoveRenderNode()).assertEqual(0)
-        done();
-      })
-  
-      /*
-       * @tc.number     : TestClearRenderNodeChildren_001
-       * @tc.name       : TestClearRenderNodeChildren_001
-       * @tc.desc       : Test ClearRenderNodeChildren
-       * @tc.size       : MediumTest
-       * @tc.type       : Function
-       * @tc.level      : Level 1
-       */
-      it('TestClearRenderNodeChildren_001', Level.LEVEL1, async (done: Function) => {
-        expect(nativeFunc.TestClearRenderNodeChildren()).assertEqual(0)
-        done();
-      })
-  
-      /*
-       * @tc.number     : TestInvalidate_001
-       * @tc.name       : TestInvalidate_001
-       * @tc.desc       : Test Invalidate
-       * @tc.size       : MediumTest
-       * @tc.type       : Function
-       * @tc.level      : Level 1
-       */
-      it('TestInvalidate_001', Level.LEVEL1, async (done: Function) => {
-        expect(nativeFunc.TestInvalidate()).assertEqual(0)
-        done();
-      })
+      expect(nativeFunc.TestAddRenderNode001()).assertEqual(0)
+      done();
+    })
 
+    /*
+     * @tc.number     : TestAddRenderNode_002
+     * @tc.name       : TestAddRenderNode_002
+     * @tc.desc       : Test AddRenderNode
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestAddRenderNode_002', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestAddRenderNode002()).assertEqual(0)
+      done();
+    })
+
+    /*
+     * @tc.number     : TestAddRenderNode_003
+     * @tc.name       : TestAddRenderNode_003
+     * @tc.desc       : Test AddRenderNode
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestAddRenderNode_003', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestAddRenderNode003()).assertEqual(0)
+      done();
+    })
+
+    /*
+     * @tc.number     : TestRemoveRenderNode_001
+     * @tc.name       : TestRemoveRenderNode_001
+     * @tc.desc       : Test RemoveRenderNode
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestRemoveRenderNode_001', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestRemoveRenderNode001()).assertEqual(0)
+      done();
+    })
+
+    /*
+     * @tc.number     : TestRemoveRenderNode_002
+     * @tc.name       : TestRemoveRenderNode_002
+     * @tc.desc       : Test RemoveRenderNode
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestRemoveRenderNode_002', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestRemoveRenderNode002()).assertEqual(0)
+      done();
+    })
+  
+    /*
+     * @tc.number     : TestClearRenderNodeChildren_001
+     * @tc.name       : TestClearRenderNodeChildren_001
+     * @tc.desc       : Test ClearRenderNodeChildren
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestClearRenderNodeChildren_001', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestClearRenderNodeChildren001()).assertEqual(0)
+      done();
+    })
+
+    /*
+     * @tc.number     : TestClearRenderNodeChildren_002
+     * @tc.name       : TestClearRenderNodeChildren_002
+     * @tc.desc       : Test ClearRenderNodeChildren
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestClearRenderNodeChildren_002', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestClearRenderNodeChildren002()).assertEqual(0)
+      done();
+    })
+  
+    /*
+     * @tc.number     : TestInvalidate_001
+     * @tc.name       : TestInvalidate_001
+     * @tc.desc       : Test Invalidate
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('TestInvalidate_001', Level.LEVEL1, async (done: Function) => {
+      expect(nativeFunc.TestInvalidate()).assertEqual(0)
+      done();
+    })
   })
 }
