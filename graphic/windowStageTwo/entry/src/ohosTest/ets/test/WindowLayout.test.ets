@@ -1851,11 +1851,14 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(1000);
         let blank = await driver.findComponent(ON.id('startMoving'))
         await sleep(1000)
+        console.info(`${caseName} blank = ${JSON.stringify(blank)}`);
         let point = await blank.getBoundsCenter();
+        console.info(`${caseName} point = ${JSON.stringify(point)}`);
         await driver.drag(point.x, point.y, point.x + 50, point.y + 50, 200);
         await sleep(1000);
         let text = await driver.findComponent(ON.id('startMovingText'));
         await sleep(1000)
+        console.info(`${caseName} text = ${JSON.stringify(text)}`);
         let textDragged = await text.getText();
         if (textDragged == 'startMoving success') {
           let windowPointDragged = windowClass.getWindowProperties().windowRect

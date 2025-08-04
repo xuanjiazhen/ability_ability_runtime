@@ -41,6 +41,7 @@ struct ScreenShot {
       promise.then((pickInfo: screenshot.PickInfo) => {
         console.log('pick Pixel bytes number: ' + pickInfo.pixelMap.getPixelBytesNumber());
         console.log('pick Rect: ' + pickInfo.pickRect);
+        console.log('pick Rect: left:' + pickInfo.pickRect.left+',top:'+pickInfo.pickRect.top+',width:'+pickInfo.pickRect.width)+',height:'+pickInfo.pickRect.height);
         pickInfo.pixelMap.release(); // PixelMap使用完后及时释放内存
         this.resMessage = '拉起截屏应用成功';
         if (this.resMessage!=' ') {
