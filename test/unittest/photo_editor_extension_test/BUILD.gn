@@ -34,6 +34,7 @@ config("module_private_config") {
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -56,6 +57,7 @@ config("module_ability_context_config") {
     "//third_party/libuv/include",
     "${global_path}/resource_management/interfaces/inner_api/include",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

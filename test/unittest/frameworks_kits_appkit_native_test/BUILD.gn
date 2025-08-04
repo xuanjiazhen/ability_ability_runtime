@@ -28,6 +28,7 @@ config("module_private_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -46,6 +47,7 @@ config("module_context_config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -860,7 +862,9 @@ ohos_unittest("assert_fault_test") {
     "assert_fault_task_thread_test.cpp",
   ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -982,7 +986,9 @@ ohos_unittest("idle_time_test") {
     "idle_time_test.cpp",
   ]
 
-  configs = [ ":module_context_config" ]
+  configs = [
+    ":module_context_config",
+  ]
 
   deps = [ "${ability_runtime_native_path}/appkit:appkit_native" ]
 

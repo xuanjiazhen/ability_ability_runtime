@@ -44,6 +44,7 @@ config("module_private_config") {
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -61,6 +62,7 @@ config("module_ability_context_config") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
   ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]

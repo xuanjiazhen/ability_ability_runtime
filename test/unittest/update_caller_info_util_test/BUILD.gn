@@ -39,7 +39,9 @@ ohos_unittest("update_caller_info_util_test") {
     "update_caller_info_util_test.cpp"
   ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",

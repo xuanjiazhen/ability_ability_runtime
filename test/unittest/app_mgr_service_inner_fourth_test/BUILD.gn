@@ -44,7 +44,10 @@ ohos_unittest("AppMgrServiceInnerFourthTest") {
     "mock/src/mock_permission_verification.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_services_path}/appmgr:appmgr_config",
+  ]
 
   cflags = [
     "-Dprivate=public",

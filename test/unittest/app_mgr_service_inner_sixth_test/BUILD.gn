@@ -45,7 +45,10 @@ ohos_unittest("app_mgr_service_inner_sixth_test") {
     "mock/src/mock_permission_verification.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_innerkits_config",
+    "${ability_runtime_services_path}/appmgr:appmgr_config",
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
