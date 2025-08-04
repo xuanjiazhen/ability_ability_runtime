@@ -287,7 +287,6 @@ export function CameraConcurrentTest() {
             console.info(TAG + " SUB_MULTIMEDIA_CAMERA_GET_CAMERA_CONCURRENT_INFOS_0100 Success  outputCapabilities: " + JSON.stringify(outputCapabilities));
           }
         }
-        expect(true).assertTrue();
         done();
     })
 

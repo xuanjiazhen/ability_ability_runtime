@@ -1294,7 +1294,7 @@ export default function CameraErrorCodeUsecaseTest() {
       cameraObj.sessionAddPreviewOutput();
       cameraObj.sessionAddPhotoOutput();
       let sessionIsMacroSupported = cameraObj.sessionIsMacroSupported(0);
-      if (sessionIsMacroSupported) {
+      if (sessionIsMacroSupported.isMacroSupported) {
       let ret = cameraObj.sessionEnableMacro(0, true);
         if (ret != 0) {
             console.info(TAG + "SUB_MULTIMEDIA_CAMERA_SESSION_ENABLE_MACRO_PROMISE_006 ERRORCODE: " + ret);
