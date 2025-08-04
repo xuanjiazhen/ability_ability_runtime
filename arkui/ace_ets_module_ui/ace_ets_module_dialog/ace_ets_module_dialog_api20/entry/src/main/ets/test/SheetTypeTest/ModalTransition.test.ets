@@ -96,7 +96,7 @@ export default function ModalTransitionTest(){
     
     /* *
      * @tc.number: ModalTransitionTest_0300
-     * @tc.name  : bindSheetTest_01
+     * @tc.name  : ModalTransitionTest_0300
      * @tc.desc  : To test the mode of sheet how to avoid keyboard
      * @tc.level : Level 3
      * @tc.type
