@@ -43,6 +43,17 @@
     "MainAbility/pages/SymbolGlyph/SymbolEffectTest",
     "MainAbility/pages/Text/shaderStyle",
     "MainAbility/pages/RichEditor/RichEditorTextMenuItemId",
-    "MainAbility/pages/Text/TextMenuItemId"
+    "MainAbility/pages/Text/TextMenuItemId",
+    "MainAbility/pages/Search/OnWillAttachIMETest",
+    "MainAbility/pages/StyledString/EnableMultiTypeTest",
+    "MainAbility/pages/StyledString/StyledStringOnTouchTest",
+    "MainAbility/pages/StyledString/ThicknessScaleTest",
+    "MainAbility/pages/SymbolGlyph/SymbolShadowTest",
+    "MainAbility/pages/Text/OptimizeTrailingSpaceTest",
+    "MainAbility/pages/Text/SpanOnHoverTest",
+    "MainAbility/pages/Text/TextBindControllerTest",
+    "MainAbility/pages/TextArea/MaxLinesOptionsTest",
+    "MainAbility/pages/TextArea/TextAreaBindControllerTest",
+    "MainAbility/pages/TextInput/TextInputBindControllerTest"
   ]
 }
