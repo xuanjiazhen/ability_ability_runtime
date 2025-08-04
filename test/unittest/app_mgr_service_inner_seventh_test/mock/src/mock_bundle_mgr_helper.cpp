@@ -304,11 +304,6 @@ ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::s
     return ERR_OK;
 }
 
-sptr<IDefaultApp> BundleMgrHelper::GetDefaultAppProxy()
-{
-    return nullptr;
-}
-
 ErrCode BundleMgrHelper::GetLaunchWantForBundle(const std::string& bundleName, Want& want, int32_t userId)
 {
     return ERR_OK;
