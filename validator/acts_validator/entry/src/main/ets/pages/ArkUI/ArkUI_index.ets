@@ -54,6 +54,7 @@ struct IndexPage {
     { title: 'DraggingSizeChangeEffect', uri: 'pages/ArkUI/DraggingSizeChangeEffect' },
     { title: 'KeyEvent', uri: 'pages/ArkUI/KeyEvent' },
     { title: 'CapiKeyEvent', uri: 'pages/ArkUI/CapiKeyEvent' },
+    { title: 'enableDropDisallowedBadge', uri: 'pages/ArkUI/enableDropDisallowedBadge' },
     { title: 'bindSheetTest', uri: 'pages/ArkUI/bindSheetTest' },
     { title: 'CanvasFillStyle', uri: 'pages/ArkUI/CanvasFillStyle' },
     { title: 'CanvasLineWidth', uri: 'pages/ArkUI/CanvasLineWidth' },
