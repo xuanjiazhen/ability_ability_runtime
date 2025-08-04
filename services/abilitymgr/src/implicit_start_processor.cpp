@@ -17,6 +17,7 @@
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "app_utils.h"
+#include "default_app_client.h"
 #include "dialog_session_manager.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
 #include "global_constant.h"
@@ -825,21 +826,6 @@ std::shared_ptr<AppExecFwk::BundleMgrHelper> ImplicitStartProcessor::GetBundleMa
     return iBundleManagerHelper_;
 }
 
-sptr<AppExecFwk::IDefaultApp> ImplicitStartProcessor::GetDefaultAppProxy()
-{
-    auto bundleMgrHelper = GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
-        return nullptr;
-    }
-    auto defaultAppProxy = bundleMgrHelper->GetDefaultAppProxy();
-    if (defaultAppProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null defaultAppProxy");
-        return nullptr;
-    }
-    return defaultAppProxy;
-}
-
 bool ImplicitStartProcessor::FilterAbilityList(const Want &want, std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos, int32_t userId)
 {
@@ -975,12 +961,10 @@ void ImplicitStartProcessor::AddAbilityInfoToDialogInfos(const AddInfoParam &par
 
 bool ImplicitStartProcessor::IsExistDefaultApp(int32_t userId, const std::string &typeName)
 {
-    auto defaultMgr = GetDefaultAppProxy();
-    CHECK_POINTER_AND_RETURN_LOG(defaultMgr, false, "defaultMgr null");
     AppExecFwk::BundleInfo bundleInfo;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "userId: %{public}d, typeName: %{public}s", userId, typeName.c_str());
-    ErrCode ret =
-        IN_PROCESS_CALL(defaultMgr->GetDefaultApplication(userId, typeName, bundleInfo));
+    ErrCode ret = IN_PROCESS_CALL(
+        AppExecFwk::DefaultAppClient::GetInstance().GetDefaultApplication(userId, typeName, bundleInfo));
     if (ret != ERR_OK) {
         return false;
     }
