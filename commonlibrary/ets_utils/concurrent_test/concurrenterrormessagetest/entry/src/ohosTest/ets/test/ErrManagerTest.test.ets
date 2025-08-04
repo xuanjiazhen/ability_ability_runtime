@@ -306,7 +306,7 @@ export default function abilityTest() {
       async (Done: () => void) => {
         try {
           errorManager.on('globalUnhandledRejectionDetected', handleUnhandledRejection);
-          Promise.reject(new Error('origin error'))
+          Promise.reject(new Error('error'))
             .catch(() => {
               throwError();
             });
