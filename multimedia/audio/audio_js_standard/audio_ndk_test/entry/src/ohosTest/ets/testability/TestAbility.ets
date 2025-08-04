@@ -46,7 +46,7 @@ export default class TestAbility extends UIAbility {
             await sleep(10000);
             let power = await dr?.waitForComponent(ON.text('允许',MatchPattern.EQUALS), 2000);
             await sleep(1000);
-            await power?.click()'
+            await power?.click();
         }
 
         let abilityDelegator: abilityDelegatorRegistry.AbilityDelegator;
