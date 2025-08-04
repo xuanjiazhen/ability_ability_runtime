@@ -38,6 +38,7 @@ export const webNativeWebMessage: () => number;
 export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
 export const webNetErrorDidFailWithError: (errName: string) => number;
+<<<<<<< HEAD
 export const WebArkWebResponseGetError: (errName: string) => number;
 export const NativeArkWebLoadDataInitError: () => number;
 export const loadData: (webName: string, caseNum: number) => number;
@@ -45,6 +46,11 @@ export const GetBlanklessInfo: (webName: string, key: string) => number;
 export const SetBlanklessInfo: (webName: string, key: string) => number;
 export const JSBridgeData: (caseNum: number) => number;
 export const JSBridgeProxyData: (caseNum: number) => number;
+=======
+export const webArkWebResponseGetError: (errName: string) => number;
+export const webArkWebConnectError: (errName: string) => number;
+
+>>>>>>> a622a0c3ae (SUB_WEB_NET_ERROR_2400~SUB_WEB_NET_ERROR_3800)
 
 
 
