@@ -42,7 +42,7 @@ export function testPop(index: number, bit: collections.BitVector) {
 export function testHas(index: number, bit: collections.BitVector) {
   let tag = 'testHas'
   try {
-    bit.has(index, 0, 4)
+    bit.has(index, 0, 1)
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
   }
@@ -72,7 +72,7 @@ export function testSetAllBits(index: number, bit: collections.BitVector) {
 export function testGetBitsByRange(index: number, bit: collections.BitVector) {
   let tag = 'testGetBitsByRange'
   try {
-    bit.getBitsByRange(index, 0)
+    bit.getBitsByRange(0, 1)
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
   }
@@ -92,7 +92,7 @@ export function testResize(index: number, bit: collections.BitVector) {
 export function testGetBitCountByRange(index: number, bit: collections.BitVector) {
   let tag = 'testPush'
   try {
-    bit.getBitCountByRange(1, 0, 4)
+    bit.getBitCountByRange(1, 0, 1)
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
   }
@@ -112,7 +112,7 @@ export function testGetIndexOf(index: number, bit: collections.BitVector) {
 export function testFlipBitByIndex(index: number, bit: collections.BitVector) {
   let tag = 'testFlipBitByIndex'
   try {
-    bit.flipBitByIndex(index)
+    bit.flipBitByIndex(0)
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
   }
@@ -122,7 +122,7 @@ export function testFlipBitByIndex(index: number, bit: collections.BitVector) {
 export function testFlipBitsByRange(index: number, bit: collections.BitVector) {
   let tag = 'testFlipBitsByRange'
   try {
-    bit.flipBitsByRange(index, 0)
+    bit.flipBitsByRange(0, 1)
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
   }
