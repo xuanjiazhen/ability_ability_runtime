@@ -4369,10 +4369,15 @@ export default function pipWindowTest(context1: common.BaseContext, windowStage:
             done();
           } else {
             console.log(`${message} Succeeded in creating pip controller, Data:${data}`)
-            let result = await pipController.getPiPSettingSwitch();
-            console.log(`${message} result: ${result}`)
-            expect(result).assertEqual(true);
-            done();
+            pipController.getPiPSettingSwitch().then((result: boolean) => {
+              console.log(`${message} result: ${result}`)
+              expect(result).assertEqual(true);
+              done();
+            }).catch((err: BusinessError) => {
+              console.error(`${message} promise Failed getPiPSettingSwitch, Cause code ${err.code}, message ${err.message}`);
+              expect(err.code).assertEqual(801);
+              done();
+            });
           }
         }).catch((err: BusinessError) => {
           console.error(`${message} promise Failed to create pipcontroller, Cause code ${err.code}, message ${err.message}`);

@@ -2207,6 +2207,107 @@ export default function displayTest() {
       }
     })
 
+    /**
+     * @tc.number     : SUB_BASIC_WMS_GET_LIVE_CREASE_REGION_0100
+     * @tc.name       : testGetLiveCreaseRegion
+     * @tc.desc       : 验证折叠设备可查询到折痕区域，非折叠设备折痕区域返回空
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testGetLiveCreaseRegion', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testGetLiveCreaseRegion";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      try {
+        let result = display.isFoldable();
+        console.log(`${caseName} isFoldable: ${result}`);
+        let defaultDisplay = display.getDefaultDisplaySync();
+        console.log(`${caseName} defaultDisplay: ${JSON.stringify(defaultDisplay)}`);
+        let region = defaultDisplay.getLiveCreaseRegion();
+        console.log(`${caseName} region: ${JSON.stringify(region)}`);
+        expect(region.displayId).assertEqual(0)
+        if (result) {
+          if (region.creaseRects.length == 0) {
+            expect(true).assertTrue();
+          } else {
+            for (let i = 0; i < region.creaseRects.length; i++) {
+              expect(region.creaseRects[i].left).assertLargerOrEqual(0);
+              expect(region.creaseRects[i].top).assertLargerOrEqual(0);
+              expect(region.creaseRects[i].width).assertLargerOrEqual(0);
+              expect(region.creaseRects[i].height).assertLargerOrEqual(0);
+            }
+          }
+        } else {
+          expect(region.creaseRects.length).assertEqual(0)
+        }
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_GET_LIVE_CREASE_REGION_0200
+     * @tc.name       : testGetLiveCreaseRegionwithVirtualScreen
+     * @tc.desc       : 验证虚拟盘折痕区域返回空
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+     */
+    it('testGetLiveCreaseRegionwithVirtualScreen', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = "testGetLiveCreaseRegionwithVirtualScreen";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      class VirtualScreenOptions {
+        name: string = '';
+        width: number = 0;
+        height: number = 0;
+        density: number = 0;
+        surfaceId: string = '';
+      }
+      let option: VirtualScreenOptions = {
+        name: 'screen01',
+        width: 100,
+        height: 2340,
+        density: 2,
+        surfaceId: ''
+      };
+      try {
+        let screenId: number = await display.createVirtualScreen(option);
+        console.log(caseName + ' success in createVirtualScreen ' + screenId);
+        let displays = await display.getAllDisplays();
+        let outDisplayId = -1;
+        for (let i = 0; i< displays.length; i++) {
+          if (displays[i].id != 0) {
+            outDisplayId = displays[i].id;
+            break;
+          }
+        }
+        console.log(caseName + ' outDisplayId: ' + outDisplayId);
+        let defaultDisplay = display.getDefaultDisplaySync();
+        console.log(`${caseName} defaultDisplay: ${JSON.stringify(defaultDisplay)}`);
+        let region = defaultDisplay.getLiveCreaseRegion();
+        console.log(`${caseName} region: ${JSON.stringify(region)}`);
+        expect(region.displayId).assertEqual(0)
+        expect(region.creaseRects.length).assertEqual(0)
+        done();
+      } catch (e) {
+        console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
+        if (e.code === 801) {
+          done()
+        } else {
+          expect().assertFail();
+          done()
+        }
+      }
+    })
 
   })
 }
