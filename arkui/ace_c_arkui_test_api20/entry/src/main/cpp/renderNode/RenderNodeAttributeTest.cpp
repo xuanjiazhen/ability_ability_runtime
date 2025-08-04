@@ -320,7 +320,7 @@ static napi_value TestPivot(napi_env env, napi_callback_info info)
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_GetPivot result=%{public}d", result);
     ASSERT_EQ(result, ARKUI_ERROR_CODE_NO_ERROR);
-    ASSERT_EQ(setPivotX, 0);
+    ASSERT_EQ(setPivotX, NUMBER_0_5);
  
     auto ret1 = OH_ArkUI_RenderNodeUtils_SetPivot(rsNode, 1, 1);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
@@ -761,12 +761,14 @@ static napi_value TestAddRenderNode001(napi_env env, napi_callback_info info)
 static napi_value TestAddRenderNode002(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom2, ARKUI_NODE_CUSTOM);
+    auto Custom1 = nodeAPI->createNode(ARKUI_NODE_CUSTOM);
 
     auto rsSubNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     auto rsSubSunNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom2, rsSubNode);
     OH_ArkUI_RenderNodeUtils_AddChild(rsSubNode, rsSubSunNode);
-    auto ret5 = OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom2, rsSubSunNode);
+    
+    auto ret5 = OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom1, rsSubSunNode);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_AddRenderNode result=%{public}d", ret5);
     ASSERT_EQ(ret5, ARKUI_ERROR_CODE_RENDER_PARENT_EXISTED);
