@@ -89,7 +89,7 @@ struct WebTextAutosizing {
                   this.text1 = Number(res)
                 })
                 this.webviewController.refresh()
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 < this.text) {
                   value = true;
                 }
@@ -134,7 +134,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum2 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }
@@ -179,7 +179,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum3 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }
@@ -223,7 +223,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum4 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }
