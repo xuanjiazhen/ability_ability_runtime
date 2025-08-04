@@ -62,10 +62,18 @@ export const TestTransform: () => number;
 
 export const TestTranslation: () => number;
 
-export const TestAddRenderNode: () => number;
+export const TestAddRenderNode001: () => number;
 
-export const TestRemoveRenderNode: () => number;
+export const TestAddRenderNode002: () => number;
 
-export const TestClearRenderNodeChildren: () => number;
+export const TestAddRenderNode003: () => number;
+
+export const TestRemoveRenderNode001: () => number;
+
+export const TestRemoveRenderNode002: () => number;
+
+export const TestClearRenderNodeChildren001: () => number;
+
+export const TestClearRenderNodeChildren002: () => number;
 
 export const TestInvalidate: () => number;
