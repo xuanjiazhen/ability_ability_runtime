@@ -48,7 +48,8 @@ export default class TestAbility extends UIAbility {
             await sleep(1000);
             await power?.click();
         }
-
+        await driveFn();
+        
         let abilityDelegator: abilityDelegatorRegistry.AbilityDelegator;
         abilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
         let abilityDelegatorArguments: abilityDelegatorRegistry.AbilityDelegatorArgs;
