@@ -134,6 +134,7 @@ struct IndexPage {
     { title: 'AccessibilityShowStepOptions', uri: 'pages/ArkUI/AccessibilityShowStepOptions' },
     { title: 'cancelTouch', uri: 'pages/ArkUI/cancelTouch' },
     { title: 'fingerInfos', uri: 'pages/ArkUI/fingerInfos' },
+    { title: 'bindPopupTest', uri: 'pages/ArkUI/bindPopupTest' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];

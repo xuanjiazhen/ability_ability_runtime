@@ -155,6 +155,7 @@
     "pages/ArkUI/PanGestureListener",
     "pages/ArkUI/AccessibilityShowStepOptions",
     "pages/ArkUI/cancelTouch",
-    "pages/ArkUI/fingerInfos"
+    "pages/ArkUI/fingerInfos",
+    "pages/ArkUI/bindPopupTest"
   ]
 }
