@@ -15,7 +15,7 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/liweberrorcodetest.so": "file:./src/main/cpp/types/libweberrorcodetest"
+    "@types/libweberrorcodetest.so": "file:./src/main/cpp/types/libweberrorcodetest"
   },
   "author": "",
   "name": "entry",
