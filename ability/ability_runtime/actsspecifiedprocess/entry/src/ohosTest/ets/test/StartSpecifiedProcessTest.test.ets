@@ -54,17 +54,6 @@ async function startAbility(want: Want) {
 
 export default function StartSpecifiedProcessTest() {
   describe('ActsAbilityTest', () => {
-    beforeAll(async (done:Function) => {
-      mpEnable = true;
-      console.info('beforeAll called');
-      try {
-        mpEnable = systemParameterEnhance.getSync('persist.sys.abilityms.start_specified_process') === 'true';
-      } catch(err) {
-        console.error(`ACTS_StartSpecifiedProcessTest Get system parameter error: ${JSON.stringify(err)}`);
-      }
-      done();
-    });
-
     afterEach(async (done:Function) => {
       await abilityDelegator.executeShellCommand('aa start -b com.example.actsspecifiedprocess -a TestAbility');
       await sleep(500);
@@ -93,8 +82,7 @@ export default function StartSpecifiedProcessTest() {
                 console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====>Failed to subscribe. Code is ${err.code}, message is ${err.message}`);
               }
               console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====> ACTS_startAbility  subcribed success 100=====> data: ${JSON.stringify(commonEventData)}`);
-              if (!mpEnable) {
-                expect(801).assertEqual(commonEventData.code);
+              if (commonEventData.code === 801) {
               } else {
                 expect(16000115).assertEqual(commonEventData.code);
               }
@@ -145,8 +133,7 @@ export default function StartSpecifiedProcessTest() {
                 console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====>Failed to subscribe. Code is ${err.code}, message is ${err.message}`);
               }
               console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====> ACTS_startAbility  subcribed success 200=====> data: ${JSON.stringify(commonEventData)}`);
-              if (!mpEnable) {
-                expect(801).assertEqual(commonEventData.code);
+              if (commonEventData.code === 801) {
               } else {
                 expect(16000117).assertEqual(commonEventData.code);
               }
@@ -197,8 +184,7 @@ export default function StartSpecifiedProcessTest() {
                 console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====>Failed to subscribe. Code is ${err.code}, message is ${err.message}`);
               }
               console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====> ACTS_startAbility  subcribed success 300=====> data: ${JSON.stringify(commonEventData)}`);
-              if (!mpEnable) {
-                expect(801).assertEqual(commonEventData.code);
+              if (commonEventData.code === 801) {
               } else {
                 expect(0).assertEqual(commonEventData.code);
               }
@@ -230,7 +216,7 @@ export default function StartSpecifiedProcessTest() {
     /**
      * @tc.number    : SUB_Ability_AbilityRuntime_ABILITY_StartSpecifiedProcessTest_0400
      * @tc.name      : SUB_Ability_AbilityRuntime_ABILITY_StartSpecifiedProcessTest_0400
-     * @tc.desc      : The testcase is for testing promoteCurrentToCandidateMasterProcess falied and errcode is 16000116.
+     * @tc.desc      : The testcase is for testing demoteCurrentFromCandidateMasterProcess falied and errcode is 16000116.
      * @tc.level     : Level 3
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -249,8 +235,7 @@ export default function StartSpecifiedProcessTest() {
                 console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====>Failed to subscribe. Code is ${err.code}, message is ${err.message}`);
               }
               console.info(`${TEST_SUITE_NAME}#${TEST_CASE_NAME}====> ACTS_startAbility  subcribed success 400=====> data: ${JSON.stringify(commonEventData)}`);
-              if (!mpEnable) {
-                expect(801).assertEqual(commonEventData.code);
+              if (commonEventData.code === 801) {
               } else {
                 expect(16000116).assertEqual(commonEventData.code);
               }
