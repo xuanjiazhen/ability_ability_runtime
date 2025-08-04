@@ -130,6 +130,20 @@ export default class UIAbilityContext extends Context {
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
   private native nativeOnSetRestoreEnabled(enabled: boolean): void;
+
+  private native nativeConnectServiceExtensionAbilityWithAccount(want: Want, accountId: int,
+    options: ConnectOptions): long;
+
+  private native nativeStopServiceExtensionAbilityWithAccount(want: Want, accountId: int,
+    callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeStopServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeStartServiceExtensionAbilityWithAccount(want: Want, accountId: int,
+    callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetMissionIcon(icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+
   private native nativeRevokeDelegator(callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeStartAppServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;

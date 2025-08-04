@@ -92,6 +92,14 @@ public:
         ani_object callbackobj);
     static void StopAppServiceExtensionAbility(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callbackobj);
+    static ani_long ConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object connectOptionsObj);
+    static void StopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object callbackObj);
+    static void StopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackObj);
+    static void StartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object callbackObj);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -109,9 +117,11 @@ public:
 public:
     static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
         ani_object callback);
+    static void SetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj, ani_object callbackObj);
 private:
     void OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
         ani_object callback);
+    void OnSetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj, ani_object callbackObj);
 #endif
 private:
     void InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want);
@@ -148,6 +158,14 @@ private:
     void OnOpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
     void OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback);
+    ani_long OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object connectOptionsObj);
+    void OnStopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object callbackObj);
+    void OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackObj);
+    void OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int aniAccountId, ani_object callbackObj);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
