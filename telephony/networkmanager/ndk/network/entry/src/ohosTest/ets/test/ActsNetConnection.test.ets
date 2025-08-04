@@ -254,7 +254,7 @@ export default function ActsNetConnectionTest() {
     let caseName: string = 'testNetworkManagerNetGetPacUrlNoP0100';
     try {
       console.info(`${caseName} ---start`);
-      let result : number = NetConnectionTest.NetConn_GetPacUrl(1);
+      let result : number = NetConnectionTest.NetConn_GetPacUrl(CASE_INDEX_1);
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(NETCONN_INTERNAL_ERROR);
       done();

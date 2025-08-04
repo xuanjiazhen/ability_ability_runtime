@@ -141,7 +141,7 @@ napi_value NetConn_GetPacUrl(napi_env env, napi_callback_info info)
     int32_t index = GetInt(env, info, 0);
     char tmpBuffer[MAX_BUFFER_SIZE];
     char *pac = tmpBuffer;
-    if ( index == 0) {
+    if (index == 0) {
         pac = nullptr;
     }
     int32_t returnValue = OH_NetConn_GetPacUrl(pac);

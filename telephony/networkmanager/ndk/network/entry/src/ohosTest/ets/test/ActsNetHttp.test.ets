@@ -24,6 +24,12 @@ const CASE_INDEX_5 = 4;
 const CASE_INDEX_6 = 6;
 const CASE_INDEX_7 = 7;
 const CASE_INDEX_8 = 8;
+const CASE_INDEX_9 = 9;
+const CASE_INDEX_10 = 10;
+const CASE_INDEX_11 = 11;
+const CASE_INDEX_12 = 12;
+const CASE_INDEX_13 = 13;
+const CASE_INDEX_14 = 14;
 
 const OH_HTTP_OK = 0;
 const NETCONN_PERMISSION_DENIED = 201;
@@ -421,7 +427,7 @@ export default function ActsNetHttpTest() {
     let caseName: string = 'testNetworkManagerHttpCreateRequest0200';
     try {
       console.info(`${caseName} ---start`);
-      let result: number = NetHttpTest.Http_CreateRequest("www.baidu.com");
+      let result: number = NetHttpTest.Http_CreateRequest("https://www.baidu.com");
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(OH_HTTP_OK);
       done();
@@ -444,7 +450,7 @@ export default function ActsNetHttpTest() {
     let caseName: string = 'testNetworkManagerHttpRequest0100';
     try {
       console.info(`${caseName} ---start`);
-      let result: number = NetHttpTest.Http_RequestRequest(CASE_INDEX_1, "www.baidu.com");
+      let result: number = NetHttpTest.Http_RequestRequest(CASE_INDEX_1, "https://www.baidu.com");
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
       done();
@@ -467,7 +473,7 @@ export default function ActsNetHttpTest() {
     let caseName: string = 'testNetworkManagerHttpRequest0200';
     try {
       console.info(`${caseName} ---start`);
-      let result: number = NetHttpTest.Http_RequestRequest(CASE_INDEX_2, "www.baidu.com");
+      let result: number = NetHttpTest.Http_RequestRequest(CASE_INDEX_2, "https://www.baidu.com");
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(OH_HTTP_OUT_OF_MEMORY);
       done();
@@ -490,7 +496,7 @@ export default function ActsNetHttpTest() {
     let caseName: string = 'testNetworkManagerHttpDestroy0100';
     try {
       console.info(`${caseName} ---start`);
-      let result: number = NetHttpTest.Http_Destroy(CASE_INDEX_1);
+      let result: number = NetHttpTest.Http_Destroy(CASE_INDEX_1, "https://www.baidu.com");
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(OH_HTTP_OK);
       done();
@@ -513,9 +519,1043 @@ export default function ActsNetHttpTest() {
     let caseName: string = 'testNetworkManagerHttpDestroy0200';
     try {
       console.info(`${caseName} ---start`);
-      let result: number = NetHttpTest.Http_Destroy(CASE_INDEX_2);
+      let result: number = NetHttpTest.Http_Destroy(CASE_INDEX_2, "https://www.baidu.com");
       console.info(`${caseName} result is: ` + JSON.stringify(result));
       expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ErrCode_0100
+   * @tc.name    : testNetworkManagerHttpErrCode0100
+   * @tc.desc    : Verify retrieval of error codes from HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpErrCode0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpErrCode0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_ErrCodeErrCode(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ErrCode_0200
+   * @tc.name    : testNetworkManagerHttpErrCode0200
+   * @tc.desc    : Verify retrieval of error codes from HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpErrCode0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpErrCode0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_ErrCodeErrCode(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_PARAMETER_ERROR);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ErrCode_0300
+   * @tc.name    : testNetworkManagerHttpErrCode0300
+   * @tc.desc    : Verify retrieval of error codes from HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpErrCode0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpErrCode0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_ErrCodeErrCode(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OUT_OF_MEMORY);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Buffer_0100
+   * @tc.name    : testNetworkManagerHttpBuffer0100
+   * @tc.desc    : Verify retrieval of buffer from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpBuffer0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpBuffer0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_BufferBuffer("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_AddressFamilyType_0100
+   * @tc.name    : testNetworkManagerHttpAddressFamilyType0100
+   * @tc.desc    : Verify retrieval of address family type from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpAddressFamilyType0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpAddressFamilyType0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Address_FamilyType(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_AddressFamilyType_0200
+   * @tc.name    : testNetworkManagerHttpAddressFamilyType0200
+   * @tc.desc    : Verify retrieval of address family type from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpAddressFamilyType0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpAddressFamilyType0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Address_FamilyType(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_AddressFamilyType_0300
+   * @tc.name    : testNetworkManagerHttpAddressFamilyType0300
+   * @tc.desc    : Verify retrieval of address family type from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpAddressFamilyType0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpAddressFamilyType0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Address_FamilyType(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_HttpProtocol_0100
+   * @tc.name    : testNetworkManagerHttpHttpProtocol0100
+   * @tc.desc    : Verify retrieval of HTTP protocol from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpHttpProtocol0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpHttpProtocol0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Http_Protocol(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_HttpProtocol_0200
+   * @tc.name    : testNetworkManagerHttpHttpProtocol0200
+   * @tc.desc    : Verify retrieval of HTTP protocol from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpHttpProtocol0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpHttpProtocol0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Http_Protocol(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Http_HttpProtocol_0300
+     * @tc.name    : testNetworkManagerHttpHttpProtocol0300
+     * @tc.desc    : Verify retrieval of HTTP protocol from HTTP response
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerHttpHttpProtocol0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerHttpHttpProtocol0300';
+      try {
+        console.info(`${caseName} ---start`);
+        let result: number = NetHttpTest.Http_Http_Protocol(CASE_INDEX_3, "https://www.baidu.com");
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Http_HttpProtocol_0400
+     * @tc.name    : testNetworkManagerHttpHttpProtocol0400
+     * @tc.desc    : Verify retrieval of HTTP protocol from HTTP response
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerHttpHttpProtocol0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerHttpHttpProtocol0400';
+      try {
+        console.info(`${caseName} ---start`);
+        let result: number = NetHttpTest.Http_Http_Protocol(CASE_INDEX_4, "https://www.baidu.com");
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Http_CertType_0100
+     * @tc.name    : testNetworkManagerHttpCertType0100
+     * @tc.desc    : Verify retrieval of certificate type from HTTP response
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+  it('testNetworkManagerHttpCertType0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCertType0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Cert_Type(CASE_INDEX_1, "https://www.baidu.com", "TEST");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_CertType_0200
+   * @tc.name    : testNetworkManagerHttpCertType0200
+   * @tc.desc    : Verify retrieval of certificate type from HTTP response
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpCertType0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCertType0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Cert_Type(CASE_INDEX_2, "https://www.baidu.com", "TEST");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Http_CertType_0300
+     * @tc.name    : testNetworkManagerHttpCertType0300
+     * @tc.desc    : Verify retrieval of certificate type from HTTP response
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+  it('testNetworkManagerHttpCertType0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCertType0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Cert_Type(CASE_INDEX_3, "https://www.baidu.com", "TEST");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_HeaderValue_0100
+   * @tc.name    : testNetworkManagerHttpHeaderValue0100
+   * @tc.desc    : Verify setting a header value in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpHeaderValue0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpHeaderValue0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Header_Value("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_HeaderEntry_0100
+   * @tc.name    : testNetworkManagerHttpHeaderEntry0100
+   * @tc.desc    : Verify setting a header value in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpHeaderEntry0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpHeaderEntry0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Header_Entry("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ClientCert_0100
+   * @tc.name    : testNetworkManagerHttpClientCert0100
+   * @tc.desc    : Verify setting client certificate in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpClientCert0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpClientCert0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Client_Cert("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ProxyType_0100
+   * @tc.name    : testNetworkManagerHttpProxyType0100
+   * @tc.desc    : Verify setting proxy type in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpProxyType0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpProxyType0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Proxy_Type(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ProxyType_0200
+   * @tc.name    : testNetworkManagerHttpProxyType0200
+   * @tc.desc    : Verify setting proxy type in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpProxyType0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpProxyType0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Proxy_Type(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_ProxyType_0300
+   * @tc.name    : testNetworkManagerHttpProxyType0300
+   * @tc.desc    : Verify setting proxy type in HTTP headers
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+  */
+  it('testNetworkManagerHttpProxyType0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpProxyType0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Proxy_Type(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+/**
+   * @tc.number  : SUB_NetworkManager_Http_Custom_Proxy_0100
+   * @tc.name    : testNetworkManagerHttpCustomProxy0100
+   * @tc.desc    : Test Http_Custom_Proxy interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpCustomProxy0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCustomProxy0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result : number = NetHttpTest.Http_Custom_Proxy(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Custom_Proxy_0200
+   * @tc.name    : testNetworkManagerHttpCustomProxy0200
+   * @tc.desc    : Test Http_Custom_Proxy interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpCustomProxy0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCustomProxy0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result : number = NetHttpTest.Http_Custom_Proxy(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Custom_Proxy_0300
+   * @tc.name    : testNetworkManagerHttpCustomProxy0300
+   * @tc.desc    : Test Http_Custom_Proxy interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpCustomProxy0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpCustomProxy0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result : number = NetHttpTest.Http_Custom_Proxy(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Proxy_0100
+   * @tc.name    : testNetworkManagerHttpProxy0100
+   * @tc.desc    : Test Http_Proxy interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpProxy0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpProxy0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result : number = NetHttpTest.Http_ProxyProxy("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0100
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0100
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  /
+  it('testNetworkManagerHttpPerformanceTiming0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0200
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0200
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0300
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0300
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0400
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0400
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0400';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_4, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0500
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0500
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0500';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_5, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0600
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0600
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0600', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0600';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_6, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Performance_Timing_0700
+   * @tc.name    : testNetworkManagerHttpPerformanceTiming0700
+   * @tc.desc    : Verify performance timing of HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpPerformanceTiming0700', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpPerformanceTiming0700';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Performance_Timing(CASE_INDEX_7, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0100
+   * @tc.name    : testNetworkManagerHttpRequestOption0100
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0200
+   * @tc.name    : testNetworkManagerHttpRequestOption0200
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0300
+   * @tc.name    : testNetworkManagerHttpRequestOption0300
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0400
+   * @tc.name    : testNetworkManagerHttpRequestOption0400
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0400';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_4, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0500
+   * @tc.name    : testNetworkManagerHttpRequestOption0500
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0500';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_5, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0600
+   * @tc.name    : testNetworkManagerHttpRequestOption0600
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0600', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0600';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_6, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0700
+   * @tc.name    : testNetworkManagerHttpRequestOption0700
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0700', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0700';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_7, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0800
+   * @tc.name    : testNetworkManagerHttpRequestOption0800
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0800', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0800';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_8, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+    })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_0900
+   * @tc.name    : testNetworkManagerHttpRequestOption0900
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption0900', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption0900';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_9, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+    })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_1000
+   * @tc.name    : testNetworkManagerHttpRequestOption1000
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption1000', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption1000';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_10, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  
+    /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_1100
+   * @tc.name    : testNetworkManagerHttpRequestOption1100
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption1100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption1100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_11, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_1200
+   * @tc.name    : testNetworkManagerHttpRequestOption1200
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption1200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption1200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_12, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_1300
+   * @tc.name    : testNetworkManagerHttpRequestOption1300
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption1300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption1300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_13, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_Http_Request_Option_1400
+   * @tc.name    : testNetworkManagerHttpRequestOption1400
+   * @tc.desc    : Verify setting request options for HTTP requests
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerHttpRequestOption1400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerHttpRequestOption1400';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetHttpTest.Http_Request_Option(CASE_INDEX_14, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
       done();
     } catch (err) {
       console.error(`${caseName} catch err: ` + JSON.stringify(err));
