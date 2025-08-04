@@ -156,6 +156,7 @@
     "pages/ArkUI/AccessibilityShowStepOptions",
     "pages/ArkUI/cancelTouch",
     "pages/ArkUI/fingerInfos",
-    "pages/ArkUI/bindPopupTest"
+    "pages/ArkUI/bindPopupTest",
+    "pages/ArkUI/AccessibilityHoverEvent"
   ]
 }
