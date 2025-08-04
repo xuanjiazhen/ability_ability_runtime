@@ -47,6 +47,7 @@ ohos_static_library("tools_aa_source_set") {
     ":ability_command_exception_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
     "${ability_runtime_services_path}/common:common_config",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
   ]
 
   cflags = []

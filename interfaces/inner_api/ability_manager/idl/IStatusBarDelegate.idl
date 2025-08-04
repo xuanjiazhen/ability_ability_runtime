@@ -1,0 +1,10 @@
+interface OHOS.AbilityRuntime.IStatusBarDelegate {
+    void CheckIfStatusBarItemExists([in] unsigned int accessTokenId, 
+        [in] String instanceKey, [out] boolean isExist);
+                                 
+    void AttachPidToStatusBarItem([in] unsigned int accessTokenId,
+        [in] int pid, [in] String instanceKey);
+                               
+    void DetachPidToStatusBarItem([in] unsigned int accessTokenId,
+        [in] int pid, [in] String instanceKey);
+}

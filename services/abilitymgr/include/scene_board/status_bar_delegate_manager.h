@@ -19,7 +19,7 @@
 #include "cpp/mutex.h"
 
 #include "ability_record.h"
-#include "status_bar_delegate_interface.h"
+#include "istatus_bar_delegate.h"
 
 namespace OHOS {
 namespace AAFwk {

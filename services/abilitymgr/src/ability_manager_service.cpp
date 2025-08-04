@@ -94,7 +94,7 @@
 #include "start_ability_utils.h"
 #include "hidden_start_utils.h"
 #include "startup_util.h"
-#include "status_bar_delegate_interface.h"
+#include "istatus_bar_delegate.h"
 #include "string_wrapper.h"
 #include "time_util.h"
 #include "ui_extension_utils.h"

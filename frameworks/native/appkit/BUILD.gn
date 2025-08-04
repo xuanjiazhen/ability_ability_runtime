@@ -445,7 +445,10 @@ ohos_shared_library("app_context") {
 
   configs = [ ":appkit_config" ]
 
-  public_configs = [ ":appkit_public_config" ]
+  public_configs = [ 
+  ":appkit_public_config",
+  "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+   ]
 
   sources = [
     "${ability_runtime_native_path}/appkit/ability_runtime/context/ability_lifecycle_callback.cpp",

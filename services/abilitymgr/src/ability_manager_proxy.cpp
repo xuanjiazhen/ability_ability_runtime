@@ -22,7 +22,7 @@
 #include "hitrace_meter.h"
 #include "ipc_capacity_wrap.h"
 #include "server_constant.h"
-#include "status_bar_delegate_interface.h"
+#include "istatus_bar_delegate.h"
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"

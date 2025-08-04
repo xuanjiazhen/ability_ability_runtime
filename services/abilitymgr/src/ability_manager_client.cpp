@@ -25,7 +25,7 @@
 #include "scene_board_judgement.h"
 #include "session_manager_lite.h"
 #endif // SUPPORT_SCREEN
-#include "status_bar_delegate_interface.h"
+#include "istatus_bar_delegate.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {

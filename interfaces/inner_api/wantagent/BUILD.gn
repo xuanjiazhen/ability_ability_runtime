@@ -66,7 +66,10 @@ ohos_shared_library("wantagent_innerkits") {
     "src/want_agent_info.cpp",
   ]
 
-  public_configs = [ ":wantagent_innerkits_public_config" ]
+  public_configs = [ 
+  ":wantagent_innerkits_public_config",
+  "${ability_runtime_innerkits_path}/ability_manager:ability_manager_idl_config",
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

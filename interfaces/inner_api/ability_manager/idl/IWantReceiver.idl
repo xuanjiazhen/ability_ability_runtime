@@ -1,0 +1,13 @@
+sequenceable want..OHOS.AAFwk.Want;
+sequenceable want..OHOS.AAFwk.WantParams;
+interface OHOS.AAFwk.IWantReceiver {
+    void Send([in] int resultCode);
+    
+    void PerformReceive([in] Want want,
+                      [in] int resultCode,
+                      [in] String data,
+                      [in] WantParams extras,
+                      [in] boolean serialized,
+                      [in] boolean sticky,
+                      [in] int sendingUser);
+}

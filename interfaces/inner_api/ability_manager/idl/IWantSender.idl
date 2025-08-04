@@ -1,0 +1,5 @@
+
+sequenceable OHOS.AAFwk.SenderInfo;
+interface OHOS.AAFwk.IWantSender {
+    void Send([in] SenderInfo resultCode);
+}
