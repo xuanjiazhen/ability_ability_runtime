@@ -1562,7 +1562,7 @@ export default function WindowLifecycle() {
           expect().assertFail();
           done();
         } else {
-          console.log(msgStr + '当前设备类型不支持系统能力SystemCapability.Window.SessionManager');
+          console.log(msgStr + 'The device not support SystemCapability.Window.SessionManager');
           console.log(msgStr + JSON.stringify(exception));
           expect(exception.code).assertEqual(801);
           // done();
@@ -1576,7 +1576,7 @@ export default function WindowLifecycle() {
           expect().assertFail();
           done();
         } else {
-          console.log(msgStr + '当前设备类型不支持系统能力SystemCapability.Window.SessionManager');
+          console.log(msgStr + 'The device not support SystemCapability.Window.SessionManager');
           console.log(msgStr + JSON.stringify(exception));
           expect(exception.code).assertEqual(1300002);
           // done();
@@ -1620,7 +1620,7 @@ export default function WindowLifecycle() {
           expect().assertFail();
           done();
         } else {
-          console.log(msgStr + '当前设备类型不支持系统能力SystemCapability.Window.SessionManager');
+          console.log(msgStr + 'The device not support SystemCapability.Window.SessionManager');
           console.log(msgStr + 'Failed to register callback. Cause:' + JSON.stringify(error));
           expect(error.code).assertEqual(801);
           done();
@@ -1652,7 +1652,7 @@ export default function WindowLifecycle() {
           expect().assertFail();
           done();
         } else {
-          console.log(msgStr + '当前设备类型不支持系统能力SystemCapability.Window.SessionManager');
+          console.log(msgStr + 'The device not support SystemCapability.Window.SessionManager');
           console.log(msgStr + 'Failed to register callback. Cause:' + JSON.stringify(error));
           expect(error.code).assertEqual(801);
           done();
