@@ -86,7 +86,7 @@ export default class EntryFormAbility extends FormExtensionAbility {
   }
 
   onFormLocationChanged(formId: string, newFormLocation: formInfo.FormLocation) {
-    console.info("EntryFormAbility onFormLocationChanged current location: " + newFormLocation);
+    console.info('EntryFormAbility onFormLocationChanged current location: ' + newFormLocation);
     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
       code: 0
     };
