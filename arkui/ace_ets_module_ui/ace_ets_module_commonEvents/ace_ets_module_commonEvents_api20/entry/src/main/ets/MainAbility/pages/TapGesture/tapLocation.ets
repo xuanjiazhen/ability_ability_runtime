@@ -27,7 +27,7 @@ struct tapLocationExample {
         .id('TapGesture')
         .gesture(
           TapGesture({ fingers: 1})
-            .onAction((event: GestureEvent) => {
+            .onAction((event: GestureEvent | TapGestureEvent) => {
               this.value1 = JSON.stringify(event.tapLocation?.x)
               this.value2 = JSON.stringify(event.tapLocation?.y)
               this.value3 = JSON.stringify(event.tapLocation?.windowX)
