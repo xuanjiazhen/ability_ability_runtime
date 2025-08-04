@@ -33,8 +33,8 @@ static std::shared_ptr<SwiperComponent> CreateParentSwiper()
 {
     auto swiper = std::make_shared<SwiperComponent>();
     swiper->SetBackgroundColor(0xFFFFFFFF);
-    swiper->SetWidth(SIZE_400);
-    swiper->SetHeight(SIZE_200);
+    swiper->SetWidth(SIZE_250);
+    swiper->SetHeight(SIZE_150);
     swiper->SetSwiperAutoPlay(false);
     swiper->SetSwiperLoop(false);
     swiper->SetMargin(PARAM_10);

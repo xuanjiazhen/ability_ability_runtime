@@ -4,6 +4,7 @@
         "MainAbility/pages/SplitPlaceholder",
         "MainAbility/pages/UIContextNavDestinationUpdate",
         "MainAbility/pages/StepperModifierPage",
-        "MainAbility/pages/HomePage"
+        "MainAbility/pages/HomePage",
+        "MainAbility/pages/StepperModifierTest"
     ]
 }

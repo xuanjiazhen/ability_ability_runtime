@@ -15,7 +15,7 @@
 {
   "app": {
       "bundleName": "com.example.actsstagecontextassisttwo",
-      "vendor": "huawei",
+      "vendor": "actsstagecontextassisttwo",
       "versionCode": 1000000,
       "versionName": "1.0.0",
       "debug": false,

@@ -70,6 +70,8 @@ import onMeasureSize3 from './MeasureSizeTest/onMeasureSize3.test';
 import backgroundJsunit from './BackgroundTest/BackgroundJsunit.test';
 import onPlaceChildren1 from './PlaceChildrenTest/onPlaceChildren1.test';
 import CustomLayoutOnLayoutTest from './CustomComponentLayout/CustomLayoutOnLayout.test';
+import CustomLayoutGeometryInfoTest from './CustomComponentLayout/CustomLayoutGeometryInfoTest.test';
+import CustomLayoutLayoutChildTest from './CustomComponentLayout/CustomLayoutLayoutChildTest.test';
 
 export default function testsuite() {
   girdContainerJsunit();
@@ -129,4 +131,6 @@ export default function testsuite() {
   backgroundJsunit();
   onPlaceChildren1();
   CustomLayoutOnLayoutTest();
+  CustomLayoutGeometryInfoTest();
+  CustomLayoutLayoutChildTest();
 }

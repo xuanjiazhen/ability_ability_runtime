@@ -153,11 +153,7 @@ static napi_value NativeFenceWaitKill(napi_env env, napi_callback_info info)
         signaled.store(true);
     });
     std::this_thread::sleep_for(std::chrono::seconds(3)); // 3 means main thread sleep 3 seconds.
-    pid_t pid = getpid();
-    int ret = kill(pid, SIGURG);
-    if (ret < 0) {
-        LOGI("zy---kill failed: %{public}d", strerror(errno));
-    }
+    pthread_kill(waitThread.native_handle(), SIGURG);
     // Waiting for waitThread to complete
     waitThread.join();
     bool isValid = OH_NativeFence_IsValid(sfd);
@@ -203,12 +199,8 @@ static napi_value NativeFenceWaitForeverKill(napi_env env, napi_callback_info in
         result2 = OH_NativeFence_WaitForever(sfd);
         signaled.store(true);
     });
-    std::this_thread::sleep_for(std::chrono::seconds(2)); // 2 means main thread sleep 3 seconds.
-    pid_t pid = getpid();
-    int ret = kill(pid, SIGTTIN);
-    if (ret < 0) {
-        LOGI("zy---kill failed: %{public}d", strerror(errno));
-    }
+    std::this_thread::sleep_for(std::chrono::seconds(3)); // 3 means main thread sleep 3 seconds.
+    pthread_kill(waitThread.native_handle(), SIGTTIN);
     // Waiting for waitThread to complete
     waitThread.join();
     if (!result2) {

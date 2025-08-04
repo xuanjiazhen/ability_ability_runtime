@@ -81,12 +81,12 @@ static void SetAction(std::shared_ptr<ListItemComponent> listItem,
 {
     auto option = new ListItemSwipeActionOption();
     auto col1 = std::make_shared<ColumnComponent>();
-    col1->SetWidth(SIZE_50);
-    col1->SetHeight(SIZE_50);
+    col1->SetWidth(SIZE_30);
+    col1->SetHeight(SIZE_30);
     col1->SetBackgroundColor(COLOR_GREEN);
     auto col2 = std::make_shared<ColumnComponent>();
-    col2->SetWidth(SIZE_50);
-    col2->SetHeight(SIZE_50);
+    col2->SetWidth(SIZE_30);
+    col2->SetHeight(SIZE_30);
     col2->SetBackgroundColor(COLOR_YELLOW);
 
     auto item1 = OH_ArkUI_ListItemSwipeActionItem_Create();
@@ -106,8 +106,8 @@ static std::shared_ptr<RowComponent> CreateButton(std::vector<std::shared_ptr<Li
     for (int i = PARAM_0; i < list.size(); i++) {
         auto eachList = list[i];
         auto button1 = make_shared<ButtonComponent>();
-        button1->SetWidth(SIZE_50);
-        button1->SetHeight(SIZE_50);
+        button1->SetWidth(SIZE_30);
+        button1->SetHeight(SIZE_30);
         button1->SetId("callbackButton" + std::to_string(i));
         button1->SetBackgroundColor(COLOR_GREEN);
         button1->RegisterOnClick([eachList]() {
@@ -119,8 +119,8 @@ static std::shared_ptr<RowComponent> CreateButton(std::vector<std::shared_ptr<Li
             ListCloseAllTest::retData.push_back(ret);
         });
         auto button2 = make_shared<ButtonComponent>();
-        button2->SetWidth(SIZE_50);
-        button2->SetHeight(SIZE_50);
+        button2->SetWidth(SIZE_30);
+        button2->SetHeight(SIZE_30);
         button2->SetId("nullCallbackButton" + std::to_string(i));
         button2->SetBackgroundColor(COLOR_GREEN);
         button2->RegisterOnClick([eachList]() {
@@ -146,9 +146,9 @@ napi_value ListCloseAllTest::GetRetData(napi_env env, napi_callback_info info)
 static std::shared_ptr<ListComponent> CreateListWithAction(int32_t num, int32_t vertical, string firstItemId)
 {
     auto list = make_shared<ListComponent>();
-    list->SetMargin(PARAM_10);
-    list->SetWidth(SIZE_150);
-    list->SetHeight(SIZE_150);
+    list->SetMargin(PARAM_5);
+    list->SetWidth(SIZE_80);
+    list->SetHeight(SIZE_80);
     list->SetListDirection(vertical);
     list->SetListDivider(COLOR_BLACK, PARAM_2, PARAM_0, PARAM_0);
     for (int i = PARAM_0; i < num; i++) {
@@ -156,8 +156,8 @@ static std::shared_ptr<ListComponent> CreateListWithAction(int32_t num, int32_t 
         if (i == PARAM_0) {
             listItem->SetId(firstItemId);
         }
-        listItem->SetWidth(SIZE_80);
-        listItem->SetHeight(SIZE_80);
+        listItem->SetWidth(SIZE_40);
+        listItem->SetHeight(SIZE_40);
         listItem->SetBackgroundColor(COLOR_BLUE);
         SetAction(listItem);
         list->AddChild(listItem);
@@ -187,8 +187,8 @@ napi_value ListCloseAllTest::CreateNativeNodeCloseAll(napi_env env, napi_callbac
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, nodeAPI);
 
     auto column = new ColumnComponent();
-    auto list1 = CreateListWithAction(SIZE_1000, ArkUI_Axis::ARKUI_AXIS_VERTICAL, "list1");
-    auto list2 = CreateListWithAction(SIZE_1000, ArkUI_Axis::ARKUI_AXIS_HORIZONTAL, "list2");
+    auto list1 = CreateListWithAction(SIZE_100, ArkUI_Axis::ARKUI_AXIS_VERTICAL, "list1");
+    auto list2 = CreateListWithAction(SIZE_100, ArkUI_Axis::ARKUI_AXIS_HORIZONTAL, "list2");
     auto row = CreateButton({ list1, list2 });
     column->AddChild(list1);
     column->AddChild(list2);

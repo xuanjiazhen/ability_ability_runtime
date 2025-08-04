@@ -70,7 +70,7 @@ export default function abilityTest() {
       // This API supports only one parameter: preset action function.
     })
     afterEach(async () => {
-      await sleep(200)
+      await sleep(800)
     })
     afterAll(() => {
       // Presets a clear action, which is performed after all test cases of the test suite end.
@@ -1966,7 +1966,7 @@ export default function abilityTest() {
           console.info(CaseName+' floatingBallController Succeeded  in starting floating ball.');
           floatingBallController.stopFloatingBall().then(async () => {
             console.info(CaseName+ ' Succeeded in stopping 1 floating ball.');
-            await sleep(300);
+            await sleep(800);
             floatingBallController.startFloatingBall(startParams).then(() => {
               console.info(CaseName+ ' Succeeded in starting 2 floating ball.');
               floatingBallController.stopFloatingBall().then(() => {
@@ -2078,7 +2078,7 @@ export default function abilityTest() {
         await sleep(200);
         expect(FloatBallstate).assertEqual(floatingBall.FloatingBallState.STARTED);
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         expect(FloatBallstate).assertEqual(floatingBall.FloatingBallState.STOPPED);
         floatingBallController.off('stateChange');
         done();
@@ -2130,7 +2130,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
         floatingBallController.off('stateChange');
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         console.info(CaseName+ ' time2: ' + time);
         expect(time).assertEqual(2);
         done();
@@ -2182,7 +2182,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
         floatingBallController.off('stateChange',callback1);
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         console.info(CaseName+ ' time2: ' + time);
         expect(time).assertEqual(3);
         floatingBallController.off('stateChange');
@@ -2294,7 +2294,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
 
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);

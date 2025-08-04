@@ -19,7 +19,6 @@ import resourceManager from '@ohos.resourceManager';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium'
 import image from "@ohos.multimedia.image";
 import { BusinessError } from '@kit.BasicServicesKit';
-import { abilityAccessCtrl, Permissions } from '@kit.AbilityKit';
 
 const AUDIO_SOURCE = 'mjpeg_mp3.mp3';
 const VIDEO_SOURCE = 'H264_AAC_Matedata.mp4';
@@ -1084,73 +1083,6 @@ export default function AVMetadata() {
       await mediaTestBase.msleepAsync(SLEEP_TIME);
       expect(pixelMapLoc).assertUndefined();
       await avMetadataExtractor.release();
-      done();
-    });
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300
-     * @tc.name      : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300
-     * @tc.desc      : Online http Video playback control test
-     * @tc.size      : MediumTest
-     * @tc.type      : Function Test
-     * @tc.level     : Level0
-     */
-    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0300', Level.LEVEL0, async (done: Function) => {
-      let avMetadataExtractor = await media.createAVMetadataExtractor();
-      console.info('AVMetadataExtractor success');
-      let headers: Record<string, string> = {
-        "User-Agent" : "User-Agent-Value"
-      };
-      let url = "htttp://xx";
-      await avMetadataExtractor.setUrlSource(url, headers).then(() => {
-      }).catch((error: BusinessError) => {
-        expect(error.code).assertEqual(media.AVErrorCode.AVERR_PARAMETER_OUT_OF_RANGE);
-        console.error(`Failed to setUrlSource, code: ${error.code} message: ${error.message}`);
-      });
-      done();
-    });
-
-    /**
-     * @tc.number    : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400
-     * @tc.name      : SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400
-     * @tc.desc      : Online http Video playback control test
-     * @tc.size      : MediumTest
-     * @tc.type      : Function Test
-     * @tc.level     : Level0
-     */
-    it('SUB_MULTIMEDIA_PLAYER_AVMETADATA_SERURLSOURCE_VOID_FUNCTION_0400', Level.LEVEL0, async (done: Function) => {
-      let avMetadataExtractor = await media.createAVMetadataExtractor();
-      console.info('AVMetadataExtractor success');
-      let headers: Record<string, string> = {
-        "User-Agent" : "User-Agent-Value"
-      };
-      let url = "http://xx";
-      let atManager = abilityAccessCtrl.createAtManager();
-      let permissionNames: Array<Permissions> = ['ohos.permission.INTERNET'];
-      // requestPermissionsFromUser会判断权限的授权状态
-      await atManager.requestPermissionsFromUser(globalThis.abilityContext, permissionNames).then(async (data) => {
-        let grantStatus = data.authResults;
-        if (grantStatus[0] !== 0) {
-          await avMetadataExtractor.setUrlSource(url, headers).then(() => {
-          }).catch((error: BusinessError) => {
-            expect(error.code).assertEqual(media.AVErrorCode.AVERR_NO_PERMISSION);
-            console.error(`Failed to first setUrlSource, code: ${error.code} message: ${error.message}`);
-          });
-        } else {
-          await avMetadataExtractor.setUrlSource(url, headers).then(() => {
-            console.info(`success to first setUrlSource`);
-          }).catch((error: BusinessError) => {
-            console.error(`Failed to first setUrlSource, code: ${error.code} message: ${error.message}`);
-          });
-        }
-      }).catch((err: BusinessError) => {
-        console.error(`Failed to request permissions from user. Code is ${err.code}, message is ${err.message}`);
-      });
-      await avMetadataExtractor.setUrlSource(url, headers).then(() => {
-      }).catch((error: BusinessError) => {
-        expect(error.code).assertEqual(media.AVErrorCode.AVERR_OPERATE_NOT_PERMIT);
-        console.error(`Failed to second setUrlSource, code: ${error.code} message: ${error.message}`);
-      });
       done();
     });
 

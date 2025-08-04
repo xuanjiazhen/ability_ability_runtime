@@ -62,7 +62,6 @@ export default function UserAuthTipTest() {
       done();
     })
 
-
     /**
      * @tc.number : SUB_Security_userIam_authWidget_Func_Tip_0031
      * @tc.name   : SUB_Security_userIam_authWidget_Func_Tip_0031
@@ -106,6 +105,8 @@ export default function UserAuthTipTest() {
       try {
         let userAuthInstance = userAuth.getUserAuthInstance(authParam,widgetParam);
         userAuthInstance.on('authTip',(authTipInfo:userAuth.AuthTipInfo)=>{
+          console.info('SUB_Security_userIam_authWidget_Func_Tip_0032 authTipInfo.tipType = ' + authTipInfo.tipType)
+          console.info('SUB_Security_userIam_authWidget_Func_Tip_0032 authTipInfo.tipCode = ' + authTipInfo.tipCode)
           console.info('SUB_Security_userIam_authWidget_Func_Tip_0032 on with callback')
         });
         userAuthInstance.off('authTip',(authTipInfo:userAuth.AuthTipInfo)=>{
@@ -130,9 +131,16 @@ export default function UserAuthTipTest() {
         console.error('SUB_Security_userIam_authWidget_Func_Tip_0032 err.code '+err.code);
         expect(12500002).assertEqual(err.code);
       }
+      try {
+        let userAuthInstance = userAuth.getUserAuthInstance(authParam,widgetParam);
+        userAuthInstance.off('authTip',(authTipInfo:userAuth.AuthTipInfo)=>{});
+        expect(null).assertFail();
+      }
+      catch (err) {
+        console.error('SUB_Security_userIam_authWidget_Func_Tip_0032 err1.code '+err.code);
+        expect(12500002).assertEqual(err.code);
+      }
       done();
-    })
-
-
+    });
   })
 }

@@ -18,6 +18,8 @@ import normalDrag from './DragEvent/normalDrag.test';
 import dragSpringLoading from './DragEvent/dragSpringLoading.test';
 import FrameNodeTest from './frameNode/framenode.test';
 import enableInternalDropAnimation from './DragEvent/enableInternalDropAnimation.test';
+import isActive from './UIContext/isActive.test';
+import ToolBarItemTest from './toolbar/ToolBarItem.test';
 
 export default function testsuite() {
   DragModifier();
@@ -25,4 +27,6 @@ export default function testsuite() {
   dragSpringLoading();
   FrameNodeTest();
   enableInternalDropAnimation();
+  isActive();
+  ToolBarItemTest();
 }

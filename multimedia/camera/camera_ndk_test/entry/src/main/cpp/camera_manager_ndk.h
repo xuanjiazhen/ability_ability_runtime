@@ -347,6 +347,8 @@ public:
     Camera_ErrorCode EnableAutoDeviceSwitch(bool isEnable);
     Camera_ErrorCode RegisterAutoDeviceSwitchStatusCallback(int useCaseCode);
     Camera_ErrorCode UnegisterAutoDeviceSwitchStatusCallback(int useCaseCode);
+    Camera_ErrorCode RegisterSystemPressureLevel(int useCaseCode);
+    Camera_ErrorCode UnregisterSystemPressureLevel(int useCaseCode);
     Camera_ErrorCode CameraManagerRegisterFoldStatusCallback(int useCaseCode);
     Camera_ErrorCode CameraManagerUnregisterFoldStatusCallback(int useCaseCode);
     int32_t ColorSpace(void);

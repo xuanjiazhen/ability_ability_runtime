@@ -127,9 +127,6 @@ class XtsBuild:
         return ret.returncode
 
     def get_accurate_targets(self):
-        if os.environ.get("XTS_SUITETYPE") == "hap_static":
-            logging.info("hap_static task use full build")
-            return self._build_target
         accurate_dir = "{}/test/xts/tools/ci".format(self._code_root_dir)
         sys.path.append(accurate_dir)
         import generate_accurate_targets as gat
@@ -163,7 +160,7 @@ class XtsBuild:
         for i in self._other_args:
             build_command = "{} --{}={}".format(build_command, i, self._other_args.get(i))
         if self._arkts_static:
-            build_command = "{} {}".format(build_command, "--prebuilts-sdk-gn-args ")
+            build_command = "{} {}".format(build_command, "--prebuilts-sdk-gn-args sdk_build_arkts=true")
         logging.info("build_command: {}".format(build_command))
 
         # 执行编译命令

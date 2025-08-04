@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.windowstagelifecycle_xts",
-    "vendor": "huawei",
+    "vendor": "windowstagelifecycle_xts",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

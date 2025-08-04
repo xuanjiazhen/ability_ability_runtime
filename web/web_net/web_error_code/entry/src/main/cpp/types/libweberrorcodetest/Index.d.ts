@@ -23,7 +23,22 @@ export const webErrorInvaledCookieValue: () => number;
 export const webErrorLibraryOpenFailure: () => number;
 export const webErrorLibraySymbolNotFound: () => number;
 export const webErrorCookeManagerNotInitialized: () => number;
-
+export const webBlanklessSuccess: () => number;
+export const webBlanklessErrUnknown: () => number;
+export const webBlanklessErrInvalidArgs: () => number;
+export const webBlanklessErrControllerNotInited: () => number;
+export const webBlanklessErrKeyNotMatch: () => number;
+export const webBlanklessErrSignificantChange: () => number;
+export const webBlanklessDeviceNotSupport: () => number;
+export const webAnyNativeAPI: () => number;
+export const webNativeComponent: () => number;
+export const webNativeController: () => number;
+export const webNativeWebMessagePort: () => number;
+export const webNativeWebMessage: () => number;
+export const webNativeCookieManger: () => number;
+export const webNativeJavaScriptValue: () => number;
+export const webNetErrorDidFailWithError: (errName: string) => number;
+export const WebArkWebResponseGetError: (errName: string) => number;
 
 
 

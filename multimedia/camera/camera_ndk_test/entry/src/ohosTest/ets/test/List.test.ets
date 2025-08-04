@@ -35,6 +35,7 @@ import CameraSessionQualityPrioritizationTest from './CameraSessionQualityPriori
 import VideoMirrorTest from './VideoMirror.test';
 import SecureCameraErrorCodeTest from './SecureCameraErrorCodeTest.test';
 import CameraSessionMacroTest from './CameraSessionMacroTest.test';
+import CameraSessionSystemPressureLevelTest from './CameraSessionSystemPressureTest.test.ets';
 
 let voice = call.hasVoiceCapability()
 
@@ -60,6 +61,7 @@ export default function testsuite() {
     cameraJSUnitOutput();
     CameraSessionCameraRotationTest();
     CameraSessionAutoDeviceSwitchTest();
+    CameraSessionSystemPressureLevelTest();
   }else{
     CameraFunctionTest();
     CameraInputTest();

@@ -30,12 +30,12 @@ static ArkUI_NodeHandle CreateChildNodeUp(ArkUI_NativeNodeAPI_1 *nodeAPI)
     auto column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
     auto button = nodeAPI->createNode(ARKUI_NODE_BUTTON);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_100}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_120}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -69,12 +69,12 @@ static ArkUI_NodeHandle CreateChildNodeDown(ArkUI_NativeNodeAPI_1 *nodeAPI)
     auto column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
     auto button = nodeAPI->createNode(ARKUI_NODE_BUTTON);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_100}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_120}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -122,7 +122,7 @@ static void OnEventReceive(ArkUI_NodeEvent *event)
     }
 
     if (eventId == ON_CLICK_UP_EVENT_ID) {
-        ArkUI_NumberValue scroll_value[] = {{.f32 = PARAM_0}, {.f32 = PARAM_200}};
+        ArkUI_NumberValue scroll_value[] = {{.f32 = PARAM_0}, {.f32 = PARAM_100}};
         ArkUI_AttributeItem scroll_item = {scroll_value, sizeof(scroll_value) / sizeof(ArkUI_NumberValue)};
         nodeAPI->setAttribute(nodeAPI->getParent(nodeAPI->getParent(nodeHandler)), NODE_SCROLL_BY, &scroll_item);
         ArkUI_NumberValue background_color_value[] = {{.u32 = COLOR_RED}};

@@ -67,6 +67,7 @@ group("multimedia") {
       "camera/camera_ndk_test:camera_framework_ndk_hap",
       "camera/camera_ndk_xts/OHCameraNdk:ActsMediaCameraNDKTest",
       "camera/camera_picker_test:camera_picker_ets_hap",
+      "camera/camera_ets_standard/cameraXts:cameraXts_ets_hap",
       "drm/AVCodecDrmNdk:AVcodecDrm_NDK_test",
       "drm/avPlayerDrmNdk:AVPlayerDrm_NDK_test",
       "drm/drm_js_standard/avPlayer:drm_avplayer_js_hap",
@@ -113,6 +114,7 @@ group("multimedia") {
       "image/image_js_standard/image_ndk_test:image_pixelmap_ndk_hap",
       "image_effect/OHImageEffectNDK:ActsMediaImageEffectNDKTest",
       "media/media_cpp_standard:ActsAvcodecNdkTest",
+      "media/media_ets_standard/mediaXts:media_xts_hap",
       "media/media_js_standard/AVRecorderNDK:ActsOhAVRecorderNDKTest",
       "media/media_js_standard/AVRecorderVideoNDK:ActsOhAVRecorderVideoNDKTest",
       "media/media_js_standard/audioPlayer:audio_player_js_hap",
@@ -132,9 +134,11 @@ group("multimedia") {
       "photoAccess/photoAccess:photoAccess_js_hap",
       "photoAccess/photoAccessSendable:photoAccess_sendable_hap",
       "photoAccess/pickerView:TextPickerTest",
+      "photoAccess/photoAccess_ets_standard/photoAccessXts:photoAccessXts_ets_hap",
       "videoProcess/detail_enhancer_image_ndk:ActsDetailEnhancerImageNdkUnitTest",
       "videoProcess/detail_enhancer_video_ndk:ActsDetailEnhancerVideoNdkUnitTest",
       "videoProcess/moduletest/video:ActsVpeVideoNativModuleTest",
+      "image/image_ets_standard/imageXts:imageXts_ets_hap",
     ]
   } else {
     deps += [

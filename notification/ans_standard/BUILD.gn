@@ -19,6 +19,7 @@ group("ans_standard") {
       "actsNotificationBadgeTest:ActsNotificationBadgeTest",
       "actsNotificationDistributedTest:ActsNotificationDistributedTest",
       "actsNotificationEmitterNewTest:ActsNotificationEmitterNewTest",
+      "actsNotificationEmitterNewTestStatic:ActsNotificationEmitterNewStaticTest",
       "actsNotificationEmitterTest:ActsNotificationEmitterTest",
       "actsNotificationInterfaceChangeTest:ActsNotificationInterfaceChangeTest",
       "actsNotificationManagerSlotTest:ActsNotificationManagerSlotTest",
@@ -28,9 +29,9 @@ group("ans_standard") {
       "actsNotificationSecondaryDirectoryTest:ActsNotificationSecondaryDirectoryTest",
       "actsNotificationShowTest:ActsNotificationShowTest",
       "actsNotificationSlotTest:ActsNotificationSlotTest",
+      "actsNotificationVibrationSoundTest:ActsNotificationVibrationSoundTest",
       "actsNotificationSystemAPITest:ActsNotificationSystemAPITest",
       "actsNotificationSystemLiveViewTest:ActsNotificationSystemLiveViewTest",
-      "actsNotificationVibrationSoundTest:ActsNotificationVibrationSoundTest",
       "notificationManager:notificationManager",
     ]
   }

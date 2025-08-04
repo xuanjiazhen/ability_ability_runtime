@@ -46,6 +46,7 @@ export const queueApiTest012: () => number;
 export const queueApiTest013: () => number;
 export const queueApiTest014: () => number;
 export const queueApiTest015: () => number;
+export const queueApiTest016: () => number;
 export const queueCancelTest001: () => number;
 export const queueCancelTest003: () => number;
 export const queueCancelTest004: () => number;

@@ -28,12 +28,17 @@
     </style>
 </head>
 <body>
-    <div class="box">
-        <input type="file" id="upload" name="upload" value="" style="margin-left:65px" accept=".json" onchange="handleInputFileChange(event)"/>
-    </div>
+<div class="box" >
+    <button id="openFileBtn" onclick="MyInput()" >选择文件</button>
+    <input type="file" id="upload" name="upload"  style="margin-left:65px; display: none;" accept=".json" onchange="handleInputFileChange(event)" onclick="MyInput()"/>
+</div>
 </body>
 <script>
     var filePath = ""
+    var errorImage = '5555'
+     document.getElementById('openFileBtn').addEventListener('click', function() {
+        document.getElementById('upload').click();
+        })
     function handleInputFileChange(e) {
       var file = e.target.files[0];
       filePath = file.name;
@@ -41,6 +46,14 @@
 
     function getFilePath(){
         return filePath
+    }
+    function MyInput() {
+        document.getElementById('openFileBtn').click();
+
+        const upload = document.getElementById('upload');
+        const event = new Event('change');
+        upload.dispatchEvent(event);
+         return true;
     }
 </script>
 </html>

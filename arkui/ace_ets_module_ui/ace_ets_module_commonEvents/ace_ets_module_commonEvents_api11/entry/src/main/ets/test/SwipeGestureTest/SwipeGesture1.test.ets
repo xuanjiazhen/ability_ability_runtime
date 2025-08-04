@@ -86,7 +86,7 @@ export default function SwipeGesture1() {
       let top = colum.top
       let right = colum.right
       let left = colum.left
-      await driver.swipe(Math.round(left + (right-left)/6), Math.round(top + 100), Math.round(right - (right-left)/6), Math.round(top + 500))
+      await driver.swipe(Math.round(colum.left + (colum.right - colum.left)/2), Math.round(top), Math.round(colum.right), Math.round(colum.bottom))
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('Swipe2');
       let obj: ESObject = JSON.parse(strJson);
@@ -110,7 +110,7 @@ export default function SwipeGesture1() {
       let top = colum.top
       let right = colum.right
       let left = colum.left
-      await driver.swipe(Math.round(left + (right-left)/6), Math.round(top + 100), Math.round(right - (right-left)/6), Math.round(top + 500))
+      await driver.swipe(Math.round(colum.left + (colum.right - colum.left)/2), Math.round(colum.bottom), Math.round(colum.right), Math.round(top))
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('Swipe7');
       let obj: ESObject = JSON.parse(strJson);
@@ -123,4 +123,3 @@ export default function SwipeGesture1() {
 
   })
 }
-

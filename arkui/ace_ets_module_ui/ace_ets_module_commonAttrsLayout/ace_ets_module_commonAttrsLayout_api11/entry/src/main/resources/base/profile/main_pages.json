@@ -57,6 +57,8 @@
         "MainAbility/pages/MeasureSize/onMeasureSize3",
         "MainAbility/pages/Background/background",
         "MainAbility/pages/PlaceChildren/onPlaceChildren1",
-        "MainAbility/pages/CustomComponentLayout/CustomLayoutOnLayout"
+        "MainAbility/pages/CustomComponentLayout/CustomLayoutOnLayout",
+        "MainAbility/pages/CustomComponentLayout/CustomLayoutGeometryInfoPage",
+        "MainAbility/pages/CustomComponentLayout/CustomLayoutLayoutChildPage"
     ]
 }

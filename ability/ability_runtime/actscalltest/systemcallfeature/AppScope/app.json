@@ -1,7 +1,7 @@
 {
     "app":{
         "bundleName":"com.example.systemcalltest",
-        "vendor":"huawei",
+        "vendor":"systemcalltest",
         "versionCode":1000000,
         "versionName":"1.0.0",
         "debug":false,

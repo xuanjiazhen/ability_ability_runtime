@@ -65,7 +65,7 @@ public:
     {
         auto list = std::make_shared<ListComponent>();
         list->SetWidth(SIZE_200);
-        list->SetHeight(SIZE_300);
+        list->SetHeight(SIZE_150);
         list->SetListSpace(PARAM_10);
         list->SetBackgroundColor(COLOR_GRAY);
         list->SetId("list");
