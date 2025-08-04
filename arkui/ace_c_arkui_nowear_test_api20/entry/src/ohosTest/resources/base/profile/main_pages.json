@@ -8,6 +8,7 @@
     "MainAbility/pages/grid/FocusWrapModeTest003",
     "MainAbility/pages/dragEvent/dragEventGetDisplayId",
     "MainAbility/pages/dragEvent/dragEventGetDragSource",
+    "MainAbility/pages/dragEvent/dragEventGetGlobalDisplay",
     "MainAbility/pages/dropBadge/enableDropDisallowedBadge",
     "MainAbility/pages/dialog/DialogGetStateTest"
   ]
