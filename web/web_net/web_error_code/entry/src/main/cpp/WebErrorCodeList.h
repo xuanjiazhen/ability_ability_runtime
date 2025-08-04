@@ -22,4 +22,6 @@
 
 napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info);
 napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info);
+napi_value WebArkWebConnectError(napi_env env, napi_callback_info info);
+
 #endif //WEB_ERROR_CODE_WEBERRORCODELIST_H

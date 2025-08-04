@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { describe, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import webCode from 'libweberrorcodetest.so'
 
 
@@ -30,7 +30,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrIOPending', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrIOPending start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_IO_PENDING");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_IO_PENDING");
         console.info("====>testArkWebErrIOPending result====", result);
         expect(result).assertEqual(0);
         done();
@@ -50,7 +50,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFailed start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FAILED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FAILED");
         console.info("====>testArkWebErrFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -70,7 +70,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAboorted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAboorted start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_ABORTED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_ABORTED");
         console.info("====>testArkWebErrAboorted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -90,7 +90,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInvaliedHandle', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInvaliedHandle start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_INVALID_HANDLE");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_INVALID_HANDLE");
         console.info("====>testArkWebErrInvaliedHandle result====", result);
         expect(result).assertEqual(0);
         done();
@@ -110,7 +110,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTimedOut start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_TIMED_OUT");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_TIMED_OUT");
         console.info("====>testArkWebErrTimedOut result====", result);
         expect(result).assertEqual(0);
         done();
@@ -130,7 +130,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileTooLarge', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileTooLarge start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_TOO_LARGE");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_TOO_LARGE");
         console.info("====>testArkWebErrFileTooLarge result====", result);
         expect(result).assertEqual(0);
         done();
@@ -150,7 +150,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrUnexpected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrUnexpected start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UNEXPECTED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UNEXPECTED");
         console.info("====>testArkWebErrUnexpected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -170,7 +170,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAccessDenied', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAccessDenied start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_ACCESS_DENIED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_ACCESS_DENIED");
         console.info("====>testArkWebErrAccessDenied result====", result);
         expect(result).assertEqual(0);
         done();
@@ -190,7 +190,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNotImplemented', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNotImplemented start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_NOT_IMPLEMENTED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_NOT_IMPLEMENTED");
         console.info("====>testArkWebErrNotImplemented result====", result);
         expect(result).assertEqual(0);
         done();
@@ -210,7 +210,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInsufficientResources', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInsufficientResources start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
         console.info("====>testArkWebErrInsufficientResources result====", result);
         expect(result).assertEqual(0);
         done();
@@ -230,7 +230,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrOutofMemory', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrOutofMemory start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_OUT_OF_MEMORY");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_OUT_OF_MEMORY");
         console.info("====>testArkWebErrOutofMemory result====", result);
         expect(result).assertEqual(0);
         done();
@@ -250,7 +250,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrUploadFileChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrUploadFileChanged start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UPLOAD_FILE_CHANGED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UPLOAD_FILE_CHANGED");
         console.info("====>testArkWebErrUploadFileChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -271,7 +271,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrSocketNotConnected start====");
-          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_SOCKET_NOT_CONNECTED");
+          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_SOCKET_NOT_CONNECTED");
           console.info("====>testArkWebErrSocketNotConnected result====", result);
           expect(result).assertEqual(0);
           done();
@@ -291,7 +291,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileExists', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileExists start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_EXISTS");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_EXISTS");
         console.info("====>testArkWebErrFileExists result====", result);
         expect(result).assertEqual(0);
         done();
@@ -311,7 +311,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFilePathTooLong', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFilePathTooLong start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_PATH_TOO_LONG");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_PATH_TOO_LONG");
         console.info("====>testArkWebErrFilePathTooLong result====", result);
         expect(result).assertEqual(0);
         done();
@@ -331,7 +331,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileNoSpace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileNoSpace start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_NO_SPACE");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_NO_SPACE");
         console.info("====>testArkWebErrFileNoSpace result====", result);
         expect(result).assertEqual(0);
         done();
@@ -351,7 +351,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileVirusInfected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileVirusInfected start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_VIRUS_INFECTED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_VIRUS_INFECTED");
         console.info("====>testArkWebErrFileVirusInfected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -371,7 +371,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBlockedByClient', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByClient start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_CLIENT");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_CLIENT");
         console.info("====>testArkWebErrBlockedByClient result====", result);
         expect(result).assertEqual(0);
         done();
@@ -391,7 +391,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNetWorkChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNetWorkChanged start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_NETWORK_CHANGED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_NETWORK_CHANGED");
         console.info("====>testArkWebErrNetWorkChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -412,7 +412,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrBlockedByAdministarator start====");
-          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR");
+          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR");
           console.info("====>testArkWebErrBlockedByAdministarator result====", result);
           expect(result).assertEqual(0);
           done();
@@ -432,7 +432,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSocketConnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByAdministarator start====");
-        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_SOCKET_CONNECTED");
+        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_SOCKET_CONNECTED");
         console.info("====>testArkWebErrBlockedByAdministarator result====", result);
         expect(result).assertEqual(0);
         done();
@@ -453,7 +453,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrUploadStreamRewindNotSupported start====");
-          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED");
+          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED");
           console.info("====>testArkWebErrUploadStreamRewindNotSupported result====", result);
           expect(result).assertEqual(0);
           done();
@@ -473,7 +473,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrContextShutDown', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>testArkWebErrContextShutDown start====");
-          let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_CONTEXT_SHUT_DOWN");
+          let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONTEXT_SHUT_DOWN");
           console.info("====>testArkWebErrContextShutDown result====", result);
           expect(result).assertEqual(0);
           done();
@@ -482,7 +482,305 @@ export default function ActsWebErrorCodeListTest() {
         }
       })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2400
+     * @tc.name    : testArkWebErrBlockByResponse
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_BLOCKED_BY_RESPONSE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrBlockByResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrBlockByResponse start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_RESPONSE");
+        console.info("====>testArkWebErrBlockByResponse result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrBlockByResponse catch err: " + err);
+      }
+    })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2500
+     * @tc.name    : testArkWebErrCleartextNotPermitted
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrCleartextNotPermitted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrCleartextNotPermitted start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED");
+        console.info("====>testArkWebErrCleartextNotPermitted result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrCleartextNotPermitted catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2600
+     * @tc.name    : testArkWebErrBlockedByCSP
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_BLOCKED_BY_CSP
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrBlockedByCSP', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrBlockedByCSP start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_CSP");
+        console.info("====>testArkWebErrBlockedByCSP result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrBlockedByCSP catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2700
+     * @tc.name    : testArkWebErrH2orQUICRequired
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_H2_OR_QUIC_REQUIRED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrH2orQUICRequired', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrH2orQUICRequired start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_H2_OR_QUIC_REQUIRED");
+        console.info("====>testArkWebErrH2orQUICRequired result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrH2orQUICRequired catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2800
+     * @tc.name    : testArkWebErrBlockedByORB
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_BLOCKED_BY_ORB
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrBlockedByORB', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrBlockedByORB start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_ORB");
+        console.info("====>testArkWebErrBlockedByORB result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrBlockedByORB catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2900
+     * @tc.name    : testArkWebErrConnectionClosed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONNECTION_CLOSED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrConnectionClosed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrConnectionClosed start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_CLOSED");
+        console.info("====>testArkWebErrConnectionClosed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrConnectionClosed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3000
+     * @tc.name    : testArkWebErrConnectionReset
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONNECTION_RESET
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrConnectionReset', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrConnectionReset start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_RESET");
+        console.info("====>testArkWebErrConnectionReset result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrConnectionReset catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3100
+     * @tc.name    : testArkWebErrConnectionRefused
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONNECTION_REFUSED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrConnectionRefused', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrConnectionRefused start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_REFUSED");
+        console.info("====>testArkWebErrConnectionRefused result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrConnectionRefused catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3200
+     * @tc.name    : testArkWebErrConnectionAborted
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONNECTION_ABORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrConnectionAborted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrConnectionAborted start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_ABORTED");
+        console.info("====>testArkWebErrConnectionAborted result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrConnectionAborted catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3300
+     * @tc.name    : testArkWebErrConnectionFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONNECTION_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrConnectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrConnectionFailed start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_FAILED");
+        console.info("====>testArkWebErrConnectionFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrConnectionFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3400
+     * @tc.name    : testArkWebErrNameNotResolved
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_NAME_NOT_RESOLVED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrNameNotResolved', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrNameNotResolved start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_NAME_NOT_RESOLVED");
+        console.info("====>testArkWebErrNameNotResolved result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrNameNotResolved catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3500
+     * @tc.name    : testArkWebErrInternetDisconnected
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_INTERNET_DISCONNECTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrInternetDisconnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrInternetDisconnected start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_INTERNET_DISCONNECTED");
+        console.info("====>testArkWebErrInternetDisconnected result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrInternetDisconnected catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3600
+     * @tc.name    : testArkWebErrSSLProtocolError
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SSL_PROTOCOL_ERROR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrSSLProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrSSLProtocolError start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SSL_PROTOCOL_ERROR");
+        console.info("====>testArkWebErrSSLProtocolError result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrSSLProtocolError catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3700
+     * @tc.name    : testArkWebErrAddressInvalid
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_ADDRESS_INVALID
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrAddressInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrAddressInvalid start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_ADDRESS_INVALID");
+        console.info("====>testArkWebErrAddressInvalid result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrAddressInvalid catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_3800
+     * @tc.name    : testArkWebErrAddressUnreachable
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_ADDRESS_UNREACHABLE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrAddressUnreachable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrAddressUnreachable start====");
+        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_ADDRESS_UNREACHABLE");
+        console.info("====>testArkWebErrAddressUnreachable result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrAddressUnreachable catch err: " + err);
+      }
+    })
 
 
   })
