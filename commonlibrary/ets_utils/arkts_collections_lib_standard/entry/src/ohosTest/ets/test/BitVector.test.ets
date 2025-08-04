@@ -1126,9 +1126,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4300';
+        const caseName = 'BitVectortest04300';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1162,9 +1162,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4400';
+        const caseName = 'BitVectortest04400';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1198,9 +1198,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4500';
+        const caseName = 'BitVectortest04500';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1234,9 +1234,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4600';
+        const caseName = 'BitVectortest04600';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1270,9 +1270,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4700';
+        const caseName = 'BitVectortest04700';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1306,9 +1306,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4800';
+        const caseName = 'BitVectortest04800';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1342,9 +1342,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest4900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest04900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest4900';
+        const caseName = 'BitVectortest04900';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1378,9 +1378,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest5000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest05000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest5000';
+        const caseName = 'BitVectortest05000';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1414,9 +1414,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest5100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest05100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest5100';
+        const caseName = 'BitVectortest05100';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1450,9 +1450,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest5200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest05200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest5200';
+        const caseName = 'BitVectortest05200';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1486,9 +1486,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest5300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest05300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest5300';
+        const caseName = 'BitVectortest05300';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
@@ -1522,9 +1522,9 @@ export default function BitVectortest() {
      * @tc.type      : Function
      * @tc.level     : Level 0
      */
-    it('BitVectortest5400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+    it('BitVectortest05400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
       async (done: () => void): Promise<void> => {
-        const caseName = 'BitVectortest5400';
+        const caseName = 'BitVectortest05400';
         console.info(`${caseName} test start`);
         let count = 0;
         let bitVector = new collections.BitVector(4);
