@@ -61,7 +61,7 @@ describe('fileio_hash', function () {
     expect(prepareFile(fpath, FILE_CONTENT)).assertTrue();
 
     try {
-      fileio.hash(filePath, "sha256", (err, hashStr) => {
+      fileio.hash(fpath, "sha256", (err, hashStr) => {
         if (hashStr) {
           console.info("fileio_test_hash_async_001 calculate file hash succeed:" + hashStr);
           expect(hashStr == 'B94D27B9934D3E08A52E52D7DA7DABFAC484EFE37A5380EE9088F7ACE2EFCDE9').assertTrue();
