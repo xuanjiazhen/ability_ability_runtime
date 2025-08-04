@@ -71,6 +71,34 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
     return ARKWEB_NET_OK;
 }
 
+static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
+{
+    std::string strName(name);
+    std::map<std::string, ArkWeb_NetError> netErrorMap = {
+        {"ARKWEB_ERR_CONTEXT_SHUT_DOWN", ARKWEB_ERR_CONTEXT_SHUT_DOWN},
+        {"ARKWEB_ERR_BLOCKED_BY_RESPONSE", ARKWEB_ERR_BLOCKED_BY_RESPONSE},
+        {"ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED", ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED},
+        {"ARKWEB_ERR_BLOCKED_BY_CSP", ARKWEB_ERR_BLOCKED_BY_CSP},
+        {"ARKWEB_ERR_H2_OR_QUIC_REQUIRED", ARKWEB_ERR_H2_OR_QUIC_REQUIRED},
+        {"ARKWEB_ERR_BLOCKED_BY_ORB", ARKWEB_ERR_BLOCKED_BY_ORB},
+        {"ARKWEB_ERR_CONNECTION_CLOSED", ARKWEB_ERR_CONNECTION_CLOSED},
+        {"ARKWEB_ERR_CONNECTION_RESET", ARKWEB_ERR_CONNECTION_RESET},
+        {"ARKWEB_ERR_CONNECTION_REFUSED", ARKWEB_ERR_CONNECTION_REFUSED},
+        {"ARKWEB_ERR_CONNECTION_ABORTED", ARKWEB_ERR_CONNECTION_ABORTED},
+        {"ARKWEB_ERR_CONNECTION_FAILED", ARKWEB_ERR_CONNECTION_FAILED},
+        {"ARKWEB_ERR_NAME_NOT_RESOLVED", ARKWEB_ERR_NAME_NOT_RESOLVED},
+        {"ARKWEB_ERR_INTERNET_DISCONNECTED", ARKWEB_ERR_INTERNET_DISCONNECTED},
+        {"ARKWEB_ERR_SSL_PROTOCOL_ERROR", ARKWEB_ERR_SSL_PROTOCOL_ERROR},
+        {"ARKWEB_ERR_ADDRESS_INVALID", ARKWEB_ERR_ADDRESS_INVALID},
+    };
+
+    auto it = netErrorMap.find(strName);
+    if (it != netErrorMap.end()) {
+        return it->second;
+    }
+    return ARKWEB_NET_OK;
+}
+
 napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError start..");
@@ -97,6 +125,29 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
 
     char* netErrorName = GetArgsParamater(env, info);
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
+    ret = OH_ArkWebResponse_SetError(response, errorCode);
+    ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
+    
+    napi_value result;
+    if (errorCodeRes == ARKWEB_ERR_FAILED) {
+        napi_create_int32(env, 0, &result);
+    }
+
+    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
+    return result;
+}
+
+napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError start..");
+
+    ArkWeb_Response* response = nullptr;
+    OH_ArkWeb_DestroyResponse(response);
+    const char* url = "UnInvalid Url";
+    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
+
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName);
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
