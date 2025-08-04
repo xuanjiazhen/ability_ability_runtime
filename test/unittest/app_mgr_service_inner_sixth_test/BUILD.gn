@@ -38,6 +38,7 @@ ohos_unittest("app_mgr_service_inner_sixth_test") {
     "${ability_runtime_services_path}/appmgr/src/child_process_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/user_record_manager.cpp",
     "app_mgr_service_inner_sixth_test.cpp",
+    "mock/src/app_control_client.cpp",
     "mock/src/mock_bundle_mgr_helper.cpp",
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_my_flag.cpp",

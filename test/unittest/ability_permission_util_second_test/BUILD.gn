@@ -42,6 +42,7 @@ ohos_unittest("ability_permission_util_second_test") {
 
   sources = [
     "ability_permission_util_second_test.cpp",
+    "mock/src/app_control_client.cpp",
     "mock/src/mock_app_mgr_service.cpp",
     "mock/src/mock_app_mgr_utils.cpp",
     "mock/src/mock_app_scheduler.cpp",

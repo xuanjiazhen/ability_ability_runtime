@@ -62,6 +62,7 @@ ohos_unittest("ability_manager_service_mock_test") {
     "${ability_runtime_services_path}/common/src/queue_task_handler_wrap.cpp",
     "${ability_runtime_services_path}/common/src/task_handler_wrap.cpp",
     "ability_manager_service_mock_test.cpp",
+    "mock/src/app_control_client.cpp",
     "mock/src/insight_intent_execute_manager_mock.cpp",
     "mock/src/mock_bundle_mgr_helper.cpp",
   ]

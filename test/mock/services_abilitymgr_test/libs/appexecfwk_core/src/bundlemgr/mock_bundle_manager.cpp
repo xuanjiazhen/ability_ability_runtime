@@ -14,6 +14,7 @@
  */
 
 #include "mock_bundle_manager.h"
+#include "app_control_proxy_result_client.h"
 #include "clean_cache_callback_interface.h"
 #include "ability_info.h"
 #include "application_info.h"
@@ -168,7 +169,7 @@ bool BundleMgrService::GetApplicationInfo(
         appInfo.crowdtestDeadline = 0;
     }
     if (appName.compare("com.test.control") == 0) {
-        isAppControlProxyNull_ = true;
+        AppControlProxyResultClient::GetInstance().SetAppControlProxyNull(true);
     }
     if (appName.compare("com.test.atomicservice") == 0) {
         appInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;

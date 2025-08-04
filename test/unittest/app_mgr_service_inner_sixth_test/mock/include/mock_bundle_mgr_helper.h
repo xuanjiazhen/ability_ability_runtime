@@ -64,7 +64,6 @@ public:
         int32_t flags, std::vector<BundleInfo>& bundleInfos, int32_t userId = Constants::UNSPECIFIED_USERID);
     sptr<IQuickFixManager> GetQuickFixManagerProxy();
     bool ProcessPreload(const Want& want);
-    sptr<IAppControlMgr> GetAppControlProxy();
     bool QueryExtensionAbilityInfos(const Want& want, const int32_t& flag, const int32_t& userId,
         std::vector<ExtensionAbilityInfo>& extensionInfos);
     ErrCode GetBundleInfoV9(const std::string& bundleName, int32_t flags, BundleInfo& bundleInfo, int32_t userId);
