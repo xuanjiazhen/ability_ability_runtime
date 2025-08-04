@@ -482,8 +482,6 @@ export default function ActsWebErrorCodeListTest() {
         }
       })
 
-
-
     /**
      * @tc.number  : SUB_WEB_NET_ERROR_3900
      * @tc.name    : testArkWebErrSSLClientAuthCertNeeded

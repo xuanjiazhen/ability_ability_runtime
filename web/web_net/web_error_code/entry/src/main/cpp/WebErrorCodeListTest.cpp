@@ -14,7 +14,6 @@
  */
 
 #include <map>
-#include <memory>
 #include <string>
 #include "WebErrorCodeList.h"
 #include "napi/native_api.h"
@@ -24,17 +23,14 @@
 
 static const int ERROR_NAME_SIZE = 200;
 
-static std::unique_ptr<char []> GetArgsParamater(napi_env env, napi_callback_info info)
+static char* GetArgsParamater(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value args[1] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     size_t netErrorSize = 0;
-    std::unique_ptr<char []> netErrorName (new (std::nothrow) char [ERROR_NAME_SIZE + 1]);
-    if (netErrorName == nullptr) {
-        return std::unique_ptr<char []>(new (std::nothrow) char[1]);
-    }
-    napi_get_value_string_utf8(env, args[0], netErrorName.get(), ERROR_NAME_SIZE, &netErrorSize);
+    char netErrorName [ERROR_NAME_SIZE] = "";
+    napi_get_value_string_utf8(env, args[0], netErrorName, ERROR_NAME_SIZE, &netErrorSize);
     return netErrorName;
 }
 
@@ -65,6 +61,8 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
         {"ARKWEB_ERR_SOCKET_CONNECTED", ArkWeb_NetError::ARKWEB_ERR_SOCKET_CONNECTED},
         {"ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED",
          ArkWeb_NetError::ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED},
+        {"ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT",
+         ArkWeb_NetError::ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT},
     };
 
     auto it = netErrorMap.find(strName);
@@ -74,8 +72,6 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
     return ARKWEB_NET_OK;
 }
 
-<<<<<<< HEAD
-=======
 static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
 {
     std::string strName(name);
@@ -95,7 +91,6 @@ static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
         {"ARKWEB_ERR_INTERNET_DISCONNECTED", ArkWeb_NetError::ARKWEB_ERR_INTERNET_DISCONNECTED},
         {"ARKWEB_ERR_SSL_PROTOCOL_ERROR", ArkWeb_NetError::ARKWEB_ERR_SSL_PROTOCOL_ERROR},
         {"ARKWEB_ERR_ADDRESS_INVALID", ArkWeb_NetError::ARKWEB_ERR_ADDRESS_INVALID},
-        {"ARKWEB_ERR_ADDRESS_UNREACHABLE", ArkWeb_NetError::ARKWEB_ERR_ADDRESS_UNREACHABLE},
         {"ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NEEDED", ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NEEDED},
         {"ARKWEB_ERR_TUNNEL_CONNECTION_FAILED", ArkWeb_NetError::ARKWEB_ERR_TUNNEL_CONNECTION_FAILED},
         {"ARKWEB_ERR_NO_SSL_VERSIONS_ENABLED", ArkWeb_NetError::ARKWEB_ERR_NO_SSL_VERSIONS_ENABLED},
@@ -117,37 +112,7 @@ static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
     return ARKWEB_NET_OK;
 }
 
-static void AddWebErrorSSLCodeMap(std::map<std::string, ArkWeb_NetError>& netErrorMap)
-{
-    const std::map<std::string, ArkWeb_NetError> libErrorMap = {
-        {"ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT", ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT},
-        {"ARKWEB_ERR_ICANN_NAME_COLLISION", ArkWeb_NetError::ARKWEB_ERR_ICANN_NAME_COLLISION},
-        {"ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT", ArkWeb_NetError::ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT},
-        {"ARKWEB_ERR_CT_STH_PARSING_FAILED", ArkWeb_NetError::ARKWEB_ERR_CT_STH_PARSING_FAILED},
-        {"ARKWEB_ERR_CT_STH_INCOMPLETE", ArkWeb_NetError::ARKWEB_ERR_CT_STH_INCOMPLETE},
-        {"ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH",
-         ArkWeb_NetError::ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH},
-        {"ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED",
-         ArkWeb_NetError::ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED},
-        {"ARKWEB_ERR_SSL_OBSOLETE_CIPHER", ArkWeb_NetError::ARKWEB_ERR_SSL_OBSOLETE_CIPHER},
-        {"ARKWEB_ERR_WS_UPGRADE", ArkWeb_NetError::ARKWEB_ERR_WS_UPGRADE},
-        {"ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED", ArkWeb_NetError::ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED},
-        {"ARKWEB_ERR_NO_BUFFER_SPACE", ArkWeb_NetError::ARKWEB_ERR_NO_BUFFER_SPACE},
-        {"ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS",
-         ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS},
-        {"ARKWEB_ERR_EARLY_DATA_REJECTED", ArkWeb_NetError::ARKWEB_ERR_EARLY_DATA_REJECTED},
-        {"ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA", ArkWeb_NetError::ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA},
-        {"ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED", ArkWeb_NetError::ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED},
-        {"ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE", ArkWeb_NetError::ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE},
-    };
-
-    for (const auto& pair : libErrorMap) {
-        netErrorMap[pair.first] = pair.second;
-    }
-}
-
-static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
-{
+static ArkWeb_NetError GetNetErrorSSLCode(const char *name) {
     std::string strName(name);
     std::map<std::string, ArkWeb_NetError> netErrorMap = {
         {"ARKWEB_ERR_SSL_NO_RENEGOTIATION", ArkWeb_NetError::ARKWEB_ERR_SSL_NO_RENEGOTIATION},
@@ -184,11 +149,30 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
         {"ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR",
          ArkWeb_NetError::ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR},
         {"ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR", ArkWeb_NetError::ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR},
-        {"ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE", ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE},
-        {"ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE", ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE},
+        {"ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE",
+         ArkWeb_NetError::ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE},
+        {"ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE",
+         ArkWeb_NetError::ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE},
+        {"ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT", ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT},
+        {"ARKWEB_ERR_ICANN_NAME_COLLISION", ArkWeb_NetError::ARKWEB_ERR_ICANN_NAME_COLLISION},
+        {"ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT", ArkWeb_NetError::ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT},
+        {"ARKWEB_ERR_CT_STH_PARSING_FAILED", ArkWeb_NetError::ARKWEB_ERR_CT_STH_PARSING_FAILED},
+        {"ARKWEB_ERR_CT_STH_INCOMPLETE", ArkWeb_NetError::ARKWEB_ERR_CT_STH_INCOMPLETE},
+        {"ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH",
+         ArkWeb_NetError::ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH},
+        {"ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED",
+         ArkWeb_NetError::ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED},
+        {"ARKWEB_ERR_SSL_OBSOLETE_CIPHER", ArkWeb_NetError::ARKWEB_ERR_SSL_OBSOLETE_CIPHER},
+        {"ARKWEB_ERR_WS_UPGRADE", ArkWeb_NetError::ARKWEB_ERR_WS_UPGRADE},
+        {"ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED", ArkWeb_NetError::ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED},
+        {"ARKWEB_ERR_NO_BUFFER_SPACE", ArkWeb_NetError::ARKWEB_ERR_NO_BUFFER_SPACE},
+        {"ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS",
+         ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS},
+        {"ARKWEB_ERR_EARLY_DATA_REJECTED", ArkWeb_NetError::ARKWEB_ERR_EARLY_DATA_REJECTED},
+        {"ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA", ArkWeb_NetError::ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA},
+        {"ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED", ArkWeb_NetError::ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED},
+        {"ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE", ArkWeb_NetError::ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE}
     };
-    
-    AddWebErrorSSLCodeMap(netErrorMap);
     auto it = netErrorMap.find(strName);
     if (it != netErrorMap.end()) {
         return it->second;
@@ -196,19 +180,17 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
     return ARKWEB_NET_OK;
 }
 
->>>>>>> 251f2fbf35 (8.5新增用例)
 napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError start..");
-    auto netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
     
     napi_value result;
-    int ret = OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode);
-    if (ret == ARKWEB_ERROR_UNKNOWN) {
+    if (OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode) == ARKWEB_ERROR_UNKNOWN) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, ret, &result);
+        napi_create_int32(env, -1, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError end..");
@@ -224,8 +206,8 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     const char* url = "www.example.com";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    auto netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
@@ -233,15 +215,13 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     if (errorCodeRes == ARKWEB_ERR_FAILED) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, errorCodeRes, &result);
+        napi_create_int32(env, -1, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
     return result;
 }
 
-<<<<<<< HEAD
-=======
 napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebArkWebConnectError start..");
@@ -251,8 +231,8 @@ napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
     const char* url = "UnInvalid Url";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    auto  netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName.get());
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName);
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
@@ -260,7 +240,7 @@ napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
     if (errorCodeRes == ARKWEB_ERR_FAILED) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, errorCodeRes, &result);
+        napi_create_int32(env, -1, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebArkWebConnectError end..");
@@ -271,22 +251,19 @@ napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError start..");
     const char* url = "test ssl";
-    ArkWeb_Response* response = nullptr;
-    OH_ArkWeb_CreateResponse(&response);
-    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
-    auto  netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName.get());
-    ret = OH_ArkWebResponse_SetError(response, errorCode);
+    int32_t ret = OH_ArkWebResponse_SetUrl(nullptr, url);
+    char* netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName);
+    ret = OH_ArkWebResponse_SetError(nullptr, errorCode);
     
     napi_value result;
-    if (ret == ARKWEB_NET_OK) {
+    if (ret == ARKWEB_ERROR_UNKNOWN) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, ret, &result);
+        napi_create_int32(env, -1, &result);
     }
-    OH_ArkWeb_DestroyResponse(response);
+    
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError end..");
     return result;
 }
 
->>>>>>> 251f2fbf35 (8.5新增用例)
