@@ -78,6 +78,8 @@ public:
     static void StartServiceExtensionAbility(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_object callbackObj);
     static void SetHostPageOverlayForbidden(ani_env *env, ani_object aniObj, ani_boolean aniIsForbidden);
+    static void SetColorMode(ani_env *env, ani_object aniObj, ani_enum_item aniColorMode);
+    static void ReportDrawnCompleted(ani_env *env,  ani_object aniObj, ani_object callback);
 
     static bool BindNativePtrCleaner(ani_env *env);
     static void Clean(ani_env *env, ani_object object);
@@ -105,6 +107,8 @@ private:
     RuntimeTask CreateRuntimeTask(ani_vm *etsVm, ani_ref callbackRef);
     static bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
         sptr<EtsUIExtensionConnection>& connection, AAFwk::Want& want);
+    void OnSetColorMode(ani_env *env, ani_object aniCls, ani_enum_item aniColorMode);
+    void OnReportDrawnCompleted(ani_env *env,  ani_object aniCls, ani_object callback);
 
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);
