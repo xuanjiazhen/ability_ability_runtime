@@ -766,7 +766,7 @@ static napi_value TestAddRenderNode002(napi_env env, napi_callback_info info)
     auto rsSubSunNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom2, rsSubNode);
     OH_ArkUI_RenderNodeUtils_AddChild(rsSubNode, rsSubSunNode);
-    auto ret5 = OH_ArkUI_RenderNodeUtils_AddChild(Custom2, rsSubSunNode);
+    auto ret5 = OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom2, rsSubSunNode);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_AddRenderNode result=%{public}d", ret5);
     ASSERT_EQ(ret5, ARKUI_ERROR_CODE_RENDER_PARENT_EXISTED);
