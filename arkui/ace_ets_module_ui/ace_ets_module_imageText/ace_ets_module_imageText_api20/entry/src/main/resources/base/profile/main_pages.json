@@ -50,7 +50,6 @@
     "MainAbility/pages/StyledString/ThicknessScaleTest",
     "MainAbility/pages/SymbolGlyph/SymbolShadowTest",
     "MainAbility/pages/Text/OptimizeTrailingSpaceTest",
-    "MainAbility/pages/Text/SpanOnHoverTest",
     "MainAbility/pages/Text/TextBindControllerTest",
     "MainAbility/pages/TextArea/MaxLinesOptionsTest",
     "MainAbility/pages/TextArea/TextAreaBindControllerTest",

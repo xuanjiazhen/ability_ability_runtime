@@ -40,7 +40,7 @@ class MyNodeController extends NodeController {
   private builderNode: BuilderNode<[]> | null = null;
   public childrenCount: number = 0;
   private uiContext: UIContext | null = null;
-  private TextController: TextController = new TextController();
+  private textController: TextController = new TextController();
 
   makeNode(uiContext: UIContext): FrameNode | null {
     this.uiContext = uiContext;
@@ -58,21 +58,21 @@ class MyNodeController extends NodeController {
   }
 
   builderNodeBindControllerSuccess(): string {
-    let SuccessStr: string = 'true';
+    let successStr: string = 'true';
     let textNode = typeNode.createNode(this.uiContext, 'Text');
     try {
-      typeNode.bindController(textNode, this.TextController, 'Text');
+      typeNode.bindController(textNode, this.textController, 'Text');
     } catch (e) {
-      SuccessStr = 'false'
+      successStr = 'false'
     }
-    return SuccessStr
+    return successStr
   }
 
   builderNodeBindController100023(): string {
     let errorStr100023: string = '';
-    let ScrollNode = typeNode.createNode(this.uiContext, 'Scroll');
+    let scrollNode = typeNode.createNode(this.uiContext, 'Scroll');
     try {
-      typeNode.bindController(ScrollNode, this.TextController, 'Text');
+      typeNode.bindController(scrollNode, this.textController, 'Text');
     } catch (e) {
       errorStr100023 = (e as BusinessError).code + '';
     }

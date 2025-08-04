@@ -58,21 +58,21 @@ class MyNodeController extends NodeController {
   }
 
   builderNodeBindControllerSuccess(): string {
-    let SuccessStr: string = 'true';
-    let TextAreaNode = typeNode.createNode(this.uiContext, 'TextArea');
+    let successStr: string = 'true';
+    let textAreaNode = typeNode.createNode(this.uiContext, 'TextArea');
     try {
-      typeNode.bindController(TextAreaNode, this.textAreaController, 'TextArea');
+      typeNode.bindController(textAreaNode, this.textAreaController, 'TextArea');
     } catch (e) {
-      SuccessStr = 'false'
+      successStr = 'false'
     }
-    return SuccessStr
+    return successStr
   }
 
   builderNodeBindController100023(): string {
     let errorStr100023: string = '';
-    let ScrollNode = typeNode.createNode(this.uiContext, 'Scroll');
+    let scrollNode = typeNode.createNode(this.uiContext, 'Scroll');
     try {
-      typeNode.bindController(ScrollNode, this.textAreaController, 'TextArea');
+      typeNode.bindController(scrollNode, this.textAreaController, 'TextArea');
     } catch (e) {
       errorStr100023 = (e as BusinessError).code + '';
     }

@@ -40,7 +40,7 @@ class MyNodeController extends NodeController {
   private builderNode: BuilderNode<[]> | null = null;
   public childrenCount: number = 0;
   private uiContext: UIContext | null = null;
-  private TextInputController: TextInputController = new TextInputController();
+  private textInputController: TextInputController = new TextInputController();
 
   makeNode(uiContext: UIContext): FrameNode | null {
     this.uiContext = uiContext;
@@ -58,21 +58,21 @@ class MyNodeController extends NodeController {
   }
 
   builderNodeBindControllerSuccess(): string {
-    let SuccessStr: string = 'true';
+    let successStr: string = 'true';
     let textInputNode = typeNode.createNode(this.uiContext, 'TextInput');
     try {
-      typeNode.bindController(textInputNode, this.TextInputController, 'TextInput');
+      typeNode.bindController(textInputNode, this.textInputController, 'TextInput');
     } catch (e) {
-      SuccessStr = 'false'
+      successStr = 'false'
     }
-    return SuccessStr
+    return successStr
   }
 
   builderNodeBindController100023(): string {
     let errorStr100023: string = '';
-    let ScrollNode = typeNode.createNode(this.uiContext, 'Scroll');
+    let scrollNode = typeNode.createNode(this.uiContext, 'Scroll');
     try {
-      typeNode.bindController(ScrollNode, this.TextInputController, 'TextInput');
+      typeNode.bindController(scrollNode, this.textInputController, 'TextInput');
     } catch (e) {
       errorStr100023 = (e as BusinessError).code + '';
     }

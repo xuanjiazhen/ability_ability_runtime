@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { App } from "@kit.ArkUI"
 
 @Entry
 @Component
@@ -22,7 +21,6 @@ export default struct SpanOnHoverTest {
     Column() {
       Text(){
         Span('this is test OnHover span!')
-          .id('on_hover_span_id')
           .onHover((isHover:boolean,event:HoverEvent)=>{
             console.log('span onHover isHover:'+isHover)
             console.log('span onHover event'+JSON.stringify(event))
@@ -32,6 +30,7 @@ export default struct SpanOnHoverTest {
 
       }
       .textAlign(TextAlign.Center)
+      .id('on_hover_span_id')
       .margin({top:20})
     }.height('100%').width('100%')
   }

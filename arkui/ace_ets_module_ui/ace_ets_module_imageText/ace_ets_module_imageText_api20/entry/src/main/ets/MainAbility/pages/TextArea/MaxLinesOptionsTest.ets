@@ -27,25 +27,25 @@ struct MaxLinesOptionsTest {
   build() {
     Column() {
       TextArea({text:this.testText})
-        .maxLines(4,{overflowMode:MaxLinesMode.CLIP})
+        .maxLines(2,{overflowMode:MaxLinesMode.CLIP})
+        .fontSize(10)
         .textOverflow(TextOverflow.Clip)
         .id('TextAreaMaxLinesModeCLIP')
-        .height('15%')
       TextArea({text:this.testText})
-        .maxLines(4,{overflowMode:MaxLinesMode.SCROLL})
+        .maxLines(2,{overflowMode:MaxLinesMode.SCROLL})
+        .fontSize(10)
         .textOverflow(TextOverflow.Clip)
         .id('TextAreaMaxLinesModeSCROLL')
-        .height('15%')
       TextArea({text:this.testText})
-        .maxLines(4)
+        .maxLines(2)
+        .fontSize(10)
         .textOverflow(TextOverflow.Clip)
         .id('TextAreaMaxLinesModeNoSet')
-        .height('15%')
       TextArea({text:this.testText})
-        .maxLines(4,{overflowMode:undefined})
+        .maxLines(2,{overflowMode:undefined})
+        .fontSize(10)
         .textOverflow(TextOverflow.Clip)
         .id('TextAreaMaxLinesModeUndefined')
-        .height('15%')
     }
   }
 }

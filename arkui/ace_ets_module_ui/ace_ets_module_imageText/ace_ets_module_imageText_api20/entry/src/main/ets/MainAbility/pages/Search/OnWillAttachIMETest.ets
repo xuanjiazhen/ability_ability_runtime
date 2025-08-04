@@ -24,8 +24,8 @@ export default struct OnWillAttachIMETest {
       Search()
         .onWillAttachIME((client)=>{
           this.getUIContext().setKeyboardAppearanceConfig(client.nodeId,{
-            gradientMode:KeyboardGradientMode.NONE,
-            fluidLightMode:KeyboardFluidLightMode.NONE
+            gradientMode:KeyboardGradientMode.LINEAR_GRADIENT,
+            fluidLightMode:KeyboardFluidLightMode.BACKGROUND_FLUID_LIGHT
           })
           console.log('Search client:'+JSON.stringify(client))
           AppStorage.SetOrCreate('SearchClient',JSON.stringify(client))
