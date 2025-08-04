@@ -38,6 +38,62 @@ struct TextPickerPage {
             bottomRight:15
           },
         })
+      TextPicker({
+        range: this.multi,
+        selected: this.selectedIndex,
+      })
+        .id('textPicker2')
+        .selectedBackgroundStyle({
+          color : '#FFFFFFFF',
+          borderRadius : {
+            topLeft: 15,
+            bottomLeft: 15,
+            topRight: 15,
+            bottomRight: 15,
+          }
+        })
+      TextPicker({
+        range: this.multi,
+        selected: this.selectedIndex,
+      })
+        .id('textPicker3')
+        .selectedBackgroundStyle({
+          color : 0xffffff,
+          borderRadius : {
+            topLeft: '15',
+            bottomLeft: '15',
+            topRight: '15',
+            bottomRight: '15',
+          }
+        })
+      TextPicker({
+        range: this.multi,
+        selected: this.selectedIndex,
+      })
+        .id('textPicker4')
+        .selectedBackgroundStyle({
+          color : $r('app.color.start_window_background'),
+          borderRadius : {
+            topLeft: $r('app.string.topLeft'),
+            bottomLeft: $r('app.string.bottomLeft'),
+            topRight: $r('app.string.topRight'),
+            bottomRight: $r('app.string.bottomRight'),
+          }
+        })
+      TextPicker({
+        range: this.multi,
+        selected: this.selectedIndex,
+      })
+        .id('textPicker5')
+        .selectedBackgroundStyle({
+          color : undefined,
+          borderRadius : {
+            topLeft: undefined,
+            bottomLeft: undefined,
+            topRight: undefined,
+            bottomRight: undefined,
+          }
+        })
     }
   }
 }
