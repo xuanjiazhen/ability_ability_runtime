@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -152,7 +152,7 @@ HWTEST_F(QuickFixManagerServiceTest, ApplyAndRemoveTask_0100, TestSize.Level1)
     quickFixMs_->RemoveApplyTask(nullptr);
     quickFixMs_->AddApplyTask(nullptr);
 
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr, nullptr);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr);
     quickFixMs_->RemoveApplyTask(applyTask);
     quickFixMs_->AddApplyTask(applyTask);
     quickFixMs_->AddApplyTask(applyTask);
@@ -186,7 +186,7 @@ HWTEST_F(QuickFixManagerServiceTest, RevokeQuickFix_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
     std::string bundleName = "com.ohos.quickfix";
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr, nullptr);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr);
     applyTask->InitRevokeTask(bundleName, true);
 
     auto ret = quickFixMs_->RevokeQuickFix(bundleName);
@@ -205,7 +205,7 @@ HWTEST_F(QuickFixManagerServiceTest, RevokeQuickFix_0300, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
 
     std::string bundleName = "test.bundle.name";
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr, nullptr);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr);
     applyTask->InitRevokeTask(bundleName, true);
 
     auto ret = quickFixMs_->RevokeQuickFix(bundleName);
@@ -272,11 +272,10 @@ HWTEST_F(QuickFixManagerServiceTest, ApplyAndRemoveTask_0200, TestSize.Level1)
     EXPECT_NE(quickFixMs_, nullptr);
     quickFixMs_->RemoveApplyTask(nullptr);
     quickFixMs_->AddApplyTask(nullptr);
-    sptr<AppExecFwk::IQuickFixManager> bundleQfMgr = nullptr;
     sptr<AppExecFwk::IAppMgr> appMgr = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
     wptr<QuickFixManagerService> service = nullptr;
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr, appMgr, handler, service);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(appMgr, handler, service);
     EXPECT_NE(applyTask, nullptr);
     quickFixMs_->RemoveApplyTask(applyTask);
     quickFixMs_->AddApplyTask(applyTask);
@@ -309,7 +308,7 @@ HWTEST_F(QuickFixManagerServiceTest, CheckTaskRunningState_0200, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     EXPECT_NE(quickFixMs_, nullptr);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr, nullptr);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr);
     quickFixMs_->AddApplyTask(applyTask);
     std::string bundleName = "testbundlename";
     bool result = quickFixMs_->CheckTaskRunningState(bundleName);
@@ -327,7 +326,7 @@ HWTEST_F(QuickFixManagerServiceTest, CheckTaskRunningState_0300, TestSize.Level1
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     EXPECT_NE(quickFixMs_, nullptr);
-    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr, nullptr);
+    auto applyTask = std::make_shared<QuickFixManagerApplyTask>(nullptr, nullptr, nullptr);
     quickFixMs_->AddApplyTask(applyTask);
     std::string bundleName = "";
     bool result = quickFixMs_->CheckTaskRunningState(bundleName);

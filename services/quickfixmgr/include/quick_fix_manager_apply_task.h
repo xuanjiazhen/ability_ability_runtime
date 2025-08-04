@@ -19,16 +19,15 @@
 #include "app_mgr_interface.h"
 #include "event_handler.h"
 #include "quick_fix_result_info.h"
-#include "quick_fix/quick_fix_manager_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
 class QuickFixManagerService;
 class QuickFixManagerApplyTask : public std::enable_shared_from_this<QuickFixManagerApplyTask> {
 public:
-    QuickFixManagerApplyTask(sptr<AppExecFwk::IQuickFixManager> bundleQfMgr, sptr<AppExecFwk::IAppMgr> appMgr,
+    QuickFixManagerApplyTask(sptr<AppExecFwk::IAppMgr> appMgr,
         std::shared_ptr<AppExecFwk::EventHandler> handler, wptr<QuickFixManagerService> service)
-        : bundleQfMgr_(bundleQfMgr), appMgr_(appMgr), eventHandler_(handler), quickFixMgrService_(service)
+        : appMgr_(appMgr), eventHandler_(handler), quickFixMgrService_(service)
     {}
 
     virtual ~QuickFixManagerApplyTask();
@@ -77,7 +76,6 @@ private:
     void PostRevokeQuickFixNotifyUnloadPatchTask();
     void HandleRevokeQuickFixAppStop();
 
-    sptr<AppExecFwk::IQuickFixManager> bundleQfMgr_ = nullptr;
     sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
     sptr<AppExecFwk::IApplicationStateObserver> appStateCallback_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
