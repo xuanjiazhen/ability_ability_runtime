@@ -132,6 +132,8 @@ struct IndexPage {
     { title: 'RotationGestureListener', uri: 'pages/ArkUI/RotationGestureListener' },
     { title: 'PanGestureListener', uri: 'pages/ArkUI/PanGestureListener' },
     { title: 'AccessibilityShowStepOptions', uri: 'pages/ArkUI/AccessibilityShowStepOptions' },
+    { title: 'cancelTouch', uri: 'pages/ArkUI/cancelTouch' },
+    { title: 'fingerInfos', uri: 'pages/ArkUI/fingerInfos' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];
