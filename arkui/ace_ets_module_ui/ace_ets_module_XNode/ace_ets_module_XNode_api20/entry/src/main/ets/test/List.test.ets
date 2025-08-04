@@ -29,6 +29,7 @@ import bindControllerWaterFlow from './FrameNodeTest/bindControllerWaterFlow.tes
 import GetGlobalPositionOnDisplayTest from './FrameNodeTest/GetGlobalPositionOnDisplayTest.test';
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
 import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
+import DarkColorsTest from './ThemeTest/DarkColorsTest.test';
 
 export default function testsuite() {
   IsAvailableTest();
@@ -48,4 +49,5 @@ export default function testsuite() {
   GetGlobalPositionOnDisplayTest();
   DarkModeTest();
   EnableProvideConsumeCrossingTest();
+  DarkColorsTest();
 }
