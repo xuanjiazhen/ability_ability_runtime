@@ -118,11 +118,6 @@ ErrCode BundleMgrHelper::GetSandboxBundleInfo(
     return ERR_OK;
 }
 
-sptr<IAppControlMgr> BundleMgrHelper::GetAppControlProxy()
-{
-    return nullptr;
-}
-
 bool BundleMgrHelper::GetApplicationInfo(
     const std::string &appName, const ApplicationFlag flag, const int32_t userId, ApplicationInfo &appInfo)
 {

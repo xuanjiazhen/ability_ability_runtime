@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,6 @@
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
 #include "form_info.h"
-#include "mock_app_control_manager.h"
 #include "shortcut_info.h"
 
 namespace OHOS {
@@ -331,15 +330,6 @@ public:
         return true;
     }
 
-    virtual sptr<IAppControlMgr> GetAppControlProxy() override
-    {
-        if (isAppControlProxyNull_) {
-            isAppControlProxyNull_ = false;
-            return nullptr;
-        }
-        sptr<IAppControlMgr> appControlMgr = new (std::nothrow) AppControlProxy(nullptr);
-        return appControlMgr;
-    }
     ErrCode GetBaseSharedBundleInfos(const std::string &bundleName,
         std::vector<BaseSharedBundleInfo> &baseSharedBundleInfos,
         AppExecFwk::GetDependentBundleInfoFlag flag) override
@@ -350,7 +340,6 @@ public:
     using QueryAbilityInfoFunType =
         std::function<bool(std::string bundleName, AbilityInfo& abilityInfo, ElementName& elementTemp)>;
     std::map<std::string, QueryAbilityInfoFunType> abilityInfoMap_;
-    bool isAppControlProxyNull_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
