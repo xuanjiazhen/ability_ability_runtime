@@ -735,11 +735,9 @@ static napi_value TestTranslation(napi_env env, napi_callback_info info)
     NAPI_END;
 }
 
-static napi_value TestAddRenderNode(napi_env env, napi_callback_info info)
+static napi_value TestAddRenderNode001(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom1, ARKUI_NODE_CUSTOM);
-    NAPI_START(Custom2, ARKUI_NODE_CUSTOM);
-    NAPI_START(column, ARKUI_NODE_COLUMN);
     auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     
     auto ret1 = OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom1, rsNode);
@@ -757,10 +755,12 @@ static napi_value TestAddRenderNode(napi_env env, napi_callback_info info)
         "kkk OH_ArkUI_RenderNodeUtils_AddRenderNode result=%{public}d", ret3);
     ASSERT_EQ(ret3, ARKUI_ERROR_CODE_PARAM_INVALID);
     
-    auto ret4 = OH_ArkUI_RenderNodeUtils_AddRenderNode(column, rsNode);
-    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
-        "kkk OH_ArkUI_RenderNodeUtils_AddRenderNode result=%{public}d", ret4);
-    ASSERT_EQ(ret4, ARKUI_ERROR_CODE_NOT_CUSTOM_NODE);
+    NAPI_END;
+}
+
+static napi_value TestAddRenderNode002(napi_env env, napi_callback_info info)
+{
+    NAPI_START(Custom2, ARKUI_NODE_CUSTOM);
 
     auto rsSubNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     auto rsSubSunNode = OH_ArkUI_RenderNodeUtils_CreateNode();
@@ -774,10 +774,21 @@ static napi_value TestAddRenderNode(napi_env env, napi_callback_info info)
     NAPI_END;
 }
 
-static napi_value TestRemoveRenderNode(napi_env env, napi_callback_info info)
+static napi_value TestAddRenderNode003(napi_env env, napi_callback_info info)
+{
+    NAPI_START(column, ARKUI_NODE_COLUMN);
+    auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
+    
+    auto ret4 = OH_ArkUI_RenderNodeUtils_AddRenderNode(column, rsNode);
+    OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
+        "kkk OH_ArkUI_RenderNodeUtils_AddRenderNode result=%{public}d", ret4);
+    ASSERT_EQ(ret4, ARKUI_ERROR_CODE_NOT_CUSTOM_NODE);
+    NAPI_END;
+}
+
+static napi_value TestRemoveRenderNode001(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom, ARKUI_NODE_CUSTOM);
-    NAPI_START(column, ARKUI_NODE_COLUMN);
     auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom, rsNode);
     
@@ -790,6 +801,14 @@ static napi_value TestRemoveRenderNode(napi_env env, napi_callback_info info)
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_RemoveRenderNode result=%{public}d", ret2);
     ASSERT_EQ(ret2, ARKUI_ERROR_CODE_PARAM_INVALID);
+
+    NAPI_END;
+}
+
+static napi_value TestRemoveRenderNode002(napi_env env, napi_callback_info info)
+{
+    NAPI_START(column, ARKUI_NODE_COLUMN);
+    auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     
     auto ret3 = OH_ArkUI_RenderNodeUtils_RemoveRenderNode(column, rsNode);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
@@ -799,10 +818,9 @@ static napi_value TestRemoveRenderNode(napi_env env, napi_callback_info info)
     NAPI_END;
 }
 
-static napi_value TestClearRenderNodeChildren(napi_env env, napi_callback_info info)
+static napi_value TestClearRenderNodeChildren001(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom, ARKUI_NODE_CUSTOM);
-    NAPI_START(column, ARKUI_NODE_COLUMN);
     auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom, rsNode);
     
@@ -816,6 +834,14 @@ static napi_value TestClearRenderNodeChildren(napi_env env, napi_callback_info i
         "kkk OH_ArkUI_RenderNodeUtils_ClearRenderNodeChildren result=%{public}d", ret2);
     ASSERT_EQ(ret2, ARKUI_ERROR_CODE_PARAM_INVALID);
     
+    NAPI_END;
+}
+
+static napi_value TestClearRenderNodeChildren002(napi_env env, napi_callback_info info)
+{
+    NAPI_START(column, ARKUI_NODE_COLUMN);
+    auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
+    
     auto ret3 = OH_ArkUI_RenderNodeUtils_ClearRenderNodeChildren(column);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
         "kkk OH_ArkUI_RenderNodeUtils_ClearRenderNodeChildren result=%{public}d", ret3);
@@ -826,7 +852,6 @@ static napi_value TestClearRenderNodeChildren(napi_env env, napi_callback_info i
 static napi_value TestInvalidate(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom, ARKUI_NODE_CUSTOM);
-    NAPI_START(column, ARKUI_NODE_COLUMN);
     auto rsNode = OH_ArkUI_RenderNodeUtils_CreateNode();
     OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom, rsNode);
     
