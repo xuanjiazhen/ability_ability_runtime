@@ -218,5 +218,272 @@ export default function ActsWebErrorCodeListTest() {
         console.error("====>testArkWebErrInsufficientResources catch err: " + err);
       }
     })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1100
+     * @tc.name    : testArkWebErrOutofMemory
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_OUT_OF_MEMORY
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrOutofMemory', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrOutofMemory start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_OUT_OF_MEMORY");
+        console.info("====>testArkWebErrOutofMemory result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrOutofMemory catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1200
+     * @tc.name    : testArkWebErrUploadFileChanged
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_UPLOAD_FILE_CHANGED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrUploadFileChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrUploadFileChanged start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UPLOAD_FILE_CHANGED");
+        console.info("====>testArkWebErrUploadFileChanged result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrUploadFileChanged catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1300
+     * @tc.name    : testArkWebErrSocketNotConnected
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SOCKET_NOT_CONNECTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrSocketNotConnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testArkWebErrSocketNotConnected start====");
+          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_SOCKET_NOT_CONNECTED");
+          console.info("====>testArkWebErrSocketNotConnected result====", result);
+          expect(result).assertEqual(0);
+          done();
+        } catch (err) {
+          console.error("====>testArkWebErrSocketNotConnected catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1400
+     * @tc.name    : testArkWebErrFileExists
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FILE_EXISTS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrFileExists', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrFileExists start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_EXISTS");
+        console.info("====>testArkWebErrFileExists result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrFileExists catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1500
+     * @tc.name    : testArkWebErrFilePathTooLong
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FILE_PATH_TOO_LONG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrFilePathTooLong', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrFilePathTooLong start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_PATH_TOO_LONG");
+        console.info("====>testArkWebErrFilePathTooLong result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrFilePathTooLong catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1600
+     * @tc.name    : testArkWebErrFileNoSpace
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FILE_NO_SPACE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrFileNoSpace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrFileNoSpace start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_NO_SPACE");
+        console.info("====>testArkWebErrFileNoSpace result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrFileNoSpace catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1700
+     * @tc.name    : testArkWebErrFileVirusInfected
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FILE_VIRUS_INFECTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrFileVirusInfected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrFileVirusInfected start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_FILE_VIRUS_INFECTED");
+        console.info("====>testArkWebErrFileVirusInfected result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrFileVirusInfected catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1800
+     * @tc.name    : testArkWebErrBlockedByClient
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_BLOCKED_BY_CLIENT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrBlockedByClient', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrBlockedByClient start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_CLIENT");
+        console.info("====>testArkWebErrBlockedByClient result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrBlockedByClient catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_1900
+     * @tc.name    : testArkWebErrNetWorkChanged
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_NETWORK_CHANGED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrNetWorkChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrNetWorkChanged start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_NETWORK_CHANGED");
+        console.info("====>testArkWebErrNetWorkChanged result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrNetWorkChanged catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2000
+     * @tc.name    : testArkWebErrBlockedByAdministarator
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrBlockedByAdministarator', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testArkWebErrBlockedByAdministarator start====");
+          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR");
+          console.info("====>testArkWebErrBlockedByAdministarator result====", result);
+          expect(result).assertEqual(0);
+          done();
+        } catch (err) {
+          console.error("====>testArkWebErrBlockedByAdministarator catch err: " + err);
+        }
+      })
+
+    /**
+    * @tc.number  : SUB_WEB_NET_ERROR_2100
+    * @tc.name    : testArkWebErrSocketConnected
+    * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SOCKET_CONNECTED
+    * @tc.level   : Level1
+    * @tc.size    : MediumTest
+    * @tc.type    : Function
+    */
+    it('testArkWebErrSocketConnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebErrBlockedByAdministarator start====");
+        let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_SOCKET_CONNECTED");
+        console.info("====>testArkWebErrBlockedByAdministarator result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebErrBlockedByAdministarator catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2200
+     * @tc.name    : testArkWebErrUploadStreamRewindNotSupported
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrUploadStreamRewindNotSupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testArkWebErrUploadStreamRewindNotSupported start====");
+          let result: number = webCode.WebArkWebResponseGetError("ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED");
+          console.info("====>testArkWebErrUploadStreamRewindNotSupported result====", result);
+          expect(result).assertEqual(0);
+          done();
+        } catch (err) {
+          console.error("====>testArkWebErrUploadStreamRewindNotSupported catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_2300
+     * @tc.name    : testArkWebErrContextShutDown
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CONTEXT_SHUT_DOWN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebErrContextShutDown', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        try {
+          console.info("====>testArkWebErrContextShutDown start====");
+          let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_CONTEXT_SHUT_DOWN");
+          console.info("====>testArkWebErrContextShutDown result====", result);
+          expect(result).assertEqual(0);
+          done();
+        } catch (err) {
+          console.error("====>testArkWebErrContextShutDown catch err: " + err);
+        }
+      })
+
+
+
+
   })
 }
