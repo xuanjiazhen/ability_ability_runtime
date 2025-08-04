@@ -65,7 +65,7 @@ AppSpawnClient::AppSpawnClient(const char* serviceName)
     if (serviceName__ == APPSPAWN_SERVER_NAME) {
         serviceName_ = APPSPAWN_SERVER_NAME;
     } else if (serviceName__ == CJAPPSPAWN_SERVER_NAME) {
-        serviceName_ = CJAPPSPAWN_SERVER_NAME;
+        serviceName_ = APPSPAWN_SERVER_NAME;
     } else if (serviceName__ == NWEBSPAWN_SERVER_NAME) {
         serviceName_ = NWEBSPAWN_SERVER_NAME;
     } else if (serviceName__ == NATIVESPAWN_SERVER_NAME) {
