@@ -37,7 +37,7 @@ const char* FUNC_CONVERT_CONFIGURATION = "OHOS_ConvertConfiguration";
 
 void RegisterCJAbilityFuncs(void (*registerFunc)(CJAbilityFuncs*))
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    TAG_LOGD(AAFwkTag::UIABILITY, "RegisterCJAbilityFuncs called");
     if (g_cjAbilityFuncs.cjAbilityCreate != nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "repeated registration");
         return;
@@ -49,7 +49,7 @@ void RegisterCJAbilityFuncs(void (*registerFunc)(CJAbilityFuncs*))
     }
 
     registerFunc(&g_cjAbilityFuncs);
-    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+    TAG_LOGD(AAFwkTag::UIABILITY, "RegisterCJAbilityFuncs end");
 }
 
 namespace OHOS {
