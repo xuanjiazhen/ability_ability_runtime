@@ -1152,6 +1152,22 @@ export default function NetConnectionNDKTest() {
       expect(result).assertEqual(0);
       done();
     });
+
+    /**
+     * @tc.number : SUB_NetStack_IsCleartextCfgByComponent_0100
+     * @tc.name   : testOHNetStackIsCleartextCfgByComponent0100
+     * @tc.desc   : Disabling the HTTP non-cipher test protocol based on the configuration
+     * @tc.size   : MediumTest
+     * @tc.type   : Function
+     * @tc.level  : Level 1
+     */
+    it('testOHNetStackIsCleartextCfgByComponent0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      const component: string = "Network Kit";
+      console.info(`testOHNetStackIsCleartextCfgByComponent0100 start`);
+      let re: number = ncAPI.OHNetStackIsCleartextCfgByComponent(component);
+      expect(re).assertEqual(NETCONNECTION_OK);
+      done();
+    });
   });
 }
 
