@@ -161,6 +161,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -228,6 +229,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -295,6 +297,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
         await sleep(4000);
@@ -557,6 +560,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -623,6 +627,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
@@ -689,6 +694,7 @@ export default function abilityTest() {
         let driver:Driver = Driver.create();
         let button1: Component = await driver.findComponent(ON.id('set'));
         await button1.click();
+        await sleep(2000);
         let button2: Component = await driver.findComponent(ON.id('show'));
         await button2.click();
       } catch (e) {
