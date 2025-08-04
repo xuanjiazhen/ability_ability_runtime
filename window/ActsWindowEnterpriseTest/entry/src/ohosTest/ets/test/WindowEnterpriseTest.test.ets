@@ -219,6 +219,10 @@ export default function WindowEnterpriseTest() {
         console.log(caseName + 'begin');
         let windowClass = windowStage.getMainWindowSync();
         let subWindowClass = await windowStage.createSubWindow('testGetVisibleWindowInfo');
+        await sleep(300);
+        await subWindowClass.setUIContent('testability/pages/First/index1');
+        await subWindowClass.showWindow();
+        await sleep(300);
         try {
           let mainWindowRect = windowClass.getWindowProperties().windowRect;
           console.log(`${caseName} : mainWindowRect: ${JSON.stringify(mainWindowRect)}`);

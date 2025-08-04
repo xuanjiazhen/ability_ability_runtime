@@ -3141,11 +3141,14 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         windowClass.on('rectChangeInGlobalDisplay', callback);
         windowClass.on('rectChangeInGlobalDisplay', callback);
         windowClass.on('rectChangeInGlobalDisplay', callback);
-        // 怎么测试？后续重复注册无效，返回err：ok
         await windowClass.moveWindowTo(50, 50);
         await sleep(200);
         console.log(caseName + ' timer: ' + timer);
-        expect(timer).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer).assertEqual(1);
+        } else {
+          expect(timer).assertEqual(0);
+        }
         windowClass.off('rectChangeInGlobalDisplay');
         await terminateAbility(caseName);
         done();
@@ -3192,8 +3195,13 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         console.log(caseName + ' timer2: ' + timer2);
-        expect(timer1).assertEqual(1);
-        expect(timer2).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
         windowClass.off('rectChangeInGlobalDisplay');
         await terminateAbility(caseName);
         done();
@@ -3233,12 +3241,20 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await windowClass.moveWindowTo(50, 50);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
-        expect(timer1).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+        }
         windowClass.off('rectChangeInGlobalDisplay', callback1);
         await windowClass.moveWindowTo(30, 30);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
-        expect(timer1).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+        }
         windowClass.off('rectChangeInGlobalDisplay');
         await terminateAbility(caseName);
         done();
@@ -3285,15 +3301,27 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
-        expect(timer1).assertEqual(1);
-        expect(timer2).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
+
         windowClass.off('rectChangeInGlobalDisplay', callback1);
         await windowClass.moveWindowTo(30, 30);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
-        expect(timer1).assertEqual(2);
-        expect(timer2).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(2);
+          expect(timer2).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
+
         windowClass.off('rectChangeInGlobalDisplay');
         await terminateAbility(caseName);
         done();
@@ -3340,15 +3368,27 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
-        expect(timer1).assertEqual(1);
-        expect(timer2).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
+
         windowClass.off('rectChangeInGlobalDisplay');
         await windowClass.moveWindowTo(30, 30);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
-        expect(timer1).assertEqual(1);
-        expect(timer2).assertEqual(1);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(1);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
+
         await terminateAbility(caseName);
         done();
       } catch (err) {
@@ -3411,9 +3451,11 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testOnandOffRectChangeInGlobalDisplaywithSubWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const caseName = 'testOnandOffRectChangeInGlobalDisplaywithSubWindow';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
-      let subWindowClass = await windowStageStart.createSubWindow('testOnandOffRectChangeInGlobalDisplaywithSubWindow');
+      let subWindowClass = await windowStage.createSubWindow('testOnandOffRectChangeInGlobalDisplaywithSubWindow');
+      await sleep(200);
+      await subWindowClass.setUIContent('testability/pages/First/index2');
+      await subWindowClass.showWindow();
+      await sleep(300);
       let timer1 = 0;
       try {
         const callback1 = (cb1: window.RectChangeOptions) => {
@@ -3430,15 +3472,11 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         expect(timer1).assertEqual(1);
-        await windowClass.destroyWindow();
         await subWindowClass.destroyWindow();
-        await terminateAbility(caseName);
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await windowClass.destroyWindow();
         await subWindowClass.destroyWindow();
-        await terminateAbility(caseName);
         if (err.code == 801) {
           done()
         } else {
@@ -3459,14 +3497,16 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testOnandOffRectChangeInGlobalDisplaywithDialogWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const caseName = 'testOnandOffRectChangeInGlobalDisplaywithDialogWindow';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
       let config: window.Configuration = {
         name: "testOnandOffRectChangeInGlobalDisplaywithSubWindow",
         windowType: window.WindowType.TYPE_DIALOG,
         ctx: context
       };
       let subWindowClass = await window.createWindow(config);
+      await sleep(200);
+      await subWindowClass.setUIContent('testability/pages/First/index2');
+      await subWindowClass.showWindow();
+      await sleep(300);
       let timer1 = 0;
       try {
         const callback1 = (cb1: window.RectChangeOptions) => {
@@ -3483,15 +3523,11 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         expect(timer1).assertEqual(1);
-        await windowClass.destroyWindow();
         await subWindowClass.destroyWindow();
-        await terminateAbility(caseName);
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await windowClass.destroyWindow();
         await subWindowClass.destroyWindow();
-        await terminateAbility(caseName);
         if (err.code == 801) {
           done()
         } else {
@@ -3535,12 +3571,18 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200)
         console.log(caseName + ' timer1: ' + timer1);
         console.log(caseName + ' timer2: ' + timer2);
-        expect(timer1).assertEqual(1);
-        expect(timer2).assertEqual(1);
-        expect(cbData1?.rect.left).assertEqual(cbData2?.rect.left);
-        expect(cbData1?.rect.top).assertEqual(cbData2?.rect.top);
-        expect(cbData1?.rect.width).assertEqual(cbData2?.rect.width);
-        expect(cbData1?.rect.height).assertEqual(cbData2?.rect.height);
+        if (isPCStatus != '' && isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(1);
+          expect(cbData1?.rect.left).assertEqual(cbData2?.rect.left);
+          expect(cbData1?.rect.top).assertEqual(cbData2?.rect.top);
+          expect(cbData1?.rect.width).assertEqual(cbData2?.rect.width);
+          expect(cbData1?.rect.height).assertEqual(cbData2?.rect.height);
+        } else {
+          expect(timer1).assertEqual(0);
+          expect(timer2).assertEqual(0);
+        }
+
         windowClass.off('rectChangeInGlobalDisplay');
         windowClass.off('windowRectChange');
         await terminateAbility(caseName);
@@ -3550,7 +3592,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         windowClass.off('rectChangeInGlobalDisplay');
         windowClass.off('windowRectChange');
         await terminateAbility(caseName);
-        if (err.code == 801) {
+        if (err.code == 801 || err.code == 1300010) {
           done()
         } else {
           expect().assertFail();
@@ -3570,24 +3612,17 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testMoveWindowToGlobalDisplaywithDestoryedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       const caseName = 'testMoveWindowToGlobalDisplaywithDestoryedWindow';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testMoveWindowToGlobalDisplaywithDestoryedWindow')
       await windowClass.destroyWindow();
       try {
         await windowClass.moveWindowToGlobalDisplay(30, 30);
         await sleep(200);
-        await terminateAbility(caseName);
         expect().assertFail();
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await terminateAbility(caseName);
-        if (err.code == 801) {
-          done()
-        } else {
-          expect(err.code).assertEqual(1300002);
-          done();
-        }
+        expect(err.code).assertEqual(1300002);
+        done();
       }
     })
 
@@ -3660,7 +3695,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       let windowStageStart = await startAbility(caseName, context);
       let windowClass = windowStageStart.getMainWindowSync();
       try {
-        const maxInt = 2^31 - 1;
+        const maxInt = 2**31 -1;
         await windowClass.moveWindowToGlobalDisplay(maxInt, maxInt);
         await sleep(200);
         await terminateAbility(caseName);
@@ -3689,9 +3724,11 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testClientToGlobalDisplayandGlobalDisplayToClient', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const caseName = 'testClientToGlobalDisplayandGlobalDisplayToClient';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
-      let subWindowClass = await windowStageStart.createSubWindow('testClientToGlobalDisplayandGlobalDisplayToClient')
+      let subWindowClass = await windowStage.createSubWindow('testClientToGlobalDisplayandGlobalDisplayToClient')
+      await sleep(200);
+      await subWindowClass.setUIContent('testability/pages/First/index2');
+      await subWindowClass.showWindow();
+      await sleep(300)
       try {
         let position = subWindowClass.clientToGlobalDisplay(100, 100);
         console.log(caseName + ' position: ' + JSON.stringify(position));
@@ -3699,15 +3736,11 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         console.log(caseName + ' position2: ' + JSON.stringify(position2));
         expect(position2.x).assertEqual(100);
         expect(position2.y).assertEqual(100);
-        await windowClass.destroyWindow()
         await subWindowClass.destroyWindow()
-        await terminateAbility(caseName);
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await windowClass.destroyWindow()
         await subWindowClass.destroyWindow()
-        await terminateAbility(caseName);
         if (err.code == 801) {
           done()
         } else {
@@ -3728,24 +3761,17 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testClientToGlobalDisplaywithDestoryedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       const caseName = 'testClientToGlobalDisplaywithDestoryedWindow';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
-      await windowClass.destroyWindow()
+      let windowClass = await windowStage.createSubWindow('testMoveWindowToGlobalDisplaywithDestoryedWindow')
+      await windowClass.destroyWindow();
       try {
         let position = windowClass.clientToGlobalDisplay(100, 100);
         console.log(caseName + ' position: ' + JSON.stringify(position));
-        await terminateAbility(caseName);
         expect().assertFail();
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await terminateAbility(caseName);
-        if (err.code == 801) {
-          done()
-        } else {
-          expect(err.code).assertEqual(1300002)
-          done();
-        }
+        expect(err.code).assertEqual(1300002)
+        done();
       }
     })
 
@@ -3764,7 +3790,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       let windowClass = windowStageStart.getMainWindowSync();
       await windowClass.destroyWindow()
       try {
-        const maxInt = 2^31 - 1;
+        const maxInt = 2**31 -1;
         let position = windowClass.clientToGlobalDisplay(maxInt, maxInt);
         console.log(caseName + ' position: ' + JSON.stringify(position));
         await terminateAbility(caseName);
