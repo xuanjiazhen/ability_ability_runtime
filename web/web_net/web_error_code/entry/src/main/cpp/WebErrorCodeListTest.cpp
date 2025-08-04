@@ -14,6 +14,7 @@
  */
 
 #include <map>
+#include <string>
 #include "WebErrorCodeList.h"
 #include "napi/native_api.h"
 #include "web/arkweb_net_error_list.h"
@@ -35,7 +36,8 @@ static char* GetArgsParamater(napi_env env, napi_callback_info info)
 
 static ArkWeb_NetError GetNetErrorByName(const char* name)
 {
-    std::map<const char *, ArkWeb_NetError> netErrorMap = {
+    std::string strName(name);
+    std::map<std::string, ArkWeb_NetError> netErrorMap = {
         {"ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN", ArkWeb_NetError::ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN},
         {"ARKWEB_ERR_IO_PENDING", ArkWeb_NetError::ARKWEB_ERR_IO_PENDING},
         {"ARKWEB_ERR_FAILED", ArkWeb_NetError::ARKWEB_ERR_FAILED},
@@ -62,7 +64,7 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
          ArkWeb_NetError::ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED},
     };
 
-    auto it = netErrorMap.find(name);
+    auto it = netErrorMap.find(strName);
     if (it != netErrorMap.end()) {
         return it->second;
     }
@@ -74,10 +76,9 @@ napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError start..");
     char* netErrorName = GetArgsParamater(env, info);
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
-
-    ArkWeb_ResourceHandler* resourceHandler = nullptr;
+    
     napi_value result;
-    if (OH_ArkWebResourceHandler_DidFailWithError(resourceHandler, errorCode) == ARKWEB_ERROR_UNKNOWN) {
+    if (OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode) == ARKWEB_ERROR_UNKNOWN) {
         napi_create_int32(env, 0, &result);
     }
 
@@ -107,3 +108,4 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
     return result;
 }
+
