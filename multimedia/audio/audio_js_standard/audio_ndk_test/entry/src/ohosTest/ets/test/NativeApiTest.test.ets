@@ -66,11 +66,15 @@ let driveFn = async () => {
   await sleep(500);
 }
 
+let sleepForPermissions = async () => {
+  console.info('getPermission sleep start: 10000ms')
+  await sleep(10000)
+  console.info('getPermission sleep end: 10000ms')
+}
+
 export default function audioNDK() {
   describe('audioNDKTest', () => {
     beforeAll(async () => {
-      await getPermission();
-      await driveFn();
       console.info('beforeAll case');
     })
 
