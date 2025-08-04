@@ -184,7 +184,7 @@ export default function TextPickerDialogSelectedBgColorTest() {
       console.info('[TextPickerDialogSelectedBgColorTest_006] obj is: ' + textPicker);
       console.info('[TextPickerDialogSelectedBgColorTest_006] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle));
       console.info('[TextPickerDialogSelectedBgColorTest_006] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color));
-      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C000000');
+      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C182431');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -209,7 +209,7 @@ export default function TextPickerDialogSelectedBgColorTest() {
       console.info('[TextPickerDialogSelectedBgColorTest_007] obj is: ' + textPicker);
       console.info('[TextPickerDialogSelectedBgColorTest_007] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle));
       console.info('[TextPickerDialogSelectedBgColorTest_007] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color));
-      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C000000');
+      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C182431');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
@@ -234,7 +234,7 @@ export default function TextPickerDialogSelectedBgColorTest() {
       console.info('[TextPickerDialogSelectedBgColorTest_008] obj is: ' + textPicker);
       console.info('[TextPickerDialogSelectedBgColorTest_008] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle));
       console.info('[TextPickerDialogSelectedBgColorTest_008] obj is: ' + JSON.stringify(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color));
-      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C000000');
+      expect(JSON.parse(textPicker).$attrs.selectedBackgroundStyle.color).assertEqual('#0C182431');
       let btn1 = await driver.findComponent(ON.text('确定'));
       await btn1?.click();
       await CommonFunc.sleep(1000);
