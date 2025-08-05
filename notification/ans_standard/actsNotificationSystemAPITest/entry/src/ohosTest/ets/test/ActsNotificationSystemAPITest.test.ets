@@ -196,7 +196,7 @@ export default function ActsNotificationSystemAPITest() {
 
       let slot: notificationManager.NotificationSlot = {
         type: notification.SlotType.SOCIAL_COMMUNICATION,
-        level: notificationManager.SlotLevel.LEVEL_HIGH,
+        notificationLevel: notificationManager.SlotLevel.LEVEL_HIGH,
         desc: 'xts test'
       }
       notificationManager.addSlot(slot, (err) => {

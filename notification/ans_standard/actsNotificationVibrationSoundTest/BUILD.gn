@@ -12,13 +12,6 @@
 # limitations under the License.
 
 import("//test/xts/tools/build/suite.gni")
-ohos_app_assist_suite("ActsNotificationVibrationSoundTest_Entry") {
-  testonly = true
-  certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsNotificationVibrationSoundTest_Entry"
-  subsystem_name = "notification"
-  part_name = "distributed_notification_service"
-}
 
 ohos_js_app_suite("ActsNotificationVibrationSoundTest") {
   test_hap = true
