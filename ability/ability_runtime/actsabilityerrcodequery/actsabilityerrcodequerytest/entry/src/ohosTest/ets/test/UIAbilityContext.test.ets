@@ -939,16 +939,11 @@ export default function UIAbilityContext() {
       };
       try {
         globalThis.context.startAbility(startWant, options).then(() => {
-          if (err.code) {
-            console.error(`SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility promise success`);
-            expect().assertFail()
-            done();
-          }
-          console.info('startAbility succeed');
-        }).catch((err: BusinessError) => {
-          if (err.code) {
-            console.error(`SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility failed, code is ${err.code}, message is ${err.message}`);
-            expect(err.code).assertEqual(16000005)
+          console.info('SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility succeed');
+        }).catch((error: BusinessError) => {
+          if (error.code) {
+            console.error(`SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility failed, code is ${error.code}, message is ${error.message}`);
+            expect(error.code).assertEqual(16000005)
             done();
           }
         });
