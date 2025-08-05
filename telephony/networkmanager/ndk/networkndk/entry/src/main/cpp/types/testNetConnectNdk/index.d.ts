@@ -38,3 +38,4 @@ export const OHNetConnRegisterDefaultNetConnCallback: (a: number) => number;
 export const OHNetConnUnregisterNetConnCallback: (a: number) => number;
 export const OHNetConnGetPacUrl: (a: number) => string;
 export const OHNetConnSetPacUrl: (a: string) => number;
+export const OHNetStackIsCleartextCfgByComponent: (a: string) => number
