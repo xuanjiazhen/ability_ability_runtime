@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const GetKeyCodeEventKeyApostrophe: () => number;
-export const GetKeyCodeEventKeyGrave: () => number;
-export const GetKeyCodeEventKeyMinus: () => number;
-export const GetKeyCodeEventKeyEquals: () => number;
-export const GetKeyCodeEventKeyLeftbracket: () => number;
-export const GetKeyCodeEventKeyRightbracket: () => number;
-export const GetKeyCodeEventKeyBackslash: () => number;
-export const GetKeyCodeEventKeySemicolon: () => number;
-export const GetKeyCodeEventKeySlash: () => number;
-export const GetKeyCodeEventKeyAt: () => number;
+export const GetKeyCodeEventApostrophe: () => number;
+export const GetKeyCodeEventGrave: () => number;
+export const GetKeyCodeEventMinus: () => number;
+export const GetKeyCodeEventEquals: () => number;
+export const GetKeyCodeEventLeftBracket: () => number;
+export const GetKeyCodeEventRightBracket: () => number;
+export const GetKeyCodeEventBackslash: () => number;
+export const GetKeyCodeEventSemicolon: () => number;
+export const GetKeyCodeEventSlash: () => number;
+export const GetKeyCodeEventAt: () => number;
 export const InitKeyMonitor: (keyCode: number) => number;

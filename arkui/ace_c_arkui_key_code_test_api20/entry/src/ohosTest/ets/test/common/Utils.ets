@@ -20,6 +20,10 @@ import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry
 import fs from '@ohos.file.fs';
 import router from '@ohos.router';
 import RectValue from './Rect';
+import { expect, it } from '@ohos/hypium';
+
+const KEY_CODE_EVENT_OK = 1;
+const KEY_CODE_EVENT_ERROR = 0;
 
 export default class Utils {
   static rect_left: number;
@@ -231,6 +235,20 @@ export default class Utils {
     }
   }
 
+  static async pushPageNoClear(pageTag: string, done?: Function) {
+    let options: router.RouterOptions = {
+      url: `MainAbility/pages/${pageTag}`,
+    }
+    try {
+      router.pushUrl(options);
+    } catch (err) {
+      console.error(`push ${pageTag} page error: ` + err);
+    }
+    if (done) {
+      done();
+    }
+  }
+
   static getComponentRect(key: string): Rect {
     let strJson = getInspectorByKey(key);
     let obj: ComponentInfo = JSON.parse(strJson);
@@ -363,5 +381,24 @@ export default class Utils {
     console.info('up touch started: ' + JSON.stringify(upPoint))
     sendTouchEvent(upPoint)
     await Utils.sleep(500)
+  }
+
+  static async keydo(name: string, type: number, key: number, ndkfunction: Function) {
+    it(name,type,async (done: Function) => {
+      try {
+        console.info(`====>${name} start<====`);
+        let driver = await Driver.create();
+        Utils.sleep(1000);
+        await driver?.triggerKey(key);
+        Utils.sleep(1000);
+        let KeyResult: number = ndkfunction();
+        expect(KEY_CODE_EVENT_OK).assertEqual(KeyResult);
+        done()
+      } catch (err) {
+        console.error(`====>${name} catch err: ` + err);
+        expect(false).assertEqual(KEY_CODE_EVENT_ERROR);
+        done()
+      }
+    })
   }
 }
