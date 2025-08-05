@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 import events_emitter from '@ohos.events.emitter';
 import Utils from '../../test/Utils';
+import { waitForExist } from '../../test/WaitTest.test';
 import webView from '@ohos.web.webview';
 
 @Entry
@@ -22,8 +23,6 @@ import webView from '@ohos.web.webview';
 struct WebOnBeforeUnload {
   controller: webView.WebviewController = new webView.WebviewController();
   @State str: string = "";
-  @State firstId: number = 60402;
-  @State secondId: number = 60403;
   @State javaScriptAccess: boolean = true;
   @State fileAccess: boolean = true;
   @State domStorageAccess: boolean = false;
@@ -32,17 +31,22 @@ struct WebOnBeforeUnload {
   @State databaseAccess: boolean = true;
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
+  @State isReceive: number = -1;
+  @State isPageEnd: number = -1;
+  @State isUpload: number = -1;
+  @State eventUrl: string = "";
+  @State eventMessage: string = "";
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 134000,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(134000)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -51,6 +55,7 @@ struct WebOnBeforeUnload {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -59,16 +64,24 @@ struct WebOnBeforeUnload {
     Column() {
       Row() {
         Button("web click").key('webOnBeforeUnload').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitOnBeforeUnload001": {
               try {
+                this.isUpload = -1;
                 await Utils.clickComponent('onBeforeUnloadWebView');
-                await Utils.sleep(1000)
+                await waitForExist(() => this.isUpload, this.str, 0);
                 console.log("action of emitOnBeforeUnload is refresh");
                 this.controller.runJavaScript("myRefresh()", (result) => {
                   console.log(`The myRefresh() return value is: ${result}`);
                 })
+                Utils.emitEvent(this.eventUrl, 134010)
+                if (this.eventMessage === "Is it OK to leave/reload this page?" || this.eventMessage === "系统可能不会保存您所做的更改。") {
+                  Utils.emitEvent(true, 134020)
+                }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -76,14 +89,17 @@ struct WebOnBeforeUnload {
             }
             case "emitOnBeforeUnload002": {
               try {
-                this.firstId = 60404;
-                this.secondId = 60405;
+                this.isUpload = -1;
                 await Utils.clickComponent('onBeforeUnloadWebView');
-                await Utils.sleep(1000)
+                await waitForExist(() => this.isUpload, this.str, 0);
                 console.log("action of emitOnBeforeUnloadAgain is loadUrl new");
                 this.controller.runJavaScript("myNewPage()", (result) => {
                   console.log(`The myNewPage() return value is: ${result}`);
                 })
+                Utils.emitEvent(this.eventUrl, 134030)
+                if (this.eventMessage === "Is it OK to leave/reload this page?" || this.eventMessage === "系统可能不会保存您所做的更改。") {
+                  Utils.emitEvent(true, 134040)
+                }
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -104,16 +120,19 @@ struct WebOnBeforeUnload {
         .userAgent(this.userAgent)
         .onBeforeUnload((event) => {
           if (event) {
-            Utils.emitEvent(event.url, this.firstId)
-            if (event.message === "Is it OK to leave/reload this page?" || event.message === "系统可能不会保存您所做的更改。") {
-              Utils.emitEvent(true, this.secondId)
-            }
+            this.isUpload = 0;
+            this.eventUrl = event.url;
+            this.eventMessage = event.message;
             console.log("event.url:" + event.url)
             console.log("event.message:" + event.message)
             console.log("event.result.handleCancel: " + event.result.handleCancel());
             console.log("event.result.handleConfirm: " + event.result.handleConfirm());
           }
           return true
+        })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
         })
     }
   }

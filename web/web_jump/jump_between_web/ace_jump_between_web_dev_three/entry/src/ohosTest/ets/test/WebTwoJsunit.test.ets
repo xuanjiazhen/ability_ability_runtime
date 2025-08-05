@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import { afterEach, beforeAll, beforeEach, describe, it, expect , TestType, Size
 import events_emitter from '@ohos.events.emitter';
 import router from '@ohos.router';
 import Utils from './Utils';
+import { waitForComponent } from './WaitTest.test';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
@@ -36,42 +37,27 @@ export default function webTwoJsunit() {
         if (!("webTwo" == pages.name)) {
           console.info("get webTwo state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webTwo page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webTwo page error: " + err);
       }
+      await waitForComponent("webcomponentTwo");
       done();
     });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("web beforeEach start");
       done();
     })
+
     afterEach(async (done: Function) => {
       console.info("web afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
       done();
     })
 
@@ -81,8 +67,8 @@ export default function webTwoJsunit() {
      *tc.desic Sets allow the Web access overview mode
      */
     it('AllowWindowOpenMethod', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitAllowWindowOpenMethod";
-      Utils.registerEvent("AllowWindowOpenMethod", "openwindow", 110, done);
+      Utils.emitEvent("emitAllowWindowOpenMethod", 133850);
+      Utils.registerEvent("emitAllowWindowOpenMethod", "openwindow", 133860, done);
       sendEventByKey('webcomponentTwo', 10, '');
     })
   })

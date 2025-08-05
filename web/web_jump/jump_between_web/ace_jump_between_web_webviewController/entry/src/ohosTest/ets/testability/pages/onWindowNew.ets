@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import events_emitter from '@ohos.events.emitter';
 import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
@@ -40,13 +41,18 @@ struct OnWindowNew {
   @State databaseAccess: boolean = true;
   @State arr: boolean = true;
   @State isComplete: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 134050,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack);
+  }
+
+  onPageHide() {
+    events_emitter.off(134050)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -55,6 +61,7 @@ struct OnWindowNew {
       console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -63,6 +70,9 @@ struct OnWindowNew {
     Column() {
       Row() {
         Button('web click').key('onWindowNew').onClick(async () => {
+          await waitForExist(() => this.isComplete, this.str, 0);
+          await waitForExist(() => this.isReceive, this.str, 0);
+          this.isReceive = -1;
           console.info('key==>' + this.str)
           switch (this.str) {
             case 'emitOnWindowNew01': {
@@ -71,11 +81,14 @@ struct OnWindowNew {
                 this.javaScriptAccess = true;
                 this.testAllowWindowOpenMethod = true;
                 this.testMultiWindowAccess = true;
-                await waitForExist(()=>this.isComplete, 'emitOnWindowNew01', 0, 1000)
-                this.isComplete = -1
-                this.controller.runJavaScript('OpenNewWindow()', (res) => {
-                  Utils.emitEvent(this.ref, 7100)
-                })
+
+                this.isComplete = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isComplete, this.str, 0);
+
+                this.controller.runJavaScript('OpenNewWindow()');
+                await waitForExist(() => this.ref, this.str, 1);
+                Utils.emitEvent(this.ref, 134060);
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -87,11 +100,14 @@ struct OnWindowNew {
                 this.javaScriptAccess = true;
                 this.testAllowWindowOpenMethod = false;
                 this.testMultiWindowAccess = true;
-                setTimeout(() => {
-                  this.controller.runJavaScript('OpenNewWindow()', (res) => {
-                    Utils.emitEvent(this.ref, 7102)
-                  })
-                }, 2000)
+
+                this.isComplete = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isComplete, this.str, 0);
+
+                this.controller.runJavaScript('OpenNewWindow()');
+                await waitForExist(() => this.ref, this.str, 1, 100);
+                Utils.emitEvent(this.ref, 134070)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -103,9 +119,14 @@ struct OnWindowNew {
                 this.javaScriptAccess = false;
                 this.testAllowWindowOpenMethod = false;
                 this.testMultiWindowAccess = true;
-                this.controller.runJavaScript('OpenNewWindow()', (res) => {
-                  Utils.emitEvent(this.ref, 7104)
-                })
+
+                this.isComplete = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isComplete, this.str, 0);
+
+                this.controller.runJavaScript('OpenNewWindow()');
+                await waitForExist(() => this.ref, this.str, 1, 100);
+                Utils.emitEvent(this.ref, 134080)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -117,9 +138,14 @@ struct OnWindowNew {
                 this.javaScriptAccess = true;
                 this.testAllowWindowOpenMethod = false;
                 this.testMultiWindowAccess = false;
-                this.controller.runJavaScript('OpenNewWindow()', (res) => {
-                  Utils.emitEvent(this.ref, 7106)
-                })
+
+                this.isComplete = -1;
+                this.controller.refresh();
+                await waitForExist(() => this.isComplete, this.str, 0);
+
+                this.controller.runJavaScript('OpenNewWindow()');
+                await waitForExist(() => this.ref, this.str, 1, 100);
+                Utils.emitEvent(this.ref, 134090)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
               }
@@ -155,7 +181,6 @@ struct OnWindowNew {
           if (event) {
             let Url = event.request.getRequestUrl()
             console.log(`onWindowNew onErrorReceive Url is: ${Url}`);
-            Utils.emitEvent(Url, 7112);
           }
         })
         .fileAccess(this.fileAccess)

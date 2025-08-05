@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import router from '@ohos.router';
 import web_webview from '@ohos.web.webview';
 import prompt from '@system.prompt';
 import Utils from '../../test/Utils';
+import { waitForExist } from '../../test/WaitTest.test';
 import events_emitter from '@ohos.events.emitter';
 
 @Extend(Button)
@@ -86,21 +87,20 @@ struct indexTwo {
   popController: web_webview.WebviewController | null = null;
   @State allowWindow: boolean = true;
   @State str: string = "emitAllowWindowOpenMethod";
+  @State isPageEnd: number = -1;
 
   build() {
     Column() {
       Row() {
         Button("web click").key('webcomponentTwo').onClick(async () => {
+          await waitForExist(() => this.isPageEnd, this.str, 0);
           console.info("key==>" + this.str)
           switch (this.str) {
             case "emitAllowWindowOpenMethod": {
+              this.isPageEnd = -1;
               this.controller.loadUrl($rawfile("indexTwo.html"));
-              setTimeout(() => {
-                this.controller.runJavaScript('openwindowAll()')
-                  .then((result) => {
-                    console.log('result: ' + result);
-                  })
-              }, 3000)
+              await waitForExist(() => this.isPageEnd, this.str, 0);
+              this.controller.runJavaScript('openwindowAll()');
               break;
             }
 
@@ -124,31 +124,15 @@ struct indexTwo {
         .multiWindowAccess(true)
         .allowWindowOpenMethod(true)
         .onWindowNew((event) => {
-          Utils.emitEvent("openwindow", 110)
-          console.info("zfh window ts onWindowNew isAlert: " + event.isAlert + ", isUserTrigger: " + event.isUserTrigger + ", targetUrl: " + event.targetUrl);
-          if (this.dialogController != null) {
-            console.info("zfh window this.dialogController != null");
-            this.dialogController.close();
-          }
-          let targetUrlNew: string = event.targetUrl;
-
-          this.popController = new web_webview.WebviewController();
-          console.info("zfh window onWindowNew start");
-          this.dialogController = new CustomDialogController({
-            builder: NewWebViewComp({ url: targetUrlNew, controller: this.popController }),
-            autoCancel: false,
-            customStyle: true
-          });
-          console.info("zfh window onWindowNew start2");
-          this.dialogController.open();
-
-          event.handler.setWebController(this.popController);
-          console.info("zfh window onWindowNew start3");
-
+          Utils.emitEvent("openwindow", 133860);
         })
         .onWindowExit(() => {
           console.info("closewindow");
           this.dialogController!.close();
+        })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
         })
     }
   }

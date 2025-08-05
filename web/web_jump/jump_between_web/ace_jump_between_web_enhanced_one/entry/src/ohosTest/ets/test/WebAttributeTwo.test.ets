@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 import { beforeAll, beforeEach, describe, it , TestType, Size, Level } from '@ohos/hypium';
 import router from '@ohos.router';
 import Utils from './Utils';
+import { waitForComponent } from './WaitTest.test';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
@@ -35,12 +36,12 @@ export default function webAttributeTwo() {
         if (!("webAttributeTwo" == pages.name)) {
           console.info("get webAttributeTwo state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webAttributeTwo page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webAttributeTwo page error: " + err);
       }
+      await waitForComponent("WebAttributeButton");
       done()
     });
 
@@ -50,7 +51,6 @@ export default function webAttributeTwo() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webAttributeTwo beforeEach start");
       done();
     })
@@ -64,9 +64,8 @@ export default function webAttributeTwo() {
     * @tc.level      : Level 1
     */
     it('testOnWindowExit001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      Utils.emitEvent("testOnWindowExit001", 10)
-      await Utils.sleep(2000);
-      Utils.registerEvent("testOnWindowExit001", true, 300750, done);
+      Utils.emitEvent("testOnWindowExit001", 133950);
+      Utils.registerEvent("testOnWindowExit001", true, 133960, done);
       sendEventByKey('WebAttributeButton', 10, '');
     })
   })
