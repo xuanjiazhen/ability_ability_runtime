@@ -49,6 +49,7 @@ export const JSBridgeProxyData: (caseNum: number) => number;
 =======
 export const webArkWebResponseGetError: (errName: string) => number;
 export const webArkWebConnectError: (errName: string) => number;
+export const webArkWebSSLError: (errName: string) => number;
 
 >>>>>>> a622a0c3ae (SUB_WEB_NET_ERROR_2400~SUB_WEB_NET_ERROR_3800)
 
