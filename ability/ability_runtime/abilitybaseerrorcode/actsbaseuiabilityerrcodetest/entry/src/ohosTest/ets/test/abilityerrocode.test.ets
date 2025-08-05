@@ -795,7 +795,7 @@ export default function errorCodeTest() {
      * @tc.type: Function
     * @tc.level: Level 0
      */
-    it('UB_Ability_AbilityBase_ErrorCode_0017', Level.LEVEL0, async (done: Function) => {
+    it('SUB_Ability_AbilityBase_ErrorCode_0017', Level.LEVEL0, async (done: Function) => {
       let tag:string = 'SUB_Ability_AbilityBase_ErrorCode_0017';
       if (mpExtensionEnable == 'true') {
         let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
