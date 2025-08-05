@@ -40,7 +40,7 @@ void addBrushPointRecordTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"brushGetGreenFloatSuccess", nullptr, OH_Drawing_BrushGetGreenFloatSuccess,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"brushGetGreenFloatFail", nullptr, OH_Drawing_BrushGetGreenFloatFail,
-            nullptr, nullptr, nullptr, napi_default, nullptr}); 
+            nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"brushGetBlueFloatSuccess", nullptr, OH_Drawing_BrushGetBlueFloatSuccess,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"brushGetBlueFloatFail", nullptr, OH_Drawing_BrushGetBlueFloatFail,
@@ -65,12 +65,10 @@ void addBrushPointRecordTest(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"recordCmdUtilsBeginRecordingFail", nullptr, OH_Drawing_RecordCmdUtilsBeginRecordingFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"recordCmdUtilsFinishRecordingSuccess", nullptr, OH_Drawing_RecordCmdUtilsFinishRecordingSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"recordCmdUtilsFinishRecordingSuccess", nullptr,
+            OH_Drawing_RecordCmdUtilsFinishRecordingSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"recordCmdUtilsFinishRecordingFail", nullptr, OH_Drawing_RecordCmdUtilsFinishRecordingFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
-
-
 }
 
 napi_value OH_Drawing_BrushGetAlphaFloatSuccess(napi_env env, napi_callback_info info)
@@ -177,10 +175,12 @@ napi_value OH_Drawing_PointGetXFail(napi_env env, napi_callback_info info)
 napi_value OH_Drawing_PointGetYSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    const OH_Drawing_Point* point = OH_Drawing_PointCreate(10, 10);
-    float y = 0;
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointGetY(point, &y);
-    napi_create_int32(env, errorCode ==  OH_DRAWING_SUCCESS && y == 10, &result);
+    float x = 10;
+    float y = 10;
+    const OH_Drawing_Point* point = OH_Drawing_PointCreate(x, y);
+    float resy = 0;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointGetY(point, &resy);
+    napi_create_int32(env, errorCode ==  OH_DRAWING_SUCCESS && resy == y, &result);
     return result;
 }
 
@@ -196,8 +196,12 @@ napi_value OH_Drawing_PointGetYFail(napi_env env, napi_callback_info info)
 napi_value OH_Drawing_PointSetSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Point* point = OH_Drawing_PointCreate(10, 10);
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointSet(point, 100,100);
+    float x = 10;
+    float y = 10;
+    float setX = 100;
+    float setY = 100;
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointSet(point, setX, setY);
     napi_create_int32(env, errorCode ==  OH_DRAWING_SUCCESS, &result);
     return result;
 }
@@ -205,7 +209,9 @@ napi_value OH_Drawing_PointSetSuccess(napi_env env, napi_callback_info info)
 napi_value OH_Drawing_PointSetFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointSet(nullptr, 100,100);
+    float setX = 100;
+    float setY = 100;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_PointSet(nullptr, setX, setY);
     napi_create_int32(env, errorCode ==  OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
@@ -217,7 +223,7 @@ napi_value OH_Drawing_RecordCmdUtilsDestroySuccess(napi_env env, napi_callback_i
     OH_Drawing_ErrorCode errCode = OH_Drawing_RecordCmdUtilsDestroy(precCut);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
-}  
+}
 
 napi_value OH_Drawing_RecordCmdUtilsDestroyFail(napi_env env, napi_callback_info info)
 {
@@ -232,9 +238,9 @@ napi_value OH_Drawing_RecordCmdUtilsBeginRecordingSuccess(napi_env env, napi_cal
     napi_value result;
     OH_Drawing_RecordCmdUtils* precCut = OH_Drawing_RecordCmdUtilsCreate();
     int32_t width = 10;
-    int32_t height = 10; 
+    int32_t height = 10;
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RecordCmdUtilsBeginRecording(precCut,width,height,&canvas);
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RecordCmdUtilsBeginRecording(precCut, width, height, &canvas);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
@@ -243,9 +249,9 @@ napi_value OH_Drawing_RecordCmdUtilsBeginRecordingFail(napi_env env, napi_callba
 {
     napi_value result;
     int32_t width = 10;
-    int32_t height = 10; 
+    int32_t height = 10;
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RecordCmdUtilsBeginRecording(nullptr,width,height,&canvas);
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RecordCmdUtilsBeginRecording(nullptr, width, height, &canvas);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
