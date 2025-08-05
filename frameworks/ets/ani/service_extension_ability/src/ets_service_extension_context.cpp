@@ -71,6 +71,11 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             reinterpret_cast<void *>(EtsServiceExtensionContext::DisconnectServiceExtensionAbility) },
         ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
             reinterpret_cast<void *>(EtsServiceExtensionContext::OpenAtomicService) },
+        ani_native_function{"nativeStartUIServiceExtensionAbility",
+            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(EtsServiceExtensionContext::StartUIServiceExtension)},
+        ani_native_function { "nativeWantCheck", "L@ohos/app/ability/Want/Want;:V",
+            reinterpret_cast<void *>(EtsServiceExtensionContext::WantCheck) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
@@ -271,6 +276,62 @@ void EtsServiceExtensionContext::OpenAtomicService(
         return;
     }
     etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
+}
+
+void EtsServiceExtensionContext::WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "WantCheck");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or aniObj");
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapWant filed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want");
+    }
+}
+
+void EtsServiceExtensionContext::StartUIServiceExtension(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartUIServiceExtension called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        return;
+    }
+    auto etsServiceExtensionContext = EtsServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
+    if (etsServiceExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null etsServiceExtensionContext");
+        return;
+    }
+    etsServiceExtensionContext->OnStartUIServiceExtension(env, wantObj, callback);
+}
+
+void EtsServiceExtensionContext::OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, " OnStartUIServiceExtensioncalled");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "UnwrapWant failed");
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    int32_t innerErrCode = static_cast<int32_t>(ERR_OK);
+    innerErrCode = context->StartUIServiceExtensionAbility(want);
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartUIServiceExtensionAbility code:%{public}d", innerErrCode);
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
 }
 
 EtsServiceExtensionContext *EtsServiceExtensionContext::GetEtsAbilityContext(
