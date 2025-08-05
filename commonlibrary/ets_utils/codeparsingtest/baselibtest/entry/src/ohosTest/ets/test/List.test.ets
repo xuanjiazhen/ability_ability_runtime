@@ -42,6 +42,7 @@ import streamTest from './stream/Stream.test';
 import specialChar from './specialchar/SpecialChar.test';
 import consoleTest from './console/Console.test';
 import LRUCacheTest from './LRUCache/LRUCache.test';
+import ActsUrlParameterTest from './url/UrlParameter.test'
 
 export default function testsuite() {
   buffer1Test();
@@ -73,4 +74,5 @@ export default function testsuite() {
   specialChar();
   consoleTest();
   LRUCacheTest();
+  ActsUrlParameterTest();
 }
