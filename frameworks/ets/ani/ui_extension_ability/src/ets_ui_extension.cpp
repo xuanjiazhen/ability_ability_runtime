@@ -96,6 +96,14 @@ EtsUIExtension::~EtsUIExtension()
         context->Unbind();
     }
     contentSessions_.clear();
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    if (shellContextRef_ && shellContextRef_->aniRef) {
+        env->GlobalReference_Delete(shellContextRef_->aniRef);
+    }
 }
 
 void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
@@ -159,7 +167,8 @@ bool EtsUIExtension::BindNativeMethods()
         TAG_LOGE(AAFwkTag::UI_EXT, "FindClass failed status: %{public}d", status);
         return false;
     }
-    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
+    if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
+        && status != ANI_ALREADY_BINDED) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods status: %{public}d", status);
         return false;
     }
