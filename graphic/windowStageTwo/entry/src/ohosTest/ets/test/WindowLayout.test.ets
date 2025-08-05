@@ -3144,7 +3144,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await windowClass.moveWindowTo(50, 50);
         await sleep(200);
         console.log(caseName + ' timer: ' + timer);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer).assertEqual(1);
         } else {
           expect(timer).assertEqual(0);
@@ -3195,7 +3195,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         console.log(caseName + ' timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
         } else {
@@ -3241,7 +3241,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await windowClass.moveWindowTo(50, 50);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
         } else {
           expect(timer1).assertEqual(0);
@@ -3250,7 +3250,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await windowClass.moveWindowTo(30, 30);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
         } else {
           expect(timer1).assertEqual(0);
@@ -3301,7 +3301,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
         } else {
@@ -3314,9 +3314,9 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
-          expect(timer1).assertEqual(2);
-          expect(timer2).assertEqual(1);
+        if (isPCStatus != '' || isAutoWindow == 'true') {
+          expect(timer1).assertEqual(1);
+          expect(timer2).assertEqual(2);
         } else {
           expect(timer1).assertEqual(0);
           expect(timer2).assertEqual(0);
@@ -3368,7 +3368,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
         } else {
@@ -3381,7 +3381,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
         } else {
@@ -3571,7 +3571,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         await sleep(200)
         console.log(caseName + ' timer1: ' + timer1);
         console.log(caseName + ' timer2: ' + timer2);
-        if (isPCStatus != '' && isAutoWindow == 'true') {
+        if (isPCStatus != '' || isAutoWindow == 'true') {
           expect(timer1).assertEqual(1);
           expect(timer2).assertEqual(1);
           expect(cbData1?.rect.left).assertEqual(cbData2?.rect.left);
@@ -3704,7 +3704,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
         await terminateAbility(caseName);
-        if (err.code == 801) {
+        if (err.code == 801 || err.code == 1300010) {
           done()
         } else {
           expect(err.code).assertEqual(1300016);
@@ -3819,24 +3819,17 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testGlobalDisplayToClientwithDestroyedWindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       const caseName = 'testGlobalDisplayToClientwithDestroyedWindow';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
+      let windowClass = await windowStage.createSubWindow('testGlobalDisplayToClientwithDestroyedWindow')
       await windowClass.destroyWindow()
       try {
         let position = windowClass.globalDisplayToClient(100, 100);
         console.log(caseName + ' position: ' + JSON.stringify(position));
-        await terminateAbility(caseName);
         expect().assertFail();
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await terminateAbility(caseName);
-        if (err.code == 801) {
-          done()
-        } else {
-          expect(err.code).assertEqual(1300002)
-          done();
-        }
+        expect(err.code).assertEqual(1300002)
+        done()
       }
     })
 

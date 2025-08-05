@@ -217,54 +217,53 @@ export default function WindowEnterpriseTest() {
       it('testGetVisibleWindowInfo', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         let caseName: string = 'testGetVisibleWindowInfo ';
         console.log(caseName + 'begin');
-        let windowClass = windowStage.getMainWindowSync();
-        let subWindowClass = await windowStage.createSubWindow('testGetVisibleWindowInfo');
-        await sleep(300);
-        await subWindowClass.setUIContent('testability/pages/First/index1');
-        await subWindowClass.showWindow();
+
+        let WindowStart = await startAbility3(caseName, context);
+        let windowClass = WindowStart.getMainWindowSync();
         await sleep(300);
         try {
-          let mainWindowRect = windowClass.getWindowProperties().windowRect;
-          console.log(`${caseName} : mainWindowRect: ${JSON.stringify(mainWindowRect)}`);
-          let x = mainWindowRect.left + mainWindowRect.width / 2;
-          let y = mainWindowRect.top + mainWindowRect.height / 2;
-          console.log(`${caseName} : x: ${x}`);
-          console.log(`${caseName} : y: ${y}`);
-          await subWindowClass.moveWindowTo(x, y)
+          await windowClass.moveWindowTo(100, 100)
           await sleep(200);
-          let subWindowProperties = subWindowClass.getWindowProperties();
-          console.log(`${caseName} : subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
+          let windowClassProperties = windowClass.getWindowProperties();
+          console.log(`${caseName} : windowClassProperties: ${JSON.stringify(windowClassProperties)}`);
           window.getVisibleWindowInfo().then(async (infos: Array<window.WindowInfo>) => {
-            console.info(caseName + 'Succeeded in calling getVisibleWindowInfo. infos: ' + JSON.stringify(infos));
+            console.info(caseName + 'Succeeded in calling getVisibleWindowInfo.'+JSON.stringify(infos));
+
             let isExit = false;
             for (let i = 0; i < infos.length; i++) {
-              if (infos[i].windowId === subWindowProperties.id) {
+              console.info(caseName + 'info: '+i+':' + JSON.stringify(infos[i]));
+              if (infos[i].windowId === windowClassProperties.id) {
                 isExit = true;
                 let info = infos[i].globalDisplayRect;
                 console.info(caseName + 'info: ' + JSON.stringify(info));
-                expect(info?.left).assertEqual(subWindowProperties.windowRect.left);
-                expect(info?.top).assertEqual(subWindowProperties.windowRect.top);
-                expect(info?.width).assertEqual(subWindowProperties.windowRect.width);
-                expect(info?.height).assertEqual(subWindowProperties.windowRect.height);
+                expect(info?.left).assertEqual(windowClassProperties.windowRect.left);
+                expect(info?.top).assertEqual(windowClassProperties.windowRect.top);
+                expect(info?.width).assertEqual(windowClassProperties.windowRect.width);
+                expect(info?.height).assertEqual(windowClassProperties.windowRect.height);
                 break;
               }
             }
             if (!isExit) {
               console.error(`${caseName} failed, there is no match windowId.`);
               expect().assertFail();
-              await subWindowClass.destroyWindow()
+              await terminateAbility3(caseName);
               done()
+            }else{
+
+              await terminateAbility3(caseName);
+              expect(true).assertTrue();
+              done();
             }
-            await subWindowClass.destroyWindow()
-            done();
+
+
           }).catch(async (err: BusinessError) => {
             console.error(caseName + 'Failed to call getVisibleWindowInfo. Cause: ' + JSON.stringify(err));
-            await subWindowClass.destroyWindow()
+            await terminateAbility3(caseName);
             expect().assertFail();
             done();
           });
         } catch (err) {
-          await subWindowClass.destroyWindow()
+          await terminateAbility3(caseName);
           console.log(`${caseName} : failed, code: ${err.code}, msg: ${err.message}`);
           if (err.code === 801) {
             console.log(`${caseName} deviceType does not supported this Capability`);
