@@ -268,7 +268,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckUIExtensionCallerIsForeground
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     AbilityRequest abilityRequest;
-    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    bool result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckUIExtensionCallerIsForeground_001 end");
 }
@@ -290,7 +290,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckUIExtensionCallerIsForeground
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::PAGE;
     MyStatus::GetInstance().permPermission_ = 0;
-    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    bool result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckUIExtensionCallerIsForeground_002 end");
 }
@@ -312,7 +312,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, CheckUIExtensionCallerIsForeground
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AbilityType::PAGE;
     MyStatus::GetInstance().permPermission_ = 1;
-    int result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
+    bool result = abilityMs_->CheckUIExtensionCallerIsForeground(abilityRequest);
     EXPECT_TRUE(result);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest CheckUIExtensionCallerIsForeground_003 end");
 }

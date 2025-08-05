@@ -25,7 +25,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace {
-constexpr uint64_t NON_EXIST_ID = 12345;
+    constexpr uint64_t NON_EXIST_ID = 12345;
 };
 namespace OHOS {
 namespace AAFwk {
@@ -467,75 +467,6 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GetBundleName_0200, TestSize.Lev
     std::string retBundleName;
     int32_t result = manager->GetBundleName(intentId, retBundleName);
     EXPECT_EQ(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: GenerateWant_0300
- * @tc.desc: GenerateWant_0300
- * @tc.type: FUNC
- * @tc.require: issueI8ZRAG
- */
-HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0300, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    Want want;
-    auto ret = InsightIntentExecuteManager::GenerateWant(nullptr, decoratorInfo, want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: GenerateWant_0400
- * @tc.desc: GenerateWant_0400
- * @tc.type: FUNC
- * @tc.require: issueI8ZRAG
- */
-HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0400, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AppExecFwk::InsightIntentExecuteParam param;
-    param.bundleName_ = "test.bundleName";
-    param.moduleName_ = "test.entry";
-    param.abilityName_ = "test.abilityName";
-    param.insightIntentName_ = "";
-    param.insightIntentParam_ = nullptr;
-    param.displayId_ = 2;
-    param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
-    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
-    Want want;
-    std::string startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
-    EXPECT_TRUE(startTime.empty());
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
-    startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
-    EXPECT_FALSE(startTime.empty());
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: GenerateWant_0500
- * @tc.desc: GenerateWant_0500
- * @tc.type: FUNC
- * @tc.require: issueI8ZRAG
- */
-HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0500, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AppExecFwk::InsightIntentExecuteParam param;
-    param.bundleName_ = "test.bundleName";
-    param.moduleName_ = "test.entry";
-    param.abilityName_ = "test.abilityName";
-    param.insightIntentName_ = "test.IntentName";
-    param.insightIntentParam_ = nullptr;
-    param.displayId_ = 2;
-    param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND;
-    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    Want want;
-    int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 

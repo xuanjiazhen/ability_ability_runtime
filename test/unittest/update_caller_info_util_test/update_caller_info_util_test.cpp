@@ -204,12 +204,12 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0001, TestSize.L
     Want want;
     const std::string TEST_DIALOG_SESSION_ID = "dialogSessionId";
     want.SetParam(KEY_REQUEST_ID, std::string("1234567890"));
-    sptr<DialogSessionInfo> dilogSessionInfo = nullptr;
+    sptr<DialogSessionInfo> dialogSessionInfo = nullptr;
     std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
     EXPECT_NE(dialogCallerInfo, nullptr);
     dialogCallerInfo->targetWant = want;
 
-    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dilogSessionInfo, dialogCallerInfo);
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dialogSessionInfo, dialogCallerInfo);
     auto callerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
     EXPECT_NE(dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID), nullptr);
 

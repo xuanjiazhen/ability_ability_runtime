@@ -54,7 +54,6 @@ public:
         switch (userId) {
             case UID_CHECK_FALSE:
                 return false;
-                break;
             case UID_CHECK_PRELOAD_SERVICE:
                 abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
                 abilityInfo.isStageBasedModel = true;

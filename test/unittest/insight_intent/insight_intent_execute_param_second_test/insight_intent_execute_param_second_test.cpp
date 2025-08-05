@@ -31,7 +31,7 @@ namespace AAFwk {
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 
 namespace {
-const std::string TEST_INSIGHT_INTENT_NANE = "PlayMusic";
+const std::string TEST_INSIGHT_INTENT_NAME = "PlayMusic";
 }
 
 class InsightIntentExecuteParamSecondTest : public testing::Test {
@@ -195,7 +195,7 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, IsInsightIntentPage_0200, TestSize
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     WantParams wantParams;
-    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NAME));
     wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_DECORATOR_TYPE,
         AAFwk::Integer::Box(static_cast<int>(AbilityRuntime::InsightIntentType::DECOR_PAGE)));
     Want want;
@@ -216,7 +216,7 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, IsInsightIntentPage_0300, TestSize
 {
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     WantParams wantParams;
-    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NAME));
     wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_DECORATOR_TYPE,
         AAFwk::String::Box(std::to_string(static_cast<int>((AbilityRuntime::InsightIntentType::DECOR_NONE)))));
     Want want;

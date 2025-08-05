@@ -28,4 +28,4 @@ bool GetBoolParameter(const std::string& key, bool def);
 } // namespace system
 } // namespace OHOS
 
-#endif // MOCK_PARAMETERS_H
+#endif // SYSTEM_PARAMETERS_H
