@@ -1035,7 +1035,7 @@ Camera_ErrorCode NDKCamera::PreviewOutputRelease(int useCaseCode)
     if (useCaseCode == PARAMETER_OK) {
         if (previewOutput_ != nullptr) {
             ret_ = OH_PreviewOutput_Release(previewOutput_);
-            previewOutput_ = nullptr; 
+            previewOutput_ = nullptr;
         }
     } else {
         ret_ = OH_PreviewOutput_Release(nullptr);
