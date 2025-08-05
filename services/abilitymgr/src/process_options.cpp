@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,8 @@ bool ProcessOptions::ReadFromParcel(Parcel &parcel)
     isRestartKeepAlive = parcel.ReadBool();
     isStartFromNDK = parcel.ReadBool();
     isPreloadStart = parcel.ReadBool();
+    loadAbilityCallbackId = parcel.ReadUint64();
+    callingPid = parcel.ReadInt32();
     return true;
 }
 
@@ -69,6 +71,14 @@ bool ProcessOptions::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteBool(isPreloadStart)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "isPreloadStart write failed");
+        return false;
+    }
+    if (!parcel.WriteUint64(loadAbilityCallbackId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "loadAbilityCallbackId write failed");
+        return false;
+    }
+    if (!parcel.WriteInt32(callingPid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callingPid write failed");
         return false;
     }
     return true;

@@ -447,7 +447,7 @@ private:
 
     // byCall
     int CallAbilityLocked(const AbilityRequest &abilityRequest, std::string &errMsg);
-    sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest, int32_t requestId) const;
+    sptr<SessionInfo> CreateSessionInfo(const AbilityRequest &abilityRequest, int32_t requestId);
     int NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
         const AbilityRequest &abilityRequest, std::string &errMsg);
     int32_t BatchNotifySCBPendingActivations(const AbilitiesRequest &abilitiesRequest);

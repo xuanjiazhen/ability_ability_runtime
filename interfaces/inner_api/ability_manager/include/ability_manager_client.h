@@ -64,6 +64,16 @@ public:
     ErrCode StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options);
 
     /**
+     * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @param callbackId, the id of the callback to get target process id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId);
+
+    /**
      * AttachAbilityThread, ability call this interface after loaded.
      *
      * @param scheduler,.the interface handler of kit ability.

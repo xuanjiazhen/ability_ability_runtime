@@ -20,6 +20,7 @@
 
 #include "ability_info.h"
 #include "ability_window_configuration.h"
+#include "iremote_object.h"
 #include "parcel.h"
 
 namespace OHOS {

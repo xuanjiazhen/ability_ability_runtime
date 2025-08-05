@@ -1042,6 +1042,12 @@ ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptions(const Want &wan
     return ERR_OK;
 }
 
+int AbilityManagerClient::StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options,
+    uint64_t callbackId)
+{
+    return ERR_OK;
+}
+
 void AbilityManagerClient::PrepareTerminateAbilityDone(sptr<IRemoteObject> token, bool isTerminate)
 {}
 

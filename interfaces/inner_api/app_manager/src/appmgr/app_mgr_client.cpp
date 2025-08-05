@@ -178,6 +178,17 @@ AppMgrResultCode AppMgrClient::LoadAbility(const AbilityInfo &abilityInfo, const
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+void AppMgrClient::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            amsService->NotifyLoadAbilityFinished(callingPid, targetPid, callbackId);
+        }
+    }
+}
+
 AppMgrResultCode AppMgrClient::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());

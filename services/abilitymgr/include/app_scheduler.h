@@ -165,6 +165,15 @@ public:
         const AppExecFwk::ApplicationInfo &applicationInfo, const Want &want);
 
     /**
+     * notify load ability finished.
+     *
+     * @param callingPid, the pid of the caller.
+     * @param targetPid, the pid of the target ability.
+     * @param callbackId, the id of the callback.
+     */
+    void NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId);
+
+    /**
      * terminate ability with token.
      *
      * @param token, the token of ability.

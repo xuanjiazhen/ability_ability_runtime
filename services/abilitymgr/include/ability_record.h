@@ -371,6 +371,16 @@ public:
     std::string perfCmd;
 };
 
+struct ForegroundOptions {
+    uint32_t sceneFlag = 0;
+    bool isShellCall = false;
+    bool isStartupHide = false;
+    pid_t callingPid = -1;
+    uint64_t loadAbilityCallbackId = 0;
+};
+
+static ForegroundOptions DEFAULT_FOREGROUND_OPTIONS;
+
 /**
  * @class AbilityRecord
  * AbilityRecord records ability info and states and used to schedule ability life.
@@ -408,7 +418,8 @@ public:
      *
      * @return Returns ERR_OK on success, others on failure.
      */
-    int LoadAbility(bool isShellCall = false, bool isStartupHide = false);
+    int LoadAbility(bool isShellCall = false, bool isStartupHide = false, pid_t callingPid = -1,
+        uint64_t loadAbilityCallbackId = 0);
 
     /**
      * foreground the ability.
@@ -421,8 +432,7 @@ public:
      * process request of foregrounding the ability.
      *
      */
-    void ProcessForegroundAbility(
-        uint32_t tokenId, uint32_t sceneFlag = 0, bool isShellCall = false, bool isStartupHide = false);
+    void ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options = DEFAULT_FOREGROUND_OPTIONS);
 
      /**
      * post foreground timeout task for ui ability.

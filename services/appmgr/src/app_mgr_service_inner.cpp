@@ -867,6 +867,42 @@ void AppMgrServiceInner::ReportEventToRSS(const AppExecFwk::AbilityInfo &ability
     });
 }
 
+AppMgrServiceInner::LoadAbilityCallbackGuard::~LoadAbilityCallbackGuard()
+{
+    if (callbackId_ == 0 || callingPid_ < 0) {
+        return;
+    }
+    auto serviceInner = serviceInner_.lock();
+    CHECK_POINTER_AND_RETURN_LOG(serviceInner, "null serviceInner");
+    int32_t resultPid = (appRecord_ == nullptr || appRecord_->GetPriorityObject() == nullptr) ?
+        targetPid_ : appRecord_->GetPriorityObject()->GetPid();
+    TAG_LOGI(AAFwkTag::APPMGR, "loadability callback, callingPid: %{public}d, targetPid:%{public}d",
+        callingPid_, resultPid);
+    auto callingAppRecord = serviceInner->GetAppRunningRecordByPid(callingPid_);
+    if (callingAppRecord != nullptr) {
+        auto client = callingAppRecord->GetApplicationClient();
+        CHECK_POINTER_AND_RETURN_LOG(client, "null application client");
+        client->OnLoadAbilityFinished(callbackId_, resultPid);
+        return;
+    }
+    CHECK_POINTER_AND_RETURN_LOG(serviceInner->appRunningManager_, "null appRunningManager");
+    callingAppRecord = serviceInner->appRunningManager_->GetAppRunningRecordByChildProcessPid(callingPid_);
+    CHECK_POINTER_AND_RETURN_LOG(callingAppRecord, "null callingAppRecord");
+    auto childAppRecord = callingAppRecord->GetChildProcessRecordByPid(callingPid_);
+    CHECK_POINTER_AND_RETURN_LOG(childAppRecord, "null childAppRecord");
+    auto childScheduler = childAppRecord->GetScheduler();
+    CHECK_POINTER_AND_RETURN_LOG(childScheduler, "null childScheduler");
+ 
+    TAG_LOGI(AAFwkTag::APPMGR, "loadability from child process");
+    childScheduler->OnLoadAbilityFinished(callbackId_, resultPid);
+}
+
+void AppMgrServiceInner::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    LoadAbilityCallbackGuard guard(callbackId, callingPid, weak_from_this());
+    guard.targetPid_ = targetPid;
+}
+
 void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
     std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
 {
@@ -879,6 +915,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         TAG_LOGE(AAFwkTag::APPMGR, "null loadParam");
         return;
     }
+    LoadAbilityCallbackGuard guard(loadParam->loadAbilityCallbackId, loadParam->callingPid, weak_from_this());
     if (!CheckLoadAbilityConditions(loadParam->token, abilityInfo, appInfo)) {
         TAG_LOGE(AAFwkTag::APPMGR, "checkLoadAbilityConditions fail");
         return;
@@ -1050,6 +1087,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
         want->RemoveParam(UIEXTENSION_BIND_ABILITY_ID);
     }
+    guard.appRecord_ = appRecord;
     AfterLoadAbility(appRecord, abilityInfo, loadParam);
 }
 

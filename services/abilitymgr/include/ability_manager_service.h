@@ -142,6 +142,16 @@ public:
         const StartOptions &options) override;
 
     /**
+     * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @param callbackId, the id of the callback to get target process id.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId) override;
+
+    /**
      * StartAbility with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.

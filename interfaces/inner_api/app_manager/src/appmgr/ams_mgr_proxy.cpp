@@ -108,6 +108,34 @@ void AmsMgrProxy::LoadAbility(const std::shared_ptr<AbilityInfo> &abilityInfo,
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
+void AmsMgrProxy::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteInt32(callingPid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write callingPid failed");
+        return;
+    }
+    if (!data.WriteInt32(targetPid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write targetPid failed");
+        return;
+    }
+    if (!data.WriteUint64(callbackId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write callbackId failed");
+        return;
+    }
+
+    int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_LOAD_ABILITY_FINISHED),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+    }
+}
+
 void AmsMgrProxy::TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start");

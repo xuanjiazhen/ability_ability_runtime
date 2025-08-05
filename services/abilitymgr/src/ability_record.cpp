@@ -246,16 +246,15 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->SetAppIndex(appIndex);
     abilityRecord->SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     abilityRecord->SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
-    if (abilityRequest.processOptions != nullptr && abilityRequest.processOptions->isPreloadStart) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "start by preload");
-        abilityRecord->SetPreloadStart(true);
+    if (abilityRequest.processOptions != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d", abilityRequest.processOptions->isPreloadStart);
+        abilityRecord->SetPreloadStart(abilityRequest.processOptions->isPreloadStart);
     }
     abilityRecord->sessionInfo_ = abilityRequest.sessionInfo;
     if (AppUtils::GetInstance().IsMultiProcessModel() && abilityRequest.abilityInfo.isStageBasedModel &&
-        abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE &&
-        !abilityRequest.customProcess.empty()) {
-            abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
-        }
+        abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE && !abilityRequest.customProcess.empty()) {
+        abilityRecord->SetCustomProcessFlag(abilityRequest.customProcess);
+    }
     if (abilityRequest.sessionInfo != nullptr) {
         abilityRecord->instanceKey_ = abilityRequest.sessionInfo->instanceKey;
     }
@@ -278,8 +277,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(const AbilityR
     abilityRecord->missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
     auto userId = abilityRequest.appInfo.uid / BASE_USER_RANGE;
-    if ((userId == 0 ||
-        AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
+    if ((userId == 0 || AppUtils::GetInstance().InResidentWhiteList(abilityRequest.abilityInfo.bundleName)) &&
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         abilityRecord->keepAliveBundle_ = true;
@@ -340,7 +338,8 @@ void AbilityRecord::LoadUIAbility()
     g_addLifecycleEventTask(token_, methodName);
 }
 
-int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide)
+int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t callingPid,
+    uint64_t loadAbilityCallbackId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadLifecycle: abilityName:%{public}s", abilityInfo_.name.c_str());
@@ -376,6 +375,8 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide)
     loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
     loadParam.isStartupHide = isStartupHide;
+    loadParam.callingPid = callingPid;
+    loadParam.loadAbilityCallbackId = loadAbilityCallbackId;
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
@@ -490,8 +491,7 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
     }
 }
 
-void AbilityRecord::ProcessForegroundAbility(
-    uint32_t tokenId, uint32_t sceneFlag, bool isShellCall, bool isStartupHide)
+void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::string element = GetElementName().GetURI();
@@ -504,10 +504,13 @@ void AbilityRecord::ProcessForegroundAbility(
 #endif // SUPPORT_UPMS
     if (!isReady_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "To load ability.");
-        lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
-        LoadAbility(isShellCall, isStartupHide);
+        lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
+        LoadAbility(options.isShellCall, options.isStartupHide, options.callingPid, options.loadAbilityCallbackId);
         return;
     }
+
+    DelayedSingleton<AppScheduler>::GetInstance()->NotifyLoadAbilityFinished(options.callingPid,
+        GetPid(), options.loadAbilityCallbackId);
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
@@ -518,12 +521,12 @@ void AbilityRecord::ProcessForegroundAbility(
                 DelayedSingleton<AppScheduler>::GetInstance()->NotifyPreloadAbilityStateChanged(token_, false);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyPreloadAbilityStateChanged by start, ret: %{public}d", ret);
         }
-        ForegroundAbility(sceneFlag);
+        ForegroundAbility(options.sceneFlag);
         return;
     }
     // background to active state
     TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s", element.c_str());
-    lifeCycleStateInfo_.sceneFlagBak = sceneFlag;
+    lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
     ResSchedUtil::GetInstance().ReportEventToRSS(GetUid(), GetAbilityInfo().bundleName,
         "THAW_BY_FOREGROUND_ABILITY", GetPid(), GetCallerRecord() ? GetCallerRecord()->GetPid() : -1);
     SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
