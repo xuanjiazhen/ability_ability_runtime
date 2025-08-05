@@ -18,23 +18,22 @@
 #include "web/arkweb_scheme_handler.h"
 #include <cstdint>
 #include <hilog/log.h>
-#include <string>
 #include <js_native_api_types.h>
-#include <web/native_interface_arkweb.h>
+#include <string>
 #include <web/arkweb_type.h>
-#include "NativeInterfaceTest.h"
+#include <web/native_interface_arkweb.h>
 
-napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
+static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError start..");
     napi_value result;
     // ARKWEB_INIT_ERROR
-    const char* webTag = "new";
-    const char* data = "/index";
-    const char* mimeType = "text/html";
-    const char* encoding = "UTF-8";
-    const char* baseUrl = "www.baidu.com";
-    const char* historyUrl = "";
+    const char *webTag = "new";
+    const char *data = "/index";
+    const char *mimeType = "text/html";
+    const char *encoding = "UTF-8";
+    const char *baseUrl = "www.baidu.com";
+    const char *historyUrl = "";
     ArkWeb_ErrorCode errCode = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
 
     napi_create_int32(env, errCode, &result);
@@ -50,7 +49,7 @@ napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
 #define CASE_NUM_2 2
 #define CASE_NUM_3 3
 #define CASE_NUM_4 4
-napi_value loadData(napi_env env, napi_callback_info info)
+static napi_value loadData(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
     napi_value args[ARGS_INDEX_TWO] = {nullptr};
@@ -90,7 +89,7 @@ napi_value loadData(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
+static napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "GetBlanklessInfo start..");
 
@@ -121,7 +120,7 @@ napi_value GetBlanklessInfo(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
+static napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "GetBlanklessInfo start..");
 
@@ -150,12 +149,12 @@ napi_value SetBlanklessInfo(napi_env env, napi_callback_info info)
     return result;
 }
 
-void JSCallBack(const char* webTag, const ArkWeb_JavaScriptBridgeData* data, void* userData)
+static void JSCallBack(const char *webTag, const ArkWeb_JavaScriptBridgeData *data, void *userData)
 {
     if (webTag == nullptr || data == nullptr || userData == nullptr) {
         return;
     }
-    
+
     if (data->buffer == nullptr) {
         return;
     }
@@ -165,7 +164,8 @@ void JSCallBack(const char* webTag, const ArkWeb_JavaScriptBridgeData* data, voi
     return;
 }
 
-napi_value JSBridgeData(napi_env env, napi_callback_info info) {
+static napi_value JSBridgeData(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "JSBridageData start..");
 
     size_t argc = 1;
@@ -185,16 +185,16 @@ napi_value JSBridgeData(napi_env env, napi_callback_info info) {
     char userData[userDataLen] = {0};
     switch (caseNum) {
         case CASE_NUM_0:
-            callBack("0731", &bridgeData, static_cast<void*>(userData));
+            callBack("0731", &bridgeData, static_cast<void *>(userData));
             break;
         case CASE_NUM_1:
             callBack("0731", &bridgeData, nullptr);
             break;
         case CASE_NUM_2:
-            callBack("0731", nullptr, static_cast<void*>(userData));
+            callBack("0731", nullptr, static_cast<void *>(userData));
             break;
         case CASE_NUM_3:
-            callBack(nullptr, &bridgeData, static_cast<void*>(userData));
+            callBack(nullptr, &bridgeData, static_cast<void *>(userData));
             break;
         default:
             break;
@@ -205,13 +205,13 @@ napi_value JSBridgeData(napi_env env, napi_callback_info info) {
     return result;
 }
 
-void JSProxyCallBack(const char* webTag,
-    const ArkWeb_JavaScriptBridgeData* dataArray, size_t arraySize, void* userData)
+static void JSProxyCallBack(const char *webTag, const ArkWeb_JavaScriptBridgeData *dataArray, size_t arraySize,
+                            void *userData)
 {
     if (webTag == nullptr || dataArray == nullptr || userData == nullptr) {
         return;
     }
-    
+
     if (arraySize == 0) {
         return;
     }
@@ -221,7 +221,8 @@ void JSProxyCallBack(const char* webTag,
     return;
 }
 
-napi_value JSBridgeProxyData(napi_env env, napi_callback_info info) {
+static napi_value JSBridgeProxyData(napi_env env, napi_callback_info info)
+{
     OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
 
     size_t argc = 1;
@@ -238,19 +239,19 @@ napi_value JSBridgeProxyData(napi_env env, napi_callback_info info) {
     char userData[userDataLen] = {0};
     switch (caseNum) {
         case CASE_NUM_0:
-            callBack("0731", bridgeData, dataLen, static_cast<void*>(userData));
+            callBack("0731", bridgeData, dataLen, static_cast<void *>(userData));
             break;
         case CASE_NUM_1:
-            callBack("0731", bridgeData, 0, static_cast<void*>(userData));
+            callBack("0731", bridgeData, 0, static_cast<void *>(userData));
             break;
         case CASE_NUM_2:
-            callBack("0731", nullptr, dataLen, static_cast<void*>(userData));
+            callBack("0731", nullptr, dataLen, static_cast<void *>(userData));
             break;
         case CASE_NUM_3:
             callBack("0731", bridgeData, dataLen, nullptr);
             break;
         case CASE_NUM_4:
-            callBack(nullptr, bridgeData, dataLen, static_cast<void*>(userData));
+            callBack(nullptr, bridgeData, dataLen, static_cast<void *>(userData));
             break;
         default:
             break;
@@ -261,3 +262,32 @@ napi_value JSBridgeProxyData(napi_env env, napi_callback_info info) {
     return result;
 }
 
+EXTERN_C_START
+static napi_value Init(napi_env env, napi_value exports)
+{
+    napi_property_descriptor desc[] = {
+        {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"loadData", nullptr, loadData, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetBlanklessInfo", nullptr, GetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetBlanklessInfo", nullptr, SetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"JSBridgeData", nullptr, JSBridgeData, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"JSBridgeProxyData", nullptr, JSBridgeProxyData, nullptr, nullptr, nullptr, napi_default, nullptr},
+    };
+
+    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    return exports;
+}
+EXTERN_C_END
+
+static napi_module demoModule = {
+    .nm_version = 1,
+    .nm_flags = 0,
+    .nm_filename = nullptr,
+    .nm_register_func = Init,
+    .nm_modname = "nativeinterfacetest",
+    .nm_priv = ((void *)0),
+    .reserved = {0},
+};
+
+extern "C" __attribute__((constructor)) void RegisterModule(void) { napi_module_register(&demoModule); }

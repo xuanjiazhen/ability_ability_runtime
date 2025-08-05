@@ -14,7 +14,7 @@
  */
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import nativeInterface from 'libweberrorcodetest.so';
+import nativeInterface from 'libnativeinterfacetest.so';
 
 const TEST_ARKWEB_SUCCESS = 0;
 const TEST_ARKWEB_INIT_ERROR = 17100001;
