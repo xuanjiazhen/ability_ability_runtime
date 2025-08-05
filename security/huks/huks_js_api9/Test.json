@@ -19,8 +19,8 @@
         {
             "type": "ShellKit",
             "run-command": [
-                "power-shell wakeup",
-                "hidumper -s 3301 -a -t"
+                "hidumper -s 3301 -a -t",
+                "power-shell wakeup"
             ]
         }
     ]

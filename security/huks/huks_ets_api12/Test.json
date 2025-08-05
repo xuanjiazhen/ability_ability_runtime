@@ -15,6 +15,13 @@
       ],
       "type": "AppInstallKit",
       "cleanup-apps": true
+    },
+    {
+      "type": "ShellKit",
+      "run-command": [
+        "hidumper -s 3301 -a -t",
+        "power-shell wakeup"
+      ]
     }
   ]
 }
