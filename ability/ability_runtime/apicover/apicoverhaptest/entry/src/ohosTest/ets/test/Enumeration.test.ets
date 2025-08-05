@@ -669,5 +669,31 @@ export default function ApiCoverTest() {
       expect('ohos.param.ability.udKey').assertEqual(wantConstant.Params.ABILITY_UNIFIED_DATA_KEY);
       done();
     })
+
+   /*
+    * @tc.number  SUB_Ability_AbilityBase_wantConstant_1500
+    * @tc.name    SUB_Ability_AbilityBase_wantConstant_1500
+    * @tc.size:   MediumTest
+    * @tc.type:   Function
+    * @tc.desc    Test wantConstant Params.LAUNCH_REASON_MESSAGE.
+    * @tc.level   0
+    */
+    it('SUB_Ability_AbilityBase_wantConstant_1500', Level.LEVEL0, async (done: Function) => {
+      expect(11).assertEqual(abilityConstant.LaunchReason.PRELOAD);
+      done();
+    })
+
+   /*
+    * @tc.number  SUB_Ability_AbilityBase_wantConstant_1600
+    * @tc.name    SUB_Ability_AbilityBase_wantConstant_1600
+    * @tc.size:   MediumTest
+    * @tc.type:   Function
+    * @tc.desc    Test wantConstant Params.LAUNCH_REASON_MESSAGE.
+    * @tc.level   0
+    */
+    it('SUB_Ability_AbilityBase_wantConstant_1600', Level.LEVEL0, async (done: Function) => {
+      expect('ReasonMessage_DesktopShortcut').assertEqual(abilityConstant.REASON_MESSAGE_DESKTOP_SHORTCUT);
+      done();
+    })
   })
 }
