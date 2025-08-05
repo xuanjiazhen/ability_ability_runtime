@@ -18,6 +18,7 @@
         "MainAbility/pages/UIAppearance/DarkModeTest",
         "MainAbility/pages/Context/IsDisposedTest",
         "MainAbility/pages/BuilderNode/EnableProvideConsumeCrossingTest",
-        "MainAbility/pages/Theme/DarkColorsTest"
+        "MainAbility/pages/Theme/DarkColorsTest",
+        "MainAbility/pages/FrameNode/NodeAdapterDisposeTest"
   ]
 }
