@@ -21,11 +21,9 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
-<<<<<<< HEAD
 #include "WebErrorCodeList.h"
-=======
 #include "NativeInterfaceTest.h"
->>>>>>> cdc30ddefddaf2ef81c8d4ab76194cbb96b57d8b
+
 
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
