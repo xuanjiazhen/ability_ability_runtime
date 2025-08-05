@@ -36,6 +36,7 @@ static const uint32_t CASE_INDEX_11 = 11;
 static const uint32_t CASE_INDEX_12 = 12;
 static const uint32_t CASE_INDEX_13 = 13;
 static const uint32_t CASE_INDEX_14 = 14;
+static const uint16_t PORT = 8080;
 
 static std::string GetString(napi_env env, napi_callback_info info, uint32_t index)
 {
@@ -233,7 +234,7 @@ napi_value Http_ErrCodeErrCode(napi_env env, napi_callback_info info)
 
 static void ResponseBuffer(struct Http_Response *response, uint32_t errCode)
 {
-    if(response == nullptr) {
+    if (response == nullptr) {
         return;
     }
     const char* buffer = response->body.buffer;
@@ -241,7 +242,7 @@ static void ResponseBuffer(struct Http_Response *response, uint32_t errCode)
 
 static void ResponseLength(struct Http_Response *response, uint32_t errCode)
 {
-    if(response == nullptr) {
+    if (response == nullptr) {
         return;
     }
     uint32_t length = response->body.length;
@@ -279,7 +280,7 @@ napi_value Http_Address_FamilyType(napi_env env, napi_callback_info info)
     request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
     Http_ResponseCallback callback = ResponseCallback;
     Http_EventsHandler handler;
-    if( index == CASE_INDEX_1) {
+    if (index == CASE_INDEX_1) {
         request->options->addressFamily = Http_AddressFamilyType::HTTP_ADDRESS_FAMILY_DEFAULT;
     } else if (index == CASE_INDEX_2) {
         request->options->addressFamily = Http_AddressFamilyType::HTTP_ADDRESS_FAMILY_ONLY_V4;
@@ -301,7 +302,7 @@ napi_value Http_Http_Protocol(napi_env env, napi_callback_info info)
     Http_Request *req = OH_Http_CreateRequest(url.c_str());
     req->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
     Http_EventsHandler handler;
-    if( index == CASE_INDEX_1) {
+    if (index == CASE_INDEX_1) {
         req->options->httpProtocol = Http_HttpProtocol::OH_HTTP_NONE;
     } else if (index == CASE_INDEX_2) {
         req->options->httpProtocol = Http_HttpProtocol::OH_HTTP1_1;
@@ -358,14 +359,13 @@ napi_value Http_Header_Value(napi_env env, napi_callback_info info)
     uint32_t ret = OH_Http_SetHeaderValue(headers, key1, value1);
     ret = OH_Http_SetHeaderValue(headers, key2, value2);
     Http_HeaderValue *headValue = OH_Http_GetHeaderValue(headers, key1);
-    while(headValue)
-    {
+    while (headValue) {
         std::string val = headValue->value;
         headValue = headValue->next;
     }
     free(request->options);
     NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
-    return result; 
+    return result;
 }
 
 napi_value Http_Header_Entry(napi_env env, napi_callback_info info)
@@ -381,7 +381,6 @@ napi_value Http_Header_Entry(napi_env env, napi_callback_info info)
     const char *value2 = "testValue1";
     uint32_t ret = OH_Http_SetHeaderValue(headers, key1, value1);
     ret = OH_Http_SetHeaderValue(headers, key2, value2);
-
     if (headers != nullptr) {
         Http_HeaderEntry *entries = OH_Http_GetHeaderEntries(headers);
         Http_HeaderValue *headerValue;
@@ -396,7 +395,7 @@ napi_value Http_Header_Entry(napi_env env, napi_callback_info info)
         }
     }
     NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
-    return result; 
+    return result;
 }
 
 napi_value Http_Client_Cert(napi_env env, napi_callback_info info)
@@ -457,12 +456,12 @@ napi_value Http_Custom_Proxy(napi_env env, napi_callback_info info)
     request->options->httpProxy = &httpProxy;
     if (index == CASE_INDEX_1) {
         httpProxy.customProxy.host = "host test";
-    } else if( index == CASE_INDEX_2) {
+    } else if (index == CASE_INDEX_2) {
         httpProxy.customProxy.host = "host test";
-        httpProxy.customProxy.port = 8080;
+        httpProxy.customProxy.port = PORT;
     } else if (index == CASE_INDEX_3) {
         httpProxy.customProxy.host = "host test";
-        httpProxy.customProxy.port = 8080;
+        httpProxy.customProxy.port = PORT;
         httpProxy.customProxy.exclusionLists = "exclusionLists test";
     }
     free(request->options);
@@ -501,8 +500,7 @@ napi_value Http_Performance_Timing(napi_env env, napi_callback_info info)
     Http_EventsHandler handler;
     char buffer[MAX_BUFFER_SIZE];
     Http_Response response;
-    Http_PerformanceTiming* performanceTiming = (Http_PerformanceTiming *)calloc(1,
-            sizeof(Http_PerformanceTiming));
+    Http_PerformanceTiming* performanceTiming = (Http_PerformanceTiming *)calloc(1, sizeof(Http_PerformanceTiming));
     if (index == CASE_INDEX_1) {
         performanceTiming->dnsTiming = timering;
     } else if (index == CASE_INDEX_2) {
@@ -540,7 +538,6 @@ napi_value Http_Request_Option(napi_env env, napi_callback_info info)
     Http_ResponseCallback callback = ResponseCallback;
     Http_EventsHandler handler;
     Http_Proxy httpProxy;
-    Http_ClientCert clientCert;
     if (index == CASE_INDEX_1) {
         request->options->method = "GET";
     } else if (index == CASE_INDEX_2) {
@@ -556,9 +553,8 @@ napi_value Http_Request_Option(napi_env env, napi_callback_info info)
         request->options->httpProtocol = Http_HttpProtocol::OH_HTTP1_1;
     } else if (index == CASE_INDEX_7) {
         httpProxy.proxyType = Http_ProxyType::HTTP_PROXY_CUSTOM;
-        request->options->httpProxy = &httpProxy;
         httpProxy.customProxy.host = "host test";
-        httpProxy.customProxy.port = 8080;
+        httpProxy.customProxy.port = PORT;
         httpProxy.customProxy.exclusionLists = "exclusionLists test";
         request->options->httpProxy = &httpProxy;
     } else if (index == CASE_INDEX_8) {
@@ -579,7 +575,112 @@ napi_value Http_Request_Option(napi_env env, napi_callback_info info)
         request->options->addressFamily = Http_AddressFamilyType::HTTP_ADDRESS_FAMILY_ONLY_V4;
     }
     int32_t returnValue = OH_Http_Request(request, callback, handler);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+static void DelResponse(struct Http_Response **response)
+{
+    return;
+}
+
+napi_value Http_Resps(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string url = GetString(env, info, 1);
+    Http_Request *request = OH_Http_CreateRequest(url.c_str());
+    request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
+    Http_ResponseCallback callback = ResponseBuffer;
+    Http_EventsHandler handler;
+    char buffer[MAX_BUFFER_SIZE];
+    Http_Response response;
+    Http_PerformanceTiming performanceTiming;
+    if (index == CASE_INDEX_1) {
+        response.body.buffer = buffer;
+        response.body.length = MAX_BUFFER_SIZE;
+    } else if (index == CASE_INDEX_2) {
+        response.responseCode = Http_ResponseCode::OH_HTTP_OK;
+    } else if (index == CASE_INDEX_3) {
+        response.headers = OH_Http_CreateHeaders();
+    } else if (index == CASE_INDEX_4) {
+        response.cookies = strdup("response cookies");
+    } else if (index == CASE_INDEX_5) {
+        response.performanceTiming = &performanceTiming;
+    } else if (index == CASE_INDEX_6) {
+        response.destroyResponse = DelResponse;
+        callback(&response, response.responseCode);
+    }
+    request->options->method = "GET";
+    int32_t returnValue = OH_Http_Request(request, callback, handler);
     free(request->options);
+    OH_Http_Destroy(&request);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+napi_value Http_Req(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string url = GetString(env, info, 1);
+    Http_Request *request = OH_Http_CreateRequest(url.c_str());
+    if (index == CASE_INDEX_1) {
+        request->requestId = 1;
+    } else if (index == CASE_INDEX_2) {
+        request->url = strdup(url.c_str());
+    } else {
+        request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
+        request->options->method = "GET";
+        request->options->priority = 1;
+        request->options->headers = OH_Http_CreateHeaders();
+        request->options->readTimeout = 0;
+    }
+    Http_ResponseCallback callback = ResponseCallback;
+    Http_EventsHandler handler;
+    int32_t returnValue = OH_Http_Request(request, callback, handler);
+    OH_Http_Destroy(&request);
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+    return result;
+}
+
+void OnProgressCallback(uint64_t totalSize, uint64_t transferredSize)
+{
+    return;
+}
+
+void OnHeaderReceiveCallback(Http_Headers *headers)
+{
+    return;
+}
+
+void OnDataEndCallback(void)
+{
+    return;
+}
+
+napi_value Http_Events_Handler(napi_env env, napi_callback_info info)
+{
+    int32_t index = GetInt(env, info, 0);
+    std::string url = GetString(env, info, 1);
+    Http_Request *request = OH_Http_CreateRequest(url.c_str());
+    Http_ResponseCallback callback = ResponseCallback;
+    Http_EventsHandler handler;
+    if (index == CASE_INDEX_1) {
+        handler.onDataReceive = nullptr;
+    } else if (index == CASE_INDEX_2) {
+        handler.onUploadProgress = OnProgressCallback;
+    } else if (index == CASE_INDEX_3) {
+        handler.onDownloadProgress = OnProgressCallback;
+    } else if (index == CASE_INDEX_4) {
+        handler.onHeadersReceive = OnHeaderReceiveCallback;
+    } else if (index == CASE_INDEX_5) {
+        handler.onDataEnd = OnDataEndCallback;
+    } else {
+        handler.onCanceled = OnDataEndCallback;
+    }
+    int32_t returnValue = OH_Http_Request(request, callback, handler);
     OH_Http_Destroy(&request);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
@@ -613,6 +714,9 @@ static napi_value Init(napi_env env, napi_value exports)
         {"Http_ProxyProxy", nullptr, Http_ProxyProxy, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"Http_Performance_Timing", nullptr, Http_Performance_Timing, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"Http_Request_Option", nullptr, Http_Request_Option, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Http_Resps", nullptr, Http_Resps, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Http_Req", nullptr, Http_Req, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"Http_Events_Handler", nullptr, Http_Events_Handler, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

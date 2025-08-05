@@ -17,8 +17,8 @@ ohos_app_assist_suite("ActsNetworkkitNoPTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsNetworkkitNoPTest"
-  part_name = "communication"
-  subsystem_name = "netmanager_base"
+  subsystem_name = "communication"
+  part_name = "netmanager_base"
 }
 
 ohos_js_app_suite("ActsNetworkkitNoPMainTest") {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 export const Http_CreateHeaders: () => number;
-export const Http_SetHeaderValue: (a: number, b: string) => number;
+export const Http_SetHeaderValue: (a: number) => number;
 export const Http_GetHeaderValue: (a: number) => number;
 export const Http_GetHeaderEntries: (a: number) => number;
 export const Http_DestroyHeaderEntries: (a: number) => number;
@@ -33,3 +33,6 @@ export const Http_Custom_Proxy: (a: number, b: string) => number;
 export const Http_ProxyProxy: (a: string) => number;
 export const Http_Performance_Timing: (a: number, b: string) => number;
 export const Http_Request_Option: (a: number, b: string) => number;
+export const Http_Resps: (a: number, b: string) => number;
+export const Http_Req: (a: number, b: string) => number;
+export const Http_Events_Handler: (a: number, b: string) => number;

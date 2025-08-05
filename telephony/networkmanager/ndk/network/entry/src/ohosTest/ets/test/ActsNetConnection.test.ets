@@ -17,10 +17,14 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestT
 import NetConnectionTest from 'libnetconnectiontest.so'
 
 const OH_HTTP_OK = 0;
+const WEBSOCKET_OK = 0;
 const NETCONN_PERMISSION_DENIED = 201;
 const OH_HTTP_PARAMETER_ERROR = 401;
 const OH_HTTP_OUT_OF_MEMORY = 2300027;
 const NETCONN_INTERNAL_ERROR = 2100003;
+const WEBSOCKET_CLIENT_NULL = 1001;
+const WEBSOCKET_CLIENT_NOT_CREATED = 1002;
+const WEBSOCKET_SEND_DATA_NULL = 1011;
 const CASE_INDEX_1 = 1;
 const CASE_INDEX_2 = 2;
 const CASE_INDEX_3 = 3;
@@ -29,6 +33,12 @@ const CASE_INDEX_5 = 4;
 const CASE_INDEX_6 = 6;
 const CASE_INDEX_7 = 7;
 const CASE_INDEX_8 = 8;
+const CASE_INDEX_9 = 9;
+const CASE_INDEX_10 = 10;
+const CASE_INDEX_11 = 11;
+const CASE_INDEX_12 = 12;
+const CASE_INDEX_13 = 13;
+const CASE_INDEX_14 = 14;
 
 export default function ActsNetConnectionTest() {
   describe('ActsNetConnectionTest', () => {
@@ -447,5 +457,607 @@ export default function ActsNetConnectionTest() {
         done();
       }
     })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Net_Capabilities_0800
+     * @tc.name    : testNetworkManagerNetCapabilities0800
+     * @tc.desc    : Test NetCapabilities netCaps interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerNetCapabilities0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerNetCapabilities0800';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.NetConn_NetCapabilities_netCaps(CASE_INDEX_8);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Net_Capabilities_0900
+     * @tc.name    : testNetworkManagerNetCapabilities0900
+     * @tc.desc    : Test NetCapabilities netCaps interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerNetCapabilities0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerNetCapabilities0900';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.NetConn_NetCapabilities_netCaps(CASE_INDEX_9);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_Net_Capabilities_1000
+     * @tc.name    : testNetworkManagerNetCapabilities1000
+     * @tc.desc    : Test NetCapabilities netCaps interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerNetCapabilities1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerNetCapabilities1000';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.NetConn_NetCapabilities_netCaps(CASE_INDEX_10);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+        /**
+     * @tc.number  : SUB_NetworkManager_Net_Capabilities_1100
+     * @tc.name    : testNetworkManagerNetCapabilities1100
+     * @tc.desc    : Test NetCapabilities netCaps interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerNetCapabilities1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerNetCapabilities1100';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.NetConn_NetCapabilities_netCaps(CASE_INDEX_11);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Close_Result_0100
+     * @tc.name    : testNetworkManagerWebSocketCloseResult0100
+     * @tc.desc    : Test Web socket close interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+
+    it('testNetworkManagerWebSocketCloseResult0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketCloseResult0100';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Close_Result(CASE_INDEX_1);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Close_Result_0200
+     * @tc.name    : testNetworkManagerWebSocketCloseResult0200
+     * @tc.desc    : Test Web socket close interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerWebSocketCloseResult0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketCloseResult0200';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Close_Result(CASE_INDEX_2);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Error_Result_0100
+     * @tc.name    : testNetworkManagerWebSocketErrorResult0100
+     * @tc.desc    : Test Web socket error interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerWebSocketErrorResult0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketErrorResult0100';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Error_Result(CASE_INDEX_1);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Error_Result_0200
+     * @tc.name    : testNetworkManagerWebSocketErrorResult0200
+     * @tc.desc    : Test Web socket error interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerWebSocketErrorResult0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketErrorResult0200';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Error_Result(CASE_INDEX_2);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Open_Result_0100
+     * @tc.name    : testNetworkManagerWebSocketOpenResult0100
+     * @tc.desc    : Test Web socket open interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerWebSocketOpenResult0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketOpenResult0100';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Open_Result(CASE_INDEX_1);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NetworkManager_WebSocket_Open_Result_0200
+     * @tc.name    : testNetworkManagerWebSocketOpenResult0200
+     * @tc.desc    : Test Web socket open interface.
+     * @tc.level   : Level2
+     * @tc.size    : SmallTest
+     * @tc.type    : Function
+     */
+    it('testNetworkManagerWebSocketOpenResult0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName: string = 'testNetworkManagerWebSocketOpenResult0200';
+      try {
+        console.info(`${caseName} ---start`);
+        let result : number = NetConnectionTest.WebSocket_Open_Result(CASE_INDEX_2);
+        console.info(`${caseName} result is: ` + JSON.stringify(result));
+        expect(result).assertEqual(OH_HTTP_OK);
+        done();
+      } catch (err) {
+        console.error(`${caseName} catch err: ` + JSON.stringify(err));
+        expect(false).assertEqual(true);
+        done();
+      }
+    })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_Request_Option_0100
+   * @tc.name    : testNetworkManagerWebSocketRequestOption0100
+   * @tc.desc    : Test Web socket request option interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerWebSocketRequestOption0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocketRequestOption0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.WebSocket_Request_Options();
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_0100
+   * @tc.name    : testNetworkManagerWebSocket0100
+   * @tc.desc    : Test Web socket interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerWebSocket0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocket0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket(CASE_INDEX_1);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_0200
+   * @tc.name    : testNetworkManagerWebSocket0200
+   * @tc.desc    : Test Web socket interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerWebSocket0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocket0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket(CASE_INDEX_2);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_0300
+   * @tc.name    : testNetworkManagerWebSocket0300
+   * @tc.desc    : Test Web socket interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerWebSocket0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocket0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket(CASE_INDEX_3);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_0400
+   * @tc.name    : testNetworkManagerWebSocket0400
+   * @tc.desc    : Test Web socket interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerWebSocket0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocket0400';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket(CASE_INDEX_4);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_ErrCode_0100
+   * @tc.name    : testNetworkManagerWebSocketErrCode0100
+   * @tc.desc    : Test Web socket err code interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+   it('testNetworkManagerWebSocketErrCode0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocketErrCode0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket_ErrCode(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+   })
+  
+  /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_ErrCode_0200
+   * @tc.name    : testNetworkManagerWebSocketErrCode0200
+   * @tc.desc    : Test Web socket err code interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+   it('testNetworkManagerWebSocketErrCode0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocketErrCode0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket_ErrCode(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_CLIENT_NULL);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+   })
+
+   /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_ErrCode_0300
+   * @tc.name    : testNetworkManagerWebSocketErrCode0300
+   * @tc.desc    : Test Web socket err code interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+   it('testNetworkManagerWebSocketErrCode0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocketErrCode0300';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket_ErrCode(CASE_INDEX_3, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_CLIENT_NOT_CREATED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+   })
+
+   /**
+   * @tc.number  : SUB_NetworkManager_WebSocket_ErrCode_0400
+   * @tc.name    : testNetworkManagerWebSocketErrCode0400
+   * @tc.desc    : Test Web socket err code interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+   it('testNetworkManagerWebSocketErrCode0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerWebSocketErrCode0400';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Web_Socket_ErrCode(CASE_INDEX_4, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_SEND_DATA_NULL);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+   })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_NetStack_Certificate_PinningKind_0100
+   * @tc.name    : testNetworkManagerNetStackCertificatePinningKind0100
+   * @tc.desc    : Test PinningKind code interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackCertificatePinningKind0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackCertificatePinningKind0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_Certificate_PinningKind("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_NetStack_Hash_Algorithm_0100
+   * @tc.name    : testNetworkManagerNetStackHashAlgorithm0100
+   * @tc.desc    : Test Hash Algorithm interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackHashAlgorithm0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackHashAlgorithm0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_Hash_Algorithm("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_Public_KeyHash_0100
+   * @tc.name    : testNetworkManagerPublicKeyHash0100
+   * @tc.desc    : Test Public Key Hash interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerPublicKeyHash0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerPublicKeyHash0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.Public_KeyHash("https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(WEBSOCKET_OK);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_NetStack_IsCleartextPermitted_0100
+   * @tc.name    : testNetworkManagerNetStackIsCleartextPermitted0100
+   * @tc.desc    : Test Is Cleartext Permitted interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackIsCleartextPermitted0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackIsCleartextPermitted0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_IsCleartextPermitted(CASE_INDEX_1);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_NetStack_IsCleartextPermitted_0200
+   * @tc.name    : testNetworkManagerNetStackIsCleartextPermitted0200
+   * @tc.desc    : Test Is Cleartext Permitted interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackIsCleartextPermitted0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackIsCleartextPermitted0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_IsCleartextPermitted(CASE_INDEX_2);
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_PARAMETER_ERROR);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+  /**
+   * @tc.number  : SUB_NetworkManager_NetStack_IsCleartextPermittedByHostName_0100
+   * @tc.name    : testNetworkManagerNetStackIsCleartextPermittedByHostName0100
+   * @tc.desc    : Test Is Cleartext Permitted By Host Name interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackIsCleartextPermittedByHostName0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackIsCleartextPermittedByHostName0100';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_IsCleartextPermittedByHostName(CASE_INDEX_1, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(NETCONN_PERMISSION_DENIED);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
+
+    /**
+   * @tc.number  : SUB_NetworkManager_NetStack_IsCleartextPermittedByHostName_0200
+   * @tc.name    : testNetworkManagerNetStackIsCleartextPermittedByHostName0200
+   * @tc.desc    : Test Is Cleartext Permitted By Host Name interface.
+   * @tc.level   : Level2
+   * @tc.size    : SmallTest
+   * @tc.type    : Function
+   */
+  it('testNetworkManagerNetStackIsCleartextPermittedByHostName0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    let caseName: string = 'testNetworkManagerNetStackIsCleartextPermittedByHostName0200';
+    try {
+      console.info(`${caseName} ---start`);
+      let result: number = NetConnectionTest.NetStack_IsCleartextPermittedByHostName(CASE_INDEX_2, "https://www.baidu.com");
+      console.info(`${caseName} result is: ` + JSON.stringify(result));
+      expect(result).assertEqual(OH_HTTP_PARAMETER_ERROR);
+      done();
+    } catch (err) {
+      console.error(`${caseName} catch err: ` + JSON.stringify(err));
+      expect(false).assertEqual(true);
+      done();
+    }
+  })
   })
 }
