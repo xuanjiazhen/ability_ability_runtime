@@ -11,5 +11,5 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(graphicsApiNdk SHARED ActsGraphics2DApi20Test.cpp NativeBufferTest.cpp)
-target_link_libraries(graphicsApiNdk PUBLIC libace_napi.z.so libnative_drawing.so)
+add_library(graphicsApiNdk SHARED ActsGraphics2DApi20Test.cpp BrushPointRecordTest.cpp)
+target_link_libraries(graphicsApiNdk PUBLIC libace_napi.z.so libnative_drawing.so libnative_color_space_manager.so libpixelmap.so libnative_buffer.so libnative_window.so libnative_image.so libnative_media_core.so libGLESv2.so libnative_effect.so libpixelmap.so)

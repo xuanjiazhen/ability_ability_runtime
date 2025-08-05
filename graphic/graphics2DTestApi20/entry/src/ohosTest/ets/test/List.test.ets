@@ -13,8 +13,7 @@
  * limitations under the License.
  */
  
-import ActsGraphics2DApi20Test from './ActsGraphics2DApi20Test.test'
-
+import BrushPointRecordTest from './BrushPointRecordTest.test'
 export default function testsuite() {
-  ActsGraphics2DApi20Test()
+  BrushPointRecordTest()
 }
