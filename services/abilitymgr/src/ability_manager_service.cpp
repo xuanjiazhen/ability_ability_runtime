@@ -1836,6 +1836,15 @@ int AbilityManagerService::StartUIAbilityForOptionWrap(const Want &want, const S
                options.processOptions->isStartFromNDK) {
         ret = CheckStartSelfUIAbilityStartOptions(want, options);
     } else {
+        auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+        if (abilityRecord && (abilityRecord->GetApplicationInfo().bundleName == "com.tencent.wechat.pc" ||
+            abilityRecord->GetApplicationInfo().bundleName == "com.huawei.chromium")) {
+            int32_t appIndex = abilityRecord->GetAppIndex();
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "wxg GetAppIndex %{public}d", appIndex);
+            if (appIndex) {
+                (const_cast<Want &>(want)).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+            }
+        }
         ret = CheckProcessOptions(want, options, userId);
     }
 
@@ -7376,12 +7385,16 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
         int32_t appIndex = 0;
         if (!AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg DLP_INDEX appIndex:%{public}d", want.GetIntParam(ServerConstant::DLP_INDEX, 0));
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg app clone appIndex:%{public}d", want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0));
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg GenerateExtensionAbilityRequest app clone appIndex:%{public}d", appIndex);
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         abilityInfo = StartAbilityInfo::CreateStartExtensionInfo(want, userId, appIndex);
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg abilityInfo->status:%{public}d", abilityInfo->status);
         return abilityInfo->status;
     }
     if (ModalSystemDialogUtil::CheckDebugAppNotInDeveloperMode(abilityInfo->abilityInfo.applicationInfo)) {
@@ -8631,15 +8644,18 @@ int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityI
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
     if (abilityInfo.visible) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg JudgeAbilityVisibleControl visible:%{public}d", abilityInfo.visible);
         return ERR_OK;
     }
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     if (callerTokenId == abilityInfo.applicationInfo.accessTokenId ||
         callerTokenId == static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID())) {  // foundation call is allowed
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg JudgeAbilityVisibleControl callerTokenId:%{public}u", callerTokenId);
         return ERR_OK;
     }
     if (AccessTokenKit::VerifyAccessToken(callerTokenId,
         PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, false) == AppExecFwk::Constants::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg JudgeAbilityVisibleControl VerifyAccessToken");
         return ERR_OK;
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken:%{private}u, targetToken:%{private}u, caller without permission",
@@ -12666,7 +12682,9 @@ int32_t AbilityManagerService::GenerateEmbeddableUIAbilityRequest(
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
     int32_t result = ERR_OK;
     if (IsEmbeddableStart(screenMode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OSCAR: Is EmbeddableStart, screen Mode = %{public}d", screenMode);
         result = GenerateAbilityRequest(want, -1, request, callerToken, userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OSCAR: result for GenerateAbilityRequest = %{public}d", result);
         request.abilityInfo.isModuleJson = true;
         request.abilityInfo.isStageBasedModel = true;
         request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
@@ -12676,7 +12694,9 @@ int32_t AbilityManagerService::GenerateEmbeddableUIAbilityRequest(
         int64_t times = static_cast<int64_t>(time.tv_sec);
         request.abilityInfo.process = request.abilityInfo.bundleName + PROCESS_SUFFIX + std::to_string(times);
     } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OSCAR: Not EmbeddableStart, screen Mode = %{public}d", screenMode);
         result = GenerateExtensionAbilityRequest(want, request, callerToken, userId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OSCAR: result for GenerateExtensionAbilityRequest = %{public}d", result);
     }
     return result;
 }

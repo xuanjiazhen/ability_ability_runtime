@@ -56,6 +56,7 @@ enum class ExtensionAbilityType {
     PUSH = 17,
     DRIVER = 18,
     APP_ACCOUNT_AUTHORIZATION = 19,
+    EMBEDDED_UI = 21,
     FENCE = 24,
     DISTRIBUTED = 28,
     UNSPECIFIED = 255,
