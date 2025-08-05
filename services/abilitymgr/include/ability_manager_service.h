@@ -2722,11 +2722,6 @@ private:
      *  TRUE: When Caller-Application is Launcher or SystemUI, use old rule.
      *  FALSE: Apply new rule to all application
      */
-    bool newRuleExceptLauncherSystemUI_ = true;
-    /** Indicates the criteria for judging whether the Caller-Application is in the background
-     *  TRUE: Determine the state by AAFwk::AppState::FOREGROUND.
-     *  FALSE: Determine the state by AppExecFwk::AppProcessState::APP_STATE_FOCUS.
-     */
     bool backgroundJudgeFlag_ = true;
     /** The applications in white list can associatedWakeUp
      *  TRUE: white list enable.
