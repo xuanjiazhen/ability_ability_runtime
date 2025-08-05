@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { describe, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import osAccountNdk from 'libosaccountndk.so'
 
 const OS_ACCOUNT_ERR_OK = 0;
@@ -28,19 +28,20 @@ export default function ActsTelephonyNDK20Test() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('testOHTelephonyGetNetworkState0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info("====>OH_Telephony_GetNetworkState3 start====");
-        let result = osAccountNdk.OH_Telephony_GetNetworkState3();
-        console.info("====>OH_Telephony_GetNetworkState3 result: " + result);
-        expect(401).assertEqual(result);
-        done();
-      } catch (err) {
-        console.error("====>OH_Telephony_GetNetworkState3 catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
-        done();
-      }
-    });
+    it('testOHTelephonyGetNetworkState0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>OH_Telephony_GetNetworkState3 start====");
+          let result = osAccountNdk.OH_Telephony_GetNetworkState3();
+          console.info("====>OH_Telephony_GetNetworkState3 result: " + result);
+          expect(401).assertEqual(result);
+          done();
+        } catch (err) {
+          console.error("====>OH_Telephony_GetNetworkState3 catch err: " + err);
+          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          done();
+        }
+      });
 
     /**
      * @tc.number SUB_TELEPHONY_CORE_SERVICE_OH_TELEPHONY_GETNETWORKSTATEFORSLOT0101
@@ -50,19 +51,20 @@ export default function ActsTelephonyNDK20Test() {
      * @tc.type Function
      * @tc.level Level 1
      */
-    it('testOH_Telephony_GetNetworkStateForSlot0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info("====>OH_Telephony_GetNetworkStateForSlot2 start====");
-        let result = osAccountNdk.OH_Telephony_GetNetworkStateForSlot2();
-        console.info("====>OH_Telephony_GetNetworkStateForSlot2 result: " + result);
-        expect(401).assertEqual(result);
-        done();
-      } catch (err) {
-        console.error("====>OH_Telephony_GetNetworkStateForSlot2 catch err: " + err);
-        expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
-        done();
-      }
-    });
+    it('testOH_Telephony_GetNetworkStateForSlot0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>OH_Telephony_GetNetworkStateForSlot2 start====");
+          let result = osAccountNdk.OH_Telephony_GetNetworkStateForSlot2();
+          console.info("====>OH_Telephony_GetNetworkStateForSlot2 result: " + result);
+          expect(401).assertEqual(result);
+          done();
+        } catch (err) {
+          console.error("====>OH_Telephony_GetNetworkStateForSlot2 catch err: " + err);
+          expect(false).assertEqual(OS_ACCOUNT_ERR_OK);
+          done();
+        }
+      });
 
     /**
      * @tc.number SUB_TELEPHONY_CORE_SERVICE_TELRADIO0101

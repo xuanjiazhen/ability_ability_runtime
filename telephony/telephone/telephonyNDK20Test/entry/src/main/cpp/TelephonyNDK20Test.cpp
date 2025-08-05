@@ -14,11 +14,9 @@
  */
 
 #include "napi/native_api.h"
-#include "telephony/cellular_data/telephony_data.h"
 #include "telephony/core_service/telephony_radio.h"
 #include "telephony/core_service/telephony_radio_type.h"
 #include <cstdint>
-#include <cstring>
 #include <js_native_api_types.h>
 
 Telephony_NetworkState initState = {
@@ -33,7 +31,6 @@ Telephony_NetworkState initState = {
     .isEmergency_ = false                     // 非紧急呼叫状态
 };
 
-// TEL_RADIO_ERR_INVALID_PARAM
 static napi_value OH_Telephony_GetNetworkState3(napi_env env, napi_callback_info info)
 {
     Telephony_NetworkState *state;
@@ -43,7 +40,6 @@ static napi_value OH_Telephony_GetNetworkState3(napi_env env, napi_callback_info
     return result;
 }
 
-// TEL_RADIO_ERR_INVALID_PARAM
 static napi_value OH_Telephony_GetNetworkStateForSlot2(napi_env env, napi_callback_info info)
 {
     Telephony_NetworkState *state;
@@ -371,7 +367,8 @@ static napi_value TelNsaState0104(napi_env env, napi_callback_info info)
         return result;
     }
 }
-static napi_value TelNsaState0105(napi_env env, napi_callback_info info) {
+static napi_value TelNsaState0105(napi_env env, napi_callback_info info)
+{
     initState.nsaState_ = TEL_NSA_STATE_SA_ATTACHED;
     if (initState.nsaState_ == TEL_NSA_STATE_SA_ATTACHED) {
         Telephony_RadioResult errorCode = OH_Telephony_GetNetworkState(&initState);
@@ -386,7 +383,8 @@ static napi_value TelNsaState0105(napi_env env, napi_callback_info info) {
 }
 
 EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports) {
+static napi_value Init(napi_env env, napi_value exports)
+{
     napi_property_descriptor desc[] = {
         {"OH_Telephony_GetNetworkState3", nullptr, OH_Telephony_GetNetworkState3, nullptr, nullptr, nullptr,
             napi_default, nullptr},

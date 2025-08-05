@@ -12,4 +12,4 @@ include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
 add_library(osaccountndk SHARED TelephonyNDK20Test.cpp)
-target_link_libraries(osaccountndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so libtelephony_data.so libtelephony_radio.so)
+target_link_libraries(osaccountndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libtelephony_data.so libtelephony_radio.so)
