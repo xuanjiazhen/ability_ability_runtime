@@ -40,6 +40,7 @@ export const webNativeJavaScriptValue: () => number;
 export const webNetErrorDidFailWithError: (errName: string) => number;
 export const webArkWebResponseGetError: (errName: string) => number;
 export const webArkWebConnectError: (errName: string) => number;
+export const webArkWebSSLError: (errName: string) => number;
 
 
 
