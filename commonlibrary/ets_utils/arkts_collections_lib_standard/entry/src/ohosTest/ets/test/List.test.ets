@@ -26,6 +26,7 @@ import collectionstest from './Collectionstest.test';
 import collectionsThirdtest from './CollectionsThirdtest.test';
 import sendableLruCachetest from './SendableLruCachetest.test';
 import collectionsAddTest from './collectionsAdd.test';
+import collectionsConcurrentModifyTest from './CollectionsConcurrentModify.test';
 
 export default function testsuite() {
   abilityTest();
@@ -42,4 +43,5 @@ export default function testsuite() {
   BitVectortest();
   AsyncLocktest();
   collectionsAddTest();
+  collectionsConcurrentModifyTest()
 }
