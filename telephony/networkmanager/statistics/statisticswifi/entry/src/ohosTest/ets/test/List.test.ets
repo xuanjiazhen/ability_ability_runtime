@@ -19,10 +19,18 @@ import EmptyTest from './Empty.test';
 import sim from '@ohos.telephony.sim';
 import statisticsErrorCodeTest from './StatisticsErrorCode.test';
 import StatisticsTest from './StatisticsTest.test';
+import connection from '@ohos.net.connection';
+let netHandle = connection.getDefaultNetSync();
 
-export default function testsuite() {if (sim.getMaxSimCount()>1){
-  statisticsErrorCodeTest();
-  StatisticsTest();
+export default function testsuite() {
+  if(sim.getMaxSimCount()>1){
+    statisticsErrorCodeTest();
+    if(netHandle.netId != 0){
+      let NetCapabilities = connection.getNetCapabilitiesSync(netHandle);
+      if(NetCapabilities.bearerTypes[0] == 1){
+        StatisticsTest();
+            }
+	}
   }else{
   EmptyTest()
 }

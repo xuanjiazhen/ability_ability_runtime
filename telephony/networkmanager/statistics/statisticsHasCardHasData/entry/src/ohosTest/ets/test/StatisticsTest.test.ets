@@ -191,7 +191,7 @@ export default function StatisticsTestHasCard() {
                 done();
               }).catch((err:BusinessError) => {
                 console.log(`${caseName} getCellularTxBytes fail ${JSON.stringify(err)} `);
-                ExpectTrue(err.code == 2103012);
+                expectFalse();
                 done();
               });
             }).catch((err:BusinessError) => {
