@@ -21,23 +21,23 @@ import { BusinessError } from '@ohos.base';
 
 export default class Main4Ability extends UIAbility {
     onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
-        console.log('testTag', '%{public}s', 'Ability onCreate');
+        console.log('testTag', '%{public}s', 'Main4Ability onCreate');
         globalThis.want = want;
         globalThis.main4AbilityContext = this.context;
     }
 
     onDestroy() {
-        console.log('testTag', '%{public}s', 'Ability onDestroy');
+        console.log('testTag', '%{public}s', 'Main4Ability onDestroy');
         globalThis.main4AbilityContext = undefined;
     }
 
     onWindowStageCreate(windowStage: window.WindowStage) {
         // Main window is created, set main page for this ability
-        console.log('testTag', '%{public}s', 'Ability onWindowStageCreate');
+        console.log('testTag', '%{public}s', 'Main4Ability onWindowStageCreate');
 
         windowStage.loadContent('testability/pages/Main4', (err:BusinessError) => {
             if (err.code) {
-                console.log('testTag', '%{public}s', 'Ability onWindowStageCreate');
+                console.log('testTag', '%{public}s', 'Main4Ability onWindowStageCreate');
                 return;
             }
         });
@@ -45,17 +45,17 @@ export default class Main4Ability extends UIAbility {
 
     onWindowStageDestroy() {
         // Main window is destroyed, release UI related resources
-        console.log('testTag', '%{public}s', 'Ability onWindowStageDestroy');
+        console.log('testTag', '%{public}s', 'Main4Ability onWindowStageDestroy');
     }
 
     onForeground() {
         globalThis.main4AbilityonForeground = true;
         // Ability has brought to foreground
-        console.log('testTag', '%{public}s', 'Ability onForeground');
+        console.log('testTag', '%{public}s', 'Main4Ability onForeground');
     }
 
     onBackground() {
         // Ability has back to background
-        console.log('testTag', '%{public}s', 'Ability onBackground');
+        console.log('testTag', '%{public}s', 'Main4Ability onBackground');
     }
 }
