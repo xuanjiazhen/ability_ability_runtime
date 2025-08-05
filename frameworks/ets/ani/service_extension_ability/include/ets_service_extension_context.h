@@ -72,6 +72,8 @@ public:
     static void OpenAtomicService(ani_env *env, ani_object aniObj, ani_string aniAppId,
         ani_object callbackObj, ani_object optionsObj);
 
+    static void StartUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
+    static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
     std::weak_ptr<ServiceExtensionContext> GetAbilityContext()
     {
         return context_;
@@ -96,6 +98,7 @@ private:
     void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
         OnRequestResult &onRequestCallback, const char *callbackName);
 
+    void OnStartUIServiceExtension(ani_env *env, ani_object wantObj, ani_object callback);
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<EtsFreeInstallObserver> freeInstallObserver_ = nullptr;
 };
