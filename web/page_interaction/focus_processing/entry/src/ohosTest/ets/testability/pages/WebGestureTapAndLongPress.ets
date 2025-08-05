@@ -118,8 +118,8 @@ struct WebComponent {
       }
 
       TextInput({ text: this.currentUrl })
-        .background(this.TextInputborderColor1)
-        .height(nativeHeight)
+        .backgroundColor(this.TextInputborderColor1)
+        // .height(nativeHeight)
         .onFocus(() => {
           this.TextInputborderColor1 = Color.Red;
         })

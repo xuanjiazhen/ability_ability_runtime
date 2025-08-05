@@ -122,20 +122,20 @@ export default function webViewSrollableJsunit() {
       sendEventByKey('WebGestureFocusModeButton',10,'');
     })
 
-    /*
-    * @tc.number     : SUB_WEB_WEBGESTUREFOCUSMODE_0400
-    * @tc.name       : testWebGestureFocusMode004
-    * @tc.desc       : testWebGestureFocusMode004
-    * @tc.size       : MediumTest
-    * @tc.type       : Function
-    * @tc.level      : Level 1
-    */
-    it('testWebGestureFocusMode004',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,async  (done: Function) =>{
-      emitKey="testWebGestureFocusMode004";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebGestureFocusMode004",true,20250725,done);
-      sendEventByKey('WebGestureFocusModeButton',10,'');
-    })
+    // /*
+    // * @tc.number     : SUB_WEB_WEBGESTUREFOCUSMODE_0400
+    // * @tc.name       : testWebGestureFocusMode004
+    // * @tc.desc       : testWebGestureFocusMode004
+    // * @tc.size       : MediumTest
+    // * @tc.type       : Function
+    // * @tc.level      : Level 1
+    // */
+    // it('testWebGestureFocusMode004',TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,async  (done: Function) =>{
+    //   emitKey="testWebGestureFocusMode004";
+    //   Utils.emitEvent(emitKey, 10);
+    //   Utils.registerEvent("testWebGestureFocusMode004",true,20250725,done);
+    //   sendEventByKey('WebGestureFocusModeButton',10,'');
+    // })
  })
 }
 

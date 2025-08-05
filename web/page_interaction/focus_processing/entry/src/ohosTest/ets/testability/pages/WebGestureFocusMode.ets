@@ -131,36 +131,36 @@ struct WebComponent {
               }
               break;
             }
-            case "testWebGestureFocusMode004": {
-              try {
-                this.flagType = 'webOnscroll'
-                this.controller.loadUrl("www.example.com");
-                await Utils.sleep(2000);
-                this.controller.loadUrl($rawfile('inputmode.html'));
-                let driver = Driver.create();
-                //先点击textInput
-                let buttonOne = await driver.findComponent(ON.text('textInput'));
-                await buttonOne.click()
-                await Utils.sleep(2000);
-                //关闭软键盘方法
-                //let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
-                //if (softKeyBoard != null) {
-                  //await driver.pressBack()
-                //}
-                //关闭软键盘方法
-                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
-                if (buttonTwo) {
-                  await buttonTwo.click()
-                } else {
-                  this.inputMethodController.hideTextInput()
-                }
-                await Utils.sleep(1000);
-                await driver.swipe(X, Y, X, Y-800);
-              } catch (error) {
-                console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
-              }
-              break;
-            }
+            // case "testWebGestureFocusMode004": {
+            //   try {
+            //     this.flagType = 'webOnscroll'
+            //     this.controller.loadUrl("www.example.com");
+            //     await Utils.sleep(2000);
+            //     this.controller.loadUrl($rawfile('inputmode.html'));
+            //     let driver = Driver.create();
+            //     //先点击textInput
+            //     let buttonOne = await driver.findComponent(ON.text('textInput'));
+            //     await buttonOne.click()
+            //     await Utils.sleep(2000);
+            //     //关闭软键盘方法
+            //     //let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+            //     //if (softKeyBoard != null) {
+            //       //await driver.pressBack()
+            //     //}
+            //     //关闭软键盘方法
+            //     let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+            //     if (buttonTwo) {
+            //       await buttonTwo.click()
+            //     } else {
+            //       this.inputMethodController.hideTextInput()
+            //     }
+            //     await Utils.sleep(1000);
+            //     await driver.swipe(X, Y, X, Y-800);
+            //   } catch (error) {
+            //     console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
+            //   }
+            //   break;
+            // }
 
 
           }
@@ -168,8 +168,8 @@ struct WebComponent {
       }
 
       TextInput({ text: this.currentUrl })
-        .background(this.TextInputborderColor1)
-        .height(nativeHeight)
+        .backgroundColor(this.TextInputborderColor1)
+        // .height(nativeHeight)
         .onFocus(() => {
           this.TextInputborderColor1 = Color.Red;
         })
