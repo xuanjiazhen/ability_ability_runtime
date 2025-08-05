@@ -516,6 +516,163 @@ export default function AccessTokenStaticTest() {
         done();
       }
     })
+
+   /**
+     * @tc.number Test_verifyAccessToken_Promise_001
+     * @tc.name Test_verifyAccessToken_Promise_001
+     * @tc.desc After the installation, user_grant permission is not granted by default(Promise).
+     * @tc.level: Level0
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_001 start");
+      try {
+        let status = await atManager.verifyAccessToken(tokenID, permissionNameUser);
+        expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+        done();
+      } catch(error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_001 error" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_002
+     * @tc.name Test_verifyAccessToken_Promise_002
+     * @tc.desc After the installation, system_grant permission is granted by default(Promise).
+     * @tc.level: Level1
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_002 start");
+      try {
+        let status = await atManager.verifyAccessToken(tokenID, permissionNameSystem);
+        expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED);
+        done();
+      } catch(error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_002 error" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_003
+     * @tc.name Test_verifyAccessToken_Promise_003
+     * @tc.desc Test verifyAccessToken(promise), invalid TokenID(0).
+     * @tc.level: Level2
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_003 start");
+      try {
+        let status = await atManager.verifyAccessToken(0, permissionNameUser);
+        expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+        done();
+      } catch(error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_003 error" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_004
+     * @tc.name Test_verifyAccessToken_Promise_004
+     * @tc.desc Test verifyAccessToken(promise), permissionName is empty.
+     * @tc.level: Level3
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_004 start");
+      // empty permission
+      let permissionName: Permissions = "" as Permissions;
+      try {
+        let status = await atManager.verifyAccessToken(tokenID, permissionName);
+        expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+        done();
+      } catch(error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_003 error" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_005
+     * @tc.name Test_verifyAccessToken_Promise_005
+     * @tc.desc Test verifyAccessToken(promise), permissionName exceeds 256 characters.
+     * @tc.level: Level1
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_005 start");
+      // length of permission is 257
+      let permissionName = 'a'.repeat(257) as Permissions;
+      try {
+        let status = await atManager.verifyAccessToken(tokenID, permissionName);
+        expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+        done();
+      } catch(error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_003 error" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_006
+     * @tc.name Test_verifyAccessToken_Promise_006
+     * @tc.desc Test verifyAccessToken(promise), noexist tokenid.
+     * @tc.level: Level1
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_006 start");
+      // noexist tokenid
+      let noexistId: int = 111111 as int;
+      try {
+        atManager.verifyAccessToken(noexistId, permissionNameSystem).then<void, void>((status: abilityAccessCtrl.GrantStatus): void => {
+          expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+          done();
+        });
+      } catch (error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_006 failed" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number Test_verifyAccessToken_Promise_007
+     * @tc.name Test_verifyAccessToken_Promise_007
+     * @tc.desc Test verifyAccessToken(promise), noexist permission.
+     * @tc.level: Level2
+     * @tc.size: MediumTest
+     * @tc.type: Function
+     */
+    it('Test_verifyAccessToken_Promise_007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: ()=>void): Promise<void> => {
+      hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_007 start");
+      // noexist permission
+      let permissionName: Permissions = "ohos.test.test" as Permissions;
+      try {
+        atManager.verifyAccessToken(tokenID, permissionName).then<void, void>((status: abilityAccessCtrl.GrantStatus): void => {
+          expect(status).assertEqual(abilityAccessCtrl.GrantStatus.PERMISSION_DENIED);
+          done();
+        });
+      } catch (error: BusinessError<void>) {
+        hilog.info(domain, 'testTag', "Test_verifyAccessToken_Promise_007 failed" + JSON.stringify(error));
+        expect(false).assertFail();
+        done();
+      }
+    })
   })
   hilog.info(domain, tag, '%{public}s', 'abilityTest end');
 
