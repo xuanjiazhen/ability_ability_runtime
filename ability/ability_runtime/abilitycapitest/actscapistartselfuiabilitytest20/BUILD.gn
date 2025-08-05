@@ -13,10 +13,10 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("ActsCapiStartSelfUiAbilityMain") {
+ohos_app_assist_suite("ActsCapiStartSelfUiAbility20MainTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsCapiStartSelfUiAbilityMain"
+  hap_name = "ActsCapiStartSelfUiAbility20MainTest"
   part_name = "ability_runtime"
   subsystem_name = "ability"
 }
@@ -28,5 +28,5 @@ ohos_js_app_suite("ActsCapiStartSelfUiAbilityTest20Test") {
   hap_name = "ActsCapiStartSelfUiAbilityTest20Test"
   part_name = "ability_runtime"
   subsystem_name = "ability"
-  deps = [ ":ActsCapiStartSelfUiAbilityMain" ]
+  deps = [ ":ActsCapiStartSelfUiAbility20MainTest" ]
 }
