@@ -115,7 +115,7 @@ export default function StatisticsTest() {
           done();
         } else {
           console.log(`${caseName} fail ${JSON.stringify(data)}`);
-          expectFalse();
+          ExpectTrue(data >= DATA_0);
           done();
         }
       });
@@ -227,7 +227,7 @@ export default function StatisticsTest() {
       	let ifaceName = "wlan1";
         statistics.getIfaceRxBytes(ifaceName).then((data) => {
         console.log(`${caseName} getIfaceRxBytes success ${JSON.stringify(data)}`);
-        expectFalse();
+        ExpectTrue(data >= DATA_0);
         done();
       }).catch((err:BusinessError) => {
         console.log(`${caseName} getIfaceRxBytes fail ${JSON.stringify(err)} `);
@@ -348,7 +348,7 @@ export default function StatisticsTest() {
           done();
         } else {
           console.log(`${caseName} getIfaceTxBytes success ${JSON.stringify(data)}`);
-          expectFalse();
+          ExpectTrue(data >= DATA_0);
           done();
         }
       });
@@ -459,7 +459,7 @@ export default function StatisticsTest() {
       	let ifaceName = "wlan1";
         statistics.getIfaceTxBytes(ifaceName).then((data) => {
         console.log(`${caseName} getIfaceTxBytes success ${JSON.stringify(data)}`);
-        expectFalse();
+        ExpectTrue(data >= DATA_0);
         done();
       }).catch((err:BusinessError) => {
         console.log(`${caseName} getIfaceTxBytes fail ${JSON.stringify(err)} `);
