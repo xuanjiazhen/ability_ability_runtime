@@ -20,13 +20,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_Opb6A6UddyvHy7v-JjOOh8-OOHfHTEjTNv7DQEwk0Hk=.cer",
+          "certpath": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_CLkmCYCwRQZmdtmf21rxwzJxjcS8P8rKzZgpX4U2_vA=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B894C9473970BCD723AED8164D6968D90227B3D2FCABA3DF3F2DAC10C500AD48F621134E8BEC5D5",
-          "profile": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_Opb6A6UddyvHy7v-JjOOh8-OOHfHTEjTNv7DQEwk0Hk=.p7b",
+          "keyPassword": "0000001BD373499E53246545B9669236DA52F4739432A3487855533CB6D078652B38D4E93993D0A2724C3D",
+          "profile": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_CLkmCYCwRQZmdtmf21rxwzJxjcS8P8rKzZgpX4U2_vA=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_Opb6A6UddyvHy7v-JjOOh8-OOHfHTEjTNv7DQEwk0Hk=.p12",
-          "storePassword": "0000001B8DED2D412D860DCFC17231FD4259A430683CF8B7B39A58ABFE5E5D32D90DAFAF9A231D4E604D97"
+          "storeFile": "C:\\Users\\lenovo\\.ohos\\config\\default_telephonyNDK20Test_CLkmCYCwRQZmdtmf21rxwzJxjcS8P8rKzZgpX4U2_vA=.p12",
+          "storePassword": "0000001B2DD818A3FBC42BD97F2E44A6FBFB230DF1DEB6A97ABFBCC450CF5AA55BCA19D52AE4187A8D1876"
         }
       }
     ],

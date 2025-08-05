@@ -15,7 +15,7 @@
 
 {
   "app": {
-    "bundleName": "com.acts.TelephonyNdk20.test",
+    "bundleName": "com.acts.actsosaccountndktest",
     "vendor": "huawei",
     "versionCode": 1000000,
     "versionName": "1.0.0",

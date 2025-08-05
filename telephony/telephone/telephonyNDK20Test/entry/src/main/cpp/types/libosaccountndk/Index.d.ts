@@ -12,4 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const OHTelephonyGetNetworkState3Test: () => number;
+
+export const OH_Telephony_GetNetworkState3: () => number;
+export const OH_Telephony_GetNetworkStateForSlot2: () => number;
+export const TelRadio0101: () => number;
+export const TelRegState0100: () => number;
+export const TelRegState0101: () => number;
+export const TelRegState0102: () => number;
+export const TelRegState0103: () => number;
+export const TelRadioTechnology0100: () => number;
+export const TelRadioTechnology0101: () => number;
+export const TelRadioTechnology0102: () => number;
+export const TelRadioTechnology0103: () => number;
+export const TelRadioTechnology0104: () => number;
+export const TelRadioTechnology0105: () => number;
+export const TelRadioTechnology0106: () => number;
+export const TelRadioTechnology0107: () => number;
+export const TelRadioTechnology0108: () => number;
+export const TelRadioTechnology0109: () => number;
+export const TelRadioTechnology0110: () => number;
+export const TelRadioTechnology0111: () => number;
+export const TelRadioTechnology0112: () => number;
+export const TelNsaState0100: () => number;
+export const TelNsaState0101: () => number;
+export const TelNsaState0102: () => number;
+export const TelNsaState0103: () => number;
+export const TelNsaState0104: () => number;
+export const TelNsaState0105: () => number;

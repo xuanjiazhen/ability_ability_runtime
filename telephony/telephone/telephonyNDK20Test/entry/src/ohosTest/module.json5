@@ -20,7 +20,6 @@
     "description": "$string:module_test_desc",
     "mainElement": "TestAbility",
     "deviceTypes": [
-
     ],
     "deliveryWithInstall": true,
     "installationFree": false,
@@ -45,6 +44,11 @@
             ]
           }
         ]
+      }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.GET_NETWORK_INFO",
       }
     ]
   }

@@ -1,5 +1,5 @@
 {
-    "description": "Configuration for TelephonyNdk20Test Tests",
+    "description": "Configuration for ActsTelephonyNDK20Test Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "180000",
@@ -9,7 +9,8 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActsTelephonyNdk20Test.hap"
+            "ActsTelephonyNDK20Test.hap",
+            "ActsTelephonyNDK20MainTest.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true
