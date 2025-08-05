@@ -18,8 +18,8 @@ import osAccountNdk from 'libosaccountndk.so'
 
 const OS_ACCOUNT_ERR_OK = 0;
 
-export default function ActsTelephonyNDK20Test() {
-  describe('ActsTelephonyNDK20Test', () => {
+export default function ActsTelephonyNdk20Test() {
+  describe('ActsTelephonyNdk20Test', () => {
     /**
      * @tc.number SUB_TELEPHONY_CORE_SERVICE_OHTELEPHONYGETNETWORKSTATE0100
      * @tc.name testOHTelephonyGetNetworkState0100
