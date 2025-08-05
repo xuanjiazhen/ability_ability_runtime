@@ -157,6 +157,8 @@
     "pages/ArkUI/cancelTouch",
     "pages/ArkUI/fingerInfos",
     "pages/ArkUI/bindPopupTest",
-    "pages/ArkUI/AccessibilityHoverEvent"
+    "pages/ArkUI/AccessibilityHoverEvent",
+    "pages/ArkUI/CapiDragAction",
+    "pages/ArkUI/CapiDragEvent"
   ]
 }
