@@ -101,6 +101,6 @@ struct ListNodeTest {
         .id('text_dispose')
         .height('5%')
     }
-    .width("100%")
+    .width('100%')
   }
 }
