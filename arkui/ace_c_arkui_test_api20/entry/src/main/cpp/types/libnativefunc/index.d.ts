@@ -77,3 +77,11 @@ export const TestClearRenderNodeChildren001: () => number;
 export const TestClearRenderNodeChildren002: () => number;
 
 export const TestInvalidate: () => number;
+export const TestRenderNode001: () => number;
+export const TestRenderNode002: () => number;
+export const TestRenderNode003: () => number;
+export const TestRenderNode004: () => number;
+export const TestRenderNode005: () => number;
+export const TestRenderNode006: () => number;
+export const TestRenderNode007: () => number;
+export const TestRenderNode008: () => number;

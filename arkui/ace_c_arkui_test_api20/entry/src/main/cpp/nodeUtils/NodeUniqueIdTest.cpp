@@ -28,6 +28,7 @@ static ArkUI_NodeHandle text3 = nullptr;
 static ArkUI_NodeHandle text4 = nullptr; 
 static ArkUI_NodeHandle text5 = nullptr; 
 static ArkUI_NodeHandle text6 = nullptr;
+static ArkUI_NodeHandle text7 = nullptr;
  
 namespace ArkUICapiTest {
  
@@ -71,6 +72,15 @@ static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
     nodeAPI->setAttribute(text6, NODE_TEXT_CONTENT, &text6_item);
     ArkUI_AttributeItem text6_id = {.string = "text6_id"};
     nodeAPI->setAttribute(text6, NODE_ID, &text6_id);
+    
+    text7 = nodeAPI->createNode(ARKUI_NODE_TEXT);
+    ArkUI_AttributeItem text7_item = {
+        .string = "OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay "
+                  "不存在对应节点"};
+    nodeAPI->setAttribute(text7, NODE_TEXT_CONTENT, &text7_item);
+    ArkUI_AttributeItem text7_id = {.string = "text7_id"};
+    nodeAPI->setAttribute(text7, NODE_ID, &text7_id);
+    
     nodeAPI->addChild(Column, text1);
     nodeAPI->addChild(Column, image);
     nodeAPI->addChild(Column, text2);
@@ -78,6 +88,7 @@ static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
     nodeAPI->addChild(Column, text4);
     nodeAPI->addChild(Column, text5);
     nodeAPI->addChild(Column, text6);
+    nodeAPI->addChild(Column, text7);
     return Column;
 }
  
@@ -136,6 +147,18 @@ static void CreatUniqueIdTest(ArkUI_NativeNodeAPI_1 *nodeAPI)
         "Manager","aaa GetNodeHandle_100 errCode:%{public}d;node:%{public}p;", errorCode24, node);
     if( errorCode24 == ARKUI_ERROR_CODE_PARAM_INVALID && node == NULL) {
         nodeAPI->setAttribute(text6, NODE_BACKGROUND_COLOR, &background_color_item);
+    }
+
+    // UniqueId不存在对应节点
+    ArkUI_IntOffset Offset;
+    auto errorCode25 =
+        OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay(node, &Offset);
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Manager",
+                 "aaa GetNodeHandle_100 errCode:%{public}d;node:%{public}p;",
+                 errorCode25, node);
+    if (errorCode25 == ARKUI_ERROR_CODE_PARAM_INVALID && node == NULL) {
+        nodeAPI->setAttribute(text7, NODE_BACKGROUND_COLOR,
+                              &background_color_item);
     }
 }
  

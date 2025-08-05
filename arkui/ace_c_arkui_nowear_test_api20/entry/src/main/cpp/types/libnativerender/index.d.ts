@@ -24,6 +24,8 @@ export const dragEventGetDisplayId: (a: string) => void;
 
 export const dragEventGetDragSource: (a: string) => void;
 
+export const dragEventGetGlobalDisplay: (a: string) => void;
+
 export const enableDropDisallowedBadge: (a: string) => void;
 
 export const dialogGetStateTest: (a: string) => void;

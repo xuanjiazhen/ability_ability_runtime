@@ -16,6 +16,7 @@ add_library(nativerender SHARED
     button/button_gettype_test.cpp
     drag/GetDisplayIdTest.cpp
     drag/GetDragSourceTest.cpp
+    drag/GetTouchPointGlobalDisplayTest.cpp
     dropBadge/EnableDropDisallowedBadgeTest.cpp
     component/ComponentTest.cpp
     component/GridComponentTest.cpp

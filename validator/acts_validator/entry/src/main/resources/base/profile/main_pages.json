@@ -153,6 +153,8 @@
     "pages/ArkUI/PinchGestureListener",
     "pages/ArkUI/RotationGestureListener",
     "pages/ArkUI/PanGestureListener",
-    "pages/ArkUI/AccessibilityShowStepOptions"
+    "pages/ArkUI/AccessibilityShowStepOptions",
+    "pages/ArkUI/cancelTouch",
+    "pages/ArkUI/fingerInfos"
   ]
 }

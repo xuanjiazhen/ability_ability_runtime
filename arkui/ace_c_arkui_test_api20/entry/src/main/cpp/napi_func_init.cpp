@@ -16,6 +16,7 @@
 #include "darkConfig/SetForceDarkConfigTest.cpp"
 #include "arkTSEnv/InitModuleForArkTSEnvTest.cpp"
 #include "renderNode/RenderNodeAttributeTest.cpp"
+#include "renderNode/RenderNodeTest.cpp"
 
 namespace ArkUICapiTest
 {
@@ -68,6 +69,22 @@ namespace ArkUICapiTest
             {"TestClearRenderNodeChildren002", nullptr, TestClearRenderNodeChildren002, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
             {"TestInvalidate", nullptr, TestInvalidate, nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"TestRenderNode001", nullptr, TestRenderNode001, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode002", nullptr, TestRenderNode002, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode003", nullptr, TestRenderNode003, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode004", nullptr, TestRenderNode004, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode005", nullptr, TestRenderNode005, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode006", nullptr, TestRenderNode006, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode007", nullptr, TestRenderNode007, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"TestRenderNode008", nullptr, TestRenderNode008, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
         {

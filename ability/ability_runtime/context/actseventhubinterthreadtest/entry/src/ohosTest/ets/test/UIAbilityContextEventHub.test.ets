@@ -27,6 +27,7 @@ export default function UIAbilityContextEventHubTest() {
     let event10: string = 'com.example.eventhubinterthreadtest.event10';
     let event11: string = 'com.example.eventhubinterthreadtest.event11';
     let event12: string = 'com.example.eventhubinterthreadtest.event12';
+    let delay: number = 500;
 
     beforeEach((done: Function) => {
       setTimeout(() => {
@@ -188,7 +189,7 @@ export default function UIAbilityContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event9, emitData1);
-        }, 200);
+        }, delay);
         hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} end`);
       }
     })
@@ -244,7 +245,7 @@ export default function UIAbilityContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event10, emitData2);
-        }, 200);
+        }, delay);
       }
     })
     
@@ -328,7 +329,7 @@ export default function UIAbilityContextEventHubTest() {
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event11 triggered`);
           context?.eventHub.emit(event12, emitData4);
           hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} event12 triggered`);
-        }, 200);
+        }, delay);
       }
     })
   

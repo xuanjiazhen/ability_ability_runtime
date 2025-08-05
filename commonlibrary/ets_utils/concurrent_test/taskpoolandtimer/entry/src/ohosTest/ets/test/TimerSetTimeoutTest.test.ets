@@ -100,8 +100,8 @@ export default function setTimeoutTest() {
       let time2 = Date.now()
       setTimeout((msg: string) => {
         msg2 = msg;
-        flag = true
         time2 = Date.now()
+        flag = true
       }, 100, args);
       while (flag != true) {
         await sleep(100);

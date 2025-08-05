@@ -1272,7 +1272,7 @@ export default function drawingTsCanvasPart7Test() {
         expect().assertFail();
       } catch (e) {
         console.info(msg + `drawSingleCharacterWithFeatures 1 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
-        expect(e.code).assertEqual(401);
+        expect(e.code).assertEqual(25900001);
       }
       try {
         canvas.drawSingleCharacterWithFeatures("As", font, 100, 100, fontFeatures);
@@ -1280,7 +1280,7 @@ export default function drawingTsCanvasPart7Test() {
         expect().assertFail();
       } catch (e) {
         console.info(msg + `drawSingleCharacterWithFeatures 2 errorCode is:  ${e.code} + errormsg is: ${e.message}`);
-        expect(e.code).assertEqual(401);
+        expect(e.code).assertEqual(25900001);
       }
     })
   })
