@@ -2333,6 +2333,9 @@ private:
     void PauseOldMissionListManager(int32_t userId);
     void PauseOldConnectManager(int32_t userId);
     bool IsSystemUI(const std::string &bundleName) const;
+    int32_t GetUidByCloneBundleInfo(std::string &bundleName, int32_t callerUid, int32_t appIndex, int32_t userId) const;
+    sptr<IWantSender> GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
+        const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId);
 
     bool VerificationAllToken(const sptr<IRemoteObject> &token);
     std::shared_ptr<DataAbilityManager> GetCurrentDataAbilityManager();
