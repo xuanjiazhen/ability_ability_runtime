@@ -2046,7 +2046,7 @@ export default function AudioHapticTest() {
         });
     })
     /**
-     * @tc.number    : SUB_MULTIMEDIA_AUDIO_AUDIOHAPTIC_ON_AUDIOINTERRUPT_0100
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0100
      * @tc.name      : AudioHapticPlayer_on_audioInterrupt
      * @tc.desc      : AudioHapticPlayer_on_audioInterrupt
      * @tc.size      : MEDIUM
@@ -2055,8 +2055,8 @@ export default function AudioHapticTest() {
      */
     it("SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0100", TestType.Function | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       let id = 0;
-      let audioFd:audioHaptic.AudoHapticFileDescriptor = {fd:0,length:0,offset:0}
-      let hapticFd:audioHaptic.AudoHapticFileDescriptor = {fd:0,length:0,offset:0}
+      let audioFd:audioHaptic.AudioHapticFileDescriptor = {fd:0,length:0,offset:0}
+      let hapticFd:audioHaptic.AudioHapticFileDescriptor = {fd:0,length:0,offset:0}
       let audioHapticManager: audioHaptic.AudioHapticManager = audioHaptic.getAudioHapticManager();
       let testContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
       audioFd = testContext.resourceManager.getRawFdSync('notification.ogg')
@@ -2089,13 +2089,13 @@ export default function AudioHapticTest() {
         await audioHapticPlayer.release().then(()=>{
           console.info(`release player successfully`);
         }).catch((err: BusinessError) => {
-          console.err(`fail to start playing, ${err}`);
+          console.error(`fail to start playing, ${err}`);
         });
       }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
       });
       await audioHapticManager.unregisterSource(id).then(()=>{
-        console.info(`fail to start playing, ${err}`);
+        console.info(`fail to start playing`);
       }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
       });
