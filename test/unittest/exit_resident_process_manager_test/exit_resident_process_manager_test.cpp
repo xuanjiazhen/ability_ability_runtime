@@ -267,5 +267,63 @@ HWTEST_F(ExitResidentProcessManagerTest, IsKilledForUpgradeWeb_002, TestSize.Lev
     exitResidentProcessManager->exitResidentBundlesDependedOnWeb_.emplace_back(bundleName, 1000);
     EXPECT_EQ(exitResidentProcessManager->IsKilledForUpgradeWeb(bundleName), true);
 }
+
+/**
+ * @tc.name: IsNoRequireBigMemory_002
+ * @tc.desc: Verify that the IsNoRequireBigMemory interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExitResidentProcessManagerTest, IsNoRequireBigMemory_002, TestSize.Level1)
+{
+    auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
+    EXPECT_EQ(exitResidentProcessManager->IsNoRequireBigMemory(), true);
+}
+
+/**
+ * @tc.name: HandleMemorySizeSufficient_001
+ * @tc.desc: Verify that the HandleMemorySizeSufficient interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExitResidentProcessManagerTest, HandleMemorySizeSufficient_001, TestSize.Level1)
+{
+    auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
+    std::vector<ExitResidentProcessInfo> processInfos;
+    exitResidentProcessManager->HandleMemorySizeSufficient(processInfos);
+    EXPECT_EQ(exitResidentProcessManager->HandleMemorySizeSufficient(processInfos),
+        AAFwk::ERR_NATIVE_MEMORY_SIZE_STATE_UNCHANGED);
+}
+
+/**
+ * @tc.name: HandleMemorySizeSufficient_002
+ * @tc.desc: Verify that the HandleMemorySizeSufficient interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExitResidentProcessManagerTest, HandleMemorySizeSufficient_002, TestSize.Level1)
+{
+    auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
+    ExitResidentProcessInfo info;
+    info.bundleName = "com.ohos.launcher";
+    info.uid = 0;
+    std::vector<ExitResidentProcessInfo> processInfos = {info};
+    exitResidentProcessManager->currentMemorySizeState_ = MemoryState::LOW_MEMORY;
+    EXPECT_EQ(exitResidentProcessManager->HandleMemorySizeSufficient(processInfos), ERR_OK);
+}
+
+/**
+ * @tc.name: IsKilledForUpgradeWeb_003
+ * @tc.desc: Verify that the IsKilledForUpgradeWeb interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExitResidentProcessManagerTest, IsKilledForUpgradeWeb_003, TestSize.Level1)
+{
+    std::string bundleName = "com.ohos.launcher";
+    auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
+    ExitResidentProcessInfo info;
+    info.bundleName = bundleName;
+    info.uid = 0;
+    std::vector<ExitResidentProcessInfo> processInfos = {info};
+    exitResidentProcessManager->exitResidentBundlesDependedOnWeb_ = processInfos;
+    EXPECT_EQ(exitResidentProcessManager->IsKilledForUpgradeWeb(bundleName), true);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
