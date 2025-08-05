@@ -284,11 +284,10 @@ public:
      *
      * @param bundlename, bundle name in Application record.
      * @param instanceKeys, output instance keys of the multi-instance app.
-     * @param userId, user id.
      * @return ERR_OK ,return back success，others fail.
      */
     virtual AppMgrResultCode GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
-        std::vector<std::string> &instanceKeys, int32_t userId = -1);
+        std::vector<std::string> &instanceKeys);
 
     /**
      * GetAllRenderProcesses, call GetAllRenderProcesses() through proxy project.

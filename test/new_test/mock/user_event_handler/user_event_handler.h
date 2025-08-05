@@ -25,8 +25,7 @@ namespace AAFwk {
 class UserController;
 class UserEventHandler : public EventHandlerWrap {
 public:
-    UserEventHandler(
-        const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<UserController> &owner) {}
+    UserEventHandler(const std::shared_ptr<TaskHandlerWrap> &taskHandler) {}
     
     virtual ~UserEventHandler() {}
 

@@ -146,7 +146,7 @@ HWTEST_F(UserControllerTest, Init_003, TestSize.Level1)
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
     std::shared_ptr<AAFwk::TaskHandlerWrap> handler = std::make_shared<AAFwk::TaskHandlerWrap>();
     OH_EXPECT_RET({handler}, AbilityManagerService, GetTaskHandler);
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(handler, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(handler);
     controller->Init();
     EXPECT_NE(controller->eventHandler_, nullptr);
 }
@@ -193,7 +193,8 @@ HWTEST_F(UserControllerTest, StartUser_001, TestSize.Level1)
     int32_t userId = -1;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    uint64_t displayId = 0;
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -208,7 +209,8 @@ HWTEST_F(UserControllerTest, StartUser_002, TestSize.Level1)
     int32_t userId = -1;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    uint64_t displayId = 0;
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -223,7 +225,8 @@ HWTEST_F(UserControllerTest, StartUser_003, TestSize.Level1)
     int32_t userId = AAFwk::USER_ID_NO_HEAD;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    uint64_t displayId = 0;
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -238,7 +241,8 @@ HWTEST_F(UserControllerTest, StartUser_004, TestSize.Level1)
     int32_t userId = AAFwk::USER_ID_NO_HEAD;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    uint64_t displayId = 0;
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -250,13 +254,12 @@ HWTEST_F(UserControllerTest, StartUser_004, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_005, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 101;
+    uint64_t displayId = 0;
     int32_t userId = 101;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({101, userItem});
+    controller->SetCurrentUserId(userId, displayId);
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
 }
 
 /**
@@ -268,13 +271,12 @@ HWTEST_F(UserControllerTest, StartUser_005, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_006, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 101;
+    uint64_t displayId = 0;
     int32_t userId = 101;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({101, userItem});
+    controller->SetCurrentUserId(userId, displayId);
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     bool isAppRecovery = 0;
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
 }
 
 /**
@@ -286,16 +288,16 @@ HWTEST_F(UserControllerTest, StartUser_006, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_007, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({101, userItem});
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = 0;
     std::vector<vector<bool>> expectOuter = {{false}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -307,16 +309,16 @@ HWTEST_F(UserControllerTest, StartUser_007, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_008, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({101, userItem});
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     bool isAppRecovery = 0;
     std::vector<vector<bool>> expectOuter = {{false}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), AAFwk::INVALID_USERID_VALUE);
 }
 
 /**
@@ -328,9 +330,11 @@ HWTEST_F(UserControllerTest, StartUser_008, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_009, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
     controller->freezingNewUserId_ = 0;
-    int32_t userId = 101;
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
@@ -339,7 +343,7 @@ HWTEST_F(UserControllerTest, StartUser_009, TestSize.Level1)
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
     OH_EXPECT_RET({false}, SceneBoardJudgement, IsSceneBoardEnabled);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
     EXPECT_EQ(controller->freezingNewUserId_, 101);
 }
 
@@ -352,9 +356,11 @@ HWTEST_F(UserControllerTest, StartUser_009, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_010, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 0;
+    uint64_t displayId = 0;
+    int32_t userId = 0;
+    controller->SetCurrentUserId(userId, displayId);
     controller->freezingNewUserId_ = 0;
-    int32_t userId = 101;
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
@@ -363,7 +369,7 @@ HWTEST_F(UserControllerTest, StartUser_010, TestSize.Level1)
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
     OH_EXPECT_RET({false}, SceneBoardJudgement, IsSceneBoardEnabled);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
     EXPECT_EQ(controller->freezingNewUserId_, 0);
 }
 
@@ -376,9 +382,11 @@ HWTEST_F(UserControllerTest, StartUser_010, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_011, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
     controller->freezingNewUserId_ = 0;
-    int32_t userId = 101;
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
@@ -387,7 +395,7 @@ HWTEST_F(UserControllerTest, StartUser_011, TestSize.Level1)
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
     OH_EXPECT_RET({true}, SceneBoardJudgement, IsSceneBoardEnabled);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
     EXPECT_EQ(controller->freezingNewUserId_, 0);
 }
 
@@ -400,9 +408,11 @@ HWTEST_F(UserControllerTest, StartUser_011, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_012, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 0;
+    uint64_t displayId = 0;
+    int32_t userId = 0;
+    controller->SetCurrentUserId(userId, displayId);
     controller->freezingNewUserId_ = 0;
-    int32_t userId = 101;
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
@@ -411,7 +421,7 @@ HWTEST_F(UserControllerTest, StartUser_012, TestSize.Level1)
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
     OH_EXPECT_RET({true}, SceneBoardJudgement, IsSceneBoardEnabled);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_OK);
     EXPECT_EQ(controller->freezingNewUserId_, 0);
 }
 
@@ -424,8 +434,10 @@ HWTEST_F(UserControllerTest, StartUser_012, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_013, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     userItem->SetState(AAFwk::STATE_STOPPING);
     controller->userItems_.insert({userId, userItem});
@@ -434,7 +446,7 @@ HWTEST_F(UserControllerTest, StartUser_013, TestSize.Level1)
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_DEAD_OBJECT);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_DEAD_OBJECT);
 }
 
 /**
@@ -446,8 +458,10 @@ HWTEST_F(UserControllerTest, StartUser_013, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_014, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     userItem->SetState(AAFwk::STATE_STOPPING);
     controller->userItems_.insert({userId, userItem});
@@ -456,7 +470,7 @@ HWTEST_F(UserControllerTest, StartUser_014, TestSize.Level1)
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_DEAD_OBJECT);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_DEAD_OBJECT);
 }
 
 /**
@@ -468,8 +482,10 @@ HWTEST_F(UserControllerTest, StartUser_014, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_015, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     userItem->SetState(AAFwk::STATE_SHUTDOWN);
     controller->userItems_.insert({userId, userItem});
@@ -478,7 +494,7 @@ HWTEST_F(UserControllerTest, StartUser_015, TestSize.Level1)
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_DEAD_OBJECT);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_DEAD_OBJECT);
 }
 
 /**
@@ -490,8 +506,10 @@ HWTEST_F(UserControllerTest, StartUser_015, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_016, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     userItem->SetState(AAFwk::STATE_SHUTDOWN);
     controller->userItems_.insert({userId, userItem});
@@ -500,7 +518,7 @@ HWTEST_F(UserControllerTest, StartUser_016, TestSize.Level1)
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_EQ(controller->StartUser(userId, callback, isAppRecovery), ERR_DEAD_OBJECT);
+    EXPECT_EQ(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_DEAD_OBJECT);
 }
 
 /**
@@ -512,8 +530,10 @@ HWTEST_F(UserControllerTest, StartUser_016, TestSize.Level1)
 HWTEST_F(UserControllerTest, StartUser_017, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     userItem->SetState(AAFwk::STATE_BOOTING);
     controller->userItems_.insert({userId, userItem});
@@ -522,8 +542,8 @@ HWTEST_F(UserControllerTest, StartUser_017, TestSize.Level1)
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
-    EXPECT_NE(controller->StartUser(userId, callback, isAppRecovery), ERR_DEAD_OBJECT);
-    EXPECT_EQ(controller->currentUserId_, 101);
+    EXPECT_NE(controller->StartUser(userId, displayId, callback, isAppRecovery), ERR_DEAD_OBJECT);
+    EXPECT_EQ(controller->GetCurrentUserId(displayId), 101);
 }
 
 /**
@@ -574,10 +594,9 @@ HWTEST_F(UserControllerTest, StopUser_003, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_004, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 101;
+    uint64_t displayId = 0;
     int32_t userId = 101;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({userId, userItem});
+    controller->SetCurrentUserId(userId, displayId);
     EXPECT_EQ(controller->StopUser(userId), 0);
 }
 
@@ -590,8 +609,10 @@ HWTEST_F(UserControllerTest, StopUser_004, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_005, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::vector<vector<bool>> expectOuter = {{false}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
@@ -607,8 +628,10 @@ HWTEST_F(UserControllerTest, StopUser_005, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_006, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
@@ -627,8 +650,10 @@ HWTEST_F(UserControllerTest, StopUser_006, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_007, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
@@ -647,8 +672,10 @@ HWTEST_F(UserControllerTest, StopUser_007, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_008, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
@@ -667,8 +694,10 @@ HWTEST_F(UserControllerTest, StopUser_008, TestSize.Level1)
 HWTEST_F(UserControllerTest, StopUser_009, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
         IsOsAccountExists, const int, bool& isOsAccountExists);
@@ -743,8 +772,10 @@ HWTEST_F(UserControllerTest, LogoutUser_004, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_005, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     std::vector<vector<bool>> expectOuter = {{false}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -761,8 +792,10 @@ HWTEST_F(UserControllerTest, LogoutUser_005, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_006, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     std::vector<vector<bool>> expectOuter = {{false}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -779,8 +812,10 @@ HWTEST_F(UserControllerTest, LogoutUser_006, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_007, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -799,8 +834,10 @@ HWTEST_F(UserControllerTest, LogoutUser_007, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_008, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -818,8 +855,9 @@ HWTEST_F(UserControllerTest, LogoutUser_008, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_009, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
+    uint64_t displayId = 0;
     int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -827,7 +865,7 @@ HWTEST_F(UserControllerTest, LogoutUser_009, TestSize.Level1)
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     EXPECT_EQ(controller->LogoutUser(userId, callback), 0);
-    EXPECT_EQ(controller->currentUserId_, 0);
+    EXPECT_EQ(controller->GetCurrentUserId(displayId), 0);
 }
 
 /**
@@ -839,8 +877,10 @@ HWTEST_F(UserControllerTest, LogoutUser_009, TestSize.Level1)
 HWTEST_F(UserControllerTest, LogoutUser_010, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
     sptr<AAFwk::IUserCallback> callback = sptr<AAFwk::IUserCallback>::MakeSptr();
     std::vector<vector<bool>> expectOuter = {{true}};
     OH_EXPECT_RET_AND_OUTPUT({0}, expectOuter, OsAccountManagerWrapper,
@@ -848,7 +888,7 @@ HWTEST_F(UserControllerTest, LogoutUser_010, TestSize.Level1)
     std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
     controller->userItems_.insert({userId, userItem});
     EXPECT_EQ(controller->LogoutUser(userId, callback), 0);
-    EXPECT_EQ(controller->currentUserId_, 100);
+    EXPECT_EQ(controller->GetCurrentUserId(displayId), 100);
 }
 
 /**
@@ -859,34 +899,10 @@ HWTEST_F(UserControllerTest, LogoutUser_010, TestSize.Level1)
 HWTEST_F(UserControllerTest, GetCurrentUserId_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    EXPECT_EQ(controller->GetCurrentUserId(), 100);
-}
-
-/**
- * @tc.name: GetUserItem_001
- * @tc.desc: Verify GetUserItem call.
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, GetUserItem_001, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
+    uint64_t displayId = 0;
     int32_t userId = 100;
-    std::shared_ptr<AAFwk::UserItem> userItem = std::make_shared<AAFwk::UserItem>(userId);
-    controller->userItems_.insert({userId, userItem});
-    EXPECT_EQ(controller->GetUserItem(userId), userItem);
-}
-
-/**
- * @tc.name: GetUserItem_002
- * @tc.desc: Verify GetUserItem call.
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, GetUserItem_002, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    int32_t userId = 100;
-    EXPECT_EQ(controller->GetUserItem(userId), nullptr);
+    controller->SetCurrentUserId(userId, displayId);
+    EXPECT_EQ(controller->GetCurrentUserId(displayId), 100);
 }
 
 /**
@@ -987,10 +1003,12 @@ HWTEST_F(UserControllerTest, GetOrCreateUserItem_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, SetCurrentUserId_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
-    controller->SetCurrentUserId(userId);
-    EXPECT_EQ(controller->currentUserId_, 101);
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
+    controller->SetCurrentUserId(userId, displayId);
+    EXPECT_EQ(controller->GetCurrentUserId(displayId), 101);
 }
 
 /**
@@ -1001,15 +1019,17 @@ HWTEST_F(UserControllerTest, SetCurrentUserId_001, TestSize.Level1)
 HWTEST_F(UserControllerTest, MoveUserToForeground_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
-    OH_EXPECT_RET({0}, AbilityManagerService, SwitchToUser, int32_t, int32_t,
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
+    OH_EXPECT_RET({0}, AbilityManagerService, SwitchToUser, int32_t, int32_t, uint64_t,
         sptr<AAFwk::IUserCallback>, bool isAppRecovery = false);
     int32_t oldUserId = 100;
     int32_t newUserId = 101;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = false;
-    EXPECT_EQ(controller->MoveUserToForeground(oldUserId, newUserId, callback, isAppRecovery), ERR_OK);
+    EXPECT_EQ(controller->MoveUserToForeground(oldUserId, newUserId, displayId, callback, isAppRecovery), ERR_OK);
 }
 
 /**
@@ -1020,79 +1040,17 @@ HWTEST_F(UserControllerTest, MoveUserToForeground_001, TestSize.Level1)
 HWTEST_F(UserControllerTest, MoveUserToForeground_002, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->currentUserId_ = 100;
-    int32_t userId = 101;
-    OH_EXPECT_RET({1}, AbilityManagerService, SwitchToUser, int32_t, int32_t,
+    uint64_t displayId = 0;
+    int32_t userId = 100;
+    controller->SetCurrentUserId(userId, displayId);
+    userId = 101;
+    OH_EXPECT_RET({1}, AbilityManagerService, SwitchToUser, int32_t, int32_t, uint64_t,
         sptr<AAFwk::IUserCallback>, bool isAppRecovery = false);
     int32_t oldUserId = 100;
     int32_t newUserId = 101;
     sptr<AAFwk::IUserCallback> callback = nullptr;
     bool isAppRecovery = false;
-    EXPECT_EQ(controller->MoveUserToForeground(oldUserId, newUserId, callback, isAppRecovery), 1);
-}
-
-/**
- * @tc.name: UserBootDone_001
- * @tc.desc: Verify UserBootDone call.
- *           Branch item == nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, UserBootDone_001, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    std::shared_ptr<AAFwk::UserItem> item = nullptr;
-    controller->UserBootDone(item);
-    EXPECT_LOG_MATCH(LOG_ERROR, AAFwkTag::ABILITYMGR, "user_controller.cpp", "null item");
-}
-
-/**
- * @tc.name: UserBootDone_002
- * @tc.desc: Verify UserBootDone call.
- *           Branch userId invalid
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, UserBootDone_002, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    std::shared_ptr<AAFwk::UserItem> item = std::make_shared<AAFwk::UserItem>(101);
-    AAFwk::UserState userState = AAFwk::UserState::STATE_BOOTING;
-    item->SetState(userState);
-    controller->UserBootDone(item);
-    EXPECT_EQ(item->GetState(), AAFwk::UserState::STATE_BOOTING);
-}
-
-/**
- * @tc.name: UserBootDone_003
- * @tc.desc: Verify UserBootDone call.
- *           Branch item not match
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, UserBootDone_003, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    std::shared_ptr<AAFwk::UserItem> item1 = std::make_shared<AAFwk::UserItem>(101);
-    std::shared_ptr<AAFwk::UserItem> item2 = std::make_shared<AAFwk::UserItem>(101);
-    controller->userItems_.insert({101, item2});
-    AAFwk::UserState userState = AAFwk::UserState::STATE_BOOTING;
-    item1->SetState(userState);
-    controller->UserBootDone(item1);
-    EXPECT_EQ(item1->GetState(), AAFwk::UserState::STATE_BOOTING);
-}
-
-/**
- * @tc.name: UserBootDone_004
- * @tc.desc: Verify UserBootDone call.
- * @tc.type: FUNC
- */
-HWTEST_F(UserControllerTest, UserBootDone_004, TestSize.Level1)
-{
-    std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    std::shared_ptr<AAFwk::UserItem> item = std::make_shared<AAFwk::UserItem>(101);
-    controller->userItems_.insert({101, item});
-    AAFwk::UserState userState = AAFwk::UserState::STATE_BOOTING;
-    item->SetState(userState);
-    controller->UserBootDone(item);
-    EXPECT_EQ(item->GetState(), AAFwk::UserState::STATE_STARTED);
+    EXPECT_EQ(controller->MoveUserToForeground(oldUserId, newUserId, displayId, callback, isAppRecovery), 1);
 }
 
 /**
@@ -1151,7 +1109,7 @@ HWTEST_F(UserControllerTest, BroadcastUserStopped_001, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendSystemUserStart_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     controller->SendSystemUserStart(100);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp", "SendEvent(EVENT_SYSTEM_USER_START)");
 }
@@ -1313,7 +1271,7 @@ HWTEST_F(UserControllerTest, ProcessEvent_008, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendSystemUserCurrent_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     controller->SendSystemUserCurrent(100, 101);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp", "SendEvent(EVENT_SYSTEM_USER_CURRENT)");
 }
@@ -1339,7 +1297,7 @@ HWTEST_F(UserControllerTest, SendSystemUserCurrent_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendReportUserSwitch_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     std::shared_ptr<AAFwk::UserItem> usrItem = nullptr;
     controller->SendReportUserSwitch(100, 101, usrItem);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp", "SendEvent(EVENT_REPORT_USER_SWITCH)");
@@ -1367,7 +1325,7 @@ HWTEST_F(UserControllerTest, SendReportUserSwitch_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendUserSwitchTimeout_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     std::shared_ptr<AAFwk::UserItem> usrItem = nullptr;
     controller->SendUserSwitchTimeout(100, 101, usrItem);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp", "SendEvent(EVENT_USER_SWITCH_TIMEOUT)");
@@ -1395,7 +1353,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchTimeout_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendContinueUserSwitch_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     std::shared_ptr<AAFwk::UserItem> usrItem = nullptr;
     controller->SendContinueUserSwitch(100, 101, usrItem);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp", "SendEvent(EVENT_CONTINUE_USER_SWITCH)");
@@ -1423,7 +1381,7 @@ HWTEST_F(UserControllerTest, SendContinueUserSwitch_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, SendUserSwitchDone_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     controller->SendUserSwitchDone(100);
     EXPECT_LOG_MATCH(LOG_DEBUG, AAFwkTag::ABILITYMGR, "user_controller.cpp",
         "SendEvent(EVENT_REPORT_USER_SWITCH_DONE)");
@@ -1450,7 +1408,7 @@ HWTEST_F(UserControllerTest, SendUserSwitchDone_002, TestSize.Level1)
 HWTEST_F(UserControllerTest, HandleContinueUserSwitch_001, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     OH_EXPECT_RET({false}, SceneBoardJudgement, IsSceneBoardEnabled);
     std::shared_ptr<AAFwk::UserItem> usrItem = nullptr;
     controller->HandleContinueUserSwitch(100, 101, usrItem);
@@ -1466,7 +1424,7 @@ HWTEST_F(UserControllerTest, HandleContinueUserSwitch_001, TestSize.Level1)
 HWTEST_F(UserControllerTest, HandleContinueUserSwitch_002, TestSize.Level1)
 {
     std::shared_ptr<AAFwk::UserController> controller = std::make_shared<AAFwk::UserController>();
-    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr, controller);
+    controller->eventHandler_ = std::make_shared<AAFwk::UserEventHandler>(nullptr);
     OH_EXPECT_RET({true}, SceneBoardJudgement, IsSceneBoardEnabled);
     std::shared_ptr<AAFwk::UserItem> usrItem = nullptr;
     controller->HandleContinueUserSwitch(100, 101, usrItem);

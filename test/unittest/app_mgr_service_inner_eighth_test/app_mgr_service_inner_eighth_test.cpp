@@ -588,38 +588,6 @@ HWTEST_F(AppMgrServiceInnerEighthTest, StartNativeProcessForDebugger_006, TestSi
 }
 
 /**
- * @tc.name: GetCurrentAccountId_001
- * @tc.desc: test GetCurrentAccountId_001
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerEighthTest, GetCurrentAccountId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().queryActiveOsAccountIds_ = ERR_NO_INIT;
-
-    auto ret = appMgrServiceInner->GetCurrentAccountId();
-    EXPECT_EQ(ret, DEFAULT_USER_ID);
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_001 end");
-}
-
-/**
- * @tc.name: GetCurrentAccountId_002
- * @tc.desc: test GetCurrentAccountId_002
- * @tc.type: FUNC
- */
-HWTEST_F(AppMgrServiceInnerEighthTest, GetCurrentAccountId_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_002 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyStatus::GetInstance().queryActiveOsAccountIds_ = ERR_OK;
-    
-    auto ret = appMgrServiceInner->GetCurrentAccountId();
-    EXPECT_EQ(ret, DEFAULT_USER_ID);
-    TAG_LOGI(AAFwkTag::TEST, "GetCurrentAccountId_002 end");
-}
-
-/**
  * @tc.name: SetCurrentUserId_001
  * @tc.desc: test SetCurrentUserId_001
  * @tc.type: FUNC
