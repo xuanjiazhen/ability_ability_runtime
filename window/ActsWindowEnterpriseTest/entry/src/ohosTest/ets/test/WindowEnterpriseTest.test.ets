@@ -235,7 +235,7 @@ export default function WindowEnterpriseTest() {
           let subWindowProperties = subWindowClass.getWindowProperties();
           console.log(`${caseName} : subWindowProperties: ${JSON.stringify(subWindowProperties)}`);
           window.getVisibleWindowInfo().then(async (infos: Array<window.WindowInfo>) => {
-            console.info(caseName + 'Succeeded in calling getVisibleWindowInfo.');
+            console.info(caseName + 'Succeeded in calling getVisibleWindowInfo. infos: ' + JSON.stringify(infos));
             let isExit = false;
             for (let i = 0; i < infos.length; i++) {
               if (infos[i].windowId === subWindowProperties.id) {
