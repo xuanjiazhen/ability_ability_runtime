@@ -50,6 +50,8 @@ static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info
 #define CASE_NUM_2 2
 #define CASE_NUM_3 3
 #define CASE_NUM_4 4
+#define CASE_NUM_5 5
+#define CASE_NUM_6 6
 static napi_value loadData(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
@@ -266,6 +268,134 @@ static napi_value JSBridgeProxyData(napi_env env, napi_callback_info info)
     return result;
 }
 
+static ArkWeb_WebMessagePtr CreateMsg()
+{
+    static ArkWeb_WebMessagePtr pMsg = nullptr;
+    return pMsg;
+}
+
+void DestroyMsg(ArkWeb_WebMessagePtr *webMessage)
+{
+    if (webMessage == nullptr) {
+        return;
+    }
+}
+
+static void SetType(ArkWeb_WebMessagePtr webMessage, ArkWeb_WebMessageType type)
+{
+    if (webMessage == nullptr) {
+        return;
+    }
+    ArkWeb_WebMessageType onType = type;
+    if (onType >= ARKWEB_BUFFER) {
+        return;
+    }
+}
+
+static ArkWeb_WebMessageType GetType(ArkWeb_WebMessagePtr webMessage)
+{
+    if (webMessage == nullptr) {
+        return ARKWEB_NONE;
+    }
+    return ARKWEB_STRING;
+}
+
+static void SetData(ArkWeb_WebMessagePtr webMessage, void *data, size_t dataLength)
+{
+    if (webMessage == nullptr || data == nullptr) {
+        return;
+    }
+    if (dataLength > 0) {
+        return;
+    }
+}
+
+static void *GetData(ArkWeb_WebMessagePtr webMessage, size_t *dataLength)
+{
+    if (webMessage == nullptr || dataLength == nullptr) {
+        return nullptr;
+    }
+    if (*dataLength == 0){
+        return nullptr;
+    }
+    return webMessage;
+}
+
+static napi_value WebMsgType(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    const size_t msgLen = 10;
+    static char msg[msgLen] = "test";
+    ArkWeb_WebMessagePtr pMsg = reinterpret_cast<ArkWeb_WebMessagePtr>(msg);
+    switch (caseNum) {
+        case CASE_NUM_0:
+            SetType(nullptr, ARKWEB_NONE);
+            break;
+        case CASE_NUM_1:
+            SetType(pMsg, ARKWEB_STRING);
+            break;
+        case CASE_NUM_2:
+            SetType(pMsg, ARKWEB_BUFFER);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData end..");
+    return result;
+}
+
+static napi_value WebMsgAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+
+    ArkWeb_WebMessageAPI api = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_WebMessageAPI);
+            break;
+        case CASE_NUM_1:
+            api.createWebMessage = CreateMsg;
+            break;
+        case CASE_NUM_2:
+            api.destroyWebMessage = DestroyMsg;
+            break;
+        case CASE_NUM_3:
+            api.setType = SetType;
+            break;
+        case CASE_NUM_4:
+            api.getType = GetType;
+            break;
+        case CASE_NUM_5:
+            api.setData = SetData;
+            break;
+        case CASE_NUM_6:
+            api.getData = GetData;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -277,6 +407,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"SetBlanklessInfo", nullptr, SetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"JSBridgeData", nullptr, JSBridgeData, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"JSBridgeProxyData", nullptr, JSBridgeProxyData, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebMsgType", nullptr, WebMsgType, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebMsgAPI", nullptr, WebMsgAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

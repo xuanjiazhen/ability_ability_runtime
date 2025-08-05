@@ -45,6 +45,8 @@ export const GetBlanklessInfo: (webName: string, key: string) => number;
 export const SetBlanklessInfo: (webName: string, key: string) => number;
 export const JSBridgeData: (caseNum: number) => number;
 export const JSBridgeProxyData: (caseNum: number) => number;
+export const WebMsgType: (caseNum: number) => number;
+export const WebMsgAPI: (caseNum: number) => number;
 
 
 

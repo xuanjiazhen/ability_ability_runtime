@@ -398,5 +398,215 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiJSBridgeProxyNullWeb catch err: " + err);
         }
       })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgTypeTest_0100
+     * @tc.name    : SUB_Web_Napi_WebMsgTypeTest_0100
+     * @tc.desc    : test ArkWeb_WebMessageType
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgTypeTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0100 start====");
+          let result: number = nativeInterface.WebMsgType(0);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0100 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgTypeTest_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgTypeTest_0200
+     * @tc.name    : SUB_Web_Napi_WebMsgTypeTest_0200
+     * @tc.desc    : test ArkWeb_WebMessageType
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgTypeTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0200 start====");
+          let result: number = nativeInterface.WebMsgType(1);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0200 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgTypeTest_0200 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgTypeTest_0300
+     * @tc.name    : SUB_Web_Napi_WebMsgTypeTest_0300
+     * @tc.desc    : test ArkWeb_WebMessageType
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgTypeTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0300 start====");
+          let result: number = nativeInterface.WebMsgType(2);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgTypeTest_0300 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgTypeTest_0300 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0100
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0100
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0100 start====");
+          let result: number = nativeInterface.WebMsgAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0100 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0200
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0200
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0200 start====");
+          let result: number = nativeInterface.WebMsgAPI(1);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0200 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0200 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0300
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0300
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0300 start====");
+          let result: number = nativeInterface.WebMsgAPI(2);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0300 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0300 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0400
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0400
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0400 start====");
+          let result: number = nativeInterface.WebMsgAPI(3);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0400 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0400 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0500
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0500
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0500 start====");
+          let result: number = nativeInterface.WebMsgAPI(4);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0500 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0500 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0600
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0600
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0600', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0600 start====");
+          let result: number = nativeInterface.WebMsgAPI(5);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0600 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0600 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_Web_Napi_WebMsgApiTest_0700
+     * @tc.name    : SUB_Web_Napi_WebMsgApiTest_0700
+     * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('SUB_Web_Napi_WebMsgApiTest_0700', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0700 start====");
+          let result: number = nativeInterface.WebMsgAPI(6);
+          expect(result).assertEqual(0);
+          console.info("====>SUB_Web_Napi_WebMsgApiTest_0700 stop====");
+          done();
+        } catch (err) {
+          console.error("====>SUB_Web_Napi_WebMsgApiTest_0700 catch err: " + err);
+        }
+      })
   })
 }
