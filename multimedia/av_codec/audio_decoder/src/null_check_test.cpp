@@ -765,7 +765,7 @@ HWTEST_F(NullCheckTest, NULL_CHECK_030, TestSize.Level2)
 
 /**
  * @tc.number    : NULL_CHECK_031
- * @tc.name      : NullCheckTest
+ * @tc.name      : NULL_CHECK_031
  * @tc.desc      : GetOutputBuffer - codec null check
  */
 HWTEST_F(NullCheckTest, NULL_CHECK_031, TestSize.Level2)
