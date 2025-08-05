@@ -1033,7 +1033,10 @@ void PhotoOutputOnError(Camera_PhotoOutput *photoOutput, Camera_ErrorCode errorC
 Camera_ErrorCode NDKCamera::PreviewOutputRelease(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
-        ret_ = OH_PreviewOutput_Release(previewOutput_);
+        if (previewOutput_ != nullptr) {
+            ret_ = OH_PreviewOutput_Release(previewOutput_);
+            previewOutput_ = nullptr; 
+        }
     } else {
         ret_ = OH_PreviewOutput_Release(nullptr);
     }
