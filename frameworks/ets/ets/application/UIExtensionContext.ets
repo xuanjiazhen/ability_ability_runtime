@@ -64,6 +64,9 @@ export default class UIExtensionContext extends ExtensionContext {
     callback:AsyncCallbackWrapper<AbilityResult>): void;
   native setColorMode(colorMode: ConfigurationConstant.ColorMode): void;
   native nativeReportDrawnCompleted(callback:AsyncCallbackWrapper<void>): void;
+  private native nativeConnectUIServiceExtensionAbility(want: Want, uiServiceExtConCallback: UIServiceExtensionConnectCallback, callback:AsyncCallbackWrapper<UIServiceProxy>): void;
+  private native nativeStartUIServiceExtensionAbility(want: Want, callback:AsyncCallbackWrapper<void>): void;
+  private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
 
   terminateSelf(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -213,6 +216,54 @@ export default class UIExtensionContext extends ExtensionContext {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeReportDrawnCompleted(myCall);
+    });
+  }
+
+  connectUIServiceExtensionAbility(want: Want, callback: UIServiceExtensionConnectCallback) : Promise<UIServiceProxy> {
+    return new Promise<UIServiceProxy>((resolve: (data: UIServiceProxy) => void,
+      reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<UIServiceProxy>((err: BusinessError | null, data: UIServiceProxy | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as UIServiceProxy);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeConnectUIServiceExtensionAbility(want, callback, myCall);
+      });
+    });
+  }
+
+  startUIServiceExtensionAbility(want: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: void) => void,
+      reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartUIServiceExtensionAbility(want, myCall);
+      });
+    });
+  }
+
+  disconnectUIServiceExtensionAbility(proxy: UIServiceProxy): Promise<void> {
+    return new Promise<void>((resolve: (data: void) => void,
+      reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectUIServiceExtensionAbility(proxy, myCall);
+      });
     });
   }
 }

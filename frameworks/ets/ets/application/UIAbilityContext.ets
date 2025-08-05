@@ -146,6 +146,10 @@ export default class UIAbilityContext extends Context {
     });
   }
 
+  private native nativeConnectUIServiceExtensionAbility(want: Want, uiServiceExtConCallback: UIServiceExtensionConnectCallback, callback:AsyncCallbackWrapper<AbilityResult>): void;
+  private native nativeStartUIServiceExtensionAbility(want: Want, callback:AsyncCallbackWrapper<void>): void;
+  private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
+
   startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -428,7 +432,7 @@ export default class UIAbilityContext extends Context {
         callback(null, undefined);
       } else {
         callback(retError, undefined);
-      }    
+      }
     }, (err: Error): void => {
       callback(err as BusinessError, undefined);
     });
@@ -503,7 +507,6 @@ hideAbility(): Promise<void> {
     });
   }
 
-
   setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
@@ -518,5 +521,51 @@ hideAbility(): Promise<void> {
       });
     });
     return p;
+  }
+
+  connectUIServiceExtensionAbility(want: Want, callback: UIServiceExtensionConnectCallback) : Promise<UIServiceProxy> {
+    return new Promise<UIServiceProxy>((resolve: (data: UIServiceProxy) => void,
+      reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<UIServiceProxy>((err: BusinessError | null, data: UIServiceProxy | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as UIServiceProxy);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeConnectUIServiceExtensionAbility(want, myCall);
+      });
+    });
+  }
+
+  startUIServiceExtensionAbility(want: Want): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartUIServiceExtensionAbility(want, myCall);
+      });
+    });
+  }
+
+  disconnectUIServiceExtensionAbility(proxy: UIServiceProxy): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeDisconnectUIServiceExtensionAbility(proxy, myCall);
+      });
+    });
   }
 }

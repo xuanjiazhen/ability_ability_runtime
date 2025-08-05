@@ -564,6 +564,118 @@ void EtsUIExtensionContext::OnReportDrawnCompleted(ani_env* env, ani_object aniC
     TAG_LOGD(AAFwkTag::UI_EXT, "NativeReportDrawnCompleted end");
 }
 
+void EtsUIExtensionContext::ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object uiServiceExtConCallbackObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "ConnectUIServiceExtension called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
+    if (etsUiExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
+        return;
+    }
+    etsUiExtensionContext->OnConnectUIServiceExtension(env, wantObj, uiServiceExtConCallbackObj, callback);
+}
+
+bool EtsUIExtensionContext::CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want& want, ani_object callback, ani_object result)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "CheckConnectAlreadyExist called");
+    sptr<JSUIServiceUIExtConnection> connection = nullptr;
+    UIServiceConnection::FindUIServiceExtensionConnection(env, want, callback, connection);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null connection");
+        return false;
+    }
+
+    std::unique_ptr<NapiAsyncTask> uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    napi_value proxy = connection->GetProxyObject();
+    if (proxy == nullptr) {
+        TAG_LOGW(AAFwkTag::UI_EXT, "null proxy");
+        connection->AddDuplicatedPendingTask(uasyncTask);
+    } else {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Resolve, got proxy object");
+        uasyncTask->ResolveWithNoError(env, proxy);
+    }
+    return true;
+}
+
+void EtsUIExtensionContext::OnConnectUIServiceExtension(ani_env *env, ani_object wantObj,
+    ani_object uiServiceExtConCallbackObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnConnectUIServiceExtension called");
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "input param want failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return;
+    }
+
+    napi_value result = nullptr;
+    bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
+    if (duplicated) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "duplicated");
+        return result;
+    }
+
+    sptr<JSUIServiceUIExtConnection> connection = sptr<JSUIServiceUIExtConnection>::MakeSptr(env);
+    sptr<UIExtensionServiceHostStubImpl> stub = connection->GetServiceHostStub();
+    want.SetParam(UISERVICEHOSTPROXY_KEY, stub->AsObject());
+
+    result = nullptr;
+    std::unique_ptr<NapiAsyncTask> uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> uasyncTaskShared = std::move(uasyncTask);
+    if (info.argc > ARGC_ONE) {
+        connection->SetJsConnectionObject(callbackObject);
+    }
+    connection->SetNapiAsyncTask(uasyncTaskShared);
+    UIServiceConnection::AddUIServiceExtensionConnection(want, connection);
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
+        [weak = context_, want, uasyncTaskShared, connection](
+            napi_env env, NapiAsyncTask& taskUseless, int32_t status) {
+            DoConnectUIServiceExtension(env, weak, connection, uasyncTaskShared, want);
+        });
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsUIExtensionContext::OnConnectUIServiceExtension",
+        env, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+    return result;
+}
+
+void EtsUIExtensionContext::StartUIServiceExtension(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
+    if (etsUiExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
+        return;
+    }
+    etsUiExtensionContext->OnStartUIServiceExtension(env, wantObj, callback);
+}
+
+void EtsUIExtensionContext::DisconnectUIServiceExtension(ani_env *env, ani_object aniObj,
+    ani_object proxyObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "StartUIServiceExtension called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    auto etsUiExtensionContext = GetEtsUIExtensionContext(env, aniObj);
+    if (etsUiExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null etsUiExtensionContext");
+        return;
+    }
+    etsUiExtensionContext->OnDisconnectUIServiceExtension(env, proxyObj, callback);
+}
+
 bool EtsUIExtensionContext::BindNativePtrCleaner(ani_env *env)
 {
     if (env == nullptr) {
@@ -634,7 +746,19 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
             reinterpret_cast<void *>(EtsUIExtensionContext::SetColorMode)},
         ani_native_function{"nativeReportDrawnCompleted",
             "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
-            reinterpret_cast<void*>(EtsUIExtensionContext::ReportDrawnCompleted)}
+            reinterpret_cast<void*>(EtsUIExtensionContext::ReportDrawnCompleted)},
+        ani_native_function{"nativeConnectUIServiceExtensionAbility",
+            "L@ohos/app/ability/Want/Want;"
+            "Lapplication/UIServiceExtensionConnectCallback/UIServiceExtensionConnectCallbackImpl;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(EtsUIExtensionContext::ConnectUIServiceExtensionAbility)},
+        ani_native_function{"nativeStartUIServiceExtensionAbility",
+            "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(EtsUIExtensionContext::StartUIServiceExtensionAbility)},
+        ani_native_function{"nativeDisconnectUIServiceExtensionAbility",
+            "Lapplication/UIServiceProxy/UIServiceProxyImpl;"
+            "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            reinterpret_cast<void*>(EtsUIExtensionContext::DisconnectUIServiceExtensionAbility)}
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
