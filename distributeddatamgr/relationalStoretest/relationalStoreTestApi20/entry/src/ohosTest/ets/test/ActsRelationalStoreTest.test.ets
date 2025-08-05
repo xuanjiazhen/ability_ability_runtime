@@ -17,28 +17,182 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestT
 import testNapi from 'librelationndk.so'
 
 const RDB_OK = 0;
+const RDB_E_INVALID_ARGS = 14800001;
 
 export default function ActsRelationalStoreTest() {
   describe('ActsRelationalStoreTest', () => {
     /**
-     * @tc.number  : SUB_OH_Data_Asset_GetUri_0100
-     * @tc.name    : SUB_OH_Data_Asset_GetUri_0100
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetUri_0100
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetUri_0100
      * @tc.desc    : test OH_Data_Asset_GetUri Test Normal Scene
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_OH_Data_Asset_GetUri_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('testGetUri001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testGetUri001 start====");
+          let result: number = testNapi.getURISuccess();
+          console.info("====>testGetUri001 result====", result);
+          expect(result).assertEqual(RDB_OK);
+          done();
+        } catch (err) {
+          console.error("====>testGetUri001 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetPath_0200
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetPath_0200
+     * @tc.desc    : test OH_Data_Asset_GetPath Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetPath001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_OH_Data_Asset_GetUri_0100 start====");
-        let result: number = testNapi.getURISuccess();
-        console.info("====>SUB_OH_Data_Asset_GetUri_0100 result====", result);
+        console.info("====>testGetPath001 start====");
+        let result: number = testNapi.getPathSuccess();
+        console.info("====>testGetPath001 result====", result);
         expect(result).assertEqual(RDB_OK);
         done();
       } catch (err) {
-        console.error("====>SUB_OH_Data_Asset_GetUri_0100 catch err: " + err);
+        console.error("====>testGetPath001 catch err: " + err);
         done();
       }
     })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300
+     * @tc.desc    : test OH_Data_Asset_GetCreateTime Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetCreateTime001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testGetCreateTime001 start====");
+          let result: number = testNapi.getCreateTimeSuccess();
+          console.info("====>testGetCreateTime001 result====", result);
+          expect(result).assertEqual(RDB_OK);
+          done();
+        } catch (err) {
+          console.error("====>testGetCreateTime001 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400
+     * @tc.desc    : test OH_Data_Asset_GetModifyTime Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetModifyTime001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testGetModifyTime001 start====");
+          let result: number = testNapi.getModifyTimeSuccess();
+          console.info("====>testGetModifyTime001 result====", result);
+          expect(result).assertEqual(RDB_OK);
+          done();
+        } catch (err) {
+          console.error("====>testGetModifyTime001 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetSize_0500
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetSize_0500
+     * @tc.desc    : test OH_Data_Asset_GetSize Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetSize001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testGetSize001 start====");
+        let result: number = testNapi.getSizeSuccess();
+        console.info("====>testGetSize001 result====", result);
+        expect(result).assertEqual(RDB_OK);
+        done();
+      } catch (err) {
+        console.error("====>testGetSize001 catch err: " + err);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetSize_0600
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetSize_0600
+     * @tc.desc    : test OH_Data_Asset_GetStatus Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetStatus001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testGetStatus001 start====");
+          let result: number = testNapi.getStatusSuccess();
+          console.info("====>testGetStatus001 result====", result);
+          expect(result).assertEqual(RDB_OK);
+          done();
+        } catch (err) {
+          console.error("====>testGetStatus001 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700
+     * @tc.desc    : test OH_Data_Asset_DestroyOne Test Normal Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testDestroyOne001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testDestroyOne001 start====");
+          let result: number = testNapi.getDestroyOneSuccess();
+          console.info("====>testDestroyOne001 result====", result);
+          expect(result).assertEqual(RDB_OK);
+          done();
+        } catch (err) {
+          console.error("====>testDestroyOne001 catch err: " + err);
+          done();
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800
+     * @tc.desc    : test OH_Data_Asset_DestroyMultiple Test Illegal Parameter Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testDestroyMultiple001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+        try {
+          console.info("====>testDestroyMultiple001 start====");
+          let result: number = testNapi.testDestroyMultipleInvalidParam();
+          console.info("====>testDestroyMultiple001 result====", result);
+          expect(result).assertEqual(RDB_E_INVALID_ARGS);
+          done();
+        } catch (err) {
+          console.error("====>testDestroyMultiple001 catch err: " + err);
+          done();
+        }
+      })
   })
 }
