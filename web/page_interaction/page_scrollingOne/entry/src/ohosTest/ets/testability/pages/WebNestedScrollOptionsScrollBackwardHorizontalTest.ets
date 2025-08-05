@@ -87,7 +87,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime == 0 && this.selfScrollTime != 0, 9001)
@@ -113,7 +113,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > this.selfScrollTime && this.selfScrollTime > 0, 9002)
@@ -139,7 +139,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime < this.selfScrollTime && this.parentScrollTime > 0, 9003)
@@ -163,7 +163,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > 0 && this.selfScrollTime > 0, 9004)
@@ -187,7 +187,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime == 0 && this.selfScrollTime != 0, 9005)
@@ -213,7 +213,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > this.selfScrollTime && this.selfScrollTime > 0, 9006)
@@ -239,7 +239,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime < this.selfScrollTime && this.parentScrollTime > 0, 9007)
@@ -263,7 +263,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > 0 && this.selfScrollTime > 0, 9008)
@@ -287,7 +287,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime == 0 && this.selfScrollTime != 0, 9009)
@@ -313,7 +313,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > this.selfScrollTime && this.selfScrollTime > 0, 9010)
@@ -339,7 +339,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime < this.selfScrollTime && this.parentScrollTime > 0, 9011)
@@ -363,7 +363,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > 0 && this.selfScrollTime > 0, 9012)
@@ -387,7 +387,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime == 0 && this.selfScrollTime != 0, 9013)
@@ -413,7 +413,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > this.selfScrollTime && this.selfScrollTime > 0, 9014)
@@ -439,7 +439,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime < this.selfScrollTime && this.parentScrollTime > 0, 9015)
@@ -463,7 +463,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 if ((this.userAgentPC).includes("PC")) {
                   await driver.swipe(X - 100, Y, X + 60, Y);
                 } else {
-                  await driver.swipe(X - 70, Y, X + 100, Y);
+                  await driver.swipe(X - 60, Y, X + 100, Y);
                 }
                 await Utils.sleep(3000)
                 Utils.emitEvent(this.parentScrollTime > 0 && this.selfScrollTime > 0, 9016)
