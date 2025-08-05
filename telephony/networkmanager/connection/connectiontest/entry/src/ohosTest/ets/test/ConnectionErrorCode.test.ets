@@ -226,12 +226,16 @@ export default function ConnextionErrorCode() {
       try {
         await connection.getDefaultNet().then((netHandle: connection.NetHandle) => {
           let host: string = "";
-          netHandle.getAddressByName(host,(error: BusinessError, data: connection.NetAddress)=>{
-            if(error){
-              console.info(`${caseName} Failed to get addresses. error:${JSON.stringify(error)}`);
-              ExpectTrue(error.code == 2100001)
-              done();
-            }
+          netHandle.getAddressByName(host).then((data: connection.NetAddress)=>{
+            console.info(`${caseName} data: ${JSON.stringify(data)}`);
+            ExpectTrue(false);
+            console.info(`${caseName}---End`);
+            done();
+          }).catch((error: BusinessError)=>{
+            console.info(`${caseName} Failed to get addresses. error:${JSON.stringify(error)}`);
+            ExpectTrue(error.code == 2100001);
+            console.info(`${caseName}---End`);
+            done();
           })
         });
       } catch (err) {
@@ -292,18 +296,16 @@ export default function ConnextionErrorCode() {
       try {
         await connection.getDefaultNet().then((netHandle: connection.NetHandle) => {
           let host: string = "";
-          netHandle.getAddressesByName(host, (error: BusinessError, data: connection.NetAddress[]) => {
-            if (error) {
+          netHandle.getAddressesByName(host).then((data: connection.NetAddress[])=>{
+            console.info(`${caseName} data: ${JSON.stringify(data)}`);
+            ExpectTrue(false);
+            console.info(`${caseName}---End`);
+            done();
+          }).catch((error: BusinessError)=> {
               console.info(`${caseName} Failed to get addresses. error:${JSON.stringify(error)}`);
               ExpectTrue(error.code == 2100001);
               console.info(`${caseName}---End`);
               done();
-            } else {
-              console.info(`${caseName} data: ${JSON.stringify(data)}`);
-              ExpectTrue(false);
-              console.info(`${caseName}---End`);
-              done();
-            }
           });
         });
       } catch (err) {
@@ -313,7 +315,7 @@ export default function ConnextionErrorCode() {
         done();
       }
     });
-
+    
     /**
      * @tc.number     : SUB_NetworkMgr_Connection_RegisterErC_1000
      * @tc.name       : testNetworkMgrConnectionRegisterErC_1000

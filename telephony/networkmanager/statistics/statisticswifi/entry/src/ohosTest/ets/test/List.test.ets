@@ -18,9 +18,11 @@
 import EmptyTest from './Empty.test';
 import sim from '@ohos.telephony.sim';
 import statisticsErrorCodeTest from './StatisticsErrorCode.test';
+import StatisticsTest from './StatisticsTest.test';
 
 export default function testsuite() {if (sim.getMaxSimCount()>1){
   statisticsErrorCodeTest();
+  StatisticsTest();
   }else{
   EmptyTest()
 }

@@ -95,43 +95,12 @@ export default function NetfirewallNoP() {
           ExpectTrue(error.code == 201);
           done();
         });
-
       }catch (err){
         console.log(`${caseName} --test end`);
         console.log(`${caseName} catch err is `,JSON.stringify(err));
         ExpectTrue(err.code == 201);
         done();
       }
-
-      /**
-       * @tc.number : SUB_Telephony_Netfirewall_Nop_0200
-       * @tc.name   : testTelephonyNetfirewallNop0200
-       * @tc.desc   : updateNetFirewallRule No permission
-       * @tc.level  : Level 0
-       * @tc.type   : Function
-       * @tc.size   : MediumTest
-       */
-      it("testTelephonyNetfirewallNop0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
-        const caseName: string = 'testTelephonyNetfirewallNop0200';
-        console.info(`${caseName}---Start`);
-        try{
-          netFirewall.updateNetFirewallRule(ipRuleUpd).then(() => {
-            console.info(`${caseName} set firewall policy success`);
-            ExpectTrue(false);
-            done();
-          }).catch((error : BusinessError) => {
-            console.error(`${caseName} set firewall policy failed: ` + JSON.stringify(error));
-            ExpectTrue(error.code == 201);
-            done();
-          });
-
-        }catch (err){
-          console.log(`${caseName} --test end`);
-          console.log(`${caseName} catch err is `,JSON.stringify(err));
-          ExpectTrue(err.code == 201);
-          done();
-        }
-      })
     })
 
     /**
@@ -163,36 +132,6 @@ export default function NetfirewallNoP() {
         ExpectTrue(err.code == 201);
         done();
       }
-
-      /**
-       * @tc.number : SUB_Telephony_Netfirewall_Nop_0200
-       * @tc.name   : testTelephonyNetfirewallNop0200
-       * @tc.desc   : updateNetFirewallRule No permission
-       * @tc.level  : Level 0
-       * @tc.type   : Function
-       * @tc.size   : MediumTest
-       */
-      it("testTelephonyNetfirewallNop0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
-        const caseName: string = 'testTelephonyNetfirewallNop0200';
-        console.info(`${caseName}---Start`);
-        try{
-          netFirewall.updateNetFirewallRule(ipRuleUpd).then(() => {
-            console.info(`${caseName} set firewall policy success`);
-            ExpectTrue(false);
-            done();
-          }).catch((error : BusinessError) => {
-            console.error(`${caseName} set firewall policy failed: ` + JSON.stringify(error));
-            ExpectTrue(error.code == 201);
-            done();
-          });
-
-        }catch (err){
-          console.log(`${caseName} --test end`);
-          console.log(`${caseName} catch err is `,JSON.stringify(err));
-          ExpectTrue(err.code == 201);
-          done();
-        }
-      })
     })
 
     /**
@@ -223,36 +162,6 @@ export default function NetfirewallNoP() {
         ExpectTrue(err.code == 201);
         done();
       }
-
-      /**
-       * @tc.number : SUB_Telephony_Netfirewall_Nop_0200
-       * @tc.name   : testTelephonyNetfirewallNop0200
-       * @tc.desc   : updateNetFirewallRule No permission
-       * @tc.level  : Level 0
-       * @tc.type   : Function
-       * @tc.size   : MediumTest
-       */
-      it("testTelephonyNetfirewallNop0200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
-        const caseName: string = 'testTelephonyNetfirewallNop0200';
-        console.info(`${caseName}---Start`);
-        try{
-          netFirewall.updateNetFirewallRule(ipRuleUpd).then(() => {
-            console.info(`${caseName} set firewall policy success`);
-            ExpectTrue(false);
-            done();
-          }).catch((error : BusinessError) => {
-            console.error(`${caseName} set firewall policy failed: ` + JSON.stringify(error));
-            ExpectTrue(error.code == 201);
-            done();
-          });
-
-        }catch (err){
-          console.log(`${caseName} --test end`);
-          console.log(`${caseName} catch err is `,JSON.stringify(err));
-          ExpectTrue(err.code == 201);
-          done();
-        }
-      })
     })
 
     /**
@@ -276,7 +185,6 @@ export default function NetfirewallNoP() {
           ExpectTrue(error.code == 201);
           done();
         });
-
       }catch (err){
         console.log(`${caseName} --test end`);
         console.log(`${caseName} catch err is `,JSON.stringify(err));
