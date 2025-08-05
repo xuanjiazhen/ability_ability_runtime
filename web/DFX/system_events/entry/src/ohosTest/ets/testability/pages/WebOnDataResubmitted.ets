@@ -19,6 +19,7 @@ import Utils from '../../test/Utils.test';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+import { Driver, ON, On  } from '@ohos.UiTest';
 
 @Entry
 @Component
@@ -70,7 +71,9 @@ struct WebOnDataResubmitted {
           switch (this.str) {
             case "emitOnDataResubmitted": {
               try {
-                await Utils.clickComponent('WebOnDataResubmittedTestWebView')
+                let driver: Driver = Driver.create();
+                let buttonOne = await driver.findComponent(ON.text('提交'));
+                await buttonOne.click()
                 await Utils.sleep(2000)
                 this.controller.refresh();
                 await Utils.sleep(2000)
@@ -85,7 +88,9 @@ struct WebOnDataResubmitted {
                 this.controller.loadUrl("resource://rawfile/dataSubmit.html");
                 await Utils.sleep(2000)
                 this.title = ''
-                await Utils.clickComponent('WebOnDataResubmittedTestWebView')
+                let driver: Driver = Driver.create();
+                let buttonOne = await driver.findComponent(ON.text('提交'));
+                await buttonOne.click()
                 await Utils.sleep(2000)
                 this.controller.refresh();
                 await Utils.sleep(2000)
@@ -101,7 +106,9 @@ struct WebOnDataResubmitted {
                 await Utils.sleep(2000)
                 this.title = ''
                 this.resend = false
-                await Utils.clickComponent('WebOnDataResubmittedTestWebView')
+                let driver: Driver = Driver.create();
+                let buttonOne = await driver.findComponent(ON.text('提交'));
+                await buttonOne.click()
                 await Utils.sleep(2000)
                 this.controller.refresh();
                 await Utils.sleep(2000)
