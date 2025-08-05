@@ -14,8 +14,10 @@
  */
 import ActsWebErrorCodeTest from './ActsWebErrorCodeTest.test'
 import ActsWebErrorCodeListTest from './ActsWebErrorCodeListTest.test'
+import NativeInterfaceTest from './NativeInterfaceTest.test'
 
 export default function testsuite() {
   ActsWebErrorCodeTest()
-  ActsWebErrorCodeListTest();
+  ActsWebErrorCodeListTest()
+  NativeInterfaceTest()
 }

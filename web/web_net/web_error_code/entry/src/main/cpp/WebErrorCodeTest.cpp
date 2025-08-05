@@ -21,7 +21,11 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
+<<<<<<< HEAD
 #include "WebErrorCodeList.h"
+=======
+#include "NativeInterfaceTest.h"
+>>>>>>> cdc30ddefddaf2ef81c8d4ab76194cbb96b57d8b
 
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
@@ -445,7 +449,13 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"WebArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
          nullptr},
-        
+        {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"loadData", nullptr, loadData, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetBlanklessInfo", nullptr, GetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetBlanklessInfo", nullptr, SetBlanklessInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"JSBridgeData", nullptr, JSBridgeData, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"JSBridgeProxyData", nullptr, JSBridgeProxyData, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
