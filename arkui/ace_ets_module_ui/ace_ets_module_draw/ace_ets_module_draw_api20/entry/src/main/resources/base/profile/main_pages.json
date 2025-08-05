@@ -11,6 +11,9 @@
         "MainAbility/pages/Polygon/PolygonResource",
         "MainAbility/pages/Polyline/PolylineResource",
         "MainAbility/pages/Rect/RectResource",
-        "MainAbility/pages/Shape/ShapeResource"
+        "MainAbility/pages/Shape/ShapeResource",
+
+        "MainAbility/pages/CanvasRenderingContext2D/CanvasEllipse",
+        "MainAbility/pages/CanvasRenderingContext2D/Matrix2DMultiply"
     ]
 }
