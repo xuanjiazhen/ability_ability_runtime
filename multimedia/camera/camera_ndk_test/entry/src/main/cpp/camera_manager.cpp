@@ -2986,12 +2986,18 @@ Camera_ErrorCode NDKCamera::CameraManagerUnregisterFoldStatusCallback(int useCas
 Camera_ErrorCode NDKCamera::GetCameraDevice(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
+        Camera_Device* cameraArray;
+        OH_CameraManager_GetSupportedCameras(cameraManager_, &cameraArray, &size_);
+        LOG("camera getSupportedCameras success : %d", size_);
+        if (size_ == 0) {
+            return CAMERA_OK;
+        }
         Camera_Device* cameranow = nullptr;
         if (cameraManager_ == nullptr) {
             return ret_;
         }
         ret_ = OH_CameraManager_GetCameraDevice(cameraManager_,
-            Camera_Position::CAMERA_POSITION_BACK, Camera_Type::CAMERA_TYPE_DEFAULT, cameranow);
+            cameraArray[0].cameraPosition, cameraArray[0].cameraType, cameranow);
     }
     return ret_;
 }
