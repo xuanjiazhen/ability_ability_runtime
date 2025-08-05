@@ -1946,6 +1946,138 @@ export default function collectionsSecondtest() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COOLLECTIONSECOND_07001
+     * @tc.name      : CollectionsSecondtest07001
+     * @tc.desc      : myMap.has 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsSecondtest07001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsSecondtest07001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          const myMap: collections.Map<number, string> = new collections.Map<number, string>([
+            [0, "one"],
+            [1, "two"],
+            [2, "three"],
+            [3, "four"]
+          ]);
+          const normal = new NormalClass(10);
+          const unbound = myMap.entries
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTIONSECOND_07002
+     * @tc.name      : CollectionsSecondtest07002
+     * @tc.desc      : myMap.has 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsSecondtest07002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsSecondtest07002';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          const myMap: collections.Map<number, string> = new collections.Map<number, string>([
+            [0, "one"],
+            [1, "two"],
+            [2, "three"],
+            [3, "four"]
+          ]);
+          const normal = new NormalClass(10);
+          const unbound = myMap.clear
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTIONSECOND_07003
+     * @tc.name      : CollectionsSecondtest07003
+     * @tc.desc      : myMap.has 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsSecondtest07003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsSecondtest07003';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          const myMap: collections.Map<number, string> = new collections.Map<number, string>([
+            [0, "one"],
+            [1, "two"],
+            [2, "three"],
+            [3, "four"]
+          ]);
+          const normal = new NormalClass(10);
+          const unbound = myMap.delete
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTIONSECOND_07004
+     * @tc.name      : CollectionsSecondtest07004
+     * @tc.desc      : myMap.has 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsSecondtest07004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsSecondtest07004';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          const myMap: collections.Map<number, string> = new collections.Map<number, string>([
+            [0, "one"],
+            [1, "two"],
+            [2, "three"],
+            [3, "four"]
+          ]);
+          const normal = new NormalClass(10);
+          const unbound = myMap.forEach
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
 
     /**
      * @tc.number    : SUB_COOLLECTIONSECOND_0800

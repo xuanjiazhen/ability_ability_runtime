@@ -53,7 +53,7 @@ export default function CollectionsFloattest() {
       // Presets a clear action, which is performed after all test cases of the test suite end.
       // This API supports only one parameter: clear action function.
     })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_SECOND_TYPEDARRAY_0200
      * @tc.name      : CollectionsFloattestTypedArray0200
@@ -112,7 +112,7 @@ export default function CollectionsFloattest() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_SECOND_TYPEDARRAY_0400
      * @tc.name      : CollectionsFloattestTypedArray0400
@@ -159,7 +159,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.copyWithin;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal, 1, 2);
         try {
           boundcreate();
         } catch (e) {
@@ -367,7 +367,8 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.every;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal, () => {
+        });
         try {
           boundcreate();
         } catch (e) {
@@ -427,7 +428,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.fill;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal, 1);
         try {
           boundcreate();
         } catch (e) {
@@ -487,7 +488,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.filter;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,()=>{});
         try {
           boundcreate();
         } catch (e) {
@@ -547,7 +548,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.find;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,()=>{});
         try {
           boundcreate();
         } catch (e) {
@@ -607,7 +608,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.findIndex;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,()=>{});
         try {
           boundcreate();
         } catch (e) {
@@ -729,7 +730,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.indexOf;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,1);
         try {
           boundcreate();
         } catch (e) {
@@ -879,7 +880,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.map;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,()=>{});
         try {
           boundcreate();
         } catch (e) {
@@ -939,7 +940,7 @@ export default function CollectionsFloattest() {
         let float32Array: collections.Float32Array = new collections.Float32Array();
         const normal = new NormalClass(10);
         const unboundcreate = float32Array.reduce;
-        const boundcreate: () => void = unboundcreate.bind(normal);
+        const boundcreate: () => void = unboundcreate.bind(normal,()=>{});
         try {
           boundcreate();
         } catch (e) {
@@ -1209,7 +1210,8 @@ export default function CollectionsFloattest() {
         try {
           let arrayLike = [1, 2, 3];
           new collections.Float32Array(arrayLike).fill(4, 1).fill(4).forEach((value1, value2, Float32Array) => {
-            let a = Float32Array.fill(4).reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');
+            let a = Float32Array.fill(4)
+              .reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');
             console.info('Float32Array:', a);
           });
         } catch (e) {

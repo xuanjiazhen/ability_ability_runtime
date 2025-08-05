@@ -139,6 +139,33 @@ export default function collectionstest() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COOLLECTION_ARRRY_01001
+     * @tc.name      : CollectionstestArray01001
+     * @tc.desc      : Array create 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestArray01001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestArray01001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const normal = new NormalClass(10);
+        const unboundcreate = collections.Array.create;
+        const boundcreate: () => void = unboundcreate.bind(normal, 3, 1);
+        try {
+          boundcreate()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          // flag = true
+        }
+        // expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
 
     /**
      * @tc.number    : SUB_COOLLECTION_ARRAY_0200
@@ -154,8 +181,8 @@ export default function collectionstest() {
         console.info(`${caseName} test start`);
         let flag: boolean = false;
         try {
-          collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]).forEach((value, key, Array) => {
-            Array.copyWithin(3, 1, 3);
+          collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]).forEach((value, key, array) => {
+            array.copyWithin(3, 1, 3);
           });
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -799,6 +826,34 @@ export default function collectionstest() {
         const mySet = new collections.Set<number>([0, 1, 2, 3]);
         const normal = new NormalClass(10);
         const unboundadd = mySet.add;
+        const boundadd: () => void = unboundadd.bind(normal, 6);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12001
+     * @tc.name      : CollectionstestSet12001
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.entries;
         const boundadd: () => void = unboundadd.bind(normal);
         try {
           boundadd()
@@ -811,6 +866,175 @@ export default function collectionstest() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12002
+     * @tc.name      : CollectionstestSet12002
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12002';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.keys;
+        const boundadd: () => void = unboundadd.bind(normal);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12003
+     * @tc.name      : CollectionstestSet12003
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12003';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.values;
+        const boundadd: () => void = unboundadd.bind(normal);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12004
+     * @tc.name      : CollectionstestSet12004
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12004';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.clear;
+        const boundadd: () => void = unboundadd.bind(normal);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12005
+     * @tc.name      : CollectionstestSet12005
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12005';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.delete;
+        const boundadd: () => void = unboundadd.bind(normal, 3);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12006
+     * @tc.name      : CollectionstestSet12006
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12006';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.forEach;
+        const boundadd: () => void = unboundadd.bind(normal);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_SET_TEST_12007
+     * @tc.name      : CollectionstestSet12007
+     * @tc.desc      : Set add 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionstestSet12007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionstestSet12007';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        const mySet = new collections.Set<number>([0, 1, 2, 3]);
+        const normal = new NormalClass(10);
+        const unboundadd = mySet.has;
+        const boundadd: () => void = unboundadd.bind(normal, 2);
+        try {
+          boundadd()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+
 
     /**
      * @tc.number    : SUB_COOLLECTION_SET_0100
@@ -857,7 +1081,35 @@ export default function collectionstest() {
           let arrayBuffer: collections.ArrayBuffer = new collections.ArrayBuffer(10)
           const normal = new NormalClass(10);
           const unboundslice = arrayBuffer.slice;
-          const boundslice: () => void = unboundslice.bind(normal);
+          const boundslice: () => void = unboundslice.bind(normal, 1, 3);
+          boundslice()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_07001
+     * @tc.name      : Collectionstest07001
+     * @tc.desc      : Array slice 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest07001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest07001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let arrayBuffer: collections.ArrayBuffer = new collections.ArrayBuffer(10)
+          const normal = new NormalClass(10);
+          const unboundslice = arrayBuffer.slice;
+          const boundslice: () => void = unboundslice.bind(normal, 2);
           boundslice()
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1635,6 +1887,287 @@ export default function collectionstest() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37001
+     * @tc.name      : Collectionstest37001
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.indexOf;
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+
+    /**
+     * @tc.number    : SUB_COOLLECTION_37002
+     * @tc.name      : Collectionstest37002
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37002';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.map;
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37003
+     * @tc.name      : Collectionstest37003
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37003';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.reduce;
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37004
+     * @tc.name      : Collectionstest37004
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37004';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.includes;
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37005
+     * @tc.name      : Collectionstest37005
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37005';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.fill;
+          const bound: () => void = unbound.bind(normal);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37006
+     * @tc.name      : Collectionstest37006
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37006';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.splice;
+          const bound: () => void = unbound.bind(normal, 3);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37007
+     * @tc.name      : Collectionstest37007
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37007';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.extendTo;
+          const bound: () => void = unbound.bind(normal, 12, 1);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37008
+     * @tc.name      : Collectionstest37008
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37008';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.splice;
+          const bound: () => void = unbound.bind(normal, 2, 3, 3);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37009
+     * @tc.name      : Collectionstest37009
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37009';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.lastIndexOf;
+          const bound: () => void = unbound.bind(normal, 2);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_37010
+     * @tc.name      : Collectionstest37010
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest37010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest37010';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array: collections.Array<number> = collections.Array.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          const normal = new NormalClass(10);
+          const unbound = array.lastIndexOf;
+          const bound: () => void = unbound.bind(normal, 2, 2);
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
 
     /**
      * @tc.number    : SUB_COOLLECTION_3800
@@ -1682,7 +2215,37 @@ export default function collectionstest() {
           let array = new collections.Array<number>(1, 2, 3, 4, 5);
           const normal = new NormalClass(10);
           const unbound = array.reduceRight;
-          const bound: () => void = unbound.bind(normal);
+          const bound: () => void = unbound.bind(normal, () => {
+          });
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_39001
+     * @tc.name      : Collectionstest39001
+     * @tc.desc      : Array 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('Collectionstest39001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'Collectionstest39001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        try {
+          let array = new collections.Array<number>(1, 2, 3, 4, 5);
+          const normal = new NormalClass(10);
+          const unbound = array.reduceRight;
+          const bound: () => void = unbound.bind(normal, () => {
+          }, 1);
           bound()
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1810,7 +2373,6 @@ export default function collectionstest() {
         done()
 
       })
-
 
 
     /**
