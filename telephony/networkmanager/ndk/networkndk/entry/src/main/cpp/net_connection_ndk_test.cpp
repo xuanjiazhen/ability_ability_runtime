@@ -17,6 +17,7 @@
 #include <hilog/log.h>
 #include <network/netmanager/net_connection.h>
 #include <network/netmanager/net_connection_type.h>
+#include <network/netstack/net_ssl/net_ssl_c.h>
 #include <string>
 #include <cstdint>
 #include <network/netstack/net_http.h>
