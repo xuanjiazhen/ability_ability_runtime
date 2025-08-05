@@ -25,7 +25,8 @@ export default namespace uriPermissionManager {
     export native function revokeUriPermissionCallbackSync(uri: string, targetBundleName: string, appCloneIndex: int,
         callback: AsyncCallbackWrapper<number>): void;
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string): Promise<number> {
+    export function grantUriPermissionWithUriFlagTargetBundleNameReturnsPromise(uri: string, flag: wantConstant.Flags,
+        targetBundleName: string): Promise<number> {
         let p:Promise<number> = new Promise<number>((resolve: (data: number)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -45,8 +46,8 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string,
-        appCloneIndex: int): Promise<void> {
+    export function grantUriPermissionWithUriFlagTargetBundleNameAppCloneIndexReturnsPromise(uri: string,
+        flag: wantConstant.Flags, targetBundleName: string, appCloneIndex: int): Promise<void> {
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -63,15 +64,22 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function grantUriPermission(uri: string, flag: wantConstant.Flags, targetBundleName: string,
-        callback: AsyncCallback<number, void>): void {
+    export function grantUriPermissionWithUriFlagTargetBundleNameCallback(uri: string, flag: wantConstant.Flags,
+        targetBundleName: string, callback: AsyncCallback<number, void>): void {
         let myCall = new AsyncCallbackWrapper<number>(callback);
         taskpool.execute((): void => {
             uriPermissionManager.grantUriPermissionCallbackSync(uri, flag, targetBundleName, 0, myCall);
         })
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string): Promise<number> {
+  overload grantUriPermission {
+    grantUriPermissionWithUriFlagTargetBundleNameReturnsPromise,
+    grantUriPermissionWithUriFlagTargetBundleNameAppCloneIndexReturnsPromise,
+    grantUriPermissionWithUriFlagTargetBundleNameCallback
+  }
+
+    export function revokeUriPermissionWithUriTargetBundleNameReturnsPromise(uri: string,
+        targetBundleName: string): Promise<number> {
         let p:Promise<number> = new Promise<number>((resolve: (data: number)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -91,7 +99,8 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string, appCloneIndex: int): Promise<void> {
+    export function revokeUriPermissionWithUriTargetBundleNameAppCloneIndexReturnsPromise(uri: string,
+        targetBundleName: string, appCloneIndex: int): Promise<void> {
         let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject:(err: BusinessError)=>void):void => {
             let myCall = new AsyncCallbackWrapper<number>((err: BusinessError | null, data: number | undefined)=>{
                 if (err === null || err.code === 0) {
@@ -107,10 +116,17 @@ export default namespace uriPermissionManager {
         return p;
     }
 
-    export function revokeUriPermission(uri: string, targetBundleName: string, callback: AsyncCallback<number, void>): void {
+    export function revokeUriPermissionWithUriTargetBundleNameCallback(uri: string, targetBundleName: string,
+        callback: AsyncCallback<number, void>): void {
         let myCall = new AsyncCallbackWrapper<number>(callback);
         taskpool.execute((): void => {
             uriPermissionManager.revokeUriPermissionCallbackSync(uri, targetBundleName, 0, myCall);
         })
     }
+
+  overload revokeUriPermission {
+    revokeUriPermissionWithUriTargetBundleNameReturnsPromise,
+    revokeUriPermissionWithUriTargetBundleNameAppCloneIndexReturnsPromise,
+    revokeUriPermissionWithUriTargetBundleNameCallback
+  }
 }

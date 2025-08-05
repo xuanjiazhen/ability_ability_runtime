@@ -65,14 +65,14 @@ export default class UIExtensionContext extends ExtensionContext {
   native setColorMode(colorMode: ConfigurationConstant.ColorMode): void;
   native nativeReportDrawnCompleted(callback:AsyncCallbackWrapper<void>): void;
 
-  terminateSelf(callback:AsyncCallback<void>): void {
+  terminateSelfWithCallback(callback:AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.terminateSelfSync(myCall);
     });
   }
 
-  terminateSelf(): Promise<void> {
+  terminateSelfReturnsPromise(): Promise<void> {
     let p = new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -88,14 +88,19 @@ export default class UIExtensionContext extends ExtensionContext {
     return p;
   }
 
-  terminateSelfWithResult(parameter: AbilityResult, callback: AsyncCallback<void>): void {
+  overload terminateSelf {
+    terminateSelfWithCallback,
+    terminateSelfReturnsPromise
+  }
+
+  terminateSelfWithResultWithParameterCallback(parameter: AbilityResult, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.terminateSelfWithResultSync(parameter, myCall);
     });
   }
 
-  terminateSelfWithResult(parameter: AbilityResult): Promise<void> {
+  terminateSelfWithResultWithParameterReturnsPromise(parameter: AbilityResult): Promise<void> {
     let p = new Promise<void>((resolve: (data: undefined)=>void, reject:(err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -111,21 +116,26 @@ export default class UIExtensionContext extends ExtensionContext {
     return p;
   }
 
-  startAbility(want: Want, callback: AsyncCallback<void>): void {
+  overload terminateSelfWithResult {
+    terminateSelfWithResultWithParameterCallback,
+    terminateSelfWithResultWithParameterReturnsPromise
+  }
+
+  startAbilityWithWantCallback(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbility(want, myCall);
     });
   }
 
-  startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+  startAbilityWithWantOptionsCallback(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbility(want, options, myCall);
     });
   }
 
-  startAbility(want: Want, options?: StartOptions): Promise<void> {
+  startAbilityWithWantOptionsReturnsPromise(want: Want, options?: StartOptions): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -146,18 +156,24 @@ export default class UIExtensionContext extends ExtensionContext {
     });
   }
 
+  overload startAbility {
+    startAbilityWithWantCallback,
+    startAbilityWithWantOptionsCallback,
+    startAbilityWithWantOptionsReturnsPromise
+  }
+
   connectServiceExtensionAbility(want: Want, options: ConnectOptions): long {
     return this.nativeConnectServiceExtensionAbility(want, options);
   }
 
-  disconnectServiceExtensionAbility(connection: long, callback: AsyncCallback<void>): void {
+  disconnectServiceExtensionAbilityWithConnectionCallback(connection: long, callback: AsyncCallback<void>): void {
     let syncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeDisconnectServiceExtensionAbilitySync(connection, syncCall);
     });
   }
 
-  disconnectServiceExtensionAbility(connection: long): Promise<void> {
+  disconnectServiceExtensionAbilityWithConnectionReturnsPromise(connection: long): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -172,21 +188,26 @@ export default class UIExtensionContext extends ExtensionContext {
     });
   }
 
-  startAbilityForResult(want: Want, callback: AsyncCallback<AbilityResult, void>): void {
+  overload disconnectServiceExtensionAbility {
+    disconnectServiceExtensionAbilityWithConnectionCallback,
+    disconnectServiceExtensionAbilityWithConnectionReturnsPromise
+  }
+
+  startAbilityForResultWithWantCallback(want: Want, callback: AsyncCallback<AbilityResult, void>): void {
     let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityForResult(want, myCall);
     });
   }
 
-  startAbilityForResult(want: Want, startOptions: StartOptions, callback: AsyncCallback<AbilityResult, void>): void {
+  startAbilityForResultWithWantOptionsCallback(want: Want, options: StartOptions, callback: AsyncCallback<AbilityResult, void>): void {
     let myCall = new AsyncCallbackWrapper<AbilityResult>(callback);
     taskpool.execute((): void => {
-      this.nativeStartAbilityForResult(want, startOptions, myCall);
+      this.nativeStartAbilityForResult(want, options, myCall);
     });
   }
 
-  startAbilityForResult(want: Want, startOptions?: StartOptions): Promise<AbilityResult> {
+  startAbilityForResultWithWantOptionsReturnsPromise(want: Want, options?: StartOptions): Promise<AbilityResult> {
     return new Promise<AbilityResult>((resolve: (data: AbilityResult) => void,
       reject: (err: BusinessError) => void): void => {
       let myCall =
@@ -198,15 +219,21 @@ export default class UIExtensionContext extends ExtensionContext {
           }
         });
       taskpool.execute((): void => {
-        if (startOptions == null) {
+        if (options == null) {
           this.nativeStartAbilityForResult(want, myCall);
         } else {
-          this.nativeStartAbilityForResult(want, startOptions as StartOptions, myCall);
+          this.nativeStartAbilityForResult(want, options as StartOptions, myCall);
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });
     });
+  }
+
+  overload startAbilityForResult {
+    startAbilityForResultWithWantCallback,
+    startAbilityForResultWithWantOptionsCallback,
+    startAbilityForResultWithWantOptionsReturnsPromise
   }
 
   reportDrawnCompleted(callback: AsyncCallback<void>): void {
