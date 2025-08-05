@@ -83,8 +83,8 @@ export default function testsuite() {
   rdbDecryptTest()
   relationalStoreMultiTransTest();
   RelationalStoreIcu();
-  rdbrootDirTest();
   VectorStoreTest();
+  rdbrootDirTest();
   RelationalStoreCustom()
   RelationalStoreNoneTokenizer()
   relationalStoreInterfaceTest()
