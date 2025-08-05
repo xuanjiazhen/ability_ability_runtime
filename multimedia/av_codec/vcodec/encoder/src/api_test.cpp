@@ -951,19 +951,24 @@ HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0010, TestSize.Level2)
 HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0020, TestSize.Level2)
 {
     cap = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, true, HARDWARE);
+    const int32_t *pixelFormat = nullptr;
+    uint32_t pixelFormatNum = 0;    
     if (cap) {
-        uint32_t index;
-        venc_ = OH_VideoEncoder_CreateByMime(OH_AVCODEC_MIMETYPE_VIDEO_AVC);
-        ASSERT_NE(nullptr, venc_);
-        format = OH_AVFormat_Create();
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_WIDTH, DEFAULT_WIDTH);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_HEIGHT, DEFAULT_HEIGHT);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_PIXEL_FORMAT, AV_PIXEL_FORMAT_YUVI420);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, 1);
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Configure(venc_, format));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Prepare(venc_));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Start(venc_));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_QueryInputBuffer(venc_, &index, INT64_MAX));
+        ASSERT_EQ(AV_ERR_OK, OH_AVCapability_GetVideoSupportedPixelFormats(cap, &pixelFormat, &pixelFormatNum));
+        if (pixelFormatNum > 0) {
+            uint32_t index;
+            venc_ = OH_VideoEncoder_CreateByMime(OH_AVCODEC_MIMETYPE_VIDEO_AVC);
+            ASSERT_NE(nullptr, venc_);
+            format = OH_AVFormat_Create();
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_WIDTH, DEFAULT_WIDTH);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_HEIGHT, DEFAULT_HEIGHT);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_PIXEL_FORMAT, pixelFormat[0]);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, 1);
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Configure(venc_, format));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Prepare(venc_));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Start(venc_));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_QueryInputBuffer(venc_, &index, INT64_MAX));
+        }
     }
 }
 
@@ -975,19 +980,24 @@ HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0020, TestSize.Level2)
 HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0030, TestSize.Level2)
 {
     cap = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, true, HARDWARE);
+    const int32_t *pixelFormat = nullptr;
+    uint32_t pixelFormatNum = 0;     
     if (cap) {
-        uint32_t index;
-        venc_ = OH_VideoEncoder_CreateByMime(OH_AVCODEC_MIMETYPE_VIDEO_AVC);
-        ASSERT_NE(nullptr, venc_);
-        format = OH_AVFormat_Create();
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_WIDTH, DEFAULT_WIDTH);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_HEIGHT, DEFAULT_HEIGHT);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_PIXEL_FORMAT, AV_PIXEL_FORMAT_YUVI420);
-        (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, 1);
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Configure(venc_, format));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Prepare(venc_));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Start(venc_));
-        ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_QueryInputBuffer(venc_, &index, INT64_MIN));
+        ASSERT_EQ(AV_ERR_OK, OH_AVCapability_GetVideoSupportedPixelFormats(cap, &pixelFormat, &pixelFormatNum));
+        if (pixelFormatNum > 0) {
+            uint32_t index;
+            venc_ = OH_VideoEncoder_CreateByMime(OH_AVCODEC_MIMETYPE_VIDEO_AVC);
+            ASSERT_NE(nullptr, venc_);
+            format = OH_AVFormat_Create();
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_WIDTH, DEFAULT_WIDTH);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_HEIGHT, DEFAULT_HEIGHT);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_PIXEL_FORMAT, pixelFormat[0]);
+            (void)OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, 1);
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Configure(venc_, format));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Prepare(venc_));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_Start(venc_));
+            ASSERT_EQ(AV_ERR_OK, OH_VideoEncoder_QueryInputBuffer(venc_, &index, INT64_MIN));
+        }
     }
 }
 
