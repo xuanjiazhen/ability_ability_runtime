@@ -20,7 +20,10 @@ module_output_path = "acts/ActsCapabilityTest"
 
 ohos_moduletest_suite("ActsCapabilityTest") {
   module_out_path = module_output_path
-  sources = [ "./src/cap_test.cpp" ]
+  sources = [ 
+    "./src/cap_test.cpp",
+    "./src/audio_cap_test.cpp"
+  ]
 
   include_dirs = [
     "$MEDIA_ROOT_DIR/test/moduletest/vcodec/encoder/include",
