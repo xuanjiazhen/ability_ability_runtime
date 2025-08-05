@@ -31,7 +31,8 @@ export default namespace application {
 
   export native function nativeGetApplicationContext(): ApplicationContext;
 
-  export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
+  export function createModuleContextWithContextModuleNameReturnsPromise(context: Context,
+    moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
@@ -48,7 +49,8 @@ export default namespace application {
     return p;
   }
 
-  export function createModuleContext(context: Context, bundleName: string, moduleName: string): Promise<Context> {
+  export function createModuleContextWithContextBundleNameModuleNameReturnsPromise(context: Context,
+    bundleName: string, moduleName: string): Promise<Context> {
     let p =
       new Promise<Context>((resolve: (data: Context) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<Context>((err: BusinessError | null, data: Context | undefined) => {
@@ -63,6 +65,11 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+  overload createModuleContext {
+    createModuleContextWithContextModuleNameReturnsPromise,
+    createModuleContextWithContextBundleNameModuleNameReturnsPromise
   }
 
   export function createBundleContext(context: Context, bundleName: string): Promise<Context> {

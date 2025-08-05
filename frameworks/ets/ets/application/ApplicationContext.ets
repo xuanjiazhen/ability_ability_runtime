@@ -108,14 +108,14 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  killAllProcesses(callback: AsyncCallback<void>): void {
+  killAllProcessesWithCallback(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativekillAllProcessesSync(false, myCall);
     });
   }
 
-  killAllProcesses(): Promise<void> {
+  killAllProcessesReturnsPromise(): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -132,7 +132,7 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  killAllProcesses(clearPageStack: boolean): Promise<void> {
+  killAllProcessesWithClearPageStackReturnsPromise(clearPageStack: boolean): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -149,14 +149,20 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  getRunningProcessInformation(callback: AsyncCallback<Array<ProcessInformation>>): void {
+  overload killAllProcesses {
+    killAllProcessesWithCallback,
+    killAllProcessesReturnsPromise,
+    killAllProcessesWithClearPageStackReturnsPromise
+  }
+
+  getRunningProcessInformationWithCallback(callback: AsyncCallback<Array<ProcessInformation>>): void {
     let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
     taskpool.execute((): void => {
       this.nativegetRunningProcessInformation(myCall);
     });
   }
 
-  getRunningProcessInformation(): Promise<Array<ProcessInformation>> {
+  getRunningProcessInformationReturnsPromise(): Promise<Array<ProcessInformation>> {
     let p = new Promise<Array<ProcessInformation>>((resolve: (data: Array<ProcessInformation>) => void,
       reject: (err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError | null,
@@ -174,14 +180,19 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  clearUpApplicationData(callback: AsyncCallback<void>): void {
+  overload getRunningProcessInformation {
+    getRunningProcessInformationWithCallback,
+    getRunningProcessInformationReturnsPromise,
+  }
+
+  clearUpApplicationDataWithCallback(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeclearUpApplicationData(myCall);
     });
   }
 
-  clearUpApplicationData(): Promise<void> {
+  clearUpApplicationDataReturnsPromise(): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -196,6 +207,11 @@ export default class ApplicationContext extends Context {
         });
       });
     return p;
+  }
+
+  overload clearUpApplicationData {
+    clearUpApplicationDataWithCallback,
+    clearUpApplicationDataReturnsPromise,
   }
 
   setLanguage(language: string): void {
@@ -236,22 +252,25 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  on(type: 'environment', callback: EnvironmentCallback): int {
+  onEnvironment(type: 'environment', callback: EnvironmentCallback): int {
     return this.nativeOnEnvironmentSync(callback);
   }
 
-  off(type: string, callbackId: int, callback: AsyncCallback<void>): void {
+  offEnvironmentWithCallbackId(type: 'environment', callbackId: int, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      if (type == 'environment') {
-        this.nativeOffEnvironmentSync(callbackId, myCall);
-      } else if (type == 'abilityLifecycle') {
-        this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-      }
+      this.nativeOffEnvironmentSync(callbackId, myCall);
     });
   }
 
-  off(type: string, callbackId: int): Promise<void> {
+  offAbilityLifecycleWithCallbackId(type: 'abilityLifecycle', callbackId: int, callback: AsyncCallback<void>): void {
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+    });
+  }
+
+  offEnvironmentWithCallbackIdReturnsPromise(type: 'environment', callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -262,21 +281,34 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          if (type == 'environment') {
-            this.nativeOffEnvironmentSync(callbackId, myCall);
-          } else if (type == 'abilityLifecycle') {
-            this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
-          }
+          this.nativeOffEnvironmentSync(callbackId, myCall);
         });
       });
     return p;
   }
 
-  on(type: 'applicationStateChange', callback: ApplicationStateChangeCallback): void {
+  offAbilityLifecycleWithCallbackIdReturnsPromise(type: 'abilityLifecycle', callbackId: int): Promise<void> {
+    let p =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+        });
+      });
+    return p;
+  }
+
+  onApplicationStateChange(type: 'applicationStateChange', callback: ApplicationStateChangeCallback): void {
     this.nativeOnApplicationStateChangeSync(callback);
   }
 
-  off(type: 'applicationStateChange', callback?: ApplicationStateChangeCallback): void {
+  offApplicationStateChange(type: 'applicationStateChange', callback?: ApplicationStateChangeCallback): void {
     this.nativeOffApplicationStateChangeSync(callback);
   }
 
@@ -303,8 +335,21 @@ export default class ApplicationContext extends Context {
     return ApplicationContext.nativeTransferDynamic(input).unwrap();
   }
 
-  on(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): int {
+  onAbilityLifecycle(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): int {
     return this.nativeOnLifecycleCallbackSync(type, callback);
   }
 
+  overload on {
+    onEnvironment,
+    onApplicationStateChange,
+    onAbilityLifecycle
+  }
+
+  overload off {
+    offEnvironmentWithCallbackId,
+    offAbilityLifecycleWithCallbackId,
+    offEnvironmentWithCallbackIdReturnsPromise,
+    offAbilityLifecycleWithCallbackIdReturnsPromise,
+    offApplicationStateChange
+  }
 }

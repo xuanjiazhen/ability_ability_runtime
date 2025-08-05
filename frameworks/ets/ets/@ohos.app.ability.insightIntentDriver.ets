@@ -39,14 +39,14 @@ export default namespace insightIntentDriver {
     callback: AsyncCallbackWrapper<insightIntent.ExecuteResult>,
     isCallback: boolean): void;
 
-  export function execute(param: ExecuteParam, callback: AsyncCallback<insightIntent.ExecuteResult>): void {
+  export function executeWithParamCallback(param: ExecuteParam, callback: AsyncCallback<insightIntent.ExecuteResult>): void {
     let pCallback = new AsyncCallbackWrapper<insightIntent.ExecuteResult>(callback);
     taskpool.execute((): void => {
       nativeExecuteSync(param, pCallback, true);
     });
   }
 
-  export function execute(param: ExecuteParam): Promise<insightIntent.ExecuteResult> {
+  export function executeWithParamReturnsPromise(param: ExecuteParam): Promise<insightIntent.ExecuteResult> {
     let pPromise = new Promise<insightIntent.ExecuteResult>((
       resolve: (data: insightIntent.ExecuteResult) => void,
       reject: (err: BusinessError) => void) => {
@@ -63,5 +63,10 @@ export default namespace insightIntentDriver {
       });
     });
     return pPromise;
+  }
+
+  overload execute {
+    executeWithParamCallback,
+    executeWithParamReturnsPromise
   }
 }

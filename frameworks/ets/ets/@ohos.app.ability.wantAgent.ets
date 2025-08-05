@@ -69,7 +69,7 @@ namespace wantAgent {
   native function nativeGetWant(agent: WantAgent, callback: AsyncCallbackWrapper<Want>): void;
   native function nativeGetWantAgent(agent: WantAgentInfo, callback: AsyncCallbackWrapper<WantAgent>): void;
 
-  export function getBundleName(agent: WantAgent, callback: AsyncCallback<string>): void {
+  export function getBundleNameWithAgentCallback(agent: WantAgent, callback: AsyncCallback<string>): void {
     let call = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void => {
       try {
@@ -80,7 +80,7 @@ namespace wantAgent {
     });
   }
 
-  export function getBundleName(agent: WantAgent): Promise<string> {
+  export function getBundleNameWithAgentReturnsPromise(agent: WantAgent): Promise<string> {
     return new Promise<string>((resolve: (data: string) => void, reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined) => {
         if (err == null || err.code == 0) {
@@ -99,7 +99,12 @@ namespace wantAgent {
     });
   }
 
-  export function getUid(agent: WantAgent, callback: AsyncCallback<int>): void {
+  overload getBundleName {
+    getBundleNameWithAgentCallback,
+    getBundleNameWithAgentReturnsPromise
+  }
+
+  export function getUidWithAgentCallback(agent: WantAgent, callback: AsyncCallback<int>): void {
     let call = new AsyncCallbackWrapper<int>(callback);
     taskpool.execute((): void => {
       try {
@@ -110,7 +115,7 @@ namespace wantAgent {
     });
   }
 
-  export function getUid(agent: WantAgent): Promise<int> {
+  export function getUidWithAgentReturnsPromise(agent: WantAgent): Promise<int> {
     return new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
         if (err == null || err.code == 0) {
@@ -129,7 +134,12 @@ namespace wantAgent {
     });
   }
 
-  export function getWant(agent: WantAgent, callback: AsyncCallback<Want>): void {
+  overload getUid {
+    getUidWithAgentCallback,
+    getUidWithAgentReturnsPromise
+  }
+
+  export function getWantWithAgentCallback(agent: WantAgent, callback: AsyncCallback<Want>): void {
     let call = new AsyncCallbackWrapper<Want>(callback);
     taskpool.execute((): void => {
       try {
@@ -140,7 +150,7 @@ namespace wantAgent {
     });
   }
 
-  export function getWant(agent: WantAgent): Promise<Want> {
+  export function getWantWithAgentReturnsPromise(agent: WantAgent): Promise<Want> {
     return new Promise<Want>((resolve: (data: Want) => void, reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<Want>((err: BusinessError | null, data: Want | undefined) => {
         if (err == null || err.code == 0) {
@@ -159,7 +169,12 @@ namespace wantAgent {
     });
   }
 
-  export function cancel(agent: WantAgent, callback: AsyncCallback<void>): void {
+  overload getWant {
+    getWantWithAgentCallback,
+    getWantWithAgentReturnsPromise
+  }
+
+  export function cancelWithAgentCallback(agent: WantAgent, callback: AsyncCallback<void>): void {
     let call = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       try {
@@ -170,7 +185,7 @@ namespace wantAgent {
     });
   }
 
-  export function cancel(agent: WantAgent): Promise<void> {
+  export function cancelWithAgentReturnsPromise(agent: WantAgent): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
@@ -189,6 +204,11 @@ namespace wantAgent {
     });
   }
 
+  overload cancel {
+    cancelWithAgentCallback,
+    cancelWithAgentReturnsPromise
+  }
+
   export function trigger(agent: WantAgent, triggerInfo: TriggerInfo, callback?: AsyncCallback<CompleteData>): void {
     taskpool.execute((): void => {
       if (callback == undefined) {
@@ -204,7 +224,7 @@ namespace wantAgent {
     });
   }
 
-  export function equal(agent: WantAgent, otherAgent: WantAgent, callback: AsyncCallback<boolean>): void {
+  export function equalWithAgentOtherAgentCallback(agent: WantAgent, otherAgent: WantAgent, callback: AsyncCallback<boolean>): void {
     let call = new AsyncCallbackWrapper<boolean>(callback);
     taskpool.execute((): void => {
       try {
@@ -215,7 +235,7 @@ namespace wantAgent {
     });
   }
 
-  export function equal(agent: WantAgent, otherAgent: WantAgent): Promise<boolean> {
+  export function equalWithAgentOtherAgentReturnsPromise(agent: WantAgent, otherAgent: WantAgent): Promise<boolean> {
     return new Promise<boolean>((resolve: (data: boolean) => void,
       reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined) => {
@@ -235,7 +255,12 @@ namespace wantAgent {
     });
   }
 
-  export function getWantAgent(info: WantAgentInfo, callback: AsyncCallback<WantAgent>): void {
+  overload equal {
+    equalWithAgentOtherAgentCallback,
+    equalWithAgentOtherAgentReturnsPromise
+  }
+
+  export function getWantAgentWithInfoCallback(info: WantAgentInfo, callback: AsyncCallback<WantAgent>): void {
     let call = new AsyncCallbackWrapper<WantAgent>(callback);
     taskpool.execute((): void => {
       try {
@@ -246,7 +271,7 @@ namespace wantAgent {
     });
   }
 
-  export function getWantAgent(info: WantAgentInfo): Promise<WantAgent> {
+  export function getWantAgentWithInfoReturnsPromise(info: WantAgentInfo): Promise<WantAgent> {
     return new Promise<WantAgent>((resolve: (data: WantAgent) => void,
       reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<WantAgent>((err: BusinessError | null, data: WantAgent | undefined) => {
@@ -266,7 +291,12 @@ namespace wantAgent {
     });
   }
 
-  export function getOperationType(agent: WantAgent, callback: AsyncCallback<int>): void {
+  overload getWantAgent {
+    getWantAgentWithInfoCallback,
+    getWantAgentWithInfoReturnsPromise
+  }
+
+  export function getOperationTypeWithAgentCallback(agent: WantAgent, callback: AsyncCallback<int>): void {
     let call = new AsyncCallbackWrapper<int>(callback);
     taskpool.execute((): void => {
       try {
@@ -277,7 +307,7 @@ namespace wantAgent {
     });
   }
 
-  export function getOperationType(agent: WantAgent): Promise<int> {
+  export function getOperationTypeWithAgentReturnsPromise(agent: WantAgent): Promise<int> {
     return new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
       let call = new AsyncCallbackWrapper<int>((err: BusinessError | null, data: int | undefined) => {
         if (err == null || err.code == 0) {
@@ -294,6 +324,11 @@ namespace wantAgent {
         }
       });
     });
+  }
+
+  overload getOperationType {
+    getOperationTypeWithAgentCallback,
+    getOperationTypeWithAgentReturnsPromise
   }
 
   export enum WantAgentFlags {
