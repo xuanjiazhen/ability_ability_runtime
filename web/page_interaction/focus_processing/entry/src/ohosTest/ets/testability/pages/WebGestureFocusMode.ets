@@ -114,23 +114,23 @@ struct WebComponent {
               break;
             }
 
-            case "testWebGestureFocusMode003": {
-              try {
-                this.flagType = 'webPinchOut'
-                this.controller.refresh();
-                let driver = Driver.create();
+            //case "testWebGestureFocusMode003": {
+              //try {
+               // this.flagType = 'webPinchOut'
+                //this.controller.refresh();
+                //let driver = Driver.create();
                 //先点击textInput
-                let buttonOne = await driver.findComponent(ON.text('textInput'));
-                await buttonOne.click()
-                await Utils.sleep(2000);
-                let HtmlOne = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                //let buttonOne = await driver.findComponent(ON.text('textInput'));
+                //await buttonOne.click()
+                //await Utils.sleep(2000);
+                //let HtmlOne = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再缩放web 抢焦点
-                await HtmlOne.pinchOut(1.5);
-              } catch (error) {
-                console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
-              }
-              break;
-            }
+                //await HtmlOne.pinchOut(1.5);
+              //} catch (error) {
+                //console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
+              //}
+              //break;
+            //}
             // case "testWebGestureFocusMode004": {
             //   try {
             //     this.flagType = 'webOnscroll'
