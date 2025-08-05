@@ -75,6 +75,10 @@ export default class ServiceExtensionContext extends ExtensionContext {
 
   native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<void>, options?: AtomicServiceOptions): void;
 
+  native nativeStartUIServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeWantCheck(want: Want): void;
+
   terminateSelf(callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -206,6 +210,22 @@ export default class ServiceExtensionContext extends ExtensionContext {
       });
       taskpool.execute((): void => {
         this.nativeOpenAtomicService(appId, asyncCall, options);
+      });
+    });
+  }
+
+  startUIServiceExtensionAbility(want: Want): Promise<void> {
+    this.nativeWantCheck(want);
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartUIServiceExtensionAbility(want, myCall);
       });
     });
   }

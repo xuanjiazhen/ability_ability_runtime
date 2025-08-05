@@ -61,6 +61,7 @@ ohos_shared_library("ani_common") {
     "src/ets_extension_context.cpp",
     "src/ets_free_install_observer.cpp",
     "src/ani_common_remote.cpp",
+    "src/ets_extension_common.cpp",
   ]
 
   cflags = []
