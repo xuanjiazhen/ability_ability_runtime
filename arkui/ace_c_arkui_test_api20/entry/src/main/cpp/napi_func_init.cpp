@@ -17,6 +17,7 @@
 #include "arkTSEnv/InitModuleForArkTSEnvTest.cpp"
 #include "renderNode/RenderNodeAttributeTest.cpp"
 #include "renderNode/RenderNodeTest.cpp"
+#include "renderNodeUtils/renderNodeUtils.cpp"
 
 namespace ArkUICapiTest
 {
@@ -84,6 +85,38 @@ namespace ArkUICapiTest
             {"TestRenderNode007", nullptr, TestRenderNode007, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
             {"TestRenderNode008", nullptr, TestRenderNode008, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+			{"RenderNodeUtils_001", nullptr, RenderNodeUtils_001, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_002", nullptr, RenderNodeUtils_002, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_003", nullptr, RenderNodeUtils_003, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_004", nullptr, RenderNodeUtils_004, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_005", nullptr, RenderNodeUtils_005, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_006", nullptr, RenderNodeUtils_006, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_007", nullptr, RenderNodeUtils_007, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_008", nullptr, RenderNodeUtils_008, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_009", nullptr, RenderNodeUtils_009, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_010", nullptr, RenderNodeUtils_010, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_011", nullptr, RenderNodeUtils_011, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_012", nullptr, RenderNodeUtils_012, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_013", nullptr, RenderNodeUtils_013, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_014", nullptr, RenderNodeUtils_014, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_015", nullptr, RenderNodeUtils_015, nullptr, nullptr, nullptr, 
+                napi_default, nullptr},
+            {"RenderNodeUtils_016", nullptr, RenderNodeUtils_016, nullptr, nullptr, nullptr, 
                 napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
