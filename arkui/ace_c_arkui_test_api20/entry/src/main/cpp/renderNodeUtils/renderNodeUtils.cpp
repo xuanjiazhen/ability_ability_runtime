@@ -45,7 +45,12 @@
 #include <unistd.h>
 #include <vector>
 #include <hitrace/trace.h>
-#define VALUE 106401
+
+#define NUMBER_32 32
+#define NUMBER_64 64
+#define PARAM_COLOR 4294967295
+#define NUMBER_F_200 (-200)
+#define PARAM_999999 99999
 #define PARAM_VALUE "M0 100 A30 20 20 0 0 200 100 Z"
 
 
@@ -61,21 +66,21 @@ static napi_value RenderNodeUtils_001(napi_env env, napi_callback_info info)
     ASSERT_EQ(result1_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto rectShape = OH_ArkUI_RenderNodeUtils_CreateRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 100, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_100, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_ALL);
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, -5, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_NEGATIVE_5, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 0, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_0, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_TOP);
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 150, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, SIZE_150, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 99999, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_999999, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_BOTTOM);
     
     auto rectMask = OH_ArkUI_RenderNodeUtils_CreateRenderNodeMaskOptionFromRectShape(rectShape);
     OH_ArkUI_RenderNodeUtils_SetRenderNodeMaskOptionFillColor(rectMask, 0xFFFF0000);
     OH_ArkUI_RenderNodeUtils_SetRenderNodeMaskOptionStrokeColor(rectMask, 0xFF443366);
-    OH_ArkUI_RenderNodeUtils_SetRenderNodeMaskOptionStrokeWidth(rectMask, 20);
+    OH_ArkUI_RenderNodeUtils_SetRenderNodeMaskOptionStrokeWidth(rectMask, PARAM_20);
     auto result1_2 = OH_ArkUI_RenderNodeUtils_SetMask(rsNodeRoot, rectMask);
     OH_ArkUI_RenderNodeUtils_DisposeRectShapeOption(rectShape);
     OH_ArkUI_RenderNodeUtils_DisposeRenderNodeMaskOption(rectMask);
@@ -130,15 +135,15 @@ static napi_value RenderNodeUtils_003(napi_env env, napi_callback_info info)
     ASSERT_EQ(result3_1, ARKUI_ERROR_CODE_NO_ERROR);
 
     auto widthOption = OH_ArkUI_RenderNodeUtils_CreateNodeBorderWidthOption();
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, 10,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, PARAM_10,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_ALL);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, -10,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, PARAM_NEGATIVE_10,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, 20,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, PARAM_20,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, 30,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, SIZE_30,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_TOP);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, 40,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderWidthOptionEdgeWidth(widthOption, SIZE_40,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_BOTTOM);
 
     auto result3_2 = OH_ArkUI_RenderNodeUtils_SetBorderWidth(rsNodeRoot, widthOption);
@@ -173,7 +178,7 @@ static napi_value RenderNodeUtils_004(napi_env env, napi_callback_info info)
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_RIGHT);
     OH_ArkUI_RenderNodeUtils_SetNodeBorderColorOptionEdgeColor(colorOption, 0xFFFF0000,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_TOP);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderColorOptionEdgeColor(colorOption, 4294967295,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderColorOptionEdgeColor(colorOption, PARAM_COLOR,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_BOTTOM);
 
     auto result4_2 = OH_ArkUI_RenderNodeUtils_SetBorderColor(rsNodeRoot, colorOption);
@@ -198,13 +203,13 @@ static napi_value RenderNodeUtils_005(napi_env env, napi_callback_info info)
     ASSERT_EQ(result5_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto radiusOption = OH_ArkUI_RenderNodeUtils_CreateNodeBorderRadiusOption();
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, 32,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, 32,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, 32,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, 64,
+    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_64,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_RIGHT);
 
     auto result5_2 = OH_ArkUI_RenderNodeUtils_SetBorderRadius(rsNodeRoot, radiusOption);
@@ -231,9 +236,9 @@ static napi_value RenderNodeUtils_006(napi_env env, napi_callback_info info)
     ASSERT_EQ(result6_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto circleShape = OH_ArkUI_RenderNodeUtils_CreateCircleShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterX(circleShape, 120);
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterY(circleShape, 120);
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionRadius(circleShape, 100);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterX(circleShape, SIZE_120);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterY(circleShape, SIZE_120);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionRadius(circleShape, PARAM_100);
     
     auto rectMask = OH_ArkUI_RenderNodeUtils_CreateRenderNodeMaskOptionFromCircleShape(circleShape);
     auto result6_2 = OH_ArkUI_RenderNodeUtils_SetMask(rsNodeRoot, rectMask);
@@ -245,13 +250,6 @@ static napi_value RenderNodeUtils_006(napi_env env, napi_callback_info info)
 static napi_value RenderNodeUtils_007(napi_env env, napi_callback_info info)
 {
     NAPI_START(Custom, ARKUI_NODE_CUSTOM);
-    ArkUI_NumberValue valueWidth[] = { 350 };
-    ArkUI_AttributeItem itemWidth = {valueWidth, sizeof(valueWidth) / sizeof(ArkUI_NumberValue)};
-    auto ret1 = nodeAPI->setAttribute(Custom, NODE_WIDTH, &itemWidth);
-    ArkUI_NumberValue valueHeight[] = { 600 };
-    ArkUI_AttributeItem itemHeight = {valueHeight, sizeof(valueHeight) / sizeof(ArkUI_NumberValue)};
-    auto ret2 = nodeAPI->setAttribute(Custom, NODE_HEIGHT, &itemHeight);
-
     auto rsNodeRoot = OH_ArkUI_RenderNodeUtils_CreateNode();
     auto result7_1 = OH_ArkUI_RenderNodeUtils_AddRenderNode(Custom, rsNodeRoot);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
@@ -259,15 +257,15 @@ static napi_value RenderNodeUtils_007(napi_env env, napi_callback_info info)
     ASSERT_EQ(result7_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto roundShape = OH_ArkUI_RenderNodeUtils_CreateRoundRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, -200,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, NUMBER_F_200,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 0,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, PARAM_0,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_TOP);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 250,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, SIZE_250,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 150,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, SIZE_150,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_BOTTOM);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionCornerXY(roundShape, 60, 30,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionCornerXY(roundShape, SIZE_60, SIZE_30,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_ALL);
 
     auto rectMask = OH_ArkUI_RenderNodeUtils_CreateRenderNodeMaskOptionFromRoundRectShape(roundShape);
@@ -305,7 +303,7 @@ static napi_value RenderNodeUtils_009(napi_env env, napi_callback_info info)
     ASSERT_EQ(result9_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto rectShape = OH_ArkUI_RenderNodeUtils_CreateRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 100, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_100, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_ALL);
     auto rectMask = OH_ArkUI_RenderNodeUtils_CreateRenderNodeMaskOptionFromOvalShape(rectShape);
     auto result9_2 = OH_ArkUI_RenderNodeUtils_SetMask(rsNodeRoot, rectMask);
@@ -340,7 +338,7 @@ static napi_value RenderNodeUtils_011(napi_env env, napi_callback_info info)
     ASSERT_EQ(result11_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto rectShape = OH_ArkUI_RenderNodeUtils_CreateRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 100, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_100, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_ALL);
     auto rectClip = OH_ArkUI_RenderNodeUtils_CreateRenderNodeClipOptionFromRectShape(rectShape);
     auto result11_2 = OH_ArkUI_RenderNodeUtils_SetClip(rsNodeRoot, rectClip);
@@ -359,15 +357,15 @@ static napi_value RenderNodeUtils_012(napi_env env, napi_callback_info info)
     ASSERT_EQ(result12_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto roundShape = OH_ArkUI_RenderNodeUtils_CreateRoundRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, -200,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, NUMBER_F_200,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 0,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, PARAM_0,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_TOP);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 250,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, SIZE_250,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, 150,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionEdgeValue(roundShape, SIZE_150,
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_BOTTOM);
-    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionCornerXY(roundShape, 60, 30,
+    OH_ArkUI_RenderNodeUtils_SetRoundRectShapeOptionCornerXY(roundShape, SIZE_60, SIZE_30,
         ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_ALL);  
     
     auto rectClip = OH_ArkUI_RenderNodeUtils_CreateRenderNodeClipOptionFromRoundRectShape(roundShape);
@@ -386,9 +384,9 @@ static napi_value RenderNodeUtils_013(napi_env env, napi_callback_info info)
     ASSERT_EQ(result13_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto circleShape = OH_ArkUI_RenderNodeUtils_CreateCircleShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterX(circleShape, 120);
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterY(circleShape, 120);
-    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionRadius(circleShape, 100);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterX(circleShape, SIZE_120);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionCenterY(circleShape, SIZE_120);
+    OH_ArkUI_RenderNodeUtils_SetCircleShapeOptionRadius(circleShape, PARAM_100);
     
     auto rectClip = OH_ArkUI_RenderNodeUtils_CreateRenderNodeClipOptionFromCircleShape(circleShape);
     auto result13_2 = OH_ArkUI_RenderNodeUtils_SetClip(rsNodeRoot, rectClip);
@@ -406,7 +404,7 @@ static napi_value RenderNodeUtils_014(napi_env env, napi_callback_info info)
     ASSERT_EQ(result14_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto rectShape = OH_ArkUI_RenderNodeUtils_CreateRectShapeOption();
-    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, 100, 
+    OH_ArkUI_RenderNodeUtils_SetRectShapeOptionEdgeValue(rectShape, PARAM_100, 
         ArkUI_EdgeDirection::ARKUI_EDGE_DIRECTION_ALL);
     auto rectClip = OH_ArkUI_RenderNodeUtils_CreateRenderNodeClipOptionFromOvalShape(rectShape);
     auto result14_2 = OH_ArkUI_RenderNodeUtils_SetClip(rsNodeRoot, rectClip);

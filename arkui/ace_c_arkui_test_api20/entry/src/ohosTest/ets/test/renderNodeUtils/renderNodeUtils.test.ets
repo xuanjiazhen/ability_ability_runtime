@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { beforeEach, describe, expect, it } from '@ohos/hypium';
+import { beforeEach, describe, expect, it, Level } from '@ohos/hypium';
 import Utils from '../common/Utils';
 import nativeFunc from 'libnativefunc.so'
 
@@ -34,7 +34,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_001', 0, async (done: Function) => {
+    it('RenderNodeUtils_001', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_001()).assertEqual(0)
       done()
     })
@@ -48,7 +48,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_002', 0, async (done: Function) => {
+    it('RenderNodeUtils_002', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_002()).assertEqual(0)
       done()
     })
@@ -62,7 +62,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_003', 0, async (done: Function) => {
+    it('RenderNodeUtils_003', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_003()).assertEqual(0)
       done()
     })
@@ -76,7 +76,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_004', 0, async (done: Function) => {
+    it('RenderNodeUtils_004', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_004()).assertEqual(0)
       done()
     })
@@ -90,7 +90,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_005', 0, async (done: Function) => {
+    it('RenderNodeUtils_005', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_005()).assertEqual(0)
       done()
     })
@@ -104,7 +104,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_006', 0, async (done: Function) => {
+    it('RenderNodeUtils_006', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_006()).assertEqual(0)
       done()
     })
@@ -118,7 +118,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_007', 0, async (done: Function) => {
+    it('RenderNodeUtils_007', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_007()).assertEqual(0)
       done()
     })
@@ -132,7 +132,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_008', 0, async (done: Function) => {
+    it('RenderNodeUtils_008', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_008()).assertEqual(0)
       done()
     })
@@ -146,7 +146,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_009', 0, async (done: Function) => {
+    it('RenderNodeUtils_009', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_009()).assertEqual(0)
       done()
     })
@@ -160,7 +160,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_010', 0, async (done: Function) => {
+    it('RenderNodeUtils_010', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_010()).assertEqual(0)
       done()
     })
@@ -174,7 +174,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_011', 0, async (done: Function) => {
+    it('RenderNodeUtils_011', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_011()).assertEqual(0)
       done()
     })
@@ -188,7 +188,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_012', 0, async (done: Function) => {
+    it('RenderNodeUtils_012', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_012()).assertEqual(0)
       done()
     })
@@ -202,7 +202,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_013', 0, async (done: Function) => {
+    it('RenderNodeUtils_013', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_013()).assertEqual(0)
       done()
     })
@@ -216,7 +216,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_014', 0, async (done: Function) => {
+    it('RenderNodeUtils_014', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_014()).assertEqual(0)
       done()
     })
@@ -230,7 +230,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_015', 0, async (done: Function) => {
+    it('RenderNodeUtils_015', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_015()).assertEqual(0)
       done()
     })
@@ -244,7 +244,7 @@ export default function RenderNodeUtilsTest(){
      * @tc.level      : Level 1
      */
 
-    it('RenderNodeUtils_016', 0, async (done: Function) => {
+    it('RenderNodeUtils_016', Level.LEVEL1, async (done: Function) => {
       expect(nativeFunc.RenderNodeUtils_016()).assertEqual(0)
       done()
     })
