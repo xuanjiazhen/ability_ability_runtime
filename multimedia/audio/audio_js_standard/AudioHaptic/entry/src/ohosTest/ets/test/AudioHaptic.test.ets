@@ -2072,7 +2072,7 @@ export default function AudioHapticTest() {
       let usage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_NOTIFICATION;
       audioHapticManager.setStreamUsage(id,usage);
       let options:audioHaptic.AudioHapticPlayerOptions = {muteAudio:false, muteHaptics:false};
-      let audioHapticPlayer:audioHaptic.AudioHapticPlayer |undefined = undefined;
+      let audioHapticPlayer:audioHaptic.AudioHapticPlayer | undefined = undefined;
       await audioHapticManager.createPlayer(id,options).then(async(value:audioHaptic.AudioHapticPlayer)=>{
         console.info(`Create Success`);
         await audioHapticPlayer.start().then(()=>{
