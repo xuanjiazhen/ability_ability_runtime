@@ -30,6 +30,7 @@ import GetGlobalPositionOnDisplayTest from './FrameNodeTest/GetGlobalPositionOnD
 import DarkModeTest from './UIAppearance/DarkModeTest.test';
 import EnableProvideConsumeCrossingTest from './BuilderNodeTest/EnableProvideConsumeCrossingTest.test';
 import DarkColorsTest from './ThemeTest/DarkColorsTest.test';
+import NodeAdapterDispose from './FrameNodeTest/NodeAdapterDispose.test';
 
 export default function testsuite() {
   IsAvailableTest();
@@ -50,4 +51,5 @@ export default function testsuite() {
   DarkModeTest();
   EnableProvideConsumeCrossingTest();
   DarkColorsTest();
+  NodeAdapterDispose();
 }
