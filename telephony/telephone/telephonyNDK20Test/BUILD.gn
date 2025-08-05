@@ -28,5 +28,5 @@ ohos_js_app_suite("ActsTelephonyNDK20Test") {
   hap_name = "ActsTelephonyNDK20Test"
   subsystem_name = "telephony"
   part_name = "core_service"
-  deps = [ ":ActsTelephonyNDK20MainTest" ]
+  deps = [ "telephonyNDK20Test:ActsTelephonyNDK20MainTest" ]
 }
