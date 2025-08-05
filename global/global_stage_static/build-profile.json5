@@ -1,0 +1,71 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "material": {
+          "certpath": "C:/Users/Administrator/.ohos/config/openharmony/default_global_stage_static_PUyfoPVmZkVJONy464Gm7YKxMzaFAWhBMInwo38bBp0=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A2E5081AFC22D57E844CADDA4967946CDA65601C5F2C6C438DED0B332E45D57848208F9926A4A",
+          "profile": "C:/Users/Administrator/.ohos/config/openharmony/default_global_stage_static_PUyfoPVmZkVJONy464Gm7YKxMzaFAWhBMInwo38bBp0=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:/Users/Administrator/.ohos/config/openharmony/default_global_stage_static_PUyfoPVmZkVJONy464Gm7YKxMzaFAWhBMInwo38bBp0=.p12",
+          "storePassword": "0000001A61E83D1B0DEE9660C24E27FA525FAE16B5F32359D16121D4A1DA4E83D1AF61E1B1254525B40E"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "20",
+        "compileSdkVersion": "20",
+        "arkTSVersion": "1.2",
+        "runtimeOS": "OpenHarmony",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
