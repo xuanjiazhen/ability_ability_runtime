@@ -36,8 +36,9 @@ export default {
                             {
                                 resultCode: 1,
                                 want: data
-                            }
-                        );
+                            },(err)=>{
+                          console.info("==========featureAbility= terminateSelfWithResult callback.");
+                        });
                     },800);
                 } else if (data.parameters.mykey5[1] == 'test123'){
                     console.info("==========parameters= second value of mykey5 is test123.");
@@ -49,8 +50,9 @@ export default {
                                 {
                                     resultCode: 1,
                                     want: data
-                                }
-                            );
+                                },(err)=>{
+                                  console.info("==========featureAbility= terminateSelfWithResult callback.");
+                                });
                         },1000);
                     });
                 }else{
@@ -60,8 +62,9 @@ export default {
                             {
                                 resultCode: 1,
                                 want: data
-                            }
-                        );
+                            },(err)=>{
+                              console.info("==========featureAbility= terminateSelfWithResult callback.");
+                            });
                     },800);
                 }
             }

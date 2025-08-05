@@ -924,6 +924,35 @@ export default function UIAbilityContext() {
       }
     })
 
+    /**
+     * @tc.number: SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900
+     * @tc.name: SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900
+     * @tc.desc: Configure the Capability permission for the target
+     */
+    it('SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900', Level.LEVEL0, async (done: Function) => {
+      let startWant: Want = {
+        bundleName: 'com.example.actsabilityerrcodequerytestrely',
+        abilityName: 'EntryAbility2',
+      };
+      let options: StartOptions = {
+        displayId: 0
+      };
+      try {
+        globalThis.context.startAbility(startWant, options).then(() => {
+          console.info('SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility succeed');
+        }).catch((error: BusinessError) => {
+          if (error.code) {
+            console.error(`SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility failed, code is ${error.code}, message is ${error.message}`);
+            expect(error.code).assertEqual(16000005)
+            done();
+          }
+        });
+      } catch (err) {
+        let code = (err as BusinessError).code;
+        let message = (err as BusinessError).message;
+        console.error(`SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbility_0900 startAbility catch, code is ${code}, message is ${message}`);
+      }
+    })
 
     /**
      * @tc.number: SUB_Ability_AbilityRuntime_ErrorCode_UIAbilityContext_startAbilityForResult_0200
