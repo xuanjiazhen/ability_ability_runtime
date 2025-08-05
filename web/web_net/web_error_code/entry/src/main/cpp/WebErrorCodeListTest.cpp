@@ -202,10 +202,11 @@ napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
     
     napi_value result;
-    if (OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode) == ARKWEB_ERROR_UNKNOWN) {
+    int ret = OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode);
+    if (ret == ARKWEB_ERROR_UNKNOWN) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, -1, &result);
+        napi_create_int32(env, ret, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError end..");
@@ -230,7 +231,7 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     if (errorCodeRes == ARKWEB_ERR_FAILED) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, -1, &result);
+        napi_create_int32(env, errorCodeRes, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
@@ -257,7 +258,7 @@ napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
     if (errorCodeRes == ARKWEB_ERR_FAILED) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, -1, &result);
+        napi_create_int32(env, errorCodeRes, &result);
     }
 
     OH_LOG_DEBUG(LOG_APP, "WebArkWebConnectError end..");
@@ -277,7 +278,7 @@ napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
     if (ret == ARKWEB_ERROR_UNKNOWN) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, -1, &result);
+        napi_create_int32(env, ret, &result);
     }
     
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError end..");
