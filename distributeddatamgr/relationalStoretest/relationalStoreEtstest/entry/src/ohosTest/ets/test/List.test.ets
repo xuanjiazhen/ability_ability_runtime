@@ -39,8 +39,8 @@ import rdbStorePluginLibsTest from './RelationalStorePluginLibsJsunit.test';
 import rdbDecryptTest from './RelationalStoreDecrpy.test';
 import relationalStoreMultiTransTest from './relationalStoreMultiTest.test'
 import RelationalStoreIcu from './RelationalStoreIcu.test';
-import rdbrootDirTest from './RelationalStoreRootDir.test';
 import VectorStoreTest from './VectorStore.test';
+import rdbrootDirTest from './RelationalStoreRootDir.test';
 import RelationalStoreCustom from './RelationalStoreCustom.test';
 import RelationalStoreNoneTokenizer from './RelationalStoreNoneTokenizer.test'
 import relationalStoreInterfaceTest from './relationalstore.test'
