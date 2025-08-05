@@ -130,6 +130,8 @@ export default class UIAbilityContext extends Context {
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
   private native nativeOnSetRestoreEnabled(enabled: boolean): void;
+  private native nativeRevokeDelegator(callback: AsyncCallbackWrapper<void>): void;
+
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
@@ -506,6 +508,25 @@ hideAbility(): Promise<void> {
         this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
       });
     });
+    return p;
+  }
+
+  revokeDelegator(): Promise<void> {
+    let p =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeRevokeDelegator(asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
+        });
+      });
     return p;
   }
 }
