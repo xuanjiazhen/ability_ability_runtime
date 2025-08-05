@@ -13,7 +13,7 @@
  * limitations under the License.
  */
  
-import ActsTelephonyNdk20Test from './ActsTelephonyNdk20Test.test'
+import ActsTelephonyNdk20Test from './ActsTelephonyNdk20Test.test.ets'
 
 export default function testsuite() {
   ActsTelephonyNdk20Test()
