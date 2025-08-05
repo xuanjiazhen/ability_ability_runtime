@@ -1201,9 +1201,14 @@ export default function workerPriTest() {
         }
         workerInstance.onmessage = (e: MessageEvents): void => {
           console.info(`${caseName}: workerInstance.onmessage: ${JSON.stringify(e)}`);
-          flag = true;
-          expectAssertEqual(e.data.code, 10200021);
-          expectAssertContain(e.data.message, 'Waiting for a global call timed out');
+          if (e.data == 'host thread executes 2000ms') {
+            let t = Date.now();
+            while (Date.now() - t < 2000) {}
+          } else {
+            flag = true;
+            expectAssertEqual(e.data.code, 10200021);
+            expectAssertContain(e.data.message, 'Waiting for a global call timed out');
+          }
         }
 
         class TestTimeoutFuncObj {
