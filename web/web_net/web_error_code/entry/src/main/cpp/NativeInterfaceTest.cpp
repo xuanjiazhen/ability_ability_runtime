@@ -20,6 +20,7 @@
 #include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <string>
+#include <web/arkweb_error_code.h>
 #include <web/arkweb_type.h>
 #include <web/native_interface_arkweb.h>
 
@@ -73,13 +74,16 @@ static napi_value loadData(napi_env env, napi_callback_info info)
     ArkWeb_ErrorCode ret;
     switch (caseNum) {
         case CASE_NUM_0:
+            // ARKWEB_SUCCESS
             ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
             break;
         case CASE_NUM_1:
             ret = OH_NativeArkWeb_LoadData(webName, "", "text/html", "UTF-8", nullptr, "");
+            ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
             break;
         case CASE_NUM_2:
             ret = OH_NativeArkWeb_LoadData(webName, "", "", "", "www.baidu.com", "");
+            ret = ARKWEB_INVALID_PARAM;
             break;
         default:
             return nullptr;

@@ -43,359 +43,359 @@ export default function NativeInterfaceTest() {
     })
 
     /**
-     * @tc.number  : SUB_Web_Napi_LoadDataTest_0100
-     * @tc.name    : SUB_Web_Napi_LoadDataTest_0100
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0100
+     * @tc.name    : testWebNapiLoadDataNotInit
      * @tc.desc    : test OH_NativeArkWeb_LoadData() not init
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_LoadDataTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>SUB_Web_Napi_LoadDataTest_0100 start====");
+        console.info("====>testWebNapiLoadDataNotInit start====");
         let result: number = nativeInterface.NativeArkWebLoadDataInitError();
-        console.info("====>SUB_Web_Napi_LoadDataTest_0100 result====", result);
+        console.info("====>testWebNapiLoadDataNotInit result====", result);
         expect(result).assertEqual(TEST_ARKWEB_INIT_ERROR);
         done();
       } catch (err) {
-        console.error("====>SUB_Web_Napi_LoadDataTest_0100 catch err: " + err);
+        console.error("====>testWebNapiLoadDataNotInit catch err: " + err);
       }
     })
 
     /**
-     * @tc.number  : SUB_Web_Napi_LoadDataTest_0200
-     * @tc.name    : SUB_Web_Napi_LoadDataTest_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0200
+     * @tc.name    : testWebNapiLoadDataSuccess
      * @tc.desc    : test OH_NativeArkWeb_LoadData() SUCCESS
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_LoadDataTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>SUB_Web_Napi_LoadDataTest_0200 start====");
+        console.info("====>testWebNapiLoadDataSuccess start====");
         let result: number = nativeInterface.loadData("web1211", 0);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0200 result====", result);
+        console.info("====>testWebNapiLoadDataSuccess result====", result);
         expect(result).assertEqual(TEST_ARKWEB_SUCCESS);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0200 stop====");
+        console.info("====>testWebNapiLoadDataSuccess stop====");
         done();
       } catch (err) {
-        console.error("====>SUB_Web_Napi_LoadDataTest_0200 catch err: " + err);
+        console.error("====>testWebNapiLoadDataSuccess catch err: " + err);
       }
     })
 
     /**
-     * @tc.number  : SUB_Web_Napi_LoadDataTest_0300
-     * @tc.name    : SUB_Web_Napi_LoadDataTest_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0300
+     * @tc.name    : testWebNapiLoadDataSymbolNotFound
      * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_LIBRARY_SYMBOL_NOT_FOUND
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_LoadDataTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataSymbolNotFound', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>SUB_Web_Napi_LoadDataTest_0300 start====");
+        console.info("====>testWebNapiLoadDataSymbolNotFound start====");
         let result: number = nativeInterface.loadData("web1211", 1);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0300 result====", result);
+        console.info("====>testWebNapiLoadDataSymbolNotFound result====", result);
         // expect(result).assertEqual(TEST_ARKWEB_LIBRARY_SYMBOL_NOT_FOUND);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0300 stop====");
+        console.info("====>testWebNapiLoadDataSymbolNotFound stop====");
         done();
       } catch (err) {
-        console.error("====>SUB_Web_Napi_LoadDataTest_0300 catch err: " + err);
+        console.error("====>testWebNapiLoadDataSymbolNotFound catch err: " + err);
       }
     })
 
     /**
-     * @tc.number  : SUB_Web_Napi_LoadDataTest_0400
-     * @tc.name    : SUB_Web_Napi_LoadDataTest_0400
+     * @tc.number  : SUB_WEB_NET_NAPI_LoadData_0400
+     * @tc.name    : testWebNapiLoadDataInvalidParam
      * @tc.desc    : test OH_NativeArkWeb_LoadData() ARKWEB_INVALID_PARAM
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_LoadDataTest_0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
+    it('testWebNapiLoadDataInvalidParam', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2, async (done: Function) => {
       try {
-        console.info("====>SUB_Web_Napi_LoadDataTest_0400 start====");
+        console.info("====>testWebNapiLoadDataInvalidParam start====");
         let result: number = nativeInterface.loadData("web1211", 2);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0300 result====", result);
+        console.info("====>testWebNapiLoadDataInvalidParam result====", result);
         // expect(result).assertEqual(0);
-        console.info("====>SUB_Web_Napi_LoadDataTest_0400 stop====");
+        console.info("====>testWebNapiLoadDataInvalidParam stop====");
         done();
       } catch (err) {
-        console.error("====>SUB_Web_Napi_LoadDataTest_0400 catch err: " + err);
+        console.error("====>testWebNapiLoadDataInvalidParam catch err: " + err);
       }
     })
 
     /**
-     * @tc.number  : SUB_Web_Napi_SetBlanklessInfoTest_0100
-     * @tc.name    : SUB_Web_Napi_SetBlanklessInfoTest_0100
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0100
+     * @tc.name    : testWebNapiSetBlanklessInfoNotInit
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_SetBlanklessInfoTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiSetBlanklessInfoNotInit', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0100 start====");
+          console.info("====>testWebNapiSetBlanklessInfoNotInit start====");
           let result: number = nativeInterface.SetBlanklessInfo('new', '0731');
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0100 stop====");
+          console.info("====>testWebNapiSetBlanklessInfoNotInit stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_SetBlanklessInfoTest_0100 catch err: " + err);
+          console.error("====>testWebNapiSetBlanklessInfoNotInit catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_SetBlanklessInfoTest_0200
-     * @tc.name    : SUB_Web_Napi_SetBlanklessInfoTest_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0200
+     * @tc.name    : testWebNapiSetBlanklessInfoSuccess
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_SetBlanklessInfoTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiSetBlanklessInfoSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0200 start====");
+          console.info("====>testWebNapiSetBlanklessInfoSuccess start====");
           let result: number = nativeInterface.SetBlanklessInfo('web1211', '0731');
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0200 stop====");
+          console.info("====>testWebNapiSetBlanklessInfoSuccess stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_SetBlanklessInfoTest_0200 catch err: " + err);
+          console.error("====>testWebNapiSetBlanklessInfoSuccess catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_SetBlanklessInfoTest_0300
-     * @tc.name    : SUB_Web_Napi_SetBlanklessInfoTest_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0300
+     * @tc.name    : testWebNapiSetBlanklessInfoNokey
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_SetBlanklessInfoTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiSetBlanklessInfoNokey', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0300 start====");
+          console.info("====>testWebNapiSetBlanklessInfoNokey start====");
           let result: number = nativeInterface.SetBlanklessInfo('web1211', 'xxxxxx');
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_SetBlanklessInfoTest_0300 stop====");
+          console.info("====>testWebNapiSetBlanklessInfoNokey stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_SetBlanklessInfoTest_0300 catch err: " + err);
+          console.error("====>testWebNapiSetBlanklessInfoNokey catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_GetBlanklessInfoTest_0100
-     * @tc.name    : SUB_Web_Napi_GetBlanklessInfoTest_0100
+     * @tc.number  : SUB_WEB_NET_NAPI_BlankInfo_0400
+     * @tc.name    : testWebNapiGetBlanklessInfo
      * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingWithKey()
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_GetBlanklessInfoTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiGetBlanklessInfo', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_GetBlanklessInfoTest_0100 start====");
+          console.info("====>testWebNapiGetBlanklessInfo start====");
           nativeInterface.SetBlanklessInfo('web1211', '0731');
           let result: number = nativeInterface.GetBlanklessInfo('web1211', '0731');
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_GetBlanklessInfoTest_0100 stop====");
+          console.info("====>testWebNapiGetBlanklessInfo stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_GetBlanklessInfoTest_0100 catch err: " + err);
+          console.error("====>testWebNapiGetBlanklessInfo catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeDataTest_0100
-     * @tc.name    : SUB_Web_Napi_JSBridgeDataTest_0100
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeData_0100
+     * @tc.name    : testWebNapiJSBridgeDataCallback
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeDataTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeDataCallback', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0100 start====");
+          console.info("====>testWebNapiJSBridgeDataCallback start====");
           let result: number = nativeInterface.JSBridgeData(0);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0100 stop====");
+          console.info("====>testWebNapiJSBridgeDataCallback stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeDataTest_0100 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeDataCallback catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeDataTest_0200
-     * @tc.name    : SUB_Web_Napi_JSBridgeDataTest_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeData_0200
+     * @tc.name    : testWebNapiJSBridgeCallbackNullUser
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeDataTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeCallbackNullUser', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0200 start====");
+          console.info("====>testWebNapiJSBridgeCallbackNullUser start====");
           let result: number = nativeInterface.JSBridgeData(1);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0200 stop====");
+          console.info("====>testWebNapiJSBridgeCallbackNullUser stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeDataTest_0200 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeCallbackNullUser catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeDataTest_0300
-     * @tc.name    : SUB_Web_Napi_JSBridgeDataTest_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeData_0300
+     * @tc.name    : testWebNapiJSBridgeCallbackNullData
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeDataTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeCallbackNullData', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0300 start====");
+          console.info("====>testWebNapiJSBridgeCallbackNullData start====");
           let result: number = nativeInterface.JSBridgeData(2);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0300 stop====");
+          console.info("====>testWebNapiJSBridgeCallbackNullData stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeDataTest_0300 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeCallbackNullData catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeDataTest_0400
-     * @tc.name    : SUB_Web_Napi_JSBridgeDataTest_0400
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeData_0400
+     * @tc.name    : testWebNapiJSBridgeCallbackNullWeb
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeDataTest_0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeCallbackNullWeb', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0400 start====");
+          console.info("====>testWebNapiJSBridgeCallbackNullWeb start====");
           let result: number = nativeInterface.JSBridgeData(3);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeDataTest_0400 stop====");
+          console.info("====>testWebNapiJSBridgeCallbackNullWeb stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeDataTest_0400 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeCallbackNullWeb catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeProxyDataTest_0100
-     * @tc.name    : SUB_Web_Napi_JSBridgeProxyDataTest_0100
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeProxy_0100
+     * @tc.name    : testWebNapiJSBridgeProxyData
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeProxyDataTest_0100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeProxyData', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0100 start====");
+          console.info("====>testWebNapiJSBridgeProxyData start====");
           let result: number = nativeInterface.JSBridgeProxyData(0);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0100 stop====");
+          console.info("====>testWebNapiJSBridgeProxyData stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeProxyDataTest_0100 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeProxyData catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeProxyDataTest_0200
-     * @tc.name    : SUB_Web_Napi_JSBridgeProxyDataTest_0200
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeProxy_0200
+     * @tc.name    : testWebNapiJSBridgeProxyDataLen
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeProxyDataTest_0200', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeProxyDataLen', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0200 start====");
+          console.info("====>testWebNapiJSBridgeProxyData start====");
           let result: number = nativeInterface.JSBridgeProxyData(1);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0200 stop====");
+          console.info("====>testWebNapiJSBridgeProxyData stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeProxyDataTest_0200 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeProxyData catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeProxyDataTest_0300
-     * @tc.name    : SUB_Web_Napi_JSBridgeProxyDataTest_0300
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeProxy_0300
+     * @tc.name    : testWebNapiJSBridgeProxyNullData
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeProxyDataTest_0300', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeProxyNullData', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0300 start====");
+          console.info("====>testWebNapiJSBridgeProxyNullData start====");
           let result: number = nativeInterface.JSBridgeProxyData(2);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0300 stop====");
+          console.info("====>testWebNapiJSBridgeProxyNullData stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeProxyDataTest_0300 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeProxyNullData catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeProxyDataTest_0400
-     * @tc.name    : SUB_Web_Napi_JSBridgeProxyDataTest_0400
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeProxy_0400
+     * @tc.name    : testWebNapiJSBridgeProxyNullUser
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeProxyDataTest_0400', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeProxyNullUser', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0400 start====");
+          console.info("====>testWebNapiJSBridgeProxyNullUser start====");
           let result: number = nativeInterface.JSBridgeProxyData(3);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0400 stop====");
+          console.info("====>testWebNapiJSBridgeProxyNullUser stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeProxyDataTest_0400 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeProxyNullUser catch err: " + err);
         }
       })
 
     /**
-     * @tc.number  : SUB_Web_Napi_JSBridgeProxyDataTest_0500
-     * @tc.name    : SUB_Web_Napi_JSBridgeProxyDataTest_0500
+     * @tc.number  : SUB_WEB_NET_NAPI_JSBridgeProxy_0500
+     * @tc.name    : testWebNapiJSBridgeProxyNullWeb
      * @tc.desc    : test ArkWeb_JavaScriptBridgeData and ArkWeb_OnJavaScriptProxyCallback
      * @tc.level   : Level2
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_JSBridgeProxyDataTest_0500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+    it('testWebNapiJSBridgeProxyNullWeb', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0500 start====");
+          console.info("====>testWebNapiJSBridgeProxyNullWeb start====");
           let result: number = nativeInterface.JSBridgeProxyData(4);
           expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_JSBridgeProxyDataTest_0500 stop====");
+          console.info("====>testWebNapiJSBridgeProxyNullWeb stop====");
           done();
         } catch (err) {
-          console.error("====>SUB_Web_Napi_JSBridgeProxyDataTest_0500 catch err: " + err);
+          console.error("====>testWebNapiJSBridgeProxyNullWeb catch err: " + err);
         }
       })
   })
