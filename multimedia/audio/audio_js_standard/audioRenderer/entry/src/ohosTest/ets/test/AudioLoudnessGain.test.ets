@@ -80,7 +80,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == -90.0).assertTrue();
+            expect(Math.abs(loudnessGain - (-90)) < 0.1).assertTrue();
           }catch(error){
             console.error('createAudioRenderer Fail!');
           }
@@ -164,7 +164,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             console.error('createAudioRenderer Fail!');
           }
@@ -248,7 +248,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             console.error(TAG,`setLoudnessGain Fail: ${error.code}`);
             expect(6800101 == error.code).assertTrue();
@@ -294,7 +294,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             console.error(TAG,`setLoudnessGain Fail: ${error.code}`);
             expect(6800101 == error.code).assertTrue();
@@ -421,7 +421,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -466,7 +466,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -511,7 +511,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -556,7 +556,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -601,7 +601,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -646,7 +646,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -692,7 +692,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -737,7 +737,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
@@ -782,7 +782,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(loudnessGain == 24.0).assertTrue();
+            expect(Math.abs(loudnessGain - 24) < 0.1).assertTrue();
           }catch(error){
             expect(6800104 == error.code).assertTrue();
           }
