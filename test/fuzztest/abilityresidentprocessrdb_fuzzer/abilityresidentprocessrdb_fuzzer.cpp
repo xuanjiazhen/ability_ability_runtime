@@ -39,7 +39,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     AmsResidentProcessRdbCallBack amsCallback(amsRdbConfig);
     std::unique_ptr<RdbDataManager> rdbMgr =
         std::make_unique<RdbDataManager>(amsRdbConfig);
-    rdbMgr->amsRdbConfig_.tableName = "resident_process_list";
+    struct AmsRdbConfig amsRdbConfig;
+    amsRdbConfig.tableName = "resident_process_list";
+    AmsResidentProcessRdbCallBack amsCallback(amsRdbConfig);
+    std::unique_ptr<RdbDataManager> rdbMgr =
+        std::make_unique<RdbDataManager>(amsRdbConfig);
     rdbMgr->Init(amsCallback);
     int currentVersion;
     int targetVersion;
