@@ -29,16 +29,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetUri001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_GetUri_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testGetUri001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetUri_0100 start====");
           let result: number = testNapi.getURISuccess();
-          console.info("====>testGetUri001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetUri_0100 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>testGetUri001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetUri_0100 catch err: " + err);
           done();
         }
       })
@@ -51,15 +51,15 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetPath001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('SUB_DistributedData_RelationalStore_SDK_GetPath_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>testGetPath001 start====");
+        console.info("====>SUB_DistributedData_RelationalStore_SDK_GetPath_0200 start====");
         let result: number = testNapi.getPathSuccess();
-        console.info("====>testGetPath001 result====", result);
+        console.info("====>SUB_DistributedData_RelationalStore_SDK_GetPath_0200 result====", result);
         expect(result).assertEqual(RDB_OK);
         done();
       } catch (err) {
-        console.error("====>testGetPath001 catch err: " + err);
+        console.error("====>SUB_DistributedData_RelationalStore_SDK_GetPath_0200 catch err: " + err);
         done();
       }
     })
@@ -72,16 +72,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetCreateTime001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testGetCreateTime001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300 start====");
           let result: number = testNapi.getCreateTimeSuccess();
-          console.info("====>testGetCreateTime001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>testGetCreateTime001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300 catch err: " + err);
           done();
         }
       })
@@ -94,16 +94,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetModifyTime001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testGetModifyTime001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400 start====");
           let result: number = testNapi.getModifyTimeSuccess();
-          console.info("====>testGetModifyTime001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>testGetModifyTime001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400 catch err: " + err);
           done();
         }
       })
@@ -116,15 +116,15 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetSize001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    it('SUB_DistributedData_RelationalStore_SDK_GetSize_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>testGetSize001 start====");
+        console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0500 start====");
         let result: number = testNapi.getSizeSuccess();
-        console.info("====>testGetSize001 result====", result);
+        console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0500 result====", result);
         expect(result).assertEqual(RDB_OK);
         done();
       } catch (err) {
-        console.error("====>testGetSize001 catch err: " + err);
+        console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0500 catch err: " + err);
         done();
       }
     })
@@ -137,16 +137,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testGetStatus001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_GetSize_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testGetStatus001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 start====");
           let result: number = testNapi.getStatusSuccess();
-          console.info("====>testGetStatus001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>testGetStatus001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 catch err: " + err);
           done();
         }
       })
@@ -159,16 +159,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testDestroyOne001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testDestroyOne001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700 start====");
           let result: number = testNapi.getDestroyOneSuccess();
-          console.info("====>testDestroyOne001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>testDestroyOne001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700 catch err: " + err);
           done();
         }
       })
@@ -181,16 +181,16 @@ export default function ActsRelationalStoreTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testDestroyMultiple001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>testDestroyMultiple001 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 start====");
           let result: number = testNapi.testDestroyMultipleInvalidParam();
-          console.info("====>testDestroyMultiple001 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 result====", result);
           expect(result).assertEqual(RDB_E_INVALID_ARGS);
           done();
         } catch (err) {
-          console.error("====>testDestroyMultiple001 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 catch err: " + err);
           done();
         }
       })
