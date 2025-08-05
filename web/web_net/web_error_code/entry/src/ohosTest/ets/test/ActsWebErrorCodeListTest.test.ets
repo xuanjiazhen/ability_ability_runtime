@@ -1293,7 +1293,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTemporarilyThrottled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTemporarilyThrottled start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_TEMPORARILY_THROTTLED");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_TEMPORARILY_THROTTLED");
         console.info("====>testArkWebErrTemporarilyThrottled result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1313,7 +1313,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebHttpsProxyTunnelResponseRedirect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebHttpsProxyTunnelResponseRedirect start====");
-        let result: number = webCode.webNetErrorDidFailWithError("ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT");
         console.info("====>testArkWebHttpsProxyTunnelResponseRedirect result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1321,6 +1321,28 @@ export default function ActsWebErrorCodeListTest() {
         console.error("====>testArkWebHttpsProxyTunnelResponseRedirect catch err: " + err);
       }
     })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_6600
+     * @tc.name    : testArkWebSSLClientAuthSignatureFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSSLClientAuthSignatureFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSSLClientAuthSignatureFailed start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED");
+        console.info("====>testArkWebSSLClientAuthSignatureFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSSLClientAuthSignatureFailed catch err: " + err);
+      }
+    })
+
+
 
   })
 }
