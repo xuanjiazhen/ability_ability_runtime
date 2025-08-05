@@ -37,13 +37,13 @@ namespace {
     void AudioCapabilityTest::SetUp() {}
     void AudioCapabilityTest::TearDown() {}
 
-    bool CheckSampleRate(int32_t* sampleRateList, uint32_t sampleRateNum, OH_AVRange* sampleRateRanges, 
+    bool CheckSampleRate(int32_t* sampleRateList, uint32_t sampleRateNum, OH_AVRange* sampleRateRanges,
                          uint32_t rangesNum)
     {
         bool inFlags = false;
         for (uint32_t i = 0; i < sampleRateNum; i++) {
             for (uint32_t j = 0; j < rangesNum; j++) {
-                if (sampleRateList[i] >= sampleRateRanges[j].minVal && 
+                if (sampleRateList[i] >= sampleRateRanges[j].minVal &&
                     sampleRateList[i] <= sampleRateRanges[j].maxVal) {
                     inFlags = true;
                     break;
@@ -67,7 +67,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_001, TestSize.Level2)
 {
     OH_AVCapability* capability = OH_AVCodec_GetCapability(OH_AVCODEC_MIMETYPE_AUDIO_AAC, true);
     ASSERT_NE(capability, nullptr);
-    int32_t sampleRateList[] = { 7350, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 
+    int32_t sampleRateList[] = { 7350, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100,
                                  48000, 64000, 88200, 96000 };
     uint32_t sampleRateNum = 13;
     OH_AVRange* sampleRateRanges = nullptr;
@@ -88,7 +88,8 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_002, TestSize.Level2)
 {
     OH_AVCapability* capability = OH_AVCodec_GetCapability(OH_AVCODEC_MIMETYPE_AUDIO_AAC, false);
     ASSERT_NE(capability, nullptr);
-    int32_t sampleRateList[] = { 7350, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 88200, 96000 };
+    int32_t sampleRateList[] = { 7350, 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100,
+								 48000, 64000, 88200, 96000 };
     uint32_t sampleRateNum = 13;
     OH_AVRange* sampleRateRanges = nullptr;
     uint32_t rangesNum = -1;
