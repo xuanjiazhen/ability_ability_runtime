@@ -58,7 +58,7 @@ namespace {
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_001
- * @tc.name      : aac encoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_001
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_001, TestSize.Level2)
@@ -78,7 +78,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_001, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_002
- * @tc.name      : aac decoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_002
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_002, TestSize.Level2)
@@ -98,7 +98,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_002, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_003
- * @tc.name      : flac encoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_003
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_003, TestSize.Level2)
@@ -118,7 +118,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_003, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_004
- * @tc.name      : flac decoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_004
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_004, TestSize.Level2)
@@ -138,7 +138,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_004, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_005
- * @tc.name      : vorbis decoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_005
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_005, TestSize.Level2)
@@ -158,7 +158,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_005, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_006
- * @tc.name      : mp3 encoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_006
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_006, TestSize.Level2)
@@ -178,7 +178,7 @@ HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_006, TestSize.Level2)
 
 /**
  * @tc.number    : AUDIO_CAPABILITY_TEST_007
- * @tc.name      : mp3 decoder test
+ * @tc.name      : AUDIO_CAPABILITY_TEST_007
  * @tc.desc      : function test
  */
 HWTEST_F(AudioCapabilityTest, AUDIO_CAPABILITY_TEST_007, TestSize.Level2)

@@ -22,7 +22,7 @@ ohos_moduletest_suite("ActsCapabilityTest") {
   module_out_path = module_output_path
   sources = [ 
     "./src/cap_test.cpp",
-    "./src/audio_cap_test.cpp"
+    "./src/AudioCapTest.cpp"
   ]
 
   include_dirs = [
