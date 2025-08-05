@@ -16,6 +16,12 @@
 import { describe, expect, it, TestType, Level, Size} from '@ohos/hypium'
 import hiAppEvent from '@ohos.hiviewdfx.hiAppEvent'
 import { BusinessError } from '@ohos.base'
+import fs from '@ohos.file.fs';
+
+interface Processor {
+  name: string;
+  configName: string;
+}
 
 export default function HiAppEventPamTest() {
   describe('HiAppEventPamTest', () => {
@@ -460,7 +466,7 @@ export default function HiAppEventPamTest() {
         done();
       }
     })
-    
+
     /**
      * @tc.number SUB_DFX_DFT_HiAppEvent_SetPam_0900
      * @tc.name testHiAppEventSetPam09
@@ -1098,6 +1104,42 @@ export default function HiAppEventPamTest() {
     })
 
     /**
+    * @tc.number SUB_DFX_DFT_HiAppEvent_Js_2900
+    * @tc.name SUB_DFX_DFT_HiAppEvent_Js_2900
+    * @tc.desc 验证addProcessorFromConfig入参name正常，返回对应代理id
+    * @tc.size MediumTest
+    * @tc.type Function
+    * @tc.level Level3
+    */
+    it('SUB_DFX_DFT_HiAppEvent_Js_2900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
+        console.info('SUB_DFX_DFT_HiAppEvent_Js_2900 start');
+        const targetPath = '/system/etc/hiappevent/processor.json';
+        let fileExists = fs.accessSync(targetPath);
+        if (fileExists) {
+          console.info('file exists,run testcase');
+            let processor: Processor = {
+                name: "ha_app_event",
+                configName: "SDK_OCG"
+            }
+            try {
+                let processorId = hiAppEvent.addProcessor(processor)
+                console.info(`SUB_DFX_DFT_HiAppEvent_Js_2900 > processorId: ${processorId}`)
+                expect(processorId).assertLarger(0)
+                done()
+            }
+            catch (err) {
+                console.error(`SUB_DFX_DFT_HiAppEvent_Js_2900 > error code: ${err.code}, error msg: ${err.message}`);
+                expect(false).assertTrue()
+                done();
+            }
+          }else {
+              console.info('file not exists,skip testcase');
+              expect(true).assertTrue();
+              done();
+            }
+      });
+
+    /**
     * @tc.number SUB_DFX_DFT_HiAppEvent_Js_3000
     * @tc.name SUB_DFX_DFT_HiAppEvent_Js_3000
     * @tc.desc 验证addProcessorFromConfig入参name正常，返回对应代理id
@@ -1107,15 +1149,24 @@ export default function HiAppEventPamTest() {
     */
     it('SUB_DFX_DFT_HiAppEvent_Js_3000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
         console.info('SUB_DFX_DFT_HiAppEvent_Js_3000 start');
-        hiAppEvent.addProcessorFromConfig("ha_app_event").then((processorId) => {
-            console.log('SUB_DFX_DFT_HiAppEvent_Js_3000 Event parameters set successfully.');
-            expect(processorId).assertLarger(0);
-            done()
-        }).catch((error: BusinessError) => {
-            console.error('SUB_DFX_DFT_HiAppEvent_Js_3000 Error:', error.message, 'SUB_DFX_DFT_HiAppEvent_Js_3000 Code:', error.code);
-            expect(error).assertNull();
-            done()
-          })
+        const targetPath = '/system/etc/hiappevent/processor.json';
+        let fileExists = fs.accessSync(targetPath);
+        if (fileExists) {
+              console.info('file exists,run testcase');
+              hiAppEvent.addProcessorFromConfig("ha_app_event").then((processorId) => {
+              console.log('SUB_DFX_DFT_HiAppEvent_Js_3000 Event parameters set successfully.');
+              expect(processorId).assertLarger(0);
+              done()
+          }).catch((error: BusinessError) => {
+              console.error('SUB_DFX_DFT_HiAppEvent_Js_3000 Error:', error.message, 'SUB_DFX_DFT_HiAppEvent_Js_3000 Code:', error.code);
+              expect(error).assertNull();
+              done()
+            })
+          }else {
+              console.info('file not exists,skip testcase');
+              expect(true).assertTrue();
+              done();
+            }
       });
 
     /**
@@ -1127,17 +1178,26 @@ export default function HiAppEventPamTest() {
     * @tc.level Level3
     */
     it('SUB_DFX_DFT_HiAppEvent_Js_3001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function) => {
-    console.info('SUB_DFX_DFT_HiAppEvent_Js_3001 start');
-    hiAppEvent.addProcessorFromConfig("ha_app_event", "SDK_OCG").then((processorId) => {
-        console.log('SUB_DFX_DFT_HiAppEvent_Js_3001 Event parameters set successfully.');
-        expect(processorId).assertLarger(0);
-        hiAppEvent.removeProcessor(processorId);
-        done()
-    }).catch((error: BusinessError) => {
-        console.error('SUB_DFX_DFT_HiAppEvent_Js_3001 Error:', error.message, 'SUB_DFX_DFT_HiAppEvent_Js_3001 Code:', error.code);
-        expect(error).assertNull();
-        done()
-        })
+        console.info('SUB_DFX_DFT_HiAppEvent_Js_3001 start');
+        const targetPath = '/system/etc/hiappevent/processor.json';
+        let fileExists = fs.accessSync(targetPath);
+        if (fileExists) {
+              console.info('file exists,run testcase');
+              hiAppEvent.addProcessorFromConfig("ha_app_event", "SDK_OCG").then((processorId) => {
+                  console.log('SUB_DFX_DFT_HiAppEvent_Js_3001 Event parameters set successfully.');
+                  expect(processorId).assertLarger(0);
+                  hiAppEvent.removeProcessor(processorId);
+                  done()
+              }).catch((error: BusinessError) => {
+                  console.error('SUB_DFX_DFT_HiAppEvent_Js_3001 Error:', error.message, 'SUB_DFX_DFT_HiAppEvent_Js_3001 Code:', error.code);
+                  expect(error).assertNull();
+                  done()
+              })
+          }else {
+          console.info('file not exists,skip testcase');
+          expect(true).assertTrue();
+          done();
+        }
     });
 
     /**

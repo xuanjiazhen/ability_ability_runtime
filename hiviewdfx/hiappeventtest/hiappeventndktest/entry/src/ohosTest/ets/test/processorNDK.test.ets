@@ -15,6 +15,8 @@
 
 import { describe, it, expect, TestType, Level, Size } from '@ohos/hypium';
 import hiappevent from 'libentry.so';
+import fs from '@ohos.file.fs';
+import { BusinessError } from '@ohos.base'
 
 export default function processorNDKTest() {
   describe('processorNDKTest', () => {
@@ -31,7 +33,7 @@ export default function processorNDKTest() {
       const appId = "com.example.app";
       const routeInfo = "https://hiappevents.com/test";
       const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-      expect(result).assertEqual(0); 
+      expect(result).assertEqual(0);
       done();
     })
     /**
@@ -47,7 +49,7 @@ export default function processorNDKTest() {
       const appId = "com.example.app";
       const routeInfo = "https://hiappevents.com/test";
       const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-      expect(result).assertEqual(-7); 
+      expect(result).assertEqual(-7);
       done();
     })
       /**
@@ -63,7 +65,7 @@ export default function processorNDKTest() {
         const appId = "";
         const routeInfo = "https://hiappevents.com/test";
         const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
     })
     /**
@@ -79,7 +81,7 @@ export default function processorNDKTest() {
         const appId = "com.example.app";
         const routeInfo = "";
         const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
     })
     /**
@@ -95,7 +97,7 @@ export default function processorNDKTest() {
         const appId = "com.example.app";
         const routeInfo = "https://hiappevents.com/test";
         const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
     })
     /**
@@ -111,7 +113,7 @@ export default function processorNDKTest() {
         const appId = "com.example.app";
         const routeInfo = "a".repeat(9000);
         const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-        expect(result).assertEqual(4); 
+        expect(result).assertEqual(4);
         done();
       })
 
@@ -128,7 +130,7 @@ export default function processorNDKTest() {
         const appId = "a".repeat(9000);
         const routeInfo = "https://hiappevents.com/test";
         const result = hiappevent.SetReportRoute(processor, appId, routeInfo);
-        expect(result).assertEqual(4); 
+        expect(result).assertEqual(4);
         done();
       })
 
@@ -143,7 +145,7 @@ export default function processorNDKTest() {
       it('SUB_DFX_DFT_HiAppEvent_Processor_Code_0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)  => {
         const processor = hiappevent.CreateProcessor("test_processor");
         const result = hiappevent.SetReportPolicy(processor, 10, 5, true, false)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -158,7 +160,7 @@ export default function processorNDKTest() {
       it('SUB_DFX_DFT_HiAppEvent_Processor_Code_0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)  => {
         const processor = hiappevent.CreateProcessor("test_processor");
         const result = hiappevent.SetReportPolicy(processor, -10, 0, false, true)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -173,7 +175,7 @@ export default function processorNDKTest() {
       it('SUB_DFX_DFT_HiAppEvent_Processor_Code_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)  => {
         const processor = hiappevent.CreateProcessor("test_processor");
         const result = hiappevent.SetReportPolicy(processor, 10000000, -10, false, false)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -203,7 +205,7 @@ export default function processorNDKTest() {
       it('SUB_DFX_DFT_HiAppEvent_Processor_Code_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)  => {
         const processor = hiappevent.CreateProcessor("123");
         const result = hiappevent.SetReportPolicy(processor, 0, 10000, undefined, true)
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
       })
 
@@ -221,7 +223,7 @@ export default function processorNDKTest() {
         const name = "ADDRESS_SANITIZER";
         const isRealTime = true;
         const result = hiappevent.SetReportEvent(processor,domain,name,isRealTime)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -239,7 +241,7 @@ export default function processorNDKTest() {
         const name = "test_event";
         const isRealTime = true;
         const result = hiappevent.SetReportEvent(processor,domain,name,isRealTime)
-        expect(result).assertEqual(-9); 
+        expect(result).assertEqual(-9);
         done();
       })
 
@@ -257,7 +259,7 @@ export default function processorNDKTest() {
         const name = "ADDRESS_SANITIZER";
         const isRealTime = true;
         const result = hiappevent.SetReportEvent(processor,domain,name,isRealTime)
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
       })
 
@@ -293,7 +295,7 @@ export default function processorNDKTest() {
         const name = "";
         const isRealTime = true;
         const result = hiappevent.SetReportEvent(processor,domain,name,isRealTime)
-        expect(result).assertEqual(-9); 
+        expect(result).assertEqual(-9);
         done();
       })
 
@@ -311,7 +313,7 @@ export default function processorNDKTest() {
         const name = "ADDRESS_SANITIZER";
         const isRealTime = false;
         const result = hiappevent.SetReportEvent(processor,domain,name,isRealTime)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -328,7 +330,7 @@ export default function processorNDKTest() {
         const key = "test";
         const value = "test";
         const result = hiappevent.SetCustomConfig(processor,key,value)
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -345,7 +347,7 @@ export default function processorNDKTest() {
         const key = "test";
         const value = "test";
         const result = hiappevent.SetCustomConfig(processor,key,value)
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
       })
 
@@ -362,7 +364,7 @@ export default function processorNDKTest() {
         const key = "t".repeat(33);
         const value = "test";
         const result = hiappevent.SetCustomConfig(processor,key,value)
-        expect(result).assertEqual(4); 
+        expect(result).assertEqual(4);
         done();
       })
 
@@ -379,7 +381,7 @@ export default function processorNDKTest() {
         const key = "123";
         const value = "t".repeat(1025);
         const result = hiappevent.SetCustomConfig(processor,key,value)
-        expect(result).assertEqual(4); 
+        expect(result).assertEqual(4);
         done();
       })
     /**
@@ -394,7 +396,7 @@ export default function processorNDKTest() {
         const processor = hiappevent.CreateProcessor("testprocessor");
         const configId = 123;
         const result = hiappevent.SetConfigId(processor,configId);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
     /**
@@ -409,7 +411,7 @@ export default function processorNDKTest() {
         const processor = hiappevent.CreateProcessor("/test");
         const configId = 0;
         const result = hiappevent.SetConfigId(processor,configId);
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
       })
 
@@ -425,7 +427,7 @@ export default function processorNDKTest() {
         const processor = hiappevent.CreateProcessor("testprocessorr");
         const configId = -10;
         const result = hiappevent.SetConfigId(processor,configId);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -442,7 +444,7 @@ export default function processorNDKTest() {
         const userIdNames= ['testprocessor','processor2','processor3'];
         const size = 1;
         const result = hiappevent.SetReportUserId(processor,userIdNames,size);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -476,7 +478,7 @@ export default function processorNDKTest() {
         const userIdNames= ['testprocessorr'];
         const size = 1;
         const result = hiappevent.SetReportUserId(processor,userIdNames,size);
-        expect(result).assertEqual(-7); 
+        expect(result).assertEqual(-7);
         done();
       })
 
@@ -493,7 +495,7 @@ export default function processorNDKTest() {
         const userPropertyNames= ['testprocessor','processor2','processor3'];
         const size = 1;
         const result = hiappevent.SetReportUserProperty(processor,userPropertyNames,size);
-        expect(result).assertEqual(0); 
+        expect(result).assertEqual(0);
         done();
       })
 
@@ -510,7 +512,7 @@ export default function processorNDKTest() {
       const userPropertyNames= ['testprocessor'];
       const size = 2;
       const result = hiappevent.SetReportUserProperty(processor,userPropertyNames,size);
-      expect(result).assertEqual(4); 
+      expect(result).assertEqual(4);
       done();
     })
 
@@ -573,7 +575,7 @@ export default function processorNDKTest() {
       const processor = hiappevent.CreateProcessor("test");
       const processorID = hiappevent.AddProcessor(processor);
       const result = hiappevent.RemoveProcessor(processorID)
-      expect(result).assertEqual(-8); 
+      expect(result).assertEqual(-8);
       done();
     })
 
@@ -616,11 +618,21 @@ export default function processorNDKTest() {
      * @tc.level Level3
      */
     it('SUB_DFX_DFT_HiAppEvent_Processor_Code_4000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)  => {
-      const processor = hiappevent.CreateProcessor("test_processor");
-      const configName= "SDK_OCG";
-      const result = hiappevent.SetConfigName(processor, configName);
-      expect(result).assertEqual(0);
-      done();
+      const targetPath = '/system/etc/hiappevent/processor.json';
+      let fileExists = fs.accessSync(targetPath);
+      if (fileExists) {
+        console.info('file exists,run testcase');
+        const processor = hiappevent.CreateProcessor("test_processor");
+        const configName= "SDK_OCG";
+        const result = hiappevent.SetConfigName(processor, configName);
+        expect(result).assertEqual(0);
+        done();
+      }
+      else {
+        console.info('file not exists,skip testcase');
+        expect(true).assertTrue();
+        done();
+      }
     })
 
     /**
