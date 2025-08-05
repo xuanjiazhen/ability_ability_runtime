@@ -30,6 +30,7 @@ group("testfwk") {
       "uitest_errorcode_static:ActsUiTestErrorCodeStaticTest",
       "uitest_quarantine:ActsUiTestQuarTest",
       "uitest_quarantine_static:ActsUiTestQuarStaticTest",
+      "perftest:ActsPerfTestTest",
     ]
   }
 }
