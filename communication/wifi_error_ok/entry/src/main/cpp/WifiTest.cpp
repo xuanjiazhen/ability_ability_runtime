@@ -20,7 +20,7 @@ static napi_value GetWifiStatus(napi_env env, napi_callback_info info)
 {
     bool wifiStatus = false;
     int32_t result = OH_Wifi_IsWifiEnabled(&wifiStatus);
-    int32_t confirmResult;
+    int32_t confirmResult = -1;
     if (result == WIFI_SUCCESS) {
         confirmResult = 0;
     }
