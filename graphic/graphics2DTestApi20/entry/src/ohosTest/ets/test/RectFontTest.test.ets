@@ -106,9 +106,9 @@ export default function RectFontTest() {
       })
 
     /**
-     * @tc.number  : OH_Drawing_RectDestroyArray_0100,
-     * @tc.name    : OH_Drawing_RectDestroyArray_0100
-     * @tc.desc    : test OH_Drawing_RectDestroyArray success Scene
+     * @tc.number  : SUB_OH_Drawing_RectDestroyArray_0100,
+     * @tc.name    : SUB_OH_Drawing_RectDestroyArray_0100
+     * @tc.desc    : test SUB_OH_Drawing_RectDestroyArray success Scene
      * @tc.level   : Level0
      * @tc.size    : MediumTest
      * @tc.type    : Function
@@ -116,21 +116,21 @@ export default function RectFontTest() {
     it('SUB_OH_Drawing_RectDestroyArray_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
       async (done: Function) => {
         try {
-          console.info("====>OH_Drawing_RectDestroyArray_0100 start====");
+          console.info("====>SUB_OH_Drawing_RectDestroyArray_0100 start====");
           let result: number = libGraphics2DApi20.rectDestroyArraySuccess();
-          console.info("====>OH_Drawing_RectDestroyArray_0100 result====", result);
+          console.info("====>SUB_OH_Drawing_RectDestroyArray_0100 result====", result);
           expect(result).assertEqual(1);
           done();
         } catch (err) {
-          console.error("====>OH_Drawing_RectDestroyArray_0100 catch err: " + err);
+          console.error("====>SUB_OH_Drawing_RectDestroyArray_0100 catch err: " + err);
           done();
         }
       })
 
     /**
-     * @tc.number  : OH_Drawing_RectDestroyArray_0200,
-     * @tc.name    : OH_Drawing_RectDestroyArray_0200
-     * @tc.desc    : test OH_Drawing_RectDestroyArray fail Scene
+     * @tc.number  : SUB_OH_Drawing_RectDestroyArray_0200,
+     * @tc.name    : SUB_OH_Drawing_RectDestroyArray_0200
+     * @tc.desc    : test SUB_OH_Drawing_RectDestroyArray fail Scene
      * @tc.level   : Level0
      * @tc.size    : MediumTest
      * @tc.type    : Function
@@ -138,13 +138,13 @@ export default function RectFontTest() {
     it('SUB_OH_Drawing_RectDestroyArray_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
       async (done: Function) => {
         try {
-          console.info("====>OH_Drawing_RectDestroyArray_0200 start====");
+          console.info("====>SUB_OH_Drawing_RectDestroyArray_0200 start====");
           let result: number = libGraphics2DApi20.rectDestroyArrayFail();
-          console.info("====>OH_Drawing_RectDestroyArray_0200 result====", result);
+          console.info("====>SUB_OH_Drawing_RectDestroyArray_0200 result====", result);
           expect(result).assertEqual(1);
           done();
         } catch (err) {
-          console.error("====>OH_Drawing_RectDestroyArray_0200 catch err: " + err);
+          console.error("====>SUB_OH_Drawing_RectDestroyArray_0200 catch err: " + err);
           done();
         }
       })

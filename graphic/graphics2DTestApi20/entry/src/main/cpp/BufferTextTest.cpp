@@ -99,7 +99,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
         .width = 0x100,
         .height = 0x100,
         .format = 12,
-        .usage = (1ULL << 0) | (1ULL << 1) |  (1ULL << 3) | (1ULL << 4) | (1ULL << 5) |  (1ULL << 6)|(1ULL << 7) | (1ULL << 8) |  (1ULL << 9),
+        .usage = (1ULL << 0) | (1ULL << 1) | (1ULL << 3) | (1ULL << 4) | (1ULL << 5) | (1ULL << 6)|(1ULL << 7),
     };
     OH_NativeBuffer* buffer = OH_NativeBuffer_Alloc(&config);
     int32_t size = 10;

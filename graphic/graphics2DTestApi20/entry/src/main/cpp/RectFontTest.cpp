@@ -22,29 +22,31 @@
 #include <native_drawing/drawing_font.h>
 #include <native_drawing/drawing_brush.h>
 #include <native_drawing/drawing_pen.h>
-
 void addRectTest(std::vector<napi_property_descriptor>& descData)
-{    
+{
     descData.push_back({"rectGetArraySizeSuccess", nullptr, OH_Drawing_RectGetArraySizeSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"rectGetArraySizeFail", nullptr, OH_Drawing_RectGetArraySizeFail,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"rectGetArrayElementSuccess", nullptr, OH_Drawing_RectGetArrayElementSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"rectGetArrayElementFail", nullptr, OH_Drawing_RectGetArrayElementFail,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"rectDestroyArraySuccess", nullptr, OH_Drawing_RectDestroyArraySuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"rectDestroyArrayFail", nullptr, OH_Drawing_RectDestroyArrayFail,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"roundRectOffsetSuccess", nullptr, OH_Drawing_RoundRectOffsetSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"roundRectOffsetFail", nullptr, OH_Drawing_RoundRectOffsetFail,
         nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"fontMeasureSingleCharacterWithFeaturesSuccess", nullptr, OH_Drawing_FontMeasureSingleCharacterWithFeaturesSuccess,
-        nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"fontMeasureSingleCharacterWithFeaturesFail", nullptr, OH_Drawing_FontMeasureSingleCharacterWithFeaturesFail,
-        nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+void addFontTest(std::vector<napi_property_descriptor>& descData)
+{
+    descData.push_back({"fontMeasureSingleCharacterWithFeaturesSuccess", nullptr,
+        OH_Drawing_FontMeasureSingleCharacterWithFeaturesSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"fontMeasureSingleCharacterWithFeaturesFail", nullptr,
+        OH_Drawing_FontMeasureSingleCharacterWithFeaturesFail, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fontMeasureTextSuccess", nullptr, OH_Drawing_FontMeasureTextSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fontMeasureTextFail", nullptr, OH_Drawing_FontMeasureTextFail,
@@ -61,7 +63,6 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fontGetSpacingFail", nullptr, OH_Drawing_FontGetSpacingFail,
         nullptr, nullptr, nullptr, napi_default, nullptr});
-// OH_Drawing_FontGetBounds
     descData.push_back({"fontGetBoundsFail", nullptr, OH_Drawing_FontGetBoundsFail,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fontGetPathForGlyphSuccess", nullptr, OH_Drawing_FontGetPathForGlyphSuccess,
@@ -87,18 +88,19 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
  napi_value OH_Drawing_RectGetArraySizeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Array* arr = OH_Drawing_RectCreateArray(10);
-    size_t pSize = 0;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArraySize(arr, &pSize);
-    napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS && pSize == 10, &result);
+    size_t size = 10;
+    OH_Drawing_Array* arr = OH_Drawing_RectCreateArray(size);
+    size_t arraySize = 0;
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArraySize(arr, &arraySize);
+    napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS && arraySize == size, &result);
     
     return result;
 } 
  napi_value OH_Drawing_RectGetArraySizeFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    size_t pSize = 0;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArraySize(nullptr, &pSize);
+    size_t arraySize = 0;
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArraySize(nullptr, &arraySize);
     napi_create_int32(env,  errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 } 
@@ -111,13 +113,18 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
     OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArrayElement(rectArray, index, &prect);
     napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS, &result);
     return result;
-} 
+}
  napi_value OH_Drawing_RectGetArrayElementFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(10);
+    size_t size = 10;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(size);
     size_t index = 0;
-    OH_Drawing_Rect* prect = OH_Drawing_RectCreate(10,10,10,10);
+    float left = 10;
+    float top = 10;
+    float right = 10;
+    float bottom = 10;
+    OH_Drawing_Rect* prect = OH_Drawing_RectCreate(left, top, right, bottom);
     OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArrayElement(nullptr, index, &prect);
     napi_create_int32(env,  errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
@@ -126,7 +133,8 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
  napi_value OH_Drawing_RectDestroyArraySuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(10);
+    size_t size = 10;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(size);
     OH_Drawing_ErrorCode errCode = OH_Drawing_RectDestroyArray(rectArray);
     napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS, &result);
     
@@ -146,16 +154,26 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
 napi_value OH_Drawing_RoundRectOffsetSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10,10,10,10);
-    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 10, 10);
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RoundRectOffset(roundRect, 10, 10);
+    float left = 10;
+    float top = 10;
+    float right = 10;
+    float bottom = 10;
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
+    float xRad = 10;
+    float yRad = 10;
+    OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, xRad, yRad);
+    float dx = 10;
+    float dy = 10;
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RoundRectOffset(roundRect, dx, dy);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
 napi_value OH_Drawing_RoundRectOffsetFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_RoundRectOffset(nullptr, 10, 10);
+    float dx = 10;
+    float dy = 10;
+    OH_Drawing_ErrorCode errCode = OH_Drawing_RoundRectOffset(nullptr, dx, dy);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
@@ -194,7 +212,8 @@ napi_value OH_Drawing_FontMeasureTextSuccess(napi_env env, napi_callback_info in
     float bottom = 10;
     OH_Drawing_Rect* bounds = OH_Drawing_RectCreate(left, top, right, bottom);
     float textWidth = 10;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureText(font, str, byteLength, TEXT_ENCODING_UTF8, bounds, &textWidth);
+    OH_Drawing_ErrorCode errCode = OH_DRAWING_SUCCESS;
+    errCode = OH_Drawing_FontMeasureText(font, str, byteLength, TEXT_ENCODING_UTF8, bounds, &textWidth);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
@@ -203,14 +222,14 @@ napi_value OH_Drawing_FontMeasureTextFail(napi_env env, napi_callback_info info)
     napi_value result;
     OH_Drawing_Font* font = nullptr;
     const char* str = "HelloWorld";
-    size_t byteLength = strlen(str);
+    size_t byteLth = strlen(str);
     float left = 10;
     float top = 10;
     float right = 10;
     float bottom = 10;
     OH_Drawing_Rect* bounds = OH_Drawing_RectCreate(left, top, right, bottom);
-    float textWidth = 10;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureText(font, str, byteLength, TEXT_ENCODING_UTF8, bounds, &textWidth);
+    float tWidth = 10;
+    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureText(font, str, byteLth, TEXT_ENCODING_UTF8, bounds, &tWidth);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
@@ -258,8 +277,8 @@ napi_value OH_Drawing_FontGetPosSuccess(napi_env env, napi_callback_info info)
     int y = 10;
     OH_Drawing_Point* origin = OH_Drawing_PointCreate(x, y);
     OH_Drawing_Point2D* points = new OH_Drawing_Point2D;
-    points->x = 10;
-    points->y = 10;
+    points->x = x;
+    points->y = y;
     OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetPos(font, &glyphs, count, origin, points);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
@@ -274,8 +293,8 @@ napi_value OH_Drawing_FontGetPosFail(napi_env env, napi_callback_info info)
     int y = 10;
     OH_Drawing_Point* origin = OH_Drawing_PointCreate(x, y);
     OH_Drawing_Point2D* points = new OH_Drawing_Point2D;
-    points->x = 10;
-    points->y = 10;
+    points->x = x;
+    points->y = y;
     OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetPos(nullptr, &glyphs, count, origin, points);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
@@ -286,7 +305,8 @@ napi_value OH_Drawing_FontGetSpacingSuccess(napi_env env, napi_callback_info inf
     napi_value result;
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     float spacing = 0;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetSpacing(font, &spacing);    napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
+    OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetSpacing(font, &spacing);    
+    napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
 
@@ -299,7 +319,7 @@ napi_value OH_Drawing_FontGetSpacingFail(napi_env env, napi_callback_info info)
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
-// 
+
 napi_value OH_Drawing_FontGetBoundsFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -311,20 +331,6 @@ napi_value OH_Drawing_FontGetBoundsFail(napi_env env, napi_callback_info info)
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
-/*
-napi_value OH_Drawing_ImageFilterCreateBlurWithCropFail(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    OH_Drawing_Font* font = nullptr;
-    uint16_t* glyphs = nullptr;
-    uint32_t count = 10;
-    OH_Drawing_Array* bounds = nullptr;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_ImageFilterCreateBlurWithCrop(font, glyphs, count, bounds);
-    napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
-    return result;
-}*/
-
-
 napi_value OH_Drawing_FontGetPathForGlyphSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -345,7 +351,6 @@ napi_value OH_Drawing_FontGetPathForGlyphFail(napi_env env, napi_callback_info i
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
-
 napi_value OH_Drawing_FontGetTextPathSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -386,7 +391,7 @@ napi_value OH_Drawing_FontFeaturesAddFeatureSuccess(napi_env env, napi_callback_
 {
     napi_value result;
     OH_Drawing_FontFeatures* fontFeature = OH_Drawing_FontFeaturesCreate();
-    const char* name ="feature";
+    const char* name = "feature";
     float value = 10;
     OH_Drawing_ErrorCode errCode = OH_Drawing_FontFeaturesAddFeature(fontFeature, name, value);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
@@ -396,7 +401,7 @@ napi_value OH_Drawing_FontFeaturesAddFeatureSuccess(napi_env env, napi_callback_
 napi_value OH_Drawing_FontFeaturesAddFeatureFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    const char* name ="feature";
+    const char* name = "feature";
     float value = 10;
     OH_Drawing_ErrorCode errCode = OH_Drawing_FontFeaturesAddFeature(nullptr, name, value);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);

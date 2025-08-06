@@ -38,7 +38,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"releaseNativeWindowBufferFail", nullptr, OH_NativeImage_ReleaseNativeWindowBufferFail,
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"setDropBufferModeSuccess", nullptr, OH_NativeImage_SetDropBufferModeSuccess,
-            nullptr, nullptr, nullptr, napi_default, nullptr});
+                       nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
  napi_value OH_Filter_CreateEffectFail(napi_env env, napi_callback_info info)
@@ -62,11 +62,12 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     OH_Filter* filter = nullptr;
-    EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, 10, REPEAT);
-    OH_Filter_Blur(filter, 10);
+    float radius = 10;
+    EffectErrorCode errCode = OH_Filter_BlurWithTileMode(filter, radius, REPEAT);
+    OH_Filter_Blur(filter, radius);
     napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
-} 
+}
 
  napi_value OH_Filter_GetEffectPixelMapFail(napi_env env, napi_callback_info info)
 {
@@ -74,7 +75,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     EffectErrorCode errCode = OH_Filter_GetEffectPixelMap(nullptr, nullptr);
     napi_create_int32(env,  errCode == EFFECT_BAD_PARAMETER, &result);
     return result;
-} 
+}
 
  napi_value OH_NativeImage_GetTransformMatrixV2Success(napi_env env, napi_callback_info info)
 {
@@ -90,7 +91,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     OH_NativeImage* image = OH_NativeImage_Create(0, 0);
-    OHNativeWindowBuffer* nativeWindowBuffer = nullptr; 
+    OHNativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = 0;
     int32_t  errorCode = OH_NativeImage_AcquireNativeWindowBuffer(image, &nativeWindowBuffer, &fenceFd);
     napi_create_int32(env,  errorCode == NATIVE_ERROR_NO_BUFFER, &result);
@@ -113,15 +114,13 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     return result;
 }
 
- napi_value OH_NativeImage_SetDropBufferModeSuccess (napi_env env, napi_callback_info info)
+ napi_value OH_NativeImage_SetDropBufferModeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeImage* image = OH_NativeImage_Create(0, 0);
-    OHNativeWindowBuffer* nativeWindowBuffer = nullptr; 
+    OHNativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = 0;
     int32_t  errorCode = OH_NativeImage_SetDropBufferMode(image, true);
     napi_create_int32(env,  errorCode == NATIVE_ERROR_OK, &result);
     return result;
 }
-
-

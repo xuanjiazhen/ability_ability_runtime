@@ -26,6 +26,7 @@ static napi_value Init(napi_env env, napi_value exports)
     std::vector<napi_property_descriptor> descData;
     addCanvasPenTest(descData);
     addRectTest(descData);
+    addFontTest(descData);
     addBrushPointRecordTest(descData);
     addEffectTest(descData);
     addBufferTextTest(descData);

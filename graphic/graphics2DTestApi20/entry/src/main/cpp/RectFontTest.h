@@ -21,6 +21,7 @@
 #include <napi/native_api.h>
 #include <vector>
 void addRectTest(std::vector<napi_property_descriptor>& descData);
+void addFontTest(std::vector<napi_property_descriptor>& descData);
 napi_value OH_Drawing_RectGetArraySizeSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_RectGetArraySizeFail(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_RectGetArrayElementSuccess(napi_env env, napi_callback_info info);
