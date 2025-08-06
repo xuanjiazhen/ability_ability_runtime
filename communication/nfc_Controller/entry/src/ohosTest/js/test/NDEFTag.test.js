@@ -475,7 +475,7 @@ export default function nfcNDEFTagTest() {
                     if (error.code == 201) {
                         console.info('[NFC_test]NdefTag11 NdefTag error' + error)
                         expect(true).assertTrue();
-                    } else if (error.code == 201) {
+                    } else if (error.code == 3100201) {
                         console.info('[NFC_test]NdefTag11 NdefTag error' + error)
                         expect(true).assertTrue();
                     } else {
