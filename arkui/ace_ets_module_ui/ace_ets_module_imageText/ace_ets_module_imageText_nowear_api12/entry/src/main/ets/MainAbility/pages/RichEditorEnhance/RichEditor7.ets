@@ -60,7 +60,7 @@ struct RichEditor7 {
 
       Button('x').onClick(() => {
         this.controller.stopEditing()
-      }).id('StopEditing').margin({bottom:10})
+      }).id('StopEditing').margin({bottom:30})
     }.backgroundColor(Color.White)
   }
 
