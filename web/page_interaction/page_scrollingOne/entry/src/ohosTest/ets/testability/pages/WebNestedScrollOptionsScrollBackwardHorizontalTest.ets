@@ -85,7 +85,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -111,7 +111,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -137,7 +137,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -161,7 +161,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -185,7 +185,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -211,7 +211,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -237,7 +237,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -261,7 +261,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -285,7 +285,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
@@ -311,7 +311,7 @@ struct WebNestedScrollOptionsScrollBackwardHorizontalTest {
                 let driver = Driver.create();
                 this.userAgentPC = this.controller.getUserAgent();
                 if ((this.userAgentPC).includes("PC")) {
-                  await driver.swipe(X - 100, Y, X + 60, Y);
+                  await driver.swipe(X - 60, Y, X + 60, Y);
                 } else {
                   await driver.swipe(X - 60, Y, X + 140, Y);
                 }
