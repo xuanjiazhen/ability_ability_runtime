@@ -51,14 +51,28 @@ public:
     void OnConfigurationUpdated(const AppExecFwk::Configuration &configuration) override;
 
     void OnMemoryLevel(int32_t level) override;
+
+    bool OnPrepareTerminate(
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
+        bool &isAsync) const override;
 private:
     bool CallObjectMethod(bool withResult, const char *name, const char *signature, ...) const;
+
+    ani_object CallObjectMethod(const char *name, const char *signature, ...) const;
 
     std::shared_ptr<AppExecFwk::EtsDelegatorAbilityStageProperty> CreateStageProperty() const;
 
     std::string GetHapModuleProp(const std::string &propName) const;
 
     void SetEtsAbilityStage(const std::shared_ptr<Context> &context);
+
+    bool CallOnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>
+         *callbackInfo) const;
+
+    bool CallOnPrepareTerminateAsync(AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult>
+        *callbackInfo, bool &isAsync) const;
+
+    bool BindNativeMethods();
 
     ETSRuntime& etsRuntime_;
     std::unique_ptr<AppExecFwk::ETSNativeReference> etsAbilityStageObj_;
