@@ -283,8 +283,8 @@ static napi_value GetWantInt32ParamNoError(napi_env env, napi_callback_info info
     element.bundleName = const_cast<char *>("com.acts.ActsCapabilityStartSelfUIAbilityTest");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    const int KEY_INT_VALUE = 32;
-    OH_AbilityBase_SetWantInt32Param(want, "keyInt", KEY_INT_VALUE);
+    int value = 32;
+    OH_AbilityBase_SetWantInt32Param(want, "keyInt", value);
     int32_t outElement = 0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantInt32Param(want, "keyInt", &outElement);
     napi_value napiRet;
@@ -570,7 +570,7 @@ static napi_value GetStartOptionsStartVisibilityNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_SHOW_UPON_START;
     OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartVisibility(options,visibility);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartVisibility(options, visibility);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
