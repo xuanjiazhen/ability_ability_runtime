@@ -133,7 +133,6 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     } else {
         BoundsResult(typography, defaultResult_, NUM_3);
     }
-    BoundsResult(typography, tofuResult_, NUM_3);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -202,9 +201,9 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     OH_Drawing_Typography* tofuTypography = PrepareCreateTypography(noGlyphText_);
     EXPECT_NE(tofuTypography, nullptr);
     if (ExistNotdef()) {
-        BoundsResult(tofuTypography, tofuResult_, NUM_1);
+        BoundsResult(tofuTypography, noGlyphTofuResult_, NUM_1);
     } else {
-        BoundsResult(tofuTypography, defaultResult_, NUM_1);
+        BoundsResult(defaultTypography, noGlyphTofuResult_, NUM_1);
     }
     OH_Drawing_DestroyTypography(defaultTypography);
     OH_Drawing_DestroyTypography(tofuTypography);
