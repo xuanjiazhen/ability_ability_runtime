@@ -27,14 +27,6 @@ static void PrinterChangeCallback(Print_PrinterEvent event, const Print_PrinterI
 static constexpr size_t ARG_SIZE_ONE = 1;
 static constexpr int32_t ERROR_COMMON = -1;
 
-/**
- * @tc.number  : SUB_Oh_Print_0100
- * @tc.name    : SUB_Oh_Print_0100
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value OHPrintNoError(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -43,14 +35,6 @@ static napi_value OHPrintNoError(napi_env env, napi_callback_info info)
     return result;
 }
 
-/**
- * @tc.number  : SUB_Oh_Print_0300
- * @tc.name    : SUB_Oh_Print_0300
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -61,14 +45,6 @@ static napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
     return result;
 }
 
-/**
- * @tc.number  : SUB_Oh_Print_0400
- * @tc.name    : SUB_Oh_Print_0400
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -80,14 +56,6 @@ static napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
     return result;
 }
 
-/**
- * @tc.number  : SUB_Oh_Print_0500
- * @tc.name    : SUB_Oh_Print_0500
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -96,14 +64,6 @@ static napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
     return result;
 }
 
-/**
- * @tc.number  : SUB_Oh_Print_0600
- * @tc.name    : SUB_Oh_Print_0600
- * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
- * @tc.level   : Level0
- * @tc.size    : MediumTest
- * @tc.type    : Function
- */
 static napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
