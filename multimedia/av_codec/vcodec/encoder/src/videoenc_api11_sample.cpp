@@ -1337,17 +1337,14 @@ int32_t VEncAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
         buffer = OH_VideoEncoder_GetOutputBuffer(venc_, index + HUNDRED);
         if (buffer == nullptr) {
             abnormalIndexValue = true;
-            cout << "OH_VideoEncoder_GetOutputBuffer noexist buffer nullptr" << endl;
         }
     }
     if (outFrames == 0 && getOutputBufferIndexRepeated) {
         last_index = index;
     } else if (outFrames == 1 && getOutputBufferIndexRepeated) {
-        cout << "getOutputBufferIndexRepeated last_index: " << last_index << "index" << index << endl;
         buffer = OH_VideoEncoder_GetOutputBuffer(venc_, last_index);
         if (buffer == nullptr) {
             abnormalIndexValue = true;
-            cout << "OH_VideoEncoder_GetOutputBuffer repeat buffer nullptr" << endl;
         }
     }
     return AV_ERR_OK;
