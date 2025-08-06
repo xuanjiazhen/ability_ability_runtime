@@ -115,7 +115,7 @@ struct IndexPage {
     { title: 'AccessibilityRoleTypeTest', uri: 'pages/ArkUI/AccessibilityRoleTypeTest' },
     { title: 'StylusPen', uri: 'pages/ArkUI/StylusPen' },
     { title: 'AccessibilityFocusDrawLevel', uri: 'pages/ArkUI/AccessibilityFocusDrawLevel' },
-	{ title: 'EmbeddedComponentInstanceTest', uri: 'pages/ArkUI/EmbeddedComponentInstanceTest' },
+	  { title: 'EmbeddedComponentInstanceTest', uri: 'pages/ArkUI/EmbeddedComponentInstanceTest' },
     { title: 'AccessibilityNextFocusIdPage', uri: 'pages/ArkUI/AccessibilityNextFocusIdPage' },
     { title: 'AccessibilityDefaultFocusPage', uri: 'pages/ArkUI/AccessibilityDefaultFocusPage' },
     { title: 'AccessibilityScrollTriggerablePage', uri: 'pages/ArkUI/AccessibilityScrollTriggerablePage' },
@@ -136,6 +136,8 @@ struct IndexPage {
     { title: 'fingerInfos', uri: 'pages/ArkUI/fingerInfos' },
     { title: 'bindPopupTest', uri: 'pages/ArkUI/bindPopupTest' },
     { title: 'AccessibilityHoverEvent', uri: 'pages/ArkUI/AccessibilityHoverEvent' },
+    { title: 'CapiDragAction', uri: 'pages/ArkUI/CapiDragAction' },
+    { title: 'CapiDragEvent', uri: 'pages/ArkUI/CapiDragEvent' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];
