@@ -29,12 +29,12 @@ static napi_value DestroyChildProcessConfigsParamInvalid(napi_env env, napi_call
     Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
     if (ret == NCP_ERR_INVALID_PARAM)
-    {
+        {
         // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }
+        }
     return nullptr;
 }
 
@@ -147,11 +147,11 @@ static napi_value UnregisterNativeChildProcessExitCallbackNotExist(napi_env env,
     auto data = reinterpret_cast<OH_Ability_OnNativeChildProcessExit>(errPtr);
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(data);
     if(ret==NCP_ERR_CALLBACK_NOT_EXIST)
-    {
+        {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
-        return napiRet; 
-    }
+        return napiRet;
+        }
     return nullptr;
 }
 
@@ -164,11 +164,11 @@ static napi_value DestroyWantNoError(napi_env env, napi_callback_info info)
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_DestroyWant(want);
     if(ret == ABILITY_BASE_ERROR_CODE_NO_ERROR)
-    {
+        {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-    }
+        }
     return nullptr;
 }
 
@@ -286,7 +286,7 @@ static napi_value GetWantInt32ParamNoError(napi_env env, napi_callback_info info
     element.bundleName = const_cast<char *>("com.acts.ActsCapabilityStartSelfUIAbilityTest");
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
-    OH_AbilityBase_SetWantInt32Param(want,"keyInt",32);
+    OH_AbilityBase_SetWantInt32Param(want, "keyInt", 32);
     int32_t outElement = 0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantInt32Param(want, "keyInt", &outElement);
     napi_value napiRet;
@@ -346,7 +346,7 @@ static napi_value GetWantDoubleParamNoError(napi_env env, napi_callback_info inf
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     double outElement = 0;
-    OH_AbilityBase_SetWantDoubleParam(want,"keyDouble",outElement);
+    OH_AbilityBase_SetWantDoubleParam(want, "keyDouble", outElement);
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantDoubleParam(want, "keyDouble", &outElement);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
@@ -431,7 +431,7 @@ static napi_value GetStartOptionsWindowModeNoError(napi_env env, napi_callback_i
 static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = 
+    AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsDisplayId(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
@@ -440,7 +440,7 @@ static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
 
 static napi_value SetStartOptionsDisplayIdParamInvalid(napi_env env, napi_callback_info info)
 {
-    AbilityRuntime_ErrorCode ret = 
+    AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsDisplayId(nullptr, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
@@ -460,7 +460,7 @@ static napi_value GetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
 static napi_value SetStartOptionsWithAnimationNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = 
+    AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsWithAnimation(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
@@ -561,7 +561,7 @@ static napi_value SetStartOptionsStartVisibilityNoError(napi_env env, napi_callb
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_SHOW_UPON_START;
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartVisibility(options,visibility);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -601,7 +601,7 @@ static napi_value SetStartOptionsStartWindowIconNoError(napi_env env, napi_callb
     if (imgErrCode != IMAGE_SUCCESS) {
         OH_PixelmapInitializationOptions_Release(createOpts);
     }
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options,startWindowIcon);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options, startWindowIcon);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -641,7 +641,7 @@ static napi_value GetStartOptionsStartWindowIconNoError(napi_env env, napi_callb
 static napi_value SetStartOptionsStartWindowBackgroundColorNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundColor(options,"#00000000");
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundColor(options, "#00000000");
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -780,10 +780,7 @@ static napi_value GetStartOptionsMaxWindowHeightNoError(napi_env env, napi_callb
     return napiRet;
 }
 
-EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports)
-{
-    napi_property_descriptor desc[] = {
+napi_property_descriptor desc[] = {
         {"DestroyChildProcessConfigsParamInvalid",
             nullptr, DestroyChildProcessConfigsParamInvalid, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"DestroyChildProcessConfigsNoError",
@@ -912,6 +909,9 @@ static napi_value Init(napi_env env, napi_value exports)
             nullptr, GetStartOptionsMaxWindowHeightNoError, nullptr, nullptr, nullptr, napi_default, nullptr}
     };
 
+EXTERN_C_START
+static napi_value Init(napi_env env, napi_value exports)
+{
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }
