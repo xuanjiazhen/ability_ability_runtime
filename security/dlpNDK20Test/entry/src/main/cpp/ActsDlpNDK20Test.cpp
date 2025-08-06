@@ -119,7 +119,7 @@ static napi_value OsGetOriginalFileName0100(napi_env env, napi_callback_info inf
 }
 static napi_value OsSetSandboxAppConfig0100(napi_env env, napi_callback_info info)
 {
-    const char *configInfo = NULL;
+    const char *configInfo = nullptr;
     DLP_ErrCode ret = OH_DLP_SetSandboxAppConfig(configInfo);
     if (ret == DLP_ErrCode::ERR_OH_SUCCESS) {
         napi_value result = nullptr;
