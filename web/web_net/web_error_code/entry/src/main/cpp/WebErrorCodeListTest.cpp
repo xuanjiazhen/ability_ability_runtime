@@ -262,10 +262,12 @@ napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError start..");
     const char* url = "test ssl";
-    int32_t ret = OH_ArkWebResponse_SetUrl(nullptr, url);
+    ArkWeb_Response* response = nullptr;
+    OH_ArkWeb_DestroyResponse(response);
+    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
     char* netErrorName = GetArgsParamater(env, info);
     ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName);
-    ret = OH_ArkWebResponse_SetError(nullptr, errorCode);
+    ret = OH_ArkWebResponse_SetError(response, errorCode);
     
     napi_value result;
     if (ret == ARKWEB_ERROR_UNKNOWN) {
