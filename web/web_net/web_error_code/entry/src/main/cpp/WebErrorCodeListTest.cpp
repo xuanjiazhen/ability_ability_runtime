@@ -22,7 +22,7 @@
 #include "web/arkweb_scheme_handler.h"
 #include <hilog/log.h>
 
-static const int ERROR_NAME_SIZE = 200;
+static const int ERROR_NAME_SIZE = 256;
 
 static std::unique_ptr<char []> GetArgsParamater(napi_env env, napi_callback_info info)
 {
@@ -30,9 +30,9 @@ static std::unique_ptr<char []> GetArgsParamater(napi_env env, napi_callback_inf
     napi_value args[1] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     size_t netErrorSize = 0;
-    std::unique_ptr<char []> netErrorName (new (std::nothrow) char [ERROR_NAME_SIZE + 1]);
+    std::unique_ptr<char []> netErrorName = std::make_unique<char[]>(ERROR_NAME_SIZE);
     if (netErrorName == nullptr) {
-        return std::unique_ptr<char []>(new (std::nothrow) char[1]);
+        return std::make_unique<char[]>(1);
     }
     napi_get_value_string_utf8(env, args[0], netErrorName.get(), ERROR_NAME_SIZE, &netErrorSize);
     return netErrorName;
