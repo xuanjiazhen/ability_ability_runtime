@@ -952,7 +952,7 @@ HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0020, TestSize.Level2)
 {
     cap = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, true, HARDWARE);
     const int32_t *pixelFormat = nullptr;
-    uint32_t pixelFormatNum = 0;    
+    uint32_t pixelFormatNum = 0;
     if (cap) {
         ASSERT_EQ(AV_ERR_OK, OH_AVCapability_GetVideoSupportedPixelFormats(cap, &pixelFormat, &pixelFormatNum));
         if (pixelFormatNum > 0) {
@@ -981,7 +981,7 @@ HWTEST_F(HwEncApiNdkTest, VIDEO_ENCODE_SYNC_API_0030, TestSize.Level2)
 {
     cap = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, true, HARDWARE);
     const int32_t *pixelFormat = nullptr;
-    uint32_t pixelFormatNum = 0;     
+    uint32_t pixelFormatNum = 0;
     if (cap) {
         ASSERT_EQ(AV_ERR_OK, OH_AVCapability_GetVideoSupportedPixelFormats(cap, &pixelFormat, &pixelFormatNum));
         if (pixelFormatNum > 0) {
