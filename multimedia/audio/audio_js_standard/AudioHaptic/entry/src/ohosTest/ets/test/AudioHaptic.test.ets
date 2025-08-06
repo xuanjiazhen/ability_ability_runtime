@@ -2047,7 +2047,7 @@ export default function AudioHapticTest() {
     })
     /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0100
-     * @tc.name      : AudioHapticPlayer_on_audioInterrupt
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0100
      * @tc.desc      : AudioHapticPlayer_on_audioInterrupt
      * @tc.size      : MEDIUM
      * @tc.type      : Function
@@ -2066,6 +2066,7 @@ export default function AudioHapticTest() {
         id = value;
       }).catch((err: BusinessError) => {
           console.error(`fail to register source`);
+          except(false).assertTrue();
       });
       let latencyMode:audioHaptic.AudioLatencyMode=audioHaptic.AudioLatencyMode.AUDIO_LATENCY_MODE_NORMAL;
       audioHapticManager.setAudioLatencyMode(id,latencyMode);
@@ -2080,25 +2081,30 @@ export default function AudioHapticTest() {
           console.info(`Create Success`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
+          except(false).assertTrue();
         });
         await sleep(1000);
         await audioHapticPlayer.stop().then(()=>{
           console.info(`promise return to indicate stop successfully`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
+          except(false).assertTrue();
         });
         await audioHapticPlayer.release().then(()=>{
           console.info(`release player successfully`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
+          except(false).assertTrue();
         });
       }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
+          except(false).assertTrue();
       });
       await audioHapticManager.unregisterSource(id).then(()=>{
-        console.info(`fail to start playing`);
+        console.info(`successfully to unregisterSource playing`);
       }).catch((err: BusinessError) => {
-          console.error(`fail to start playing, ${err}`);
+          console.error(`fail to start unregisterSource, ${err}`);
+          except(false).assertTrue();
       });
       done();
     })
