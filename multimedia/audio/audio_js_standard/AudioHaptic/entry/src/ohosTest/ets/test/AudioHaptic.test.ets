@@ -2108,5 +2108,83 @@ export default function AudioHapticTest() {
       });
       done();
     })
+    /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0200
+     * @tc.name      : SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0200
+     * @tc.desc      : AudioHapticPlayer_on_audioInterrupt
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it("SUB_MULTIMEDIA_AUDIO_HAPTIC_REGISTERSOURCEFROMFD_0200", TestType.Function | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let id = 0;
+      let audioFd:audioHaptic.AudioHapticFileDescriptor = {fd:0,length:0,offset:0}
+      let hapticFd:audioHaptic.AudioHapticFileDescriptor = {fd:0,length:0,offset:0}
+      let audioHapticManager: audioHaptic.AudioHapticManager = audioHaptic.getAudioHapticManager();
+      let testContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
+      audioFd = testContext.resourceManager.getRawFdSync('notification.ogg')
+      hapticFd = testContext.resourceManager.getRawFdSync('notification.json')
+      await audioHapticManager.registerSourceFromFd(audioFd,hapticFd).then((value:number)=>{
+        console.info(`Promise returned to indicate that th id of registerSource`);
+        id = value;
+      }).catch((err: BusinessError) => {
+          console.error(`fail to register source`);
+          expect(false).assertTrue();
+      });
+      let latencyMode:audioHaptic.AudioLatencyMode=audioHaptic.AudioLatencyMode.AUDIO_LATENCY_MODE_NORMAL;
+      audioHapticManager.setAudioLatencyMode(id,latencyMode);
+      let usage:audio.StreamUsage = audio.StreamUsage.STREAM_USAGE_NOTIFICATION;
+      audioHapticManager.setStreamUsage(id,usage);
+      let options:audioHaptic.AudioHapticPlayerOptions = {muteAudio:false, muteHaptics:false};
+      let audioHapticPlayer:audioHaptic.AudioHapticPlayer | undefined = undefined;
+      await audioHapticManager.createPlayer(id,options).then(async(value:audioHaptic.AudioHapticPlayer)=>{
+        console.info(`Create Success`);
+        audioHapticPlayer = value;
+        await audioHapticPlayer.start().then(()=>{
+          console.info(`Create Success`);
+        }).catch((err: BusinessError) => {
+          console.error(`fail to start playing, ${err}`);
+          expect(false).assertTrue();
+        });
+        await sleep(1000);
+        await audioHapticPlayer.stop().then(()=>{
+          console.info(`promise return to indicate stop successfully`);
+        }).catch((err: BusinessError) => {
+          console.error(`fail to stop playing, ${err}`);
+          expect(false).assertTrue();
+        });
+        await audioHapticPlayer.release().then(()=>{
+          console.info(`release player successfully`);
+        }).catch((err: BusinessError) => {
+          console.error(`fail to release playing, ${err}`);
+          expect(false).assertTrue();
+        });
+        await audioHapticPlayer.setVolume(5).then(()=>{
+          console.info(`setVolume player successfully`);
+          expect(false).assertTrue();
+        }).catch((err: BusinessError) => {
+          console.error(`fail to setVolume playing, ${err.code}`);
+          expect(Number(err.code)).assertEqual(5400102);
+        });
+        await audioHapticPlayer.setVolume(10000).then(()=>{
+          console.info(`setVolume player successfully`);
+          expect(false).assertTrue();
+        }).catch((err: BusinessError) => {
+          console.error(`fail to setVolume playing, ${err.code}`);
+          expect(Number(err.code)).assertEqual(5400108);
+        });
+        await audioHapticPlayer.setLoop(true).then(()=>{
+          console.info(`setVolume player successfully`);
+          expect(false).assertTrue();
+        }).catch((err: BusinessError) => {
+          console.error(`fail to setVolume playing, ${err.code}`);
+          expect(Number(err.code)).assertEqual(5400102);
+        });
+      }).catch((err: BusinessError) => {
+          console.error(`fail to start playing, ${err}`);
+          expect(false).assertTrue();
+      });
+      done();
+    })
   })
 }
