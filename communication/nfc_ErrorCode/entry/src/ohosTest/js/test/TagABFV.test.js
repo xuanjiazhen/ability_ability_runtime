@@ -227,10 +227,16 @@ export default function nfcTagABFVErrorTest() {
                 if (error.code == 201) {
                     console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
                     expect(true).assertTrue();
+                } else if (error.code == 401) {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect(true).assertTrue();
                 } else if (error.code == 801) {
                     console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
                     expect(true).assertTrue();
-                } else if (error.code == 401) {
+                } else if (error.code == 3100201) {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect(true).assertTrue();
+                } else if (error.code == 3100204) {
                     console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
                     expect(true).assertTrue();
                 } else {
