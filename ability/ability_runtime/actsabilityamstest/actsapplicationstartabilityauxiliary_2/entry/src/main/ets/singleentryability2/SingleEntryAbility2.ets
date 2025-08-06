@@ -32,7 +32,7 @@ export default class EntryAbility extends UIAbility {
     this.onCreateFlag = true;
   }
 
-  onDestroy(): void {
+  async onDestroy(): Promise<void> {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
     if (this.TEST_CASE_NAME === 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0500') {
       this.onDestroyFlag = true;
@@ -47,6 +47,7 @@ export default class EntryAbility extends UIAbility {
       commonEventManager.publish('SingleEntryAbility3_0500', commonEventData, (result) => {
         hilog.info(0x0000, 'testTag', '%{public}s', `onConnect, 50==: ${JSON.stringify(result)}`);
       });
+      await this.sleep(1000);
     }
   }
 
