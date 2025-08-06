@@ -14,6 +14,7 @@
  */
 
 import hilog from '@ohos.hilog'
+import { RecordData } from '@ohos.base';
 import rpc from '@ohos.rpc';
 
 type valueType = NullishType;
@@ -398,7 +399,7 @@ export default class Want {
   type?: string;
   flags?: int;
   action?: string;
-  parameters?: Record<string, Object>;
+  parameters?: RecordData;
   entities?: Array<string>;
   moduleName?: string;
 }
