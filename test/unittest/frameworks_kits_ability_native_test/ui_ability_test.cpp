@@ -1002,7 +1002,7 @@ HWTEST_F(UIAbilityBaseTest, DispatchLifecycleOnForeground_0100, TestSize.Level1)
 
 /**
  * @tc.name: UIAbilityFuncList_0100
- * @tc.desc: UIAbility function test, including CallRequest, IsUseNewStartUpRule and so on
+ * @tc.desc: UIAbility function test, including CallRequest and so on
  * @tc.type: FUNC
  * @tc.require: issueI60B7N
  */
@@ -1015,8 +1015,6 @@ HWTEST_F(UIAbilityBaseTest, UIAbilityFuncList_0100, TestSize.Level1)
     AAFwk::Want want;
     want.SetParam("component.startup.newRules", true);
     ability->SetWant(want);
-    bool isNewRule = ability->IsUseNewStartUpRule();
-    EXPECT_EQ(isNewRule, true);
     auto abilityRecovery = std::make_shared<AbilityRecovery>();
     ability->EnableAbilityRecovery(abilityRecovery, false);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);

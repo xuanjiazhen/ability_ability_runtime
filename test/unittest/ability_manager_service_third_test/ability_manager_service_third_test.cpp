@@ -860,20 +860,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, StopUser_001, TestSize.Level1)
 
 /*
  * Feature: AbilityManagerService
- * Function: GetStartUpNewRuleFlag
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetStartUpNewRuleFlag
- */
-HWTEST_F(AbilityManagerServiceThirdTest, GetStartUpNewRuleFlag_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetStartUpNewRuleFlag_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_EQ(abilityMs_->GetStartUpNewRuleFlag(), abilityMs_->startUpNewRule_);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest GetStartUpNewRuleFlag_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: IsCrossUserCall
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService IsCrossUserCall

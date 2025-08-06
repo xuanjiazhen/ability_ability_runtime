@@ -2210,7 +2210,7 @@ HWTEST_F(AbilityBaseTest, AbilityStartFeatureAbilityForResult_0100, TestSize.Lev
 
 /**
  * @tc.name: AbilityFuncList_0100
- * @tc.desc: Ability function test, including CallRequest, IsUseNewStartUpRule and so on
+ * @tc.desc: Ability function test, including CallRequest and so on
  * @tc.type: FUNC
  * @tc.require: issueI60B7N
  */
@@ -2225,8 +2225,6 @@ HWTEST_F(AbilityBaseTest, AbilityFuncList_0100, TestSize.Level1)
     AAFwk::Want want;
     want.SetParam("component.startup.newRules", true);
     ability->SetWant(want);
-    bool isNewRule = ability->IsUseNewStartUpRule();
-    EXPECT_EQ(isNewRule, true);
 
     auto abilityRecovery = std::make_shared<AbilityRecovery>();
     ability->EnableAbilityRecovery(abilityRecovery);

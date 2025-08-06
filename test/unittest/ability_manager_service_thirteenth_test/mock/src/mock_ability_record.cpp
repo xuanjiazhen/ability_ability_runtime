@@ -80,7 +80,6 @@ const std::string SHOW_ON_LOCK_SCREEN = "ShowOnLockScreen";
 #ifdef WITH_DLP
 const std::string DLP_BUNDLE_NAME = "com.ohos.dlpmanager";
 #endif // WITH_DLP
-const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 const std::string KEY_MISSION_ID = "ohos.anco.param.missionId";
 const std::string NEED_STARTINGWINDOW = "ohos.ability.NeedStartingWindow";
 const std::string PARAMS_FILE_SAVING_URL_KEY = "pick_path_return";
@@ -175,13 +174,8 @@ AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &ab
 {
     abilityInfo_.applicationInfo = applicationInfo;
     recordId_ = abilityRecordId++;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (abilityMgr) {
-        bool isRootLauncher = (abilityInfo_.applicationInfo.bundleName == LAUNCHER_BUNDLE_NAME);
-        restartMax_ = AmsConfigurationParameter::GetInstance().GetMaxRestartNum(isRootLauncher);
-        bool flag = abilityMgr->GetStartUpNewRuleFlag();
-        want_.SetParam(COMPONENT_STARTUP_NEW_RULES, flag);
-    }
+    bool isRootLauncher = (abilityInfo_.applicationInfo.bundleName == LAUNCHER_BUNDLE_NAME);
+    restartMax_ = AmsConfigurationParameter::GetInstance().GetMaxRestartNum(isRootLauncher);
     restartCount_ = restartMax_;
     isAppAutoStartup_ = want_.GetBoolParam(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON, false);
     if (want_.HasParameter(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON)) {

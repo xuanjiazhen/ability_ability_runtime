@@ -1469,8 +1469,6 @@ public:
     virtual int32_t ShareDataDone(const sptr<IRemoteObject>& token,
         const int32_t &requestCode, const int32_t &uniqueId, WantParams &wantParam) override;
 
-    bool GetStartUpNewRuleFlag() const;
-
     std::shared_ptr<AbilityRecord> GetFocusAbility();
 
     /**
@@ -2716,8 +2714,6 @@ private:
 
     bool controllerIsAStabilityTest_ = false;
     bool isParamStartAbilityEnable_ = false;
-    // Component StartUp rule switch
-    bool startUpNewRule_ = true;
     /** It only takes effect when startUpNewRule_ is TRUE
      *  TRUE: When Caller-Application is Launcher or SystemUI, use old rule.
      *  FALSE: Apply new rule to all application

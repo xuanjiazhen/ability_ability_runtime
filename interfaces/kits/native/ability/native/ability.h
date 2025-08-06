@@ -1292,8 +1292,6 @@ protected:
      */
     bool ShouldRecoverState(const Want& want);
 
-    bool IsUseNewStartUpRule();
-
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AbilityStartSetting> setting_ = nullptr;
     std::shared_ptr<AbilityInfo> abilityInfo_ = nullptr;
@@ -1372,9 +1370,6 @@ private:
 
     // If session id cannot get from want, assign it as default.
     static const int DEFAULT_DMS_SESSION_ID;
-
-    bool isNewRuleFlagSetted_ = false;
-    bool startUpNewRule_ = false;
 
 #ifdef SUPPORT_SCREEN
 private:

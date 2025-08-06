@@ -76,7 +76,6 @@ const std::string SHOW_ON_LOCK_SCREEN = "ShowOnLockScreen";
 #ifdef WITH_DLP
 const std::string DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 #endif // WITH_DLP
-const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 
 Ability* Ability::Create(const std::unique_ptr<AbilityRuntime::Runtime>& runtime)
 {
@@ -1428,15 +1427,6 @@ void Ability::OnFeatureAbilityResult(int requestCode, int resultCode, const Want
         resultCallbacks_.erase(requestCode);
     }
     TAG_LOGD(AAFwkTag::ABILITY, "end");
-}
-
-bool Ability::IsUseNewStartUpRule()
-{
-    if (!isNewRuleFlagSetted_ && setWant_) {
-        startUpNewRule_ = setWant_->GetBoolParam(COMPONENT_STARTUP_NEW_RULES, false);
-        isNewRuleFlagSetted_ = true;
-    }
-    return startUpNewRule_;
 }
 
 void Ability::EnableAbilityRecovery(const std::shared_ptr<AbilityRecovery>& abilityRecovery)

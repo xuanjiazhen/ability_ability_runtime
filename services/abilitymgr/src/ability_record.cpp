@@ -204,13 +204,9 @@ AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &ab
 {
     abilityInfo_.applicationInfo = applicationInfo;
     recordId_ = abilityRecordId++;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (abilityMgr) {
-        bool isRootLauncher = (abilityInfo_.applicationInfo.bundleName == LAUNCHER_BUNDLE_NAME);
-        restartMax_ = AmsConfigurationParameter::GetInstance().GetMaxRestartNum(isRootLauncher);
-        bool flag = abilityMgr->GetStartUpNewRuleFlag();
-        want_.SetParam(COMPONENT_STARTUP_NEW_RULES, flag);
-    }
+    bool isRootLauncher = (abilityInfo_.applicationInfo.bundleName == LAUNCHER_BUNDLE_NAME);
+    restartMax_ = AmsConfigurationParameter::GetInstance().GetMaxRestartNum(isRootLauncher);
+    want_.SetParam(COMPONENT_STARTUP_NEW_RULES, true);
     restartCount_ = restartMax_;
     isAppAutoStartup_ = want_.GetBoolParam(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON, false);
     if (want_.HasParameter(Want::PARAM_APP_AUTO_STARTUP_LAUNCH_REASON)) {
