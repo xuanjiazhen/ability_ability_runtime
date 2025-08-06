@@ -94,7 +94,7 @@ export default class ApplicationContext extends Context {
   preloadUIExtensionAbility(want: Want): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -102,23 +102,27 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativepreloadUIExtensionAbilitySync(want, myCall);
+          this.nativepreloadUIExtensionAbilitySync(want, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
   killAllProcesses(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativekillAllProcessesSync(false, myCall);
+      this.nativekillAllProcessesSync(false, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   killAllProcesses(): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -126,7 +130,9 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativekillAllProcessesSync(false, myCall);
+          this.nativekillAllProcessesSync(false, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
@@ -135,7 +141,7 @@ export default class ApplicationContext extends Context {
   killAllProcesses(clearPageStack: boolean): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -143,23 +149,27 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativekillAllProcessesSync(clearPageStack, myCall);
+          this.nativekillAllProcessesSync(clearPageStack, asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
   }
 
   getRunningProcessInformation(callback: AsyncCallback<Array<ProcessInformation>>): void {
-    let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
+    let asyncCall = new AsyncCallbackWrapper<Array<ProcessInformation>>(callback);
     taskpool.execute((): void => {
-      this.nativegetRunningProcessInformation(myCall);
+      this.nativegetRunningProcessInformation(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   getRunningProcessInformation(): Promise<Array<ProcessInformation>> {
     let p = new Promise<Array<ProcessInformation>>((resolve: (data: Array<ProcessInformation>) => void,
       reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError | null,
+      let asyncCall = new AsyncCallbackWrapper<Array<ProcessInformation>>((err: BusinessError | null,
         data: Array<ProcessInformation> | undefined) => {
         if (err == null || err.code == 0) {
           resolve(data as Array<ProcessInformation>);
@@ -168,23 +178,27 @@ export default class ApplicationContext extends Context {
         }
       });
       taskpool.execute((): void => {
-        this.nativegetRunningProcessInformation(myCall);
+        this.nativegetRunningProcessInformation(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
     return p;
   }
 
   clearUpApplicationData(callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeclearUpApplicationData(myCall);
+      this.nativeclearUpApplicationData(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   clearUpApplicationData(): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -192,7 +206,9 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativeclearUpApplicationData(myCall);
+          this.nativeclearUpApplicationData(asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;
@@ -221,7 +237,7 @@ export default class ApplicationContext extends Context {
   getAllRunningInstanceKeys(): Promise<Array<string>> {
     let p = new Promise<Array<string>>((resolve: (data: Array<string>) => void,
       reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<Array<string>>((err: BusinessError | null,
+      let asyncCall = new AsyncCallbackWrapper<Array<string>>((err: BusinessError | null,
         data: Array<string> | undefined) => {
         if (err == null || err.code == 0) {
           resolve(data as Array<string>);
@@ -230,7 +246,9 @@ export default class ApplicationContext extends Context {
         }
       });
       taskpool.execute((): void => {
-        this.nativeGetAllRunningInstanceKeys(myCall);
+        this.nativeGetAllRunningInstanceKeys(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
     return p;
@@ -241,20 +259,22 @@ export default class ApplicationContext extends Context {
   }
 
   off(type: string, callbackId: int, callback: AsyncCallback<void>): void {
-    let myCall = new AsyncCallbackWrapper<void>(callback);
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       if (type == 'environment') {
-        this.nativeOffEnvironmentSync(callbackId, myCall);
+        this.nativeOffEnvironmentSync(callbackId, asyncCall);
       } else if (type == 'abilityLifecycle') {
-        this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+        this.nativeOffLifecycleCallbackSync(type, callbackId, asyncCall);
       }
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   off(type: string, callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
           if (err == null || err.code == 0) {
             resolve(undefined);
           } else {
@@ -263,10 +283,12 @@ export default class ApplicationContext extends Context {
         });
         taskpool.execute((): void => {
           if (type == 'environment') {
-            this.nativeOffEnvironmentSync(callbackId, myCall);
+            this.nativeOffEnvironmentSync(callbackId, asyncCall);
           } else if (type == 'abilityLifecycle') {
-            this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+            this.nativeOffLifecycleCallbackSync(type, callbackId, asyncCall);
           }
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
         });
       });
     return p;

@@ -33,13 +33,14 @@ export default namespace abilityManager {
   export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
   export native function nativeOff(type:string, observer?: AbilityForegroundStateObserver): void;
 
-  export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
-    let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
+  export function getForegroundUIAbilities(): Promise<Array<AbilityStateData>> {
+    let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void,
+      reject: (error: Error) => void): void => {
       let executeFunc = (): Array<AbilityStateData> => {
         return nativeGetForegroundUIAbilities();
       };
       let p1 = taskpool.execute(executeFunc);
-      p1.then((e :NullishType)=>{
+      p1.then((e: NullishType) => {
         let abilities: Array<AbilityStateData> = e as Array<AbilityStateData>;
         resolve(abilities);
       }, (err: Error): void => {
@@ -50,39 +51,47 @@ export default namespace abilityManager {
   }
 
   export function getForegroundUIAbilities(callback: AsyncCallback<Array<AbilityStateData>, void>): void {
-      let myCall = new AsyncCallbackWrapper<Array<AbilityStateData>>(callback);
-      taskpool.execute((): void => {
-        abilityManager.getForegroundUIAbilitiesCallback(myCall);
-      })
+    let asyncCall = new AsyncCallbackWrapper<Array<AbilityStateData>>(callback);
+    taskpool.execute((): void => {
+      abilityManager.getForegroundUIAbilitiesCallback(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
   }
 
-  export function getTopAbility():Promise<ElementName> {
-    let p = new Promise<ElementName>((resolve: (data: ElementName)=>void, reject:(err: BusinessError)=>void):void => {
-      let myCall = new AsyncCallbackWrapper<ElementName>((err: BusinessError | null, data: ElementName | undefined)=>{
-        if (err == null || err.code == 0) {
-          resolve(data as ElementName);
-        } else {
-          reject(err);
-        }
+  export function getTopAbility(): Promise<ElementName> {
+    let p =
+      new Promise<ElementName>((resolve: (data: ElementName) => void, reject: (err: BusinessError) => void): void => {
+        let asyncCall =
+          new AsyncCallbackWrapper<ElementName>((err: BusinessError | null, data: ElementName | undefined) => {
+            if (err == null || err.code == 0) {
+              resolve(data as ElementName);
+            } else {
+              reject(err);
+            }
+          });
+        taskpool.execute((): void => {
+          abilityManager.nativeGetTopAbility(asyncCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
+        });
       });
-      taskpool.execute((): void => {
-        abilityManager.nativeGetTopAbility(myCall);
-      });
-    });
     return p;
   }
 
   export function getTopAbility(callback: AsyncCallback<ElementName, void>): void {
-      let myCall = new AsyncCallbackWrapper<ElementName>(callback);
-      taskpool.execute( (): void => {
-          abilityManager.nativeGetTopAbility(myCall);
-      });
+    let asyncCall = new AsyncCallbackWrapper<ElementName>(callback);
+    taskpool.execute((): void => {
+      abilityManager.nativeGetTopAbility(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
   }
 
   function getAbilityRunningInfos(): Promise<Array<AbilityRunningInfo>> {
     return new Promise<Array<AbilityRunningInfo>>((resolve: (data: Array<AbilityRunningInfo>) => void,
       reject: (err: BusinessError) => void): void => {
-      let syncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>((err: BusinessError | null,
+      let asyncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>((err: BusinessError | null,
         data: Array<AbilityRunningInfo> | undefined) => {
         if (err == null || err.code == 0) {
           resolve(data as Array<AbilityRunningInfo>);
@@ -91,21 +100,26 @@ export default namespace abilityManager {
         }
       });
       taskpool.execute((): void => {
-        abilityManager.nativeGetAbilityRunningInfos(syncCall);
+        abilityManager.nativeGetAbilityRunningInfos(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
 
   function getAbilityRunningInfos(callback: AsyncCallback<Array<AbilityRunningInfo>>): void {
-    let syncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>(callback);
+    let asyncCall = new AsyncCallbackWrapper<Array<AbilityRunningInfo>>(callback);
     taskpool.execute((): void => {
-      abilityManager.nativeGetAbilityRunningInfos(syncCall);
+      abilityManager.nativeGetAbilityRunningInfos(asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
-    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
-      let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
+    return new Promise<boolean>((resolve: (data: boolean) => void,
+      reject: (err: BusinessError | null) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined) => {
         if (err == null || err.code == 0) {
           resolve(data as boolean);
         } else {
@@ -114,6 +128,8 @@ export default namespace abilityManager {
       });
       taskpool.execute((): void => {
         abilityManager.nativeIsEmbeddedOpenAllowed(context, appId, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }

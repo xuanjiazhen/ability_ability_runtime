@@ -105,15 +105,17 @@ export class Context extends BaseContext {
   }
 
   getGroupDir(dataGroupID: string, callback: AsyncCallback<string>): void {
-    let myCall = new AsyncCallbackWrapper<string>(callback);
+    let asyncCall = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void => {
-      this.nativeGetGroupDir(dataGroupID, myCall);
+      this.nativeGetGroupDir(dataGroupID, asyncCall);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
     });
   }
 
   getGroupDir(dataGroupID: string): Promise<string> {
     return new Promise<string>((resolve: (data: string) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined) => {
+      let asyncCall = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined) => {
         if (err == null || err.code == 0) {
           resolve(data as string);
         } else {
@@ -121,7 +123,9 @@ export class Context extends BaseContext {
         }
       });
       taskpool.execute((): void => {
-        this.nativeGetGroupDir(dataGroupID, myCall);
+        this.nativeGetGroupDir(dataGroupID, asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }
