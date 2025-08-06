@@ -14,7 +14,9 @@
  */
 {
   "license": "",
-  "devDependencies": { },
+  "devDependencies": {
+    "@types/libactsdevicemanagerndk.so": "file:./src/main/cpp/types/libactsdevicemanagerndk"
+  },
   "author": "",
   "name": "entry",
   "description": "Please describe the basic information.",
