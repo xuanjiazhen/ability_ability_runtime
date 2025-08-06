@@ -1090,6 +1090,7 @@ int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             abnormalIndexValue = true;
             cout << "OH_VideoDecoder_GetOutputBuffer noexist buffer nullptr" << endl;
         }
+        (void)OH_VideoDecoder_Stop(vdec_);
         return AV_ERR_UNKNOWN;
     }
     if (outFrames == 0 && getOutputBufferIndexRepeated) {
@@ -1101,6 +1102,7 @@ int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             abnormalIndexValue = true;
             cout << "OH_VideoDecoder_GetOutputBuffer repeat buffer nullptr" << endl;
         }
+        (void)OH_VideoDecoder_Stop(vdec_);
         return AV_ERR_UNKNOWN;
     }
     if (OH_AVBuffer_GetBufferAttr(buffer, &attr) != AV_ERR_OK) {

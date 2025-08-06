@@ -1322,6 +1322,7 @@ int32_t VEncAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             abnormalIndexValue = true;
             cout << "OH_VideoEncoder_GetOutputBuffer noexist buffer nullptr" << endl;
         }
+        (void)OH_VideoEncoder_Stop(venc_);
         return AV_ERR_UNKNOWN;
     }
     if (outFrames == 0 && getOutputBufferIndexRepeated) {
@@ -1333,6 +1334,7 @@ int32_t VEncAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             abnormalIndexValue = true;
             cout << "OH_VideoEncoder_GetOutputBuffer repeat buffer nullptr" << endl;
         }
+        (void)OH_VideoEncoder_Stop(venc_);
         return AV_ERR_UNKNOWN;
     }
     DumpInfo(attr, buffer);
