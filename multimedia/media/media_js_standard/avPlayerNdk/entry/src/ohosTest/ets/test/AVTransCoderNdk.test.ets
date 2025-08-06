@@ -262,7 +262,7 @@ export default function AVTransCoderNdkTest() {
       let ret: number = avTransCoderNdk.AvTransCoderErrorCode(avFd.fd, 0, 0);
       console.log('case testOhAvTransCoderNdkPrepareError0004 ret ' + ret);
       await closeFileFd(avFd.fd);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedMPEG2();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedMPEG2();
       if (isSupport == -1) {
         expect(ret).assertEqual(OH_AVErrCode.AV_ERR_IO);
       } else {
@@ -873,7 +873,7 @@ export default function AVTransCoderNdkTest() {
       let ret: number = avTransCoderNdk.AvTransCoderConfigSetSrcFDError(avFd.fd, 0, 0);
       console.log('case testOhAvTransCoderConfigSetSrcFDError0006 ret ' + ret);
       await closeFileFd(avFd.fd);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedH263();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedH263();
       if (isSupport == -1) {
         expect(ret).assertEqual(OH_AVErrCode.AV_ERR_IO);
       } else {
@@ -932,7 +932,7 @@ export default function AVTransCoderNdkTest() {
         console.log('case testOhAvTransCodeConfigSetDstVideoType0002 ret ' + ret);
         await closeRawFd(VIDEO_AVC_AUDIO_AAC);
         await closeFileFd(dstFd.fd);
-        let isSupport = await myavcapability.AVCapabilityIsSupportedHEVC();
+        let isSupport: number = await myavcapability.AVCapabilityIsSupportedHEVC();
         if (isSupport == -1) {
           expect(ret).assertEqual(OH_AVErrCode.AV_ERR_IO);
         } else {
@@ -1659,7 +1659,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0002', VIDEO_SOURCE_MP4_MPEG2);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedMPEG2();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedMPEG2();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
@@ -1678,7 +1678,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0003', VIDEO_SOURCE_MP4_MPEG4);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedMPEG4();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedMPEG4();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
@@ -1697,7 +1697,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0004', VIDEO_SOURCE_MP4_H263);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedH263();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedH263();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
@@ -1717,7 +1717,7 @@ export default function AVTransCoderNdkTest() {
     it('testOhAvTransCoderPlayer0005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       if (isSupportHEVC) {
         let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0005', VIDEO_SOURCE_MP4_HEVC);
-        let isSupport = await myavcapability.AVCapabilityIsSupportedHEVC();
+        let isSupport: number = await myavcapability.AVCapabilityIsSupportedHEVC();
         if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
         } else {
@@ -1740,7 +1740,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0006', VIDEO_SOURCE_MKV);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedMPEG4();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedMPEG4();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
@@ -1759,7 +1759,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0007', VIDEO_SOURCE_TS);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedH263();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedH263();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
@@ -1792,7 +1792,7 @@ export default function AVTransCoderNdkTest() {
      */
     it('testOhAvTransCoderPlayer0009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let ret = await testOhAvTransCoderAndPlayVideo('testOhAvTransCoderPlayer0009', VIDEO_SOURCE_MPG);
-      let isSupport = await myavcapability.AVCapabilityIsSupportedMPEG2();
+      let isSupport: number = await myavcapability.AVCapabilityIsSupportedMPEG2();
       if (isSupport == -1) {
         expect(ret).assertEqual(FAIL);
       } else {
