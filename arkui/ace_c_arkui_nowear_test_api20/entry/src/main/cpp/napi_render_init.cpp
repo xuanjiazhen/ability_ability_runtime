@@ -54,6 +54,8 @@ namespace ArkUICapiTest
             nullptr, napi_default, nullptr},
             {"dialogGetStateTest", nullptr, DialogGetStateTest::CreateNativeNode, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
+            {"dialogGetStateTestGetResult", nullptr, DialogGetStateTest::GetResult, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
         {

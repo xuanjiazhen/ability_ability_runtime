@@ -29,3 +29,5 @@ export const dragEventGetGlobalDisplay: (a: string) => void;
 export const enableDropDisallowedBadge: (a: string) => void;
 
 export const dialogGetStateTest: (a: string) => void;
+
+export const dialogGetStateTestGetResult: () => string[];
