@@ -15,6 +15,6 @@ import("//build/ohos_var.gni")
 group("distributedhardware") {
   testonly = true
   deps = [
-    "device_manager:device_manager",
+    "device_manager:ActsdeviceManagerTest",
   ]
 }
