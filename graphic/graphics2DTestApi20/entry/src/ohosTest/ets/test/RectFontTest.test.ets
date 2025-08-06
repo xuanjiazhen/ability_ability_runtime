@@ -456,7 +456,6 @@ export default function RectFontTest() {
       })
 
 
-    // OH_Drawing_FontGetBounds
     /**
      * @tc.number  : SUB_OH_Drawing_FontGetPathForGlyph_0100
      * @tc.name    : SUB_OH_Drawing_FontGetPathForGlyph_0100

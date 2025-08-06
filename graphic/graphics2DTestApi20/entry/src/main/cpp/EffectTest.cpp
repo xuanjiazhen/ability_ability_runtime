@@ -88,7 +88,7 @@ void addEffectTest(std::vector<napi_property_descriptor>& descData)
     return result;
 }
 
- napi_value OH_NativeImage_AcquireNativeWindowBufferSuccess (napi_env env, napi_callback_info info)
+ napi_value OH_NativeImage_AcquireNativeWindowBufferSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeImage* image = OH_NativeImage_Create(0, 0);

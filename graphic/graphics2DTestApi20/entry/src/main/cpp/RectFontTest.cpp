@@ -95,7 +95,7 @@ void addFontTest(std::vector<napi_property_descriptor>& descData)
     napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS && arraySize == size, &result);
     
     return result;
-} 
+}
  napi_value OH_Drawing_RectGetArraySizeFail(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -103,13 +103,18 @@ void addFontTest(std::vector<napi_property_descriptor>& descData)
     OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArraySize(nullptr, &arraySize);
     napi_create_int32(env,  errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
-} 
+}
  napi_value OH_Drawing_RectGetArrayElementSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(10);
+    size_t size = 10;
+    OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(size);
     size_t index = 0;
-    OH_Drawing_Rect* prect = OH_Drawing_RectCreate(10,10,10,10);
+    float left = 10;
+    float top = 10;
+    float right = 10;
+    float bottom = 10;
+    OH_Drawing_Rect* prect = OH_Drawing_RectCreate(left, top, right, bottom);
     OH_Drawing_ErrorCode errCode = OH_Drawing_RectGetArrayElement(rectArray, index, &prect);
     napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS, &result);
     return result;
@@ -139,7 +144,7 @@ void addFontTest(std::vector<napi_property_descriptor>& descData)
     napi_create_int32(env,  errCode == OH_DRAWING_SUCCESS, &result);
     
     return result;
-} 
+}
 
  napi_value OH_Drawing_RectDestroyArrayFail(napi_env env, napi_callback_info info)
 {
@@ -149,7 +154,7 @@ void addFontTest(std::vector<napi_property_descriptor>& descData)
     napi_create_int32(env,  errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     
     return result;
-} 
+}
 
 napi_value OH_Drawing_RoundRectOffsetSuccess(napi_env env, napi_callback_info info)
 {
@@ -185,7 +190,8 @@ napi_value OH_Drawing_FontMeasureSingleCharacterWithFeaturesSuccess(napi_env env
     const char* str = "HellWorld";
     OH_Drawing_FontFeatures* fontFeatures = OH_Drawing_FontFeaturesCreate();
     float textWidth = 10;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, fontFeatures, &textWidth);
+    OH_Drawing_ErrorCode errCode = OH_DRAWING_SUCCESS;
+    errCode = OH_Drawing_FontMeasureSingleCharacterWithFeatures(font, str, fontFeatures, &textWidth);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }
@@ -195,7 +201,8 @@ napi_value OH_Drawing_FontMeasureSingleCharacterWithFeaturesFail(napi_env env, n
     const char* str = "HellWorld";
     OH_Drawing_FontFeatures* fontFeatures = OH_Drawing_FontFeaturesCreate();
     float textWidth = 10;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureSingleCharacterWithFeatures(nullptr, str, fontFeatures, &textWidth);
+    OH_Drawing_ErrorCode errCode = OH_DRAWING_SUCCESS;
+    errCode = OH_Drawing_FontMeasureSingleCharacterWithFeatures(nullptr, str, fontFeatures, &textWidth);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
@@ -247,7 +254,8 @@ napi_value OH_Drawing_FontMeasureTextWithBrushOrPenFail(napi_env env, napi_callb
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     float textWidth = 10;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureTextWithBrushOrPen(nullptr, text, byteLength, TEXT_ENCODING_UTF8, brush, pen, bounds, &textWidth);
+    OH_Drawing_ErrorCode errCode = OH_Drawing_FontMeasureTextWithBrushOrPen(nullptr, text, byteLength,
+        TEXT_ENCODING_UTF8, brush, pen, bounds, &textWidth);
     napi_create_int32(env, errCode == OH_DRAWING_ERROR_INVALID_PARAMETER, &result);
     return result;
 }
@@ -305,7 +313,7 @@ napi_value OH_Drawing_FontGetSpacingSuccess(napi_env env, napi_callback_info inf
     napi_value result;
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     float spacing = 0;
-    OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetSpacing(font, &spacing);    
+    OH_Drawing_ErrorCode errCode = OH_Drawing_FontGetSpacing(font, &spacing);
     napi_create_int32(env, errCode == OH_DRAWING_SUCCESS, &result);
     return result;
 }

@@ -90,7 +90,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
     int32_t res = OH_NativeBuffer_GetColorSpace(nullptr, &colorSpace);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
-} 
+}
  napi_value OH_NativeBuffer_SetMetadataValueSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -107,7 +107,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
     int32_t res = OH_NativeBuffer_SetMetadataValue(buffer, OH_HDR_STATIC_METADATA, size, metadata);
     napi_create_int32(env, res != NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
-} 
+}
 
  napi_value OH_NativeBuffer_SetMetadataValueFail(napi_env env, napi_callback_info info)
 {
@@ -117,7 +117,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
     int32_t res = OH_NativeBuffer_SetMetadataValue(nullptr, OH_HDR_STATIC_METADATA, size, metadata);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
-} 
+}
 
  napi_value OH_NativeBuffer_GetMetadataValueSuccess(napi_env env, napi_callback_info info)
 {
@@ -145,7 +145,7 @@ void addBufferTextTest(std::vector<napi_property_descriptor>& descData)
     int32_t res = OH_NativeBuffer_GetMetadataValue(nullptr, OH_HDR_STATIC_METADATA, &size, &metadata);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
-} 
+}
 
 napi_value OH_Drawing_RunBufferGlyphsSuccess(napi_env env, napi_callback_info info)
 {
