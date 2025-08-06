@@ -17,7 +17,7 @@ ohos_app_assist_suite("ActsdeviceManagerMainTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsdeviceManagerMainTest"
-  part_name = "device_Manager"
+  part_name = "device_manager"
   subsystem_name = "distributedhardware"
 }
 
@@ -26,7 +26,7 @@ ohos_js_app_suite("ActsdeviceManagerTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
   hap_name = "ActsdeviceManagerTest"
-  part_name = "device_Manager"
+  part_name = "device_manager"
   subsystem_name = "distributedhardware"
   deps = [ ":ActsdeviceManagerMainTest" ]
 }
