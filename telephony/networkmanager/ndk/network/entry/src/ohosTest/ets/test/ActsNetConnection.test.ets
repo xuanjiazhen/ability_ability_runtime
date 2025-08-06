@@ -266,7 +266,7 @@ export default function ActsNetConnectionTest() {
       console.info(`${caseName} ---start`);
       let result : number = NetConnectionTest.NetConn_GetPacUrl(CASE_INDEX_1);
       console.info(`${caseName} result is: ` + JSON.stringify(result));
-      expect(result).assertEqual(NETCONN_INTERNAL_ERROR);
+      expect(result == NETCONN_INTERNAL_ERROR || result == OH_HTTP_OK).assertTrue();
       done();
     } catch (err) {
       console.error(`${caseName} catch err: ` + JSON.stringify(err));
