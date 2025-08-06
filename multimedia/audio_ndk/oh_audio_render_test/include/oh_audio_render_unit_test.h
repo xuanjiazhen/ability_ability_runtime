@@ -20,6 +20,7 @@
 #include "audio_errors.h"
 #include "native_audiostreambuilder.h"
 #include "native_audiorenderer.h"
+#include "native_audio_stream_manager.h"
 namespace OHOS {
 namespace AudioStandard {
 class OHAudioRenderUnitTest : public testing::Test {
