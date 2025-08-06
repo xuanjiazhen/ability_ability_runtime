@@ -23,7 +23,6 @@
 #include <web/native_interface_arkweb.h>
 #include "WebErrorCodeList.h"
 
-
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess start..");
@@ -445,7 +444,6 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"WebArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
          nullptr},
-        
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
