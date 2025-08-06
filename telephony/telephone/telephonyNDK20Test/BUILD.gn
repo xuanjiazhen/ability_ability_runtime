@@ -16,7 +16,7 @@ import("//test/xts/tools/build/suite.gni")
 ohos_app_assist_suite("ActsTelephonyNDK20MainTest") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsOsAccountNdkMainTest"
+  hap_name = "ActsTelephonyNDK20MainTest"
   subsystem_name = "telephony"
   part_name = "core_service"
 }
