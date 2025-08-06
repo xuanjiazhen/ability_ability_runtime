@@ -117,7 +117,7 @@ export default function waterFlowEventTest() {
     * @tc.level      : Level 1
     */
     it('testWaterFlowOnWillDidScroll003', Level.LEVEL1, async (done: Function) => {
-      await Utils.pushPage(`list/ListEmptyTest`)
+      await Utils.pushPage(`waterflow/WaterFlowEmptyTest`)
       await Utils.sleep(2000)
       await Utils.pushPage(`waterflow/WaterFlowOnWillDidScrollTest`);
       // Scroll the mouse backwards

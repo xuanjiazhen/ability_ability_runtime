@@ -2915,7 +2915,7 @@ Camera_ErrorCode NDKCamera::UnegisterAutoDeviceSwitchStatusCallback(int useCaseC
 }
  
 void CameraSystemPressureLevelCallback(Camera_CaptureSession* session,
-    Camera_SystemPressureLevel* systemPressureLevel)
+    Camera_SystemPressureLevel systemPressureLevel)
 {
     LOG("CameraSystemPressureLevelCallback is called.");
 }
