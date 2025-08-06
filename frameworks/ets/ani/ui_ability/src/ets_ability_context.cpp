@@ -1118,6 +1118,25 @@ void EtsAbilityContext::OnOpenAtomicService(
     OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
 }
 
+void EtsAbilityContext::OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnRevokeDelegator called");
+    ani_object aniObject = nullptr;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "context null");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    ErrCode innerErrCode = ERR_OK;
+    innerErrCode = context->RevokeDelegator();
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RevokeDelegator failed, innerErrCode: %{public}d", innerErrCode);
+    }
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+}
+
 void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
     const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
 {
@@ -1237,85 +1256,6 @@ void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppEx
         TAG_LOGE(AAFwkTag::CONTEXT, "config SetField status: %{public}d", status);
         return;
     }
-}
-
-ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
-    void *unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "failed to unwrap");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    if (unwrapResult == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null unwrapResult");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto context = reinterpret_cast<std::weak_ptr<AbilityContext> *>(unwrapResult)->lock();
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
-    if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto &bindingObj = abilityContext->GetBindingObject();
-    if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto staticContext = bindingObj->Get<ani_ref>();
-    if (staticContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null staticContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    return reinterpret_cast<ani_object>(*staticContext);
-}
-
-ani_object EtsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, ani_object input)
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "transfer dynamic UIAbilityContext");
-    if (!IsInstanceOf(env, input)) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "not UIAbilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto context = ContextUtil::GetBaseContext(env, input);
-    if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto abilityContext = Context::ConvertTo<AbilityContext>(context);
-    if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto &bindingObj = abilityContext->GetBindingObject();
-    if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    auto dynamicContext = bindingObj->Get<NativeReference>();
-    if (dynamicContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null dynamicContext");
-        EtsErrorUtil::ThrowEtsTransferClassError(env);
-        return nullptr;
-    }
-    // Not support yet
-    EtsErrorUtil::ThrowEtsTransferClassError(env);
-    return nullptr;
 }
 
 bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
@@ -1466,6 +1406,17 @@ void EtsAbilityContext::OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj
 }
 #endif
 
+void EtsAbilityContext::RevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "RevokeDelegator called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnRevokeDelegator(env, aniObj, callback);
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -1536,6 +1487,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
 #endif
+            ani_native_function { "nativeRevokeDelegator", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
