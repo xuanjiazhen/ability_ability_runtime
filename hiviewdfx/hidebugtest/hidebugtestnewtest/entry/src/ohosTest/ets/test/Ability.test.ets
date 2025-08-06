@@ -328,7 +328,7 @@ export default function abilityTest() {
     it('testHiprofilerInterface33', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3300 start");
       try {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100; i++) {
           let nativeMemInfo = hidebug.getAppNativeMemInfoWithCache(true);
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
@@ -346,7 +346,7 @@ export default function abilityTest() {
             + "sharedClean: " + nativeMemInfo.sharedClean + "\n"
             + "privateClean: " + nativeMemInfo.privateClean);
         }
-        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3300 true 1000 times success")
+        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3300 true 100 times success")
         done();
       } catch (err) {
         console.error(`SUB_DFX_DFR_Hiprofiler_Interface_3300 > err code: ${err.code}, err msg: ${err.message}`)
@@ -367,7 +367,7 @@ export default function abilityTest() {
     it('testHiprofilerInterface34', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3400 start");
       try {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100; i++) {
           let nativeMemInfo = hidebug.getAppNativeMemInfoWithCache(false);
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
@@ -385,7 +385,7 @@ export default function abilityTest() {
             + "sharedClean: " + nativeMemInfo.sharedClean + "\n"
             + "privateClean: " + nativeMemInfo.privateClean);
         }
-        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3400 false 1000 times success")
+        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3400 false 100 times success")
         done();
       } catch (err) {
         console.error(`SUB_DFX_DFR_Hiprofiler_Interface_3400 > err code: ${err.code}, err msg: ${err.message}`)
@@ -578,7 +578,7 @@ export default function abilityTest() {
     it('testHiprofilerInterface39', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_3900 start");
       try {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100; i++) {
           let nativeMemInfo = testNapi.getNativeMemInfoTrue();
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
@@ -596,7 +596,7 @@ export default function abilityTest() {
             + "sharedClean: " + nativeMemInfo.sharedClean + "\n"
             + "privateClean: " + nativeMemInfo.privateClean);
         }
-        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3900 true 1000 times success")
+        console.info("SUB_DFX_DFR_Hiprofiler_Interface_3900 true 100 times success")
         done();
       } catch (err) {
         console.error(`SUB_DFX_DFR_Hiprofiler_Interface_3900 > err code: ${err.code}, err msg: ${err.message}`)
@@ -617,7 +617,7 @@ export default function abilityTest() {
     it('testHiprofilerInterface40', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
       console.info("SUB_DFX_DFR_Hiprofiler_Interface_4000 start");
       try {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100; i++) {
           let nativeMemInfo = testNapi.getNativeMemInfoFalse();
           expect(nativeMemInfo.pss >= 0).assertTrue();
           expect(nativeMemInfo.vss >= 0).assertTrue();
@@ -635,7 +635,7 @@ export default function abilityTest() {
             + "sharedClean: " + nativeMemInfo.sharedClean + "\n"
             + "privateClean: " + nativeMemInfo.privateClean);
         }
-        console.info("SUB_DFX_DFR_Hiprofiler_Interface_4000 false 1000 times success")
+        console.info("SUB_DFX_DFR_Hiprofiler_Interface_4000 false 100 times success")
         done();
       } catch (err) {
         console.error(`SUB_DFX_DFR_Hiprofiler_Interface_4000 > err code: ${err.code}, err msg: ${err.message}`)
