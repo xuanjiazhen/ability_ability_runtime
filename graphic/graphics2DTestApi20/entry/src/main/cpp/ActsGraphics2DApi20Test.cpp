@@ -14,13 +14,22 @@
  */
 
 #include "BrushPointRecordTest.h"
+#include "RectFontTest.h"
+#include "CanvasPenTest.h"
+#include "EffectTest.h"
+#include "BufferTextTest.h"
 #include <vector>
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     std::vector<napi_property_descriptor> descData;
+    addCanvasPenTest(descData);
+    addRectTest(descData);
     addBrushPointRecordTest(descData);
+    addEffectTest(descData);
+    addBufferTextTest(descData);
+    
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;
 }

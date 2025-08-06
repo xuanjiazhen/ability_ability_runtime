@@ -14,6 +14,14 @@
  */
  
 import BrushPointRecordTest from './BrushPointRecordTest.test'
+import CanvasPenTest from './CanvasPenTest.test.ets'
+import RectFontTest from './RectFontTest.test.ets'
+import EffectTest from './EffectTest.test.ets'
+import BufferTextTest from './BufferTextTest.test.ets'
 export default function testsuite() {
   BrushPointRecordTest()
+  CanvasPenTest()
+  RectFontTest()
+  EffectTest()
+  BufferTextTest()
 }
