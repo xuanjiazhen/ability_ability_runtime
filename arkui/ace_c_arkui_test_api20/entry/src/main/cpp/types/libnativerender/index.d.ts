@@ -27,3 +27,5 @@ export const uiInputErrorCodeTest: (a: string) => void;
 export const testNodeUniqueId: (a: string) => void;
 
 export const testRunTaskInScope: (a: string) => void;
+
+export const createCrossLanguageListNativeNode: (content: NodeContent, tag: string) => void;

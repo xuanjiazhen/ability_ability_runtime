@@ -24,6 +24,7 @@ add_library(nativerender SHARED
     uiInput/UiInputErrorCodeTest.cpp
     scope/RunTaskInScopeTest.cpp
     renderNodeUtils/renderNodeUtils.cpp
+    list/ListCrossLanguageTest.cpp
 )
 
 add_library(nativefunc SHARED

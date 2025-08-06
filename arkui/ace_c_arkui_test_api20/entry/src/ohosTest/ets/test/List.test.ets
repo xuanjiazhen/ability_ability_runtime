@@ -26,6 +26,8 @@ import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
 import RenderNodeTest from "./renderNode/RenderNodeTest.test"
 import RenderNodeUtilsTest from "./renderNodeUtils/renderNodeUtils.test"
 import RenderNodeAttributeTest from "./renderNode/TestRenderNodeAttribute.test"
+import ListTypeNodeTest from './list/ListTypeNodeTest.test'
+import ListCNodeTest from './list/ListCNodeTest.test'
 
 export default function testsuite() {
   PostOnIdleTest();
@@ -42,4 +44,6 @@ export default function testsuite() {
   RenderNodeTest();
   RenderNodeUtilsTest();
   RenderNodeAttributeTest();
+  ListTypeNodeTest();
+  ListCNodeTest();
 }
