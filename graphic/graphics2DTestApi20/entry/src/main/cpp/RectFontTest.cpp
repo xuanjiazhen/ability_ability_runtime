@@ -41,7 +41,7 @@ void addRectTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"roundRectOffsetFail", nullptr, OH_Drawing_RoundRectOffsetFail,
         nullptr, nullptr, nullptr, napi_default, nullptr});
 }
-void addFontTest(std::vector<napi_property_descriptor>& descData)
+void AddFontTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"fontMeasureSingleCharacterWithFeaturesSuccess", nullptr,
         OH_Drawing_FontMeasureSingleCharacterWithFeaturesSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});

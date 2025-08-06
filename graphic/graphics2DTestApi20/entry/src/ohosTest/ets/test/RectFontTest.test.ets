@@ -21,7 +21,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectGetArraySize_0100,
      * @tc.name    : SUB_OH_Drawing_RectGetArraySize_0100
      * @tc.desc    : test SUB_OH_Drawing_RectGetArraySize success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -43,7 +43,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectGetArraySize_0200,
      * @tc.name    : SUB_OH_Drawing_RectGetArraySize_0200
      * @tc.desc    : test SUB_OH_Drawing_RectGetArraySize fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -65,7 +65,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectGetArrayElement_0100,
      * @tc.name    : SUB_OH_Drawing_RectGetArrayElement_0100
      * @tc.desc    : test SUB_OH_Drawing_RectGetArrayElement success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -87,7 +87,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectGetArrayElement_0200
      * @tc.name    : SUB_OH_Drawing_RectGetArrayElement_0200
      * @tc.desc    : test SUB_OH_Drawing_RectGetArrayElement success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -109,7 +109,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectDestroyArray_0100,
      * @tc.name    : SUB_OH_Drawing_RectDestroyArray_0100
      * @tc.desc    : test SUB_OH_Drawing_RectDestroyArray success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -131,7 +131,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RectDestroyArray_0200,
      * @tc.name    : SUB_OH_Drawing_RectDestroyArray_0200
      * @tc.desc    : test SUB_OH_Drawing_RectDestroyArray fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -153,7 +153,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RoundRectOffset_0100
      * @tc.name    : SUB_OH_Drawing_RoundRectOffset_0100
      * @tc.desc    : test SUB_OH_Drawing_RoundRectOffset_0200 success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -175,7 +175,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_RoundRectOffset_0200
      * @tc.name    : SUB_OH_Drawing_RoundRectOffset_0200
      * @tc.desc    : test SUB_OH_Drawing_RoundRectOffset_0200 success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -197,7 +197,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures_0100
      * @tc.name    : SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures_0100
      * @tc.desc    : test SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -219,7 +219,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures_0200
      * @tc.name    : SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures_0200
      * @tc.desc    : test SUB_OH_Drawing_FontMeasureSingleCharacterWithFeatures fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -241,7 +241,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontMeasureText_0100
      * @tc.name    : SUB_OH_Drawing_FontMeasureText_0100
      * @tc.desc    : test SUB_OH_Drawing_FontMeasureText success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -263,7 +263,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontMeasureText_0200
      * @tc.name    : SUB_OH_Drawing_FontMeasureText_0200
      * @tc.desc    : test SUB_OH_Drawing_FontMeasureText fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -285,7 +285,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontMeasureTextWithBrushOrPen_0200
      * @tc.name    : SUB_OH_Drawing_FontMeasureTextWithBrushOrPen_0200
      * @tc.desc    : test SUB_OH_Drawing_FontMeasureTextWithBrushOrPen fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -307,7 +307,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetWidthsBounds_0100
      * @tc.name    : SUB_OH_Drawing_FontGetWidthsBounds_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetWidthsBounds success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -329,7 +329,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetWidthsBounds_0200
      * @tc.name    : SUB_OH_Drawing_FontGetWidthsBounds_0200
      * @tc.desc    : test SUB_OH_Drawing_FontGetWidthsBounds success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -351,7 +351,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetPos_0100
      * @tc.name    : SUB_OH_Drawing_FontGetPos_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetPos success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -373,7 +373,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetPos_0200
      * @tc.name    : SUB_OH_Drawing_FontGetPos_0200
      * @tc.desc    : test SUB_OH_Drawing_FontGetPos fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -394,7 +394,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetBounds_0100
      * @tc.name    : SUB_OH_Drawing_FontGetBounds_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetSpacing fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -415,7 +415,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetSpacing_0100
      * @tc.name    : SUB_OH_Drawing_FontGetSpacing_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetSpacing success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -437,7 +437,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetSpacing_0200
      * @tc.name    : SUB_OH_Drawing_FontGetSpacing_0200
      * @tc.desc    : test SUB_OH_Drawing_FontGetSpacing fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -460,7 +460,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetPathForGlyph_0100
      * @tc.name    : SUB_OH_Drawing_FontGetPathForGlyph_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetPathForGlyph success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -482,7 +482,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetPathForGlyph_0200
      * @tc.name    : SUB_OH_Drawing_FontGetPathForGlyph_0200
      * @tc.desc    : test SUB_OH_Drawing_FontGetPathForGlyph fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -504,7 +504,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetTextPath_0100
      * @tc.name    : SUB_OH_Drawing_FontGetTextPath_0100
      * @tc.desc    : test SUB_OH_Drawing_FontGetTextPath success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -526,7 +526,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontGetTextPath_0200
      * @tc.name    : SUB_OH_Drawing_FontGetTextPath_0200
      * @tc.desc    : test SUB_OH_Drawing_FontGetTextPath fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -548,7 +548,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontFeaturesCreate_0100
      * @tc.name    : SUB_OH_Drawing_FontFeaturesCreate_0100
      * @tc.desc    : test SUB_OH_Drawing_FontFeaturesCreate success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -570,7 +570,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontFeaturesAddFeature_0100
      * @tc.name    : SUB_OH_Drawing_FontFeaturesAddFeature_0100
      * @tc.desc    : test SUB_OH_Drawing_FontFeaturesAddFeature success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -592,7 +592,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontFeaturesAddFeature_0200
      * @tc.name    : SUB_OH_Drawing_FontFeaturesAddFeature_0200
      * @tc.desc    : test SUB_OH_Drawing_FontFeaturesAddFeature fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -614,7 +614,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontFeaturesDestroy_0100
      * @tc.name    : SUB_OH_Drawing_FontFeaturesDestroy_0100
      * @tc.desc    : test SUB_OH_Drawing_FontFeaturesDestroy success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -636,7 +636,7 @@ export default function RectFontTest() {
      * @tc.number  : SUB_OH_Drawing_FontFeaturesDestroy_0200
      * @tc.name    : SUB_OH_Drawing_FontFeaturesDestroy_0200
      * @tc.desc    : test SUB_OH_Drawing_FontFeaturesDestroy fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */

@@ -21,7 +21,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_Filter_CreateEffect_0200,
      * @tc.name    : SUB_OH_Filter_CreateEffect_0200
      * @tc.desc    : test SUB_OH_Filter_CreateEffect fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -43,7 +43,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_Filter_Release_0200
      * @tc.name    : SUB_OH_Filter_Release_0200
      * @tc.desc    : test SUB_OH_Filter_Release_0200 success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -65,7 +65,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_Filter_BlurWithTileMode_0100
      * @tc.name    : SUB_OH_Filter_BlurWithTileMode_0100
      * @tc.desc    : test SUB_OH_Filter_BlurWithTileMode success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -87,7 +87,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_Filter_GetEffectPixelMap_0200
      * @tc.name    : SUB_OH_Filter_GetEffectPixelMap_0200
      * @tc.desc    : test SUB_OH_Filter_GetEffectPixelMap fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -109,7 +109,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_NativeImage_GetTransformMatrixV2_0100
      * @tc.name    : SUB_OH_NativeImage_GetTransformMatrixV2_0100
      * @tc.desc    : test SUB_OH_NativeImage_GetTransformMatrixV2 success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -131,7 +131,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_NativeImage_AcquireNativeWindowBuffer_0100
      * @tc.name    : SUB_OH_NativeImage_AcquireNativeWindowBuffer_0100
      * @tc.desc    : test SUB_OH_NativeImage_AcquireNativeWindowBuffer success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -152,7 +152,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_NativeImage_AcquireNativeWindowBuffer_0200
      * @tc.name    : SUB_OH_NativeImage_AcquireNativeWindowBuffer_0200
      * @tc.desc    : test SUB_OH_NativeImage_AcquireNativeWindowBuffer success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -174,7 +174,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_NativeImage_ReleaseNativeWindowBuffer_0200
      * @tc.name    : SUB_OH_NativeImage_ReleaseNativeWindowBuffer_0200
      * @tc.desc    : test SUB_OH_NativeImage_ReleaseNativeWindowBuffer fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -196,7 +196,7 @@ export default function EffectTest() {
      * @tc.number  : SUB_OH_NativeImage_SetDropBufferMode_0100
      * @tc.name    : SUB_OH_NativeImage_SetDropBufferMode_0100
      * @tc.desc    : test SUB_OH_NativeImage_SetDropBufferMode success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */

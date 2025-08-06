@@ -23,7 +23,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_GetColorSpace_0100
      * @tc.name    : SUB_OH_NativeBuffer_GetColorSpace_0100
      * @tc.desc    : test SUB_OH_NativeBuffer_GetColorSpace success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -45,7 +45,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_GetColorSpace_0200
      * @tc.name    : SUB_OH_NativeBuffer_GetColorSpace_0200
      * @tc.desc    : test SUB_OH_NativeBuffer_GetColorSpace fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -67,7 +67,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_SetMetadataValue_0100
      * @tc.name    : SUB_OH_NativeBuffer_SetMetadataValue_0100
      * @tc.desc    : test SUB_OH_NativeBuffer_SetMetadataValue success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -89,7 +89,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_SetMetadataValue_0200
      * @tc.name    : SUB_OH_NativeBuffer_SetMetadataValue_0200
      * @tc.desc    : test SUB_OH_NativeBuffer_SetMetadataValue fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -111,7 +111,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_GetMetadataValue_0100
      * @tc.name    : SUB_OH_NativeBuffer_GetMetadataValue_0100
      * @tc.desc    : test SUB_OH_NativeBuffer_GetMetadataValue success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -133,7 +133,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_NativeBuffer_GetMetadataValueFail_0200
      * @tc.name    : SUB_OH_NativeBuffer_GetMetadataValueFail_0200
      * @tc.desc    : test SUB_OH_NativeBuffer_GetMetadataValue fail Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -155,7 +155,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_RunBufferGlyphs_0100
      * @tc.name    : SUB_OH_Drawing_RunBufferGlyphs_0100
      * @tc.desc    : test SUB_OH_Drawing_RunBufferGlyphs success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -177,7 +177,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_RunBufferPos_0100
      * @tc.name    : SUB_OH_Drawing_RunBufferPos_0100
      * @tc.desc    : test SUB_OH_Drawing_RunBufferPos success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -199,7 +199,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_RunBufferUtf8text_0100
      * @tc.name    : SUB_OH_Drawing_RunBufferUtf8text_0100
      * @tc.desc    : test SUB_OH_Drawing_RunBufferPos success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -221,7 +221,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_RunBufferClusters_0100
      * @tc.name    : SUB_OH_Drawing_RunBufferClusters_0100
      * @tc.desc    : test SUB_OH_Drawing_RunBufferClusters success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -242,7 +242,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_SystemFontType_0100
      * @tc.name    : SUB_OH_Drawing_SystemFontType_0100
      * @tc.desc    : test SUB_OH_Drawing_SystemFontType success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -264,7 +264,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_TextUndefinedGlyphDisplayDEFAULT_0100
      * @tc.name    : SUB_OH_Drawing_TextUndefinedGlyphDisplayDEFAULT_0100
      * @tc.desc    : test SUB_OH_Drawing_TextUndefinedGlyphDisplayDEFAULT success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -286,7 +286,7 @@ export default function BufferTextTest() {
      * @tc.number  : SUB_OH_Drawing_TextUndefinedGlyphDisplayTOFU_0100
      * @tc.name    : SUB_OH_Drawing_TextUndefinedGlyphDisplayTOFU_0100
      * @tc.desc    : test SUB_OH_Drawing_TextUndefinedGlyphDisplayTOFU success Scene
-     * @tc.level   : Level0
+     * @tc.level   : Level3
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
