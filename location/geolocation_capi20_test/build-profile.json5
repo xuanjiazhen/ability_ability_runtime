@@ -16,18 +16,6 @@
 {
   "app": {
     "signingConfigs": [
-      {
-        "name": "default",
-        "material": {
-          "certpath": "C:/Users/lenovo/.ohos/config/openharmony/default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BE336DBFA059A19579150857B0EF229E82A0E31FA0464C5A605242CFBA9C5109AC5373AF1B598EC",
-          "profile": "C:/Users/lenovo/.ohos/config/openharmony/default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "C:/Users/lenovo/.ohos/config/openharmony/default_geolocation_capi20_test_iaeGVGNSyG-CnNQujTEkQOp2j9mfFM73t3ZsSz1C9aQ=.p12",
-          "storePassword": "0000001BCDDB8E462DD2FEEF4763090EE0D6682901981CC10671EE04C07EA90A0D2C8D7489CFD2C2CC347B"
-        }
-      }
     ],
     "products": [
       {
