@@ -29,6 +29,7 @@ import enableFloatingDragBarTest from './SheetTypeTest/enableFloatingDragBar.tes
 import maskTest from './bindMenuTest/mask.test';
 import maskColorTest from './bindMenuTest/maskColor.test';
 import maskBackgroundBlurStyleTest from './bindMenuTest/maskBackgroundBlurStyle.test';
+import SliderOptionValue from './Slider/slider.test';
 
 export default function testsuite() {
   menuSubMenuExpandSymbolTest();
@@ -48,4 +49,5 @@ export default function testsuite() {
   maskTest();
   maskColorTest();
   maskBackgroundBlurStyleTest();
+  SliderOptionValue();
 }
