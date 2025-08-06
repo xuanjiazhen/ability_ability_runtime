@@ -932,7 +932,7 @@ export default function AVTransCoderNdkTest() {
         console.log('case testOhAvTransCodeConfigSetDstVideoType0002 ret ' + ret);
         await closeRawFd(VIDEO_AVC_AUDIO_AAC);
         await closeFileFd(dstFd.fd);
-        let isSupport = await myavcapability.AVCapabilityIsSupportedAVC();
+        let isSupport = await myavcapability.AVCapabilityIsSupportedHEVC();
         if (isSupport == -1) {
           expect(ret).assertEqual(OH_AVErrCode.AV_ERR_IO);
         } else {
