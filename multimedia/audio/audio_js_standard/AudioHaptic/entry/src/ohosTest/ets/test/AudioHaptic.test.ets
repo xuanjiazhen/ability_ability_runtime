@@ -2066,7 +2066,7 @@ export default function AudioHapticTest() {
         id = value;
       }).catch((err: BusinessError) => {
           console.error(`fail to register source`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
       });
       let latencyMode:audioHaptic.AudioLatencyMode=audioHaptic.AudioLatencyMode.AUDIO_LATENCY_MODE_NORMAL;
       audioHapticManager.setAudioLatencyMode(id,latencyMode);
@@ -2081,30 +2081,30 @@ export default function AudioHapticTest() {
           console.info(`Create Success`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
         });
         await sleep(1000);
         await audioHapticPlayer.stop().then(()=>{
           console.info(`promise return to indicate stop successfully`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
         });
         await audioHapticPlayer.release().then(()=>{
           console.info(`release player successfully`);
         }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
         });
       }).catch((err: BusinessError) => {
           console.error(`fail to start playing, ${err}`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
       });
       await audioHapticManager.unregisterSource(id).then(()=>{
         console.info(`successfully to unregisterSource playing`);
       }).catch((err: BusinessError) => {
           console.error(`fail to start unregisterSource, ${err}`);
-          except(false).assertTrue();
+          expect(false).assertTrue();
       });
       done();
     })
