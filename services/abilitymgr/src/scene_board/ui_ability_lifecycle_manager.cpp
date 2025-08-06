@@ -3409,7 +3409,10 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "prepare terminate app");
-    IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
+    auto task = [pids]() {
+        IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->BlockProcessCacheByPids(pids));
+    }
+    ffrt::submit(task);
     for (const auto &pid : pids) {
         std::unordered_set<std::shared_ptr<AbilityRecord>> abilitysToTerminate;
         std::vector<sptr<IRemoteObject>> tokens;
@@ -3423,9 +3426,13 @@ int32_t UIAbilityLifecycleManager::TryPrepareTerminateByPids(const std::vector<i
             }
             abilitysToTerminate.emplace(abilityRecord);
         }
-        for (const auto &abilityRecord : abilitysToTerminate) {
-            TerminateSession(abilityRecord);
+        auto self(shared_from_this());
+        auto terminateTask = [self, abilitysToTerminate]() {
+            for (const auto &abilityRecord : abilitysToTerminate) {
+                self->TerminateSession(abilityRecord);
+            }
         }
+        ffrt::submit(terminateTask);
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "end.");
     return ERR_OK;

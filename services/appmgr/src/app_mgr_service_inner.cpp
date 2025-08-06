@@ -6149,17 +6149,21 @@ void AppMgrServiceInner::SendHiSysEvent(int32_t innerEventId, std::shared_ptr<Ap
 
 int AppMgrServiceInner::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>> &tokens)
 {
+    auto callerUid = IPCSkeleton::GetCallingUid();
+    if (callerUid != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return ERR_PERMISSION_DENIED;
+    }
     auto appRecord = GetAppRunningRecordByPid(pid);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
         return ERR_NAME_NOT_FOUND;
     }
 
-    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
-    auto callingPid = IPCSkeleton::GetCallingPid();
-    if (!isSaCall && callingPid != pid) {
-        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
-        return ERR_PERMISSION_DENIED;
+    auto tokenId = appRecord->GetApplicationInfo().accessTokenId;
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPrepareTerminatePermission(tokenId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "app has no permission ohos.permission.PREPARE_APP_TERMINATE, terminating");
+        appRecord->SetTerminating();
     }
     for (auto &item : appRecord->GetAbilities()) {
         tokens.emplace_back(item.first);
