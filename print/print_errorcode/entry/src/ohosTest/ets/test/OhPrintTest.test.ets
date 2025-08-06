@@ -24,7 +24,7 @@ export default function ActsPrintErrorTest() {
   describe('ActsPrintErrorTest', () => {
     /**
      * @tc.number  : SUB_Oh_Print_0100
-     * @tc.name    : testOhPrint0100
+     * @tc.name    : SUB_Oh_Print_0100
      * @tc.desc    : Test OHPrintNoError.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
@@ -45,7 +45,7 @@ export default function ActsPrintErrorTest() {
 
     /**
      * @tc.number  : SUB_Oh_Print_0200
-     * @tc.name    : testOhPrint0200
+     * @tc.name    : SUB_Oh_Print_0200
      * @tc.desc    : Test OHPrintInvalidParameter.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
@@ -66,7 +66,7 @@ export default function ActsPrintErrorTest() {
 
     /**
      * @tc.number  : SUB_Oh_Print_0300
-     * @tc.name    : testOhPrint0300
+     * @tc.name    : SUB_Oh_Print_0300
      * @tc.desc    : Test OHPrintGenericFailure.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
@@ -87,7 +87,7 @@ export default function ActsPrintErrorTest() {
 
     /**
      * @tc.number  : SUB_Oh_Print_0400
-     * @tc.name    : testOhPrint0400
+     * @tc.name    : SUB_Oh_Print_0400
      * @tc.desc    : Test OHPrintInvalidPrintJob.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
@@ -108,7 +108,7 @@ export default function ActsPrintErrorTest() {
 
     /**
      * @tc.number  : SUB_Oh_Print_0500
-     * @tc.name    : testOhPrint0500
+     * @tc.name    : SUB_Oh_Print_0500
      * @tc.desc    : Test OHPrintInvalidPrinter.
      * @tc.level   : Level1
      * @tc.size    : MediumTest
