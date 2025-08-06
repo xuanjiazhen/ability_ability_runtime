@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "EffectTest.h"
 #include <native_effect/effect_filter.h>
 #include <multimedia/image_framework/image/pixelmap_native.h>

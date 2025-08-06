@@ -40,7 +40,6 @@ napi_value OH_Drawing_FontGetPosSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_FontGetPosFail(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_FontGetSpacingSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_FontGetSpacingFail(napi_env env, napi_callback_info info);
-// OH_Drawing_FontGetBounds
 napi_value OH_Drawing_FontGetBoundsFail(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_FontGetPathForGlyphSuccess(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_FontGetPathForGlyphFail(napi_env env, napi_callback_info info);
