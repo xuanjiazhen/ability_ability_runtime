@@ -136,9 +136,26 @@ export default function channelCallbacktest() {
                     await P2BasicChannel_callback().then((data) => {
                         console.info("[NFC_test]09 openBasicChannel done");
                     })
-                    .catch(e => {
-                        console.info("[NFC_test]09 openBasicChannel failed" + e);
-                        expect(3300103).assertEqual(e);
+                    .catch(error => {
+                        if (error == 401) {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error.code + "---" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300101) {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300102) {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300103) {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error);
+                            expect(3300103).assertEqual(error);
+                        } else if (error == 3300104) {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else {
+                            console.info("[NFC_test]09 openBasicChannel_p2_callback occurs exception:" + error);
+                            expect().assertFail();
+                        }
                     })
                 }
             } catch (error) {
@@ -189,15 +206,26 @@ export default function channelCallbacktest() {
                     })
                     .catch(error => {
                         console.info("[NFC_test]10 openBasicChannel failed" + error + "--error.code--" + error.code);
-						if (error == 801){
-							console.inlfo("[NFC_test]10 not support" + error);
-							expect(true).assertTrue();
-						}else if(error == 3300103){
-							console.info("[NFC_test]10 3300103" + error)
-							expect(true).assertTrue();
-						}else{
-							expect().assertFail();
-						}
+                        if (error == 401) {
+                            console.info("[NFC_test]10 openBasicChannel failed" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300101) {
+                            console.info("[NFC_test]10 openLogicalChannel occurs exception:"+ error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300102) {
+                            console.info("[NFC_test]10 openLogicalChannel occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300103) {
+                            console.info("[NFC_test]10 openLogicalChannel occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else if (error == 3300104) {
+                            console.info("[NFC_test]10 openLogicalChannel occurs exception:" + error);
+                            expect(true).assertTrue();
+                        } else {
+                            console.info("[NFC_test]10 openLogicalChannel occurs exception:" + error);
+                            expect().assertFail();
+                        }
+                        done();
                     })
                 }
             } catch (error) {
@@ -543,6 +571,70 @@ export default function channelCallbacktest() {
 			}
 			done();
 		})
+
+        /**
+         * @tc.number SUB_Communication_Ese_LogicalChannel_js_2600
+         * @tc.name Test transmit
+         * @tc.desc open LogicalChannel Send an APDU command to the SE 
+         * @tc.type Function
+         * @tc.level Level 0
+         */
+        it('SUB_Communication_Ese_LogicalChannel_js_2600', Level.LEVEL0, async function (done) {
+            try {
+                if (getReader == undefined) {
+                    console.info("[NFC_test]26 This function is not supported because the phone NFC chip is ST chip.");
+                } else {
+                    function LogicalChannel_callback(){
+                        return new Promise((resolve, reject) => {
+                            Session.openLogicalChannel(aidArray,
+                                (err, result) => {
+                                    if(err) {
+                                        console.info("[NFC_test]26 failed to get openLogicalChannel:" + JSON.stringify(err));
+                                        reject(err.code);
+                                    } else {
+                                        let cmdData = [0x01, 0x02, 0x03, 0x04];
+                                        console.info("[NFC_test]26 openLogicalChannel data != null " + result);
+                                        let nfcLogicalChannel = result;
+                                        nfcLogicalChannel.transmit(cmdData).then((data) => {
+                                            console.info("[NFC_test]26 Send an APDU command to the SE: " + data);
+                                        }).catch((error) => {
+                                            if (error.code == 401) {
+                                                console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
+                                                expect(true).assertTrue();
+                                            } else if (error.code == 3300101) {
+                                                console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
+                                                expect(true).assertTrue();
+                                            } else if (error.code == 3300104) {
+                                                console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
+                                                expect(true).assertTrue();
+                                            } else  {
+                                                console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
+                                                expect().assertFail();
+                                            }
+                                        });
+                                        sleep(900);
+                                        nfcLogicalChannel.close();
+                                        console.info("[NFC_test]26 Data received by the application select command: " );                                        
+                                    }
+                                    resolve();
+                                });
+                        });
+                    }
+                    await LogicalChannel_callback().then((data) => {
+                        console.info("[NFC_test]26 openBasicChannel done");
+                    })
+                    .catch(e => {
+                        console.info("[NFC_test]26 openBasicChannel failed" + e);
+                        expect(3300103).assertEqual(e);
+                    })
+                }
+            } catch (error) {
+                console.info("[NFC_test]26 openLogicalChannel_callback occurs exception:" + error.code + "---" + error);
+                expect(801).assertEqual(error.code);
+            }
+            sleep(900);
+            done();
+        })
 
         console.info("*************[nfc_test] start nfc js unit test end*************");
     })

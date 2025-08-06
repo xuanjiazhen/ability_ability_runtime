@@ -18,6 +18,8 @@ import ratingStarStyle from './RatingTest/ratingStarStyle.test';
 import SheetTypeTest from './SheetTypeTest/sheetTypeSide.test';
 import closeToastTest from './promptActionTest/closeToastTest.test';
 import dismissSheetActionTest from './SheetTypeTest/dismissSheetAction.test';
+import sheetTypeContentCoverTest from './SheetTypeTest/sheetTypeContentCover.test';
+import ModalTransitionTest from './SheetTypeTest/ModalTransition.test';
 import bindContentCoverTest from './BindContentCoverTest/bindContentCover.test';
 import selectModalModeTest from './MenuTest/selectModalMode.test';
 import PreviewScaleModeTest from './MenuTest/PreviewScaleModeTest.test';
@@ -35,6 +37,8 @@ export default function testsuite() {
   SheetTypeTest();
   closeToastTest();
   dismissSheetActionTest();
+  sheetTypeContentCoverTest();
+  ModalTransitionTest();
   bindContentCoverTest()
   selectModalModeTest();
   PreviewScaleModeTest();

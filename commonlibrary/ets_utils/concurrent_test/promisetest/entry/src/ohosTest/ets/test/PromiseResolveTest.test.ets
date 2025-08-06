@@ -1784,13 +1784,13 @@ export default function PromiseResolveTest() {
           });
         };
         const outerPromises = [
-          asyncOperation(1, 200),
-          asyncOperation(2, 300),
-          asyncOperation(3, 100)
+          asyncOperation(1, 600),
+          asyncOperation(2, 900),
+          asyncOperation(3, 300)
         ];
-        taskPromises.push(asyncOperation(1, 200));
-        taskPromises.push(asyncOperation(2, 300));
-        taskPromises.push(asyncOperation(3, 100));
+        taskPromises.push(asyncOperation(1, 600));
+        taskPromises.push(asyncOperation(2, 900));
+        taskPromises.push(asyncOperation(3, 300));
         Promise.resolve()
           .then(() => {
             return Promise.any(outerPromises);
@@ -1800,9 +1800,9 @@ export default function PromiseResolveTest() {
             successMessage = `Outer: ${outerResult}`;
             console.log(successMessage);
             const innerPromises = [
-              asyncOperation(outerResult / 2 * 4, 150),
-              asyncOperation(outerResult / 2 * 5, 200),
-              asyncOperation(outerResult / 2 * 6, 180)
+              asyncOperation(outerResult / 2 * 4, 450),
+              asyncOperation(outerResult / 2 * 5, 600),
+              asyncOperation(outerResult / 2 * 6, 540)
             ];
             return Promise.any(innerPromises);
           })

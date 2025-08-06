@@ -62,6 +62,7 @@ struct bindSheetHoverMode {
         .bindSheet($$this.isShow, this.myBuilder(), {
           height: this.sheetHeight,
           backgroundColor: Color.Green,
+          preferType: SheetType.CENTER,
           enableHoverMode: this.enableHoverMode,
           hoverModeArea: this.hoverModeArea,
           onWillAppear: () => {

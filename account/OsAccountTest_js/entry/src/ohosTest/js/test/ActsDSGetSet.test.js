@@ -290,6 +290,32 @@ export default function ActsDAGetSetTest() {
         });
 
         /**
+        * @tc.number   : setOsAccountDistributedInfo_test0031
+        * @tc.name     : setOsAccountDistributedInfo_test0031
+        * @tc.desc     : Test setOsAccountDistributedInfo 12300003 errcode.
+        * @tc.level    : Level0
+        * @tc.size     : MediumTest
+        * @tc.type     : Function
+        */
+        it('setOsAccountDistributedInfo_test0031', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
+            let accountAbility = account.getDistributedAccountAbility();
+            let tokenInvalidInfo = {
+                name: 'ZhangSan',
+                id: '12345',
+                event: "Ohos.account.event.TOKEN_INVALID"
+            }
+            try {
+                await accountAbility.setOsAccountDistributedInfo(tokenInvalidInfo);
+                console.info("====>run err");
+                expect().assertFail();
+            } catch (err) {
+                console.info('====>setOsAccountDistributedInfo_test0031 catch exception: ' + JSON.stringify(err));
+                expect(err.code).assertEqual(12300003);
+            }
+            done();
+        });
+
+        /**
         * @tc.number   : setOsAccountDistributedInfo_test004
         * @tc.name     : testDistributedFunction
         * @tc.desc     : Test distributedAccount.setOsAccountDistributedInfo API functionality by callback.

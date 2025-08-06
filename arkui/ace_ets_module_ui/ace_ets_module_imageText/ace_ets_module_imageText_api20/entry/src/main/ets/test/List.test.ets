@@ -49,7 +49,16 @@ import TextNumberTransitionTest from './TextTest/TextNumberTransitionTest.test';
 import SymbolEffectTest from './SymbolGlyphTest/SymbolEffectTest.test';
 import shaderStyleTest from './TextTest/shaderStyle.test';
 import EnablePreviewMenuTest from './TextTest/EnablePreviewMenu.test';
-
+import EnableMultiTypeTest from './StyledStringTest/EnableMultiTypeTest.test';
+import StyledStringOnTouchTest from './StyledStringTest/StyledStringOnTouchTest.test';
+import ThicknessScaleTest from './StyledStringTest/ThicknessScaleTest.test';
+import OnWillAttachIMETest from './SearchTest/OnWillAttachIMETest.test';
+import SymbolShadowTest from './SymbolGlyphTest/SymbolShadowTest.test';
+import MaxLinesOptionsTest from './TextAreaTest/MaxLinesOptionsTest.test';
+import TextAreaBindControllerTest from './TextAreaTest/TextAreaBindControllerTest.test';
+import TextInputBindControllerTest from './TextInputTest/TextInputBindControllerTest.test';
+import OptimizeTrailingSpaceTest from './TextTest/OptimizeTrailingSpaceTest.test';
+import TextBindControllerTest from './TextTest/TextBindControllerTest.test';
 
 export default function testsuite() {
   textAreaInputTest();
@@ -88,4 +97,14 @@ export default function testsuite() {
   SymbolEffectTest();
   shaderStyleTest();
   EnablePreviewMenuTest();
+  EnableMultiTypeTest();
+  StyledStringOnTouchTest();
+  ThicknessScaleTest();
+  OnWillAttachIMETest();
+  SymbolShadowTest();
+  MaxLinesOptionsTest();
+  TextAreaBindControllerTest();
+  TextInputBindControllerTest();
+  TextBindControllerTest();
+  OptimizeTrailingSpaceTest();
 }

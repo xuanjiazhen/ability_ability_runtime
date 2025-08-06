@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import router from '@ohos.router';
 import json from '@ohos.util.json';
+import dragController from '@ohos.arkui.dragController';
 
 @Entry
 @Component
@@ -126,7 +127,7 @@ struct dragSpringLoading {
             .onDragSpringLoading((context: SpringLoadingContext) => {
               this.currentNotifySequence = context.currentNotifySequence
               this.cancel = ''
-              if (context.state == 0) {
+              if (context.state == dragController.DragSpringLoadingState.BEGIN) {
                 this.beginConfig = context.currentConfig?.stillTimeLimit + ','
                   + context.currentConfig?.updateInterval + ',' + context.currentConfig?.updateNotifyCount + ','
                   + context.currentConfig?.updateToFinishInterval
@@ -145,7 +146,7 @@ struct dragSpringLoading {
                   })
                 }
 
-              } else if (context.state == 1) {
+              } else if (context.state == dragController.DragSpringLoadingState.UPDATE) {
                 if (context.currentNotifySequence == 1) {
                   this.color1 = Color.Blue
                 } else if (context.currentNotifySequence == 2) {
@@ -180,7 +181,7 @@ struct dragSpringLoading {
                     updateToFinishInterval: this.end[this.endIndex]
                   })
                 }
-              } else if (context.state == 2) {
+              } else if (context.state == dragController.DragSpringLoadingState.END) {
                 this.color1 = Color.Pink
                 this.endConfig = context.currentConfig?.stillTimeLimit + ','
                   + context.currentConfig?.updateInterval + ','
@@ -192,7 +193,7 @@ struct dragSpringLoading {
                 if (this.isPush == true) {
                   router.pushUrl({ url: "pages/pushPage" })
                 }
-              } else if (context.state == 3) {
+              } else if (context.state == dragController.DragSpringLoadingState.CANCEL) {
                 this.color1 = Color.Pink
                 this.cancel = "DragSpringLoading cancel"
                 if (this.isAbort3 == true) {

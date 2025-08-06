@@ -26,6 +26,7 @@ export default function createDisplayContextEventHubTest() {
     let context: Context | undefined = undefined;
     let event1: string = 'com.example.eventhubinterthreadtest.event1';
     let event2: string = 'com.example.eventhubinterthreadtest.event2';
+    let delay: number = 500;
 
     beforeAll(() => {
       let msg: string;
@@ -145,7 +146,7 @@ export default function createDisplayContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event1, emitData1);
-        }, 200);
+        }, delay);
         hilog.info(0x0000, 'testTag', '%{public}s', `${caseName} end`);
       }
     })
@@ -201,7 +202,7 @@ export default function createDisplayContextEventHubTest() {
         worker1.postMessageWithSharedSendable(sendData);
         setTimeout(() => {
           context?.eventHub.emit(event2, emitData2);
-        }, 200);
+        }, delay);
       }
     })
   })

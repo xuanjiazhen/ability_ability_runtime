@@ -23,9 +23,14 @@ import CommonEventManager from '@ohos.commonEventManager';
 export default class EntryFormAbility extends FormExtensionAbility {
 
   private formOnUpdataSizeEvent = 'FMS_FormOnUpdateSize_commonEvent';
+  private formOnLocationChanged = 'FMS_FormOnLocationChanged_commonEvent';
 
   private publishUpdateSizeCallBack = () => {
     console.debug(`====> formUpdateSizeEventCallBack ====>`);
+  }
+
+  private publishFormLocationChanged = () => {
+    console.debug(`====> publishFormLocationChanged ====>`);
   }
 
   onAddForm(want: Want) {
@@ -72,11 +77,19 @@ export default class EntryFormAbility extends FormExtensionAbility {
     return formInfo.FormState.READY;
   }
 
-    onSizeChanged(formId: string, newDimension: formInfo.FormDimension, newRect: formInfo.Rect): void {
+  onSizeChanged(formId: string, newDimension: formInfo.FormDimension, newRect: formInfo.Rect): void {
     console.info(`onSizeChanged param: formId:${formId} newDimesnion:${newDimension}, newRect:${JSON.stringify(newRect)}`);
     let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
       code: 0
     };
     CommonEventManager.publish(this.formOnUpdataSizeEvent, commonEventPublishData, this.publishUpdateSizeCallBack);
+  }
+
+  onFormLocationChanged(formId: string, newFormLocation: formInfo.FormLocation) {
+    console.info('EntryFormAbility onFormLocationChanged current location: ' + newFormLocation);
+    let commonEventPublishData:CommonEventManager.CommonEventPublishData = {
+      code: 0
+    };
+    CommonEventManager.publish(this.formOnLocationChanged, commonEventPublishData, this.publishFormLocationChanged);
   }
 };

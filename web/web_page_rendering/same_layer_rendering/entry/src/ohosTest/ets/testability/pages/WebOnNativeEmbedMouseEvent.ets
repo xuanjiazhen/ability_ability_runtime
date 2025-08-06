@@ -275,7 +275,7 @@ struct WebIndex {
                     console.log("onNativeEmbedGestureEvent fail " + componentId);
                   }
                   if (touch.result) {
-                    touch.result.setGestureEventResult(ret);
+                    touch.result.setGestureEventResult(ret,true);
                     this.eventType3 = 'setGestureEventResult--'+ret
                     console.log("NativeEmbed setGestureEventResult " + ret);
                   } else {
@@ -312,7 +312,7 @@ struct WebIndex {
                     console.log("setMouseEventResult fail " + componentId)
                   }
                   if (mouse.result) {
-                    mouse.result.setMouseEventResult(ret);
+                    mouse.result.setMouseEventResult(ret,true);
                     console.log("NativeEmbed setMouseEventResult " + ret);
                     console.log("NativeEmbed setMouseEventResult6666 " + mouse.result.setMouseEventResult(ret));
                   } else {

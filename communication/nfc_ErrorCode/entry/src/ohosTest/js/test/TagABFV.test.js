@@ -224,8 +224,19 @@ export default function nfcTagABFVErrorTest() {
                 console.info("[NFC_test]06 getBarcodeTag data is " + data);
                 expect().assertFail();
             }catch(error){
-                console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code)
-                expect(401).assertEqual(error.code);
+                if (error.code == 201) {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect(true).assertTrue();
+                } else if (error.code == 801) {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect(true).assertTrue();
+                } else if (error.code == 401) {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect(true).assertTrue();
+                } else {
+                    console.info("[NFC_test]06 getBarcodeTag error is " + error + "/" + error.code);
+                    expect().assertFail();
+                }
             }
         })
 

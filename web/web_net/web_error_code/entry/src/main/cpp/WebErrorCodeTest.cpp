@@ -21,6 +21,7 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
+#include "WebErrorCodeList.h"
 
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
@@ -52,7 +53,10 @@ static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
     const char *baseUrl = "resource://rawfile/";
     const char *historyUrl = "www";
     int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_SUCCESS) {
+        napi_create_int32(env, ret, &result);
+    }
+
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess end..");
     return result;
 }
@@ -68,7 +72,9 @@ static napi_value WebInitError(napi_env env, napi_callback_info info)
     const char *baseUrl = "";
     const char *historyUrl = "";
     int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_INIT_ERROR) {
+        napi_create_int32(env, ret, &result);
+    }
     OH_LOG_DEBUG(LOG_APP, "WebInitError end..");
     return result;
 }
@@ -80,7 +86,10 @@ static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
     ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
     int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN) {
+        napi_create_int32(env, ret, &result);
+    }
+
     OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow end..");
     return result;
 }
@@ -98,7 +107,9 @@ static napi_value WebErrorInvalidParam(napi_env env, napi_callback_info info)
     ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
     int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_INVALID_PARAM) {
+        napi_create_int32(env, ret, &result);
+    }
 
     OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvalidParam en..");
@@ -113,7 +124,9 @@ static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info
     OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
     OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_SCHEME_REGISTER_FAILED) {
+        napi_create_int32(env, ret, &result);
+    }
     OH_LOG_DEBUG(LOG_APP, "WebErrorSchemeRegitsterFailed end..");
     return result;
 }
@@ -126,7 +139,9 @@ static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info)
     OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
     OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_INVALID_URL) {
+        napi_create_int32(env, ret, &result);
+    }
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledURL end..");
     return result;
 }
@@ -259,11 +274,16 @@ static napi_value WebBlanklessErrSignificantChange(napi_env env, napi_callback_i
 static napi_value WebBlanklessDeviceNotSupport(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport start..");
-    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
-    ArkWeb_BlanklessInfo ret = OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
-
     napi_value result;
-    napi_create_int32(env, ret.errCode, &result);
+    ArkWeb_BlanklessErrorCode retSet =
+        OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
+    if (retSet == ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT) {
+        napi_create_int32(env, retSet, &result);
+        return result;
+    }
+
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+    napi_create_int32(env, ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT, &result);
     OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport end..");
     return result;
 }
@@ -421,6 +441,11 @@ static napi_value Init(napi_env env, napi_value exports)
         {"webNativeCookieManger", nullptr, WebNativeCookieManger, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"webNativeJavaScriptValue", nullptr, WebNativeJavaScriptValue, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"webNetErrorDidFailWithError", nullptr, WebNetErrorDidFailWithError, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+        {"WebArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+        
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

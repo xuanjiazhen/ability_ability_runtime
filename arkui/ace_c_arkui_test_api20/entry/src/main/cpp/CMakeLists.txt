@@ -20,8 +20,10 @@ add_library(nativerender SHARED
     uiState/UiStatesTest.cpp
     touchTestDone/OntouchTestDoneTest.cpp
     nodeUtils/NodeUniqueIdTest.cpp
+    renderNode/RenderNodeTest.cpp
     uiInput/UiInputErrorCodeTest.cpp
     scope/RunTaskInScopeTest.cpp
+    renderNodeUtils/renderNodeUtils.cpp
 )
 
 add_library(nativefunc SHARED

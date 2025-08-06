@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import ActsWebErrorCodeTest from './ActsWebErrorCodeTest.test'
+import ActsWebErrorCodeListTest from './ActsWebErrorCodeListTest.test'
 
 export default function testsuite() {
   ActsWebErrorCodeTest()
+  ActsWebErrorCodeListTest();
 }

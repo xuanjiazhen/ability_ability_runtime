@@ -25,6 +25,8 @@ import collectionsSixtest from './CollectionsSixTest.test';
 import collectionstest from './Collectionstest.test';
 import collectionsThirdtest from './CollectionsThirdtest.test';
 import sendableLruCachetest from './SendableLruCachetest.test';
+import collectionsAddTest from './CollectionsAdd.test';
+import collectionsConcurrentModifyTest from './CollectionsConcurrentModify.test';
 
 export default function testsuite() {
   abilityTest();
@@ -40,4 +42,6 @@ export default function testsuite() {
   Uint8ClampedArraytest();
   BitVectortest();
   AsyncLocktest();
+  collectionsAddTest();
+  collectionsConcurrentModifyTest()
 }

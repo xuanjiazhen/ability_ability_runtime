@@ -26,6 +26,7 @@ export function sleep(time: number): Promise<void> {
 
 class NormalClass {
   public value: number;
+
   constructor(value: number) {
     this.value = value;
   }
@@ -99,7 +100,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).toString()
+            array.fill(1, 4).toString()
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -157,7 +158,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).toLocaleString()
+            array.fill(1, 4).toLocaleString()
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -186,7 +187,35 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.copyWithin;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, 2, 0);
+        try {
+          bound()
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200011)
+          flag = true
+        }
+        expect(flag).assertTrue()
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTIONTHIRD_18001
+     * @tc.name      : collectionsThirdtest18001
+     * @tc.desc      : Int8Array copyWithin 10200011
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('collectionsThirdtest18001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'collectionsThirdtest18001';
+        console.info(`${caseName} test start`);
+        let flag: boolean = false;
+        let array = new collections.Int8Array([1, 2, 3, 4, 5]);
+        const normal = new NormalClass(10);
+        const unbound = array.copyWithin;
+        const bound: () => void = unbound.bind(normal, 2, 0, 3);
         try {
           bound()
         } catch (e) {
@@ -215,7 +244,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).copyWithin(3, 1, 3)
+            array.fill(1, 4).copyWithin(3, 1, 3)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -273,7 +302,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).some((element: number) => element < 0)
+            array.fill(1, 4).some((element: number) => element < 0)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -302,7 +331,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).every((element: number) => element < 0)
+            array.fill(1, 4).every((element: number) => element < 0)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -331,7 +360,8 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.every;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, () => {
+        });
         try {
           bound()
         } catch (e) {
@@ -343,7 +373,7 @@ export default function collectionsThirdtest() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COOLLECTIONTHIRD_2400
      * @tc.name      : collectionsThirdtest2400
@@ -360,7 +390,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).fill(4, 1)
+            array.fill(1, 4).fill(4, 1)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -389,7 +419,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.fill;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, 2);
         try {
           bound()
         } catch (e) {
@@ -418,7 +448,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).filter((element: number) => element % 2 == 0)
+            array.fill(1, 4).filter((element: number) => element % 2 == 0)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -447,7 +477,8 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.filter;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, () => {
+        });
         try {
           bound()
         } catch (e) {
@@ -476,7 +507,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).find((element: number) => element % 2 == 0)
+            array.fill(1, 4).find((element: number) => element % 2 == 0)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -505,7 +536,8 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.find;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, () => {
+        });
         try {
           bound()
         } catch (e) {
@@ -534,7 +566,7 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).findIndex((element: number) => element % 2 == 0)
+            array.fill(1, 4).findIndex((element: number) => element % 2 == 0)
             console.info(`m[${key}] = ${value}`);
           });
         } catch (e) {
@@ -563,7 +595,8 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.findIndex;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, () => {
+        });
         try {
           bound()
         } catch (e) {
@@ -592,8 +625,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).findIndex((element: number) => element % 2 == 0)
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).findIndex((element: number) => element % 2 == 0)
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -623,7 +656,8 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.forEach;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, () => {
+        });
         try {
           bound()
         } catch (e) {
@@ -652,8 +686,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).indexOf(9, 2)
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).indexOf(9, 2)
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -683,7 +717,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.indexOf;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, 1);
         try {
           bound()
         } catch (e) {
@@ -712,8 +746,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).lastIndexOf(9, 2)
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).lastIndexOf(9, 2)
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -743,7 +777,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.lastIndexOf;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, 2);
         try {
           bound()
         } catch (e) {
@@ -772,8 +806,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).join('9, 2')
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).join('9, 2')
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -803,7 +837,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.lastIndexOf;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal, 2, 3);
         try {
           bound()
         } catch (e) {
@@ -832,8 +866,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).map(Math.sqrt)
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).map(Math.sqrt)
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -863,7 +897,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.map;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal,()=>{});
         try {
           bound()
         } catch (e) {
@@ -892,8 +926,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).reduce((accumulator: number, value: number) => accumulator + value);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).reduce((accumulator: number, value: number) => accumulator + value);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -923,7 +957,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.reduce;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal,()=>{});
         try {
           bound()
         } catch (e) {
@@ -952,8 +986,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).reduceRight((accumulator: number, value: number) => accumulator + value);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).reduceRight((accumulator: number, value: number) => accumulator + value);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -983,7 +1017,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.reduceRight;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal,()=>{});
         try {
           bound()
         } catch (e) {
@@ -1012,8 +1046,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).reverse();
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).reverse();
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1072,8 +1106,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).set([1, 2, 3], 3);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).set([1, 2, 3], 3);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1103,7 +1137,7 @@ export default function collectionsThirdtest() {
         let array = new collections.Int8Array([1, 2, 3, 4, 5]);
         const normal = new NormalClass(10);
         const unbound = array.set;
-        const bound: () => void = unbound.bind(normal);
+        const bound: () => void = unbound.bind(normal,[1,2]);
         try {
           bound()
         } catch (e) {
@@ -1132,8 +1166,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).slice(1, 3);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).slice(1, 3);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1192,8 +1226,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).sort((a: number, b: number) => a - b);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).sort((a: number, b: number) => a - b);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1252,8 +1286,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).subarray();
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).subarray();
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1312,8 +1346,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).at(2);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).at(2);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1372,8 +1406,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).includes(2);
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).includes(2);
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1432,8 +1466,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).entries();
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).entries();
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1492,8 +1526,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).keys();
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).keys();
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1552,8 +1586,8 @@ export default function collectionsThirdtest() {
         try {
           let array = new collections.Int8Array([1, 2, 3, 4, 5]);
           array.forEach((value, key, array) => {
-            array.fill(1,4).forEach((value, key, array) => {
-              array.fill(1,4).values();
+            array.fill(1, 4).forEach((value, key, array) => {
+              array.fill(1, 4).values();
               console.info(`m[${key}] = ${value}`);
             });
           });
@@ -1566,7 +1600,6 @@ export default function collectionsThirdtest() {
         console.info(`${caseName} test end`);
         done()
       })
-
 
 
   })
