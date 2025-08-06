@@ -434,8 +434,8 @@ DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToVa
         { JSON_KEY_IS_AUTO_STARTUP, isAutoStartup },
         { JSON_KEY_IS_EDM_FORCE, isEdmForce },
         { JSON_KEY_TYPE_NAME, info.abilityTypeName },
-        { JSON_KEY_SETTER_USERID, info.setterUserId },
-        { JSON_KEY_SETTER_TYPE, info.setterType },
+        // { JSON_KEY_SETTER_USERID, info.setterUserId },
+        // { JSON_KEY_SETTER_TYPE, info.setterType },
     };
     DistributedKv::Value value(jsonObject.dump());
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "value: %{public}s", value.ToString().c_str());
@@ -457,9 +457,11 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
         startupStatus.isEdmForce = jsonObject.at(JSON_KEY_IS_EDM_FORCE).get<bool>();
     }
     if (jsonObject.contains(JSON_KEY_SETTER_USERID) && jsonObject[JSON_KEY_SETTER_USERID].is_number()) {
+        TAG_LOGI(AAFwkTag::AUTO_STARTUP, "jsonObject contains JSON_KEY_SETTER_USERID");
         startupStatus.setterUserId = jsonObject.at(JSON_KEY_SETTER_USERID).get<int32_t>();
     }
     if (jsonObject.contains(JSON_KEY_SETTER_TYPE) && jsonObject[JSON_KEY_SETTER_TYPE].is_number()) {
+        TAG_LOGI(AAFwkTag::AUTO_STARTUP, "jsonObject contains JSON_KEY_SETTER_TYPE");
         startupStatus.setterType = jsonObject.at(JSON_KEY_SETTER_TYPE).get<AutoStartupSetterType>();
     }
 }

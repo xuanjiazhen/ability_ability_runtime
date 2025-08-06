@@ -28,7 +28,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AAFwk;
 namespace {
-constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
+// constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
 } // namespace
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
@@ -197,7 +197,11 @@ int32_t AbilityAutoStartupService::InnerCancelApplicationAutoStartup(const AutoS
     }
 
     if (status.isAutoStartup) {
-        if (status.setterUserId != info.setterUserId && status.setterType != AutoStartupSetterType::SYSTEM) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP,
+        "status.setterUserId: %{public}d, status.setterType: %{public}d", status.setterUserId, (int32_t)status.setterType);
+        if (status.setterUserId != -1 &&
+            status.setterUserId != info.setterUserId &&
+            status.setterType == AutoStartupSetterType::USER) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "setter id is different, cannot cancel");
             return ERR_INVALID_OPERATION;
         }
@@ -230,10 +234,10 @@ int32_t AbilityAutoStartupService::QueryAllAutoStartupApplications(std::vector<A
 int32_t AbilityAutoStartupService::QueryAllAutoStartupApplicationsWithoutPermission(
     std::vector<AutoStartupInfo> &infoList, int32_t userId)
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
-        return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
-    }
+    // if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    //     TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
+    //     return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    // }
 
     return DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAllAutoStartupApplications(infoList,
         userId, false);
@@ -542,10 +546,10 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
 
 int32_t AbilityAutoStartupService::CheckPermissionForSystem()
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
-        return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
-    }
+    // if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    //     TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
+    //     return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    // }
 
     if (!PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "not use system-api");
@@ -563,10 +567,10 @@ int32_t AbilityAutoStartupService::CheckPermissionForSystem()
 
 int32_t AbilityAutoStartupService::CheckPermissionForSelf(const std::string &bundleName)
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
-        return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
-    }
+    // if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    //     TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
+    //     return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
+    // }
 
     if (!CheckSelfApplication(bundleName)) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Not self application");
