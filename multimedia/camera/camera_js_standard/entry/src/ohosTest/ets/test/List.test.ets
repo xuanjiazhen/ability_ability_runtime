@@ -73,6 +73,6 @@ export default function cameraKit() {
   CameraVideoMirrorTest()
   CameraPhotoSessionTest()
   CameraConcurrentTest()
+    CameraMacroTest()
   cameraCaptureSceneTest()
-  CameraMacroTest()
 }
