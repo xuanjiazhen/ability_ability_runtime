@@ -20,7 +20,7 @@ import { JSON } from '@kit.ArkTS';
 import { FailureCode } from '@ohos.app.ability.CompletionHandlerForAtomicService';
 
 let context: common.UIAbilityContext;
-const MALFUNCTION_MSG: string = 'failed to open atomicservice';
+const MALFUNCTION_MSG: string = 'A system error occurred';
 
 export default function abilityTest() {
   describe('ActsAbilityTest', () => {
