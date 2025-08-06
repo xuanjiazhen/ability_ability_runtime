@@ -14,9 +14,7 @@ import("//build/ohos_var.gni")
 
 group("distributedhardware") {
   testonly = true
-  if (is_standard_system) {
     deps = [
       "devicemanager:ActsdeviceManagerTest",
     ]
-  }
 }
