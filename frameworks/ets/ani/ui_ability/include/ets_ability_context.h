@@ -89,12 +89,11 @@ public:
         const std::shared_ptr<AppExecFwk::Configuration> &config);
     static void OpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
+    static void RevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
     static EtsAbilityContext *GetEtsAbilityContext(ani_env *env, ani_object aniObj);
-    static ani_object NativeTransferStatic(ani_env *env, ani_object aniObj, ani_object input);
-    static ani_object NativeTransferDynamic(ani_env *env, ani_object aniObj, ani_object input);
     static bool IsInstanceOf(ani_env *env, ani_object aniObj);
     static void NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj, ani_boolean isShow,
         ani_object callbackObj);
@@ -139,6 +138,7 @@ private:
         ani_env *env, ani_object aniObj, ani_string aniType, ani_ref aniWantParam, ani_object startCallback);
     void OnOpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
+    void OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback);
 
     void UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
