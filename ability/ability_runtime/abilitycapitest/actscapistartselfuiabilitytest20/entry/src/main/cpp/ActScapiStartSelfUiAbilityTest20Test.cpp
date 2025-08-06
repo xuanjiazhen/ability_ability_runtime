@@ -28,13 +28,12 @@ static napi_value DestroyChildProcessConfigsParamInvalid(napi_env env, napi_call
 {
     Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
-    if (ret == NCP_ERR_INVALID_PARAM)
-        {
+    if (ret == NCP_ERR_INVALID_PARAM) {
         // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-        }
+    }
     return nullptr;
 }
 
@@ -146,12 +145,11 @@ static napi_value UnregisterNativeChildProcessExitCallbackNotExist(napi_env env,
     void* errPtr = reinterpret_cast<void*>(0x12345678);
     auto data = reinterpret_cast<OH_Ability_OnNativeChildProcessExit>(errPtr);
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(data);
-    if(ret==NCP_ERR_CALLBACK_NOT_EXIST)
-        {
+    if (ret == NCP_ERR_CALLBACK_NOT_EXIST) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-        }
+    }
     return nullptr;
 }
 
@@ -163,12 +161,11 @@ static napi_value DestroyWantNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_BASE_ERROR_CODE_NO_ERROR)
-        {
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
-        }
+    }
     return nullptr;
 }
 
