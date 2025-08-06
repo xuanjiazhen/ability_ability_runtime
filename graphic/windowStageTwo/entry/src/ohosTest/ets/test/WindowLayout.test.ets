@@ -3141,7 +3141,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         windowClass.on('rectChangeInGlobalDisplay', callback);
         windowClass.on('rectChangeInGlobalDisplay', callback);
         windowClass.on('rectChangeInGlobalDisplay', callback);
-        await windowClass.moveWindowTo(50, 50);
+        windowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' timer: ' + timer);
         if (isPCStatus != '' || isAutoWindow == 'true') {
@@ -3191,7 +3191,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer2++;
         };
         windowClass.on('rectChangeInGlobalDisplay', callback2);
-        await windowClass.moveWindowTo(50, 50);
+        windowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         console.log(caseName + ' timer2: ' + timer2);
@@ -3238,7 +3238,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer1++;
         };
         windowClass.on('rectChangeInGlobalDisplay', callback1);
-        await windowClass.moveWindowTo(50, 50);
+        windowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         if (isPCStatus != '' || isAutoWindow == 'true') {
@@ -3247,7 +3247,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           expect(timer1).assertEqual(0);
         }
         windowClass.off('rectChangeInGlobalDisplay', callback1);
-        await windowClass.moveWindowTo(30, 30);
+        windowClass.moveWindowToAsync(30, 30);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         if (isPCStatus != '' || isAutoWindow == 'true') {
@@ -3297,7 +3297,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer2++;
         };
         windowClass.on('rectChangeInGlobalDisplay', callback2);
-        await windowClass.moveWindowTo(50, 50);
+        windowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
@@ -3310,7 +3310,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         }
 
         windowClass.off('rectChangeInGlobalDisplay', callback1);
-        await windowClass.moveWindowTo(30, 30);
+        windowClass.moveWindowToAsync(30, 30);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
@@ -3364,7 +3364,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer2++;
         };
         windowClass.on('rectChangeInGlobalDisplay', callback2);
-        await windowClass.moveWindowTo(50, 50);
+        windowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' before off, timer1: ' + timer1);
         console.log(caseName + ' before off, timer2: ' + timer2);
@@ -3377,7 +3377,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         }
 
         windowClass.off('rectChangeInGlobalDisplay');
-        await windowClass.moveWindowTo(30, 30);
+        windowClass.moveWindowToAsync(30, 30);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         console.log(caseName + ' after off, timer2: ' + timer2);
@@ -3463,12 +3463,12 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer1++;
         };
         subWindowClass.on('rectChangeInGlobalDisplay', callback1);
-        await subWindowClass.moveWindowTo(30, 30);
+        subWindowClass.moveWindowToAsync(30, 30);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         expect(timer1).assertEqual(1);
         subWindowClass.off('rectChangeInGlobalDisplay', callback1);
-        await subWindowClass.moveWindowTo(50, 50);
+        subWindowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         expect(timer1).assertEqual(1);
@@ -3514,12 +3514,12 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           timer1++;
         };
         subWindowClass.on('rectChangeInGlobalDisplay', callback1);
-        await subWindowClass.moveWindowTo(30, 30);
+        subWindowClass.moveWindowToAsync(30, 30);
         await sleep(200);
         console.log(caseName + ' timer1: ' + timer1);
         expect(timer1).assertEqual(1);
         subWindowClass.off('rectChangeInGlobalDisplay', callback1);
-        await subWindowClass.moveWindowTo(50, 50);
+        subWindowClass.moveWindowToAsync(50, 50);
         await sleep(200);
         console.log(caseName + ' after off, timer1: ' + timer1);
         expect(timer1).assertEqual(1);
@@ -3649,14 +3649,14 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
           await sleep(200);
           let windowStatus2 = windowClass.getWindowStatus();
           console.log(caseName + ' windowStatus2: ' + JSON.stringify(windowStatus2));
-          expect(windowStatus2).assertEqual(window.WindowStatusType.MAXIMIZE);
+          expect(windowStatus2).assertEqual(window.WindowStatusType.FULL_SCREEN);
           await windowClass.moveWindowToGlobalDisplay(100, 100);
           await sleep(200);
           await windowClass.maximize(window.MaximizePresentation.ENTER_IMMERSIVE);
           await sleep(200);
           let windowStatus3 = windowClass.getWindowStatus();
           console.log(caseName + ' windowStatus3: ' + JSON.stringify(windowStatus3));
-          // expect(windowStatus3).assertEqual(window.WindowStatusType.FULL_SCREEN);
+          expect(windowStatus3).assertEqual(window.WindowStatusType.MAXIMIZE);
           await windowClass.moveWindowToGlobalDisplay(100, 100);
           await sleep(200);
           await terminateAbility(caseName);
