@@ -1044,7 +1044,144 @@ export default function ActsWebErrorCodeListTest() {
       }
     })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_6700
+     * @tc.name    : testArkWebMsgTooBig
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_MSG_TOO_BIG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebMsgTooBig', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebMsgTooBig start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_MSG_TOO_BIG");
+        console.info("====>testArkWebMsgTooBig result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebMsgTooBig catch err: " + err);
+      }
+    })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_6800
+     * @tc.name    : testArkWebWSProtocolError
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_WS_PROTOCOL_ERROR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebWSProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebWSProtocolError start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WS_PROTOCOL_ERROR");
+        console.info("====>testArkWebWSProtocolError result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebWSProtocolError catch err: " + err);
+      }
+    })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_6900
+     * @tc.name    : testArkWebAddressInUse
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_ADDRESS_IN_USE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebAddressInUse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebAddressInUse start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_ADDRESS_IN_USE");
+        console.info("====>testArkWebAddressInUse result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebAddressInUse catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_7000
+     * @tc.name    : testArkWebSSLHandshakeNotCompleted
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SSL_HANDSHAKE_NOT_COMPLETED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSSLHandshakeNotCompleted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSSLHandshakeNotCompleted start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_HANDSHAKE_NOT_COMPLETED");
+        console.info("====>testArkWebSSLHandshakeNotCompleted result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSSLHandshakeNotCompleted catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_7100
+     * @tc.name    : testArkWebSSLBadPeerPublicKey
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SSL_BAD_PEER_PUBLIC_KEY
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSSLBadPeerPublicKey', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSSLBadPeerPublicKey start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_BAD_PEER_PUBLIC_KEY");
+        console.info("====>testArkWebSSLBadPeerPublicKey result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSSLBadPeerPublicKey catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_7200
+     * @tc.name    : testArkWebSSLPinnedKeyNotInCERTChain
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSSLPinnedKeyNotInCERTChain', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebSSLPinnedKeyNotInCERTChain start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN");
+        console.info("====>testArkWebSSLPinnedKeyNotInCERTChain result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSSLPinnedKeyNotInCERTChain catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_7300
+     * @tc.name    : testArkWebClientAuthCERTTypeUnsupported
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CLIENT_AUTH_CERT_TYPE_UNSUPPORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebClientAuthCERTTypeUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>testArkWebClientAuthCERTTypeUnsupported start====");
+        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_CLIENT_AUTH_CERT_TYPE_UNSUPPORTED");
+        console.info("====>testArkWebClientAuthCERTTypeUnsupported result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebClientAuthCERTTypeUnsupported catch err: " + err);
+      }
+    })
   })
 }

@@ -14,6 +14,7 @@
  */
 
 #include <map>
+#include <memory>
 #include <string>
 #include "WebErrorCodeList.h"
 #include "napi/native_api.h"
@@ -23,14 +24,17 @@
 
 static const int ERROR_NAME_SIZE = 200;
 
-static char* GetArgsParamater(napi_env env, napi_callback_info info)
+static std::unique_ptr<char []> GetArgsParamater(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value args[1] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     size_t netErrorSize = 0;
-    char netErrorName [ERROR_NAME_SIZE] = "";
-    napi_get_value_string_utf8(env, args[0], netErrorName, ERROR_NAME_SIZE, &netErrorSize);
+    std::unique_ptr<char []> netErrorName (new (std::nothrow) char [ERROR_NAME_SIZE + 1]);
+    if (netErrorName == nullptr) {
+        return std::unique_ptr<char []>(new (std::nothrow) char[1]);
+    }
+    napi_get_value_string_utf8(env, args[0], netErrorName.get(), ERROR_NAME_SIZE, &netErrorSize);
     return netErrorName;
 }
 
@@ -196,8 +200,8 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
 napi_value WebNetErrorDidFailWithError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorDidFailWithError start..");
-    char* netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
+    auto netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
     
     napi_value result;
     int ret = OH_ArkWebResourceHandler_DidFailWithError(nullptr, errorCode);
@@ -220,8 +224,8 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     const char* url = "www.example.com";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    char* netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName);
+    auto netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
@@ -247,8 +251,8 @@ napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
     const char* url = "UnInvalid Url";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    char* netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName);
+    auto  netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
     
@@ -270,8 +274,8 @@ napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
     ArkWeb_Response* response = nullptr;
     OH_ArkWeb_CreateResponse(&response);
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
-    char* netErrorName = GetArgsParamater(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName);
+    auto  netErrorName = GetArgsParamater(env, info);
+    ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     
     napi_value result;
