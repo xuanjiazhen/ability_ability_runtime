@@ -22,6 +22,22 @@ import router from '@ohos.router';
 import RectValue from './Rect';
 import { expect, it } from '@ohos/hypium';
 
+async function simulateByShell(cmd: string) {
+  let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
+
+  return new Promise<string>((resolve, reject) => {
+    abilityDelegator.executeShellCommand(cmd, (err, data) => {
+      if (err) {
+        console.error(`command ${cmd} failed: ${JSON.stringify(err)}`);
+        reject("failed");
+      } else {
+        console.info(`command ${cmd} executed: ${data.stdResult}`);
+        resolve("executed");
+      }
+    });
+  })
+}
+
 const KEY_CODE_EVENT_OK = 1;
 const KEY_CODE_EVENT_ERROR = 0;
 
@@ -388,9 +404,12 @@ export default class Utils {
       try {
         console.info(`====>${name} start<====`);
         let driver = await Driver.create();
-        Utils.sleep(1000);
-        await driver?.triggerKey(key);
-        Utils.sleep(1000);
+        if (key == 1) {
+          simulateByShell('uinput -K -d 1 -u 1');
+          await simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
+        } else {
+          await driver?.triggerKey(key);
+        }
         let KeyResult: number = ndkfunction();
         expect(KEY_CODE_EVENT_OK).assertEqual(KeyResult);
         done()
