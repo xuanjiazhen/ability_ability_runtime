@@ -2200,5 +2200,45 @@ HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_GetLoudnessGain_002, TestSize.Leve
     OH_AudioStreamBuilder_Destroy(builder);
 }
 
+/**
+ * @tc.name  : OH_AudioStreamManager_IsAcousticEchoCancelerSupported_001
+ * @tc.number: OH_AudioStreamManager_IsAcousticEchoCancelerSupported_001
+ * @tc.desc  : null check
+ */
+HWTEST(OHAudioRenderUnitTest, OH_AudioStreamManager_IsAcousticEchoCancelerSupported_001, TestSize.Level2)
+{
+    OH_AudioStreamManager* streamManager = nullptr;
+    OH_AudioCommon_Result ret = OH_AudioManager_GetAudioStreamManager(&streamManager);
+
+    EXPECT_EQ(ret, AUDIOCOMMON_RESULT_SUCCESS);
+    EXPECT_NE(streamManager, nullptr);
+
+    bool supported;
+    ret = OH_AudioStreamManager_IsAcousticEchoCancelerSupported(nullptr, AUDIOSTREAM_SOURCE_TYPE_MIC, &supported);
+    EXPECT_EQ(ret, AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM);
+
+    ret = OH_AudioStreamManager_IsAcousticEchoCancelerSupported(streamManager, AUDIOSTREAM_SOURCE_TYPE_MIC, nullptr);
+    EXPECT_EQ(ret, AUDIOCOMMON_RESULT_ERROR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name  : OH_AudioStreamManager_IsAcousticEchoCancelerSupported_002
+ * @tc.number: OH_AudioStreamManager_IsAcousticEchoCancelerSupported_002
+ * @tc.desc  : IsAcousticEchoCancelerSupported
+ */
+HWTEST(OHAudioRenderUnitTest, OH_AudioStreamManager_IsAcousticEchoCancelerSupported_002, TestSize.Level2)
+{
+    OH_AudioStreamManager* streamManager = nullptr;
+    OH_AudioCommon_Result ret = OH_AudioManager_GetAudioStreamManager(&streamManager);
+
+    EXPECT_EQ(ret, AUDIOCOMMON_RESULT_SUCCESS);
+    EXPECT_NE(streamManager, nullptr);
+
+    bool supported;
+    ret = OH_AudioStreamManager_IsAcousticEchoCancelerSupported(streamManager, AUDIOSTREAM_SOURCE_TYPE_MIC, &supported);
+    EXPECT_EQ(ret, AUDIOCOMMON_RESULT_SUCCESS);
+    EXPECT_EQ(supported, false);
+}
+
 } // namespace AudioStandard
 } // namespace OHOS
