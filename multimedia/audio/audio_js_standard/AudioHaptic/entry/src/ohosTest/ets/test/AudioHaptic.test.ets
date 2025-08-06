@@ -2075,6 +2075,7 @@ export default function AudioHapticTest() {
       let audioHapticPlayer:audioHaptic.AudioHapticPlayer | undefined = undefined;
       await audioHapticManager.createPlayer(id,options).then(async(value:audioHaptic.AudioHapticPlayer)=>{
         console.info(`Create Success`);
+        audioHapticPlayer = value;
         await audioHapticPlayer.start().then(()=>{
           console.info(`Create Success`);
         }).catch((err: BusinessError) => {
