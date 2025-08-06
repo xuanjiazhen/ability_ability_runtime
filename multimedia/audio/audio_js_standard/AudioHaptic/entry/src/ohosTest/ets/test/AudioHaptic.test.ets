@@ -2147,6 +2147,12 @@ export default function AudioHapticTest() {
           expect(false).assertTrue();
         });
         await sleep(1000);
+        await audioHapticPlayer.setVolume(5).then(()=>{
+          console.info(`setVolume player successfully`);
+        }).catch((err: BusinessError) => {
+          console.error(`fail to setVolume playing out of range, ${err.code}`);
+          expect(Number(err.code)).assertEqual(5400108);
+        });
         await audioHapticPlayer.stop().then(()=>{
           console.info(`promise return to indicate stop successfully`);
         }).catch((err: BusinessError) => {
@@ -2159,25 +2165,18 @@ export default function AudioHapticTest() {
           console.error(`fail to release playing, ${err}`);
           expect(false).assertTrue();
         });
-        await audioHapticPlayer.setVolume(5).then(()=>{
+        await audioHapticPlayer.setVolume(0.50).then(()=>{
           console.info(`setVolume player successfully`);
           expect(false).assertTrue();
         }).catch((err: BusinessError) => {
-          console.error(`fail to setVolume playing, ${err.code}`);
+          console.error(`fail to setVolume playing already release, ${err.code}`);
           expect(Number(err.code)).assertEqual(5400102);
-        });
-        await audioHapticPlayer.setVolume(10000).then(()=>{
-          console.info(`setVolume player successfully`);
-          expect(false).assertTrue();
-        }).catch((err: BusinessError) => {
-          console.error(`fail to setVolume playing, ${err.code}`);
-          expect(Number(err.code)).assertEqual(5400108);
         });
         await audioHapticPlayer.setLoop(true).then(()=>{
           console.info(`setVolume player successfully`);
           expect(false).assertTrue();
         }).catch((err: BusinessError) => {
-          console.error(`fail to setVolume playing, ${err.code}`);
+          console.error(`fail to setloop playing, ${err.code}`);
           expect(Number(err.code)).assertEqual(5400102);
         });
       }).catch((err: BusinessError) => {
