@@ -29,7 +29,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_DestroyChildProcessConfigs_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseDestroyChildProcessConfigs0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_DestroyChildProcessConfigs_0100 start====");
@@ -52,7 +52,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_DestroyChildProcessConfigs_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseDestroyChildProcessConfigs0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_DestroyChildProcessConfigs_0200 start====");
@@ -75,7 +75,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetIsolationModeConfigs_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetIsolationModeConfigs0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetIsolationModeConfigs_0100 start====");
@@ -98,7 +98,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetIsolationModeConfigs_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetIsolationModeConfigs0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetIsolationModeConfigs_0200 start====");
@@ -121,7 +121,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetProcessNameConfigs_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetProcessNameConfigs0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetProcessNameConfigs_0100 start====");
@@ -144,7 +144,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetProcessNameConfigs_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetProcessNameConfigs0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetProcessNameConfigs_0200 start====");
@@ -167,8 +167,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_RegisterNativeChildProcessExitCallback_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseRegisterNativeChildProcessExitCallback0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_RegisterNativeChildProcessExitCallback_0100 start====");
           let result = osAccountNdk.RegisterNativeChildProcessExitCallbackNoError();
@@ -190,7 +190,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_RegisterNativeChildProcessExitCallback_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseRegisterNativeChildProcessExitCallback0200',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_RegisterNativeChildProcessExitCallback_0200 start====");
@@ -213,8 +214,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_UnregisterNativeChildProcessExitCallback_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseUnRegisterNativeChildProcessExitCallback0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_UnregisterNativeChildProcessExitCallback_0100 start====");
           let result = osAccountNdk.UnregisterNativeChildProcessExitCallbackNoError();
@@ -236,8 +237,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_UnregisterNativeChildProcessExitCallback_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseUnRegisterNativeChildProcessExitCallback0200',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_UnregisterNativeChildProcessExitCallback_0200 start====");
           let result = osAccountNdk.UnregisterNativeChildProcessExitCallbackInvalidParam();
@@ -259,8 +260,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_UnRegisterNativeChildProcessExitCallback_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseUnRegisterNativeChildProcessExitCallback0300',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_UnRegisterNativeChildProcessExitCallback_0300 start====");
           let result = osAccountNdk.UnregisterNativeChildProcessExitCallbackNotExist();
@@ -282,7 +283,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_DestroyWant_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseDestroyWant0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_DestroyWant_0100 start====");
@@ -305,7 +306,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantElement_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantElement0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantElement_0100 start====");
@@ -328,7 +329,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantElement_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantElement0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantElement_0100 start====");
@@ -351,7 +352,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantCharParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantCharParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantCharParam_0100 start====");
@@ -374,7 +375,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantCharParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantCharParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantCharParam_0100 start====");
@@ -397,7 +398,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AddWantFd_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAddWantFd0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AddWantFd_0100 start====");
@@ -420,7 +421,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantUri_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantUri0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantUri_0100 start====");
@@ -443,7 +444,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantUri_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantUri0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantUri_0100 start====");
@@ -466,7 +467,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantInt32Param_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantInt32Param0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantInt32Param_0100 start====");
@@ -489,7 +490,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantInt32Param_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantInt32Param0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantInt32Param_0100 start====");
@@ -512,7 +513,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantBoolParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantBoolParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantBoolParam_0100 start====");
@@ -535,7 +536,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantBoolParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantBoolParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantBoolParam_0100 start====");
@@ -558,7 +559,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetWantDoubleParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetWantDoubleParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetWantDoubleParam_0100 start====");
@@ -581,7 +582,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetWantDoubleParam_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetWantDoubleParam0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetWantDoubleParam_0100 start====");
@@ -604,7 +605,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl2_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAbilityRuntimeAreaModeEl20100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl2_0100 start====");
@@ -627,7 +628,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl3_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAbilityRuntimeAreaModeEl30100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl3_0100 start====");
@@ -650,7 +651,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl4_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAbilityRuntimeAreaModeEl40100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl4_0100 start====");
@@ -673,7 +674,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl5_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAbilityRuntimeAreaModeEl50100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AbilityRuntimeAreaModeEl5_0100 start====");
@@ -696,7 +697,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_AbilityRuntimeHideUponStart_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseAbilityRuntimeHideUponStart0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_AbilityRuntimeHideUponStart_0100 start====");
@@ -719,7 +720,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_DestroyStartOptions_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseDestroyStartOptions0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_DestroyStartOptions_0100 start====");
@@ -742,7 +743,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWindowMode_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWindowMode0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWindowMode_0100 start====");
@@ -765,7 +766,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWindowMode_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWindowMode0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWindowMode_0100 start====");
@@ -788,7 +789,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsDisplayId_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsDisplayId0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsDisplayId_0100 start====");
@@ -811,7 +812,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsDisplayId_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsDisplayId0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsDisplayId_0200 start====");
@@ -834,7 +835,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsDisplayId_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsDisplayId0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsDisplayId_0100 start====");
@@ -857,7 +858,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWithAnimation_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWithAnimation0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWithAnimation_0100 start====");
@@ -880,7 +881,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWithAnimation_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWithAnimation0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWithAnimation_0100 start====");
@@ -903,7 +904,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWindowLeft_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWindowLeft0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWindowLeft_0100 start====");
@@ -926,7 +927,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWindowLeft_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWindowLeft0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWindowLeft_0100 start====");
@@ -949,7 +950,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWindowTop_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWindowTop0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWindowTop_0100 start====");
@@ -972,7 +973,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWindowTop_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWindowTop0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWindowTop_0100 start====");
@@ -995,7 +996,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWindowHeight_0100 start====");
@@ -1018,7 +1019,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWindowHeight_0100 start====");
@@ -1041,7 +1042,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsWindowWidth_0100 start====");
@@ -1064,7 +1065,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsWindowWidth_0100 start====");
@@ -1087,7 +1088,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsStartVisibility_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsStartVisibility0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsStartVisibility_0100 start====");
@@ -1110,7 +1111,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsStartVisibility_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsStartVisibility0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsStartVisibility_0100 start====");
@@ -1133,7 +1134,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsStartWindowIcon_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsStartWindowIcon0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsStartWindowIcon_0100 start====");
@@ -1156,7 +1157,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsStartWindowIcon_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsStartWindowIcon0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsStartWindowIcon_0100 start====");
@@ -1179,8 +1180,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsStartWindowBackgroundColor_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseSetStartOptionsStartWindowBackgroundColor0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsStartWindowBackgroundColor_0100 start====");
           let result = osAccountNdk.SetStartOptionsStartWindowBackgroundColorNoError();
@@ -1202,8 +1203,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsStartWindowBackgroundColor_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseGetStartOptionsStartWindowBackgroundColor0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsStartWindowBackgroundColor_0100 start====");
           let result = osAccountNdk.GetStartOptionsStartWindowBackgroundColorNoError();
@@ -1225,8 +1226,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsSupportedWindowModes_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseSetStartOptionsSupportedWindowModes0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsSupportedWindowModes_0100 start====");
           let result = osAccountNdk.SetStartOptionsSupportedWindowModesNoError();
@@ -1248,8 +1249,8 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsSupportedWindowModes_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
+    it('testAbilityAbilityBaseGetStartOptionsSupportedWindowModes0100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsSupportedWindowModes_0100 start====");
           let result = osAccountNdk.GetStartOptionsSupportedWindowModesNoError();
@@ -1271,7 +1272,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsMinWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsMinWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsMinWindowWidth_0100 start====");
@@ -1294,7 +1295,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsMinWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsMinWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsMinWindowWidth_0100 start====");
@@ -1317,7 +1318,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsMaxWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsMaxWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsMaxWindowWidth_0100 start====");
@@ -1340,7 +1341,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsMaxWindowWidth_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsMaxWindowWidth0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsMaxWindowWidth_0100 start====");
@@ -1363,7 +1364,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsMinWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsMinWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsMinWindowHeight_0100 start====");
@@ -1386,7 +1387,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsMinWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsMinWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsMinWindowHeight_0100 start====");
@@ -1409,7 +1410,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsMinWindowHeight_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsMinWindowHeight0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsMinWindowHeight_0200 start====");
@@ -1432,7 +1433,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_SetStartOptionsMaxWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseSetStartOptionsMaxWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_SetStartOptionsMaxWindowHeight_0100 start====");
@@ -1455,7 +1456,7 @@ export default function ActsCapabilityStartSelfUIAbilityTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_Ability_AbilityBase_GetStartOptionsMaxWindowHeight_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testAbilityAbilityBaseGetStartOptionsMaxWindowHeight0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_Ability_AbilityBase_GetStartOptionsMaxWindowHeight_0100 start====");

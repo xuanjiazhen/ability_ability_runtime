@@ -28,7 +28,8 @@ static napi_value DestroyChildProcessConfigsParamInvalid(napi_env env, napi_call
 {
     Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
-    if (ret == NCP_ERR_INVALID_PARAM) {
+    if (ret == NCP_ERR_INVALID_PARAM)
+    {
         // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
@@ -125,7 +126,8 @@ static napi_value RegisterNativeChildProcessExitCallbackInvalidParam(napi_env en
 static napi_value UnregisterNativeChildProcessExitCallbackNoError(napi_env env, napi_callback_info info)
 {
     OH_Ability_RegisterNativeChildProcessExitCallback(NativeChildProcessExit);
-    Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(NativeChildProcessExit);
+    Ability_NativeChildProcess_ErrCode ret =
+        OH_Ability_UnregisterNativeChildProcessExitCallback(NativeChildProcessExit);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -141,9 +143,11 @@ static napi_value UnregisterNativeChildProcessExitCallbackInvalidParam(napi_env 
 
 static napi_value UnregisterNativeChildProcessExitCallbackNotExist(napi_env env, napi_callback_info info)
 {
-    void* invalidPtr = reinterpret_cast<void*>(0x12345678);
-    Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(reinterpret_cast<OH_Ability_OnNativeChildProcessExit>(invalidPtr));
-    if(ret==NCP_ERR_CALLBACK_NOT_EXIST){
+    void* errPtr = reinterpret_cast<void*>(0x12345678);
+    auto data = reinterpret_cast<OH_Ability_OnNativeChildProcessExit>(errPtr);
+    Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(data);
+    if(ret==NCP_ERR_CALLBACK_NOT_EXIST)
+    {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet; 
@@ -159,7 +163,8 @@ static napi_value DestroyWantNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_DestroyWant(want);
-    if(ret == ABILITY_BASE_ERROR_CODE_NO_ERROR){
+    if(ret == ABILITY_BASE_ERROR_CODE_NO_ERROR)
+    {
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -311,7 +316,7 @@ static napi_value GetWantBoolParamNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     bool flag = false;
-    OH_AbilityBase_SetWantBoolParam(want,"keyBool",flag);
+    OH_AbilityBase_SetWantBoolParam(want, "keyBool", flag);
     bool outElement = 0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantBoolParam(want, "keyBool", &outElement);
     napi_value napiRet;
@@ -406,7 +411,8 @@ static napi_value DestroyStartOptionsNoError(napi_env env, napi_callback_info in
 static napi_value SetStartOptionsWindowModeNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWindowMode(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_SetStartOptionsWindowMode(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -425,7 +431,8 @@ static napi_value GetStartOptionsWindowModeNoError(napi_env env, napi_callback_i
 static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsDisplayId(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret = 
+        OH_AbilityRuntime_SetStartOptionsDisplayId(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -433,7 +440,8 @@ static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
 
 static napi_value SetStartOptionsDisplayIdParamInvalid(napi_env env, napi_callback_info info)
 {
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsDisplayId(nullptr, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret = 
+        OH_AbilityRuntime_SetStartOptionsDisplayId(nullptr, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -452,7 +460,8 @@ static napi_value GetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
 static napi_value SetStartOptionsWithAnimationNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWithAnimation(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret = 
+        OH_AbilityRuntime_SetStartOptionsWithAnimation(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -471,7 +480,8 @@ static napi_value GetStartOptionsWithAnimationNoError(napi_env env, napi_callbac
 static napi_value SetStartOptionsWindowLeftNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWindowLeft(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_SetStartOptionsWindowLeft(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -490,7 +500,8 @@ static napi_value GetStartOptionsWindowLeftNoError(napi_env env, napi_callback_i
 static napi_value SetStartOptionsWindowTopNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWindowTop(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_SetStartOptionsWindowTop(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -560,7 +571,7 @@ static napi_value GetStartOptionsStartVisibilityNoError(napi_env env, napi_callb
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_SHOW_UPON_START;
-    OH_AbilityRuntime_SetStartOptionsStartVisibility(options,visibility);
+    OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartVisibility(options,visibility);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
@@ -619,9 +630,9 @@ static napi_value GetStartOptionsStartWindowIconNoError(napi_env env, napi_callb
     if (imgErrCode != IMAGE_SUCCESS) {
         OH_PixelmapInitializationOptions_Release(createOpts);
     }
-    OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options,startWindowIcon);
+    OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options, startWindowIcon);
     startWindowIcon = nullptr;
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartWindowIcon(options,&startWindowIcon);
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartWindowIcon(options, &startWindowIcon);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -660,7 +671,8 @@ static napi_value SetStartOptionsSupportedWindowModesNoError(napi_env env, napi_
         ABILITY_RUNTIME_SUPPORTED_WINDOW_MODE_FLOATING,
     };
     size_t supportedWindowModesSize = 3;
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsSupportedWindowModes(options,supportedWindowModes,supportedWindowModesSize);
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_SetStartOptionsSupportedWindowModes(options, supportedWindowModes, supportedWindowModesSize);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -671,7 +683,8 @@ static napi_value GetStartOptionsSupportedWindowModesNoError(napi_env env, napi_
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_SupportedWindowMode *supportedWindowModes = nullptr;
     size_t size = 0;
-    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(options,&supportedWindowModes,size);
+    AbilityRuntime_ErrorCode ret =
+        OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(options, &supportedWindowModes, size);
     napi_value napiRet;
     napi_create_int32(env, ret, &napiRet);
     return napiRet;
@@ -785,14 +798,14 @@ static napi_value Init(napi_env env, napi_value exports)
             nullptr, SetProcessNameConfigsNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"RegisterNativeChildProcessExitCallbackNoError",
             nullptr, RegisterNativeChildProcessExitCallbackNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"RegisterNativeChildProcessExitCallbackInvalidParam",
-            nullptr, RegisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"RegisterNativeChildProcessExitCallbackInvalidParam", nullptr,
+            RegisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"UnregisterNativeChildProcessExitCallbackNoError",
             nullptr, UnregisterNativeChildProcessExitCallbackNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"UnregisterNativeChildProcessExitCallbackInvalidParam",
-            nullptr, UnregisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"UnregisterNativeChildProcessExitCallbackNotExist",
-            nullptr, UnregisterNativeChildProcessExitCallbackNotExist, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"UnregisterNativeChildProcessExitCallbackInvalidParam", nullptr,
+            UnregisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"UnregisterNativeChildProcessExitCallbackNotExist", nullptr,
+            UnregisterNativeChildProcessExitCallbackNotExist, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"DestroyWantNoError",
             nullptr, DestroyWantNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"SetWantElementNoError",
@@ -871,10 +884,10 @@ static napi_value Init(napi_env env, napi_value exports)
             nullptr, SetStartOptionsStartWindowIconNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetStartOptionsStartWindowIconNoError",
             nullptr, GetStartOptionsStartWindowIconNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"SetStartOptionsStartWindowBackgroundColorNoError",
-            nullptr, SetStartOptionsStartWindowBackgroundColorNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"GetStartOptionsStartWindowBackgroundColorNoError",
-            nullptr, GetStartOptionsStartWindowBackgroundColorNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetStartOptionsStartWindowBackgroundColorNoError", nullptr,
+            SetStartOptionsStartWindowBackgroundColorNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"GetStartOptionsStartWindowBackgroundColorNoError", nullptr,
+            GetStartOptionsStartWindowBackgroundColorNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"SetStartOptionsSupportedWindowModesNoError",
             nullptr, SetStartOptionsSupportedWindowModesNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"GetStartOptionsSupportedWindowModesNoError",
