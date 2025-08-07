@@ -442,8 +442,10 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"webNetErrorDidFailWithError", nullptr, WebNetErrorDidFailWithError, nullptr, nullptr, nullptr, napi_default,
          nullptr},
-        {"WebArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
+        {"webArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"webArkWebConnectError", nullptr, WebArkWebConnectError, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"webArkWebSSLError", nullptr, WebArkWebSSLError, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
