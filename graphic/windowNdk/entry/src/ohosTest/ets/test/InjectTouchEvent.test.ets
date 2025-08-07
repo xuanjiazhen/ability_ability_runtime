@@ -912,8 +912,11 @@ export default function InjectTouchEvent() {
         let focusable = subWindowClass.getWindowProperties().focusable;
         console.info(`${Tag}: ${caseName} focusable: ${focusable}`);
         expect(focusable).assertEqual(false);
-        // 如何查询最上层窗口是什么？ getTopWindow()接口是FA模型的接口
-        // let topWindow = await window.getTopWindow();
+        let topWindow = await window.getLastWindow(context);
+        await sleep(200);
+        let topWindowId = topWindow.getWindowProperties().id;
+        console.info(`${Tag}: ${caseName} topWindowId: ${topWindowId}`);
+        expect(topWindowId).assertEqual(subWindowId2);
         await subWindowClass.destroyWindow();
         await subWindowClass2.destroyWindow();
         done()
