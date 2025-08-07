@@ -336,7 +336,6 @@ export default function ActsNotificationSecondaryDirectoryTest() {
             }
           ],
           actionType: wantAgent.OperationType.SEND_COMMON_EVENT,
-          requestCode: 0,
           actionFlags: [wantAgent.WantAgentFlags.ONE_TIME_FLAG]
         };
 

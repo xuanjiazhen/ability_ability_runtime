@@ -53,7 +53,6 @@ let wantAgentInfo: wantAgent.WantAgentInfo = {
     }
   ],
   actionType: wantAgent.OperationType.START_ABILITIES,
-  requestCode: 0,
   actionFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
 }as wantAgent.WantAgentInfo
 
