@@ -663,22 +663,44 @@ async function setPlaybackStrategyFlv(avPlayer: media.AVPlayer | null, done: Fun
   avPlayer?.on('stateChange', stateChangeCallback)
 }
 
-function setPlayerVideoMuted(avPlayer: media.AVPlayer | null, isMuted: boolean) {
-  console.info(`setPlayerVideoMuted: ${isMuted}`)
-  avPlayer?.setMediaMuted(media.MediaType.MEDIA_TYPE_VID, isMuted).catch((error: BusinessError) => {
-    console.error(`setPlayerVideoMuted faild, err code ${error.code} msg ${error.message}`)
-    expect().assertFail()
-  })
+interface MediaMutedParams{
+  MediaType: media.MediaType,
+  isMuted: boolean,
+  result: boolean,
+  errorCode?: number
+}
+function setPlayerMediaMuted(mediaMutedParams: MediaMutedParams, isErrorMonitoring: boolean = false) {
+  exceptFail = isErrorMonitoring
+  try {
+    avPlayer?.setMediaMuted(mediaMutedParams.MediaType, mediaMutedParams.isMuted).then(() => {
+      if(mediaMutedParams.result){
+        console.info(`setMediaMuted success - is expected`)
+      }else{
+        console.error(`setMediaMuted success - is not expected`)
+        expect().assertFail()
+      }
+    }).catch((error: BusinessError) => {
+      if(mediaMutedParams.result){
+        console.error(`setMediaMuted failed - is not expected, err code ${error.code} msg ${error.message}`)
+        expect().assertFail();
+      }else{
+        console.info(`setMediaMuted failed - is expected, err code ${error.code} msg ${error.message}`)
+        expect(error.code).assertEqual(mediaMutedParams.errorCode)
+      }
+    })
+  } catch (error) {
+    if(!exceptFail){
+      console.error(`function avPlayer.setMediaMuted run error, error: ${JSON.stringify(error)}`)
+      Promise.resolve().then(() => expect().assertFail())
+    }else{
+      console.info(`function avPlayer.setMediaMuted run error, the error was triggered by avPlayer.on('error')`)
+    }
+  }finally{
+    console.info(`current state is: ${avPlayer?.state}`)
+  }
 }
 
-function setPlayerMediaMuted(avPlayer: media.AVPlayer | null) {
-  avPlayer?.setMediaMuted(media.MediaType.MEDIA_TYPE_AUD, true).catch((error: BusinessError) => {
-    console.error(`setMediaMuted failed, err code ${error.code} msg ${error.message}`)
-    expect().assertFail();
-  })
-}
-
-async function setMediaMuted(avPlayer: media.AVPlayer | null, done: Function) {
+async function setMediaMutedNormal(params: MediaMutedParams, done: Function) {
   let surfaceID: string = globalThis.value;
   let pauseCount = 0
   let stateChangeCallback = async (state: media.AVPlayerState) => {
@@ -692,22 +714,22 @@ async function setMediaMuted(avPlayer: media.AVPlayer | null, done: Function) {
         avPlayer.prepare()
         break;
       case PREPARED:
-        setPlayerMediaMuted(avPlayer)
+        setPlayerMediaMuted(params)
         avPlayer?.play()
         break;
       case PLAYING:
-        setPlayerMediaMuted(avPlayer)
         if (pauseCount++ > 0) {
-          break
+          break;
         }
+        setPlayerMediaMuted(params)
         avPlayer?.pause()
         break;
       case PAUSED:
-        setPlayerMediaMuted(avPlayer)
+        setPlayerMediaMuted(params)
         avPlayer?.play()
         break;
       case COMPLETED:
-        setPlayerMediaMuted(avPlayer)
+        setPlayerMediaMuted(params)
         avPlayer?.release()
         break;
       case RELEASED:
@@ -728,9 +750,58 @@ async function setMediaMuted(avPlayer: media.AVPlayer | null, done: Function) {
   avPlayer?.on('stateChange', stateChangeCallback)
 }
 
-async function setVideoMuted(avPlayer: media.AVPlayer | null, done: Function) {
+let exceptFail = false
+async function setMediaMutedInErrorState(params: MediaMutedParams, done: Function) {
   let surfaceID: string = globalThis.value;
-  let pauseCount = 0
+  let stateChangeCallback = async (state: media.AVPlayerState) => {
+    switch (state) {
+      case IDLE:
+        setPlayerMediaMuted(params, true)
+        avPlayer?.release()
+        break;
+      case INITIALIZED:
+        if (!avPlayer) {
+          console.info(`avPlayer is null`);
+          break;
+        }
+        avPlayer.surfaceId = surfaceID;
+        setPlayerMediaMuted(params, true)
+        avPlayer.prepare()
+        break;
+      case PREPARED:
+        avPlayer?.stop()
+        break;
+      case STOPPED:
+        setPlayerMediaMuted(params, true)
+        avPlayer?.reset()
+        break;
+      case RELEASED:
+        setPlayerMediaMuted(params, true)
+        await mediaTestBase.msleepAsync(1000)
+        avPlayer = null;
+        done();
+        break;
+      case ERROR:
+        expect().assertFail();
+        avPlayer?.release().then(() => {
+        },
+          mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        avPlayer = null;
+        break;
+      default:
+        break;
+    }
+  }
+  avPlayer?.on('stateChange', stateChangeCallback)
+  avPlayer?.on('error',(error: BusinessError) => {
+    console.info(`function avPlayer.setMediaMuted run error, error: ${JSON.stringify(error)}`)
+    expect(error.code).assertEqual(params.errorCode)
+    exceptFail = false
+  })
+}
+
+async function setMediaMutedUseUnsupportMediaType(params: MediaMutedParams, done: Function) {
+  let surfaceID: string = globalThis.value;
   let stateChangeCallback = async (state: media.AVPlayerState) => {
     switch (state) {
       case INITIALIZED:
@@ -742,21 +813,8 @@ async function setVideoMuted(avPlayer: media.AVPlayer | null, done: Function) {
         avPlayer.prepare()
         break;
       case PREPARED:
-        avPlayer?.play()
-        break;
-      case PLAYING:
-        setPlayerVideoMuted(avPlayer, true)
-        if (pauseCount++ > 0) {
-          break
-        }
-        avPlayer?.pause()
-        break;
-      case PAUSED:
-        avPlayer?.play()
-        setPlayerVideoMuted(avPlayer, false)
-        break;
-      case COMPLETED:
-        setPlayerVideoMuted(avPlayer, true)
+        setPlayerMediaMuted(params)
+        await mediaTestBase.msleepAsync(1000)
         avPlayer?.release()
         break;
       case RELEASED:
@@ -871,15 +929,14 @@ async function testSetPlaybackStrategyFlv(src: string | media.AVFileDescriptor, 
   });
 }
 
-async function testSetMediaMuted(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null,
-  done: Function) {
+async function testSetMediaMuted(src: string | media.AVFileDescriptor, params: MediaMutedParams, done: Function, setMediaMuted: Function = setMediaMutedNormal) {
   console.info(`case media source: ${src}`)
   media.createAVPlayer((err, video) => {
     console.info(`case media err: ${err}`)
     if (typeof (video) !== 'undefined') {
       console.info('case createAVPlayer success');
       avPlayer = video;
-      setMediaMuted(avPlayer, done)
+      setMediaMuted(params, done)
       setSource(avPlayer, src);
     }
     if (err != null) {
@@ -1409,17 +1466,23 @@ export default function AVPlayerLocalTest() {
         testSetPlaybackRange(fileDescriptor, startTimeMs, endTimeMs, mode, avPlayer, done);
       }
     });
+    
     /* *
-        * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100
-        * @tc.name      : 001.test setMediaMuted Function
-        * @tc.desc      : Local Video subtitle control test
-        * @tc.size      : MediumTest
-        * @tc.type      : Function test
-        * @tc.level     : Level1
+    * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100
+    * @tc.name      : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100
+    * @tc.desc      : Local Video subtitle control test
+    * @tc.size      : MediumTest
+    * @tc.type      : Function test
+    * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100', Level.LEVEL0,async (done: Function) => {
       if (fileDescriptor) {
-        testSetMediaMuted(fileDescriptor, avPlayer, done);
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_AUD,
+          isMuted: true,
+          result: true
+        }
+        testSetMediaMuted(fileDescriptor, params, done);
       }
     });
     /* *
@@ -1432,23 +1495,89 @@ export default function AVPlayerLocalTest() {
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0200', Level.LEVEL0,async (done: Function) => {
       if (fileDescriptor) {
-        console.info(`case media source: ${fileDescriptor}`)
-        media.createAVPlayer((err, video) => {
-          console.info(`case media err: ${err}`)
-          if (typeof (video) !== 'undefined') {
-            console.info('case createAVPlayer success');
-            avPlayer = video;
-            setVideoMuted(avPlayer, done)
-            setSource(avPlayer, fileDescriptor);
-          }
-          if (err != null) {
-            console.error(`case createAVPlayer error, errMessage is ${err.message}`);
-            expect().assertFail();
-            done();
-          }
-        });
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_VID,
+          isMuted: true,
+          result: true
+        }
+        testSetMediaMuted(fileDescriptor, params, done);
       }
-    });       
+    });
+    /* *
+    * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300
+    * @tc.name      : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300
+    * @tc.desc      : Local Video subtitle control test
+    * @tc.size      : MediumTest
+    * @tc.type      : Function test
+    * @tc.level     : Level1
+    */
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300', Level.LEVEL0,async (done: Function) => {
+      if (fileDescriptor) {
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_AUD,
+          isMuted: false,
+          result: true
+        }
+        testSetMediaMuted(fileDescriptor, params, done);
+      }
+    });
+    /* *
+    * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400
+    * @tc.name      : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400
+    * @tc.desc      : Local Video subtitle control test
+    * @tc.size      : MediumTest
+    * @tc.type      : Function test
+    * @tc.level     : Level1
+    */
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400', Level.LEVEL0,async (done: Function) => {
+      if (fileDescriptor) {
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_VID,
+          isMuted: false,
+          result: true
+        }
+        testSetMediaMuted(fileDescriptor, params, done);
+      }
+    });
+    /* *
+    * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100
+    * @tc.name      : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100
+    * @tc.desc      : Local Video subtitle control test
+    * @tc.size      : MediumTest
+    * @tc.type      : Function test
+    * @tc.level     : Level1
+    */
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100', Level.LEVEL0,async (done: Function) => {
+      if (fileDescriptor) {
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_AUD,
+          isMuted: true,
+          result: false,
+          errorCode: 5400102
+        }
+        testSetMediaMuted(fileDescriptor, params, done, setMediaMutedInErrorState);
+      }
+    });
+    /* *
+    * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200
+    * @tc.name      : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200
+    * @tc.desc      : Local Video subtitle control test
+    * @tc.size      : MediumTest
+    * @tc.type      : Function test
+    * @tc.level     : Level1
+    */
+    it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200', Level.LEVEL0,async (done: Function) => {
+      if (fileDescriptor) {
+        const params: MediaMutedParams = {
+          MediaType: media.MediaType.MEDIA_TYPE_SUBTITLE,
+          isMuted: true,
+          result: false,
+          errorCode: 401
+        }
+        testSetMediaMuted(fileDescriptor, params, done, setMediaMutedUseUnsupportMediaType);
+      }
+    });
+    
     /* *
         * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_SET_PLAYBACK_STRATEGY_DASH_0100
         * @tc.name      : 001.test setPlaybackStrategy Function
