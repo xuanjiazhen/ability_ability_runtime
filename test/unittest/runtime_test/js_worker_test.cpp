@@ -27,12 +27,15 @@
 #undef protected
 #include "native_engine.h"
 #include "worker_info.h"
+#include "bundle_mgr_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace AbilityRuntime {
+using namespace AppExecFwk;
+using namespace AAFwk;
 class JsWorkerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -123,6 +126,42 @@ HWTEST_F(JsWorkerTest, AssetHelper_0200, TestSize.Level1)
     void* mapper = static_cast<void*>(fileMapper.get());
     auto ret = helper.GetSafeData("test.txt", &buff, &buffSize, &mapper);
     EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: AssetHelper_0300
+ * @tc.desc: Asset helper ReadFilePathData.
+ * @tc.type: FUNC
+ * @tc.require: issue#I948D4
+ */
+HWTEST_F(JsWorkerTest, AssetHelper_0300, TestSize.Level1)
+{
+    std::shared_ptr<JsEnv::WorkerInfo> workerInfo = std::make_shared<JsEnv::WorkerInfo>();
+    workerInfo->codePath = panda::panda_file::StringPacProtect("/data/test/codePath");
+    workerInfo->packagePathStr = "/data/test/packagePath";
+    workerInfo->hapPath = panda::panda_file::StringPacProtect("/data/test/hapPath");
+    workerInfo->moduleName = "moduleName";
+    AssetHelper helper = AssetHelper(workerInfo);
+
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    AppExecFwk::BundleInfo bundleInfo;
+    int32_t result = bundleMgrHelper->GetBundleInfoForSelf(0, bundleInfo);
+    if (result != 0 || bundleInfo.hapModuleInfos.empty()) {
+        bundleInfo.hapModuleInfos.clear();
+        auto& hapModule = bundleInfo.hapModuleInfos.emplace_back();
+        hapModule.moduleName = workerInfo->moduleName;
+        hapModule.hapPath = workerInfo->hapPath.GetOriginString();
+        result = 0;
+    }
+    uint8_t *buff = nullptr;
+    size_t buffSize;
+    std::vector<uint8_t> content;
+    bool useSecureMem = false;
+    bool isRestricted = false;
+    std::unique_ptr<AbilityBase::FileMapper> fileMapper = std::make_unique<AbilityBase::FileMapper>();
+    void* mapper = static_cast<void*>(fileMapper.get());
+    auto ret = helper.ReadFilePathData("test.txt", &buff, &buffSize, content, useSecureMem, isRestricted, &mapper);
+    EXPECT_FALSE(ret);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -106,6 +106,9 @@ enum class AAFwkLogTag : uint32_t {
 
 inline uint32_t GetOffset(AAFwkLogTag tag, AAFwkLogTag base)
 {
+    if (static_cast<uint32_t>(tag) <= static_cast<uint32_t>(base)) {
+        return 0;
+    }
     return static_cast<uint32_t>(tag) - static_cast<uint32_t>(base);
 }
 
