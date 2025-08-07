@@ -20,10 +20,10 @@ import enableDropDisallowedBadgeTest from './dropBadge/enableDropDisallowedBadge
 import dialogGetStateTest from './dialog/DialogGetStateTest.test'
 
 export default function testsuite() {
+  enableDropDisallowedBadgeTest();
   buttonGetTypeTest();
   focusWrapModeTest();
   dragEventGetDisplayIdTest();
   dragEventGetDragSourceTest();
-  enableDropDisallowedBadgeTest();
   dialogGetStateTest();
 }
