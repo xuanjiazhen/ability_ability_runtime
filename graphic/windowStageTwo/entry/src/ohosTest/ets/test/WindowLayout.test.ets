@@ -3562,7 +3562,7 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
         };
         const callback2 = (cb2: window.RectChangeOptions) => {
           console.log(caseName + ' cb2: ' + JSON.stringify(cb2));
-          cbData1 = cb2;
+          cbData2 = cb2;
           timer2++;
         };
         windowClass.on('rectChangeInGlobalDisplay', callback1);
