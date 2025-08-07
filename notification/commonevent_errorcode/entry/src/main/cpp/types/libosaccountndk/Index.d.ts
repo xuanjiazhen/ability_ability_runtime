@@ -12,5 +12,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const testCommonEventNoError: () => number;
+export const testCommonEventInvalidParameter: () => number;
+export const SetPublisherPermissionSuccess: () => number;
+export const SetPublisherPermissionError: () => number;
+export const SetPublisherBundleNameSuccess: () => number;
+export const SetPublisherBundleNameError: () => number;
+export const SetPublishInfoBundleNameInvalidParameter: () => number;
+export const SetPublishInfoPermissionSuccess: () => number;
+export const SetPublishInfoPermissionError: () => number;
+export const SetPublishInfoCodeSuccess: () => number;
+export const SetPublishInfoCodeError: () => number;
+export const SetPublishInfoDataSuccess: () => number;
+export const SetPublishInfoDataError: () => number;
+export const SetPublishInfoParameterSuccess: () => number;
+export const SetPublishInfoParameterError: () => number;
+export const SetIntToParameterSuccess: () => number;
+export const SetIntToParameterError: () => number;
+export const SetIntArrayToParameterSuccess: () => number;
+export const SetIntArrayToParameterError: () => number;
+export const SetLongToParameterSuccess: () => number;
+export const SetLongToParameterError: () => number;
+export const SetLongArrayToParameterSuccess: () => number;
+export const SetLongArrayToParameterError: () => number;
+export const SetBoolToParameterSuccess: () => number;
+export const SetBoolToParameterError: () => number;
+export const SetBoolArrayToParameterSuccess: () => number;
+export const SetBoolArrayToParameterError: () => number;
+export const SetCharToParameterSuccess: () => number;
+export const SetCharToParameterError: () => number;
+export const SetCharArrayToParameterSuccess: () => number;
+export const SetCharArrayToParameterError: () => number;
+export const SetDoubleToParameterSuccess: () => number;
+export const SetDoubleToParameterError: () => number;
+export const SetDoubleArrayToParameterSuccess: () => number;
+export const SetDoubleArrayToParameterError: () => number;
+export const PublishSuccess: () => number;
+export const PublishInvalidParameter: () => number;
+export const PublishWithInfoSuccess: () => number;
+export const PublishWithInfoInvalidParameter: () => number;
 
