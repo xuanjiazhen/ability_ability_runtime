@@ -14,7 +14,9 @@
  */
  
 import MultimodalInputNdkTest from './MultimodalInputNdk.test'
+import MultimodalMouseNdkTest from './MultimodalMouseNdk.test'
 
 export default function testsuite() {
   MultimodalInputNdkTest();
+  MultimodalMouseNdkTest();
 }
