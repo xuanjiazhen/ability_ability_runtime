@@ -223,6 +223,11 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         return true;
     }
 
+    if (getpid() == gettid()) {
+        DoSaveAppState(reason);
+        return true;
+    }
+    
     auto handler = mainHandler_.lock();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::RECOVERY, "null handler");
