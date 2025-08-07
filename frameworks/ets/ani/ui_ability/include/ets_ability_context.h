@@ -139,7 +139,8 @@ private:
 #endif
 private:
     void InheritWindowMode(AAFwk::Want &want);
-    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
+    void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt,
+        ani_object call, bool isStartRecent = false);
     void OnStartAbilityForResult(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj, ani_object callback);
     void OnTerminateSelf(ani_env *env, ani_object aniObj, ani_object callback);
@@ -191,6 +192,9 @@ private:
         AAFwk::StartOptions &options, std::string appId, ani_object callbackObj);
     void OnStartAbilityWithAccount(
         ani_env *env, ani_object aniObj, ani_object aniWant, ani_int aniAccountId, ani_object aniOpt, ani_object call);
+    void UnwrapCompletionHandlerInStartOptions(ani_env *env, ani_object param, AAFwk::StartOptions &options);
+    void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnRequestResult &onRequestCallback, const char *callbackName);
 
     ani_env *env_ = nullptr;
     std::weak_ptr<AbilityContext> context_;
