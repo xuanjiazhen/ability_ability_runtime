@@ -37,24 +37,6 @@ const bool IS_DECODER = false;
 #define LOG_DOMAIN 0x3200
 #define LOG_TAG "AVPlayer_xts"
 
-static napi_value AVCapabilityIsSupportedAVC(napi_env env, napi_callback_info info)
-{
-    napi_value result = nullptr;
-    int backParam = FAIL;
-    OH_AVCapability *capability = nullptr;
-    OH_AVCapability *capabilityAudio = nullptr;
-    
-    bool checkParam = -1;
-    capability = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_VIDEO_AVC, IS_DECODER, SOFTWARE);
-    capabilityAudio = OH_AVCodec_GetCapabilityByCategory(OH_AVCODEC_MIMETYPE_AUDIO_AAC, IS_DECODER, SOFTWARE);
-    OH_LOG_INFO(LOG_APP, "OH_AVCodec_GetCapabilityByCategory capability=%{public}d", capability);
-    if (capability != nullptr && capabilityAudio != nullptr) {
-        backParam = SUCCESS;
-        OH_LOG_INFO(LOG_APP, "OH_AVCapability_IsSupported checkParam=%{public}d", checkParam);
-    }
-    napi_create_int32(env, backParam, &result);
-    return result;
-}
 static napi_value AVCapabilityIsSupportedHEVC(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
@@ -124,8 +106,6 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"AVCapabilityIsSupportedAVC", nullptr, AVCapabilityIsSupportedAVC, nullptr, nullptr, nullptr,
-            napi_default, nullptr},
         {"AVCapabilityIsSupportedHEVC", nullptr, AVCapabilityIsSupportedHEVC, nullptr, nullptr, nullptr,
             napi_default, nullptr},
         {"AVCapabilityIsSupportedH263", nullptr, AVCapabilityIsSupportedH263, nullptr, nullptr, nullptr,
