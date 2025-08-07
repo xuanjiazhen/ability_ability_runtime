@@ -18,6 +18,9 @@ import dragEventGetDisplayIdTest from './dragEventTest/dragEventGetDisplayId.tes
 import dragEventGetDragSourceTest from './dragEventTest/dragEventGetDragSource.test'
 import enableDropDisallowedBadgeTest from './dropBadge/enableDropDisallowedBadge.test'
 import dialogGetStateTest from './dialog/DialogGetStateTest.test'
+import RenderNodeTest from "./renderNode/RenderNodeTest.test"
+import RenderNodeUtilsTest from "./renderNodeUtils/renderNodeUtils.test"
+import RenderNodeAttributeTest from "./renderNode/TestRenderNodeAttribute.test"
 
 export default function testsuite() {
   buttonGetTypeTest();
@@ -26,4 +29,7 @@ export default function testsuite() {
   dragEventGetDragSourceTest();
   enableDropDisallowedBadgeTest();
   dialogGetStateTest();
+  RenderNodeTest();
+  RenderNodeUtilsTest();
+  RenderNodeAttributeTest();
 }
