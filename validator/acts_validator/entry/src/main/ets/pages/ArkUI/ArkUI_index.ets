@@ -138,6 +138,7 @@ struct IndexPage {
     { title: 'AccessibilityHoverEvent', uri: 'pages/ArkUI/AccessibilityHoverEvent' },
     { title: 'CapiDragAction', uri: 'pages/ArkUI/CapiDragAction' },
     { title: 'CapiDragEvent', uri: 'pages/ArkUI/CapiDragEvent' },
+    { title: 'SliderTest', uri: 'pages/ArkUI/SliderTest' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];
