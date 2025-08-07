@@ -36,7 +36,7 @@ struct TotalTime {
 
 struct CpuStartTime {
     uint64_t halfStartTime;
-    uint64_t optimalCpuStartTime;
+    double optimalCpuStartTime;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
