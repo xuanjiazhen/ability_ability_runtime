@@ -35,15 +35,15 @@ export default function MultimodalMouseNdkTest() {
     }
 
     /**
-     * @tc.number: SUB_MMI_Input_Api_Ndk_PointerLocation_0100
-     * @tc.name: SUB_MMI_Input_Api_Ndk_PointerLocation_0100
+     * @tc.number: SUB_MMI_Input_Api_GetPointerLocation_0100
+     * @tc.name: SUB_MMI_Input_Api_GetPointerLocation_0100
      * @tc.desc: OH_Input_GetPointerLocation Interface testing
      * @tc.level 0
      * @tc.type: Function
      * @tc.size: SmallTest
      */
-    it('SUB_MMI_Input_Api_Ndk_PointerLocation_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      let caseName = 'SUB_MMI_Input_Api_Ndk_PointerLocation_0100';
+    it('SUB_MMI_Input_Api_GetPointerLocation_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let caseName = 'SUB_MMI_Input_Api_GetPointerLocation_0100';
       console.info(`${caseName} start to test OH_Input_GetPointerLocation`);
       try {
         let data = mouse.GetPointerLocation1();

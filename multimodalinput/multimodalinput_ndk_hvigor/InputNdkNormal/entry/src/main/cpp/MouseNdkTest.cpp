@@ -34,7 +34,7 @@ static napi_value GetPointerLocation1(napi_env env, napi_callback_info info)
     double displayX;
     double displayY;
     Input_Result retResult = OH_Input_GetPointerLocation(&displayId, &displayX, &displayY);
-    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_Ndk_PointerLocation_0100 retResult:%{public}d", retResult);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_GetPointerLocation_0100 retResult:%{public}d", retResult);
     napi_create_int32(env, (retResult == INPUT_SUCCESS || retResult == INPUT_DEVICE_NOT_SUPPORTED || retResult == INPUT_SERVICE_EXCEPTION) ? 1 : 0, &result);
     return result;
 }
