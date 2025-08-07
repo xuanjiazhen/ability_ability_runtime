@@ -15,14 +15,14 @@
 
 export const DestroyChildProcessConfigsParamInvalid: () => number;
 export const DestroyChildProcessConfigsNoError: () => number;
-export const SetIsolationModeConfigsInvalidParam: () => number;
-export const SetIsolationModeConfigsNoError: () => number;
-export const SetProcessNameConfigsInvalidParam: () => number;
-export const SetProcessNameConfigsNoError: () => number;
+export const ChildProcessConfigsSetIsolationModeInvalidParam: () => number;
+export const ChildProcessConfigsSetIsolationModeNoError: () => number;
+export const ChildProcessConfigsSetProcessNameInvalidParam: () => number;
+export const ChildProcessConfigsSetProcessNameNoError: () => number;
 export const RegisterNativeChildProcessExitCallbackNoError: () => number;
-export const RegisterNativeChildProcessExitCallbackInvalidParam: () => number;
+export const RegisterNativeChildProcessExitCallbackInvPar: () => number;
 export const UnregisterNativeChildProcessExitCallbackNoError: () => number;
-export const UnregisterNativeChildProcessExitCallbackInvalidParam: () => number;
+export const UnregisterNativeChildProcessExitCallbackInvPar: () => number;
 export const UnregisterNativeChildProcessExitCallbackNotExist: () => number;
 export const DestroyWantNoError: () => number;
 export const SetWantElementNoError: () => number;

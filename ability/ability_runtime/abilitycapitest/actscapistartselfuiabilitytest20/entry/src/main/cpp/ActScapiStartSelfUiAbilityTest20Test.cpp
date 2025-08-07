@@ -29,7 +29,6 @@ static napi_value DestroyChildProcessConfigsParamInvalid(napi_env env, napi_call
     Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
     if (ret == NCP_ERR_INVALID_PARAM) {
-        // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -42,7 +41,6 @@ static napi_value DestroyChildProcessConfigsNoError(napi_env env, napi_callback_
     Ability_ChildProcessConfigs *configs = OH_Ability_CreateChildProcessConfigs();
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_DestroyChildProcessConfigs(configs);
     if (ret == NCP_NO_ERROR) {
-        // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -50,13 +48,12 @@ static napi_value DestroyChildProcessConfigsNoError(napi_env env, napi_callback_
     return nullptr;
 }
 
-static napi_value SetIsolationModeConfigsInvalidParam(napi_env env, napi_callback_info info)
+static napi_value ChildProcessConfigsSetIsolationModeInvalidParam(napi_env env, napi_callback_info info)
 {
     Ability_ChildProcessConfigs *configs = nullptr;
     Ability_NativeChildProcess_ErrCode ret =
         OH_Ability_ChildProcessConfigs_SetIsolationMode(configs, NCP_ISOLATION_MODE_ISOLATED);
     if (ret == NCP_ERR_INVALID_PARAM) {
-        // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -64,13 +61,12 @@ static napi_value SetIsolationModeConfigsInvalidParam(napi_env env, napi_callbac
     return nullptr;
 }
 
-static napi_value SetIsolationModeConfigsNoError(napi_env env, napi_callback_info info)
+static napi_value ChildProcessConfigsSetIsolationModeNoError(napi_env env, napi_callback_info info)
 {
     Ability_ChildProcessConfigs *configs = OH_Ability_CreateChildProcessConfigs();
     Ability_NativeChildProcess_ErrCode ret =
         OH_Ability_ChildProcessConfigs_SetIsolationMode(configs, NCP_ISOLATION_MODE_ISOLATED);
     if (ret == NCP_NO_ERROR) {
-        // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -78,7 +74,7 @@ static napi_value SetIsolationModeConfigsNoError(napi_env env, napi_callback_inf
     return nullptr;
 }
 
-static napi_value SetProcessNameConfigsInvalidParam(napi_env env, napi_callback_info info)
+static napi_value ChildProcessConfigsSetProcessNameInvalidParam(napi_env env, napi_callback_info info)
 {
     Ability_ChildProcessConfigs *configs;
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_ChildProcessConfigs_SetProcessName(configs, nullptr);
@@ -90,12 +86,11 @@ static napi_value SetProcessNameConfigsInvalidParam(napi_env env, napi_callback_
     return nullptr;
 }
 
-static napi_value SetProcessNameConfigsNoError(napi_env env, napi_callback_info info)
+static napi_value ChildProcessConfigsSetProcessNameNoError(napi_env env, napi_callback_info info)
 {
     Ability_ChildProcessConfigs *configs = OH_Ability_CreateChildProcessConfigs();
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_ChildProcessConfigs_SetProcessName(configs, "abc_123");
     if (ret == NCP_NO_ERROR) {
-        // 错误处理
         napi_value napiRet;
         napi_create_int32(env, ret, &napiRet);
         return napiRet;
@@ -109,17 +104,23 @@ static void NativeChildProcessExit(int32_t pid, int32_t signal)
 static napi_value RegisterNativeChildProcessExitCallbackNoError(napi_env env, napi_callback_info info)
 {
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_RegisterNativeChildProcessExitCallback(NativeChildProcessExit);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == NCP_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
-static napi_value RegisterNativeChildProcessExitCallbackInvalidParam(napi_env env, napi_callback_info info)
+static napi_value RegisterNativeChildProcessExitCallbackInvPar(napi_env env, napi_callback_info info)
 {
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_RegisterNativeChildProcessExitCallback(nullptr);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == NCP_ERR_INVALID_PARAM) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value UnregisterNativeChildProcessExitCallbackNoError(napi_env env, napi_callback_info info)
@@ -127,17 +128,23 @@ static napi_value UnregisterNativeChildProcessExitCallbackNoError(napi_env env, 
     OH_Ability_RegisterNativeChildProcessExitCallback(NativeChildProcessExit);
     Ability_NativeChildProcess_ErrCode ret =
         OH_Ability_UnregisterNativeChildProcessExitCallback(NativeChildProcessExit);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == NCP_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
-static napi_value UnregisterNativeChildProcessExitCallbackInvalidParam(napi_env env, napi_callback_info info)
+static napi_value UnregisterNativeChildProcessExitCallbackInvPar(napi_env env, napi_callback_info info)
 {
     Ability_NativeChildProcess_ErrCode ret = OH_Ability_UnregisterNativeChildProcessExitCallback(nullptr);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == NCP_ERR_INVALID_PARAM) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value UnregisterNativeChildProcessExitCallbackNotExist(napi_env env, napi_callback_info info)
@@ -177,9 +184,12 @@ static napi_value SetWantElementNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantElement(want, element);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantElementNoError(napi_env env, napi_callback_info info)
@@ -190,9 +200,12 @@ static napi_value GetWantElementNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantElement(want, &element);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetWantCharParamNoError(napi_env env, napi_callback_info info)
@@ -203,9 +216,12 @@ static napi_value SetWantCharParamNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantCharParam(want, "key", "value");
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantCharParamNoError(napi_env env, napi_callback_info info)
@@ -218,9 +234,12 @@ static napi_value GetWantCharParamNoError(napi_env env, napi_callback_info info)
     OH_AbilityBase_SetWantCharParam(want, "key", "set second value");
     char outvalue[30];
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantCharParam(want, "key", outvalue, sizeof(outvalue));
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AddWantFdNoError(napi_env env, napi_callback_info info)
@@ -231,9 +250,12 @@ static napi_value AddWantFdNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_AddWantFd(want, "fd", 100);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetWantUriNoError(napi_env env, napi_callback_info info)
@@ -244,9 +266,12 @@ static napi_value SetWantUriNoError(napi_env env, napi_callback_info info)
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantUri(want, "file://xxxxxxxx");
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantUriNoError(napi_env env, napi_callback_info info)
@@ -258,9 +283,12 @@ static napi_value GetWantUriNoError(napi_env env, napi_callback_info info)
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     char uriBuffer[32] = {0};
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantUri(want, uriBuffer, sizeof(uriBuffer));
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetWantInt32ParamNoError(napi_env env, napi_callback_info info)
@@ -271,9 +299,12 @@ static napi_value SetWantInt32ParamNoError(napi_env env, napi_callback_info info
     element.moduleName = const_cast<char *>("entry");
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantInt32Param(want, "keyInt", 32);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantInt32ParamNoError(napi_env env, napi_callback_info info)
@@ -287,9 +318,12 @@ static napi_value GetWantInt32ParamNoError(napi_env env, napi_callback_info info
     OH_AbilityBase_SetWantInt32Param(want, "keyInt", value);
     int32_t outElement = 0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantInt32Param(want, "keyInt", &outElement);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetWantBoolParamNoError(napi_env env, napi_callback_info info)
@@ -301,9 +335,12 @@ static napi_value SetWantBoolParamNoError(napi_env env, napi_callback_info info)
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     bool flag = false;
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantBoolParam(want, "keyBool", flag);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantBoolParamNoError(napi_env env, napi_callback_info info)
@@ -317,9 +354,12 @@ static napi_value GetWantBoolParamNoError(napi_env env, napi_callback_info info)
     OH_AbilityBase_SetWantBoolParam(want, "keyBool", flag);
     bool outElement = 0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantBoolParam(want, "keyBool", &outElement);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetWantDoubleParamNoError(napi_env env, napi_callback_info info)
@@ -331,9 +371,12 @@ static napi_value SetWantDoubleParamNoError(napi_env env, napi_callback_info inf
     AbilityBase_Want* want = OH_AbilityBase_CreateWant(element);
     double param = 1.0;
     AbilityBase_ErrorCode ret = OH_AbilityBase_SetWantDoubleParam(want, "keyDouble", param);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetWantDoubleParamNoError(napi_env env, napi_callback_info info)
@@ -346,64 +389,85 @@ static napi_value GetWantDoubleParamNoError(napi_env env, napi_callback_info inf
     double outElement = 0;
     OH_AbilityBase_SetWantDoubleParam(want, "keyDouble", outElement);
     AbilityBase_ErrorCode ret = OH_AbilityBase_GetWantDoubleParam(want, "keyDouble", &outElement);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_BASE_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AbilityRuntimeAreaModeEl2Code(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_AreaMode para = ABILITY_RUNTIME_AREA_MODE_EL2;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(&para);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AbilityRuntimeAreaModeEl3Code(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_AreaMode para = ABILITY_RUNTIME_AREA_MODE_EL3;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(&para);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AbilityRuntimeAreaModeEl4Code(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_AreaMode para = ABILITY_RUNTIME_AREA_MODE_EL4;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(&para);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AbilityRuntimeAreaModeEl5Code(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_AreaMode para = ABILITY_RUNTIME_AREA_MODE_EL5;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_ApplicationContextGetAreaMode(&para);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value AbilityRuntimeHideUponStartCode(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_HIDE_UPON_START;
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
-    AbilityRuntime_ErrorCode errCode = OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
-    napi_value napiRet;
-    napi_create_int32(env, errCode, &napiRet);
-    return napiRet;
+    AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value DestroyStartOptionsNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_DestroyStartOptions(&options);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWindowModeNoError(napi_env env, napi_callback_info info)
@@ -411,9 +475,12 @@ static napi_value SetStartOptionsWindowModeNoError(napi_env env, napi_callback_i
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsWindowMode(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWindowModeNoError(napi_env env, napi_callback_info info)
@@ -421,9 +488,12 @@ static napi_value GetStartOptionsWindowModeNoError(napi_env env, napi_callback_i
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_WindowMode windowMode = ABILITY_RUNTIME_WINDOW_MODE_UNDEFINED;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWindowMode(options, windowMode);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_info info)
@@ -431,18 +501,24 @@ static napi_value SetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsDisplayId(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsDisplayIdParamInvalid(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsDisplayId(nullptr, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsDisplayIdNoError(napi_env env, napi_callback_info info)
@@ -450,9 +526,12 @@ static napi_value GetStartOptionsDisplayIdNoError(napi_env env, napi_callback_in
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t displayId = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsDisplayId(options, displayId);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWithAnimationNoError(napi_env env, napi_callback_info info)
@@ -460,9 +539,12 @@ static napi_value SetStartOptionsWithAnimationNoError(napi_env env, napi_callbac
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsWithAnimation(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWithAnimationNoError(napi_env env, napi_callback_info info)
@@ -470,9 +552,12 @@ static napi_value GetStartOptionsWithAnimationNoError(napi_env env, napi_callbac
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     bool withAnimation = false;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWithAnimation(options, withAnimation);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWindowLeftNoError(napi_env env, napi_callback_info info)
@@ -480,9 +565,12 @@ static napi_value SetStartOptionsWindowLeftNoError(napi_env env, napi_callback_i
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsWindowLeft(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWindowLeftNoError(napi_env env, napi_callback_info info)
@@ -490,9 +578,12 @@ static napi_value GetStartOptionsWindowLeftNoError(napi_env env, napi_callback_i
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWindowLeft(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWindowTopNoError(napi_env env, napi_callback_info info)
@@ -500,9 +591,12 @@ static napi_value SetStartOptionsWindowTopNoError(napi_env env, napi_callback_in
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsWindowTop(options, ABILITY_RUNTIME_WINDOW_MODE_FULL_SCREEN);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWindowTopNoError(napi_env env, napi_callback_info info)
@@ -510,9 +604,12 @@ static napi_value GetStartOptionsWindowTopNoError(napi_env env, napi_callback_in
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWindowTop(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -520,9 +617,12 @@ static napi_value SetStartOptionsWindowHeightNoError(napi_env env, napi_callback
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -530,9 +630,12 @@ static napi_value GetStartOptionsWindowHeightNoError(napi_env env, napi_callback
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -540,9 +643,12 @@ static napi_value SetStartOptionsWindowWidthNoError(napi_env env, napi_callback_
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -550,9 +656,12 @@ static napi_value GetStartOptionsWindowWidthNoError(napi_env env, napi_callback_
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsStartVisibilityNoError(napi_env env, napi_callback_info info)
@@ -560,9 +669,12 @@ static napi_value SetStartOptionsStartVisibilityNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_SHOW_UPON_START;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsStartVisibilityNoError(napi_env env, napi_callback_info info)
@@ -571,9 +683,12 @@ static napi_value GetStartOptionsStartVisibilityNoError(napi_env env, napi_callb
     AbilityRuntime_StartVisibility visibility = AbilityRuntime_StartVisibility::ABILITY_RUNTIME_SHOW_UPON_START;
     OH_AbilityRuntime_SetStartOptionsStartVisibility(options, visibility);
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartVisibility(options, visibility);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsStartWindowIconNoError(napi_env env, napi_callback_info info)
@@ -600,9 +715,12 @@ static napi_value SetStartOptionsStartWindowIconNoError(napi_env env, napi_callb
         OH_PixelmapInitializationOptions_Release(createOpts);
     }
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options, startWindowIcon);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsStartWindowIconNoError(napi_env env, napi_callback_info info)
@@ -631,18 +749,24 @@ static napi_value GetStartOptionsStartWindowIconNoError(napi_env env, napi_callb
     OH_AbilityRuntime_SetStartOptionsStartWindowIcon(options, startWindowIcon);
     startWindowIcon = nullptr;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartWindowIcon(options, &startWindowIcon);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsStartWindowBackgroundColorNoError(napi_env env, napi_callback_info info)
 {
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundColor(options, "#00000000");
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsStartWindowBackgroundColorNoError(napi_env env, napi_callback_info info)
@@ -654,10 +778,12 @@ static napi_value GetStartOptionsStartWindowBackgroundColorNoError(napi_env env,
     size_t size = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColor(
         startOptions, &startWindowBackgroundColor, size);
-    
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsSupportedWindowModesNoError(napi_env env, napi_callback_info info)
@@ -671,9 +797,12 @@ static napi_value SetStartOptionsSupportedWindowModesNoError(napi_env env, napi_
     size_t supportedWindowModesSize = 3;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_SetStartOptionsSupportedWindowModes(options, supportedWindowModes, supportedWindowModesSize);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsSupportedWindowModesNoError(napi_env env, napi_callback_info info)
@@ -683,9 +812,12 @@ static napi_value GetStartOptionsSupportedWindowModesNoError(napi_env env, napi_
     size_t size = 0;
     AbilityRuntime_ErrorCode ret =
         OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(options, &supportedWindowModes, size);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsMinWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -693,9 +825,12 @@ static napi_value SetStartOptionsMinWindowWidthNoError(napi_env env, napi_callba
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsMinWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsMinWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -703,9 +838,12 @@ static napi_value GetStartOptionsMinWindowWidthNoError(napi_env env, napi_callba
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsMinWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsMaxWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -713,9 +851,12 @@ static napi_value SetStartOptionsMaxWindowWidthNoError(napi_env env, napi_callba
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsMaxWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsMaxWindowWidthNoError(napi_env env, napi_callback_info info)
@@ -723,9 +864,12 @@ static napi_value GetStartOptionsMaxWindowWidthNoError(napi_env env, napi_callba
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsMaxWindowWidth(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsMinWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -733,9 +877,12 @@ static napi_value SetStartOptionsMinWindowHeightNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsMinWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsMinWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -743,9 +890,12 @@ static napi_value GetStartOptionsMinWindowHeightNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsMinWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsMinWindowHeightParamInvalid(napi_env env, napi_callback_info info)
@@ -753,9 +903,12 @@ static napi_value GetStartOptionsMinWindowHeightParamInvalid(napi_env env, napi_
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsMinWindowHeight(nullptr, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value SetStartOptionsMaxWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -763,9 +916,12 @@ static napi_value SetStartOptionsMaxWindowHeightNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_SetStartOptionsMaxWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 static napi_value GetStartOptionsMaxWindowHeightNoError(napi_env env, napi_callback_info info)
@@ -773,9 +929,12 @@ static napi_value GetStartOptionsMaxWindowHeightNoError(napi_env env, napi_callb
     AbilityRuntime_StartOptions *options = OH_AbilityRuntime_CreateStartOptions();
     int32_t num = 0;
     AbilityRuntime_ErrorCode ret = OH_AbilityRuntime_GetStartOptionsMaxWindowHeight(options, num);
-    napi_value napiRet;
-    napi_create_int32(env, ret, &napiRet);
-    return napiRet;
+    if (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        napi_value napiRet;
+        napi_create_int32(env, ret, &napiRet);
+        return napiRet;
+    }
+    return nullptr;
 }
 
 napi_property_descriptor desc[] = {
@@ -783,22 +942,22 @@ napi_property_descriptor desc[] = {
         nullptr, DestroyChildProcessConfigsParamInvalid, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"DestroyChildProcessConfigsNoError",
         nullptr, DestroyChildProcessConfigsNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"SetIsolationModeConfigsInvalidParam",
-        nullptr, SetIsolationModeConfigsInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"SetIsolationModeConfigsNoError",
-        nullptr, SetIsolationModeConfigsNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"SetProcessNameConfigsInvalidParam",
-        nullptr, SetProcessNameConfigsInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"SetProcessNameConfigsNoError",
-        nullptr, SetProcessNameConfigsNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ChildProcessConfigsSetIsolationModeInvalidParam",
+        nullptr, ChildProcessConfigsSetIsolationModeInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ChildProcessConfigsSetIsolationModeNoError",
+        nullptr, ChildProcessConfigsSetIsolationModeNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ChildProcessConfigsSetProcessNameInvalidParam",
+        nullptr, ChildProcessConfigsSetProcessNameInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"ChildProcessConfigsSetProcessNameNoError",
+        nullptr, ChildProcessConfigsSetProcessNameNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"RegisterNativeChildProcessExitCallbackNoError",
         nullptr, RegisterNativeChildProcessExitCallbackNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"RegisterNativeChildProcessExitCallbackInvalidParam", nullptr,
-        RegisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"RegisterNativeChildProcessExitCallbackInvPar", nullptr,
+        RegisterNativeChildProcessExitCallbackInvPar, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"UnregisterNativeChildProcessExitCallbackNoError",
         nullptr, UnregisterNativeChildProcessExitCallbackNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-    {"UnregisterNativeChildProcessExitCallbackInvalidParam", nullptr,
-        UnregisterNativeChildProcessExitCallbackInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"UnregisterNativeChildProcessExitCallbackInvPar", nullptr,
+        UnregisterNativeChildProcessExitCallbackInvPar, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"UnregisterNativeChildProcessExitCallbackNotExist", nullptr,
         UnregisterNativeChildProcessExitCallbackNotExist, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"DestroyWantNoError",
@@ -920,7 +1079,7 @@ static napi_module demoModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
-    .nm_modname = "osaccountndk",
+    .nm_modname = "entry",
     .nm_priv = ((void *)0),
     .reserved = {0},
 };
