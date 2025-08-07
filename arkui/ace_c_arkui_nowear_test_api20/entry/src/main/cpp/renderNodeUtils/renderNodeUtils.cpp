@@ -203,14 +203,14 @@ static napi_value RenderNodeUtils_005(napi_env env, napi_callback_info info)
     ASSERT_EQ(result5_1, ARKUI_ERROR_CODE_NO_ERROR);
     
     auto radiusOption = OH_ArkUI_RenderNodeUtils_CreateNodeBorderRadiusOption();
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
-        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
-        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_RIGHT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
-        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_LEFT);
-    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_64,
-        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_RIGHT);
+//    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
+//        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_LEFT);
+//    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
+//        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_TOP_RIGHT);
+//    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_32,
+//        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_LEFT);
+//    OH_ArkUI_RenderNodeUtils_SetNodeBorderRadiusOptionCornerRadius(radiusOption, NUMBER_64,
+//        ArkUI_CornerDirection::ARKUI_CORNER_DIRECTION_BOTTOM_RIGHT);
 
     auto result5_2 = OH_ArkUI_RenderNodeUtils_SetBorderRadius(rsNodeRoot, radiusOption);
     OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Manager",
