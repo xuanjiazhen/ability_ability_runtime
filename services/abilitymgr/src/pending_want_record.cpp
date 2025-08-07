@@ -118,7 +118,11 @@ int32_t PendingWantRecord::ExecuteOperation(
                 senderInfo.callerToken, -1, callerUid_, callerTokenId_);
             break;
         case static_cast<int32_t>(OperationType::START_ABILITIES): {
-            std::vector<WantsInfo> allWantsInfos = key_->GetAllWantsInfos();
+            std::vector<WantsInfo> allWantsInfos;
+            if (allWantsInfos.size() == 0) {
+                return ERR_INVALID_VALUE;
+            }
+            allWantsInfos = key_->GetAllWantsInfos();
             allWantsInfos.back().want = want;
             res = pendingWantManager->PendingWantStartAbilitys(
                 allWantsInfos, senderInfo.startOptions, senderInfo.callerToken, -1, callerUid_, callerTokenId_);
