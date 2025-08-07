@@ -66,7 +66,7 @@ export default class Utils {
   }
 
   static async btnTextScreenCapture() {
-    let button = await driver.waitForComponent(ON.text("允许"), 1000)
+    let button = await driver.waitForComponent(ON.text("允许"), 2000)
     if (button == null) {
       return 1;
     } else {
@@ -75,7 +75,7 @@ export default class Utils {
     }
   }
   static async btnTextScreenCaptureCancel() {
-    let button = await driver.waitForComponent(ON.text("不允许"), 1000)
+    let button = await driver.waitForComponent(ON.text("不允许"), 2000)
     if (button == null) {
       return 1;
     } else {
