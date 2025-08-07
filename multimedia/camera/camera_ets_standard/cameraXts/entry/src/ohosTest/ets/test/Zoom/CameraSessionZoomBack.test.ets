@@ -372,12 +372,15 @@ async function setZoomRatioPhoto(done: Function, testName: string, index: number
         mCameraManager.createPreviewOutput(mCameraOutputCapModePhoto.previewProfiles[0], indexSurfaceId);
       await getCreatePhotoSession(mPreviewOutput, mPhotoOutput);
       let zoomRatioRange = mPhotoSession.getZoomRatioRange();
+      await sleep(SLEEP_TIME_500);
       if (isEmpty(zoomRatioRange)) {
         console.info(TAG, testName + ' no supported zoomRatioRange.');
         done();
       } else {
-        let zoomRatio = mVideoSession.getZoomRatio();
-        console.info(TAG, testName + ' zoomRatio: ' + zoomRatio + ', zoomRatioRange: ' + zoomRatioRange);
+        console.info(TAG, testName + ' zoomRatioRange: ' + zoomRatioRange);
+        await sleep(SLEEP_TIME_500);
+        let zoomRatio = mPhotoSession.getZoomRatio();
+        console.info(TAG, testName + ' zoomRatio: ' + zoomRatio);
         expect(zoomRatio !== zoomRatioRange[index]).assertTrue();
         mPhotoSession.setZoomRatio(zoomRatioRange[index]);
       }
