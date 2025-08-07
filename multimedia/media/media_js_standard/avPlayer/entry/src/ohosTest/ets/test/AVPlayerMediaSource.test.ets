@@ -22,8 +22,10 @@ import HashMap from '@ohos.util.HashMap';
 export default function AVPlayerMediaSource() {
   let player: media.AVPlayer;
   let header: Record<string, string>;
-  const url_1a1v_mp4 = "http://8.138.194.43:1000/0221/H264/1a1v.mp4"
-  const url_flv = "http://8.138.194.43:1003/live/720p-2m.flv"
+  //const url_1a1v_mp4 = "http://8.138.194.43:1000/0221/H264/1a1v.mp4"
+  //const url_flv = "http://8.138.194.43:1003/live/720p-2m.flv"
+  const url_1a1v_mp4 = "http://xxx"
+  const url_flv = "http://live-xxx.flv"
   describe('AVPlayerMediaSource', () => {
     beforeAll(async () => {
       player = await media.createAVPlayer();
