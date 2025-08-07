@@ -20,6 +20,7 @@ group("connection") {
       "connectionnoptest:ActsNetworkMgrConnectionNopTest",
       "connectionRegisterHasNet:ActsMgrConnectionRegisterHasNetTest",
       "connectiontest:ActsNetworkMgrConnectionTest",
+"ActsNetworkMgrConnectionNoNetTestStatic:ActsNetworkMgrConnectionNoNetStaticTest"
     ]
   }
 }
