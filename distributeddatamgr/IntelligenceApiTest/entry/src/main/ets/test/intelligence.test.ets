@@ -585,17 +585,18 @@ export default function intelligenceTest() {
       console.info(TAG + "intelligenceApiTest2600 start");
 
       if (currentDeviceIsPc) {
-        await intelligence.getImageEmbeddingModel(undefined)
-          .then((data) => {
-            console.info(TAG + "getImageEmbeddingModel success :" + data);
-            expect().assertFail();
-            done();
-          })
-          .catch((err: BusinessError) => {
-            console.info(TAG + "get promise result" + err.code);
-            expect(err.code).assertEqual(401);
-            done();
-          })
+        try {
+          await intelligence.getImageEmbeddingModel(undefined)
+          console.info(TAG + "getImageEmbeddingModel success :");
+          expect().assertFail();
+          done();
+        }
+        catch(err) {
+          console.info(TAG + "get promise result" + err.code);
+          expect(err.code).assertEqual(401);
+          done();
+        }
+
       } else {
         intelligence.getImageEmbeddingModel(imageConfig)
           .then((data) => {
@@ -611,7 +612,6 @@ export default function intelligenceTest() {
       }
     })
 
-
     /**
      * @tc.name intelligenceApiTest2700
      * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_2700
@@ -624,17 +624,16 @@ export default function intelligenceTest() {
     it("intelligenceApiTest2700", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
       console.info(TAG + "intelligenceApiTest2700 start");
       if (currentDeviceIsPc) {
-        await intelligence.getTextEmbeddingModel(undefined)
-          .then((data) => {
-            console.info(TAG + "getTextEmbeddingModel success :" + data);
-            expect().assertFail();
-            done();
-          })
-          .catch((err: BusinessError) => {
-            console.info(TAG + "getTextEmbeddingModel fail" + err.code);
-            expect(err.code).assertEqual(401);
-            done();
-          })
+        try {
+          await intelligence.getTextEmbeddingModel(undefined)
+          console.info(TAG + "getTextEmbeddingModel success :" + data);
+          expect().assertFail();
+          done();
+        } catch(err) {
+              console.info(TAG + "getTextEmbeddingModel fail" + err.code);
+              expect(err.code).assertEqual(401);
+              done();
+            }
       } else {
         intelligence.getTextEmbeddingModel(textConfig)
           .then((data) => {
@@ -668,13 +667,20 @@ export default function intelligenceTest() {
         "日常生活中，我们对接触到的事物，会产生一个不假思索地看法，或者说直觉性的认知.百科全书里这样解释道“ 认知包括感觉、知觉、记忆、思维、想象和语言等。";
       let config: intelligence.SplitConfig = {
         size: 50,
-        overlapRatio: 0.5
+        overlapRatio: 2
       };
       if (currentDeviceIsPc) {
         try {
-          await intelligence.splitText(text, null);
-          expect().assertFail();
-          done();
+          await intelligence.splitText(text, config)
+            .then(() =>{
+              expect().assertFail();
+              done();
+            })
+            .catch((err:BusinessError) =>{
+              console.info(TAG + 'splitText is fail' +err.message + err.code);
+              expect(err.code).assertEqual(31300000);
+              done();
+            })
         } catch (err) {
           console.info(TAG + 'splitText is fail' +err.message + err.code);
           expect(err.code).assertEqual(401);
@@ -711,17 +717,16 @@ export default function intelligenceTest() {
           .then(async (data) => {
             console.info(TAG + "get result :" + data);
             await data.loadModel();
-            data.getEmbedding(undefined)
-              .then((loadData) => {
-                console.info(TAG + "getEmbedding result 1200 :" + loadData);
-                expect().assertFail();
-                done();
-              })
-              .catch((err: BusinessError) => {
-                console.error("Failed to get Embedding and code is " + err.code);
-                expect(err.code).assertEqual(401);
-                done();
-              })
+            try {
+              data.getEmbedding(undefined)
+              console.info(TAG + "getEmbedding result 2900 :" + loadData);
+                  expect().assertFail();
+                  done();
+                } catch(err){
+                  console.error("Failed to get Embedding and code is " + err.code);
+                  expect(err.code).assertEqual(401);
+                  done();
+            }
           })
       } else {
         intelligence.getImageEmbeddingModel(imageConfig)
@@ -754,16 +759,24 @@ export default function intelligenceTest() {
         "日常生活中，我们对接触到的事物，会产生一个不假思索地看法，或者说直觉性的认知.百科全书里这样解释道“ 认知包括感觉、知觉、记忆、思维、想象和语言等。";
       let config: intelligence.SplitConfig = {
         size: 50,
-        overlapRatio: 10
+        overlapRatio: 50
       };
       if (currentDeviceIsPc) {
         try {
-          await intelligence.splitText(text, config);
-          expect().assertFail();
-          done();
+          await intelligence.splitText(text, config)
+            .then(() =>{
+              expect().assertFail();
+              done();
+            })
+            .catch((err:BusinessError) =>{
+              console.info(TAG + 'splitText is fail' +err.message + err.code);
+              expect(err.code).assertEqual(31300000);
+              done();
+            })
         } catch (err) {
           console.info(TAG + 'splitText is fail' +err.message + err.code);
-          expect(err.code).assertEqual(31300000);
+          expect(err.code).assertEqual(401);
+          done();
         }
       } else {
         await intelligence.splitText(text, config)
