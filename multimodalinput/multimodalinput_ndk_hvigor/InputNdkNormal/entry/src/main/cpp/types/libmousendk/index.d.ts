@@ -13,3 +13,7 @@
  * limitations under the License.
  */
 export const GetPointerLocation1: () => number;
+export const GetPointerLocation2: () => number;
+export const GetPointerLocation3: () => number;
+export const GetPointerLocation4: () => number;
+export const GetPointerLocation5: () => number;

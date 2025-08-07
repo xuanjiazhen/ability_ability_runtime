@@ -57,5 +57,103 @@ export default function MultimodalMouseNdkTest() {
       }
       console.info(`${caseName} end to test OH_Input_GetPointerLocation`);
     });
+
+    /**
+     * @tc.number: SUB_MMI_Input_Api_GetPointerLocation_0200
+     * @tc.name: SUB_MMI_Input_Api_GetPointerLocation_0200
+     * @tc.desc: OH_Input_GetPointerLocation Interface testing to set displayId as nullptr.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('SUB_MMI_Input_Api_GetPointerLocation_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName = 'SUB_MMI_Input_Api_GetPointerLocation_0200';
+      console.info(`${caseName} start to test OH_Input_GetPointerLocation`);
+      try {
+        let data = mouse.GetPointerLocation2();
+        console.info(`${caseName} success, test NAPI data= ${JSON.stringify(data)}`);
+        ExpectTrue(data == 1);
+        done();
+      } catch (err) {
+        console.info(`${caseName} fail, error is ${JSON.stringify(err)}`);
+        ExpectFalse(true);
+        done();
+      }
+      console.info(`${caseName} end to test OH_Input_GetPointerLocation`);
+    });
+
+    /**
+     * @tc.number: SUB_MMI_Input_Api_GetPointerLocation_0300
+     * @tc.name: SUB_MMI_Input_Api_GetPointerLocation_0300
+     * @tc.desc: OH_Input_GetPointerLocation Interface testing to set displayX as nullptr.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('SUB_MMI_Input_Api_GetPointerLocation_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName = 'SUB_MMI_Input_Api_GetPointerLocation_0300';
+      console.info(`${caseName} start to test OH_Input_GetPointerLocation`);
+      try {
+        let data = mouse.GetPointerLocation3();
+        console.info(`${caseName} success, test NAPI data= ${JSON.stringify(data)}`);
+        ExpectTrue(data == 1);
+        done();
+      } catch (err) {
+        console.info(`${caseName} fail, error is ${JSON.stringify(err)}`);
+        ExpectFalse(true);
+        done();
+      }
+      console.info(`${caseName} end to test OH_Input_GetPointerLocation`);
+    });
+
+    /**
+     * @tc.number: SUB_MMI_Input_Api_GetPointerLocation_0400
+     * @tc.name: SUB_MMI_Input_Api_GetPointerLocation_0400
+     * @tc.desc: OH_Input_GetPointerLocation Interface testing to set displayY as nullptr.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('SUB_MMI_Input_Api_GetPointerLocation_0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName = 'SUB_MMI_Input_Api_GetPointerLocation_0400';
+      console.info(`${caseName} start to test OH_Input_GetPointerLocation`);
+      try {
+        let data = mouse.GetPointerLocation4();
+        console.info(`${caseName} success, test NAPI data= ${JSON.stringify(data)}`);
+        ExpectTrue(data == 1);
+        done();
+      } catch (err) {
+        console.info(`${caseName} fail, error is ${JSON.stringify(err)}`);
+        ExpectFalse(true);
+        done();
+      }
+      console.info(`${caseName} end to test OH_Input_GetPointerLocation`);
+    });
+
+    /**
+     * @tc.number: SUB_MMI_Input_Api_GetPointerLocation_0500
+     * @tc.name: SUB_MMI_Input_Api_GetPointerLocation_0500
+     * @tc.desc: OH_Input_GetPointerLocation Interface testing to set displayId displayX displayY as nullptr.
+     * @tc.level 2
+     * @tc.type: Function
+     * @tc.size: SmallTest
+     */
+    it('SUB_MMI_Input_Api_GetPointerLocation_0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      let caseName = 'SUB_MMI_Input_Api_GetPointerLocation_0500';
+      console.info(`${caseName} start to test OH_Input_GetPointerLocation`);
+      try {
+        let data = mouse.GetPointerLocation5();
+        console.info(`${caseName} success, test NAPI data= ${JSON.stringify(data)}`);
+        ExpectTrue(data == 1);
+        done();
+      } catch (err) {
+        console.info(`${caseName} fail, error is ${JSON.stringify(err)}`);
+        ExpectFalse(true);
+        done();
+      }
+      console.info(`${caseName} end to test OH_Input_GetPointerLocation`);
+    });
+
+
   });
 }

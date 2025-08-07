@@ -9,5 +9,7 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 
 add_library(inputndk SHARED inputndk.cpp)
 add_library(mousendk SHARED MouseNdkTest.cpp)
+add_library(touchndk SHARED TouchNdkTest.cpp)
 target_link_libraries(inputndk PUBLIC libace_napi.z.so libohinput.so libhilog_ndk.z.so)
 target_link_libraries(mousendk PUBLIC libace_napi.z.so libohinput.so libhilog_ndk.z.so)
+target_link_libraries(touchndk PUBLIC libace_napi.z.so libohinput.so libhilog_ndk.z.so)
