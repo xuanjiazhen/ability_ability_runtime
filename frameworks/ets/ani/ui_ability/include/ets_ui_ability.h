@@ -260,6 +260,15 @@ public:
     virtual void ExecuteInsightIntentBackground(const AAFwk::Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
+    
+    /**
+     * @brief Called when startAbility request failed.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
 
     /**
      * @brief Callback for collaboration event.
@@ -269,6 +278,14 @@ public:
      */
     int32_t OnCollaborate(WantParams &wantParams) override;
 
+    /**
+     * @brief Called when startAbility request succeeded.
+     * @param requestId, the requestId.
+     * @param element, the element to start ability.
+     * @param message, the message to be returned to the calling app.
+     */
+    void OnAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element,
+        const std::string &message) override;
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;
