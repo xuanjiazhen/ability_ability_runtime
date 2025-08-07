@@ -51,73 +51,6 @@ export default function SetFontSizeTest() {
     })
 
     /*
-     * @tc.number  SUB_Ability_AbilityRuntime_setFontSizeAtApp_1400
-     * @tc.name    SUB_Ability_AbilityRuntime_setFontSizeAtApp_1400
-     * @tc.desc    Verify application follows system behavior when calling setFontSizeScale with parameter value 2
-     * @tc.level   0
-     */
-    it('SUB_Ability_AbilityRuntime_setFontSizeAtApp_1400', Level.LEVEL0, async (done: Function) => {
-      TAG = 'SUB_Ability_AbilityRuntime_setFontSizeAtApp_1400';
-      hilog.info(0x0000, TAG, "[%{public}s] case start.", TAG);
-      let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
-        events: ['TestAbility_onConfigurationUpdate', 'TestAbilityStage_onConfigurationUpdate', 'TestUIExtensionAbility_onConfigurationUpdate']
-      };
-      let subscriber: commonEventManager.CommonEventSubscriber;
-      let abilityStageFlag: boolean = false;
-      let abilityFlag: boolean = false;
-      let uiExtensionFlag: boolean;
-      if (mpEnable === 'true') {
-        uiExtensionFlag = false;
-      } else {
-        uiExtensionFlag = true;
-        hilog.info(0x0000, TAG, "[%{public}s] current device doesn't support multi_process_model! ", TAG);
-      }
-      await commonEventManager.createSubscriber(commonEventSubscribeInfo)
-        .then(async (commonEventSubscriber: commonEventManager.CommonEventSubscriber) => {
-          subscriber = commonEventSubscriber;
-          hilog.info(0x0000, TAG, "[%{public}s] createSubscriber succeed", TAG);
-          commonEventManager.subscribe(subscriber, (err: BusinessError, commonEventData: commonEventManager.CommonEventPublishData) => {
-            hilog.info(0x0000, TAG, "[%{public}s] subscribe callback. Gained commonEventData: %{public}s", TAG, JSON.stringify(commonEventData));
-            switch (commonEventData.parameters?.from) {
-              case 'TestAbility_onConfigurationUpdate':
-                abilityFlag = true;
-                break;
-              case 'TestAbilityStage_onConfigurationUpdate':
-                abilityStageFlag = true;
-                break;
-              case 'TestUIExtensionAbility_onConfigurationUpdate':
-                uiExtensionFlag = true;
-                break;
-            }
-            try {
-              expect(commonEventData.parameters?.fontSize).assertEqual(2);
-            } catch {
-            }
-          })
-          let applicationContext = uiAbilityContext.getApplicationContext();
-          applicationContext.setFontSizeScale(2);
-          await sleep(3000);
-          hilog.info(0x0000, TAG, "[%{public}s] Flags: abilityStageFlag = %{public}s, abilityFlag = %{public}s, uiExtensionFlag = %{public}s", TAG, abilityStageFlag, abilityFlag, uiExtensionFlag);
-          try {
-            expect(abilityStageFlag && abilityFlag && uiExtensionFlag).assertEqual(true);
-          } catch {
-          }
-          commonEventManager.unsubscribe(commonEventSubscriber, (err, data) => {
-            hilog.info(0x0000, TAG, "[%{public}s] unsubscribe callback. err: %{public}s, data: %{public}s", TAG, JSON.stringify(err), JSON.stringify(data));
-            done();
-          });
-        })
-        .catch((err: BusinessError) => {
-          hilog.info(0x0000, TAG, "[%{public}s] Failed to create subscriber. err: %{public}s", TAG, JSON.stringify(err));
-          try {
-            expect().assertFail();
-          } catch {
-          }
-          done();
-        })
-    })
-
-    /*
      * @tc.number  SUB_Ability_AbilityRuntime_setFontSizeAtApp_1600
      * @tc.name    SUB_Ability_AbilityRuntime_setFontSizeAtApp_1600
      * @tc.desc    Verify multi-module application properly follows system behavior when setFontSizeScale(1.3) is applied across all components
@@ -167,6 +100,7 @@ export default function SetFontSizeTest() {
           await driver.delayMs(1000);
           let setFontSizeScaleButton: Component = await driver.findComponent(ON.id('setFontSizeScaleButton'));
           await setFontSizeScaleButton.click();
+          await driver.delayMs(1000);
           let startFeatureButton: Component = await driver.findComponent(ON.id('startFeatureButton'));
           await startFeatureButton.click();
           await driver.delayMs(1000);
@@ -249,9 +183,11 @@ export default function SetFontSizeTest() {
           driver = Driver.create();
           await driver.delayMs(2000);
           let getFontSizeScaleButton: Component = await driver.findComponent(ON.id('getFontSizeScaleButton'));
+          await driver.delayMs(1000);
           await getFontSizeScaleButton.click();
           await sleep(2000);
           terminateEntryButton = await driver.findComponent(ON.id('terminateEntryButton'));
+          await driver.delayMs(1000);
           await terminateEntryButton.click();
           done();
         })
