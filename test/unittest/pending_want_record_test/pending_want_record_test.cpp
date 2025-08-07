@@ -790,5 +790,31 @@ HWTEST_F(PendingWantRecordTest, ExecuteOperation_0200, TestSize.Level1)
     auto params = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
     EXPECT_EQ(params, NO_ERROR);
 }
+
+/*
+ * @tc.number    : PendingWantRecordTest_0300
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : Check START_ABILITIES with empty WantsInfo list
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_0300, TestSize.Level1)
+{
+    TAG_LOGD(AAFwkTag::TEST, "ExecuteOperation_0300 start.");
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    WantSenderInfo emptyInfo;
+    emptyInfo.type = static_cast<int32_t>(OperationType::START_ABILITIES);
+    emptyInfo.allWants.clear();
+    key = MakeWantKey(emptyInfo);
+    SenderInfo info;
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+    auto result = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
