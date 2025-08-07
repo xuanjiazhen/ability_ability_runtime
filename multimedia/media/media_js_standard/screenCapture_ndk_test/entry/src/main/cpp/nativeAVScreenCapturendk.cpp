@@ -946,6 +946,7 @@ static napi_value OriginAVScreenCaptureTest(napi_env env, napi_callback_info inf
         napi_throw_error((env), nullptr, "error : expect OH_AVScreenCapture_Init is 0 ");
     }
     OH_AVSCREEN_CAPTURE_ErrCode result2 = OH_AVScreenCapture_StartScreenCapture(screenCapture);
+    usleep(g_recordTimeOne);
     screenCaptureResult = OH_AVScreenCapture_StopScreenCapture(screenCapture);
     if (screenCaptureResult != AV_SCREEN_CAPTURE_ERR_OK) {
         napi_throw_error((env), nullptr, "error : expect StartScreenCapture is 0 ");
