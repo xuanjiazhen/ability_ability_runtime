@@ -104,14 +104,14 @@ export class Context extends BaseContext {
     return this.getArea();
   }
 
-  getGroupDir(dataGroupID: string, callback: AsyncCallback<string>): void {
+  getGroupDirWitdhDataGroupIDCallback(dataGroupID: string, callback: AsyncCallback<string>): void {
     let myCall = new AsyncCallbackWrapper<string>(callback);
     taskpool.execute((): void => {
       this.nativeGetGroupDir(dataGroupID, myCall);
     });
   }
 
-  getGroupDir(dataGroupID: string): Promise<string> {
+  getGroupDirWitdhDataGroupIDReturnsPromise(dataGroupID: string): Promise<string> {
     return new Promise<string>((resolve: (data: string) => void, reject: (err: BusinessError) => void): void => {
       let myCall = new AsyncCallbackWrapper<string>((err: BusinessError | null, data: string | undefined) => {
         if (err == null || err.code == 0) {
@@ -124,6 +124,11 @@ export class Context extends BaseContext {
         this.nativeGetGroupDir(dataGroupID, myCall);
       });
     });
+  }
+
+  overload getGroupDir {
+    getGroupDirWitdhDataGroupIDCallback,
+    getGroupDirWitdhDataGroupIDReturnsPromise
   }
 
   static transferStatic(input: Any): Object {
