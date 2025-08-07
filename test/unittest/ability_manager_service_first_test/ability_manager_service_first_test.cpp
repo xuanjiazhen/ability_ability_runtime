@@ -55,7 +55,6 @@ namespace AAFwk {
 namespace {
 const int32_t USER_ID_U100 = 100;
 const int32_t APP_MEMORY_SIZE = 512;
-const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 }  // namespace
 class AbilityManagerServiceFirstTest : public testing::Test {
 public:

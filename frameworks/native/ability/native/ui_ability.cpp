@@ -53,7 +53,6 @@ constexpr char SHOW_ON_LOCK_SCREEN[] = "ShowOnLockScreen";
 #ifdef WITH_DLP
 constexpr char DLP_PARAMS_SECURITY_FLAG[] = "ohos.dlp.params.securityFlag";
 #endif // WITH_DLP
-constexpr char COMPONENT_STARTUP_NEW_RULES[] = "component.startup.newRules";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t ERR_INVALID_VALUE = -1;
 #endif
@@ -667,16 +666,6 @@ std::shared_ptr<AbilityRuntime::AbilityContext> UIAbility::GetAbilityContext()
 sptr<IRemoteObject> UIAbility::CallRequest()
 {
     return nullptr;
-}
-
-bool UIAbility::IsUseNewStartUpRule()
-{
-    std::lock_guard<std::mutex> lock(wantMutexlock_);
-    if (!isNewRuleFlagSetted_ && setWant_) {
-        startUpNewRule_ = setWant_->GetBoolParam(COMPONENT_STARTUP_NEW_RULES, false);
-        isNewRuleFlagSetted_ = true;
-    }
-    return startUpNewRule_;
 }
 
 void UIAbility::EnableAbilityRecovery(const std::shared_ptr<AppExecFwk::AbilityRecovery> &abilityRecovery,

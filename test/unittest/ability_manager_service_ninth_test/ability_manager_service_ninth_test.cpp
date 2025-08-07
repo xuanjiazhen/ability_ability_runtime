@@ -45,7 +45,6 @@ namespace AAFwk {
 namespace {
 const int32_t USER_ID_U100 = 100;
 const int32_t APP_MEMORY_SIZE = 512;
-const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 const std::string TEST_STRING_VALUE_1 = "1";
 constexpr int32_t ONE = 1;
 }  // namespace

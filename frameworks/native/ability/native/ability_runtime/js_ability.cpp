@@ -1192,7 +1192,7 @@ sptr<IRemoteObject> JsAbility::SetNewRuleFlagToCallee(napi_env env, napi_value r
             setFlagMethod == nullptr ? "nullptr" : "not func");
         return nullptr;
     }
-    auto flag = CreateJsValue(env, IsUseNewStartUpRule());
+    auto flag = CreateJsValue(env, true);
     napi_value argv[1] = { flag };
     napi_call_function(env, remoteJsObj, setFlagMethod, 1, argv, nullptr);
 

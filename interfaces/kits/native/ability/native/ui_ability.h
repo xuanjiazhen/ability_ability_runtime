@@ -351,7 +351,6 @@ protected:
     void NotifyContinuationResult(const AAFwk::Want &want, bool success);
     bool ShouldRecoverState(const AAFwk::Want &want);
     bool ShouldDefaultRecoverState(const AAFwk::Want &want);
-    bool IsUseNewStartUpRule();
 
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityStartSetting> setting_ = nullptr;
@@ -377,8 +376,6 @@ private:
     std::shared_ptr<AppExecFwk::OHOSApplication> application_ = nullptr;
     std::shared_ptr<AAFwk::Want> setWant_ = nullptr;
     sptr<IRemoteObject> reverseContinuationSchedulerReplica_ = nullptr;
-    bool isNewRuleFlagSetted_ = false;
-    bool startUpNewRule_ = false;
     bool isSilentForeground_ = false;
     std::atomic<bool> useAppSettedRecoveryValue_ = false;
 

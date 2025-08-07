@@ -163,7 +163,6 @@ constexpr size_t OFFSET = 32;
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 
 // Startup rule switch
-constexpr const char* COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 constexpr const char* NEW_RULES_EXCEPT_LAUNCHER_SYSTEMUI = "component.startup.newRules.except.LauncherSystemUI";
 constexpr const char* BACKGROUND_JUDGE_FLAG = "component.startup.backgroundJudge.flag";
 constexpr const char* WHITE_LIST_ASS_WAKEUP_FLAG = "component.startup.whitelist.associatedWakeUp";
@@ -516,7 +515,6 @@ void AbilityManagerService::InitPushTask()
 
 void AbilityManagerService::InitStartupFlag()
 {
-    startUpNewRule_ = CheckNewRuleSwitchState(COMPONENT_STARTUP_NEW_RULES);
     newRuleExceptLauncherSystemUI_ = CheckNewRuleSwitchState(NEW_RULES_EXCEPT_LAUNCHER_SYSTEMUI);
     backgroundJudgeFlag_ = CheckNewRuleSwitchState(BACKGROUND_JUDGE_FLAG);
     whiteListassociatedWakeUpFlag_ = CheckNewRuleSwitchState(WHITE_LIST_ASS_WAKEUP_FLAG);
@@ -11357,11 +11355,6 @@ bool AbilityManagerService::CheckNewRuleSwitchState(const std::string &param)
         return true;
     }
     return false;
-}
-
-bool AbilityManagerService::GetStartUpNewRuleFlag() const
-{
-    return startUpNewRule_;
 }
 
 void AbilityManagerService::CallRequestDone(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callStub)
