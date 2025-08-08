@@ -21,12 +21,10 @@
     "deviceTypes": [],
     "requestPermissions":[
       {
-        "name": "ohos.permission.ENTERPRISE_MANAGE_EAP",
-        "reason": "use ohos.permission.ENTERPRISE_MANAGE_EAP"
+        "name": "ohos.permission.ENTERPRISE_MANAGE_EAP"
       },
       {
-        "name": "ohos.permission.MANAGE_ENTERPRISE_WIFI_CONNECTION",
-        "reason": "use ohos.permission.MANAGE_ENTERPRISE_WIFI_CONNECTION"
+        "name": "ohos.permission.MANAGE_ENTERPRISE_WIFI_CONNECTION"
       }
     
     ],
