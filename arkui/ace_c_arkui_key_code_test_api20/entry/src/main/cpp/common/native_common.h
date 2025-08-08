@@ -15,7 +15,6 @@
 #ifndef FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_NATIVE_COMMON_H
 #define FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_NATIVE_COMMON_H
 
-#include "nativekeycode/KeyCodeGlobal.h"
 #define DEPRECATED __attribute__((__deprecated__))
 
 #define NAPI_VERSION 8

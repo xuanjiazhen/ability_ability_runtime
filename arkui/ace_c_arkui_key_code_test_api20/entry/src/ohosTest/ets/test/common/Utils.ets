@@ -420,4 +420,20 @@ export default class Utils {
       }
     })
   }
+
+  static async simulateByShell(cmd: string) {
+    let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
+
+    return new Promise<string>((resolve, reject) => {
+      abilityDelegator.executeShellCommand(cmd, (err, data) => {
+        if (err) {
+          console.error(`command ${cmd} failed: ${JSON.stringify(err)}`);
+          reject("failed");
+        } else {
+          console.info(`command ${cmd} executed: ${data.stdResult}`);
+          resolve("executed");
+        }
+      });
+    })
+  }
 }

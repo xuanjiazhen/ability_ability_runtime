@@ -13,16 +13,11 @@
  * limitations under the License.
  */
 
-#include "napi/native_api.h"
-#include "native_common.h"
+#include "common/common.h"
 #include "nativekeycode/KeyCodeFunction1.h"
 #include "nativekeycode/KeyCodeFunction2.h"
 #include "nativekeycode/KeyCodeFunction3.h"
 #include "nativekeycode/KeyCodeFunction4.h"
-#include <ace/xcomponent/native_xcomponent_key_event.h>
-#include <cstdint>
-#include <js_native_api_types.h>
-#include <napi/native_api.h>
 
 static napi_value InitKeyMonitor(napi_env env, napi_callback_info info)
 {
