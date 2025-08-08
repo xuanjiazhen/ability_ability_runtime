@@ -17,7 +17,6 @@
 
 #include <unistd.h>
 
-#include "ability_manager_constants.h"
 #include "accesstoken_kit.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
@@ -25,7 +24,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-using namespace OHOS::AAFwk;
 namespace {
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
@@ -38,9 +36,7 @@ const std::string JSON_KEY_IS_EDM_FORCE = "isEdmForce";
 const std::string JSON_KEY_TYPE_NAME = "abilityTypeName";
 const std::string JSON_KEY_APP_CLONE_INDEX = "appCloneIndex";
 const std::string JSON_KEY_ACCESS_TOKENID = "accessTokenId";
-const std::string JSON_KEY_SETTER_USERID = "setterUserId";
 const std::string JSON_KEY_USERID = "userId";
-const std::string JSON_KEY_SETTER_TYPE = "setterType";
 } // namespace
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
@@ -116,18 +112,16 @@ bool AbilityAutoStartupDataManager::CheckKvStore()
 int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
     const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce)
 {
-    if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() ||
-        info.setterUserId == -1 || info.userId == -1 || info.setterType == AutoStartupSetterType::UNSPECIFIED) {
+    if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() || info.userId == -1) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Invalid value");
         return ERR_INVALID_VALUE;
     }
 
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
         "bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s,"
-        " accessTokenId: %{public}s, setterUserId: %{public}d, userId: %{public}d, setterType: %{public}d",
+        " accessTokenId: %{public}s, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
-        info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId, info.userId,
-        static_cast<int32_t>(info.setterType));
+        info.abilityName.c_str(), info.accessTokenId.c_str(), info.userId);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
@@ -137,7 +131,7 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
     }
 
     DistributedKv::Key key = ConvertAutoStartupDataToKey(info);
-    DistributedKv::Value value = ConvertAutoStartupStatusToValue(info, isAutoStartup, isEdmForce);
+    DistributedKv::Value value = ConvertAutoStartupStatusToValue(isAutoStartup, isEdmForce, info.abilityTypeName);
     DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -158,18 +152,16 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
 int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
     const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce)
 {
-    if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() ||
-        info.setterUserId == -1 || info.userId == -1 || info.setterType == AutoStartupSetterType::UNSPECIFIED) {
+    if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() || info.userId == -1) {
         TAG_LOGW(AAFwkTag::AUTO_STARTUP, "Invalid value");
         return ERR_INVALID_VALUE;
     }
 
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
         "bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s,"
-        " accessTokenId: %{public}s, setterUserId: %{public}d, userId: %{public}d, setterType: %{public}d",
+        " accessTokenId: %{public}s, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
-        info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId, info.userId,
-        static_cast<int32_t>(info.setterType));
+        info.abilityName.c_str(), info.accessTokenId.c_str(), info.userId);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
@@ -192,7 +184,7 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(
         }
         return ERR_INVALID_OPERATION;
     }
-    DistributedKv::Value value = ConvertAutoStartupStatusToValue(info, isAutoStartup, isEdmForce);
+    DistributedKv::Value value = ConvertAutoStartupStatusToValue(isAutoStartup, isEdmForce, info.abilityTypeName);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         status = kvStorePtr_->Put(key, value);
@@ -218,7 +210,7 @@ int32_t AbilityAutoStartupDataManager::DeleteAutoStartupData(const AutoStartupIn
 
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
         "bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s,"
-        " accessTokenId: %{public}s, userId:%{public}d",
+        " accessTokenId: %{public}s, userId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.userId);
     {
@@ -302,11 +294,11 @@ int32_t AbilityAutoStartupDataManager::DeleteAutoStartupData(const std::string &
 
 AutoStartupStatus AbilityAutoStartupDataManager::QueryAutoStartupData(const AutoStartupInfo &info)
 {
-    AutoStartupStatus startupStatus;
+    AutoStartupStatus asustatus;
     if (info.bundleName.empty() || info.abilityName.empty() || info.accessTokenId.empty() || info.userId == -1) {
         TAG_LOGW(AAFwkTag::AUTO_STARTUP, "Invalid value");
-        startupStatus.code = ERR_INVALID_VALUE;
-        return startupStatus;
+        asustatus.code = ERR_INVALID_VALUE;
+        return asustatus;
     }
 
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
@@ -318,8 +310,8 @@ AutoStartupStatus AbilityAutoStartupDataManager::QueryAutoStartupData(const Auto
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null kvStore");
-            startupStatus.code = ERR_NO_INIT;
-            return startupStatus;
+            asustatus.code = ERR_NO_INIT;
+            return asustatus;
         }
     }
 
@@ -335,23 +327,23 @@ AutoStartupStatus AbilityAutoStartupDataManager::QueryAutoStartupData(const Auto
             std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
             status = RestoreKvStore(status);
         }
-        startupStatus.code = ERR_INVALID_OPERATION;
-        return startupStatus;
+        asustatus.code = ERR_INVALID_OPERATION;
+        return asustatus;
     }
 
-    startupStatus.code = ERR_NAME_NOT_FOUND;
+    asustatus.code = ERR_NAME_NOT_FOUND;
     for (const auto &item : allEntries) {
         if (IsEqual(item.key, info)) {
-            ConvertAutoStartupStatusFromValue(item.value, startupStatus);
-            startupStatus.code = ERR_OK;
+            ConvertAutoStartupStatusFromValue(item.value, asustatus.isAutoStartup, asustatus.isEdmForce);
+            asustatus.code = ERR_OK;
         }
     }
 
-    return startupStatus;
+    return asustatus;
 }
 
 int32_t AbilityAutoStartupDataManager::QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList,
-    int32_t userId, bool isCalledByEDM)
+    int32_t userId)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
     {
@@ -378,12 +370,12 @@ int32_t AbilityAutoStartupDataManager::QueryAllAutoStartupApplications(std::vect
     }
 
     for (const auto &item : allEntries) {
-        if ((!isCalledByEDM) && (!IsEqual(item.key, userId))) {
+        if (!IsEqual(item.key, userId)) {
             continue;
         }
-        AutoStartupStatus startupStatus;
-        ConvertAutoStartupStatusFromValue(item.value, startupStatus);
-        if (startupStatus.isAutoStartup) {
+        bool isAutoStartup, isEdmForce;
+        ConvertAutoStartupStatusFromValue(item.value, isAutoStartup, isEdmForce);
+        if (isAutoStartup) {
             infoList.emplace_back(ConvertAutoStartupInfoFromKeyAndValue(item.key, item.value));
         }
     }
@@ -428,14 +420,12 @@ int32_t AbilityAutoStartupDataManager::GetCurrentAppAutoStartupData(
 }
 
 DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToValue(
-    const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce)
+    bool isAutoStartup, bool isEdmForce, const std::string &abilityTypeName)
 {
     nlohmann::json jsonObject = nlohmann::json {
         { JSON_KEY_IS_AUTO_STARTUP, isAutoStartup },
         { JSON_KEY_IS_EDM_FORCE, isEdmForce },
-        { JSON_KEY_TYPE_NAME, info.abilityTypeName },
-        { JSON_KEY_SETTER_USERID, info.setterUserId },
-        { JSON_KEY_SETTER_TYPE, info.setterType },
+        { JSON_KEY_TYPE_NAME, abilityTypeName },
     };
     DistributedKv::Value value(jsonObject.dump());
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "value: %{public}s", value.ToString().c_str());
@@ -443,7 +433,7 @@ DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToVa
 }
 
 void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
-    const DistributedKv::Value &value, AutoStartupStatus &startupStatus)
+    const DistributedKv::Value &value, bool &isAutoStartup, bool &isEdmForce)
 {
     nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (jsonObject.is_discarded()) {
@@ -451,16 +441,10 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
         return;
     }
     if (jsonObject.contains(JSON_KEY_IS_AUTO_STARTUP) && jsonObject[JSON_KEY_IS_AUTO_STARTUP].is_boolean()) {
-        startupStatus.isAutoStartup = jsonObject.at(JSON_KEY_IS_AUTO_STARTUP).get<bool>();
+        isAutoStartup = jsonObject.at(JSON_KEY_IS_AUTO_STARTUP).get<bool>();
     }
     if (jsonObject.contains(JSON_KEY_IS_EDM_FORCE) && jsonObject[JSON_KEY_IS_EDM_FORCE].is_boolean()) {
-        startupStatus.isEdmForce = jsonObject.at(JSON_KEY_IS_EDM_FORCE).get<bool>();
-    }
-    if (jsonObject.contains(JSON_KEY_SETTER_USERID) && jsonObject[JSON_KEY_SETTER_USERID].is_number()) {
-        startupStatus.setterUserId = jsonObject.at(JSON_KEY_SETTER_USERID).get<int32_t>();
-    }
-    if (jsonObject.contains(JSON_KEY_SETTER_TYPE) && jsonObject[JSON_KEY_SETTER_TYPE].is_number()) {
-        startupStatus.setterType = jsonObject.at(JSON_KEY_SETTER_TYPE).get<AutoStartupSetterType>();
+        isEdmForce = jsonObject.at(JSON_KEY_IS_EDM_FORCE).get<bool>();
     }
 }
 
@@ -471,7 +455,7 @@ DistributedKv::Key AbilityAutoStartupDataManager::ConvertAutoStartupDataToKey(co
         { JSON_KEY_MODULE_NAME, info.moduleName },
         { JSON_KEY_ABILITY_NAME, info.abilityName },
         { JSON_KEY_APP_CLONE_INDEX, info.appCloneIndex },
-        { JSON_KEY_ACCESS_TOKENID, info.accessTokenId },
+		{ JSON_KEY_ACCESS_TOKENID, info.accessTokenId },
         { JSON_KEY_USERID, info.userId },
     };
     DistributedKv::Key key(jsonObject.dump());
@@ -483,18 +467,10 @@ AutoStartupInfo AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromKeyAndV
     const DistributedKv::Key &key, const DistributedKv::Value &value)
 {
     AutoStartupInfo info;
-    ConvertAutoStartupInfoFromKey(key, info);
-    ConvertAutoStartupInfoFromValue(value, info);
-    return info;
-}
-
-void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromKey(
-    const DistributedKv::Key &key, AutoStartupInfo &info)
-{
     nlohmann::json jsonObject = nlohmann::json::parse(key.ToString(), nullptr, false);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "parse jsonObject fail");
-        return;
+        return info;
     }
 
     if (jsonObject.contains(JSON_KEY_BUNDLE_NAME) && jsonObject[JSON_KEY_BUNDLE_NAME].is_string()) {
@@ -520,28 +496,17 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromKey(
     if (jsonObject.contains(JSON_KEY_USERID) && jsonObject[JSON_KEY_USERID].is_number()) {
         info.userId = jsonObject.at(JSON_KEY_USERID).get<int32_t>();
     }
-}
 
-void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromValue(
-    const DistributedKv::Value &value, AutoStartupInfo &info)
-{
     nlohmann::json jsonValueObject = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (jsonValueObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "parse jsonValueObject fail");
-        return;
+        return info;
     }
 
     if (jsonValueObject.contains(JSON_KEY_TYPE_NAME) && jsonValueObject[JSON_KEY_TYPE_NAME].is_string()) {
         info.abilityTypeName = jsonValueObject.at(JSON_KEY_TYPE_NAME).get<std::string>();
     }
-
-    if (jsonValueObject.contains(JSON_KEY_IS_EDM_FORCE) && jsonValueObject[JSON_KEY_IS_EDM_FORCE].is_boolean()) {
-        info.canUserModify = !(jsonValueObject.at(JSON_KEY_IS_EDM_FORCE).get<bool>());
-    }
-
-    if (jsonValueObject.contains(JSON_KEY_SETTER_USERID) && jsonValueObject[JSON_KEY_SETTER_USERID].is_number()) {
-        info.setterUserId = jsonValueObject.at(JSON_KEY_SETTER_USERID).get<int32_t>();
-    }
+    return info;
 }
 
 bool AbilityAutoStartupDataManager::IsEqual(const DistributedKv::Key &key, const AutoStartupInfo &info)
@@ -586,11 +551,11 @@ bool AbilityAutoStartupDataManager::IsEqual(const DistributedKv::Key &key, int32
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "parse jsonObject fail");
         return false;
     }
-    auto &jsonUtil = AAFwk::JsonUtils::GetInstance();
-    if (jsonUtil.IsEqual(jsonObject, JSON_KEY_USERID, userId) ||
-        jsonUtil.IsEqual(jsonObject, JSON_KEY_USERID, U0_USER_ID) ||
-        jsonUtil.IsEqual(jsonObject, JSON_KEY_USERID, U1_USER_ID)) {
-        return true;
+
+    if (jsonObject.contains(JSON_KEY_USERID) && jsonObject[JSON_KEY_USERID].is_number()) {
+        if (userId == jsonObject.at(JSON_KEY_USERID).get<int32_t>()) {
+            return true;
+        }
     }
     return false;
 }
