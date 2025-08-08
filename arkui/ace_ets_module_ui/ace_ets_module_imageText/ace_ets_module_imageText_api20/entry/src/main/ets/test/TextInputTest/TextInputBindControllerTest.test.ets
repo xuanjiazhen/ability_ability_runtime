@@ -30,6 +30,7 @@ export default function TextInputBindControllerTest() {
         let pages = router.getState();
         console.info("get TextInputBindControllerTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("TextInputBindControllerTest" == pages.name)) {
           console.info("get TextInputBindControllerTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

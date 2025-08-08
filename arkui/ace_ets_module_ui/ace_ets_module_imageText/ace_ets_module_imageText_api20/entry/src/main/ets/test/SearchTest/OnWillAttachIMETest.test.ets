@@ -30,6 +30,7 @@ export default function OnWillAttachIMETest() {
         let pages = router.getState();
         console.info("get OnWillAttachIMETest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("OnWillAttachIMETest" == pages.name)) {
           console.info("get OnWillAttachIMETest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

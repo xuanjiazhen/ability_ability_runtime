@@ -30,6 +30,7 @@ export default function SearchAutoCapitalizationModeModifierTest() {
         let pages = router.getState();
         console.info("get SearchAutoCapitalizationModeModifierTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("SearchAutoCapitalizationModeModifier" == pages.name)) {
           console.info("get SearchAutoCapitalizationModeModifierTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);
