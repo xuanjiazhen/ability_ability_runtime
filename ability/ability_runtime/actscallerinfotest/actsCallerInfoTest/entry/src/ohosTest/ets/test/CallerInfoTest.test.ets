@@ -99,7 +99,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onNewWant, ACTS_TEST_ON_CREATE_WANT data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
@@ -112,7 +112,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onNewWant, ACTS_TEST_ON_CREATE_WANT_ASSIST data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(undefined);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('callerInfo01');
@@ -125,7 +125,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onNewWant, ACTS_TEST_ON_NEW_WANT data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(undefined);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(undefined);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('callerInfo02');
@@ -192,7 +192,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onNewWant, data.parameters.result: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
@@ -264,7 +264,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
@@ -336,7 +336,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
@@ -403,7 +403,7 @@ export default function callerInfoTest() {
               hilog.info(0x0000, 'testTag',
                 `%{public}s', onCreate, want is: ${JSON.stringify(data.parameters?.result)}`);
               try{
-                expect(data.parameters?.result['component.startip.newRules']).assertEqual(true);
+                expect(data.parameters?.result['component.startup.newRules']).assertEqual(true);
                 expect(data.parameters?.result['debugApp']).assertEqual(false);
                 expect(data.parameters?.result['moduleName']).assertEqual('entry_test');
                 expect(data.parameters?.result['ohos.aafwk.param.callerAbilityName']).assertEqual('TestAbility');
