@@ -19,6 +19,7 @@ group("location") {
       "geolocation_capi:ActslocationCApiTest",
       "geolocation_errorCode:ActslocationErrorCodeTest",
       "geolocation_nop:ActslocationNopTest",
+      "geolocation_capi20_test:ActslocationCApi20Test",
       "geolocation_standard:ActslocationJsTest",
     ]
   } else {
@@ -26,6 +27,7 @@ group("location") {
       "geolocation_capi:ActslocationCApiTest",
       "geolocation_errorCode:ActslocationErrorCodeTest",
       "geolocation_nop:ActslocationNopTest",
+      "geolocation_capi20_test:ActslocationCApi20Test",
       "geolocation_standard:ActslocationJsTest",
     ]
   }

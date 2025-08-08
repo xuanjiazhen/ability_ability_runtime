@@ -47,6 +47,14 @@
 	{
       "name": "EntryEmbeddedUIExtAbility_label",
       "value": "label"
+    },
+    {
+      "name": "popup_border_size",
+      "value": "1"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
     }
   ]
 }

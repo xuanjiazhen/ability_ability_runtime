@@ -15,7 +15,7 @@ import("//test/xts/tools/build/suite.gni")
 
 import("//test/xts/acts/graphic/vktest/comm.gni")
 
-action("cpOpenGL") {
+ohos_xts_action("cpOpenGL") {
   testonly = true
   script = "cpOpenGL.sh"
   outputs = [ "${target_out_dir}/cpOpenGL.log" ]
@@ -30,7 +30,7 @@ action("cpOpenGL") {
   ]
 }
 
-group("openGLTest") {
+ohos_xts_group("openGLTest") {
   testonly = true
   if (is_standard_system) {
     deps = [

@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 import ActsWebErrorCodeTest from './ActsWebErrorCodeTest.test'
+import ActsWebErrorCodeListTest from './ActsWebErrorCodeListTest.test'
+import NativeInterfaceTest from './NativeInterfaceTest.test'
 
 export default function testsuite() {
   ActsWebErrorCodeTest()
+  ActsWebErrorCodeListTest()
+  NativeInterfaceTest()
 }

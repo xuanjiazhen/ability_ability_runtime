@@ -19,7 +19,7 @@
 #define SHRINK_HWTEST_F(TestSuite, TestCase, VkglCase1, VkglCase2)   \
     HWTEST_F(TestSuite, TestCase, Function | MediumTest | Level2)                 \
     {                                                                             \
-        GTEST_LOG_(INFO) << #TestCase << "start";                                 \
+        GTEST_LOG_(INFO) << #TestCase << " start";                                \
         int argc = 3;                                                             \
         const char *argv[3] = {                                                   \
             ".",                                                                  \
@@ -28,6 +28,8 @@
             VkglCase2,                                                            \
             "--deqp-archive-dir=/data/local/tmp/"                                 \
         };                                                                        \
+        GTEST_LOG_(INFO) << #VkglCase1 << " is VkglCase1";                        \
+        GTEST_LOG_(INFO) << #VkglCase2 << " is VkglCase2";                        \
         FuncRunResult result = RunTestKHRGLES(argc, argv);                        \
         TestSuite::runResult.numPassed += result.numPassed;                       \
         TestSuite::runResult.numFailed += result.numFailed;                       \
@@ -36,12 +38,12 @@
         TestSuite::runResult.numPassed += result.numWarnings;                     \
         TestSuite::runResult.numWaived += result.numWaived;                       \
         if (result.numNotSupported == 1) {                                        \
-            GTEST_LOG_(INFO) << #TestCase << "notsupport!";                       \
+            GTEST_LOG_(INFO) << #TestCase << " notsupport!";                      \
         } else if (result.isComplete) {                                           \
             EXPECT_TRUE(result.isComplete);                                       \
-            EXPECT_TRUE(result.numFailed == 0);                                \
+            EXPECT_TRUE(result.numFailed == 0);                                   \
         };                                                                        \
-        GTEST_LOG_(INFO) << #TestCase << "end";                                   \
+        GTEST_LOG_(INFO) << #TestCase << " end";                                  \
     }
 
 #endif // 为缩减代码而存在

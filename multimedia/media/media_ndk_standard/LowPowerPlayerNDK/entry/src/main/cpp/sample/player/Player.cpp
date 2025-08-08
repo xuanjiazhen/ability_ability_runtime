@@ -116,6 +116,15 @@ int32_t Player::CreateLppAudioStreamer()
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
+int32_t Player::CreateLppAudioStreamerNull()
+{
+    AVCODEC_SAMPLE_LOGW("Create IN");
+    lppAudioStreamer_->Create("");
+    lppContext_ = new LppUserData;
+    AVCODEC_SAMPLE_LOGW("Create OUT");
+    return -1;
+}
+
 int32_t Player::AudioStreamerSetParameter()
 {
     int32_t ret = lppAudioStreamer_->SetParameter(sampleInfo_);
@@ -149,6 +158,72 @@ int32_t Player::AudioSetErrorCallback()
     AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetErrorCallback ret:::%{public}d", ret);
     return ret;
 }
+int32_t Player::AudioStreamerSetCallbackCreateNull()
+{
+    int32_t ret = lppAudioStreamer_->SetCallbackCreateNull(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetCallbackCreateNull ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioStreamerSetCallbackCreate()
+{
+    int32_t ret = lppAudioStreamer_->SetCallbackCreate(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetCallbackCreate ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioStreamerSetDataNeededListener()
+{
+    int32_t ret = lppAudioStreamer_->SetDataNeededListener(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetDataNeededListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioStreamerSetPositionUpdateListener()
+{
+    int32_t ret = lppAudioStreamer_->SetPositionUpdateListener(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetPositionUpdateListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioStreamerSetCallback()
+{
+    int32_t ret = lppAudioStreamer_->SetCallback(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioSetInterruptListener()
+{
+    int32_t ret = lppAudioStreamer_->SetInterruptListener(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetInterruptListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioSetEosCallback()
+{
+    int32_t ret = lppAudioStreamer_->SetEosCallback(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetEosCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioSetOnDeviceChanged()
+{
+    int32_t ret = lppAudioStreamer_->SetOnDeviceChanged(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ SetOnDeviceChanged ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioreturnFrames()
+{
+    int32_t ret = lppAudioStreamer_->returnFrames(lppContext_);
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ returnFrames ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioCallbackDestroy()
+{
+    int32_t ret = lppAudioStreamer_->CallbackDestroy();
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ CallbackDestroy ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::AudioDestroy()
+{
+    int32_t ret = lppAudioStreamer_->Destroy();
+    AVCODEC_SAMPLE_LOGW("lppAudioStreamer_ Destroy ret:::%{public}d", ret);
+    return ret;
+}
 
 int32_t Player::CreateLppVideoStreamer()
 {
@@ -174,6 +249,101 @@ int32_t Player::CreateLppVideoStreamer()
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
+int32_t Player::CreateLppVideoStreamerNull()
+{
+    AVCODEC_SAMPLE_LOGW("Create IN");
+    AVCODEC_SAMPLE_LOGI("QZM FORMAT : %{public}s", sampleInfo_.videoCodecMime.c_str());
+    sampleInfo_.window = NativeXComponentSample::PluginManager::GetInstance()->pluginWindow_;
+//     video/avc
+    lppVideoStreamer_->Create("");
+    lppVideoContext_ = new LppUserData;
+    int64_t durationNum = 100012;
+    lppVideoContext_->num = durationNum;
+    AVCODEC_SAMPLE_LOGW("Create OUT");
+    return -1;
+}
+
+int32_t Player::VideoStreamerSetCallbackCreateNull()
+{
+    int32_t ret = lppVideoStreamer_->SetCallbackCreateNull(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetCallbackCreateNull ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetDataNeededListener()
+{
+    int32_t ret = lppVideoStreamer_->SetDataNeededListener(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetDataNeededListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetStreamChangedListener()
+{
+    int32_t ret = lppVideoStreamer_->SetStreamChangedListener(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetStreamChangedListener ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetCallback()
+{
+    int32_t ret = lppVideoStreamer_->SetCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetErrorCallback()
+{
+    int32_t ret = lppVideoStreamer_->SetErrorCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetErrorCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetFirstFrameDecodedCallback()
+{
+    int32_t ret = lppVideoStreamer_->SetFirstFrameDecodedCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetFirstFrameDecodedCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetRenderStartCallback()
+{
+    int32_t ret = lppVideoStreamer_->SetRenderStartCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetRenderStartCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetEosCallback()
+{
+    int32_t ret = lppVideoStreamer_->SetEosCallback(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetEosCallback ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerCallbackDestroy()
+{
+    int32_t ret = lppVideoStreamer_->CallbackDestroy();
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ CallbackDestroy ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerDestroy()
+{
+    int32_t ret = lppVideoStreamer_->Destroy();
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ Destroy ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerreturnFrames()
+{
+    int32_t ret = lppVideoStreamer_->returnFrames(lppVideoContext_);
+    AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ returnFrames ret:::%{public}d", ret);
+    return ret;
+}
+int32_t Player::VideoStreamerSetTargetStartFrame()
+{
+    AVCODEC_SAMPLE_LOGI("============== Seek ACC IN ===============");
+    int64_t targetPts = LIP_SYNC_BALANCE_VALUE * 1000;
+    AVCODEC_SAMPLE_LOGI("SetTargetStartFrame %{public}ld", targetPts);
+    int ret = 0;
+    // 给视频设置回调和TargetPts
+    if (lppVideoStreamer_ != nullptr) {
+        ret = lppVideoStreamer_->SetTargetStartFrame(targetPts, LppCallback::OnTargetArrived, WAIT_OUT_TIME,
+                                                         lppVideoContext_);
+        AVCODEC_SAMPLE_LOGW("lppVideoStreamer_ SetTargetStartFrame ret:::%{public}d", ret);
+    }
+    AVCODEC_SAMPLE_LOGI("============== Seek ACC OUT ===============");
+    return ret;
+}
 int32_t Player::VideoStreamerConfigure()
 {
     int32_t ret = lppVideoStreamer_->Configure(sampleInfo_);

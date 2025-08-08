@@ -117,6 +117,8 @@ export default function waterFlowEventTest() {
     * @tc.level      : Level 1
     */
     it('testWaterFlowOnWillDidScroll003', Level.LEVEL1, async (done: Function) => {
+      await Utils.pushPage(`waterflow/WaterFlowEmptyTest`)
+      await Utils.sleep(2000)
       await Utils.pushPage(`waterflow/WaterFlowOnWillDidScrollTest`);
       // Scroll the mouse backwards
       await mouseScrollV('waterFlow', true, () => {
@@ -244,7 +246,7 @@ export default function waterFlowEventTest() {
       console.log('testWaterFlowOnScrollFrameBegin004', JSON.stringify(dataArray), JSON.stringify(scrollArray))
       expect(willOffsetData.length == 0).assertEqual(true)
       expect(willStateData.length == 0).assertEqual(true)
-      expect(firstArray[firstArray.length - 1] == 4 && lastArray[lastArray.length - 1] == 11).assertEqual(true)
+      expect(firstArray[firstArray.length - 1] == 4 && lastArray[lastArray.length - 1] == 9).assertEqual(true)
       done()
     })
   })

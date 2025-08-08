@@ -69,6 +69,8 @@ export default function listEventTest() {
     * @tc.level      : Level 1
     */
     it('testListOnScroll003', Level.LEVEL1, async (done: Function) => {
+      await Utils.pushPage(`list/ListEmptyTest`)
+      await Utils.sleep(2000)
       await Utils.pushPage(`list/ListOnScrollTest`);
       // Scroll the mouse backwards
       await mouseScrollV('list', true, () => {
@@ -215,6 +217,8 @@ export default function listEventTest() {
     * @tc.level      : Level 1
     */
     it('testListOnWillDidScroll003', Level.LEVEL1, async (done: Function) => {
+      await Utils.pushPage(`list/ListEmptyTest`)
+      await Utils.sleep(2000)
       await Utils.pushPage(`list/ListOnWillDidScrollTest`);
       // Scroll the mouse backwards
       await mouseScrollV('list', true, () => {

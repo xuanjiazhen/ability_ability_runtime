@@ -52,6 +52,7 @@ group("ability_runtime") {
       "actscollaborateresulttest:actscollaborateresulttest",
       "actscontextmonitor:ActsContextMonitorTest",
       "actscompletionhandlertest:actscompletionhandlertest",
+      "actscollaborateresultteststatic:actscollaborateresultstatictest",
       "actscreatebundlecontexttest:ActsCreateBundleContextTest",
       "actscreatedisplaycontexttest:actscreatedisplaycontexttest",
       "actscrosscall:actscrosscall",
@@ -131,6 +132,7 @@ group("ability_runtime") {
       "want:want",
       "wantagent:wantagent",
       "workercontextcover:workercontextcover",
+      "abilitymontiorstatic:ActsAbilityMonitorStaticTest",
     ]
   }
 }

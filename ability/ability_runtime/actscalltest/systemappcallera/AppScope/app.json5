@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.systemappcallera",
-    "vendor": "huawei",
+    "vendor": "systemappcallera",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

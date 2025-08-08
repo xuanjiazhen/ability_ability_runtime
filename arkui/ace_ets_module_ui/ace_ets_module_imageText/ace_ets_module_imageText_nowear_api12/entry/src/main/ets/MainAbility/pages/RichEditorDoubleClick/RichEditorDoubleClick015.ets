@@ -28,7 +28,7 @@ struct RichEditorDoubleClick015 {
         Text('message:' + this.message).id('message')
         Button('setSelection').onClick(() => {
           this.controller.setSelection(2, 5);
-        }).id('setSelection')
+        }).id('setSelection').margin({bottom:60})
         RichEditor(this.options)
           .onReady(() => {
             this.controller.addTextSpan('0123456');

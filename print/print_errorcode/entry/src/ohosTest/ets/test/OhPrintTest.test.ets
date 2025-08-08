@@ -15,14 +15,18 @@
 
 import { describe, it, expect, Level } from '@ohos/hypium'
 import printerror from 'libprinterrorcode.so'
-
+const Success = 0;
+const InvalidParameter = 401;
+const GenericFailure = 24300001;
+const InvalidPrintJob = 24300006;
+const InvalidPrinter = 24300005;
 export default function ActsPrintErrorTest() {
   describe('ActsPrintErrorTest', () => {
     /**
      * @tc.number  : SUB_Oh_Print_0100
      * @tc.name    : SUB_Oh_Print_0100
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.desc    : Test OHPrintNoError.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -30,7 +34,7 @@ export default function ActsPrintErrorTest() {
       try {
         console.info("====>SUB_Oh_Print_0100 start====");
         let result: number = await printerror.OHPrintNoError();
-        expect(result).assertEqual(0);
+        expect(result).assertEqual(Success);
         console.info("====>SUB_Oh_Print_0100 result: " + result);
         done()
       } catch (err) {
@@ -42,16 +46,16 @@ export default function ActsPrintErrorTest() {
     /**
      * @tc.number  : SUB_Oh_Print_0200
      * @tc.name    : SUB_Oh_Print_0200
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.desc    : Test OHPrintInvalidParameter.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
     it('SUB_Oh_Print_0200', Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_Oh_Print_0200 start====");
+        console.info("====>SUB_Oh_Print_0200 sta`rt====");
         let result: number = await printerror.OHPrintInvalidParameter();
-        expect(result).assertEqual(401);
+        expect(result).assertEqual(InvalidParameter);
         console.info("====>SUB_Oh_Print_0200 result: " + result);
         done();
       } catch (err) {
@@ -63,8 +67,8 @@ export default function ActsPrintErrorTest() {
     /**
      * @tc.number  : SUB_Oh_Print_0300
      * @tc.name    : SUB_Oh_Print_0300
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.desc    : Test OHPrintGenericFailure.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -72,7 +76,7 @@ export default function ActsPrintErrorTest() {
       try {
         console.info("====>SUB_Oh_Print_0300 start====");
         let result: number = await printerror.OHPrintGenericFailure();
-        expect(result).assertEqual(24300001);
+        expect(result).assertEqual(GenericFailure);
         console.info("====>SUB_Oh_Print_0300 result: " + result);
         done();
       } catch (err) {
@@ -84,8 +88,8 @@ export default function ActsPrintErrorTest() {
     /**
      * @tc.number  : SUB_Oh_Print_0400
      * @tc.name    : SUB_Oh_Print_0400
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.desc    : Test OHPrintInvalidPrintJob.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -93,7 +97,7 @@ export default function ActsPrintErrorTest() {
       try {
         console.info("====>SUB_Oh_Print_0400 start====");
         let result: number = await printerror.OHPrintInvalidPrintJob();
-        expect(result).assertEqual(24300006);
+        expect(result).assertEqual(InvalidPrintJob);
         console.info("====>SUB_Oh_Print_0400 result: " + result);
         done();
       } catch (err) {
@@ -105,8 +109,8 @@ export default function ActsPrintErrorTest() {
     /**
      * @tc.number  : SUB_Oh_Print_0500
      * @tc.name    : SUB_Oh_Print_0500
-     * @tc.desc    : Gets the name of the OS account to which the caller process belongs.
-     * @tc.level   : Level3
+     * @tc.desc    : Test OHPrintInvalidPrinter.
+     * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
@@ -114,7 +118,7 @@ export default function ActsPrintErrorTest() {
       try {
         console.info("====>SUB_Oh_Print_0500 start====");
         let result: number = await printerror.OHPrintInvalidPrinter();
-        expect(result).assertEqual(24300005);
+        expect(result).assertEqual(InvalidPrinter);
         console.info("====>SUB_Oh_Print_0500 result: " + result);
         done();
       } catch (err) {

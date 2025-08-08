@@ -54,6 +54,7 @@ struct IndexPage {
     { title: 'DraggingSizeChangeEffect', uri: 'pages/ArkUI/DraggingSizeChangeEffect' },
     { title: 'KeyEvent', uri: 'pages/ArkUI/KeyEvent' },
     { title: 'CapiKeyEvent', uri: 'pages/ArkUI/CapiKeyEvent' },
+    { title: 'enableDropDisallowedBadge', uri: 'pages/ArkUI/enableDropDisallowedBadge' },
     { title: 'bindSheetTest', uri: 'pages/ArkUI/bindSheetTest' },
     { title: 'CanvasFillStyle', uri: 'pages/ArkUI/CanvasFillStyle' },
     { title: 'CanvasLineWidth', uri: 'pages/ArkUI/CanvasLineWidth' },
@@ -114,7 +115,7 @@ struct IndexPage {
     { title: 'AccessibilityRoleTypeTest', uri: 'pages/ArkUI/AccessibilityRoleTypeTest' },
     { title: 'StylusPen', uri: 'pages/ArkUI/StylusPen' },
     { title: 'AccessibilityFocusDrawLevel', uri: 'pages/ArkUI/AccessibilityFocusDrawLevel' },
-	{ title: 'EmbeddedComponentInstanceTest', uri: 'pages/ArkUI/EmbeddedComponentInstanceTest' },
+	  { title: 'EmbeddedComponentInstanceTest', uri: 'pages/ArkUI/EmbeddedComponentInstanceTest' },
     { title: 'AccessibilityNextFocusIdPage', uri: 'pages/ArkUI/AccessibilityNextFocusIdPage' },
     { title: 'AccessibilityDefaultFocusPage', uri: 'pages/ArkUI/AccessibilityDefaultFocusPage' },
     { title: 'AccessibilityScrollTriggerablePage', uri: 'pages/ArkUI/AccessibilityScrollTriggerablePage' },
@@ -131,6 +132,13 @@ struct IndexPage {
     { title: 'RotationGestureListener', uri: 'pages/ArkUI/RotationGestureListener' },
     { title: 'PanGestureListener', uri: 'pages/ArkUI/PanGestureListener' },
     { title: 'AccessibilityShowStepOptions', uri: 'pages/ArkUI/AccessibilityShowStepOptions' },
+    { title: 'cancelTouch', uri: 'pages/ArkUI/cancelTouch' },
+    { title: 'fingerInfos', uri: 'pages/ArkUI/fingerInfos' },
+    { title: 'bindPopupTest', uri: 'pages/ArkUI/bindPopupTest' },
+    { title: 'AccessibilityHoverEvent', uri: 'pages/ArkUI/AccessibilityHoverEvent' },
+    { title: 'CapiDragAction', uri: 'pages/ArkUI/CapiDragAction' },
+    { title: 'CapiDragEvent', uri: 'pages/ArkUI/CapiDragEvent' },
+    { title: 'SliderTest', uri: 'pages/ArkUI/SliderTest' },
   ]
   @State ColorObject: Object[] = letColor;
   @State ColorTrue: number[] = [];

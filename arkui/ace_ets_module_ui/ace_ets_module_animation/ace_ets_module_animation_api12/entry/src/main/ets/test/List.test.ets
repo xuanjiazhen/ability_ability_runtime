@@ -26,6 +26,7 @@ import CurvePage from './CurvePage.test'
 import SimpleAnimatorOptionsPage from './SimpleAnimatorOptionsPage.test'
 import Blur from './Blur.test'
 import ParticlePage from './Particle.test'
+import ParticleModifierTest from './ParticleModifierTest.test'
 
 
 export default function testsuite() {
@@ -42,4 +43,5 @@ export default function testsuite() {
   SimpleAnimatorOptionsPage();
   Blur();
   ParticlePage();
+  ParticleModifierTest()
 }

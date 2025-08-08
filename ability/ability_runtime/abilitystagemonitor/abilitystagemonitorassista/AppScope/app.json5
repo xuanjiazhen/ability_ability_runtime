@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.abilitystagemonitortest",
-    "vendor": "huawei",
+    "vendor": "abilitystagemonitortest",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

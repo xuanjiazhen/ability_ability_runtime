@@ -18,10 +18,11 @@ import webView from '@ohos.web.webview';
 import events_emitter from '@ohos.events.emitter';
 import { JsProxyObject } from '../../test/Interfaces';
 import image from '@ohos.multimedia.image';
-import { Driver } from '@ohos.UiTest';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
+import { AbilityConstant, Configuration, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { Driver, ON, MouseButton} from '@ohos.UiTest';
 
 @Entry
 @Component
@@ -43,6 +44,8 @@ struct webViewController {
   @State darkMode: WebDarkMode = WebDarkMode.Off
   @State forceDarkAccess: boolean = false
   @State userAgentPC:string = "";
+  @StorageProp('currentColorMode') currentColorMode: ConfigurationConstant.ColorMode =
+    ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
   no_error: string = "no error happened"
 
   onPageShow() {
@@ -243,7 +246,11 @@ struct webViewController {
                 this.onShowFileSelectorCallBack = false
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(2000);
                 Utils.emitEvent(this.onShowFileSelectorCallBack, 31029)
               } catch (error) {
@@ -258,9 +265,14 @@ struct webViewController {
               try {
                 this.onShowFileSelectorCallBack = false
                 this.FileSelectorParamGetTitle = ''
+
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(2000);
                 Utils.emitEvent(this.FileSelectorParamGetTitle, 31030)
               } catch (error) {
@@ -276,7 +288,11 @@ struct webViewController {
                 this.FileSelectorParamGetGetMode = 100
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(2000);
                 Utils.emitEvent(this.FileSelectorParamGetGetMode, 31031)
               } catch (error) {
@@ -292,7 +308,11 @@ struct webViewController {
                 this.FileSelectorParamGetGetAcceptType = []
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(2000);
                 Utils.emitEvent(this.FileSelectorParamGetGetAcceptType[0], 31032)
               } catch (error) {
@@ -308,7 +328,11 @@ struct webViewController {
                 this.FileSelectorParamGetIsCapture = true
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(10000);
                 Utils.emitEvent(this.FileSelectorParamGetIsCapture, 31033)
               } catch (error) {
@@ -324,7 +348,11 @@ struct webViewController {
                 this.FileSelectorParamGetTitle = ''
                 this.controller.loadUrl("resource://rawfile/showFileSelector.html");
                 await Utils.sleep(2000);
-                await Utils.clickComponent('onShowFileSelectorKey')
+                let driver = Driver.create();
+                // await Utils.clickComponent('onShowFileSelectorKey')
+                // let buttonOne = await driver.findComponent(ON.type('Button'));
+                let buttonOne = await driver.findComponent(ON.text('选择文件'));
+                await buttonOne.click()
                 await Utils.sleep(2000);
                 this.controller.runJavaScript(
                   'getFilePath()',
@@ -512,9 +540,12 @@ struct webViewController {
                       Utils.emitEvent(error.code, 31040)
                       return;
                     }
-                    if (result) {
-                      Utils.emitEvent(result, 31040)
+                    console.log('4445'+ result + '777' + this.currentColorMode + '555' + ConfigurationConstant.ColorMode.COLOR_MODE_DARK)
+                    if (JSON.parse(result) == (this.currentColorMode == ConfigurationConstant.ColorMode.COLOR_MODE_DARK)){
+                        Utils.emitEvent(result, 31040)
                     }
+
+
                   });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);

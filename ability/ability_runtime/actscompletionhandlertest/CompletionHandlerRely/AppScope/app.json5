@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.completionhandlerrely",
-    "vendor": "huawei",
+    "vendor": "completionhandlerrely",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

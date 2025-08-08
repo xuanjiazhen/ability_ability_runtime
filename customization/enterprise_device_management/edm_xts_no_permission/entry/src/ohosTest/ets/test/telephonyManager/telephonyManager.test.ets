@@ -115,7 +115,7 @@ function testAddOutgoingCallPolicyNumbers() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
       let numbers: Array<string> = ["13112345678","13687654321"];
-      telephonyManager.addOutgoingCallPolicyNumbers(SELFWANT, 0, numbers);
+      telephonyManager.addOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -138,7 +138,7 @@ function testGetOutgoingCallPolicyNumbers() {
   it("test_get_outgoing_call_policy_numbers_0100", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      telephonyManager.getOutgoingCallPolicyNumbers(SELFWANT, 0);
+      telephonyManager.getOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -162,7 +162,7 @@ function testRemoveOutgoingCallPolicyNumbers() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
       let numbers: Array<string> = ["13112345678","13687654321"];
-      telephonyManager.removeOutgoingCallPolicyNumbers(SELFWANT, 0, numbers);
+      telephonyManager.removeOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -186,7 +186,7 @@ function testAddIncomingCallPolicyNumbers() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
       let numbers: Array<string> = ["13112345678","13687654321"];
-      telephonyManager.addIncomingCallPolicyNumbers(SELFWANT, 0, numbers);
+      telephonyManager.addIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -209,7 +209,7 @@ function testGetIncomingCallPolicyNumbers() {
   it("test_get_incoming_call_policy_numbers_0100", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      telephonyManager.getIncomingCallPolicyNumbers(SELFWANT, 0);
+      telephonyManager.getIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -233,7 +233,7 @@ function testRemoveIncomingCallPolicyNumbers() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
       let numbers: Array<string> = ["13112345678","13687654321"];
-      telephonyManager.removeIncomingCallPolicyNumbers(SELFWANT, 0, numbers);
+      telephonyManager.removeIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();

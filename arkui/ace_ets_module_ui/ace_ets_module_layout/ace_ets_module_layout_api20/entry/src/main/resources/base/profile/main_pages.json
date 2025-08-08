@@ -23,6 +23,8 @@
     
         "MainAbility/pages/BoxAlign/ButtonAlign",
         "MainAbility/pages/Stack/StackSafeArea",
-        "MainAbility/pages/Stack/StackChildAlignment" 
+        "MainAbility/pages/Stack/StackChildAlignment", 
+
+        "MainAbility/pages/Stack/StackBackground" 
     ]
 }

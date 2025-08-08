@@ -58,8 +58,8 @@ static void PushBackFloatToData(std::vector<double>& data, double value)
 static std::shared_ptr<ColumnComponent> CreateReloadColumn()
 {
     auto col = std::make_shared<ColumnComponent>();
-    col->SetWidth(SIZE_100);
-    col->SetHeight(SIZE_80);
+    col->SetWidth(SIZE_60);
+    col->SetHeight(SIZE_50);
     col->SetBackgroundColor(COLOR_YELLOW);
     return col;
 }
@@ -153,14 +153,14 @@ napi_value WaterFlowScrollOffsetTest::CreateNativeNode(napi_env env, napi_callba
         return nullptr;
     }
 
-    auto col1 = CreateWaterFlow<SIZE_60>(change, SCROLL_NEGATIVE_20, SCROLL_0, true);
-    auto col2 = CreateWaterFlow<SIZE_60>(change, SCROLL_0, SCROLL_0, true);
-    auto col3 = CreateWaterFlow<SIZE_60>(change, SCROLL_130, SCROLL_0, true);
-    auto col4 = CreateWaterFlow<SIZE_60>(change, SCROLL_100000, SCROLL_0, true);
-    auto col5 = CreateWaterFlow<SIZE_60>(change, SCROLL_0, SCROLL_NEGATIVE_20, false);
-    auto col6 = CreateWaterFlow<SIZE_60>(change, SCROLL_0, SCROLL_0, false);
-    auto col7 = CreateWaterFlow<SIZE_60>(change, SCROLL_0, SCROLL_130, false);
-    auto col8 = CreateWaterFlow<SIZE_60>(change, SCROLL_0, SCROLL_100000, false);
+    auto col1 = CreateWaterFlow<SIZE_50>(change, SCROLL_NEGATIVE_20, SCROLL_0, true);
+    auto col2 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, true);
+    auto col3 = CreateWaterFlow<SIZE_50>(change, SCROLL_130, SCROLL_0, true);
+    auto col4 = CreateWaterFlow<SIZE_50>(change, SCROLL_100000, SCROLL_0, true);
+    auto col5 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_NEGATIVE_20, false);
+    auto col6 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_0, false);
+    auto col7 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_130, false);
+    auto col8 = CreateWaterFlow<SIZE_50>(change, SCROLL_0, SCROLL_100000, false);
     auto col9 =
         CreateWaterFlow<SIZE_30>(AddSectionOption, WATER_FLOW_DEFAULT_INDEX_SECTION, SCROLL_0, SCROLL_130, false);
     auto col10 =

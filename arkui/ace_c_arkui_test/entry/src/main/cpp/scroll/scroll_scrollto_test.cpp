@@ -18,8 +18,8 @@
 #include <string>
 #define SCROLL_TO_EVENT_ID 1111
 #define PARAM_400 400
-#define PARAM_1000 1000
-#define PARAM_700 700
+#define PARAM_800 800
+#define PARAM_650 650
 #define PARAM_NEGATIVE_200 (-200)
 #define SIZE_320 320
 
@@ -34,7 +34,7 @@ static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
     auto button = nodeAPI->createNode(ARKUI_NODE_BUTTON);
     auto column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
@@ -44,7 +44,7 @@ static ArkUI_NodeHandle CreateChildNode(ArkUI_NativeNodeAPI_1 *nodeAPI)
                                              sizeof(button_width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_HEIGHT, &button_length_item);
@@ -112,12 +112,12 @@ napi_value ScrollScrollToTest::CreateNativeNode(napi_env env, napi_callback_info
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -184,12 +184,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeEase(napi_env env, napi_callback_
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -256,12 +256,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeEaseInOut(napi_env env, napi_call
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -328,12 +328,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeEaseIn(napi_env env, napi_callbac
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -400,12 +400,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeEaseOut(napi_env env, napi_callba
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -472,12 +472,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeExtremeDeceleration(napi_env env,
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -544,12 +544,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeFastOutLinearIn(napi_env env, nap
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -616,12 +616,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeFastOutSlowIn(napi_env env, napi_
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -688,12 +688,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeFriction(napi_env env, napi_callb
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -760,12 +760,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeLinearOutSlowIn(napi_env env, nap
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -832,12 +832,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeRhythm(napi_env env, napi_callbac
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -904,12 +904,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeSharp(napi_env env, napi_callback
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -976,12 +976,12 @@ napi_value ScrollScrollToTest::CreateNativeNodeSmooth(napi_env env, napi_callbac
     id_item.string = "ScrollTo";
     nodeAPI->setAttribute(scroll, NODE_ID, &id_item);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_320}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = SIZE_180}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_length_item);
@@ -1170,7 +1170,7 @@ static ArkUI_NodeHandle CreateChildNodeScrollTo(ArkUI_NativeNodeAPI_1 *nodeAPI)
     auto button = nodeAPI->createNode(ARKUI_NODE_BUTTON);
     auto column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
@@ -1180,7 +1180,7 @@ static ArkUI_NodeHandle CreateChildNodeScrollTo(ArkUI_NativeNodeAPI_1 *nodeAPI)
                                              sizeof(button_width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_width_item);
 
-    ArkUI_NumberValue button_length_value[] = {{.f32 = PARAM_1000}};
+    ArkUI_NumberValue button_length_value[] = {{.f32 = PARAM_800}};
     ArkUI_AttributeItem button_length_item = {button_length_value,
                                               sizeof(button_length_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_HEIGHT, &button_length_item);
@@ -1276,12 +1276,12 @@ static ArkUI_NodeHandle CreateChildNodeScrollTo002(ArkUI_NativeNodeAPI_1 *nodeAP
     auto button = nodeAPI->createNode(ARKUI_NODE_BUTTON);
     auto column = nodeAPI->createNode(ARKUI_NODE_COLUMN);
 
-    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_300}};
+    ArkUI_NumberValue width_value[] = {{.f32 = SIZE_150}};
     ArkUI_AttributeItem width_item = {width_value, sizeof(width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(scroll, NODE_WIDTH, &width_item);
     nodeAPI->setAttribute(scroll, NODE_HEIGHT, &width_item);
 
-    ArkUI_NumberValue button_width_value[] = {{.f32 = PARAM_1000}};
+    ArkUI_NumberValue button_width_value[] = {{.f32 = PARAM_800}};
     ArkUI_AttributeItem button_width_item = {button_width_value,
                                              sizeof(button_width_value) / sizeof(ArkUI_NumberValue)};
     nodeAPI->setAttribute(button, NODE_WIDTH, &button_width_item);
@@ -1696,7 +1696,7 @@ static void OnEventReceiveScrollTo007(ArkUI_NodeEvent *event)
     auto offsetValue1 = nodeAPI->getAttribute(nodeHandler, NODE_SCROLL_OFFSET)->value[PARAM_1].f32;
 
     if (eventId == SCROLL_TO_EVENT_ID) {
-        if (offsetValue0 == PARAM_0 && offsetValue1 == PARAM_700) {
+        if (offsetValue0 == PARAM_0 && offsetValue1 == PARAM_650) {
             ArkUI_NumberValue background_color_value[] = {{.u32 = COLOR_GREEN}};
             ArkUI_AttributeItem background_color_item = {background_color_value,
                                                          sizeof(background_color_value) / sizeof(ArkUI_NumberValue)};
@@ -1725,7 +1725,7 @@ napi_value ScrollScrollToTest::CreateNativeNodeScrollTo007(napi_env env, napi_ca
     ArkUI_NativeNodeAPI_1 *nodeAPI = nullptr;
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, nodeAPI);
     auto scroll = CreateChildNodeScrollTo(nodeAPI);
-    ArkUI_NumberValue scroll_value[] = {{.f32 = PARAM_1000}, {.f32 = PARAM_1000}};
+    ArkUI_NumberValue scroll_value[] = {{.f32 = PARAM_800}, {.f32 = PARAM_800}};
     ArkUI_AttributeItem scroll_item = {scroll_value, sizeof(scroll_value) / sizeof(ArkUI_NumberValue)};
     auto ret = nodeAPI->setAttribute(scroll, NODE_SCROLL_OFFSET, &scroll_item);
     ASSERT_EQ(ret, SUCCESS);

@@ -21,6 +21,14 @@ import onTouchTestDoneTest from './GestureRecognizerTest/onTouchTestDone.test';
 import nodeRenderStateTest from './NodeRenderStateTest/nodeRenderState.test';
 import BlockDescendantsTest from './HitTestBehaviorTest/BlockDescendants.test';
 import BlockHierarchyTest from './HitTestBehaviorTest/BlockHierarchy.test';
+import BackgroundOptionsTest from './BackgroundTest/BackgroundOptions.test';
+import axisEventTest from './GlobalDisplayTest/axisEvent.test';
+import clickEventTest from './GlobalDisplayTest/clickEvent.test';
+import dragEventTest from './GlobalDisplayTest/dragEvent.test';
+import fingerInfoTest from './GlobalDisplayTest/fingerInfo.test';
+import hoverEventTest from './GlobalDisplayTest/hoverEvent.test';
+import mouseEventTest from './GlobalDisplayTest/mouseEvent.test';
+import touchEventTest from './GlobalDisplayTest/touchEvent.test';
 
 export default function testsuite() {
   getDisplayId();
@@ -31,4 +39,11 @@ export default function testsuite() {
   nodeRenderStateTest();
   BlockDescendantsTest();
   BlockHierarchyTest();
+  axisEventTest();
+  clickEventTest();
+  dragEventTest();
+  fingerInfoTest();
+  hoverEventTest();
+  mouseEventTest();
+  touchEventTest();
 }

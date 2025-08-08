@@ -18,13 +18,38 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../test/List.test';
+import { Driver, ON, MatchPattern } from '@ohos.UiTest';
+import { abilityAccessCtrl, PermissionRequestResult, Permissions } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+
+function sleep(ms: number) {
+    return new Promise<number>(resolve => setTimeout(resolve, ms));
+}
 
 export default class TestAbility extends UIAbility {
-    onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
+    async onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
         globalThis.context = this.context;
         hilog.info(0x0000, 'testTag', '%{public}s', 'TestAbility onCreate');
         hilog.info(0x0000, 'testTag', '%{public}s', 'want param:' + JSON.stringify(want) ?? '');
         hilog.info(0x0000, 'testTag', '%{public}s', 'launchParam:'+ JSON.stringify(launchParam) ?? '');
+
+        let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+        let permissions:Permissions[] = ['ohos.permission.MICROPHONE'];
+        atManager.requestPermissionsFromUser(this.context,permissions).then((data:PermissionRequestResult) => {
+            console.info('datassss:' + JSON.stringify(data))
+            console.info('data permissions' + data.permissions)
+            }).catch((err:BusinessError) => {
+                console.info('data:' + JSON.stringify(err))
+        })
+        let driveFn = async () => {
+            let dr = Driver.create();
+            await sleep(10000);
+            let power = await dr?.waitForComponent(ON.text('允许',MatchPattern.EQUALS), 2000);
+            await sleep(1000);
+            await power?.click();
+        }
+        await driveFn();
+        
         let abilityDelegator: abilityDelegatorRegistry.AbilityDelegator;
         abilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
         let abilityDelegatorArguments: abilityDelegatorRegistry.AbilityDelegatorArgs;

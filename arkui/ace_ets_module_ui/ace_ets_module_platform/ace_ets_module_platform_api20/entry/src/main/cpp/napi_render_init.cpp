@@ -29,6 +29,8 @@
 #include <arkui/native_gesture.h>
 #include <arkui/native_interface.h>
 
+#include "XComponent/XComponentCrossLanguageTest.h"
+
 static int NUMBER_200 = 200;
 
 // libraryname模式不要使用xcomponentId区分组件
@@ -834,6 +836,11 @@ static napi_value Init(napi_env env, napi_value exports)
         {"getKeyStr", nullptr, GetKeyString, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getIndicatorStr", nullptr, GetIndicatorString, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getMouseStr", nullptr, GetMouseString, nullptr, nullptr, nullptr, napi_default, nullptr},
+
+        {"createCrossLanguageXComponentNativeNode", nullptr, XComponentCrossLanguageTest::createCrossLanguageXComponentNativeNode,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"crossLanguageSetXComponentAttribute", nullptr, XComponentCrossLanguageTest::crossLanguageSetXComponentAttribute,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     

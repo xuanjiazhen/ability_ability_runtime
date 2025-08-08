@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.supportfunctionhaptest",
-    "vendor": "huawei",
+    "vendor": "supportfunctionhaptest",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

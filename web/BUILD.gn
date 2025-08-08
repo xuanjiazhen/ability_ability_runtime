@@ -27,5 +27,6 @@ group("web") {
     "web_page_rendering:webPageRenderingTest",
     "web_security_privacy:WebSecurityPrivacy",
     "web_net:ActsWebNetTest",
+    "web_device:WebDeviceService",
   ]
 }

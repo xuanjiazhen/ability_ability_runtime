@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include "gtest/gtest.h"
 #include "drawing_bitmap.h"
 #include "drawing_font_collection.h"
@@ -23,6 +24,19 @@
 
 using namespace testing;
 using namespace testing::ext;
+
+namespace {
+bool ExistNotdef()
+{
+    return std::filesystem::exists("/system/fonts/HarmonyOS_Sans_Notdef.ttf");
+}
+
+bool ExistNotoSans()
+{
+    return std::filesystem::exists("/system/fonts/NotoSans[wdth,wght].ttf");
+}
+
+} // namespace
 
 namespace OHOS {
 namespace Rosen {
@@ -114,7 +128,11 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_TOFU);
     OH_Drawing_Typography* typography = PrepareCreateTypography(text_);
     EXPECT_NE(typography, nullptr);
-    BoundsResult(typography, tofuResult_, NUM_3);
+    if (ExistNotdef()) {
+        BoundsResult(typography, tofuResult_, NUM_3);
+    } else {
+        BoundsResult(typography, defaultResult_, NUM_3);
+    }
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -154,7 +172,11 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     OH_Drawing_SetTextUndefinedGlyphDisplay(static_cast<OH_Drawing_TextUndefinedGlyphDisplay>(NUM_100));
     OH_Drawing_Typography* tofuTypography = PrepareCreateTypography(text_);
     EXPECT_NE(tofuTypography, nullptr);
-    BoundsResult(tofuTypography, tofuResult_, NUM_3);
+    if (ExistNotdef()) {
+        BoundsResult(tofuTypography, tofuResult_, NUM_3);
+    } else {
+        BoundsResult(tofuTypography, defaultResult_, NUM_3);
+    }
     OH_Drawing_DestroyTypography(defaultTypography);
     OH_Drawing_DestroyTypography(tofuTypography);
 }
@@ -178,7 +200,11 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     OH_Drawing_SetTextUndefinedGlyphDisplay(static_cast<OH_Drawing_TextUndefinedGlyphDisplay>(NUM_100));
     OH_Drawing_Typography* tofuTypography = PrepareCreateTypography(noGlyphText_);
     EXPECT_NE(tofuTypography, nullptr);
-    BoundsResult(tofuTypography, noGlyphTofuResult_, NUM_1);
+    if (ExistNotdef()) {
+        BoundsResult(tofuTypography, noGlyphTofuResult_, NUM_1);
+    } else {
+        BoundsResult(defaultTypography, noGlyphTofuResult_, NUM_1);
+    }
     OH_Drawing_DestroyTypography(defaultTypography);
     OH_Drawing_DestroyTypography(tofuTypography);
 }
@@ -197,10 +223,18 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     const char* fontFamilies[] = { "Noto Sans" };
     OH_Drawing_Typography* typography = PrepareCreateTypography(text_, fontFamilies, NUM_1);
     EXPECT_NE(typography, nullptr);
-    BoundsResult(typography, notoResult_, NUM_3);
+    if (ExistNotoSans()) {
+        BoundsResult(typography, notoResult_, NUM_3);
+    } else {
+        BoundsResult(typography, defaultResult_, NUM_3);
+    }
     OH_Drawing_Typography* onlyTypography = PrepareCreateTypography(noGlyphText_, fontFamilies, NUM_1);
     EXPECT_NE(onlyTypography, nullptr);
-    BoundsResult(onlyTypography, noGlyphTofuResult_, NUM_1);
+    if (ExistNotdef()) {
+        BoundsResult(onlyTypography, noGlyphTofuResult_, NUM_1);
+    } else {
+        BoundsResult(onlyTypography, noGlyphDefaultResult_, NUM_1);
+    }
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypography(onlyTypography);

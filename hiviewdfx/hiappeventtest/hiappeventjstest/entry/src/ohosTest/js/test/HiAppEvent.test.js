@@ -1154,5 +1154,211 @@ describe('HiAppEventApiTest', function () {
         });
         console.info('testHiAppEventApi45 end');
     });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_4600
+     * @tc.name testHiAppEventApi46
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11100001
+     */
+    it('testHiAppEventApi46', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi46 start')
+        HiAppEventV9.configure({disable:true});
+        let eventInfo = {
+            domain: "test_domain",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: {
+                "key_int": 100
+            }
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi46 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi46 Error:', error.message, 'testHiAppEventApi46 Code:', error.code);
+            expect(error.code == 11100001).assertTrue();
+            done()
+        })
+        HiAppEventV9.configure({disable:false});
+        console.info('testHiAppEventApi46 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_4700
+     * @tc.name testHiAppEventApi47
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101001
+     */
+    it('testHiAppEventApi47', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi47 start')
+        let eventInfo = {
+            domain: "123test",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: {
+                "key_int": 100
+            }
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi47 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi47 Error:', error.message, 'testHiAppEventApi47 Code:', error.code);
+            expect(error.code == 11101001).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi47 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_4800
+     * @tc.name testHiAppEventApi48
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101002
+     */
+    it('testHiAppEventApi48', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi48 start')
+        let eventInfo = {
+            domain: "test_domain",
+            name: "123test",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: {
+                "key_int": 100
+            }
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi48 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi48 Error:', error.message, 'testHiAppEventApi48 Code:', error.code);
+            expect(error.code == 11101002).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi48 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_4900
+     * @tc.name testHiAppEventApi49
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101003
+     */
+    it('testHiAppEventApi49', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi49 start')
+        let eventParams = {};
+        eventParams["123xxx"] = "value_invalid";
+        eventParams["xxx_"] = "value_invalid";
+        for (let i = 1; i <= 33; i++) {
+          eventParams["key" + i] = "value" + i;
+        }
+        eventParams['a'.repeat(33)] = 'value_invalid';
+        let eventInfo = {
+            domain: "test_domain",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: eventParams,
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi49 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi49 Error:', error.message, 'testHiAppEventApi49 Code:', error.code);
+            expect(error.code == 11101003).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi49 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_5000
+     * @tc.name testHiAppEventApi50
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101004
+     */
+    it('testHiAppEventApi50', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi50 start')
+        let eventInfo = {
+            domain: "test_domain",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: {
+                "key_int": "a".repeat(8 * 1024 + 1)
+            }
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi50 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi50 Error:', error.message, 'testHiAppEventApi50 Code:', error.code);
+            expect(error.code == 11101004).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi50 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_5100
+     * @tc.name testHiAppEventApi51
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101005
+     */
+    it('testHiAppEventApi51', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi51 start')
+        let eventInfo = {
+            domain: "test_domain",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: {
+                "**":"ha",
+                "key_int":1,
+                "HH22":"ha",
+                "key_str":"str",
+                "":"empty",
+                "aa_":"underscore"
+            }
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi51 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi51 Error:', error.message, 'testHiAppEventApi51 Code:', error.code);
+            expect(error.code == 11101005).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi51 end')
+    });
+
+    /**
+     * @tc.number DFX_DFT_HiviewKit_HiAppEvent_JSNAPI_5200
+     * @tc.name testHiAppEventApi52
+     * @tc.desc HiAppEvent write by Promise, errorcode is 11101006
+     */
+    it('testHiAppEventApi52', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+        console.info('testHiAppEventApi52 start')
+        let longArr = new Array(100).fill(1);
+        let iLongArr = new Array(101).fill("a");
+        let params1 = {
+            key_long_arr: longArr,
+            key_i_long_arr: iLongArr,
+            key_str: "str"
+        };
+        let eventInfo = {
+            domain: "test_domain",
+            name: "write",
+            eventType: HiAppEventV9.EventType.FAULT,
+            params: params1
+        };
+        HiAppEventV9.write(eventInfo).then((data) => {
+            console.log('testHiAppEventApi52 write set successfully.');
+            expect(data).assertLarger(0);
+            done()
+        }).catch((error) => {
+            console.error('testHiAppEventApi52 Error:', error.message, 'testHiAppEventApi52 Code:', error.code);
+            expect(error.code == 11101006).assertTrue();
+            done()
+        })
+        console.info('testHiAppEventApi52 end')
+    });
 })
 }

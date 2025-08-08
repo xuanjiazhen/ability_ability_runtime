@@ -206,7 +206,7 @@
     "deviceList": [
       {
         "img": "/common/img/ic_pad.svg",
-        "deviceName": "huawei",
+        "deviceName": "deviceName",
         "deviceType": 17,
         "deviceId": 1
       }

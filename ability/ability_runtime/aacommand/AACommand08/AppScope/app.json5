@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.aacommand08",
-    "vendor": "huawei",
+    "vendor": "aacommand08",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

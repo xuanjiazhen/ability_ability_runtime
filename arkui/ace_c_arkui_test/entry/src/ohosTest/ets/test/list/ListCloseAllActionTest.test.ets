@@ -79,7 +79,7 @@ export default function listCloseAllActionTest() {
     */
     it('testListCloseAllAction001', Level.LEVEL1, async (done: Function) => {
       await Utils.pushPage(`list/ListCloseAllActionTest`);
-      await flingComponentH("list1", true, 1000, 100);
+      await flingComponentH("list1", true, 1000, 50);
       await Utils.clickComponent('callbackButton0')
       await Utils.sleep(3000)
       let dataArray: number[][] = nativeRender.listGetCloseAllActionRetData()
@@ -99,7 +99,7 @@ export default function listCloseAllActionTest() {
     */
     it('testListCloseAllAction002', Level.LEVEL1, async (done: Function) => {
       await Utils.pushPage(`list/ListCloseAllActionTest`);
-      await flingComponentH("list1", true, 1000, 100);
+      await flingComponentH("list1", true, 1000, 50);
       await Utils.clickComponent('nullCallbackButton0')
       await Utils.sleep(3000)
       let dataArray: number[][] = nativeRender.listGetCloseAllActionRetData()
@@ -119,7 +119,7 @@ export default function listCloseAllActionTest() {
     */
     it('testListCloseAllAction003', Level.LEVEL1, async (done: Function) => {
       await Utils.pushPage(`list/ListCloseAllActionTest`);
-      await flingComponentV("list2", true, 1000, 100);
+      await flingComponentV("list2", true, 1000, 50);
       await Utils.clickComponent('callbackButton1')
       await Utils.sleep(3000)
       let dataArray: number[][] = nativeRender.listGetCloseAllActionRetData()
@@ -139,7 +139,7 @@ export default function listCloseAllActionTest() {
     */
     it('testListCloseAllAction004', Level.LEVEL1, async (done: Function) => {
       await Utils.pushPage(`list/ListCloseAllActionTest`);
-      await flingComponentV("list2", true, 1000, 100);
+      await flingComponentV("list2", true, 1000, 50);
       await Utils.clickComponent('nullCallbackButton1')
       await Utils.sleep(3000)
       let dataArray: number[][] = nativeRender.listGetCloseAllActionRetData()

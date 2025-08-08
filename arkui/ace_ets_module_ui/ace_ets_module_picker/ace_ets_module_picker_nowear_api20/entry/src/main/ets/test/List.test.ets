@@ -14,7 +14,15 @@
  */
 
 import datePickerDialogCanLoopTest from './datePickerDialogTest/datePickerDialogCanLoop.test'
+import textPickerDialogDisappearTextStyleTest from './textPickerDialogTest/textPickerDialogDisappearTextStyle.test'
+import textPickerDialogSelectedTextStyleTest from './textPickerDialogTest/textPickerDialogSelectedTextStyle.test'
+import textPickerDialogTextStyleTest from './textPickerDialogTest/textPickerDialogTextStyle.test'
+import textPickerDialogSelectedBgColorTest from './textPickerDialogTest/textPickerDialogSelectedBgColor.test'
 
 export default function testsuite() {
     datePickerDialogCanLoopTest();
+    textPickerDialogDisappearTextStyleTest();
+    textPickerDialogSelectedTextStyleTest();
+    textPickerDialogTextStyleTest();
+    textPickerDialogSelectedBgColorTest();
 }

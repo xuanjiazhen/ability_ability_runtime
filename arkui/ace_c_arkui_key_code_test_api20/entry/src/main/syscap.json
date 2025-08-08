@@ -4,9 +4,14 @@
         "custom": [
             {
                 "xts": [
-                    "SystemCapability.Account.AppAccount",
-                    "SystemCapability.Account.OsAccount",
-                    "SystemCapability.MultimodalInput.Input.Core"
+                    "SystemCapability.ArkUI.ArkUI.Full",
+                    "SystemCapability.ArkUI.ArkUI.Lite",
+                    "SystemCapability.ArkUI.ArkUI.Circle",
+                    "SystemCapability.Test.UiTest",
+                    "SystemCapability.Ability.AbilityRuntime.Core",
+                    "SystemCapability.Notification.Emitter",
+                    "SystemCapability.MiscServices.Time",
+                    "SystemCapability.FileManagement.File.FileIO"
                 ]
             }
         ]

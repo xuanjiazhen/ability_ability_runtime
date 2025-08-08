@@ -2544,6 +2544,39 @@ static napi_value SessionUnregisterAutoDeviceSwitchStatusChange(napi_env env, na
     napi_create_int32(env, code, &result);
     return result;
 }
+static napi_value SessionRegisterSystemPressureLevel(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+ 
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+ 
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+ 
+    Camera_ErrorCode code = ndkCamera_->RegisterSystemPressureLevel(index);
+ 
+    napi_create_int32(env, code, &result);
+    return result;
+}
+ 
+static napi_value SessionUnregisterSystemPressureLevel(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_value result;
+ 
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+ 
+    int32_t index;
+    napi_get_value_int32(env, args[0], &index);
+ 
+    Camera_ErrorCode code = ndkCamera_->UnregisterSystemPressureLevel(index);
+ 
+    napi_create_int32(env, code, &result);
+    return result;
+}
 static napi_value CameraManagerRegisterFoldStatusChange(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -2782,6 +2815,10 @@ static napi_value Init(napi_env env, napi_value exports)
         { "sessionRegisterAutoDeviceSwitchStatusChange", nullptr, SessionRegisterAutoDeviceSwitchStatusChange,
             nullptr, nullptr, nullptr, napi_default, nullptr },
         { "sessionUnregisterAutoDeviceSwitchStatusChange", nullptr, SessionUnregisterAutoDeviceSwitchStatusChange,
+            nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "sessionRegisterSystemPressureLevel", nullptr, SessionRegisterSystemPressureLevel,
+            nullptr, nullptr, nullptr, napi_default, nullptr },
+        { "sessionUnregisterSystemPressureLevel", nullptr, SessionUnregisterSystemPressureLevel,
             nullptr, nullptr, nullptr, napi_default, nullptr },
         { "cameraManagerRegisterFoldStatusChange", nullptr, CameraManagerRegisterFoldStatusChange,
             nullptr, nullptr, nullptr, napi_default, nullptr },

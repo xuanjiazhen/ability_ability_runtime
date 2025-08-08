@@ -945,11 +945,15 @@ export default function imagePackToFileGif() {
          * @tc.level     : level 0
          */
          it("SUB_MULTIMEDIA_IMAGE_PACKTOFILEFORSEQUENCE_1900", Level.LEVEL0, async (done: Function) => {
-            if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-                expect(true).assertTrue();
-                done();
-                return
-            };
+            try {
+                if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+                    expect(true).assertTrue();
+                    done();
+                    return
+                };
+            } catch (error) {
+                console.info('can not find path');
+            }
             if (!isSupportGifEncode) {
                 console.info("This device does not support GIF encoding.")
                 expect(true).assertTrue();
