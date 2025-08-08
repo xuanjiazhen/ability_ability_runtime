@@ -77,10 +77,12 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"testDestroyInvalidParamA", nullptr, TestDestroyInvalidParamA, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testDestroyInvalidParamA", nullptr, TestDestroyInvalidParamA, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
         {"testPutRowInvalidParam", nullptr, TestPutRowInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPutRowsInvalidParam", nullptr, TestPutRowsInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testRowCountInvalidParam", nullptr, TestRowCountInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testRowCountInvalidParam", nullptr, TestRowCountInvalidParam, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

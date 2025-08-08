@@ -18,6 +18,7 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <hilog/log.h>
+#include <vector>
 
 static napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
 {
@@ -664,7 +665,7 @@ static napi_value TestGetUnlimitedIntBandTypeMismatchA(napi_env env, napi_callba
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
-    const char * strVal = "sss";
+    const char *strVal = "sss";
     OH_Values_PutText(values, strVal);
     
     int index = 0;
@@ -756,10 +757,48 @@ static napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info 
     return result;
 }
 
+static void InitDescOne(std::vector<napi_property_descriptor> &descVe)
+{
+    descVe.push_back({"testGetAssetsCountTypeMismatchA", nullptr, TestGetAssetsCountTypeMismatchA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetAssetsCountTypeNullA", nullptr, TestGetAssetsCountTypeNullA, nullptr, nullptr, nullptr,
+                      napi_default, nullptr});
+    descVe.push_back({"testGetAssetsInvalidParamA", nullptr, TestGetAssetsInvalidParamA, nullptr, nullptr, nullptr,
+                      napi_default, nullptr});
+    descVe.push_back({"testGetAssetsTypeMismatchA", nullptr, TestGetAssetsTypeMismatchA, nullptr, nullptr, nullptr,
+                      napi_default, nullptr});
+    descVe.push_back(
+        {"testGetAssetsTypeNullA", nullptr, TestGetAssetsTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorCountInvalidParamA", nullptr, TestGetFloatVectorCountInvalidParamA, nullptr,
+                      nullptr, nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorCountTypeMismatchA", nullptr, TestGetFloatVectorCountTypeMismatchA, nullptr,
+                      nullptr, nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorCountTypeNullA", nullptr, TestGetFloatVectorCountTypeNullA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorInvalidParamA", nullptr, TestGetFloatVectorInvalidParamA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorTypeMismatchA", nullptr, TestGetFloatVectorTypeMismatchA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetFloatVectorTypeNullA", nullptr, TestGetFloatVectorTypeNullA, nullptr, nullptr, nullptr,
+                      napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntBandInvalidParamA", nullptr, TestGetUnlimitedIntBandInvalidParamA, nullptr,
+                      nullptr, nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntBandTypeMismatchA", nullptr, TestGetUnlimitedIntBandTypeMismatchA, nullptr,
+                      nullptr, nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntBandTypeNullA", nullptr, TestGetUnlimitedIntBandTypeNullA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntInvalidParamA", nullptr, TestGetUnlimitedIntInvalidParamA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntTypeMismatchA", nullptr, TestGetUnlimitedIntTypeMismatchA, nullptr, nullptr,
+                      nullptr, napi_default, nullptr});
+    descVe.push_back({"testGetUnlimitedIntTypeNullA", nullptr, TestGetUnlimitedIntTypeNullA, nullptr, nullptr, nullptr,
+                      napi_default, nullptr});
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
-    napi_property_descriptor desc[] = {
+    std::vector<napi_property_descriptor> descVe = {
         {"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPutNullInvalidParam", nullptr, TestPutNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPutIntInvalidParam", nullptr, TestPutIntInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
@@ -801,42 +840,11 @@ static napi_value Init(napi_env env, napi_value exports)
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr, nullptr,
          napi_default, nullptr},
-        {"testGetAssetsCountTypeMismatchA", nullptr, TestGetAssetsCountTypeMismatchA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetAssetsCountTypeNullA", nullptr, TestGetAssetsCountTypeNullA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetAssetsInvalidParamA", nullptr, TestGetAssetsInvalidParamA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetAssetsTypeMismatchA", nullptr, TestGetAssetsTypeMismatchA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetAssetsTypeNullA", nullptr, TestGetAssetsTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetFloatVectorCountInvalidParamA", nullptr, TestGetFloatVectorCountInvalidParamA, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"testGetFloatVectorCountTypeMismatchA", nullptr, TestGetFloatVectorCountTypeMismatchA, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"testGetFloatVectorCountTypeNullA", nullptr, TestGetFloatVectorCountTypeNullA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetFloatVectorInvalidParamA", nullptr, TestGetFloatVectorInvalidParamA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetFloatVectorTypeMismatchA", nullptr, TestGetFloatVectorTypeMismatchA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetFloatVectorTypeNullA", nullptr, TestGetFloatVectorTypeNullA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetUnlimitedIntBandInvalidParamA", nullptr, TestGetUnlimitedIntBandInvalidParamA, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"testGetUnlimitedIntBandTypeMismatchA", nullptr, TestGetUnlimitedIntBandTypeMismatchA, nullptr, nullptr,
-         nullptr, napi_default, nullptr},
-        {"testGetUnlimitedIntBandTypeNullA", nullptr, TestGetUnlimitedIntBandTypeNullA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetUnlimitedIntInvalidParamA", nullptr, TestGetUnlimitedIntInvalidParamA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetUnlimitedIntTypeMismatchA", nullptr, TestGetUnlimitedIntTypeMismatchA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testGetUnlimitedIntTypeNullA", nullptr, TestGetUnlimitedIntTypeNullA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
     };
+    
+    InitDescOne(descVe);
 
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
+    napi_define_properties(env, exports, descVe.size(), descVe.data());
     return exports;
 }
 EXTERN_C_END
