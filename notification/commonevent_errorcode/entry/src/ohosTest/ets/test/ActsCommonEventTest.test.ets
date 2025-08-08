@@ -463,7 +463,7 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200
-     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200
      * @tc.desc    : Test SetLongArrayToParameterError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
