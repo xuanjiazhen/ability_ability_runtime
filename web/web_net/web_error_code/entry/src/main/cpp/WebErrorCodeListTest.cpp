@@ -194,7 +194,8 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
     return ARKWEB_NET_OK;
 }
 
-static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> &netErrorMap) {
+static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> &netErrorMap)
+{
     std::map<std::string, ArkWeb_NetError> codeExMap = {
         {"ARKWEB_ERR_NETWORK_IO_SUSPENDED", ARKWEB_ERR_NETWORK_IO_SUSPENDED},
         {"ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED", ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED},
@@ -227,7 +228,8 @@ static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> 
     }
 }
 
-static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError> netErrorMap) {
+static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError> netErrorMap)
+{
     std::map<std::string, ArkWeb_NetError> codeExMap = {
         {"ARKWEB_ERR_QUIC_PROTOCOL_ERROR", ARKWEB_ERR_QUIC_PROTOCOL_ERROR},
         {"ARKWEB_ERR_RESPONSE_HEADERS_TRUNCATED", ARKWEB_ERR_RESPONSE_HEADERS_TRUNCATED},
