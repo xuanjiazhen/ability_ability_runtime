@@ -19,6 +19,7 @@
     "@ohos/hypium": "1.0.6"
   },
   "author": "",
+  "modelVersion": "5.0.0",
   "name": "open_web_page_napis_enhance_one_test",
   "description": "Please describe the basic information.",
   "main": "",
