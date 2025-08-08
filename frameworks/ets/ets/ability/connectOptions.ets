@@ -17,19 +17,20 @@ import { ElementName } from 'bundleManager.ElementName'
 import rpc from '@ohos.rpc';
 
 export interface ConnectOptions {
-    onConnect(elementName: ElementName, remote: rpc.IRemoteObject): void;
-    onDisconnect(elementName: ElementName): void;
-    onFailed(code: int): void;
+    onConnect: (elementName: ElementName, remote: rpc.IRemoteObject) => void;
+    onDisconnect: (elementName: ElementName) => void;
+    onFailed: (code: int) => void;
 }
 
 class ConnectOptionsInner implements ConnectOptions {
-    onConnect(elementName: ElementName, remote: rpc.IRemoteObject): void {
+    onConnect: (elementName: ElementName, remote: rpc.IRemoteObject) => void = (elementName: ElementName,
+        remote: rpc.IRemoteObject) => {
         console.log('onConnect');
     }
-    onDisconnect(elementName: ElementName): void {
+    onDisconnect: (elementName: ElementName) => void = (elementName: ElementName) => {
         console.log('onDisconnect');
     }
-    onFailed(code: int): void {
+    onFailed: (code: int) => void = (code: int) => {
         console.log('onFailed');
     }
 }
