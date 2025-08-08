@@ -25,12 +25,12 @@ namespace ArkUICapiTest {
         ArkUI_DragEvent* dragEvent = OH_ArkUI_NodeEvent_GetDragEvent(event);
         switch (eventType) {
             case NODE_ON_DRAG_START: {
-                float touchPointX = OH_ArkUI_DragEvent_GetTouchPointXToDisplay(dragEvent);
-                float touchPointY = OH_ArkUI_DragEvent_GetTouchPointYToDisplay(dragEvent);
+                float touchPointX = OH_ArkUI_DragEvent_GetTouchPointXToGlobalDisplay(dragEvent);
+                float touchPointY = OH_ArkUI_DragEvent_GetTouchPointYToGlobalDisplay(dragEvent);
                 OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Manager",
-                             "TouchPointXToDisplay:%{public}f;", touchPointX);
+                             "TouchPointXToGlobalDisplay:%{public}f;", touchPointX);
                 OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Manager",
-                             "TouchPointYToDisplay:%{public}f;", touchPointY);
+                             "TouchPointYToGlobalDisplay:%{public}f;", touchPointY);
                 if (touchPointX != -1 && touchPointY != -1) {
                     ArkUI_NativeNodeAPI_1 *nodeAPI = nullptr;
                     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, nodeAPI);
