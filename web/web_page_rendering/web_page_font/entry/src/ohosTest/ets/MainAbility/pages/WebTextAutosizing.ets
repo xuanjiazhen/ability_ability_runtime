@@ -27,6 +27,7 @@ struct WebTextAutosizing {
   @State str: string = ""
   @State text: number = 0
   @State text1: number = 0
+  @State ClientWidth:number = 0
   @State de: number = 1
   @State qa: number = 9
   @State det: number = 13
@@ -58,7 +59,6 @@ struct WebTextAutosizing {
         Button("WebTextAutosizing").id('WebTextAutosizing').onClick(async () => {
           console.info("key==>" + this.str)
           switch (this.str) {
-
             case "TextAutosizing0100": {
               this.userAgentPC = this.webviewController.getUserAgent();
               if ((this.userAgentPC).includes("PC")) {
@@ -68,6 +68,24 @@ struct WebTextAutosizing {
                 Utils.emitEvent(true, 4350)
                 break;
               }
+               this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
+                  this.ClientWidth = Number(res)
+                  console.log('ClientWidth' + this.ClientWidth)
+                })
+                let nums=1
+                let tryTime=10
+                while(nums < tryTime) {
+                    Utils.sleep(2000);
+                    if(this.ClientWidth!=0){
+                      break;
+                    }
+                    nums++;
+                }
+                if(this.ClientWidth > 980) {
+                  console.log('success' + this.ClientWidth)
+                  Utils.emitEvent(true, 4352)
+                  break;
+                }
               let value: boolean = false;
               this.isTextAutosizing = false;
               this.de = 1
@@ -76,6 +94,7 @@ struct WebTextAutosizing {
               try {
                 this.webviewController.loadUrl($rawfile("text.html"));
                 await Utils.sleep(2000);
+     
                 this.de = 100;
                 await Utils.sleep(2000);
                 this.webviewController.runJavaScript("getSize()", (err, res) => {

@@ -74,9 +74,6 @@ struct WebComponent {
         Button("WebController click").key('WebGestureFocusModeButton').onClick(async () => {
           console.info("key==>" + this.str)
           await waitForExist(()=>this.isReceive, this.str, 0);
-          let webRect = Utils.getComponentRect('WebViewGestureFocusMode');
-          let X = Utils.getRectHorizontalCenterX(webRect)
-          let Y = Utils.getRectVerticalCenterY(webRect)
           switch (this.str) {
             case "testWebGestureFocusMode001": {
               try {
@@ -87,9 +84,16 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再点击web 抢焦点
-                await buttonTwo.click()
+                await buttonThree.click()
 
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
@@ -105,22 +109,52 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
                 //再长按web 抢焦点
-                await buttonTwo.longClick()
+                await buttonThree.longClick()
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
               }
               break;
             }
 
+            case "testWebGestureFocusMode003": {
+              try {
+                this.flagType = 'webPinchOut'
+                this.controller.refresh();
+                let driver = Driver.create();
+                //先点击textInput
+                let buttonOne = await driver.findComponent(ON.text('textInput'));
+                await buttonOne.click()
+                await Utils.sleep(2000);
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let HtmlOne = await driver.findComponent(ON.id('WebViewGestureFocusMode'));
+                //再缩放web 抢焦点
+                await HtmlOne.pinchOut(1.5);
+              } catch (error) {
+                console.error(`Errorcode: ${error.code}, Message: ${error.message}`);
+              }
+              break;
+            }
           }
         })
       }
 
       TextInput({ text: this.currentUrl })
         .backgroundColor(this.TextInputborderColor1)
-        // .height(nativeHeight)
         .onFocus(() => {
           this.TextInputborderColor1 = Color.Red;
         })
