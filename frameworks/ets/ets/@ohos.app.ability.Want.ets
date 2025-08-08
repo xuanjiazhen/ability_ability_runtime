@@ -22,6 +22,9 @@ const TAG = 'WantSerializeTool';
 const int32Max: number = Math.pow(2, 31) - 1;
 const int32Min: number = -Math.pow(2, 31);
 
+const PARAM_RESV_WINDOW_MODE = 'ohos.aafwk.param.windowMode';
+const PARAM_RESV_DISPLAY_ID = 'ohos.aafwk.param.displayId';
+
 interface ComplexArrayData {
   intlist: Array<int>;
   boolList: Array<boolean>;
@@ -46,7 +49,8 @@ class RecordWriter {
 
   private parseRecord(obj: NullishType): boolean {
     if (obj instanceof Record) {
-      return this.writeRecord(obj as Object as Record<string, valueType>);
+      return this.writeRecordToNative(obj as Object as Record<string, valueType>, this.wantParams);
+      //return this.writeRecord(obj as Object as Record<string, valueType>);
     } else {
       hilog.error(DOMAIN_ID, TAG, `input object not record type`);
       return false;
@@ -76,8 +80,14 @@ class RecordWriter {
     }
   }
 
-  private writeObjectToNative(key: string, obj: NullishType, wantParams?: NativeWantParams): boolean {
+  private writeObjectToNative(key: string, obj: NullishType, wantParams?: NativeWantParams | null): boolean {
     let localWantParams = (wantParams === undefined) ? this.wantParams : wantParams;
+    // skip reserved param
+    if (this.blackListFilter(key)) {
+      //hilog.debug(DOMAIN_ID, TAG, `%{public}s is filtered.`, key);
+      hilog.error(DOMAIN_ID, TAG, `%{public}s is filtered.`, key);
+      return true;
+    }
     if (obj === null) {
       //this.buffer.append('null');
       //localWantParams?.setParam(key, 'null'); //1.1不收集null
@@ -96,6 +106,9 @@ class RecordWriter {
     } else if (obj instanceof Array) {
       this.writeArrayToNative(key, obj as Object as Array<valueType>, localWantParams);
       return true;
+    } else if (obj instanceof Tuple) {
+      this.writeArrayToNative(key, obj as Object as Tuple, localWantParams);
+      return true;
     } else if (obj instanceof Record) {
       //this.writeRecord(obj as Object as Record<string, valueType>);
       let newWantParams = new NativeWantParams();
@@ -108,9 +121,30 @@ class RecordWriter {
     } else {
       const objType = Type.of(obj);
       if (objType instanceof ClassType) {
+        // enum value are string
+        if (typeof obj === 'string') {
+          let value: string = String(obj as Object);
+          localWantParams?.setParam(key, value);
+        }
+        // enum value are number
+        if (typeof obj === 'number') {
+          //let num: number = Number(obj.unboxed());
+          let value: string = String(obj as Object);
+          let num: number = Number(value);
+          if (Number.isInteger(num)) {
+            if (num > int32Min && num < int32Max) {
+              localWantParams?.setParam(key, num as int);
+            } else {
+              localWantParams?.setParam(key, num as double);
+            }
+          } else {
+            localWantParams?.setParam(key, num as double);
+          }
+          return true;
+        }
         let newWantParams = new NativeWantParams();
         if (this.writeClassValueToNative(obj as Object, objType as ClassType, newWantParams) != true) {
-          localWantParams?.setParam(key, '{}');
+          //localWantParams?.setParam(key, '{}'); class无可读成员和{}等其他场景不保存
         } else {
           localWantParams?.setParam(key, newWantParams);
         }
@@ -119,6 +153,16 @@ class RecordWriter {
         //localWantParams?.setParam(key, 'null'); // 1.1不识别类型不收集
         hilog.error(DOMAIN_ID, TAG, `object type not support parse, key: %{public}s`, key);
       }
+      return true;
+    }
+    return false;
+  }
+
+  private blackListFilter(key: string): boolean {
+    if (key === PARAM_RESV_WINDOW_MODE) {
+      return true;
+    }
+    if (key === PARAM_RESV_DISPLAY_ID) {
       return true;
     }
     return false;
@@ -161,6 +205,9 @@ class RecordWriter {
     if (obj instanceof Boolean) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
       wantParams?.setParam(key, obj.unboxed());
+      return true;
+    } else if (typeof obj === 'boolean') {
+      wantParams?.setParam(key, obj as boolean);
       return true;
     } else if (obj instanceof Byte) {
       //this.buffer.append(JSON.stringify(obj.unboxed()));
@@ -218,7 +265,68 @@ class RecordWriter {
     this.buffer.append(']');
   }
 
-  private unwrapArray(arr: Array<valueType>, complexArray: ComplexArrayData): void {
+  private unwrapArrayElementNumber(element: valueType, complexArray: ComplexArrayData): void {
+    if (element instanceof Int) {
+      if (complexArray.doubleList.length > 0) {
+        //complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
+        complexArray.intlist.forEach(num => {
+          complexArray.doubleList.push(Number(num));
+        });
+        complexArray.intlist = [];
+        complexArray.doubleList.push((element as number).unboxed());
+      } else {
+        complexArray.intlist.push((element as int).unboxed());
+      }
+    } else if (element instanceof Long) {
+      // consistent with napi behavior
+      const doubleValue = Number(element.unboxed());
+      if (complexArray.intlist.length > 0) {
+        //complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
+        complexArray.intlist.forEach(num => {
+          complexArray.doubleList.push(Number(num));
+        });
+        complexArray.intlist = [];
+      }
+      complexArray.doubleList.push(doubleValue);
+    } else if (element instanceof Double) {
+      if (complexArray.intlist.length > 0) {
+        //complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
+        complexArray.intlist.forEach(num => {
+          complexArray.doubleList.push(Number(num));
+        });
+        complexArray.intlist = [];
+      }
+      complexArray.doubleList.push((element as number).unboxed());
+    } else {
+      const objType = Type.of(element);
+      // enum value are number
+      if (objType instanceof ClassType) {
+        let value: string = String(element as Object);
+        let enumNum: number = Number(value);
+        if (Number.isInteger(enumNum) && enumNum > int32Min && enumNum < int32Max) {
+          if (complexArray.doubleList.length > 0) {
+            complexArray.intlist.forEach(num => {
+              complexArray.doubleList.push(Number(num));
+            });
+            complexArray.intlist = [];
+            complexArray.doubleList.push(enumNum as double);
+          } else {
+            complexArray.intlist.push(enumNum as int);
+          }
+        } else {
+          if (complexArray.intlist.length > 0) {
+            complexArray.intlist.forEach(num => {
+              complexArray.doubleList.push(Number(num));
+            });
+            complexArray.intlist = [];
+          }
+          complexArray.doubleList.push(enumNum as double);
+        }
+      }
+    }
+  }
+
+  private unwrapArray(arr: Array<valueType> | Tuple, complexArray: ComplexArrayData): void {
     const length = arr.length as int;
     this.checkReferencesCycle(arr);
     this.store.add(arr);
@@ -230,41 +338,24 @@ class RecordWriter {
       const valueType = typeof element;
       switch (valueType) {
         case 'string':
-          complexArray.stringList.push(element as string);
+          if (element instanceof String) {
+            complexArray.stringList.push(element as string);
+          } else {
+            const objType = Type.of(element);
+            if (objType instanceof ClassType) {
+              let value: string = String(element as Object);
+              complexArray.stringList.push(value as string);
+            }
+          }
           break;
         case 'boolean':
           complexArray.boolList.push((element as Boolean).unboxed());
           break;
         case 'number':
-          if (element instanceof Int) {
-            const num = element as number;
-            //if (num > int32Min && num < int32Max) {
-              complexArray.intlist.push((element as int).unboxed());
-              if (complexArray.doubleList.length > 0) {
-                complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
-                complexArray.intlist = [];
-              }
-            //} else {
-            //  if (complexArray.intlist.length > 0) {
-            //    complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
-            //    complexArray.intlist = [];
-            //  }
-            //  complexArray.doubleList.push((element as number).unboxed());
-            //}
-          } else if (element instanceof Long) {
-            // consistent with napi behavior
-            const doubleValue = Number(element.unboxed());
-            if (complexArray.intlist.length > 0) {
-              complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
-              complexArray.intlist = [];
-            }
-            complexArray.doubleList.push(doubleValue);
-          } else {
-            if (complexArray.intlist.length > 0) {
-              complexArray.doubleList.push(...complexArray.intlist.map(num => Number(num)));
-              complexArray.intlist = [];
-            }
-            complexArray.doubleList.push((element as number).unboxed());
+          try {
+            this.unwrapArrayElementNumber(element, complexArray);
+          } catch {
+            hilog.error(DOMAIN_ID, TAG, `unwrapArray number error: ${err}`);
           }
           break;
         case 'object':
@@ -303,7 +394,7 @@ class RecordWriter {
     return true;
   }
 
-  private writeArrayToNative(key: string, arr: Array<valueType>, wantParams: NativeWantParams | null): void {
+  private writeArrayToNative(key: string, arr: Array<valueType> | Tuple, wantParams: NativeWantParams | null): void {
     let complexArray: ComplexArrayData = {
         intlist: [],
         boolList: [],
@@ -356,7 +447,7 @@ class RecordWriter {
     this.store.delete(arr);
     this.buffer.append(']');
   }
-
+  // 废弃
   private writeRecord(rec: Record<string, valueType>): boolean {
     //this.buffer.append('{');
     this.checkReferencesCycle(rec);
@@ -385,7 +476,7 @@ class RecordWriter {
     return isSuccess;
   }
 
-  private writeRecordToNative(rec: Record<string, valueType>, wantParams: NativeWantParams): boolean {
+  private writeRecordToNative(rec: Record<string, valueType>, wantParams: NativeWantParams | null): boolean {
     this.checkReferencesCycle(rec);
     this.store.add(rec);
     let isSuccess = false;
