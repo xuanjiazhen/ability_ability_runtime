@@ -249,6 +249,21 @@ constexpr int32_t PIPE_MSG_READ_BUFFER = 1024;
 constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 
+class UserSwitchGuard
+{
+public:
+    explicit UserSwitchGuard(std::atomic<bool> &flag) : isUserSwitching_(flag)
+    {
+        isUserSwitching_.store(true);
+    }
+    ~UserSwitchGuard()
+    {
+        isUserSwitching_.store(false);
+    }
+private:
+    std::atomic<bool> &isUserSwitching_;
+};
+
 void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
 {
     ffrt::submit([eventName, type, eventInfo]() {
@@ -7243,6 +7258,18 @@ int32_t AbilityManagerService::GetUserId() const
     }
     return U0_USER_ID;
 }
+
+int32_t AbilityManagerService::GetDefalutUserId() const
+{
+    int32_t validUserId = U0_USER_ID;
+    auto errCode = GetForegroundOsAccountLocalId(validUserId);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetForegroundOsAccountLocalId failed, errCode: %{public}d", errCode);
+        return U0_USER_ID;
+    }
+    return validUserId;
+}
+
 #ifndef DISABLE_LAUNCHER
 int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, bool isBoot, bool isAppRecovery)
 {
@@ -7572,7 +7599,7 @@ void AbilityManagerService::OnAbilityDied(std::shared_ptr<AbilityRecord> ability
 
     auto connectManager = GetConnectManagerByToken(abilityRecord->GetToken());
     if (connectManager) {
-        connectManager->OnAbilityDied(abilityRecord, GetUserId());
+        connectManager->OnAbilityDied(abilityRecord);
         return;
     } else {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "connectManager not found");
@@ -8029,7 +8056,25 @@ std::unordered_map<int, std::shared_ptr<AbilityConnectManager>> AbilityManagerSe
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetCurrentConnectManager()
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
-    return subManagersHelper_->GetCurrentConnectManager();
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        auto errCode = GetForegroundOsAccountLocalId(userId);
+        if (errCode != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "GetForegroundOsAccountLocalId failed, errCode: %{public}d, userid: %{public}d", errCode, userId);
+            return subManagersHelper_->GetCurrentConnectManager();
+        }
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "no head call, connectManager userId is %{public}d", userId);
+        return subManagersHelper_->GetConnectManagerByUserId(userId);
+    }
+
+    if (!IsOsAccountForeground(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "non-front desk user call, connectManager userId is %{public}d", userId);
+        return subManagersHelper_->GetCurrentConnectManager();
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "front desk user call, connectManager userId is %{public}d", userId);
+    return subManagersHelper_->GetConnectManagerByUserId(userId);
 }
 
 std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerByUserId(int32_t userId)
@@ -8116,6 +8161,18 @@ std::shared_ptr<UIAbilityLifecycleManager> AbilityManagerService::GetUIAbilityMa
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
     return subManagersHelper_->GetUIAbilityManagerByUid(uid);
+}
+
+bool AbilityManagerService::IsOsAccountForeground(int32_t userId) const
+{
+    CHECK_POINTER_AND_RETURN(subManagersHelper_, false);
+    return subManagersHelper_->IsOsAccountForeground(userId, isUserSwitching_.load(), IPCSkeleton::GetCallingUid());
+}
+
+ErrCode AbilityManagerService::GetForegroundOsAccountLocalId(int32_t &userId) const
+{
+    CHECK_POINTER_AND_RETURN(subManagersHelper_, ERR_NULL_OBJECT);
+    return subManagersHelper_->GetForegroundOsAccountLocalId(userId);
 }
 
 void AbilityManagerService::StartResidentApps(int32_t userId)
@@ -8726,6 +8783,7 @@ int AbilityManagerService::JudgeAbilityVisibleControl(const AppExecFwk::AbilityI
 int AbilityManagerService::StartUser(int userId, sptr<IUserCallback> callback, bool isAppRecovery)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "startUser in service:%{public}d", userId);
+    UserSwitchGuard switchGuard(isUserSwitching_);
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startUser callback is nullptr");
         return INVALID_PARAMETERS_ERR;
@@ -9548,7 +9606,7 @@ int32_t AbilityManagerService::GetValidUserId(const int32_t userId)
         TAG_LOGD(AAFwkTag::ABILITYMGR, "validUserId = %{public}d, CallingUid = %{public}d.", validUserId,
             IPCSkeleton::GetCallingUid());
         if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
-            validUserId = GetUserId();
+            validUserId = GetDefalutUserId();
         }
     }
     return validUserId;
@@ -9834,7 +9892,9 @@ bool AbilityManagerService::JudgeMultiUserConcurrency(const int32_t userId)
     // Only non-concurrent mode is supported
     bool concurrencyMode = CONCURRENCY_MODE_FALSE;
     if (!concurrencyMode) {
-        return (userId == GetUserId());
+        auto callerUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        return (userId == callerUserId || U0_USER_ID == callerUserId || U1_USER_ID == callerUserId) &&
+            IsOsAccountForeground(userId);
     }
 
     return true;

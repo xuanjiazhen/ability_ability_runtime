@@ -537,5 +537,17 @@ std::shared_ptr<MissionListManagerInterface> SubManagersHelper::CreateMissionLis
 
     return nullptr;
 }
+
+bool SubManagersHelper::IsOsAccountForeground(const int32_t userId, bool isSwitchToUser, int32_t callerUid)
+{
+    return DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        userId, isSwitchToUser, callerUid);
+}
+
+ErrCode SubManagersHelper::GetForegroundOsAccountLocalId(int32_t &userId)
+{
+    return
+        DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->GetForegroundOsAccountLocalId(userId);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

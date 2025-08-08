@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -125,6 +125,63 @@ HWTEST_F(OsAccountManagerWrapperTest, GetCurrentActiveAccountId_0100, TestSize.L
 {
     int ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->GetCurrentActiveAccountId();
     EXPECT_EQ(ret, 100);
+}
+
+/**
+ * @tc.name: IsOsAccountForeground_0100
+ * @tc.desc: Get current accountId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountForeground_0100, TestSize.Level1)
+{
+    bool isSwitchToUser = true;
+    int32_t accountMgrServiceUid = 3058;
+    auto ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        UID, isSwitchToUser, accountMgrServiceUid);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: IsOsAccountForeground_0200
+ * @tc.desc: Get current accountId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountForeground_0200, TestSize.Level1)
+{
+    bool isSwitchToUser = true;
+    int32_t accountMgrServiceUid = 30580;
+    auto ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        UID, isSwitchToUser, accountMgrServiceUid);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsOsAccountForeground_0300
+ * @tc.desc: Get current accountId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountForeground_0300, TestSize.Level1)
+{
+    bool isSwitchToUser = false;
+    auto ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        UID, isSwitchToUser);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: IsOsAccountForeground_0400
+ * @tc.desc: Get current accountId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, IsOsAccountForeground_0400, TestSize.Level1)
+{
+    bool isSwitchToUser = false;
+    auto userId = UID;
+    auto errCode =  DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->GetForegroundOsAccountLocalId(userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    auto ret = DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->IsOsAccountForeground(
+        userId, isSwitchToUser);
+    EXPECT_TRUE(ret);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

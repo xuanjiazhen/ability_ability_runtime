@@ -652,7 +652,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
     if (userId_ == U0_USER_ID ||
-        userId_ == DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId()) {
+        DelayedSingleton<AbilityManagerService>::GetInstance()->IsOsAccountForeground(userId_)) {
         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
@@ -1895,7 +1895,7 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     RemoveServiceAbility(abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     if (abilityRecord->IsSceneBoard()) {
-        if (DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+        if (DelayedSingleton<AbilityManagerService>::GetInstance()->IsOsAccountForeground(userId_)) {
             RestartAbility(abilityRecord, userId_);
         }
         return;
@@ -2385,7 +2385,7 @@ void AbilityConnectManager::OnLoadAbilityFailed(std::shared_ptr<AbilityRecord> a
     HandleStartTimeoutTask(abilityRecord);
 }
 
-void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t currentUserId)
+void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     TAG_LOGI(AAFwkTag::EXT, "on ability died: %{public}s", abilityRecord->GetURI().c_str());
@@ -2407,10 +2407,10 @@ void AbilityConnectManager::OnAbilityDied(const std::shared_ptr<AbilityRecord> &
         taskHandler_->CancelTask("terminate_" + std::to_string(abilityRecord->GetAbilityRecordId()));
     }
     if (taskHandler_) {
-        auto task = [abilityRecord, connectManagerWeak = weak_from_this(), currentUserId]() {
+        auto task = [abilityRecord, connectManagerWeak = weak_from_this()]() {
             auto connectManager = connectManagerWeak.lock();
             CHECK_POINTER(connectManager);
-            connectManager->HandleAbilityDiedTask(abilityRecord, currentUserId);
+            connectManager->HandleAbilityDiedTask(abilityRecord);
         };
         taskHandler_->SubmitTask(task, TASK_ON_ABILITY_DIED);
     }
@@ -2484,7 +2484,7 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<Abilit
         return;
     }
     if (!abilityRecord->IsSceneBoard() ||
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+        DelayedSingleton<AbilityManagerService>::GetInstance()->IsOsAccountForeground(userId_)) {
         RestartAbility(abilityRecord, userId_);
     }
 }
@@ -2519,7 +2519,7 @@ void AbilityConnectManager::ClearPreloadUIExtensionRecord(const std::shared_ptr<
     uiExtensionAbilityRecordMgr_->RemovePreloadUIExtensionRecordById(extensionRecordMapKey, extensionRecordId);
 }
 
-void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t currentUserId)
+void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     CHECK_POINTER(abilityRecord);
     auto abilityInfo = abilityRecord->GetAbilityInfo();
@@ -2529,14 +2529,16 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
     if ((IsLauncher(abilityRecord) || abilityRecord->IsSceneBoard()) && token != nullptr) {
         IN_PROCESS_CALL_WITHOUT_RET(DelayedSingleton<AppScheduler>::GetInstance()->ClearProcessByToken(
             token->AsObject()));
-        if (abilityRecord->IsSceneBoard() && currentUserId != userId_) {
+        if (abilityRecord->IsSceneBoard() &&
+            !DelayedSingleton<AbilityManagerService>::GetInstance()->IsOsAccountForeground(userId_)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "not current user's SCB, clear user and not restart");
             KillProcessesByUserId();
             return;
         }
     }
 
-    if (userId_ != USER_ID_NO_HEAD && userId_ != U1_USER_ID && userId_ != currentUserId) {
+    if (userId_ != USER_ID_NO_HEAD &&
+        !DelayedSingleton<AbilityManagerService>::GetInstance()->IsOsAccountForeground(userId_)) {
         TAG_LOGI(AAFwkTag::EXT, "Not current user's ability");
         return;
     }
@@ -2564,7 +2566,7 @@ void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<AbilityRecord
         return;
     }
     if (IsNeedToRestart(abilityRecord, abilityInfo.bundleName, abilityInfo.name)) {
-        RestartAbility(abilityRecord, currentUserId);
+        RestartAbility(abilityRecord, userId_);
     }
 }
 
@@ -2620,8 +2622,7 @@ void AbilityConnectManager::DisconnectBeforeCleanup()
     TAG_LOGI(AAFwkTag::EXT, "cleanup end");
 }
 
-void AbilityConnectManager::HandleAbilityDiedTask(
-    const std::shared_ptr<AbilityRecord> &abilityRecord, int32_t currentUserId)
+void AbilityConnectManager::HandleAbilityDiedTask(const std::shared_ptr<AbilityRecord> &abilityRecord)
 {
     TAG_LOGD(AAFwkTag::EXT, "called");
     std::lock_guard guard(serialMutex_);
@@ -2665,7 +2666,7 @@ void AbilityConnectManager::HandleAbilityDiedTask(
     }
 
     if (IsAbilityNeedKeepAlive(abilityRecord)) {
-        KeepAbilityAlive(abilityRecord, currentUserId);
+        KeepAbilityAlive(abilityRecord);
     } else {
         HandleNotifyAssertFaultDialogDied(abilityRecord);
     }
