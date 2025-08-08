@@ -42,7 +42,7 @@ static napi_value PasteboardDestroySuccess(napi_env env, napi_callback_info info
 {
     napi_value result;
     OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
-    int32_t ret = OH_PasteboardObserver_Destroy(observer); // 0
+    int32_t ret = OH_PasteboardObserver_Destroy(observer);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -50,7 +50,7 @@ static napi_value PasteboardDestroySuccess(napi_env env, napi_callback_info info
 static napi_value PasteboardDestroyError(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    int32_t ret = OH_PasteboardObserver_Destroy(nullptr); //401
+    int32_t ret = OH_PasteboardObserver_Destroy(nullptr);
     napi_create_int32(env, ret, &result);
     return result;
 }
