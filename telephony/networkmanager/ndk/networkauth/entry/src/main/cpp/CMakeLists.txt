@@ -18,7 +18,4 @@ target_link_libraries(netconnectionauthtest PUBLIC
             libnet_http.so
             libace_napi.z.so
             libhilog_ndk.z.so
-            libnet_connection.so
-            libnet_websocket.so
-            libnet_ssl.so
             )

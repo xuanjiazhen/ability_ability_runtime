@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import ActsNetConnectionAuthTest from './ActsNetConnectionAuthTest.test'
+import ActsNetConnectionAuth from './ActsNetConnectionAuth.test'
 export default function testsuite() {
-  ActsNetConnectionAuthTest();
+  ActsNetConnectionAuth();
 }

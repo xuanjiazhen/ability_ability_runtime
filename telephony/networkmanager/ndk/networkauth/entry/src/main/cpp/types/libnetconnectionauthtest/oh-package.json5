@@ -14,7 +14,7 @@
  */
  
 {
-  "name": "libnetconnectiontest.so",
+  "name": "libnetconnectionauthtest.so",
   "types": "./index.d.ts",
   "version": "",
   "description": "Please describe the basic information."

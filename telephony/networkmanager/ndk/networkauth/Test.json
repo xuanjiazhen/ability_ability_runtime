@@ -1,5 +1,5 @@
 {
-    "description": "Configuration for ActsNetworkkit PriTest Tests",
+    "description": "Configuration for ActsNetworkkitTest Tests",
     "driver": {
         "type": "OHJSUnitTest",
         "test-timeout": "180000",
