@@ -22,10 +22,10 @@
 #include <napi/native_api.h>
 #include <vector>
 
-const char* g_rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
-char g_rdbStoreName[] =  "rdb_store_test.db";
-char g_bundleName[] =  "com.acts.acttransactiontest";
-char g_moduleName[] =  "";
+const char *g_rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
+char g_rdbStoreName[] = "rdb_store_test.db";
+char g_bundleName[] = "com.acts.acttransactiontest";
+char g_moduleName[] = "";
 
 static OH_Rdb_Config g_config_;
 

@@ -506,7 +506,7 @@ static napi_value TestGetAssetsTypeMismatchA(napi_env env, napi_callback_info in
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
-    const char * str = "sss";
+    const char *str = "sss";
     OH_Values_PutText(values, str);
     
     Data_Asset **val = OH_Data_Asset_CreateMultiple(2);
