@@ -17,7 +17,7 @@ import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
-import { Driver, ON, MouseButton } from '@ohos.UiTest';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
@@ -30,21 +30,18 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
         url: 'testability/pages/webviewGetAndSetHttpAuthUsernamePassword',
       }
       try {
-        await Utils.sleep(1000)
         router.clear();
         let pages = router.getState();
         console.info("get webviewGetAndSetHttpAuthUsernamePassword state success " + JSON.stringify(pages));
         if (!("webviewGetAndSetHttpAuthUsernamePassword" == pages.name)) {
           console.info("get webviewGetAndSetHttpAuthUsernamePassword state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webviewGetAndSetHttpAuthUsernamePassword page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webviewGetAndSetHttpAuthUsernamePassword page error: " + err);
       }
-      let driver: Driver = Driver.create();
-      await driver.waitForComponent(ON.id("webviewGetAndSetHttpAuthUsernamePasswordButton"),10000);
+      await waitForComponent("webviewGetAndSetHttpAuthUsernamePasswordButton");
       done()
     });
 
@@ -74,7 +71,6 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
       } catch (err) {
         console.info("emit emitKey  err: " + JSON.stringify(err));
       }
-      await Utils.sleep(2000);
       done();
     })
 
@@ -88,8 +84,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewGetAndSetHttpAuthUsernamePassword', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebviewGetAndSetHttpAuthUsernamePassword";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewGetAndSetHttpAuthUsernamePassword", "success", 25001, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewGetAndSetHttpAuthUsernamePassword", "success", 130010, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -103,8 +99,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewUpdateHttpAuthPassword', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewUpdateHttpAuthPassword";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewUpdateHttpAuthPassword", "success", 25002, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewUpdateHttpAuthPassword", "success", 130020, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -118,8 +114,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewUpdateHttpAuthUsername', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewUpdateHttpAuthUsername";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewUpdateHttpAuthUsername", "success", 25003, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewUpdateHttpAuthUsername", "success", 130030, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -133,8 +129,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewSetHttpAuthUsernameToNull', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewSetHttpAuthUsernameToNull";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewSetHttpAuthUsernameToNull", "success", 25004, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewSetHttpAuthUsernameToNull", "success", 130040, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -148,8 +144,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewSetHttpAuthPasswordToNull', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewSetHttpAuthPasswordToNull";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewSetHttpAuthPasswordToNull", "success", 25005, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewSetHttpAuthPasswordToNull", "success", 130050, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -163,8 +159,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewSetHttpAuthUsernamePasswordToNull', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewSetHttpAuthUsernamePasswordToNull";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewSetHttpAuthUsernamePasswordToNull", "success", 25006, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewSetHttpAuthUsernamePasswordToNull", "success", 130060, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
 
@@ -178,8 +174,8 @@ export default function ActsAceWebviewGetAndSetHttpAuthUsernamePassword() {
     */
     it('testWebviewDeleteHttpAuthUsernamePassword', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebviewDeleteHttpAuthUsernamePassword";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewDeleteHttpAuthUsernamePassword", "success", 25007, done);
+      Utils.emitEvent(emitKey, 130000);
+      Utils.registerEvent("testWebviewDeleteHttpAuthUsernamePassword", "success", 130070, done);
       sendEventByKey('webviewGetAndSetHttpAuthUsernamePasswordButton', 10, '');
     })
   })
