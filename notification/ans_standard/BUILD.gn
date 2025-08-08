@@ -39,7 +39,9 @@ group("ans_standard") {
       "actsNotificationVibrationSoundTest:ActsNotificationVibrationSoundTest",
       "actsNotificationSystemAPITest:ActsNotificationSystemAPITest",
       "actsNotificationSystemLiveViewTest:ActsNotificationSystemLiveViewTest",
+      "actsNotificationSystemLiveViewTestStatic:ActsNotificationSystemLiveViewStaticTest",
       "notificationManager:notificationManager",
+      "notificationManagerStatic:NotificationManagerStaticTest",
     ]
   }
 }
