@@ -52,6 +52,12 @@ static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info
 #define CASE_NUM_4 4
 #define CASE_NUM_5 5
 #define CASE_NUM_6 6
+#define CASE_NUM_7 7
+#define CASE_NUM_8 8
+#define CASE_NUM_9 9
+#define CASE_NUM_10 10
+#define CASE_NUM_11 11
+#define CASE_NUM_12 12
 static napi_value loadData(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
@@ -315,7 +321,7 @@ static void *GetData(ArkWeb_WebMessagePtr webMessage, size_t *dataLength)
     if (webMessage == nullptr || dataLength == nullptr) {
         return nullptr;
     }
-    if (*dataLength == 0){
+    if (*dataLength == 0) {
         return nullptr;
     }
     return webMessage;
@@ -396,6 +402,183 @@ static napi_value WebMsgAPI(napi_env env, napi_callback_info info)
     return result;
 }
 
+static ArkWeb_JavaScriptValuePtr createJSValue(ArkWeb_JavaScriptValueType type, void *data, size_t len)
+{
+    if (data == nullptr || len == 0) {
+        return nullptr;
+    }
+    if (type == ARKWEB_JAVASCRIPT_NONE) {
+        return nullptr;
+    }
+
+    return static_cast<ArkWeb_JavaScriptValuePtr>(data);
+}
+
+static napi_value WebJSValueAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebJSValueAPI start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+
+    ArkWeb_JavaScriptValueAPI api = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_JavaScriptValueAPI);
+            break;
+        case CASE_NUM_1:
+            api.createJavaScriptValue = createJSValue;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebJSValueAPI end..");
+    return result;
+}
+
+static napi_value WebJSValueType(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebJSValueType start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+
+    ArkWeb_JavaScriptValuePtr jsValue = nullptr;
+    char test[] = "test";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            jsValue = createJSValue(ARKWEB_JAVASCRIPT_NONE, nullptr, 0);
+            break;
+        case CASE_NUM_1:
+            jsValue = createJSValue(ARKWEB_JAVASCRIPT_STRING, static_cast<void *>(test), sizeof(test));
+            break;
+        case CASE_NUM_2:
+            jsValue = createJSValue(ARKWEB_JAVASCRIPT_BOOL, static_cast<void *>(test), sizeof(test));
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebJSValueType end..");
+    return result;
+}
+
+static void RunJavaScript(const char* webTag, const ArkWeb_JavaScriptObject* javascriptObject)
+{
+    if (webTag == nullptr) {
+        return;
+    }
+    if (javascriptObject == nullptr) {
+        return;
+    }
+}
+
+static napi_value WebJSObject(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "JSObject start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+
+    const uint32_t len = 10;
+    const uint8_t script[len] = {0};
+    char test[] = "test";
+    ArkWeb_JavaScriptObject jsObject = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            jsObject.size = sizeof(script);
+            break;
+        case CASE_NUM_1:
+            jsObject.buffer = script;
+            break;
+        case CASE_NUM_2:
+            jsObject.callback = JSCallBack;
+            break;
+        case CASE_NUM_3:
+            jsObject.userData = static_cast<void*>(test);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "JSObject end..");
+    return result;
+}
+
+static napi_value WebControllerAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebControllerAPI start..");
+
+    size_t argc = 1;
+    napi_value args[ARGS_INDEX_ONE] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    // 获取第一个参数 caseNum
+    int32_t caseNum = -1;
+    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+
+    ArkWeb_ControllerAPI ctrlApi = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            ctrlApi.size = sizeof(ArkWeb_ControllerAPI);
+            break;
+        case CASE_NUM_1:
+            ctrlApi.runJavaScript = RunJavaScript;
+            break;
+        case CASE_NUM_2:
+            ctrlApi.registerJavaScriptProxy = nullptr;
+            break;
+        case CASE_NUM_3:
+            ctrlApi.deleteJavaScriptRegister = nullptr;
+            break;
+        case CASE_NUM_4:
+            ctrlApi.refresh = nullptr;
+            break;
+        case CASE_NUM_5:
+            ctrlApi.registerAsyncJavaScriptProxy = nullptr;
+            break;
+        case CASE_NUM_6:
+            ctrlApi.createWebMessagePorts = nullptr;
+            break;
+        case CASE_NUM_7:
+            ctrlApi.destroyWebMessagePorts = nullptr;
+            break;
+        case CASE_NUM_8:
+            ctrlApi.postWebMessage = nullptr;
+            break;
+        case CASE_NUM_9:
+            ctrlApi.getLastJavascriptProxyCallingFrameUrl = nullptr;
+            break;
+        case CASE_NUM_10:
+            ctrlApi.registerJavaScriptProxyEx = nullptr;
+            break;
+        case CASE_NUM_11:
+            ctrlApi.registerAsyncJavaScriptProxyEx = nullptr;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebControllerAPI end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -409,6 +592,10 @@ static napi_value Init(napi_env env, napi_value exports)
         {"JSBridgeProxyData", nullptr, JSBridgeProxyData, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebMsgType", nullptr, WebMsgType, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebMsgAPI", nullptr, WebMsgAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebJSValueAPI", nullptr, WebJSValueAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebJSValueType", nullptr, WebJSValueType, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebControllerAPI", nullptr, WebControllerAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebJSObject", nullptr, WebJSObject, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

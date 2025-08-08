@@ -47,6 +47,10 @@ export const JSBridgeData: (caseNum: number) => number;
 export const JSBridgeProxyData: (caseNum: number) => number;
 export const WebMsgType: (caseNum: number) => number;
 export const WebMsgAPI: (caseNum: number) => number;
+export const WebJSValueAPI: (caseNum: number) => number;
+export const WebJSValueType: (caseNum: number) => number;
+export const WebControllerAPI: (caseNum: number) => number;
+export const WebJSObject: (caseNum: number) => number;
 
 
 
