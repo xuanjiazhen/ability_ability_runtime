@@ -19,18 +19,14 @@
 
 namespace OHOS {
 namespace AAFwk {
-UserEventHandler::UserEventHandler(
-    const std::shared_ptr<TaskHandlerWrap> &taskHandler, const std::weak_ptr<UserController> &owner)
-    : EventHandlerWrap(taskHandler), controller_(owner)
+UserEventHandler::UserEventHandler(const std::shared_ptr<TaskHandlerWrap> &taskHandler)
+    : EventHandlerWrap(taskHandler)
 {
 }
 
 void UserEventHandler::ProcessEvent(const EventWrap &event)
 {
-    auto owner = controller_.lock();
-    if (owner) {
-        owner->ProcessEvent(event);
-    }
+    UserController::GetInstance().ProcessEvent(event);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -37,6 +37,18 @@ static inline int32_t GetDefaultDisplayId()
     }
     return static_cast<int32_t>(Rosen::DisplayManager::GetInstance().GetDefaultDisplayId());
 }
+
+static inline uint64_t ObtainDefaultDisplayId()
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        sptr<Rosen::Display> display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+        if (display != nullptr) {
+            TAG_LOGD(AAFwkTag::DEFAULT, "displayId: %{public}" PRIu64"", display->GetId());
+            return display->GetId();
+        }
+    }
+    return Rosen::DisplayManager::GetInstance().GetDefaultDisplayId();
+}
 #endif
 };
 }  // namespace AAFwk
