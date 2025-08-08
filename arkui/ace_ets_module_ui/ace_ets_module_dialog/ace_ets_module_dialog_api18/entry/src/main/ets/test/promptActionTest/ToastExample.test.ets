@@ -29,7 +29,6 @@ import {
 } from '@ohos.UiTest';
 import CommonFunc from '../../MainAbility/common/Common';
 
-
 export default function ToastExample() {
   describe('ToastExample', () => {
     beforeEach(async (done: Function) => {
@@ -78,6 +77,13 @@ export default function ToastExample() {
       expect(toast != null).assertTrue()
       console.info('closeDialogTest_0100 0  ok');
       await CommonFunc.sleep(1500);
+
+      let closeErrBtn = await driver.findComponent(ON.text('closeToastError'));
+      await closeErrBtn.click();
+      let code: string | undefined = AppStorage.get('103401Code')
+      expect(code).assertEqual('103401');
+      AppStorage.delete('103401Code'); 
+      await CommonFunc.sleep(1000);
       let closeBtn = await driver.findComponent(ON.text('closeToast'));
       await closeBtn.click();
       await CommonFunc.sleep(2000);
