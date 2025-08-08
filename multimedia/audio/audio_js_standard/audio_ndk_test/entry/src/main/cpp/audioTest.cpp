@@ -5724,6 +5724,9 @@ static napi_value AudioRenderGetAudioTimestampInfoInterval(napi_env env, napi_ca
         if (framePositionLastDuration <= framePositionCurDuration * (1 - rate) ||
 		    framePositionLastDuration >= framePositionCurDuration * (1 + rate)) {
             napi_create_int32(env, TEST_FAIL, &res);
+            OH_AudioRenderer_Stop(audioRenderer);
+            OH_AudioRenderer_Release(audioRenderer);
+            OH_AudioStreamBuilder_Destroy(builder);
             return res;
             }
 		
