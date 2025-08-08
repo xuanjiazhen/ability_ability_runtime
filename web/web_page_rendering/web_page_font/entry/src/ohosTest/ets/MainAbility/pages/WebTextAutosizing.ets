@@ -75,6 +75,7 @@ struct WebTextAutosizing {
                   if(this.ClientWidth > 980) {
                     console.log('success22255' + this.ClientWidth)
                     Utils.emitEvent(true, 4350)
+                    break;
                 }
                   console.log('ClientWidth' + this.ClientWidth)
                 })
