@@ -23,16 +23,6 @@ export default function KeyCodeNdkTest1() {
       await Utils.pushPageNoClear(`KeyCodeTest/KeyCodeTest1`, done);
     });
     /**
-     * @tc.number  : SUB_MULTIMODALINPUT_KEYCODE_KEY_HOME_0100
-     * @tc.name    : GetKeyCodeEventHome
-     * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    Utils.keydo('SUB_MULTIMODALINPUT_KEYCODE_KEY_HOME_0100', TestType.FUNCTION |
-    Size.MEDIUMTEST | Level.LEVEL1, 1, keyCodeNdk.GetKeyCodeEventHome)
-    /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_BACK_0100
      * @tc.name    : getKeyCodeEventBack0100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.

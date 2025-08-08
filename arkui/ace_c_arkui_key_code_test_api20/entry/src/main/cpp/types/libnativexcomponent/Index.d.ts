@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export const XComponentCreate: (Node: Content, Tag: string) => void;
+export const XComponentCreate: (Node: Content) => void;
 export const GetKeyEventAction: () => number;
 export const GetKeyEventActionEnum: () => number;
 export const GetKeyEventSourceType: () => number;

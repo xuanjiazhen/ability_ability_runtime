@@ -32,7 +32,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTION_0100
-     * @tc.name    : getKeyEventAction001
+     * @tc.name    : testGetKeyEventAction001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -55,7 +55,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTION_0200
-     * @tc.name    : getKeyEventAction002
+     * @tc.name    : testGetKeyEventAction002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -78,7 +78,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0100
-     * @tc.name    : getKeyEventSourceType001
+     * @tc.name    : testGetKeyEventSourceType001
      * @tc.desc    : Test get native xcomopnent key event sourcetype works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -101,7 +101,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0200
-     * @tc.name    : getKeyEventSourceType002
+     * @tc.name    : testGetKeyEventSourceType002
      * @tc.desc    : Test get native xcomopnent key event sourcetype invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -124,7 +124,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTDEVICEID_0100
-     * @tc.name    : getKeyEventDeviceId001
+     * @tc.name    : testGetKeyEventDeviceId001
      * @tc.desc    : Test get native xcomopnent key event device id works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -147,7 +147,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTDEVICEID_0200
-     * @tc.name    : getKeyEventDeviceId002
+     * @tc.name    : testGetKeyEventDeviceId002
      * @tc.desc    : Test get native xcomopnent key event device id invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -170,7 +170,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTTIMESTAMP_0100
-     * @tc.name    : getKeyEventTimestamp001
+     * @tc.name    : testGetKeyEventTimestamp001
      * @tc.desc    : Test get native xcomopnent key event timestamp works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -193,7 +193,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTTIMESTAMP_0200
-     * @tc.name    : getKeyEventTimestamp002
+     * @tc.name    : testGetKeyEventTimestamp002
      * @tc.desc    : Test get native xcomopnent key event timestamp invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -216,7 +216,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTMODIFIERKEYSTATES_0100
-     * @tc.name    : getKeyEventModifierKeyStates001
+     * @tc.name    : testGetKeyEventModifierKeyStates001
      * @tc.desc    : Test get native xcomopnent key event modifier key states works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -239,7 +239,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTMODIFIERKEYSTATES_0200
-     * @tc.name    : getKeyEventModifierKeyStates002
+     * @tc.name    : testGetKeyEventModifierKeyStates002
      * @tc.desc    : Test get native xcomopnent key event modifier key states invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -262,7 +262,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTNUMLOCKSTATE_0100
-     * @tc.name    : getKeyEventNumLockState001
+     * @tc.name    : testGetKeyEventNumLockState001
      * @tc.desc    : Test get native xcomopnent key event num lock states works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -285,7 +285,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTNUMLOCKSTATE_0200
-     * @tc.name    : getKeyEventNumLockState002
+     * @tc.name    : testGetKeyEventNumLockState002
      * @tc.desc    : Test get native xcomopnent key event num lock states invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -308,7 +308,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTCAPSLOCKSTATE_0100
-     * @tc.name    : getKeyEventCapsLockState001
+     * @tc.name    : testGetKeyEventCapsLockState001
      * @tc.desc    : Test get native xcomopnent key event caps lock states works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -331,7 +331,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTCAPSLOCKSTATE_0200
-     * @tc.name    : getKeyEventCapsLockState002
+     * @tc.name    : testGetKeyEventCapsLockState002
      * @tc.desc    : Test get native xcomopnent key event caps lock states invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -354,7 +354,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSCROLLLOCKSTATE_0100
-     * @tc.name    : getKeyEventScrollLockState001
+     * @tc.name    : testGetKeyEventScrollLockState001
      * @tc.desc    : Test get native xcomopnent key event scroll lock states works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -377,7 +377,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSCROLLLOCKSTATE_0200
-     * @tc.name    : getKeyEventScrollLockState002
+     * @tc.name    : testGetKeyEventScrollLockState002
      * @tc.desc    : Test get native xcomopnent key event scroll lock states invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -400,7 +400,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTIONENUM_0100
-     * @tc.name    : getKeyEventActionEnum001
+     * @tc.name    : testGetKeyEventActionEnum001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -423,7 +423,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTIONENUM_0200
-     * @tc.name    : getKeyEventActionEnum002
+     * @tc.name    : testGetKeyEventActionEnum002
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -446,7 +446,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0100
-     * @tc.name    : attachNativeRootNode001
+     * @tc.name    : testAttachNativeRootNode001
      * @tc.desc    : Test native xcomopnent attach native root node works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -467,7 +467,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0200
-     * @tc.name    : attachNativeRootNode002
+     * @tc.name    : testAttachNativeRootNode002
      * @tc.desc    : Test native xcomopnent attach native root node invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -488,7 +488,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0100
-     * @tc.name    : detachNativeRootNode001
+     * @tc.name    : testDetachNativeRootNode001
      * @tc.desc    : Test native xcomopnent detach native root node works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -509,7 +509,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0200
-     * @tc.name    : detachNativeRootNode002
+     * @tc.name    : testDetachNativeRootNode002
      * @tc.desc    : Test native xcomopnent detach native root node invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -530,7 +530,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0100
-     * @tc.name    : setExpectedFrameRateRange001
+     * @tc.name    : testSetExpectedFrameRateRange001
      * @tc.desc    : Test native xcomopnent set expected frame rate range works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -551,7 +551,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0200
-     * @tc.name    : setExpectedFrameRateRange002
+     * @tc.name    : testSetExpectedFrameRateRange002
      * @tc.desc    : Test native xcomopnent set expected frame rate range invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -572,7 +572,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0100
-     * @tc.name    : registerOnFrameCallback001
+     * @tc.name    : testRegisterOnFrameCallback001
      * @tc.desc    : Test native xcomopnent register on frame callback works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -593,7 +593,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0200
-     * @tc.name    : registerOnFrameCallback002
+     * @tc.name    : testRegisterOnFrameCallback002
      * @tc.desc    : Test native xcomopnent register on frame callback invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -656,7 +656,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0100
-     * @tc.name    : registerUIInputEventCallback001
+     * @tc.name    : testRegisterUIInputEventCallback001
      * @tc.desc    : Test native xcomopnent register ui input event callback works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -677,7 +677,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0200
-     * @tc.name    : registerUIInputEventCallback002
+     * @tc.name    : testRegisterUIInputEventCallback002
      * @tc.desc    : Test native xcomopnent register ui input event callback invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -698,7 +698,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0100
-     * @tc.name    : getNativeAccessibilityProvider001
+     * @tc.name    : testGetNativeAccessibilityProvider001
      * @tc.desc    : Test native xcomopnent get native accessibility provider works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -719,7 +719,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0200
-     * @tc.name    : getNativeAccessibilityProvider002
+     * @tc.name    : testGetNativeAccessibilityProvider002
      * @tc.desc    : Test native xcomopnent get native accessibility provider invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -740,7 +740,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0100
-     * @tc.name    : registerKeyEventCallbackWithResult001
+     * @tc.name    : testRegisterKeyEventCallbackWithResult001
      * @tc.desc    : Test native xcomopnent register key event callback with result invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -761,7 +761,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0200
-     * @tc.name    : registerKeyEventCallbackWithResult002
+     * @tc.name    : testRegisterKeyEventCallbackWithResult002
      * @tc.desc    : Test native xcomopnent register key event callback with result invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -782,7 +782,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_XCOMPONENTINITIALIZE_0100
-     * @tc.name    : xComponentInitialize001
+     * @tc.name    : testXComponentInitialize001
      * @tc.desc    : Test native xcomopnent register key event callback with result invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -803,7 +803,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_XCOMPONENTFINALIZE_0200
-     * @tc.name    : xComponentFinalize002
+     * @tc.name    : testXComponentFinalize002
      * @tc.desc    : Test native xcomopnent register key event callback with result invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -824,7 +824,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_XCOMPONENTSETNEEDSOFTKEYBOARD_0200
-     * @tc.name    : xComponentSetNeedSoftKeyboard002
+     * @tc.name    : testXComponentSetNeedSoftKeyboard002
      * @tc.desc    : Test native xcomopnent register key event callback with result invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -845,7 +845,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETEXTRAMOUSEEVENTINFO_0100
-     * @tc.name    : getExtraMouseEventInfo001
+     * @tc.name    : testGetExtraMouseEventInfo001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -869,7 +869,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETEXTRAMOUSEEVENTINFO_0200
-     * @tc.name    : getExtraMouseEventInfo002
+     * @tc.name    : testGetExtraMouseEventInfo002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -893,7 +893,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETMOUSEEVENTMODIFIERKEYSTATES_0200
-     * @tc.name    : getMouseEventModifierKeyStates002
+     * @tc.name    : testGetMouseEventModifierKeyStates002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -917,7 +917,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERFOCUSEVENTCALLBACK_0100
-     * @tc.name    : registerFocusEventCallback001
+     * @tc.name    : testRegisterFocusEventCallback001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
@@ -939,7 +939,7 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERFOCUSEVENTCALLBACK_0200
-     * @tc.name    : registerFocusEventCallback002
+     * @tc.name    : testRegisterFocusEventCallback002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest

@@ -25,8 +25,9 @@ struct KeyCodeTest4 {
       Column() {
         Button('keyCodeEvent')
           .defaultFocus(true)
-          .onKeyEvent((event: KeyEvent)=>{
+          .onKeyPreIme((event: KeyEvent)=>{
             keyCodeNdk.InitKeyMonitor4(event?.keyCode);
+            return true;
           })
       }
       .width('100%')

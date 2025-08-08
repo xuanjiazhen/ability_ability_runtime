@@ -27,8 +27,8 @@ napi_value CheckNodeTextHalfLeading(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_HALF_LEADING, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_HALF_LEADING);
-    if (item.value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_HALF_LEADING);
+    if (itemptr->value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -42,9 +42,8 @@ napi_value CheckNodeTextLineCount(napi_env env, napi_callback_info info)
     napi_value retValue = 0;
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT);
-    ArkUI_AttributeItem item;
-    item = *TextComponent.getAttribute(NODE_TEXT_LINE_COUNT);
-    if (item.value[0].i32 == 0) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_LINE_COUNT);
+    if (itemptr->value[0].i32 == 0) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -62,8 +61,8 @@ napi_value CheckNodeTextOptimizeTrailingSpace(napi_env env, napi_callback_info i
     ArkUI_NumberValue value[] = { { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_OPTIMIZE_TRAILING_SPACE, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_OPTIMIZE_TRAILING_SPACE);
-    if (item.value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_OPTIMIZE_TRAILING_SPACE);
+    if (itemptr->value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -95,8 +94,8 @@ napi_value CheckNodeTextLinearGradient(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .f32 = angle }, { .i32 = direction }, { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_3, .object = &object };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_LINEAR_GRADIENT, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_LINEAR_GRADIENT);
-    bool condition = item.value[1].i32 == direction && item.value[2].i32 == flag;
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_LINEAR_GRADIENT);
+    bool condition = itemptr->value[1].i32 == direction && itemptr->value[2].i32 == flag;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (condition) {
@@ -132,8 +131,8 @@ napi_value CheckNodeTextRadialGradient(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .f32 = x }, { .f32 = y }, { .f32 = radius }, { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_4, .object = &object };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_RADIAL_GRADIENT, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_RADIAL_GRADIENT);
-    bool condition = item.value[3].i32 == flag;
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_RADIAL_GRADIENT);
+    bool condition = itemptr->value[3].i32 == flag;
     if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else if (condition) {
@@ -156,8 +155,8 @@ napi_value CheckNodeTextVerticalAlign(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = TextVerticalAlignment } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_VERTICAL_ALIGN, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_VERTICAL_ALIGN);
-    if (item.value[0].i32 == TextVerticalAlignment && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_VERTICAL_ALIGN);
+    if (itemptr->value[0].i32 == TextVerticalAlignment && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -177,8 +176,8 @@ napi_value CheckNodeTextInputHalfLeading(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_INPUT_HALF_LEADING, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_INPUT_HALF_LEADING);
-    if (item.value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_INPUT_HALF_LEADING);
+    if (itemptr->value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -198,8 +197,8 @@ napi_value CheckNodeTextInputKeyboardAppearance(napi_env env, napi_callback_info
     ArkUI_NumberValue value[] = { { .i32 = KeyboardAppearance } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_INPUT_KEYBOARD_APPEARANCE, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_INPUT_KEYBOARD_APPEARANCE);
-    if (item.value[0].i32 == KeyboardAppearance && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_INPUT_KEYBOARD_APPEARANCE);
+    if (itemptr->value[0].i32 == KeyboardAppearance && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -219,8 +218,8 @@ napi_value CheckNodeTextInputEnableFillAnimation(napi_env env, napi_callback_inf
     ArkUI_NumberValue value[] = { { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_INPUT_ENABLE_FILL_ANIMATION, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_INPUT_ENABLE_FILL_ANIMATION);
-    if (item.value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_INPUT_ENABLE_FILL_ANIMATION);
+    if (itemptr->value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -240,8 +239,8 @@ napi_value CheckNodeTextInputLineHeight(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = lineHeight } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_INPUT_LINE_HEIGHT, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_INPUT_LINE_HEIGHT);
-    if (item.value[0].i32 == lineHeight && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_INPUT_LINE_HEIGHT);
+    if (itemptr->value[0].i32 == lineHeight && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -258,7 +257,7 @@ napi_value CheckNodeTextAreaInputFilter(napi_env env, napi_callback_info info)
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item = { .string = regular };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_INPUT_FILTER, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_INPUT_FILTER);
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_INPUT_FILTER);
     if (strcmp(item.string, regular) == 0 && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
@@ -279,8 +278,8 @@ napi_value CheckNodeTextAreaContentType(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = TextInputContentType } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_CONTENT_TYPE, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_CONTENT_TYPE);
-    if (item.value[0].i32 == TextInputContentType && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_CONTENT_TYPE);
+    if (itemptr->value[0].i32 == TextInputContentType && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -300,8 +299,8 @@ napi_value CheckNodeTextAreaHalfLeading(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = flag } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_HALF_LEADING, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_HALF_LEADING);
-    if (item.value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_HALF_LEADING);
+    if (itemptr->value[0].i32 == flag && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -321,8 +320,8 @@ napi_value CheckNodeTextAreaKeyboardAppearance(napi_env env, napi_callback_info 
     ArkUI_NumberValue value[] = { { .i32 = KeyboardAppearance } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_KEYBOARD_APPEARANCE, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_KEYBOARD_APPEARANCE);
-    if (item.value[0].i32 == KeyboardAppearance && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_KEYBOARD_APPEARANCE);
+    if (itemptr->value[0].i32 == KeyboardAppearance && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -337,8 +336,8 @@ napi_value CheckNodeTextAreaMaxLines(napi_env env, napi_callback_info info)
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item;
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES);
-    if (item.value[0].i32 == 3) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES);
+    if (itemptr->value[0].i32 == 3) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -356,8 +355,8 @@ napi_value CheckNodeTextAreaLineSpacing(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = lineSpacing } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_LINE_SPACING, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_LINE_SPACING);
-    if (item.value[0].i32 == lineSpacing && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_LINE_SPACING);
+    if (itemptr->value[0].i32 == lineSpacing && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -372,8 +371,8 @@ napi_value CheckNodeTextAreaMinLines(napi_env env, napi_callback_info info)
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item;
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_MIN_LINES);
-    if (item.value[0].i32 == 0) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_MIN_LINES);
+    if (itemptr->value[0].i32 == 0) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -386,8 +385,8 @@ napi_value CheckNodeTextAreaMaxLinesWithScroll(napi_env env, napi_callback_info 
     int32_t result = 0;
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item;
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES_WITH_SCROLL);
-    if (item.value[0].i32 == 3) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES_WITH_SCROLL);
+    if (itemptr->value[0].i32 == 3) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -405,8 +404,8 @@ napi_value CheckNodeTextAreaLineHeight(napi_env env, napi_callback_info info)
     ArkUI_NumberValue value[] = { { .i32 = lineHeight } };
     ArkUI_AttributeItem item = { .value = value, .size = PARAM_1 };
     int32_t setResult = TextComponent.setAttribute(NODE_TEXT_AREA_LINE_HEIGHT, &item);
-    item = *TextComponent.getAttribute(NODE_TEXT_AREA_LINE_HEIGHT);
-    if (item.value[0].i32 == lineHeight && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
+    const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_LINE_HEIGHT);
+    if (itemptr->value[0].i32 == lineHeight && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
         result = 1;
     } else {
         result = setResult;
@@ -432,8 +431,8 @@ napi_value CheckNodeTextPickSelectedBackgroundStyle(napi_env env, napi_callback_
         ArkUI_NumberValue value[] = { { .u32 = color }, { .f32 = radius1 } };
         ArkUI_AttributeItem item = { .value = value, .size = PARAM_2 };
         int32_t setResult = TextComponent.setAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE, &item);
-        item = *TextComponent.getAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE);
-        bool condition = item.value[0].u32 == color;
+        const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE);
+        bool condition = itemptr->value[0].u32 == color;
         if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
             result = 1;
         } else if (condition) {
@@ -446,8 +445,8 @@ napi_value CheckNodeTextPickSelectedBackgroundStyle(napi_env env, napi_callback_
                                       { .f32 = radius3 }, { .f32 = radius4 } };
         ArkUI_AttributeItem item = { .value = value, .size = PARAM_2 };
         int32_t setResult = TextComponent.setAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE, &item);
-        item = *TextComponent.getAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE);
-        bool condition = item.value[0].u32 == color;
+        const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE);
+        bool condition = itemptr->value[0].u32 == color;
         if (condition && setResult == ARKUI_ERROR_CODE_NO_ERROR) {
             result = 1;
         } else if (condition) {

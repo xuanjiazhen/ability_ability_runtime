@@ -147,6 +147,7 @@
 #define PARAM_NEGATIVE_1 (-1)
 #define PARAM_NEGATIVE_100 (-100)
 #define PARAM_NEGATIVE_5 (-5)
+#define ColumnWidthAndHeight 210
 
 /**
  * Log print domain.

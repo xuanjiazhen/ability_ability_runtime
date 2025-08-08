@@ -19,10 +19,9 @@ import keyCodeNdk from 'libkeycodendk.so'
 @Component
 struct KeyCodeTest1 {
   PAGE_TAG: string = 'KeyCodeTest1';
-  backFlag: boolean = false;
 
   onBackPress(): boolean | void {
-    return this.backFlag;
+    return true;
   }
 
   build() {
@@ -30,11 +29,11 @@ struct KeyCodeTest1 {
       Column() {
         Button('keyCodeEvent')
           .defaultFocus(true)
-          .onKeyEvent((event: KeyEvent)=>{
-            this.backFlag = event?.keyCode === 2;
+          .onKeyPreIme((event: KeyEvent)=>{
             keyCodeNdk.InitKeyMonitor1(event?.keyCode);
             return true;
           })
+          .id(this.PAGE_TAG)
       }
       .width('100%')
     }

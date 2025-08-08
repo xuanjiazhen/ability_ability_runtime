@@ -156,15 +156,15 @@ void MouseEventCallback(OH_NativeXComponent* component, void* window)
 OH_NativeXComponent_MouseEventAction SelectMouseEventAction(int32_t index)
 {
     switch (index) {
-        case 0:
+        case PARAM_0:
             return OH_NATIVEXCOMPONENT_MOUSE_NONE;
-        case 1:
+        case PARAM_1:
             return OH_NATIVEXCOMPONENT_MOUSE_PRESS;
-        case 2:
+        case PARAM_2:
             return OH_NATIVEXCOMPONENT_MOUSE_RELEASE;
-        case 3:
+        case PARAM_3:
             return OH_NATIVEXCOMPONENT_MOUSE_MOVE;
-        case 4:
+        case PARAM_4:
             return OH_NATIVEXCOMPONENT_MOUSE_CANCEL;
     }
 }
@@ -172,17 +172,17 @@ OH_NativeXComponent_MouseEventAction SelectMouseEventAction(int32_t index)
 OH_NativeXComponent_MouseEventButton SelectMouseEventButton(int32_t index)
 {
     switch (index) {
-        case 0:
+        case PARAM_0:
             return OH_NATIVEXCOMPONENT_NONE_BUTTON;
-        case 1:
+        case PARAM_1:
             return OH_NATIVEXCOMPONENT_LEFT_BUTTON;
-        case 2:
+        case PARAM_2:
             return OH_NATIVEXCOMPONENT_RIGHT_BUTTON;
-        case 4:
+        case PARAM_4:
             return OH_NATIVEXCOMPONENT_MIDDLE_BUTTON;
-        case 8:
+        case PARAM_8:
             return OH_NATIVEXCOMPONENT_BACK_BUTTON;
-        case 16:
+        case PARAM_16:
             return OH_NATIVEXCOMPONENT_FORWARD_BUTTON;
     }
 }

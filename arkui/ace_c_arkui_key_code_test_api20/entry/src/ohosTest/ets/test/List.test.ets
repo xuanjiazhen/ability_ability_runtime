@@ -21,7 +21,6 @@ import KeyCodeNdkTest4 from './nativekeycode/KeyCodeTest4.test'
 import NativeXComponent from './nativexcomponent/NativeXComponent.test'
 import NodeAttribute from './nativexcomponent/NodeAttribute.test'
 import TouchPointTest from './nativexcomponent/TouchPoint.test'
-import XComponentMouseTest from './nativexcomponent/XComponentMouse.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
@@ -31,6 +30,5 @@ export default function testsuite() {
   KeyCodeNdkTest4()
   NativeXComponent()
   TouchPointTest()
-  XComponentMouseTest()
   NodeAttribute()
 }

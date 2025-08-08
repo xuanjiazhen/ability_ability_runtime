@@ -149,8 +149,8 @@ napi_value GetKeyEventScrollLockState(napi_env env, napi_callback_info info)
 napi_value AttachNativeRootNode001(napi_env env, napi_callback_info info)
 {
     Column.SetBackgroundColor(0xffff0000);
-    Column.SetWidth(210);
-    Column.SetHeight(210);
+    Column.SetWidth(ColumnWidthAndHeight);
+    Column.SetHeight(ColumnWidthAndHeight);
     ArkUI_NativeNodeAPI_1* _nodeAPI;
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, _nodeAPI);
     _nodeAPI->addChild(ChildXComponent->GetComponent(), Column.GetComponent());
@@ -166,8 +166,7 @@ napi_value AttachNativeRootNode002(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = 0;
-    ArkUI_NodeHandle invalidWindow = *reinterpret_cast<ArkUI_NodeHandle*>(0xDEADBEEF); // 构造无效指针
-    if (OH_NativeXComponent_AttachNativeRootNode(g_xComponent.GetXComponent(), invalidWindow) ==
+    if (OH_NativeXComponent_AttachNativeRootNode(g_xComponent.GetXComponent(), nullptr) ==
         OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER) {
         result = 401;
     }
@@ -195,8 +194,7 @@ napi_value DetachNativeRootNode002(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = 0;
-    ArkUI_NodeHandle invalidWindow = *reinterpret_cast<ArkUI_NodeHandle*>(0xDEADBEEF); // 构造无效指针
-    if (OH_NativeXComponent_DetachNativeRootNode(g_xComponent.GetXComponent(), invalidWindow) ==
+    if (OH_NativeXComponent_DetachNativeRootNode(g_xComponent.GetXComponent(), nullptr) ==
         OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER) {
         result = 401;
     }
@@ -416,12 +414,12 @@ napi_value XComponentFinalize001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     Component temp = Component(ARKUI_NODE_XCOMPONENT);
-    if (OH_ArkUI_XComponent_Finalize(temp.GetComponent()) == 103501) {
-        napi_create_int32(env, 103501, &retValue);
+    if (OH_ArkUI_XComponent_Finalize(temp.GetComponent()) == ARKUI_ERROR_CODE_XCOMPONENT_STATE_INVALID) {
+        napi_create_int32(env, ARKUI_ERROR_CODE_XCOMPONENT_STATE_INVALID, &retValue);
         return retValue;
     }
-    if (OH_ArkUI_XComponent_Finalize(temp.GetComponent()) == 103501) {
-        napi_create_int32(env, 103501, &retValue);
+    if (OH_ArkUI_XComponent_Finalize(temp.GetComponent()) == ARKUI_ERROR_CODE_XCOMPONENT_STATE_INVALID) {
+        napi_create_int32(env, ARKUI_ERROR_CODE_XCOMPONENT_STATE_INVALID, &retValue);
         return retValue;
     }
     napi_create_int32(env, 0, &retValue);
@@ -542,12 +540,12 @@ napi_value CreateNativeNode(napi_env env, napi_callback_info info)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode env or info is null");
         return nullptr;
     }
-    size_t argCnt = 2;
-    napi_value args[2] = { nullptr, nullptr };
+    size_t argCnt = 1;
+    napi_value args[1] = { nullptr };
     if (napi_get_cb_info(env, info, &argCnt, args, nullptr, nullptr) != napi_ok) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode napi_get_cb_info failed");
     }
-    if (argCnt != PARAM_2) {
+    if (argCnt != PARAM_1) {
         napi_throw_type_error(env, NULL, "Wrong number of arguments");
         return nullptr;
     }

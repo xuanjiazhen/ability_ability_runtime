@@ -22,22 +22,6 @@ import router from '@ohos.router';
 import RectValue from './Rect';
 import { expect, it } from '@ohos/hypium';
 
-async function simulateByShell(cmd: string) {
-  let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
-
-  return new Promise<string>((resolve, reject) => {
-    abilityDelegator.executeShellCommand(cmd, (err, data) => {
-      if (err) {
-        console.error(`command ${cmd} failed: ${JSON.stringify(err)}`);
-        reject("failed");
-      } else {
-        console.info(`command ${cmd} executed: ${data.stdResult}`);
-        resolve("executed");
-      }
-    });
-  })
-}
-
 const KEY_CODE_EVENT_OK = 1;
 const KEY_CODE_EVENT_ERROR = 0;
 
@@ -405,12 +389,20 @@ export default class Utils {
         console.info(`====>${name} start<====`);
         let driver = await Driver.create();
         if (key == 1) {
-          simulateByShell('uinput -K -d 1 -u 1');
-          await simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
+          await Utils.simulateByShell('uinput -K -d 1 -u 1');
+          await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
         } else {
           await driver?.triggerKey(key);
+          if (key == 16) {
+            let com = await driver.findComponent(ON.id("KeyCodeTest1"));
+            await com.click();
+          } else if (key == 2674 || key == 2675) {
+            await driver?.triggerKey(1);
+            await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
+          }
         }
         let KeyResult: number = ndkfunction();
+        await Utils.sleep(10);
         expect(KEY_CODE_EVENT_OK).assertEqual(KeyResult);
         done()
       } catch (err) {

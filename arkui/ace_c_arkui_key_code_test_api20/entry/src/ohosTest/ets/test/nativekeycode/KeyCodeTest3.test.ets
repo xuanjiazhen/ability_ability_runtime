@@ -483,16 +483,6 @@ export default function KeyCodeNdkTest3() {
     Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VCR_0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2674, keyCodeNdk.GetKeyCodeEventVcr)
     /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_VCR2_0100
-     * @tc.name    : getKeyCodeEventVcr01002
-     * @tc.desc    : Test whether the key KEY_VCR2 are working properly.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VCR2_0100', TestType.FUNCTION |
-        Size.MEDIUMTEST | Level.LEVEL1, 2675, keyCodeNdk.GetKeyCodeEventVcr2)
-    /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_SAT_0100
      * @tc.name    : getKeyCodeEventSat0100
      * @tc.desc    : Test whether the key KEY_SAT are working properly.

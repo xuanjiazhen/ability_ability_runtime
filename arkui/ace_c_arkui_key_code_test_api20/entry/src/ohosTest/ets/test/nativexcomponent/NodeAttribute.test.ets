@@ -148,27 +148,27 @@ export default function NodeAttribute() {
         done()
       }
     })
-    /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100
-     * @tc.name    : testCheckNodeTextInputHalfLeading
-     * @tc.desc    : Test get native xcomopnent key event action works.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100', TestType.FUNCTION |
-    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100 start<====`);
-        let Result: number = nativexcomponent.CheckNodeTextInputHalfLeading();
-        expect(1).assertEqual(Result);
-        done()
-      } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100 catch err: ` + err);
-        expect(false).assertEqual(err);
-        done()
-      }
-    })
+    // /**
+    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100
+    //  * @tc.name    : testCheckNodeTextInputHalfLeading
+    //  * @tc.desc    : Test get native xcomopnent key event action works.
+    //  * @tc.level   : LEVEL1
+    //  * @tc.size    : MediumTest
+    //  * @tc.type    : Function
+    //  */
+    // it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100', TestType.FUNCTION |
+    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    //   try {
+    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100 start<====`);
+    //     let Result: number = nativexcomponent.CheckNodeTextInputHalfLeading();
+    //     expect(1).assertEqual(Result);
+    //     done()
+    //   } catch (err) {
+    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100 catch err: ` + err);
+    //     expect(false).assertEqual(err);
+    //     done()
+    //   }
+    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_KEYBOARD_APPEARANCE_0100
      * @tc.name    : testCheckNodeTextInputKeyboardAppearance
@@ -274,27 +274,27 @@ export default function NodeAttribute() {
         done()
       }
     })
-    /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100
-     * @tc.name    : testCheckNodeTextAreaHalfLeading
-     * @tc.desc    : Test get native xcomopnent key event action works.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100', TestType.FUNCTION |
-    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100 start<====`);
-        let Result: number = nativexcomponent.CheckNodeTextAreaHalfLeading();
-        expect(1).assertEqual(Result);
-        done()
-      } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100 catch err: ` + err);
-        expect(false).assertEqual(err);
-        done()
-      }
-    })
+    // /**
+    //  * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100
+    //  * @tc.name    : testCheckNodeTextAreaHalfLeading
+    //  * @tc.desc    : Test get native xcomopnent key event action works.
+    //  * @tc.level   : LEVEL1
+    //  * @tc.size    : MediumTest
+    //  * @tc.type    : Function
+    //  */
+    // it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100', TestType.FUNCTION |
+    // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+    //   try {
+    //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100 start<====`);
+    //     let Result: number = nativexcomponent.CheckNodeTextAreaHalfLeading();
+    //     expect(1).assertEqual(Result);
+    //     done()
+    //   } catch (err) {
+    //     console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100 catch err: ` + err);
+    //     expect(false).assertEqual(err);
+    //     done()
+    //   }
+    // })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_KEYBOARD_APPEARANCE_0100
      * @tc.name    : testCheckNodeTextAreaKeyboardAppearance

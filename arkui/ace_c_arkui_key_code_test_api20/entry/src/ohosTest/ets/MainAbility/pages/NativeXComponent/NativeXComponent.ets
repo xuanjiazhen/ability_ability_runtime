@@ -24,7 +24,7 @@ struct NativeXComponent {
   aboutToAppear():void{
     // 通过C-API创建节点，并添加到管理器nodeContent上
     if (nativexcomponent) {
-      nativexcomponent.XComponentCreate(this.nodeContent, "TestAPP");
+      nativexcomponent.XComponentCreate(this.nodeContent);
     }
   }
 
