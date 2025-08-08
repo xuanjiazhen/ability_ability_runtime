@@ -17,7 +17,7 @@ import eap from '@ohos.net.eap';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
 import {BusinessError,Callback} from '@ohos.base'
 
-function sleep(delay：number):Promise<void> {
+function sleep(delay:number):Promise<void> {
     return new Promise((resolve) => {setTimeout(()=>{resolve()}, delay);});
 }
 export default function wifiEapErrorTest(){
@@ -27,7 +27,7 @@ export default function wifiEapErrorTest(){
         bufferLen:1
     }
     describe('wifiEapErrorTest', async () =>{
-        beforeAll(async （done :Function)=>{
+        beforeAll(async (done :Function)=>{
             console.info('beforeAll called');
             done();
         })
