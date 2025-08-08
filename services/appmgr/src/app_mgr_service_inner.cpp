@@ -8163,7 +8163,7 @@ bool AppMgrServiceInner::IsAttachDebug(const std::string &bundleName)
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
-        TAG_LOGE(AAFwkTag::APPMGR, "caller token not SA");
+        TAG_LOGW(AAFwkTag::APPMGR, "caller token not SA");
         return false;
     }
     if (appRunningManager_ == nullptr || bundleName.empty()) {
@@ -10217,7 +10217,7 @@ void AppMgrServiceInner::RemoveUIExtensionBindItem(
     }
 
     if (!AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo->extensionAbilityType)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not uiextension");
+        TAG_LOGW(AAFwkTag::APPMGR, "not uiextension");
         return;
     }
 

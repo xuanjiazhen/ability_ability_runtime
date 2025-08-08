@@ -1162,7 +1162,7 @@ void AppRunningRecord::SetAppMgrServiceInner(const std::weak_ptr<AppMgrServiceIn
 
     auto moduleRecordList = GetAllModuleRecord();
     if (moduleRecordList.empty()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "empty moduleRecordList");
+        TAG_LOGW(AAFwkTag::APPMGR, "empty moduleRecordList");
         return;
     }
 
