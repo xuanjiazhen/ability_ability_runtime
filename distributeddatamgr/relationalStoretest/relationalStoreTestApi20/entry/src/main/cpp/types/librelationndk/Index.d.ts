@@ -14,7 +14,13 @@
  */
 // database/data/data_asset.h
 export const getURISuccess: () => number;
-
+export const getPathSuccess: () => number;
+export const getCreateTimeSuccess: () => number;
+export const getModifyTimeSuccess: () => number;
+export const getSizeSuccess: () => number;
+export const getStatusSuccess: () => number;
+export const getDestroyOneSuccess: () => number;
+export const testDestroyMultipleInvalidParam: () => number;
 
 
 
