@@ -18,7 +18,7 @@
 #include "napi/native_api.h"
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-
+#define MAX_STRING_LENGTH 1024
 static CommonEvent_Subscriber *g_subscriber = nullptr;
 static bool g_isOrdered = false;
 static bool g_isFinished = false;
@@ -51,7 +51,7 @@ static napi_value SetPublisherPermissionSuccess(napi_env env, napi_callback_info
     napi_value result;
     char str[1024] = {0};
     size_t strLen = 0;
-    napi_get_value_string_utf8(env, result, str, 1024 - 1, &strLen);
+    napi_get_value_string_utf8(env, result, str, MAX_STRING_LENGTH - 1, &strLen);
     int32_t ret = OH_CommonEvent_SetPublisherPermission(g_subscribeInfo, str);
     napi_create_int32(env, ret, &result);
     return result;
@@ -62,8 +62,8 @@ static napi_value SetPublisherPermissionError(napi_env env, napi_callback_info i
     napi_value result;
     char str[1024] = {0};
     size_t strLen = 0;
-    napi_get_value_string_utf8(env, result, str, 1024 - 1, &strLen);
-    int32_t ret = OH_CommonEvent_SetPublisherPermission(NULL, nullptr);
+    napi_get_value_string_utf8(env, result, str, MAX_STRING_LENGTH - 1, &strLen);
+    int32_t ret = OH_CommonEvent_SetPublisherPermission(nullptr, nullptr);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -76,7 +76,7 @@ static napi_value SetPublisherBundleNameSuccess(napi_env env, napi_callback_info
     napi_value result;
     char str[1024] = {0};
     size_t strLen = 0;
-    napi_get_value_string_utf8(env, result, str, 1024 - 1, &strLen);
+    napi_get_value_string_utf8(env, result, str, MAX_STRING_LENGTH - 1, &strLen);
     int32_t ret = OH_CommonEvent_SetPublisherBundleName(g_subscribeInfo, str);
     napi_create_int32(env, ret, &result);
     return result;
@@ -87,8 +87,8 @@ static napi_value SetPublisherBundleNameError(napi_env env, napi_callback_info i
     napi_value result;
     char str[1024] = {0};
     size_t strLen = 0;
-    napi_get_value_string_utf8(env, result, str, 1024 - 1, &strLen);
-    int32_t ret = OH_CommonEvent_SetPublisherBundleName(nullptr, NULL);
+    napi_get_value_string_utf8(env, result, str, MAX_STRING_LENGTH - 1, &strLen);
+    int32_t ret = OH_CommonEvent_SetPublisherBundleName(nullptr, str);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -96,7 +96,10 @@ static napi_value SetPublisherBundleNameError(napi_env env, napi_callback_info i
 static napi_value SetPublishInfoBundleNameInvalidParameter(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    int32_t ret = OH_CommonEvent_SetPublishInfoBundleName(nullptr , NULL);
+    char str[1024] = {0};
+    size_t strLen = 0;
+    napi_get_value_string_utf8(env, result, str, MAX_STRING_LENGTH - 1, &strLen);
+    int32_t ret = OH_CommonEvent_SetPublishInfoBundleName(nullptr , str);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -117,7 +120,8 @@ static napi_value SetPublishInfoPermissionError(napi_env env, napi_callback_info
 {
     napi_value result;
     const char* permissions[] = {"ohos.permission.RECEIVER_STARTUP_COMPLETED"};
-    int32_t ret = OH_CommonEvent_SetPublishInfoPermissions(nullptr, permissions, 0);
+    int32_t num = PARAM_1;
+    int32_t ret = OH_CommonEvent_SetPublishInfoPermissions(nullptr, permissions, num);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -178,7 +182,8 @@ static napi_value SetPublishInfoParameterSuccess(napi_env env, napi_callback_inf
 static napi_value SetPublishInfoParameterError(napi_env env, napi_callback_info info)
 {
     napi_value result;
-    int32_t ret = OH_CommonEvent_SetPublishInfoParameters(nullptr, 0);
+    auto parameters = OH_CommonEvent_CreateParameters();
+    int32_t ret = OH_CommonEvent_SetPublishInfoParameters(nullptr, parameters);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -198,7 +203,8 @@ static napi_value SetIntToParameterError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     const char *key = "int";
-    int32_t ret = OH_CommonEvent_SetIntToParameters(nullptr, key, 0);
+    int value = PARAM_1;
+    int32_t ret = OH_CommonEvent_SetIntToParameters(nullptr, key, value);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -219,7 +225,9 @@ static napi_value SetIntArrayToParameterError(napi_env env, napi_callback_info i
 {
     napi_value result;
     const char *key = "intArray";
-    int32_t ret = OH_CommonEvent_SetIntArrayToParameters(nullptr, key, 0, 0);
+    int value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(int);
+    int32_t ret = OH_CommonEvent_SetIntArrayToParameters(nullptr, key, value, num);
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -234,277 +242,49 @@ static napi_value SetLongToParameterSuccess(napi_env env, napi_callback_info inf
     napi_create_int32(env, ret, &result);
     return result;
 }
-
-static napi_value SetLongToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "long";
-    int32_t ret = OH_CommonEvent_SetLongToParameters(nullptr, key, 0); 
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetLongArrayToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "longArray";
-    long value[] = {PARAM_1, PARAM_4, PARAM_6};
-    size_t num = sizeof(value) / sizeof(long);
-    int32_t ret = OH_CommonEvent_SetLongArrayToParameters(parameters, key, value, num);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetLongArrayToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "longArray";
-    int32_t ret = OH_CommonEvent_SetLongArrayToParameters(nullptr, key, 0, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetBoolToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "bool";
-    bool value = true;
-    int32_t ret = OH_CommonEvent_SetBoolToParameters(parameters, key, value);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetBoolToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "bool";
-    int32_t ret = OH_CommonEvent_SetBoolToParameters(nullptr, key, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetBoolArrayToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "boolArray";
-    bool value[] = {true, false, true};
-    size_t num = sizeof(value) / sizeof(bool);
-    int32_t ret = OH_CommonEvent_SetBoolArrayToParameters(parameters, key, value, num);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetBoolArrayToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "boolArray";
-    int32_t ret = OH_CommonEvent_SetBoolArrayToParameters(nullptr, key, 0, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetCharToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "char";
-    char value = 'a';
-    int32_t ret = OH_CommonEvent_SetCharToParameters(parameters, key, value);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetCharToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "char";
-    int32_t ret = OH_CommonEvent_SetCharToParameters(nullptr, key, 0); //401
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetCharArrayToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "charArray";
-    char value[] = {'a', 'b', 'c'};
-    size_t num = sizeof(value) / sizeof(char);
-    int32_t ret = OH_CommonEvent_SetCharArrayToParameters(parameters, key, value, num);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetCharArrayToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char *key = "charArray";
-    int32_t ret = OH_CommonEvent_SetCharArrayToParameters(nullptr, key, 0, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetDoubleToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "double";
-    double value = PARAM_1;
-    int32_t ret = OH_CommonEvent_SetDoubleToParameters(parameters, key, value);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetDoubleToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    int32_t ret = OH_CommonEvent_SetDoubleToParameters(nullptr, 0, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetDoubleArrayToParameterSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    auto parameters = OH_CommonEvent_CreateParameters();
-    const char *key = "doubleArray";
-    double value[] = {PARAM_1, PARAM_4, PARAM_6};
-    size_t num = sizeof(value) / sizeof(double);
-    int32_t ret = OH_CommonEvent_SetDoubleArrayToParameters(parameters, key, value, num);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value SetDoubleArrayToParameterError(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    int32_t ret = OH_CommonEvent_SetDoubleArrayToParameters(nullptr, 0, 0, 0);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value PublishSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char* event = CesCapiTest::COMMON_EVENT_TEST;
-    int32_t ret = OH_CommonEvent_Publish(event);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value PublishInvalidParameter(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char* event = nullptr;
-    int32_t ret = OH_CommonEvent_Publish(event); 
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value PublishWithInfoSuccess(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    const char* event = CesCapiTest::COMMON_EVENT_TEST;
-    bool ordered = false;
-    auto publishInfo = OH_CommonEvent_CreatePublishInfo(ordered);
-    int32_t ret = OH_CommonEvent_PublishWithInfo(event, publishInfo);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
-static napi_value PublishWithInfoInvalidParameter(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    int32_t ret = OH_CommonEvent_PublishWithInfo(nullptr, nullptr);
-    napi_create_int32(env, ret, &result);
-    return result;
-}
-
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"testCommonEventInvalidParameter", nullptr, testCommonEventInvalidParameter, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublisherPermissionSuccess", nullptr, SetPublisherPermissionSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublisherPermissionError", nullptr, SetPublisherPermissionError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublisherBundleNameSuccess", nullptr, SetPublisherBundleNameSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublisherBundleNameError", nullptr, SetPublisherBundleNameError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoBundleNameInvalidParameter", nullptr, SetPublishInfoBundleNameInvalidParameter, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoPermissionSuccess", nullptr, SetPublishInfoPermissionSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoPermissionError", nullptr, SetPublishInfoPermissionError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoCodeSuccess", nullptr, SetPublishInfoCodeSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoCodeError", nullptr, SetPublishInfoCodeError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoDataSuccess", nullptr, SetPublishInfoDataSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoDataError", nullptr, SetPublishInfoDataError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoParameterSuccess", nullptr, SetPublishInfoParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetPublishInfoParameterError", nullptr, SetPublishInfoParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetIntToParameterSuccess", nullptr, SetIntToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetIntToParameterError", nullptr, SetIntToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetIntArrayToParameterSuccess", nullptr, SetIntArrayToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetIntArrayToParameterError", nullptr, SetIntArrayToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetLongToParameterSuccess", nullptr, SetLongToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetLongToParameterError", nullptr, SetLongToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetLongArrayToParameterSuccess", nullptr, SetLongArrayToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetLongArrayToParameterError", nullptr, SetLongArrayToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetBoolToParameterSuccess", nullptr, SetBoolToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetBoolToParameterError", nullptr, SetBoolToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetBoolArrayToParameterSuccess", nullptr, SetBoolArrayToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetBoolArrayToParameterError", nullptr, SetBoolArrayToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetCharToParameterSuccess", nullptr, SetCharToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetCharToParameterError", nullptr, SetCharToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetCharArrayToParameterSuccess", nullptr, SetCharArrayToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetCharArrayToParameterError", nullptr, SetCharArrayToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetDoubleToParameterSuccess", nullptr, SetDoubleToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetDoubleToParameterError", nullptr, SetDoubleToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetDoubleArrayToParameterSuccess", nullptr, SetDoubleArrayToParameterSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"SetDoubleArrayToParameterError", nullptr, SetDoubleArrayToParameterError, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"PublishSuccess", nullptr, PublishSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"PublishInvalidParameter", nullptr, PublishInvalidParameter, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"PublishWithInfoSuccess", nullptr, PublishWithInfoSuccess, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
-        {"PublishWithInfoInvalidParameter", nullptr, PublishWithInfoInvalidParameter, nullptr, nullptr, nullptr, napi_default,
-            nullptr},
+        {"testCommonEventInvalidParameter", nullptr, testCommonEventInvalidParameter,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublisherPermissionSuccess", nullptr, SetPublisherPermissionSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublisherPermissionError", nullptr, SetPublisherPermissionError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublisherBundleNameSuccess", nullptr, SetPublisherBundleNameSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublisherBundleNameError", nullptr, SetPublisherBundleNameError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoBundleNameInvalidParameter", nullptr, SetPublishInfoBundleNameInvalidParameter,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoPermissionSuccess", nullptr, SetPublishInfoPermissionSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoPermissionError", nullptr, SetPublishInfoPermissionError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoCodeSuccess", nullptr, SetPublishInfoCodeSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoCodeError", nullptr, SetPublishInfoCodeError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoDataSuccess", nullptr, SetPublishInfoDataSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoDataError", nullptr, SetPublishInfoDataError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoParameterSuccess", nullptr, SetPublishInfoParameterSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetPublishInfoParameterError", nullptr, SetPublishInfoParameterError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetIntToParameterSuccess", nullptr, SetIntToParameterSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetIntToParameterError", nullptr, SetIntToParameterError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetIntArrayToParameterSuccess", nullptr, SetIntArrayToParameterSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetIntArrayToParameterError", nullptr, SetIntArrayToParameterError,
+            nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"SetLongToParameterSuccess", nullptr, SetLongToParameterSuccess,
+            nullptr, nullptr, nullptr, napi_default, nullptr}
     };
-
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }

@@ -22,7 +22,7 @@ export default function ActsCommonEventErrorTest() {
   describe('ActsCommonEventErrorTest', () => {
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
      * @tc.desc    : Test testCommonEventInvalidParameter
      * @tc.level   : Level2
      * @tc.size    : MediumTest
@@ -43,7 +43,7 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublisherPermissionSuccess_0200
-     * @tc.name    : testNotificationCesCommonEventSetPublisherPermissionSuccess0200.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublisherPermissionSuccess_0200
      * @tc.desc    : Test SetPublisherPermissionSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
@@ -64,7 +64,7 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublisherPermissionError_0300
-     * @tc.name    : testNotificationCesCommonEventSetPublisherPermissionError0300.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublisherPermissionError_0300
      * @tc.desc    : Test SetPublisherPermissionError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
@@ -85,7 +85,7 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublisherBundleNameSuccess_0400
-     * @tc.name    : testNotificationCesCommonEventSetPublisherBundleNameSuccess0400.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublisherBundleNameSuccess_0400
      * @tc.desc    : Test SetPublisherBundleNameSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
@@ -106,7 +106,7 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublisherBundleNameError_0500
-     * @tc.name    : testNotificationCesCommonEventSetPublisherBundleNameError0500.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublisherBundleNameError_0500
      * @tc.desc    : Test SetPublisherBundleNameError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
@@ -127,13 +127,13 @@ export default function ActsCommonEventErrorTest() {
 
     /**
      * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0600
-     * @tc.name    : testNotificationCesCommonEventNoError0600.
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_InvalidParameter_0600
      * @tc.desc    : Test SetPublishInfoBundleNameInvalidParameter
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoBundleNameInvalidParameter', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_InvalidParameter_0600', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoBundleName start====");
         let result = commoneventerror.SetPublishInfoBundleNameInvalidParameter();
@@ -147,14 +147,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_CommonEventSetPublishInfoPermissionSuccess_0700
-     * @tc.name    : testNotificationCesCommonEventNoError0700.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionSuccess_0700
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionSuccess_0700
+     * @tc.desc    : Test SetPublishInfoPermissionSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoPermissionSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionSuccess_0700', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoPermissionSuccess start====");
         let result: number = commoneventerror.SetPublishInfoPermissionSuccess();
@@ -168,14 +168,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionError_0800
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionError_0800
+     * @tc.desc    : Test SetPublishInfoPermissionError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoPermissionError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoPermissionError_0800', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoPermissionError start====");
         let result: number = commoneventerror.SetPublishInfoPermissionError();
@@ -189,14 +189,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeSuccess_0900
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeSuccess_0900
+     * @tc.desc    : Test SetPublishInfoCodeSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoCodeSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeSuccess_0900', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoCodeSuccess start====");
         let result: number = commoneventerror.SetPublishInfoCodeSuccess();
@@ -210,14 +210,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeError_1000
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeError_1000
+     * @tc.desc    : Test SetPublishInfoCodeError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoCodeError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoCodeError_1000', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoCodeError start====");
         let result: number = commoneventerror.SetPublishInfoCodeError();
@@ -231,14 +231,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoDataSuccess_1100
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoDataSuccess_1100
+     * @tc.desc    : Test SetPublishInfoDataSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoDataSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoDataSuccess_1100', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoDataSuccess start====");
         let result: number = commoneventerror.SetPublishInfoDataSuccess();
@@ -252,14 +252,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoDataError_1200
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoDataError_1200
+     * @tc.desc    : Test SetPublishInfoDataError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoDataError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoDataError_1200', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoDataError start====");
         let result: number = commoneventerror.SetPublishInfoDataError();
@@ -273,14 +273,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterSuccess_1300
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterSuccess_1300
+     * @tc.desc    : Test SetPublishInfoParameterSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoParameterSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterSuccess_1300', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoParameterSuccess start====");
         let result: number = commoneventerror.SetPublishInfoParameterSuccess();
@@ -294,14 +294,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterError_1400
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterError_1400
+     * @tc.desc    : Test SetPublishInfoParameterError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetPublishInfoParameterError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetPublishInfoParameterError_1400', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetPublishInfoParameterError start====");
         let result: number = commoneventerror.SetPublishInfoParameterError();
@@ -315,14 +315,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetIntToParameterSuccess_1500
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetIntToParameterSuccess_1500
+     * @tc.desc    : Test SetIntToParameterSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetIntToParameterSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetIntToParameterSuccess_1500', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetIntToParameterSuccess start====");
         let result: number = commoneventerror.SetIntToParameterSuccess();
@@ -336,14 +336,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetIntToParameterError_1600
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetIntToParameterError_1600
+     * @tc.desc    : Test SetIntToParameterError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetIntToParameterError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetIntToParameterError_1600', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetIntToParameterError start====");
         let result: number = commoneventerror.SetIntToParameterError();
@@ -357,14 +357,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterSuccess_1700
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterSuccess_1700
+     * @tc.desc    : Test SetIntArrayToParameterSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetIntArrayToParameterSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterSuccess_1700', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetIntArrayToParameterSuccess start====");
         let result: number = commoneventerror.SetIntArrayToParameterSuccess();
@@ -378,14 +378,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterError_1800
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterError_1800
+     * @tc.desc    : Test SetIntArrayToParameterError
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetIntArrayToParameterError', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetIntArrayToParameterError_1800', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetIntArrayToParameterError start====");
         let result: number = commoneventerror.SetIntArrayToParameterError();
@@ -399,14 +399,14 @@ export default function ActsCommonEventErrorTest() {
     });
 
     /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetLongToParameterSuccess_1900
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongToParameterSuccess_1900
+     * @tc.desc    : Test SetLongToParameterSuccess
      * @tc.level   : Level2
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('Sub_CommonEvent_SetLongToParameterSuccess', Level.LEVEL2, async (done: Function) => {
+    it('Sub_Notification_Ces_CommonEvent_SetLongToParameterSuccess_1900', Level.LEVEL2, async (done: Function) => {
       try {
         console.info("====>Sub_CommonEvent_SetLongToParameterSuccess start====");
         let result: number = commoneventerror.SetLongToParameterSuccess();
@@ -415,405 +415,6 @@ export default function ActsCommonEventErrorTest() {
         done()
       } catch (err) {
         console.error("====>Sub_CommonEvent_SetLongToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetLongToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetLongToParameterError start====");
-        let result: number = commoneventerror.SetLongToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetLongToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetLongToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetLongArrayToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetLongArrayToParameterSuccess start====");
-        let result: number = commoneventerror.SetLongArrayToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetLongArrayToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetLongArrayToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetLongArrayToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetLongArrayToParameterError start====");
-        let result: number = commoneventerror.SetLongArrayToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetLongArrayToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetLongArrayToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetBoolToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetBoolToParameterSuccess start====");
-        let result: number = commoneventerror.SetBoolToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetBoolToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetBoolToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetBoolToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetBoolToParameterError start====");
-        let result: number = commoneventerror.SetBoolToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetBoolToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetBoolToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetBoolArrayToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess start====");
-        let result: number = commoneventerror.SetBoolArrayToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetBoolArrayToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterError start====");
-        let result: number = commoneventerror.SetBoolArrayToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetBoolArrayToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetCharToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetCharToParameterSuccess start====");
-        let result: number = commoneventerror.SetCharToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetCharToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetCharToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetCharToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetCharToParameterError start====");
-        let result: number = commoneventerror.SetCharToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetCharToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetCharToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetCharArrayToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetCharArrayToParameterSuccess start====");
-        let result: number = commoneventerror.SetCharArrayToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetCharArrayToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetCharArrayToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetCharArrayToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetCharArrayToParameterError start====");
-        let result: number = commoneventerror.SetCharArrayToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetCharArrayToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetCharArrayToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetDoubleToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetDoubleToParameterSuccess start====");
-        let result: number = commoneventerror.SetDoubleToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetDoubleToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetDoubleToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetDoubleToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetDoubleToParameterError start====");
-        let result: number = commoneventerror.SetDoubleToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetDoubleToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetDoubleToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetDoubleArrayToParameterSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess start====");
-        let result: number = commoneventerror.SetDoubleArrayToParameterSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_SetDoubleArrayToParameterError', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterError start====");
-        let result: number = commoneventerror.SetDoubleArrayToParameterError();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterError result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_SetDoubleArrayToParameterError catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_CommonEventPublishSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_CommonEventPublishSuccess start====");
-        let result: number = commoneventerror.PublishSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_CommonEventPublishSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_CommonEventPublishSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_PublishInvalidParameter', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_PublishInvalidParameter start====");
-        let result: number = commoneventerror.PublishInvalidParameter();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_PublishInvalidParameter result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_PublishInvalidParameter catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_PublishWithInfoSuccess', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_PublishWithInfoSuccess start====");
-        let result: number = commoneventerror.PublishWithInfoSuccess();
-        expect(result).assertEqual(Success);
-        console.info("====>Sub_CommonEvent_PublishWithInfoSuccess result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_PublishWithInfoSuccess catch err: " + err);
-        done()
-      }
-    });
-
-    /**
-     * @tc.number  : Sub_Notification_Ces_CommonEvent_InvalidParameter_0100
-     * @tc.name    : testNotificationCesCommonEventNoError0100.
-     * @tc.desc    : Test testCommonEventInvalidParameter
-     * @tc.level   : Level2
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('Sub_CommonEvent_PublishWithInfoInvalidParameter', Level.LEVEL2, async (done: Function) => {
-      try {
-        console.info("====>Sub_CommonEvent_PublishWithInfoInvalidParameter start====");
-        let result: number = commoneventerror.PublishWithInfoInvalidParameter();
-        expect(result).assertEqual(InvalidParameter);
-        console.info("====>Sub_CommonEvent_PublishWithInfoInvalidParameter result: " + result);
-        done()
-      } catch (err) {
-        console.error("====>Sub_CommonEvent_PublishWithInfoInvalidParameter catch err: " + err);
         done()
       }
     });
