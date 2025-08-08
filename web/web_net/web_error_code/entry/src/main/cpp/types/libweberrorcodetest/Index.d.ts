@@ -47,6 +47,7 @@ export const JSBridgeData: (caseNum: number) => number;
 export const JSBridgeProxyData: (caseNum: number) => number;
 export const webArkWebConnectError: (errName: string) => number;
 export const webArkWebSSLError: (errName: string) => number;
+export const webRegisterCustomSchemes: (errName: string) => number;
 
 
 

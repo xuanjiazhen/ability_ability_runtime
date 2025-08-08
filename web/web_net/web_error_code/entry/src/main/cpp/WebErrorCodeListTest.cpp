@@ -14,29 +14,14 @@
  */
 
 #include <map>
-#include <memory>
 #include <string>
 #include "WebErrorCodeList.h"
 #include "napi/native_api.h"
 #include "web/arkweb_net_error_list.h"
 #include "web/arkweb_scheme_handler.h"
 #include <hilog/log.h>
+#include "WebTestUtils.h"
 
-static const int ERROR_NAME_SIZE = 256;
-
-static std::unique_ptr<char []> GetArgsParamater(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value args[1] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    size_t netErrorSize = 0;
-    std::unique_ptr<char []> netErrorName = std::make_unique<char[]>(ERROR_NAME_SIZE);
-    if (netErrorName == nullptr) {
-        return std::make_unique<char[]>(1);
-    }
-    napi_get_value_string_utf8(env, args[0], netErrorName.get(), ERROR_NAME_SIZE, &netErrorSize);
-    return netErrorName;
-}
 
 static ArkWeb_NetError GetNetErrorByName(const char* name)
 {
@@ -197,6 +182,8 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
 static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> &netErrorMap)
 {
     std::map<std::string, ArkWeb_NetError> codeExMap = {
+        {"ARKWEB_ERR_MALFORMED_IDENTITY", ARKWEB_ERR_MALFORMED_IDENTITY},
+        {"ARKWEB_ERR_CONTENT_DECODING_FAILED", ARKWEB_ERR_CONTENT_DECODING_FAILED},
         {"ARKWEB_ERR_NETWORK_IO_SUSPENDED", ARKWEB_ERR_NETWORK_IO_SUSPENDED},
         {"ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED", ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED},
         {"ARKWEB_ERR_ENCODING_CONVERSION_FAILED", ARKWEB_ERR_ENCODING_CONVERSION_FAILED},
@@ -279,6 +266,56 @@ static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError> netErrorM
     }
 }
 
+static void AddErrCodeFTPPandDNS(std::map<std::string, ArkWeb_NetError> netErrorMap)
+{
+    std::map<std::string, ArkWeb_NetError> codeExMap = {
+        {"ARKWEB_ERR_INSECURE_RESPONSE", ARKWEB_ERR_INSECURE_RESPONSE},
+        {"ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT", ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT},
+        {"ARKWEB_ERR_ADD_USER_CERT_FAILED", ARKWEB_ERR_ADD_USER_CERT_FAILED},
+        {"ARKWEB_ERR_INVALID_SIGNED_EXCHANGE", ARKWEB_ERR_INVALID_SIGNED_EXCHANGE},
+        {"ARKWEB_ERR_INVALID_WEB_BUNDLE", ARKWEB_ERR_INVALID_WEB_BUNDLE},
+        {"ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED", ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED},
+        {"ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST",
+         ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST},
+        {"ARKWEB_ERR_FTP_FAILED", ARKWEB_ERR_FTP_FAILED},
+        {"ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE", ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE},
+        {"ARKWEB_ERR_FTP_TRANSFER_ABORTED", ARKWEB_ERR_FTP_TRANSFER_ABORTED},
+        {"ARKWEB_ERR_FTP_FILE_BUSY", ARKWEB_ERR_FTP_FILE_BUSY},
+        {"ARKWEB_ERR_FTP_SYNTAX_ERROR", ARKWEB_ERR_FTP_SYNTAX_ERROR},
+        {"ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED", ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED},
+        {"ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE", ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE},
+        {"ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD", ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD},
+        {"ARKWEB_ERR_PKCS12_IMPORT_FAILED", ARKWEB_ERR_PKCS12_IMPORT_FAILED},
+        {"ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA", ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA},
+        {"ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS", ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS},
+        {"ARKWEB_ERR_IMPORT_CA_CERT_FAILED", ARKWEB_ERR_IMPORT_CA_CERT_FAILED},
+        {"ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED", ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED},
+        {"ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC", ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC},
+        {"ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE", ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE},
+        {"ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED", ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED},
+        {"ARKWEB_ERR_KEY_GENERATION_FAILED", ARKWEB_ERR_KEY_GENERATION_FAILED},
+        {"ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED", ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED},
+        {"ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED", ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED},
+        {"ARKWEB_ERR_CERT_DATABASE_CHANGED", ARKWEB_ERR_CERT_DATABASE_CHANGED},
+        {"ARKWEB_ERR_CERT_VERIFIER_CHANGED", ARKWEB_ERR_CERT_VERIFIER_CHANGED},
+        {"ARKWEB_ERR_DNS_MALFORMED_RESPONSE", ARKWEB_ERR_DNS_MALFORMED_RESPONSE},
+        {"ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP", ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP},
+        {"ARKWEB_ERR_DNS_SERVER_FAILED", ARKWEB_ERR_DNS_SERVER_FAILED},
+        {"ARKWEB_ERR_DNS_TIMED_OUT", ARKWEB_ERR_DNS_TIMED_OUT},
+        {"ARKWEB_ERR_DNS_CACHE_MISS", ARKWEB_ERR_DNS_CACHE_MISS},
+        {"ARKWEB_ERR_DNS_SEARCH_EMPTY", ARKWEB_ERR_DNS_SEARCH_EMPTY},
+        {"ARKWEB_ERR_DNS_SORT_ERROR", ARKWEB_ERR_DNS_SORT_ERROR},
+        {"ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED",
+         ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED},
+        {"ARKWEB_ERR_DNS_NAME_HTTPS_ONLY", ARKWEB_ERR_DNS_NAME_HTTPS_ONLY},
+        {"ARKWEB_ERR_DNS_REQUEST_CANCELED", ARKWEB_ERR_DNS_REQUEST_CANCELED},
+        {"ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN", ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN}};
+
+    for (const auto pair : codeExMap) {
+        netErrorMap[pair.first] = pair.second;
+    }
+}
+
 static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
 {
     std::string strName(name);
@@ -319,12 +356,11 @@ static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
         {"ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG", ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG},
         {"ARKWEB_ERR_PAC_SCRIPT_FAILED", ARKWEB_ERR_PAC_SCRIPT_FAILED},
         {"ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE", ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE},
-        {"ARKWEB_ERR_MALFORMED_IDENTITY", ARKWEB_ERR_MALFORMED_IDENTITY},
-        {"ARKWEB_ERR_CONTENT_DECODING_FAILED", ARKWEB_ERR_CONTENT_DECODING_FAILED},
     };
     
     AddWebNetErrorCERTAndECHCode(netErrorMap);
     AddNetErrorHTTPCode(netErrorMap);
+    AddErrCodeFTPPandDNS(netErrorMap);
     auto it = netErrorMap.find(strName);
     if (it != netErrorMap.end()) {
         return it->second;
@@ -335,7 +371,7 @@ static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
 napi_value WebNetErrorResponeseSetError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebNetErrorResponeseSetError start..");
-    auto netErrorName = GetArgsParamater(env, info);
+    auto netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
     ArkWeb_NetError errorCode = GetNetErrorCERTAndECHCode(netErrorName.get());
     ArkWeb_Response *response = nullptr;
     OH_ArkWeb_CreateResponse(&response);
@@ -361,7 +397,7 @@ napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
     const char* url = "www.example.com";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    auto netErrorName = GetArgsParamater(env, info);
+    auto netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
     ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
@@ -386,7 +422,7 @@ napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
     const char* url = "UnInvalid Url";
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
 
-    auto  netErrorName = GetArgsParamater(env, info);
+    auto  netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
     ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
@@ -409,7 +445,7 @@ napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
     ArkWeb_Response* response = nullptr;
     OH_ArkWeb_CreateResponse(&response);
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
-    auto  netErrorName = GetArgsParamater(env, info);
+    auto  netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
     ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
     
