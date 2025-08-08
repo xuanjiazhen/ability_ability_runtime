@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import wifiEapTest from './WifiManagerEap.test';
-import wifiEapErrorTest from './WifiManagerEapErrorCode.test';
+import wifiEapTest from './WiFiManagerEap.test';
+import wifiEapErrorTest from './WiFiManagerEapErrorCode.test';
 
 export default function testsuite() {
   wifiEapTest();
