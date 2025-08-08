@@ -23,17 +23,6 @@ namespace {
 static const Location_RequestConfig *requestConfig = OH_Location_CreateRequestConfig();
 }
 
-
-static napi_value OHLocationInfoGetAdditionalInfo_test(napi_env env, napi_callback_info info)
-{
-    Location_Info *location;
-    char additionalInfo[] = "";
-    Location_ResultCode errorCode = OH_LocationInfo_GetAdditionalInfo(nullptr, nullptr, 0);
-    napi_value result = nullptr;
-    napi_create_int32(env, errorCode, &result);
-    return result;
-}
-
 static napi_value OHLocationInfoGetAdditionalInfo(napi_env env, napi_callback_info info)
 {
     Location_Info *location;

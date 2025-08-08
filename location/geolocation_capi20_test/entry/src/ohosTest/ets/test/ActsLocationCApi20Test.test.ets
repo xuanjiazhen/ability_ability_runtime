@@ -20,28 +20,7 @@ const OS_LOCATION_ERR_OK = 0;
 
 export default function ActsLocationCApi20Test() {
   describe('ActsLocationCApi20Test', () => {
-    /**
-     * @tc.number  : SUB_LocationKit_GetAdditionalInfo_Test_0100
-     * @tc.name    : SUB_LocationKit_GetAdditionalInfo_Test_0100
-     * @tc.desc    : test OHLocationInfoGetAdditionalInfo.
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_LocationKit_GetAdditionalInfo_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
-        try {
-          console.info("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 start====");
-          let result: number = locationcapi20.OHLocationInfoGetAdditionalInfo_test();
-          console.info("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 result: " + result);
-          expect(401).assertEqual(result);
-          done()
-        } catch (err) {
-          console.error("====>SUB_LocationKit_GetAdditionalInfo_Test_0100 catch err: " + err);
-          expect(false).assertEqual(OS_LOCATION_ERR_OK);
-          done()
-        }
-      })
+
     /**
      * @tc.number  : SUB_LocationKit_OHLocationInfoGetAdditionalInfo_Test_0100
      * @tc.name    : testLocationKitOHLocationInfoGetAdditionalInfoTest0100

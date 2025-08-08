@@ -9,7 +9,7 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActslocationCApi20Test.hap",
+            "ActsLocationCApi20Test.hap",
             "ActsLocationCApi20MainTest.hap"
         ],
         "type": "AppInstallKit",
