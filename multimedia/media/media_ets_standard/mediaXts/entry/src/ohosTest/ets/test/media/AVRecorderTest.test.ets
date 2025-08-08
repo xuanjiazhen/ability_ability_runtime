@@ -19,7 +19,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import MediaTestBase from './MediaTestBase';
 import { Permissions } from '@kit.AbilityKit';
 import Common from './AVRecorderCommon';
-import { LOG_TAG, MediaErrorCode, SLEEP_TIME_20, SLEEP_TIME_500 } from '../Constants';
+import { LOG_TAG, MediaErrorCode, SLEEP_TIME_20, SLEEP_TIME_200, SLEEP_TIME_500 } from '../Constants';
 import { audio } from '@kit.AudioKit';
 import { sleep } from '../common';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
@@ -950,7 +950,13 @@ export default function AVRecorderTest() {
           console.info(TAG, 'afterEach case release avRecord success.');
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
-      await sleep(SLEEP_TIME_20);
+      if (fdObject && fdObject.fdNumber !== null) {
+        console.info(TAG, 'afterEach case close file.');
+        await commonFun.closeFd(fdObject.fdNumber);
+        fdObject.fdNumber = null;
+        await commonFun.unlinkFd(fdPath);
+      }
+      await sleep(SLEEP_TIME_200);
       console.info(TAG, 'afterEach case');
     });
 
