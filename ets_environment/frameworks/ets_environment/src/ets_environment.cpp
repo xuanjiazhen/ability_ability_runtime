@@ -517,16 +517,17 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     return true;
 }
 
-void ETSEnvironment::FinishPreload() {
+bool ETSEnvironment::FinishPreload() {
     ani_env *env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
-        return;
+        return false;
     }
     ark::ets::ETSAni::Prefork(env);
+    return true;
 }
 
-void ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
+bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     const std::vector<std::string> &appInnerHspPathList,
     const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos)
 {
@@ -544,26 +545,28 @@ void ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     ani_env *env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
-        return;
+        return false;
     }
     ark::ets::ETSAni::Postfork(env, options);
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
+    return true;
 }
 
-void ETSEnvironment::PreloadSystemClass(const char *className)
+bool ETSEnvironment::PreloadSystemClass(const char *className)
 {
     ani_env* env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
-        return;
+        return false;
     }
 
     ani_class cls = nullptr;
     if (env->FindClass(className, &cls) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Find preload class failed");
-        return;
+        return false;
     }
+    return true;
 }
 
 ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
