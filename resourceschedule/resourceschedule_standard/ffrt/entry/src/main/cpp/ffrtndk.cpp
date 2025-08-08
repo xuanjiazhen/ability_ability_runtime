@@ -1841,7 +1841,7 @@ static napi_value QueueDelayTest005(napi_env env, napi_callback_info info)
     if (a != 1) {
         result = 1;
     }
-
+    OH_LOG_Print(LOG_APP, LOG_INFO, 1, "FFRT QUEUE", "test2 cost %{public}f ms", t);
     ffrt_queue_wait(task1);
     if (a != 10) {
         result = 3;
