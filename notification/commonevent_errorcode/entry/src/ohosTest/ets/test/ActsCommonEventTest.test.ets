@@ -418,5 +418,404 @@ export default function ActsCommonEventErrorTest() {
         done()
       }
     });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetLongToParameterError_2000
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongToParameterError_2000
+     * @tc.desc    : Test SetLongToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetLongToParameterError_2000', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetLongToParameterError start====");
+        let result: number = commoneventerror.SetLongToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetLongToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetLongToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterSuccess_2100
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterSuccess_2100
+     * @tc.desc    : Test SetLongArrayToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterSuccess_2100', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetLongArrayToParameterSuccess start====");
+        let result: number = commoneventerror.SetLongArrayToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetLongArrayToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetLongArrayToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200.
+     * @tc.desc    : Test SetLongArrayToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetLongArrayToParameterError_2200', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetLongArrayToParameterError start====");
+        let result: number = commoneventerror.SetLongArrayToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetLongArrayToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetLongArrayToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetBoolToParameterSuccess_2300
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetBoolToParameterSuccess_2300
+     * @tc.desc    : Test SetBoolToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetBoolToParameterSuccess_2300', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetBoolToParameterSuccess start====");
+        let result: number = commoneventerror.SetBoolToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetBoolToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetBoolToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetBoolToParameterError_2400
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetBoolToParameterError_2400
+     * @tc.desc    : Test SetBoolToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetBoolToParameterError_2400', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetBoolToParameterError start====");
+        let result: number = commoneventerror.SetBoolToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetBoolToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetBoolToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterSuccess_2500
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterSuccess_2500
+     * @tc.desc    : Test SetBoolArrayToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterSuccess_2500', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess start====");
+        let result: number = commoneventerror.SetBoolArrayToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetBoolArrayToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterError_2600
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterError_2600
+     * @tc.desc    : Test SetBoolArrayToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetBoolArrayToParameterError_2600', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterError start====");
+        let result: number = commoneventerror.SetBoolArrayToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetBoolArrayToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetBoolArrayToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetCharToParameterSuccess_2700
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetCharToParameterSuccess_2700
+     * @tc.desc    : Test SetCharToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetCharToParameterSuccess_2700', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetCharToParameterSuccess start====");
+        let result: number = commoneventerror.SetCharToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetCharToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetCharToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetCharToParameterError_2800
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetCharToParameterError_2800
+     * @tc.desc    : Test SetCharToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetCharToParameterError_2800', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetCharToParameterError start====");
+        let result: number = commoneventerror.SetCharToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetCharToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetCharToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterSuccess_2900
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterSuccess_2900
+     * @tc.desc    : Test SetCharArrayToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterSuccess_2900', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetCharArrayToParameterSuccess start====");
+        let result: number = commoneventerror.SetCharArrayToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetCharArrayToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetCharArrayToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterError_3000
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterError_3000
+     * @tc.desc    : Test SetCharArrayToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetCharArrayToParameterError_3000', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetCharArrayToParameterError start====");
+        let result: number = commoneventerror.SetCharArrayToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetCharArrayToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetCharArrayToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetDoubleToParameterSuccess_3100
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetDoubleToParameterSuccess_3100
+     * @tc.desc    : Test SetDoubleToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetDoubleToParameterSuccess_3100', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetDoubleToParameterSuccess start====");
+        let result: number = commoneventerror.SetDoubleToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetDoubleToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetDoubleToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetDoubleToParameterError_3200
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetDoubleToParameterError_3200
+     * @tc.desc    : Test SetDoubleToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetDoubleToParameterError_3200', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetDoubleToParameterError start====");
+        let result: number = commoneventerror.SetDoubleToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetDoubleToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetDoubleToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterSuccess_3300
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterSuccess_3300
+     * @tc.desc    : Test SetDoubleArrayToParameterSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterSuccess_3300', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess start====");
+        let result: number = commoneventerror.SetDoubleArrayToParameterSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetDoubleArrayToParameterSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterError_3400
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterError_3400
+     * @tc.desc    : Test SetDoubleArrayToParameterError
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_SetDoubleArrayToParameterError_3400', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterError start====");
+        let result: number = commoneventerror.SetDoubleArrayToParameterError();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_SetDoubleArrayToParameterError result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_SetDoubleArrayToParameterError catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_PublishSuccess_3500
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_PublishSuccess_3500
+     * @tc.desc    : Test PublishSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_PublishSuccess_3500', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_CommonEventPublishSuccess start====");
+        let result: number = commoneventerror.PublishSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_CommonEventPublishSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_CommonEventPublishSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_PublishInvalidParameter_3600
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_PublishInvalidParameter_3600
+     * @tc.desc    : Test PublishInvalidParameter
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_PublishInvalidParameter_3600', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_PublishInvalidParameter start====");
+        let result: number = commoneventerror.PublishInvalidParameter();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_PublishInvalidParameter result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_PublishInvalidParameter catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_PublishWithInfoSuccess_3700
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_PublishWithInfoSuccess_3700
+     * @tc.desc    : Test PublishWithInfoSuccess
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_PublishWithInfoSuccess_3700', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_PublishWithInfoSuccess start====");
+        let result: number = commoneventerror.PublishWithInfoSuccess();
+        expect(result).assertEqual(Success);
+        console.info("====>Sub_CommonEvent_PublishWithInfoSuccess result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_PublishWithInfoSuccess catch err: " + err);
+        done()
+      }
+    });
+
+    /**
+     * @tc.number  : Sub_Notification_Ces_CommonEvent_PublishWithInfoInvalidParameter_3800
+     * @tc.name    : Sub_Notification_Ces_CommonEvent_PublishWithInfoInvalidParameter_3800
+     * @tc.desc    : Test PublishWithInfoInvalidParameter
+     * @tc.level   : Level2
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('Sub_Notification_Ces_CommonEvent_PublishWithInfoInvalidParameter_3800', Level.LEVEL2, async (done: Function) => {
+      try {
+        console.info("====>Sub_CommonEvent_PublishWithInfoInvalidParameter start====");
+        let result: number = commoneventerror.PublishWithInfoInvalidParameter();
+        expect(result).assertEqual(InvalidParameter);
+        console.info("====>Sub_CommonEvent_PublishWithInfoInvalidParameter result: " + result);
+        done()
+      } catch (err) {
+        console.error("====>Sub_CommonEvent_PublishWithInfoInvalidParameter catch err: " + err);
+        done()
+      }
+    });
   })
 }
