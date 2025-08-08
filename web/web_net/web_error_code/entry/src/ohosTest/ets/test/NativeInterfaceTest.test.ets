@@ -554,16 +554,6 @@ export default function NativeInterfaceTest() {
      * @tc.size    : SMALLTEST
      * @tc.type    : Function
      */
-    it('SUB_Web_Napi_WebMsgApiTest_0500', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
-      async (done: Function) => {
-        try {
-          console.info("====>SUB_Web_Napi_WebMsgApiTest_0500 start====");
-          let result: number = nativeInterface.WebMsgAPI(4);
-          expect(result).assertEqual(0);
-          console.info("====>SUB_Web_Napi_WebMsgApiTest_0500 stop====");
-          done();
-        } catch (err) {
-          console.error("====>SUB_Web_Napi_WebMsgApiTest_0500 catch err: " + err);
     it('testWebNapiWebMsgApiGetType', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
       async (done: Function) => {
         try {

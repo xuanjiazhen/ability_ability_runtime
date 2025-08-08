@@ -176,16 +176,21 @@ static void JSCallBack(const char *webTag, const ArkWeb_JavaScriptBridgeData *da
     return;
 }
 
-static napi_value JSBridgeData(napi_env env, napi_callback_info info)
+static int32_t GetCaseNum(napi_env &env, napi_callback_info &info)
 {
-    OH_LOG_DEBUG(LOG_APP, "JSBridageData start..");
-
-    size_t argc = 1;
+    size_t argc = ARGS_INDEX_ONE;
     napi_value args[ARGS_INDEX_ONE] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     // 获取第一个参数 caseNum
     int32_t caseNum = -1;
     napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    return caseNum;
+}
+
+static napi_value JSBridgeData(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "JSBridageData start..");
+    int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_OnJavaScriptCallback callBack = JSCallBack;
     const size_t dataLen = 10;
@@ -236,13 +241,7 @@ static void JSProxyCallBack(const char *webTag, const ArkWeb_JavaScriptBridgeDat
 static napi_value JSBridgeProxyData(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_OnJavaScriptProxyCallback callBack = JSProxyCallBack;
     const size_t dataLen = 10;
@@ -330,13 +329,8 @@ static void *GetData(ArkWeb_WebMessagePtr webMessage, size_t *dataLength)
 static napi_value WebMsgType(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
+    int32_t caseNum = GetCaseNum(env, info);
 
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
     const size_t msgLen = 10;
     static char msg[msgLen] = "test";
     ArkWeb_WebMessagePtr pMsg = reinterpret_cast<ArkWeb_WebMessagePtr>(msg);
@@ -362,13 +356,7 @@ static napi_value WebMsgType(napi_env env, napi_callback_info info)
 static napi_value WebMsgAPI(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "JSBridgeProxyData start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_WebMessageAPI api = {0};
     switch (caseNum) {
@@ -417,13 +405,7 @@ static ArkWeb_JavaScriptValuePtr createJSValue(ArkWeb_JavaScriptValueType type, 
 static napi_value WebJSValueAPI(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebJSValueAPI start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_JavaScriptValueAPI api = {0};
     switch (caseNum) {
@@ -445,14 +427,7 @@ static napi_value WebJSValueAPI(napi_env env, napi_callback_info info)
 static napi_value WebJSValueType(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebJSValueType start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
-
+    int32_t caseNum = GetCaseNum(env, info);
     ArkWeb_JavaScriptValuePtr jsValue = nullptr;
     char test[] = "test";
     switch (caseNum) {
@@ -487,13 +462,7 @@ static void RunJavaScript(const char* webTag, const ArkWeb_JavaScriptObject* jav
 static napi_value WebJSObject(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "JSObject start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    int32_t caseNum = GetCaseNum(env, info);
 
     const uint32_t len = 10;
     const uint8_t script[len] = {0};
@@ -524,13 +493,7 @@ static napi_value WebJSObject(napi_env env, napi_callback_info info)
 static napi_value WebControllerAPI(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebControllerAPI start..");
-
-    size_t argc = 1;
-    napi_value args[ARGS_INDEX_ONE] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    // 获取第一个参数 caseNum
-    int32_t caseNum = -1;
-    napi_get_value_int32(env, args[ARGS_INDEX_ZERO], &caseNum);
+    int32_t caseNum = GetCaseNum(env, info);
 
     ArkWeb_ControllerAPI ctrlApi = {0};
     switch (caseNum) {
@@ -538,36 +501,26 @@ static napi_value WebControllerAPI(napi_env env, napi_callback_info info)
             ctrlApi.size = sizeof(ArkWeb_ControllerAPI);
             break;
         case CASE_NUM_1:
-            ctrlApi.runJavaScript = RunJavaScript;
-            break;
         case CASE_NUM_2:
-            ctrlApi.registerJavaScriptProxy = nullptr;
-            break;
         case CASE_NUM_3:
-            ctrlApi.deleteJavaScriptRegister = nullptr;
-            break;
         case CASE_NUM_4:
-            ctrlApi.refresh = nullptr;
-            break;
         case CASE_NUM_5:
-            ctrlApi.registerAsyncJavaScriptProxy = nullptr;
-            break;
         case CASE_NUM_6:
-            ctrlApi.createWebMessagePorts = nullptr;
-            break;
         case CASE_NUM_7:
-            ctrlApi.destroyWebMessagePorts = nullptr;
-            break;
         case CASE_NUM_8:
-            ctrlApi.postWebMessage = nullptr;
-            break;
         case CASE_NUM_9:
-            ctrlApi.getLastJavascriptProxyCallingFrameUrl = nullptr;
-            break;
         case CASE_NUM_10:
-            ctrlApi.registerJavaScriptProxyEx = nullptr;
-            break;
         case CASE_NUM_11:
+            ctrlApi.runJavaScript = RunJavaScript;
+            ctrlApi.registerJavaScriptProxy = nullptr;
+            ctrlApi.deleteJavaScriptRegister = nullptr;
+            ctrlApi.refresh = nullptr;
+            ctrlApi.registerAsyncJavaScriptProxy = nullptr;
+            ctrlApi.createWebMessagePorts = nullptr;
+            ctrlApi.destroyWebMessagePorts = nullptr;
+            ctrlApi.postWebMessage = nullptr;
+            ctrlApi.getLastJavascriptProxyCallingFrameUrl = nullptr;
+            ctrlApi.registerJavaScriptProxyEx = nullptr;
             ctrlApi.registerAsyncJavaScriptProxyEx = nullptr;
             break;
         default:
