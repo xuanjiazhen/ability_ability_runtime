@@ -30,6 +30,7 @@ export default function SymbolEffectTest() {
         let pages = router.getState();
         console.info("get SymbolEffectTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("SymbolEffectTest" == pages.name)) {
           console.info("get SymbolEffectTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

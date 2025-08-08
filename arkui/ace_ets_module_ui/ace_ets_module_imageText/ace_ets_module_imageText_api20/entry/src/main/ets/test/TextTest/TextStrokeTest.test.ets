@@ -30,6 +30,7 @@ export default function TextStrokeTest() {
         let pages = router.getState();
         console.info("get TextStrokeTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("TextStrokeTest" == pages.name)) {
           console.info("get TextStrokeTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

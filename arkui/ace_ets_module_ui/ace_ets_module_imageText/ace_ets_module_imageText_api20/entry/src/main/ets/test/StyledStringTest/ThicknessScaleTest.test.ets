@@ -30,6 +30,7 @@ export default function ThicknessScaleTest() {
         let pages = router.getState();
         console.info("get ThicknessScaleTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("ThicknessScaleTest" == pages.name)) {
           console.info("get ThicknessScaleTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

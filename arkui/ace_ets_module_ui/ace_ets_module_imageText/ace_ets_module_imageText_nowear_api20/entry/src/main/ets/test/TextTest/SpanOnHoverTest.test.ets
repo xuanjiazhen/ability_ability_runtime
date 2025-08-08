@@ -62,6 +62,7 @@ export default function SpanOnHoverTest() {
       let point = await span.getBoundsCenter()
       await CommonFunc.sleep(500);
       await driver.mouseMoveTo({x:Math.floor(point.x), y:Math.floor(point.y)});
+      await CommonFunc.sleep(500);
       expect(''+AppStorage.get('spanIsHover')).assertEqual('true');
       expect(''+AppStorage.get('spanOnHoverEvent')).assertContain('"source":1,"target":');
       AppStorage.delete('spanIsHover')
