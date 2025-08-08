@@ -27,7 +27,6 @@ struct WebTextAutosizing {
   @State str: string = ""
   @State text: number = 0
   @State text1: number = 0
-  @State ClientWidth:number = 0
   @State de: number = 1
   @State qa: number = 9
   @State det: number = 13
@@ -76,7 +75,6 @@ struct WebTextAutosizing {
               try {
                 this.webviewController.loadUrl($rawfile("text.html"));
                 await Utils.sleep(2000);
-     
                 this.de = 100;
                 await Utils.sleep(2000);
                 this.webviewController.runJavaScript("getSize()", (err, res) => {
