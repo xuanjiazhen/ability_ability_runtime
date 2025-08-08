@@ -47,6 +47,8 @@ const int32_t g_sampleFormat = 1;
 const int32_t g_frameSize = 240; // 240:g_frameSize value
 const int32_t CHANNEL_LAYOUT = 3;
 const int32_t ENCODING_TYPE = 0;
+const int32_t STATE_TIME = 0;
+const int32_t END_TIME = 20;
 const int32_t NORMAL_RATE = 32000;
 bool g_flag = false;
 bool g_mark = false;
@@ -222,12 +224,12 @@ static napi_value AudioWorkGroup(napi_env env, napi_callback_info info)
     OH_AudioResourceManager *mgr;
     OH_AudioWorkgroup *grp;
     OH_AudioManager_GetAudioResourceManager(&mgr);
-    OH_AudioResourceManager_CreateWorkgroup(mgr,"new",&grp);
-    OH_AudioWorkgroup_AddCurrentThread(grp,&tid);
-    OH_AudioWorkgroup_Start(grp,0,20);              
+    OH_AudioResourceManager_CreateWorkgroup(mgr, "new", &grp);
+    OH_AudioWorkgroup_AddCurrentThread(grp, &tid);
+    OH_AudioWorkgroup_Start(grp, STATE_TIME, END_TIME);              
     OH_AudioWorkgroup_Stop(grp);
-    OH_AudioWorkgroup_RemoveThread(grp,tid);
-    OH_AudioCommon_Result result=OH_AudioResourceManager_ReleaseWorkgroup(mgr,grp);
+    OH_AudioWorkgroup_RemoveThread(grp, tid);
+    OH_AudioCommon_Result result=OH_AudioResourceManager_ReleaseWorkgroup(mgr, grp);
     napi_value res;
     napi_create_int32(env, result, &res);
     return res;
