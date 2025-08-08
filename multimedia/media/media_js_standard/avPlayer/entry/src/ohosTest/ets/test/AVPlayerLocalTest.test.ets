@@ -1476,14 +1476,13 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_AUD,
-          isMuted: true,
-          result: true
-        }
-        testSetMediaMuted(fileDescriptor, params, done);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_AUD,
+        isMuted: true,
+        result: true
       }
+      testSetMediaMuted(fileDescriptor, params, done);
     });
     /* *
     * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0200
@@ -1494,14 +1493,13 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0200', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_VID,
-          isMuted: true,
-          result: true
-        }
-        testSetMediaMuted(fileDescriptor, params, done);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_VID,
+        isMuted: true,
+        result: true
       }
+      testSetMediaMuted(fileDescriptor, params, done);
     });
     /* *
     * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300
@@ -1512,14 +1510,13 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_AUD,
-          isMuted: false,
-          result: true
-        }
-        testSetMediaMuted(fileDescriptor, params, done);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_AUD,
+        isMuted: false,
+        result: true
       }
+      testSetMediaMuted(fileDescriptor, params, done);
     });
     /* *
     * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400
@@ -1530,14 +1527,13 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_VID,
-          isMuted: false,
-          result: true
-        }
-        testSetMediaMuted(fileDescriptor, params, done);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_VID,
+        isMuted: false,
+        result: true
       }
+      testSetMediaMuted(fileDescriptor, params, done);
     });
     /* *
     * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100
@@ -1548,15 +1544,14 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_AUD,
-          isMuted: true,
-          result: false,
-          errorCode: 5400102
-        }
-        testSetMediaMuted(fileDescriptor, params, done, setMediaMutedInErrorState);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_AUD,
+        isMuted: true,
+        result: false,
+        errorCode: 5400102
       }
+      testSetMediaMuted(fileDescriptor, params, done, setMediaMutedInErrorState);
     });
     /* *
     * @tc.number    : SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200
@@ -1567,15 +1562,14 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200', Level.LEVEL0,async (done: Function) => {
-      if (fileDescriptor) {
-        const params: MediaMutedParams = {
-          MediaType: media.MediaType.MEDIA_TYPE_SUBTITLE,
-          isMuted: true,
-          result: false,
-          errorCode: 401
-        }
-        testSetMediaMuted(fileDescriptor, params, done, setMediaMutedUseUnsupportMediaType);
+      except(fileDescriptor).not().assertUndefined()
+      const params: MediaMutedParams = {
+        MediaType: media.MediaType.MEDIA_TYPE_SUBTITLE,
+        isMuted: true,
+        result: false,
+        errorCode: 401
       }
+      testSetMediaMuted(fileDescriptor, params, done, setMediaMutedUseUnsupportMediaType);
     });
     
     /* *
