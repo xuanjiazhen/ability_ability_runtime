@@ -586,17 +586,16 @@ export default function intelligenceTest() {
 
       if (currentDeviceIsPc) {
         try {
-          await intelligence.getImageEmbeddingModel(undefined)
-          console.info(TAG + "getImageEmbeddingModel success :");
+          await intelligence.getImageEmbeddingModel(undefined);
+          console.info(TAG + "getImageEmbeddingModel success :" );
           expect().assertFail();
           done();
         }
-        catch(err) {
+        catch (err) {
           console.info(TAG + "get promise result" + err.code);
           expect(err.code).assertEqual(401);
           done();
         }
-
       } else {
         intelligence.getImageEmbeddingModel(imageConfig)
           .then((data) => {
@@ -612,6 +611,7 @@ export default function intelligenceTest() {
       }
     })
 
+
     /**
      * @tc.name intelligenceApiTest2700
      * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_2700
@@ -625,8 +625,8 @@ export default function intelligenceTest() {
       console.info(TAG + "intelligenceApiTest2700 start");
       if (currentDeviceIsPc) {
         try {
-          await intelligence.getTextEmbeddingModel(undefined)
-          console.info(TAG + "getTextEmbeddingModel success :" + data);
+          await intelligence.getTextEmbeddingModel(undefined);
+          console.info(TAG + "getTextEmbeddingModel success :");
           expect().assertFail();
           done();
         } catch(err) {
@@ -684,6 +684,7 @@ export default function intelligenceTest() {
         } catch (err) {
           console.info(TAG + 'splitText is fail' +err.message + err.code);
           expect(err.code).assertEqual(401);
+          done();
         }
       } else {
         await intelligence.splitText(text, config)
@@ -719,7 +720,7 @@ export default function intelligenceTest() {
             await data.loadModel();
             try {
               data.getEmbedding(undefined)
-              console.info(TAG + "getEmbedding result 2900 :" + loadData);
+              console.info(TAG + "getEmbedding is success 2900 :");
                   expect().assertFail();
                   done();
                 } catch(err){
