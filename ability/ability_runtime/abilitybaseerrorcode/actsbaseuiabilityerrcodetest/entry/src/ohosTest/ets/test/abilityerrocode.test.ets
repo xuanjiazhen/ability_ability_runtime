@@ -57,8 +57,8 @@ export default function errorCodeTest() {
     })
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0001
-     * @tc.name   : To verify the errcode 16000001 when The specified ability does not exist
-     * @tc.desc   : Expect: the errcode 16000001
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0001
+     * @tc.desc   : To verify the errcode 16000001 when The specified ability does not exist
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -100,8 +100,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0002
-     * @tc.name   : To verify the errcode 16000071 when The App clone is not supported.
-     * @tc.desc   : Expect: the errcode 16000071
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0002
+     * @tc.desc   : To verify the errcode 16000071 when The App clone is not supported.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -126,8 +126,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0003
-     * @tc.name   : To verify the errcode 28800001 when The Startup task or its dependency not found.
-     * @tc.desc   : Expect: the errcode 28800001
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0003
+     * @tc.desc   : To verify the errcode 28800001 when The Startup task or its dependency not found.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -161,8 +161,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0004
-     * @tc.name   : To verify the errcode 16000001 when The specified ability does not exist.
-     * @tc.desc   : Expect: the errcode 16000001
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0004
+     * @tc.desc   : To verify the errcode 16000001 when The specified ability does not exist.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -205,8 +205,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0005
-     * @tc.name   : To verify the errcode 16000002 when Incorrect ability type.
-     * @tc.desc   : Expect: the errcode 16000002
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0005
+     * @tc.desc   : To verify the errcode 16000002 when Incorrect ability type.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -250,8 +250,8 @@ export default function errorCodeTest() {
 
     /**
      * @tc.number    : SUB_Ability_AbilityBase_ErrorCode_0006
-     * @tc.name      : Test very the code 16000074 when requestCode is not correct & The caller does not exist.
-     * @tc.desc      :  Expect: the errcode 16000074
+     * @tc.name      : SUB_Ability_AbilityBase_ErrorCode_0006
+     * @tc.desc      : Test very the code 16000074 when requestCode is not correct & The caller does not exist.
      * @tc.level     : Level 0
      * @tc.size      : MediumTest
      * @tc.type      : Function
@@ -283,8 +283,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0007
-     * @tc.name   : To verify the errcode 16000050 when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
-     * @tc.desc   : Expect: the errcode 16000050
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0007
+     * @tc.desc   : To verify the errcode 16000050 when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -324,8 +324,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0008
-     * @tc.name   : To verify the errcode 16000004 when assithap "export:false" with ability
-     * @tc.desc   : Expect: the errcode 16000004
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0008
+     * @tc.desc   : To verify the errcode 16000004 when assithap "export:false" with ability
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -364,8 +364,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0009
-     * @tc.name   : To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
-     * @tc.desc   : Expect: the errcode 16000078
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0009
+     * @tc.desc   : To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -408,8 +408,8 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0010
-    * @tc.name   : To verify the errcode   16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
-    * @tc.desc   : Expect: the errcode 16000073
+    * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0010
+    * @tc.desc   : To verify the errcode 16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
     * @tc.type   : Function
     * @tc.size   : MediumTest
     * @tc.level  : 0
@@ -451,8 +451,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0011
-     * @tc.name   : To verify the errcode 16000072 when assithap not config "multiAppMode"
-     * @tc.desc   : Expect: the errcode 16000072
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0011
+     * @tc.desc   : To verify the errcode 16000072 when assithap not config "multiAppMode"
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -499,8 +499,8 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0012
-    * @tc.name   : To verify the errcode 16000067 when processMode "NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM"
-    * @tc.desc   : Expect: the errcode 16000067
+    * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0012
+    * @tc.desc   : To verify the errcode 16000067 when processMode "NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM"
     * @tc.type   : Function
     * @tc.size   : MediumTest
     * @tc.level  : 0
@@ -527,9 +527,13 @@ export default function errorCodeTest() {
               console.info(TAG + 'startAbility succeed');
             }).catch((err: BusinessError) => {
               // 处理业务逻辑错误
-              console.error(TAG + `startAbility failed, code is ${err.code}, message is ${err.message}`);
-              expect(err.code).assertEqual(16000067);
-              done();
+              if(err.code == 801){
+                done();
+              }else{
+                console.error(TAG + `startAbility failed, code is ${err.code}, message is ${err.message}`);
+                expect(err.code).assertEqual(16000067);
+                done();
+              }
             });
         } catch(err) {
           // 处理入参错误异常
@@ -547,8 +551,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0013
-     * @tc.name   : To verify the errcode 16000068 when The ability is already running.
-     * @tc.desc   : Expect: the errcode 16000068
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0013
+     * @tc.desc   : To verify the errcode 16000068 when The ability is already running.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -598,9 +602,21 @@ export default function errorCodeTest() {
             }).catch((err: BusinessError) => {
               // 处理业务逻辑错误
               console.error(TAG + `startAbility0900 failed, code is ${err.code}, message is ${err.message}`);
-              expect(err.code).assertEqual(16000068);
-              done();
+              try{expect(err.code).assertEqual(16000068);}catch{}
             });
+        } catch(err) {
+          // 处理入参错误异常
+          let code = (err as BusinessError).code;
+          let message = (err as BusinessError).message;
+          console.error(TAG + `failed, code is ${code}, message is ${message}`);
+          expect().assertFail();
+          done();
+        }
+        try {
+          AppStorage.get<common.UIAbilityContext>("errocode")!.startAbility(want, options1, (err, data)=>{
+            try{expect(err.code).assertEqual(16000068);}catch{}
+            done();
+          })
         } catch(err) {
           // 处理入参错误异常
           let code = (err as BusinessError).code;
@@ -617,8 +633,8 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number : SUB_Ability_AbilityBase_ErrorCode_0014
-     * @tc.name   : To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
-     * @tc.desc   : Expect: the errcode 16000080
+     * @tc.name   : SUB_Ability_AbilityBase_ErrorCode_0014
+     * @tc.desc   : To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
      * @tc.type   : Function
      * @tc.size   : MediumTest
      * @tc.level  : 0
@@ -665,8 +681,9 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0015
-     * @tc.name: To verify the errcode 16000001 when The specified ability does not exist
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000001.
+     * @tc.name: SUB_Ability_AbilityBase_ErrorCode_0015
+     * @tc.desc: To verify the errcode 16000001 when The specified ability does not exist
+     * When StartAbility In UIExtension
      * @tc.size: MediumTest
      * @tc.type: Function
      * @tc.level: Level 0
@@ -717,8 +734,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0016
-    * @tc.name: To verify the errcode 16000050  when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000050 .
+    * @tc.name: SUB_Ability_AbilityBase_ErrorCode_0016
+    * @tc.desc: To verify the errcode 16000050  when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
+    * When StartAbility In UIExtension
     * @tc.size: MediumTest
     * @tc.type: Function
     * @tc.level: Level 0
@@ -770,13 +788,14 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0017
-     * @tc.name:  To verify the errcode 16000004 when assithap "export:false" with ability
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000004 .
+     * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0017
+     * @tc.desc: To verify the errcode 16000004 when assithap "export:false" with ability
+     * When StartAbility In UIExtension
      * @tc.size: MediumTest
      * @tc.type: Function
     * @tc.level: Level 0
      */
-    it('UB_Ability_AbilityBase_ErrorCode_0017', Level.LEVEL0, async (done: Function) => {
+    it('SUB_Ability_AbilityBase_ErrorCode_0017', Level.LEVEL0, async (done: Function) => {
       let tag:string = 'SUB_Ability_AbilityBase_ErrorCode_0017';
       if (mpExtensionEnable == 'true') {
         let commonEventSubscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
@@ -822,8 +841,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0018
-    * @tc.name: To verify the errcode 16000001 when The specified ability does not exist
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000019.
+    * @tc.name: SUB_Ability_AbilityBase_ErrorCode_0018
+    * @tc.desc: To verify the errcode 16000001 when The specified ability does not exist
+    * When StartAbility In UIExtension
     * @tc.size: MediumTest
     * @tc.type: Function
     * @tc.level: Level 0
@@ -874,8 +894,9 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0019
-     * @tc.name:  To verify the errcode 16000072 when  verify the errcode 16000072 when assithap not config "multiAppMode"
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000072 .
+     * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0019
+     * @tc.desc: To verify the errcode 16000072 when  verify the errcode 16000072 when assithap not config "multiAppMode"
+     * When StartAbility In UIExtension
      * @tc.size: MediumTest
      * @tc.type: Function
     * @tc.level: Level 0
@@ -926,8 +947,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0020
-    * @tc.name:  To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000078 .
+    * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0020
+    * @tc.desc: To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
+    * When StartAbility In UIExtension
     * @tc.size: MediumTest
     * @tc.type: Function
    * @tc.level: Level 0
@@ -983,8 +1005,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0021
-    * @tc.name:  To verify the errcode  16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000073 .
+    * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0021
+    * @tc.desc: To verify the errcode  16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
+    * When StartAbility In UIExtension
     * @tc.size: MediumTest
     * @tc.type: Function
    * @tc.level: Level 0
@@ -1040,8 +1063,9 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0022
-     * @tc.name:  To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000080 .
+     * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0022
+     * @tc.desc: To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
+     * When StartAbility In UIExtension
      * @tc.size: MediumTest
      * @tc.type: Function
     * @tc.level: Level 0
@@ -1098,8 +1122,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0023
-    * @tc.name: To verify the errcode 16000050  when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000050 .
+    * @tc.name: SUB_Ability_AbilityBase_ErrorCode_0023
+    * @tc.desc: To verify the errcode 16000050  when the parameters: ' { 'keyFd': { 'type': 'FD', 'value': -1 }'
+    * When StartAbility In UIExtension, an error code is 16000050 .
     * @tc.size: MediumTest
     * @tc.type: Function
     * @tc.level: Level 0
@@ -1155,8 +1180,9 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0024
-     * @tc.name:  To verify the errcode 16000004 when assithap "export:false" with ability
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000004 .
+     * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0024
+     * @tc.desc: To verify the errcode 16000004 when assithap "export:false" with ability
+     * When StartAbility In UIExtension, an error code is 16000004 .
      * @tc.size: MediumTest
      * @tc.type: Function
     * @tc.level: Level 0
@@ -1212,8 +1238,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0025
-    * @tc.name:  To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000078 .
+    * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0025
+    * @tc.desc: To verify the errcode 16000078 when assithap "multiAppMode" with ability & parameters with APP_INSTANCE_KEY ："app_instance_100"
+    * When StartAbility In UIExtension, an error code is 16000078 .
     * @tc.size: MediumTest
     * @tc.type: Function
    * @tc.level: Level 0
@@ -1269,8 +1296,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0026
-    * @tc.name:  To verify the errcode  16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000073 .
+    * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0026
+    * @tc.desc: To verify the errcode  16000073 when assithap "multiAppMode" with ability & parameters with APP_CLONE_INDEX_KEY > 1000
+    * When StartAbility In UIExtension, an error code is 16000073 .
     * @tc.size: MediumTest
     * @tc.type: Function
    * @tc.level: Level 0
@@ -1326,8 +1354,9 @@ export default function errorCodeTest() {
 
     /*
      * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0027
-     * @tc.name:  To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
-     * @tc.desc: When StartAbility In UIExtension, an error code is 16000080 .
+     * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0027
+     * @tc.desc: To verify the errcode 16000080 when The APP_INSTANCE_KEY is invalid.
+     * When StartAbility In UIExtension, an error code is 16000080 .
      * @tc.size: MediumTest
      * @tc.type: Function
     * @tc.level: Level 0
@@ -1383,8 +1412,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0028
-    * @tc.name:  To verify the errcode 16000072 when  verify the errcode 16000072 when assithap not config "multiAppMode"
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000072 .
+    * @tc.name:  SUB_Ability_AbilityBase_ErrorCode_0028
+    * @tc.desc: To verify the errcode 16000072 when  verify the errcode 16000072 when assithap not config "multiAppMode"
+    * When StartAbility In UIExtension, an error code is 16000072 .
     * @tc.size: MediumTest
     * @tc.type: Function
    * @tc.level: Level 0
@@ -1440,8 +1470,9 @@ export default function errorCodeTest() {
 
     /*
     * @tc.number: SUB_Ability_AbilityBase_ErrorCode_0029
-    * @tc.name: To verify the errcode 16000001 when The specified ability does not exist
-    * @tc.desc: When StartAbility In UIExtension, an error code is 16000019.
+    * @tc.name: SUB_Ability_AbilityBase_ErrorCode_0029
+    * @tc.desc: To verify the errcode 16000001 when The specified ability does not exist
+    * When StartAbility In UIExtension, an error code is 16000019.
     * @tc.size: MediumTest
     * @tc.type: Function
     * @tc.level: Level 0

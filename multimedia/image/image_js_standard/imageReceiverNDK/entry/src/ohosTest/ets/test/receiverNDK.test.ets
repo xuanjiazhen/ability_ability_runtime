@@ -185,6 +185,9 @@ export default function ImageReceiverNDKTest() {
                 mlg.log("SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_0100");
                 let myReceiver: ESObject = ndkTest.createImageReceiver(WIDTH, HEIGHT, RECEIVER_FORMAT, CAPACITY);
                 expect(myReceiver != undefined).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -295,6 +298,9 @@ export default function ImageReceiverNDKTest() {
                 expect(size.height == HEIGHT).assertTrue();
                 expect(capacity == CAPACITY).assertTrue();
                 expect(format == RECEIVER_FORMAT).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -325,6 +331,9 @@ export default function ImageReceiverNDKTest() {
                 let sId : string = ndkTest.getReceivingSurfaceId(myReceiver);
                 mlg.log("sId " + sId);
                 expect(isString(sId)).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -356,6 +365,9 @@ export default function ImageReceiverNDKTest() {
                 let myLatestImage: image.Image = ndkTest.readLatestImage(myReceiver);
                 mlg.log("myLatestImage " + JSON.stringify(myLatestImage));
                 expect(myLatestImage != undefined).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -387,6 +399,9 @@ export default function ImageReceiverNDKTest() {
                 let myNextImage: image.Image = ndkTest.readNextImage(myReceiver);
                 mlg.log("myNextImage " + JSON.stringify(myNextImage));
                 expect(myNextImage != undefined).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -419,6 +434,9 @@ export default function ImageReceiverNDKTest() {
                 let dummy: ESObject = myReceiver['test'];
                 await sleep(2000);
                 expect(onRet != undefined).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -469,6 +487,9 @@ export default function ImageReceiverNDKTest() {
                     return;
                 }
                 expect(true).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);
@@ -519,6 +540,9 @@ export default function ImageReceiverNDKTest() {
                 expect(myImageComponent.componentType == JPEG).assertTrue();
                 expect(myImageComponent.rowStride >= WIDTH).assertTrue();
                 expect(myImageComponent.pixelStride == Jpg_Stride).assertTrue();
+                let releaseRes: number = ndkTest.receiverRelease(myReceiver);
+                mlg.log('release result ' + JSON.stringify(releaseRes));
+                expect(releaseRes != undefined).assertTrue();
                 done();
             } catch (error) {
                 mlg.log("Test exception " + error);

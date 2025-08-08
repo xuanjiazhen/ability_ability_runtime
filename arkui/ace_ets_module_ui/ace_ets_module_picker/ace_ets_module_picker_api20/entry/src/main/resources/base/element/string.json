@@ -107,6 +107,22 @@
     {
       "name": "Check_Mark_Size_test",
       "value": "50vp"
+    },
+    {
+      "name": "topLeft",
+      "value": "24vp"
+    },
+    {
+      "name": "bottomLeft",
+      "value": "24vp"
+    },
+    {
+      "name": "topRight",
+      "value": "24vp"
+    },
+    {
+      "name": "bottomRight",
+      "value": "24vp"
     }
   ]
 }

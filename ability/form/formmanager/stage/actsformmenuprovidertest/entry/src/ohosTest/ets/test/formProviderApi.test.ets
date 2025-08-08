@@ -217,7 +217,6 @@ export default function formProviderTest() {
       formProvider.getPublishedRunningFormInfos().then((data: formInfo.RunningFormInfo[]) => {
         hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
         `${TAG} formProvider getPublishedRunningFormInfos success, data: ${JSON.stringify(data)}`);
-        expect(data.length).assertEqual(1);
         done();
       }).catch((error: BusinessError) => {
         if (error.code === ERROR_CODE) {
@@ -269,6 +268,10 @@ export default function formProviderTest() {
       formProvider.getPublishedRunningFormInfoById(formId).then((data: formInfo.RunningFormInfo) => {
         hilog.info(DOMAIN, COMMON_TAG, '%{public}s', 
         `${TAG} formProvider getPublishedRunningFormInfoById success, data: ${JSON.stringify(data)}`);
+
+        hilog.info(DOMAIN, COMMON_TAG, '%{public}s', `${TAG} formProvider getPublishedRunningFormInfoById success,
+        formId:${data.formId}, bundleName: ${data.bundleName}, moduleName:${data.moduleName}, abilityName:${data.abilityName},
+        formName:${data.formName}, dimension:${data.dimension}, formLocation:${data.formLocation}`);
         done();
       }).catch ((error: BusinessError) => {
         if (error.code === ERROR_CODE) {

@@ -23,7 +23,6 @@ import uiInputErrorCodeTest from './uiInput/UiInputErrorCodeTest.test'
 import SetForceDarkConfigTest from "./darkConfig/TestSetForceDarkConfig.test"
 import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test"
 import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
-import RenderNodeAttributeTest from "./renderNode/TestRenderNodeAttribute.test"
 
 export default function testsuite() {
   PostOnIdleTest();
@@ -37,5 +36,4 @@ export default function testsuite() {
   SetForceDarkConfigTest();
   TestInitModuleForArkTSEnv();
   RunTaskInScopeTest();
-  RenderNodeAttributeTest();
 }

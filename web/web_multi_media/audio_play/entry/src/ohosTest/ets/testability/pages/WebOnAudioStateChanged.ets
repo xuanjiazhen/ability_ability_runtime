@@ -62,7 +62,6 @@ struct WebOnAudioStateChanged {
             case "emitAudioStatePlay": {
               try {
                 this.statusResult = ''
-                // await Utils.clickComponent('OnAudioStateChangedWebView')
                 this.controller.runJavaScript("play()", (error, result) => {
                   if (error) {
                     console.log(`The controller.play() return error is: ${error}`);
@@ -74,11 +73,11 @@ struct WebOnAudioStateChanged {
                 await Utils.sleep(2000)
                 this.controller.runJavaScript("isPlaying()", (error, result) => {
                   if (error) {
-                    console.log(`The controller.isPlaying() return error is: ${error}`);
+                    console.log(`The controller.isPlaying1() return error is: ${error}`);
                   }
                   if (result) {
                     this.statusResult += (result + '_')
-                    console.log(`The controller.isPlaying() return value is: ${result}`);
+                    console.log(`The controller.isPlaying1() return value is: ${result}`);
                   }
                 })
               } catch (error) {
@@ -86,7 +85,14 @@ struct WebOnAudioStateChanged {
               }
               await Utils.sleep(2000)
               Utils.emitEvent(this.statusResult, 60501)
-              await Utils.clickComponent('OnAudioStateChangedWebView')
+              this.controller.runJavaScript("pause()", (error, result) => {
+                if (error) {
+                  console.log(`The controller.pause1() return error is: ${error}`);
+                }
+                if (result) {
+                  console.log(`The controller.pause1() emitAudioStatePause2 return value is: ${result}`);
+                }
+              })
               await Utils.sleep(2000)
               break;
             }

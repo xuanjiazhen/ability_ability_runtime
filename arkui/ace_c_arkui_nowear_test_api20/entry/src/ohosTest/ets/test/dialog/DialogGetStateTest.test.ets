@@ -16,6 +16,7 @@
 import { beforeAll, describe, expect, it, Level, afterEach } from '@ohos/hypium';
 import Utils from '../common/Utils';
 import { Driver, ON } from '@ohos.UiTest';
+import nativeRender from 'libnativerender.so'
 
 export default function dialogGetStateTest() {
 
@@ -69,6 +70,58 @@ export default function dialogGetStateTest() {
       let obj: ESObject = JSON.parse(strJson);
       console.info("getState_002 content is: " + JSON.stringify(obj.$attrs.content));
       expect(obj.$attrs.content).assertEqual('5');
+      done();
+    })
+
+    /*
+    * @tc.number     : getState_003
+    * @tc.name       : getState_003
+    * @tc.desc       : test OH_ArkUI_CustomDialog_GetState DIALOG_APPEARED
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 1
+    */
+    it('getState_003', Level.LEVEL1, async (done: Function) => {
+      let driver = Driver.create();
+      let component1 = await driver.findComponent(ON.id('GetStateButton'));
+      await component1.click();
+      await Utils.sleep(2000);
+      let component2 = await driver.findComponent(ON.id('GetStateButton3'));
+      await component2.click();
+      await Utils.sleep(2000);
+      await driver.pressBack(0);
+      await Utils.sleep(2000);
+      let strJson = getInspectorByKey('textGetStates');
+      await Utils.sleep(1000);
+      let obj: ESObject = JSON.parse(strJson);
+      console.info("getState_003 content is: " + JSON.stringify(obj.$attrs.content));
+      expect(obj.$attrs.content).assertEqual('3');
+      done();
+    })
+
+    /*
+    * @tc.number     : getState_004
+    * @tc.name       : getState_004
+    * @tc.desc       : test OH_ArkUI_CustomDialog_GetState DIALOG_UNINITIALIZED
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 1
+    */
+    it('getState_004', Level.LEVEL1, async (done: Function) => {
+      let driver = Driver.create();
+      let component1 = await driver.findComponent(ON.id('GetStateButton'));
+      await component1.click();
+      await Utils.sleep(2000);
+      await driver.pressBack(0);
+      await Utils.sleep(2000);
+      let component2 = await driver.findComponent(ON.id('GetStateButton5'));
+      await component2.click();
+      await Utils.sleep(2000);
+      let strJson = getInspectorByKey('textGetStates');
+      await Utils.sleep(1000);
+      let obj: ESObject = JSON.parse(strJson);
+      console.info("getState_004 content is: " + JSON.stringify(obj.$attrs.content));
+      expect(obj.$attrs.content).assertEqual('0');
       done();
     })
   })

@@ -28,7 +28,6 @@ struct KeyCodeTest3 {
           .onKeyEvent((event: KeyEvent)=>{
             keyCodeNdk.InitKeyMonitor3(event?.keyCode);
           })
-        TextInput()
       }
       .width('100%')
     }

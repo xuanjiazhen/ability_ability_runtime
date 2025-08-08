@@ -58,5 +58,82 @@ export default function TextPickerPage() {
       expect(obj1.toLowerCase()).assertEqual(Color.Red);
       done();
     });
+
+    /* *
+     * @tc.number: textPickerselectedBackgroundStyle002
+     * @tc.name  : textPickerselectedBackgroundStyle002
+     * @tc.desc  : To test the selectedBackgroundStyle color type is string and borderRadius type is number
+     * @tc.level : Level 0
+     * @tc.type
+     * @tc.size
+     */
+    it('textPickerselectedBackgroundStyle002', Level.LEVEL0, async (done: Function) => {
+      await Utils.sleep(1000);
+      let strJson = getInspectorByKey('textPicker2');
+      let obj: ESObject = JSON.parse(strJson);
+      await Utils.sleep(1000);
+      let obj1 :string = obj.$attrs.selectedBackgroundStyle.borderRadius;
+      let obj2 :string = obj.$attrs.selectedBackgroundStyle.color;
+      expect(obj1).assertEqual("radiusTopLeft: [15.00vp]radiusTopRight: [15.00vp]radiusBottomLeft: [15.00vp]radiusBottomRight: [15.00vp]");
+      expect(obj2).assertEqual("#FFFFFFFF");
+      done();
+    });
+    /* *
+     * @tc.number: textPickerselectedBackgroundStyle003
+     * @tc.name  : textPickerselectedBackgroundStyle003
+     * @tc.desc  : To test the selectedBackgroundStyle color type is number and borderRadius type is string
+     * @tc.level : Level 0
+     * @tc.type
+     * @tc.size
+     */
+    it('textPickerselectedBackgroundStyle003', Level.LEVEL0, async (done: Function) => {
+      await Utils.sleep(1000);
+      let strJson = getInspectorByKey('textPicker3');
+      let obj: ESObject = JSON.parse(strJson);
+      await Utils.sleep(1000);
+      let obj1 :string = obj.$attrs.selectedBackgroundStyle.borderRadius;
+      let obj2 :string = obj.$attrs.selectedBackgroundStyle.color;
+      expect(obj1).assertEqual("radiusTopLeft: [15.00vp]radiusTopRight: [15.00vp]radiusBottomLeft: [15.00vp]radiusBottomRight: [15.00vp]");
+      expect(obj2).assertEqual("#FFFFFFFF");
+      done();
+    });
+    /* *
+     * @tc.number: textPickerselectedBackgroundStyle004
+     * @tc.name  : textPickerselectedBackgroundStyle004
+     * @tc.desc  : To test the selectedBackgroundStyle color and borderRadius type is resource
+     * @tc.level : Level 0
+     * @tc.type
+     * @tc.size
+     */
+    it('textPickerselectedBackgroundStyle004', Level.LEVEL0, async (done: Function) => {
+      await Utils.sleep(1000);
+      let strJson = getInspectorByKey('textPicker4');
+      let obj: ESObject = JSON.parse(strJson);
+      await Utils.sleep(1000);
+      let obj1 :string = obj.$attrs.selectedBackgroundStyle.borderRadius;
+      let obj2 :string = obj.$attrs.selectedBackgroundStyle.color;
+      expect(obj1).assertEqual("radiusTopLeft: [24.00vp]radiusTopRight: [24.00vp]radiusBottomLeft: [24.00vp]radiusBottomRight: [24.00vp]");
+      expect(obj2).assertEqual("#FFFFFFFF");
+      done();
+    });
+    /* *
+     * @tc.number: textPickerselectedBackgroundStyle005
+     * @tc.name  : textPickerselectedBackgroundStyle005
+     * @tc.desc  : To test the selectedBackgroundStyle color and borderRadius type is undefine
+     * @tc.level : Level 0
+     * @tc.type
+     * @tc.size
+     */
+    it('textPickerselectedBackgroundStyle005', Level.LEVEL0, async (done: Function) => {
+      await Utils.sleep(1000);
+      let strJson = getInspectorByKey('textPicker5');
+      let obj: ESObject = JSON.parse(strJson);
+      await Utils.sleep(1000);
+      let obj1 :string = obj.$attrs.selectedBackgroundStyle.borderRadius;
+      let obj2 :string = obj.$attrs.selectedBackgroundStyle.color;
+      expect(obj1).assertEqual("radiusTopLeft: [24.00vp]radiusTopRight: [24.00vp]radiusBottomLeft: [24.00vp]radiusBottomRight: [24.00vp]");
+      expect(obj2).assertEqual("#0C182431");
+      done();
+    });
   })
 }

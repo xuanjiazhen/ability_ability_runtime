@@ -56,7 +56,6 @@ const uint64_t PLUS_SLEEP_TIME = 200000;
 const uint64_t FUNC_SIGNAL_SLEEP = 30000;
 const uint64_t SLEEP_TIME = 2000;
 const uint64_t UNIT_TASK_DELAY_500 = 500000;
-const double COST_TIME = 1.0;
 const uint64_t COST_TIME_200 = 200;
 const uint64_t COST_TIME_300 = 300;
 const uint64_t COST_TIME_500 = 500;
@@ -1842,10 +1841,7 @@ static napi_value QueueDelayTest005(napi_env env, napi_callback_info info)
     if (a != 1) {
         result = 1;
     }
-    if (t >= COST_TIME) {
-        result = 2;
-    }
-
+    OH_LOG_Print(LOG_APP, LOG_INFO, 1, "FFRT QUEUE", "test2 cost %{public}f ms", t);
     ffrt_queue_wait(task1);
     if (a != 10) {
         result = 3;

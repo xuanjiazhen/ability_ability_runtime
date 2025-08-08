@@ -1010,3 +1010,25 @@ export async function pendingSharedRequestAfterGC() {
   return check('pendingSharedRequestAfterGC', Promise.all([p, p0]));
 }
 
+// test entry point
+export async function checkDeadlock() {
+  let lock = new utils.locks.AsyncLock();
+  let out_time = 1000;
+  let inner_time = 500;
+  let p = lock.lockAsync(
+    async () => {
+      await new Promise<void>(resolve => setTimeout(resolve, out_time));
+    },
+  );
+  let options = new utils.locks.AsyncLockOptions<string>();
+  options.timeout = inner_time;
+  let p0 = lock.lockAsync(() => {
+  }, utils.locks.AsyncLockMode.EXCLUSIVE, options).catch((e: Error) => {
+    if (!e.message.includes('DEADLOCK WARNING')) {
+      throw e;
+    } else {
+      console.warn(e.message)
+    }
+  })
+  return check('checkDeadlock', Promise.all([p, p0]));
+}

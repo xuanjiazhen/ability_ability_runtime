@@ -1316,25 +1316,6 @@ void VEncAPI11Sample::SyncOutputFunc()
 int32_t VEncAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFrames, uint32_t &index,
     OH_AVBuffer *buffer, OH_AVCodecBufferAttr &attr)
 {
-    if (getOutputBufferIndexNoExisted) {
-        buffer = OH_VideoEncoder_GetOutputBuffer(venc_, index + HUNDRED);
-        if (buffer == nullptr) {
-            abnormalIndexValue = true;
-            cout << "OH_VideoEncoder_GetOutputBuffer noexist buffer nullptr" << endl;
-        }
-        return AV_ERR_UNKNOWN;
-    }
-    if (outFrames == 0 && getOutputBufferIndexRepeated) {
-        last_index = index;
-    } else if (outFrames == 1 && getOutputBufferIndexRepeated) {
-        cout << "getOutputBufferIndexRepeated last_index: " << last_index << "index" << index << endl;
-        buffer = OH_VideoEncoder_GetOutputBuffer(venc_, last_index);
-        if (buffer == nullptr) {
-            abnormalIndexValue = true;
-            cout << "OH_VideoEncoder_GetOutputBuffer repeat buffer nullptr" << endl;
-        }
-        return AV_ERR_UNKNOWN;
-    }
     DumpInfo(attr, buffer);
     if (OH_AVBuffer_GetBufferAttr(buffer, &attr) != AV_ERR_OK) {
         errCount = errCount + 1;
@@ -1351,6 +1332,20 @@ int32_t VEncAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             OH_VideoEncoder_QueryOutputBuffer(venc_, &index, -1);
         }
         return AV_ERR_UNKNOWN;
+    }
+    if (getOutputBufferIndexNoExisted) {
+        buffer = OH_VideoEncoder_GetOutputBuffer(venc_, index + HUNDRED);
+        if (buffer == nullptr) {
+            abnormalIndexValue = true;
+        }
+    }
+    if (outFrames == 0 && getOutputBufferIndexRepeated) {
+        last_index = index;
+    } else if (outFrames == 1 && getOutputBufferIndexRepeated) {
+        buffer = OH_VideoEncoder_GetOutputBuffer(venc_, last_index);
+        if (buffer == nullptr) {
+            abnormalIndexValue = true;
+        }
     }
     return AV_ERR_OK;
 }

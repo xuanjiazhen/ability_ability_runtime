@@ -15,6 +15,7 @@
 import rpc from "@ohos.rpc";
 import commonEvent from '@ohos.commonEvent';
 import ability_particleAbility from '@ohos.ability.particleAbility';
+import dataAbility from '@ohos.data.dataAbility';
 
 class StubTest1 extends rpc.RemoteObject {
     constructor(des) {
@@ -82,11 +83,9 @@ export default {
         });
 
         setTimeout(()=>{
-            ability_particleAbility.terminateSelf().then((data) => {
-                console.info(printLogS1 + "terminateSelf data = " + JSON.stringify(data));
-            }).catch((err) => {
-                console.info(printLogS1 + "terminateSelf err = " + JSON.stringify(err));
-            });
+            ability_particleAbility.terminateSelf((err, data)=>{
+              console.info(printLogS1 + "terminateSelf data = " + JSON.stringify(data) + JSON.stringify(err));
+            })
         }, 3000)
     },
     onConnect(want) {
