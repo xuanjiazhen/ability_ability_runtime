@@ -19,6 +19,7 @@ import rpc from '@ohos.rpc';
 type valueType = NullishType;
 const DOMAIN_ID = 0xD001300;
 const TAG = 'WantSerializeTool';
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
 
 class RecordWriter {
   private buffer = new StringBuilder();
@@ -398,7 +399,7 @@ export default class Want {
   type?: string;
   flags?: int;
   action?: string;
-  parameters?: Record<string, Object>;
+  parameters?: RecordData;
   entities?: Array<string>;
   moduleName?: string;
 }

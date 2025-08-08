@@ -21,6 +21,8 @@ import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 class Cleaner {
   static callback(cleaner: Cleaner): void {
       cleaner.clean()
@@ -50,25 +52,25 @@ export default class UIExtensionContentSession {
     }
     this.registerCleaner(this.nativeContextSession)
   }
-  native nativeSendData(data: Record<string, Object>): void;
+  native nativeSendData(data: RecordData): void;
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
-  native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
-  native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
+  native nativeSetReceiveDataCallback(callback: (data: RecordData) => void): void;
+  native nativeSetReceiveDataForResultCallback(callback: (data: RecordData) => Record<string, Object>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
-  private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
+  private native nativeStartAbilityByTypeSync(type: string, wantParam: RecordData, startCallback: AbilityStartCallback): BusinessError<void>;
 
-  sendData(data: Record<string, Object>): void {
+  sendData(data: RecordData): void {
     this.nativeSendData(data);
   }
 
-  setReceiveDataCallback(callback: (data: Record<string, Object>) => void): void {
+  setReceiveDataCallback(callback: (data: RecordData) => void): void {
     this.nativeSetReceiveDataCallback(callback);
   }
 
-  setReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void {
+  setReceiveDataForResultCallback(callback: (data: RecordData) => Record<string, Object>): void {
     this.nativeSetReceiveDataForResultCallback(callback);
   }
 
@@ -118,7 +120,7 @@ export default class UIExtensionContentSession {
     return p;
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError<void> => {
       return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
@@ -135,7 +137,7 @@ export default class UIExtensionContentSession {
     });
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>,
+  startAbilityByType(type: string, wantParam: RecordData,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError<void>) => void): void => {
       let p1 = taskpool.execute((): BusinessError<void> => {

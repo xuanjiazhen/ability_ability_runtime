@@ -31,6 +31,8 @@ import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import image from '@ohos.multimedia.image';
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 class Cleaner {
   public ptr: long = 0;
 
@@ -428,10 +430,10 @@ export default class UIAbilityContext extends Context {
     this.nativeSetColorMode(colorMode);
   }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback,
+  startAbilityByType(type: string, wantParam: RecordData, startCallback: AbilityStartCallback,
     callback: AsyncCallback<void>): void {
     let p1 = taskpool.execute((): BusinessError => {
-      return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+      return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
     });
     p1.then((e: NullishType) => {
       let retError = e as BusinessError;
@@ -479,11 +481,11 @@ hideAbility(): Promise<void> {
   return p;
 }
 
-  startAbilityByType(type: string, wantParam: Record<string, Object>,
+  startAbilityByType(type: string, wantParam: RecordData,
     startCallback: AbilityStartCallback): Promise<void> {
     let p = new Promise<void>((resolve: (v: undefined) => void, reject: (error: BusinessError) => void): void => {
       let p1 = taskpool.execute((): BusinessError => {
-        return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
+        return this.nativeStartAbilityByTypeSync(type, wantParam as Record<string, Object>, startCallback);
       });
       p1.then((e: NullishType) => {
         let retError = e as BusinessError;

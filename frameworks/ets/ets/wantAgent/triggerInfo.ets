@@ -16,12 +16,14 @@
 import Want from '@ohos.app.ability.Want';
 import StartOptions from '@ohos.app.ability.StartOptions';
 
+export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
+
 export interface TriggerInfo {
   code: number;
   want?: Want;
   permission?: string;
-  extraInfo?: Record<string,Object>;
-  extraInfos?: Record<string, Object>;
+  extraInfo?: RecordData;
+  extraInfos?: RecordData;
   startOptions?: StartOptions;
 }
 
@@ -29,7 +31,7 @@ class TriggerInfoImpl implements TriggerInfo {
   public code: number;
   public want?: Want;
   public permission?: string;
-  public extraInfo?: Record<string,Object>;
-  public extraInfos?: Record<string, Object>;
+  public extraInfo?: RecordData;
+  public extraInfos?: RecordData;
   public startOptions?: StartOptions;
 }
