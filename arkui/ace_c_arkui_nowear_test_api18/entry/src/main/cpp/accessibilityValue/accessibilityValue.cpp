@@ -703,6 +703,8 @@ typedef struct ArkUITouchPoint_ {
     ArkUI_Float32 screenY;
     ArkUI_Float32 windowX;
     ArkUI_Float32 windowY;
+    ArkUI_Float64 globalDispalyX;
+    ArkUI_Float64 globalDispalyY;
     ArkUI_Float32 nodeX;
     ArkUI_Float32 nodeY;
     ArkUI_Float64 pressure;
