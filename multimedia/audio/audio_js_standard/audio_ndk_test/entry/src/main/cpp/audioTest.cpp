@@ -28,6 +28,7 @@
 #include "ohaudio/native_audio_routing_manager.h"
 #include "ohaudio/native_audio_device_base.h"
 #include "ohaudio/native_audio_session_manager.h"
+#include "ohaudio/native_audio_resource_manager.h"
 #include "ohaudio/native_audio_volume_manager.h"
 #include "ohaudio/native_audio_stream_manager.h"
 #include "hilog/log.h"
@@ -46,6 +47,8 @@ const int32_t g_sampleFormat = 1;
 const int32_t g_frameSize = 240; // 240:g_frameSize value
 const int32_t CHANNEL_LAYOUT = 3;
 const int32_t ENCODING_TYPE = 0;
+const int32_t STATE_TIME = 0;
+const int32_t END_TIME = 20;
 const int32_t NORMAL_RATE = 32000;
 bool g_flag = false;
 bool g_mark = false;
@@ -210,6 +213,23 @@ static napi_value AudioCaptureGenerate(napi_env env, napi_callback_info info)
 
     OH_AudioCapturer_Release(audioCapturer);
     OH_AudioStreamBuilder_Destroy(builder);
+    napi_value res;
+    napi_create_int32(env, result, &res);
+    return res;
+}
+
+static napi_value AudioWorkGroup(napi_env env, napi_callback_info info)
+{   
+    int32_t tid;
+    OH_AudioResourceManager *mgr;
+    OH_AudioWorkgroup *grp;
+    OH_AudioManager_GetAudioResourceManager(&mgr);
+    OH_AudioResourceManager_CreateWorkgroup(mgr, "new", &grp);
+    OH_AudioWorkgroup_AddCurrentThread(grp, &tid);
+    OH_AudioWorkgroup_Start(grp, STATE_TIME, END_TIME);              
+    OH_AudioWorkgroup_Stop(grp);
+    OH_AudioWorkgroup_RemoveThread(grp, tid);
+    OH_AudioCommon_Result result=OH_AudioResourceManager_ReleaseWorkgroup(mgr, grp);
     napi_value res;
     napi_create_int32(env, result, &res);
     return res;
@@ -5704,6 +5724,9 @@ static napi_value AudioRenderGetAudioTimestampInfoInterval(napi_env env, napi_ca
         if (framePositionLastDuration <= framePositionCurDuration * (1 - rate) ||
 		    framePositionLastDuration >= framePositionCurDuration * (1 + rate)) {
             napi_create_int32(env, TEST_FAIL, &res);
+            OH_AudioRenderer_Stop(audioRenderer);
+            OH_AudioRenderer_Release(audioRenderer);
+            OH_AudioStreamBuilder_Destroy(builder);
             return res;
             }
 		
@@ -7474,6 +7497,7 @@ napi_property_descriptor desc1[] = {
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"createAudioStreamBuilder", nullptr, CreateAudioStreamBuilder, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureGenerate", nullptr, AudioCaptureGenerate, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioWorkGroup", nullptr, AudioWorkGroup, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureGenerateErr", nullptr, AudioCaptureGenerateErr,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureStart", nullptr, AudioCaptureStart, nullptr, nullptr, nullptr, napi_default, nullptr},

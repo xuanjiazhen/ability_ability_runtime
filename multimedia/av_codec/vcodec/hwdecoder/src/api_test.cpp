@@ -623,7 +623,6 @@ HWTEST_F(HwdecApiNdkTest, VIDEO_HWDEC_API_0600, TestSize.Level2)
     cb_.onError = VdecError;
     cb_.onStreamChanged = VdecFormatChanged;
     cb_.onNeedInputData = VDecNeedInputData;
-    cb_.onNeedOutputData = VdecOutputDataReady;
     ASSERT_EQ(AV_ERR_OK, OH_VideoDecoder_SetCallback(vdec_, cb_, static_cast<void *>(signal_)));
     ASSERT_EQ(AV_ERR_OK, OH_VideoDecoder_Start(vdec_));
     for (int i = 0; i < 2; i++) {

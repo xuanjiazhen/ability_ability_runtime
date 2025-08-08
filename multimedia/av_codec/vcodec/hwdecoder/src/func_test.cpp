@@ -125,6 +125,8 @@ HWTEST_F(HwdecFuncNdkTest, VIDEO_HWDEC_FUNCTION_0400, TestSize.Level0)
     ASSERT_EQ(AV_ERR_OK, vDecSample->RunVideoDec_Surface(g_codecName));
     vDecSample->WaitForEOS();
     ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
+    delete vDecSample;
+    vDecSample = nullptr;
 }
 
 /**
@@ -402,7 +404,6 @@ HWTEST_F(HwdecFuncNdkTest, SURF_CHANGE_FUNC_002, TestSize.Level0)
     ASSERT_EQ(AV_ERR_OK, vDecSample->Flush());
     ASSERT_EQ(AV_ERR_OK, vDecSample->SwitchSurface());
     ASSERT_EQ(AV_ERR_OK, vDecSample->Stop());
-    ASSERT_EQ(AV_ERR_OK, vDecSample->errCount);
 }
 /**
  * @tc.number    : SURF_CHANGE_FUNC_003

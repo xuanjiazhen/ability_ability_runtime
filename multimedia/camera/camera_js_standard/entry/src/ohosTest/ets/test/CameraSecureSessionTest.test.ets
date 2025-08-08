@@ -142,6 +142,18 @@ export default function cameraSecureSessionTest() {
     return true;
   }
 
+  let isSceneModesupport = (sceneMode: number) => {
+    let num: number = -1;
+    for (let i = 0; i < mCameraDevicesArray.length; i++) {
+      let modes = mCameraManager.getSupportedSceneModes(mCameraDevicesArray[i]);
+      console.info(TAG + `camera ${i} modes is: `  + modes);
+      if (modes.includes(sceneMode)) {
+        num = i
+      }
+    }
+    return num;
+  }
+
   let createSecureSessionInstance = () => {
     console.info('Enter createSecureSessionInstance');
 
@@ -587,14 +599,16 @@ export default function cameraSecureSessionTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0100', Level.LEVEL1, async (done: Function) => {
       console.info("--------------Enter SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0100--------------");
-      if (mCameraNum < 2) {
-        console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_ADD_SECURE_CAMERA_0100 Pass with NoCamera Support Secure Session");
-        expect(true).assertTrue();
+      let i = isSceneModesupport(cameraObj.SceneMode.SECURE_PHOTO);
+      console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0100 i : " + i);
+      if (i == -1) {
+        console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0100 Pass with NoCamera Support Secure Session");
+        expect(i == -1).assertTrue();
         done();
       } else {
         createSecureSessionInstance();
-        await createInput(1);
-        await createOutput(1);
+        await createInput(i);
+        await createOutput(i);
     
         if (!isEmpty(mCameraInput)) {
           console.info(TAG + "Start to addInput");
@@ -633,14 +647,16 @@ export default function cameraSecureSessionTest() {
      */
     it('SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0200', Level.LEVEL2, async (done: Function) => {
       console.info("--------------Enter SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0200--------------");
-      if (mCameraNum < 2) {
-        console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SESSION_ADD_SECURE_CAMERA_0100 Pass with NoCamera Support Secure Session");
-        expect(true).assertTrue();
+      let i = isSceneModesupport(cameraObj.SceneMode.SECURE_PHOTO);
+      console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0200 i : " + i);
+      if (i == -1) {
+        console.info(TAG + "Entering SUB_MULTIMEDIA_CAMERA_SECURE_SESSION_ADD_SECURE_OUTPUT_0200 Pass with NoCamera Support Secure Session");
+        expect(i == -1).assertTrue();
         done();
       } else {
         createSecureSessionInstance();
-        await createInput(1);
-        await createOutput(1);
+        await createInput(i);
+        await createOutput(i);
     
         if (!isEmpty(mCameraInput)) {
           console.info(TAG + "Start to addInput");

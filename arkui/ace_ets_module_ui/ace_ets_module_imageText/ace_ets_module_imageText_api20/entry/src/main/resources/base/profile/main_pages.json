@@ -53,6 +53,7 @@
     "MainAbility/pages/Text/TextBindControllerTest",
     "MainAbility/pages/TextArea/MaxLinesOptionsTest",
     "MainAbility/pages/TextArea/TextAreaBindControllerTest",
-    "MainAbility/pages/TextInput/TextInputBindControllerTest"
+    "MainAbility/pages/TextInput/TextInputBindControllerTest",
+    "MainAbility/pages/StyledString/StyledStringVerticalAlignTest"
   ]
 }

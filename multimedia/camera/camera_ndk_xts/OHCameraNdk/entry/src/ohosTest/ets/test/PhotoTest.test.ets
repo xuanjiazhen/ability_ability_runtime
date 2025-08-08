@@ -153,6 +153,38 @@ function startCameraSession() {
   }
 }
 
+async function stopCameraSession() {
+  console.info(TAG + "Enter stopCameraSession");
+
+  let ret = cameras.oHCaptureSessionRelease(0);
+  if (ret != 0) {
+    console.info(TAG + "sessionStop FAILED");
+    expect().assertFail();
+  }
+  await releaseInput();
+  await releaseOutput();
+
+  console.info(TAG + "Exit stopCameraSession");
+
+  return true;
+}
+
+async function releaseInput() {
+  console.info('Enter releaseInput');
+  await cameras.oHCameraInputClose(0);
+  console.info('Exit releaseInput');
+  return true;
+}
+
+async function releaseOutput() {
+  console.info('Enter releaseOutput');
+  await cameras.oHPreviewOutputRelease(0);
+  await cameras.oHPhotoOutputRelease(0);
+
+  console.info('Exit releaseOutput');
+  return true;
+}
+
 function isEmpty(data: cameras.cameraInfo | number) {
   if (data == null || data == undefined) {
     return true;
@@ -186,15 +218,16 @@ export default function PhotoTest() {
       await getPhotoReceiverSurface();
       getCameraManagerInstance();
       getSupportedCamerasInstance();
-      startCameraSession();
+      
     })
-    beforeEach(() => {
-
+    beforeEach(async () => {
+      startCameraSession();
       // Presets an action, which is performed before each unit test case starts.
       // The number of execution times is the same as the number of test cases defined by **it**.
       // This API supports only one parameter: preset action function.
     })
-    afterEach(() => {
+    afterEach(async () => {
+      await stopCameraSession();
       // Presets a clear action, which is performed after each unit test case ends.
       // The number of execution times is the same as the number of test cases defined by **it**.
       // This API supports only one parameter: clear action function.
@@ -241,6 +274,7 @@ export default function PhotoTest() {
      */
     it('testOHPreviewOutputStop0100', Level.LEVEL0, () => {
 
+      cameras.oHPreviewOutputStart(0);
       let ret = cameras.oHPreviewOutputStop(0);
       console.log(TAG+"testOHPreviewOutputStop0100:"+ret);
       expect(ret).assertEqual(CAMERA_OK);

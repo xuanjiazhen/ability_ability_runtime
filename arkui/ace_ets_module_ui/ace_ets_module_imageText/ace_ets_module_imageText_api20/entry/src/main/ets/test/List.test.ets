@@ -59,6 +59,7 @@ import TextAreaBindControllerTest from './TextAreaTest/TextAreaBindControllerTes
 import TextInputBindControllerTest from './TextInputTest/TextInputBindControllerTest.test';
 import OptimizeTrailingSpaceTest from './TextTest/OptimizeTrailingSpaceTest.test';
 import TextBindControllerTest from './TextTest/TextBindControllerTest.test';
+import StyledStringVerticalAlignTest from './StyledStringTest/StyledStringVerticalAlignTest.test';
 
 export default function testsuite() {
   textAreaInputTest();
@@ -107,4 +108,5 @@ export default function testsuite() {
   TextInputBindControllerTest();
   TextBindControllerTest();
   OptimizeTrailingSpaceTest();
+  StyledStringVerticalAlignTest();
 }

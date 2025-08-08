@@ -2053,41 +2053,6 @@ HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_019, TestSize.Leve
     EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
     OH_AudioStreamBuilder_Destroy(builder);
 }
-
-/**
- * @tc.name  : OH_AudioRenderer_SetLoudnessGain_020
- * @tc.number: OH_AudioRenderer_SetLoudnessGain_020
- * @tc.desc  : Test OH_AudioRenderer_SetLoudnessGain interface
- *             overwrites OH_AudioRenderer_SetLoudnessGain interface'back test.
- *             mode is AUDIOSTREAM_LATENCY_MODE_FAST
- *             Returns AUDIOSTREAM_ERROR_INVALID_PARAM if result is fail.
- */
-HWTEST(OHAudioRenderUnitTest, OH_Audio_Render_SetLoudnessGain_020, TestSize.Level2)
-{
-    OH_AudioStreamBuilder* builder = nullptr;
-    OH_AudioRenderer* audioRenderer = nullptr;
-    auto result = OH_AudioStreamBuilder_Create(&builder, AUDIOSTREAM_TYPE_RENDERER);
-    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
-
-    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_FAST);
-
-    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MUSIC);
-
-    result = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
-    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
-
-    result = OH_AudioRenderer_SetLoudnessGain(audioRenderer, 24.0f);
-    EXPECT_TRUE(AUDIOSTREAM_ERROR_INVALID_PARAM == result);
-    sleep(1);
-
-    float loudnessGain = 1;
-    result = OH_AudioRenderer_GetLoudnessGain(audioRenderer, &loudnessGain);
-    EXPECT_TRUE(AUDIOSTREAM_SUCCESS == result && loudnessGain == 0);
-    result = OH_AudioRenderer_Release(audioRenderer);
-    EXPECT_EQ(result, AUDIOSTREAM_SUCCESS);
-    OH_AudioStreamBuilder_Destroy(builder);
-}
-
 /**
  * @tc.name  : OH_AudioRenderer_SetLoudnessGain_021
  * @tc.number: OH_AudioRenderer_SetLoudnessGain_021

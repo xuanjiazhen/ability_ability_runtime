@@ -14,7 +14,15 @@
  */
  
 import KeyCodeNdkTest from './nativekeycode/KeyCodeTest.test'
+import KeyCodeNdkTest1 from './nativekeycode/KeyCodeTest1.test'
+import KeyCodeNdkTest2 from './nativekeycode/KeyCodeTest2.test'
+import KeyCodeNdkTest3 from './nativekeycode/KeyCodeTest3.test'
+import KeyCodeNdkTest4 from './nativekeycode/KeyCodeTest4.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
+  KeyCodeNdkTest1()
+  KeyCodeNdkTest2()
+  KeyCodeNdkTest3()
+  KeyCodeNdkTest4()
 }
