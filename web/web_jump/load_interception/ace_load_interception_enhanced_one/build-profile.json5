@@ -20,6 +20,7 @@
         "name": "default",
         "signingConfig": "default",
         "compatibleSdkVersion": 12,
+        "runtimeOS": "OpenHarmony",
         "compileSdkVersion": 20
       }
     ],
