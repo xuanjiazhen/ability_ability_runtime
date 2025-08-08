@@ -31,8 +31,8 @@ export default function AvPlayerEnumTest() {
       console.info('afterAll case');
     });
     /* *
-        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AUDIO_RECORDER_ENUM_AUDIO_OUTPUT_FORMAT_0100
-        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AUDIO_RECORDER_ENUM_AUDIO_OUTPUT_FORMAT_0100
+        * @tc.number    : SUB_MULTIMEDIA_MEDIA_AVPLAYER_ENUM_0100
+        * @tc.name      : SUB_MULTIMEDIA_MEDIA_AVPLAYER_ENUM_0100
         * @tc.desc      : AVPlayer Enumeration test - StateChangeReason
         * @tc.size      : MediumTest
         * @tc.type      : Function test
