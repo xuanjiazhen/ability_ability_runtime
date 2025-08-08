@@ -68,24 +68,6 @@ struct WebTextAutosizing {
                 Utils.emitEvent(true, 4350)
                 break;
               }
-               this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
-                  this.ClientWidth = Number(res)
-                  console.log('ClientWidth' + this.ClientWidth)
-                })
-                let nums=1
-                let tryTime=10
-                while(nums < tryTime) {
-                    Utils.sleep(2000);
-                    if(this.ClientWidth!=0){
-                      break;
-                    }
-                    nums++;
-                }
-                if(this.ClientWidth > 980) {
-                  console.log('success' + this.ClientWidth)
-                  Utils.emitEvent(true, 4352)
-                  break;
-                }
               let value: boolean = false;
               this.isTextAutosizing = false;
               this.de = 1
