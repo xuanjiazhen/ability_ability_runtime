@@ -26,15 +26,15 @@ static OH_Rdb_Config config_;
 
 static void InitRdbConfig()
 {
-    const char *RDB_TEST_PATH = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
-    char RDB_STORE_NAME[] = "rdb_store_test.db";
-    char BUNDLE_NAME[] = "com.acts.acttransactiontest";
-    char MODULE_NAME[] = "";
-    
-    config_.dataBaseDir = RDB_TEST_PATH;
-    config_.storeName = RDB_STORE_NAME;
-    config_.bundleName = BUNDLE_NAME;
-    config_.moduleName = MODULE_NAME;
+    const char *rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
+    char rdbStoreName[] = "rdb_store_test.db";
+    char bundleName[] = "com.acts.acttransactiontest";
+    char moduleName[] = "";
+
+    config_.dataBaseDir = rdbTestPath;
+    config_.storeName = rdbStoreName;
+    config_.bundleName = bundleName;
+    config_.moduleName = moduleName;
     config_.securityLevel = OH_Rdb_SecurityLevel::S1;
     config_.isEncrypt = false;
     config_.selfSize = sizeof(OH_Rdb_Config);
