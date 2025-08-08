@@ -69,16 +69,37 @@ struct WebTextAutosizing {
                 Utils.emitEvent(true, 4350);
                 break;
               }
-               this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
-                  this.ClientWidth = Number(res)
-                  Utils.sleep(2000);
-                  if(this.ClientWidth > 980) {
-                    console.log('success22255' + this.ClientWidth)
-                    Utils.emitEvent(true, 4350)
-                    break;
-                }
-                  console.log('ClientWidth' + this.ClientWidth)
+              const checkClientWidth = async () => {
+              for (let attempt = 1; attempt <= 10; attempt++) {
+                // 每次循环都重新获取最新值
+                await new Promise(resolve => {
+                this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
+                    if (!err) this.ClientWidth = Number(res || 0)
+                    resolve()
                 })
+                })
+    
+                console.log(`Attempt ${attempt}: ${this.ClientWidth}`)
+    
+                // 满足条件立即退出
+                if (this.ClientWidth > 980) {
+                console.log('success22255' + this.ClientWidth)
+                Utils.emitEvent(true, 4350)
+                return true
+                }
+    
+                // 非0值但不满足>980也退出
+                if (this.ClientWidth !== 0) break
+                
+                await Utils.sleep(2000) // 需确保这是异步sleep
+              }
+              return false
+            }
+
+// 在case中调用
+if (await checkClientWidth()) {
+  break // 直接跳出switch
+}
      
               let value: boolean = false;
               this.isTextAutosizing = false;
