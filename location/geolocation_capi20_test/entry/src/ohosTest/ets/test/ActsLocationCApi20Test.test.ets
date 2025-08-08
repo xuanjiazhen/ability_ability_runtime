@@ -50,7 +50,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OHLocationInfoGetAdditionalInfo_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOHLocationInfoGetAdditionalInfoTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OHLocationInfoGetAdditionalInfo_Test_0100 start====");
@@ -73,7 +73,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_Location_IsLocatingEnabled_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOH_Location_IsLocatingEnabledTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OH_Location_IsLocatingEnabled_Test_0100 start====");
@@ -96,7 +96,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_Location_IsLocatingEnabled_Test_0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOH_Location_IsLocatingEnabledTest0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OH_Location_IsLocatingEnabled_Test_0101 start====");
@@ -119,7 +119,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_Location_StartLocating_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOH_Location_StartLocatingTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OH_Location_StartLocating_Test_0100 start====");
@@ -142,7 +142,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_Location_StartLocating_Test_0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOH_Location_StartLocatingTest0101', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OH_Location_StartLocating_Test_0101 start====");
@@ -165,7 +165,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_Location_StopLocating_Test_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('testLocationKitOH_Location_StopLocatingTest0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
           console.info("====>SUB_LocationKit_OH_Location_StopLocating_Test_0100 start====");
@@ -188,7 +188,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_LocationRequestConfig_SetUseScene_Test_0100',
+    it('testLocationKitOH_LocationRequestConfig_SetUseSceneTest0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
@@ -212,7 +212,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_LocationRequestConfig_SetUseScene_Test_0101',
+    it('testLocationKitOH_LocationRequestConfig_SetUseSceneTest0101',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
@@ -236,7 +236,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_LocationRequestConfig_SetUseScene_Test_0102',
+    it('testLocationKitOH_LocationRequestConfig_SetUseSceneTest0102',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
@@ -260,7 +260,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_LocationRequestConfig_SetPowerConsumptionScene_Test_0100',
+    it('testLocationKitOH_LocationRequestConfig_SetPowerConsumptionSceneTest0100',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
@@ -286,7 +286,7 @@ export default function ActsLocationCApi20Test() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_LocationKit_OH_LocationRequestConfig_SetPowerConsumptionScene_Test_0101',
+    it('testLocationKitOH_LocationRequestConfig_SetPowerConsumptionSceneTest0101',
       TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
