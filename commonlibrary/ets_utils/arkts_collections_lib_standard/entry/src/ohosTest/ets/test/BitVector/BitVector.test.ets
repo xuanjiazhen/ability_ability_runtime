@@ -109,6 +109,16 @@ export function testGetIndexOf(index: number, bit: collections.BitVector) {
 }
 
 @Concurrent
+export function testGetLastIndexOf(index: number, bit: collections.BitVector) {
+  let tag = 'testGetLastIndexOf'
+  try {
+    bit.getLastIndexOf(1, 0, 4)
+  } catch (e) {
+    console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
+  }
+}
+
+@Concurrent
 export function testFlipBitByIndex(index: number, bit: collections.BitVector) {
   let tag = 'testFlipBitByIndex'
   try {
@@ -145,6 +155,7 @@ async function asyncSleep(time: number) {
     }, time)
   })
 }
+
 export function sleep(time: number): Promise<void> {
   return new Promise((re, je) => {
     setTimeout(() => {
@@ -1539,6 +1550,42 @@ export default function BitVectortest() {
           }
           for (let i = 0; i < 10; i++) {
             let res = bitVector.values()
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COOLLECTION_BITVECTOR_05500
+     * @tc.name      : BitVectortest05500
+     * @tc.desc      : BitVector values 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('BitVectortest05500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'BitVectortest05500';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let bitVector = new collections.BitVector(4);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testGetLastIndexOf, i, bitVector).then(() => {
+
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 10; i++) {
+            let res = bitVector.getLastIndexOf(0, 0, 1)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);

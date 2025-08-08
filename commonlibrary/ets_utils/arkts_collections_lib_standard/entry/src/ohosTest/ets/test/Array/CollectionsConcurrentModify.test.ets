@@ -60,7 +60,7 @@ export function testModifyInt8Array(index: number, arr: collections.Int8Array) {
   let tag = 'testModifyArray'
   try {
     for (let i = 0; i < 10; i++) {
-      arr.copyWithin(3,1,3)
+      arr.copyWithin(3, 1, 3)
     }
   } catch (e) {
     console.info(`${tag} Task execution catch: ${e.message}, code: ${e.code}`);
@@ -74,6 +74,7 @@ async function asyncSleep(time: number) {
     }, time)
   })
 }
+
 export default function collectionsConcurrentModifyTest() {
   describe('collectionsConcurrentModifyTest', () => {
     beforeEach(async () => {
@@ -282,7 +283,7 @@ export default function collectionsConcurrentModifyTest() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.slice(0,4)
+            arr.slice(0, 4)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -459,7 +460,7 @@ export default function collectionsConcurrentModifyTest() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.filter((value : number) => value % 2 === 0)
+            arr.filter((value: number) => value % 2 === 0)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -879,7 +880,7 @@ export default function collectionsConcurrentModifyTest() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.extendTo(1,10)
+            arr.extendTo(1, 10)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -984,7 +985,7 @@ export default function collectionsConcurrentModifyTest() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.extendTo(1,10)
+            arr.extendTo(1, 10)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1102,6 +1103,41 @@ export default function collectionsConcurrentModifyTest() {
         done()
       })
     /**
+     * @tc.number    : SUB_COLLECTION_CONCURRENT_MODIFY_29001
+     * @tc.name      : CollectionsConcurrentModifyTest29001
+     * @tc.desc      : ConcatArray splice2 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsConcurrentModifyTest29001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsConcurrentModifyTest29001';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr = new collections.Array(1, 2, 3, 4, 5, 6, 7, 8);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testModifyArray, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.splice(0, 1, 2)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
      * @tc.number    : SUB_COLLECTION_CONCURRENT_MODIFY_3000
      * @tc.name      : CollectionsConcurrentModifyTest3000
      * @tc.desc      : ConcatArray copyWithin 10200201
@@ -1124,7 +1160,7 @@ export default function collectionsConcurrentModifyTest() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.copyWithin(1,2,3)
+            arr.copyWithin(1, 2, 3)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1417,7 +1453,7 @@ export default function collectionsConcurrentModifyTest() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_CONCURRENT_MODIFY_3900
      * @tc.name      : CollectionsConcurrentModifyTest3900
