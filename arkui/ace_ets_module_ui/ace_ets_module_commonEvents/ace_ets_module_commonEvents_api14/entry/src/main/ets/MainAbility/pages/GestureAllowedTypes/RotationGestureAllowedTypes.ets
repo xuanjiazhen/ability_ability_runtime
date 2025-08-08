@@ -25,7 +25,7 @@ struct RotationGestureAllowedTypes {
         Text('RotationGesture').fontSize(20)
       }
       .rotate({ angle: this.angle })
-      .width('100%')
+      .width('90%')
       .height('10%')
       .backgroundColor(Color.Yellow)
       .key('RotationGestureAllowedTypes_Text')
