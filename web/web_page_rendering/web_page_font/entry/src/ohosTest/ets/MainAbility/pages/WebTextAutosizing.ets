@@ -58,7 +58,7 @@ struct WebTextAutosizing {
         Button("WebTextAutosizing").id('WebTextAutosizing').onClick(async () => {
           console.info("key==>" + this.str)
           switch (this.str) {
-              
+
             case "TextAutosizing0100": {
               this.userAgentPC = this.webviewController.getUserAgent();
               if ((this.userAgentPC).includes("PC")) {
