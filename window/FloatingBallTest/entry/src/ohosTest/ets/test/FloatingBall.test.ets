@@ -2430,7 +2430,7 @@ export default function abilityTest() {
         let floatingBallController = await floatingBall.create(config);
         await floatingBallController.startFloatingBall(startParams);
         floatingBallController.getFloatingBallWindowInfo().then((data: floatingBall.FloatingBallWindowInfo) => {
-          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data));
+          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data.windowId));
           floatingBallController.stopFloatingBall();
           expect(data!=null).assertTrue();
           done();

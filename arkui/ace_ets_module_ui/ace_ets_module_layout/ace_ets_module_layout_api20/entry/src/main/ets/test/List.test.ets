@@ -34,6 +34,8 @@ import ButtonAlignTest from './BoxAlign/ButtonAlignTest.ets'
 import StackSafeAreaTest from './Stack/StackSafeAreaTest.ets'
 import StackChildAlignmentTest from './Stack/StackChildAlignmentTest.ets'
 
+import StackBackgroundTest from './Stack/StackBackgroundTest.ets'
+
 export default function testsuite() {
   FlexMatchParentTest();
   GridRowNoColumnsTest();
@@ -58,5 +60,7 @@ export default function testsuite() {
   ButtonAlignTest();
   StackSafeAreaTest();
   StackChildAlignmentTest();
+
+  StackBackgroundTest();
 
 }

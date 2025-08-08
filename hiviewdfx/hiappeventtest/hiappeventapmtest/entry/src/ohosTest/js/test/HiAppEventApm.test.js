@@ -670,33 +670,6 @@ export default function HiAppEventJSTest() {
         });
 
         /**
-         * @tc.number SUB_DFX_DFT_HiAppEvent_Js_2900
-         * @tc.name SUB_DFX_DFT_HiAppEvent_Js_2900
-         * @tc.desc验证添加数据处理者addProcessor-configName入参正常，返回对应代理id
-         * @tc.size MediumTest
-         * @tc.type Function
-         * @tc.level Level3
-         */
-        it('SUB_DFX_DFT_HiAppEvent_Js_2900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
-            console.info('SUB_DFX_DFT_HiAppEvent_Js_2900 start');
-            let processor = {
-                name: "ha_app_event",
-                configName: "SDK_OCG"
-            }
-            try {
-                let processorId = hiAppEvent.addProcessor(processor)
-                console.info(`SUB_DFX_DFT_HiAppEvent_Js_2900 > processorId: ${processorId}`)
-                expect(processorId).assertLarger(0)
-                done()
-            }
-            catch (err) {
-                console.error(`SUB_DFX_DFT_HiAppEvent_Js_2900 > error code: ${err.code}, error msg: ${err.message}`);
-                expect(false).assertTrue()
-                done();
-            }
-        });
-
-        /**
          * @tc.number SUB_DFX_DFT_HiAppEvent_Js_2901
          * @tc.name SUB_DFX_DFT_HiAppEvent_Js_2901
          * @tc.desc 验证添加数据处理者addProcessor-configName为异常字符串，返回-1

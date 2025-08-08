@@ -13,8 +13,15 @@
  * limitations under the License.
  */
  
-import ActsGraphics2DApi20Test from './ActsGraphics2DApi20Test.test'
-
+import BrushPointRecordTest from './BrushPointRecordTest.test'
+import CanvasPenTest from './CanvasPenTest.test.ets'
+import RectFontTest from './RectFontTest.test.ets'
+import EffectTest from './EffectTest.test.ets'
+import BufferTextTest from './BufferTextTest.test.ets'
 export default function testsuite() {
-  ActsGraphics2DApi20Test()
+  BrushPointRecordTest()
+  CanvasPenTest()
+  RectFontTest()
+  EffectTest()
+  BufferTextTest()
 }

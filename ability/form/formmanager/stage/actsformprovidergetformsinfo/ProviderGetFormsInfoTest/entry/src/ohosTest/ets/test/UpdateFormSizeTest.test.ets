@@ -33,9 +33,14 @@ let onUpdateSizeFormEvent: onFormEvent = {
     events: ["FMS_FormOnUpdateSize_commonEvent"],
 };
 
+let onFormLocationChanged: onFormEvent = {
+    events: ["FMS_FormOnLocationChanged_commonEvent"],
+};
+
 let finishForm_Event: string = "FMS_FormTestFinish_commonEvent";
 
 let subscriberOnUpdateSize: CommonEventManager.CommonEventSubscriber;
+let subscriberonFormLocationChanged: CommonEventManager.CommonEventSubscriber;
 
 const unsubscribeCallback = (tcNumber: string)  => {
     console.info(`====>${tcNumber} unsubscribeCallback====>`);
@@ -59,11 +64,13 @@ export default function UpdateFormSizeTest() {
 
     beforeEach(async () => {
         subscriberOnUpdateSize = await commonEvent.createSubscriber(onUpdateSizeFormEvent);
+        subscriberonFormLocationChanged = await commonEvent.createSubscriber(onFormLocationChanged);
         await sleep(1000);
     })
 
     afterEach(async () => {
         commonEvent.unsubscribe(subscriberOnUpdateSize, () => unsubscribeCallback("afterEach unsubscribe subscriberOnUpdateSize"));
+        commonEvent.unsubscribe(subscriberonFormLocationChanged, () => unsubscribeCallback("afterEach unsubscribe subscriberonFormLocationChanged"));
     })
 
     /*
@@ -414,6 +421,48 @@ export default function UpdateFormSizeTest() {
             console.log(`UpdateFormSize_0800 startAbilityhost error: ${JSON.stringify(err)}`);
         });
         console.log(`UpdateFormSize_0800 startAbility end`);
+    });
+
+    /*
+     * @tc.number  FormLocationChanged_0100
+     * @tc.name    FormLocationChanged_0100
+     * @tc.desc    Function FormLocationChanged test
+     * @tc.size:   MediumTest
+     * @tc.type:   Function
+     * @tc.level   Level 1
+     */
+    it(`FormLocationChanged_0100`, 0, async (done:Function) => {
+        console.log(`FormLocationChanged_0100 start`);
+        let onFormLocationChangedCallBack = (_:BusinessError, data: CommonEventManager.CommonEventPublishData) => {
+            console.info("!!!====>FormLocationChanged_0100 onFormLocationChangedCallBack data:====>" + JSON.stringify(data));
+            expect(data.code).assertEqual(0);
+            commonEvent.publish(finishForm_Event, data, async (err) => {
+                console.info('FormLocationChanged_0100 publish' + JSON.stringify(err));
+                await sleep(2000);
+                done();
+            });
+        }
+
+        commonEvent.subscribe(subscriberonFormLocationChanged, onFormLocationChangedCallBack);
+        console.log(`FormLocationChanged_0100 startAbility start`);
+        await DELEGATOR.startAbility({
+            bundleName: "com.example.formsystemhost",
+            abilityName: "EntryAbility",
+            parameters: {
+                "formId" : "0",
+                "name" : "widget",
+                "bundle" : "com.example.getformsinfotest",
+                "ability" : "EntryFormAbility",
+                "moduleName" : "entry",
+                "isFormLocation" : true,
+                "formLocation" : 0,
+            }
+        }).then(() => {
+            console.log(`FormLocationChanged_0100 startAbilityhost end`);
+        }).catch((err: BusinessError) => {
+            console.log(`FormLocationChanged_0100 startAbilityhost error: ${JSON.stringify(err)}`);
+        });
+        console.log(`FormLocationChanged_0100 startAbility end`);
     });
   })
 }

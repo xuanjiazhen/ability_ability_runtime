@@ -23,6 +23,10 @@
     {
       "name": "red",
       "value": "#f04b3d"
+    },
+    {
+      "name":"red_1",
+      "value":"#FFF04B3D"
     }
   ]
 }

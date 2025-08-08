@@ -220,6 +220,30 @@ export default function verificationTest(){
     })
 
     /*
+     * @tc.number  SUB_AA_OpenHarmony_Test_GetWindow_0200
+     * @tc.name    Call GetWindow interface.
+     * @tc.desc    Function test
+     * @tc.level   3
+     */
+    it('SUB_AA_OpenHarmony_Test_GetWindow_0200', Level.LEVEL0, async (done: Function) => {
+      TAG = 'SUB_AA_OpenHarmony_Test_GetWindow_0200 ==>';
+      try {
+        ability_featureAbility.getWindow().then((data) => {
+          console.info(TAG + "getWindow data = " + data);
+          expect(data != null).assertTrue();
+          done();
+        }).catch((err: BusinessError) => {
+          console.info(TAG + "getWindow err = " + err);
+          expect().assertFail();
+          done();
+        })
+      } catch (err) {
+        console.info(TAG + "getWindow catch err = " + JSON.stringify(err));
+        done();
+      }
+    })
+
+    /*
      * @tc.number  SUB_AA_OpenHarmony_Test_TerminateSelfWithResult_0100
      * @tc.name    CTerminate ability through TerminateSelfWithResult.
      * @tc.desc    Function test

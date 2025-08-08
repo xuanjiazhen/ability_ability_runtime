@@ -82,8 +82,8 @@ export default function TimerSetIntervalTest() {
       let time2 = Date.now()
       let TimeID = setInterval((msg: string) => {
         msg2 = msg;
-        flag = true
         time2 = Date.now()
+        flag = true
       }, 100, args);
 
       while (!flag) {

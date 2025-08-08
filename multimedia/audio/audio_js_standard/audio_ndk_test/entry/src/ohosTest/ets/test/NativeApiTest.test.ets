@@ -119,6 +119,20 @@ export default function audioNDK() {
       expect(result).assertEqual(0)
       done()
     })
+    /* *
+        * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100
+        * @tc.name      : generate audioCapturer with OH_AudioStreamBuilder_GenerateCapturer
+        * @tc.desc      : test OH_AudioStreamBuilder_GenerateCapturer
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 0
+    */
+    it('SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      let result = myaudioNdk.audioWorkGroup();
+      console.info(`Tag: SUB_MULTIMEDIA_AUDIO_NDK_WORK_GROUP_0100 audioWorkGroup builder result: ${result}`);
+      expect(result).assertEqual(0)
+      done()
+    })
 
     /* *
         * @tc.number    : SUB_MULTIMEDIA_AUDIO_NDK_GERNERTATE_CAPTURER_ERR_0100

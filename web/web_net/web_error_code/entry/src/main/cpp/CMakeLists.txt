@@ -13,3 +13,6 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 
 add_library(weberrorcodetest SHARED WebErrorCodeTest.cpp WebErrorCodeListTest.cpp)
 target_link_libraries(weberrorcodetest PUBLIC libace_napi.z.so libhilog_ndk.z.so libohweb.so)
+
+add_library(nativeinterfacetest SHARED NativeInterfaceTest.cpp)
+target_link_libraries(nativeinterfacetest PUBLIC libace_napi.z.so libhilog_ndk.z.so libohweb.so)

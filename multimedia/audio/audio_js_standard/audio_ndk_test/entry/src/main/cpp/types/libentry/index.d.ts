@@ -14,6 +14,7 @@
  */
 export const createAudioStreamBuilder: () => number;
 export const audioCaptureGenerate: () => number;
+export const audioWorkGroup: () => number;
 export const audioCaptureGenerateErr: () => number;
 export const audioCaptureStart: () => number;
 export const audioCaptureStartErr: () => number;

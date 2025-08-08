@@ -15,6 +15,9 @@
     "MainAbility/pages/Menu/AvailableLayoutArea",
     "MainAbility/pages/bindMenu/mask",
     "MainAbility/pages/bindMenu/maskColor",
-    "MainAbility/pages/bindMenu/maskBackgroundBlurStyle"
+    "MainAbility/pages/bindMenu/maskBackgroundBlurStyle",
+    "MainAbility/pages/SheetType/sheetTypeContentCover",
+    "MainAbility/pages/SheetType/modalTransition",
+    "MainAbility/pages/Slider/slider"
   ]
 }
