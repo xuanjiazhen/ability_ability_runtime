@@ -24,6 +24,7 @@ import blendColorErrorCodeTest from './FrameNodeTest/blendColorErrorCode.test';
 import resourceColorErrorCodeTest from './FrameNodeTest/resourceColorErrorCode.test';
 import setCrossLanguageOptionsErrorCodeTest from './FrameNodeTest/setCrossLanguageOptionsErrorCode.test';
 import postFrameCallbackTest from './PostFrameTest/postFrameCallback.test';
+import FrameNodeMethodErrorCodeTest from './FrameNodeTest/FrameNodeMethodErrorCode.test';
 
 export default function testsuite() {
   frameNodeIsVisibleTest();
@@ -38,4 +39,5 @@ export default function testsuite() {
   resourceColorErrorCodeTest();
   setCrossLanguageOptionsErrorCodeTest();
   postFrameCallbackTest();
+  FrameNodeMethodErrorCodeTest();
 }
