@@ -28,6 +28,7 @@
 #include "ohaudio/native_audio_routing_manager.h"
 #include "ohaudio/native_audio_device_base.h"
 #include "ohaudio/native_audio_session_manager.h"
+#include "ohaudio/native_audio_resource_manager.h"
 #include "ohaudio/native_audio_volume_manager.h"
 #include "ohaudio/native_audio_stream_manager.h"
 #include "hilog/log.h"
@@ -210,6 +211,23 @@ static napi_value AudioCaptureGenerate(napi_env env, napi_callback_info info)
 
     OH_AudioCapturer_Release(audioCapturer);
     OH_AudioStreamBuilder_Destroy(builder);
+    napi_value res;
+    napi_create_int32(env, result, &res);
+    return res;
+}
+
+static napi_value AudioWorkGroup(napi_env env, napi_callback_info info)
+{   
+    int32_t tid;
+    OH_AudioResourceManager *mgr;
+    OH_AudioWorkgroup *grp;
+    OH_AudioManager_GetAudioResourceManager(&mgr);
+    OH_AudioResourceManager_CreateWorkgroup(mgr,"new",&grp);
+    OH_AudioWorkgroup_AddCurrentThread(grp,&tid);
+    OH_AudioWorkgroup_Start(grp,0,20);              
+    OH_AudioWorkgroup_Stop(grp);
+    OH_AudioWorkgroup_RemoveThread(grp,tid);
+    OH_AudioCommon_Result result=OH_AudioResourceManager_ReleaseWorkgroup(mgr,grp);
     napi_value res;
     napi_create_int32(env, result, &res);
     return res;
@@ -7474,6 +7492,7 @@ napi_property_descriptor desc1[] = {
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"createAudioStreamBuilder", nullptr, CreateAudioStreamBuilder, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureGenerate", nullptr, AudioCaptureGenerate, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"audioWorkGroup", nullptr, AudioWorkGroup, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureGenerateErr", nullptr, AudioCaptureGenerateErr,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"audioCaptureStart", nullptr, AudioCaptureStart, nullptr, nullptr, nullptr, napi_default, nullptr},
