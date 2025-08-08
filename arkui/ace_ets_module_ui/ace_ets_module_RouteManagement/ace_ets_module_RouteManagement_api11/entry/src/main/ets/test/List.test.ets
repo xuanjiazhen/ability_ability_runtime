@@ -33,6 +33,8 @@ import systemRouterJsunit from './Router/SystemRouterJsunit.test';
 import routerStandardJsunit from './ohosRouterTest/router.test';
 import ohosRouterJsunit from './Router/OhosRouterJsnuit.test';
 import RouterBackAlert from './back_router/RouterBackAlert.test';
+import RouterMode from './ohosRouterTest/RouterMode.test';
+import RouterModeCall from './ohosRouterTest/RouterModeCall.test';
 
 export default function testsuite() {
   pushPageInit();
@@ -54,4 +56,6 @@ export default function testsuite() {
   routerStandardJsunit()
   ohosRouterJsunit();
   RouterBackAlert();
+  RouterMode();
+  RouterModeCall();
 }
