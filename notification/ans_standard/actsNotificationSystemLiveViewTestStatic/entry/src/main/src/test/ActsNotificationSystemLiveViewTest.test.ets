@@ -1634,7 +1634,6 @@ export default function ActsNotificationSystemLiveViewTest() {
             parameters:parameters1
           }
         ],
-        requestCode: 0,
         actionType : WantAgent.OperationType.START_ABILITY,
         actionFlags : [WantAgent.WantAgentFlags.ONE_TIME_FLAG]
       };
@@ -1762,7 +1761,6 @@ export default function ActsNotificationSystemLiveViewTest() {
             parameters: parameters1
           }
         ],
-        requestCode: 0,
         actionType : WantAgent.OperationType.START_ABILITY,
         actionFlags : [WantAgent.WantAgentFlags.ONE_TIME_FLAG]
       };
@@ -1902,7 +1900,6 @@ export default function ActsNotificationSystemLiveViewTest() {
             parameters: parameters1
           }
         ],
-        requestCode: 0,
         actionType : WantAgent.OperationType.START_ABILITY,
         actionFlags : [WantAgent.WantAgentFlags.ONE_TIME_FLAG]
       };
