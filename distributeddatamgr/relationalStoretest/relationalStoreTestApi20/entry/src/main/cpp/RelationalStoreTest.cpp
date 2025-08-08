@@ -27,8 +27,8 @@ static napi_value GetURISuccess(napi_env env, napi_callback_info info)
     char uri[10] = "";
     size_t length = 10;
     int ret = OH_Data_Asset_GetUri(readData5, uri, &length);
-    
-    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1 , &result);
+
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }

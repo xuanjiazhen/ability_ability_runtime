@@ -22,22 +22,22 @@
 #include <napi/native_api.h>
 #include <vector>
 
-const char *g_rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
-char g_rdbStoreName[] = "rdb_store_test.db";
-char g_bundleName[] = "com.acts.acttransactiontest";
-char g_moduleName[] = "";
-
-static OH_Rdb_Config g_config_;
+static OH_Rdb_Config config_;
 
 static void InitRdbConfig()
 {
-    g_config_.dataBaseDir = g_rdbTestPath;
-    g_config_.storeName = g_rdbStoreName;
-    g_config_.bundleName = g_bundleName;
-    g_config_.moduleName = g_moduleName;
-    g_config_.securityLevel = OH_Rdb_SecurityLevel::S1;
-    g_config_.isEncrypt = false;
-    g_config_.selfSize = sizeof(OH_Rdb_Config);
+    const char *RDB_TEST_PATH = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
+    char RDB_STORE_NAME[] = "rdb_store_test.db";
+    char BUNDLE_NAME[] = "com.acts.acttransactiontest";
+    char MODULE_NAME[] = "";
+    
+    config_.dataBaseDir = RDB_TEST_PATH;
+    config_.storeName = RDB_STORE_NAME;
+    config_.bundleName = BUNDLE_NAME;
+    config_.moduleName = MODULE_NAME;
+    config_.securityLevel = OH_Rdb_SecurityLevel::S1;
+    config_.isEncrypt = false;
+    config_.selfSize = sizeof(OH_Rdb_Config);
 }
 
 static napi_value TestEnumerate(napi_env env, napi_callback_info info)
@@ -48,7 +48,7 @@ static napi_value TestEnumerate(napi_env env, napi_callback_info info)
     int ret = -1;
     int errCode = 0;
 
-    testRdbStore = OH_Rdb_GetOrOpen(&g_config_, &errCode);
+    testRdbStore = OH_Rdb_GetOrOpen(&config_, &errCode);
 
     const char* createTableSql = "CREATE TABLE IF NOT EXISTS test ("
                                  "id INT64 PRIMARY KEY, "
