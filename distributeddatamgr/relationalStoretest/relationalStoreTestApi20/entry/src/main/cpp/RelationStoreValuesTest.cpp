@@ -15,6 +15,7 @@
 
 #include "RelationStoreValuesTest.h"
 #include "napi/native_api.h"
+#include <database/data/oh_data_values.h>
 #include <js_native_api_types.h>
 #include <cstdint>
 #include <vector>
@@ -858,5 +859,3 @@ napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info info)
     OH_Values_Destroy(values);
     return result;
 }
-
-
