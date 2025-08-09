@@ -388,19 +388,13 @@ export default class Utils {
     it(name,type,async (done: Function) => {
       try {
         console.info(`====>${name} start<====`);
-        let driver = await Driver.create();
-        if (key == 1) {
-          await Utils.simulateByShell('uinput -K -d 1 -u 1');
+        await Utils.driver.triggerKey(key);
+        if (key == 16) {
+          let com = await Utils.driver.findComponent(ON.id("KeyCodeTest1"));
+          await com.click();
+        } else if (key == 2674) {
+          await Utils.driver.triggerKey(1);
           await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
-        } else {
-          await driver?.triggerKey(key);
-          if (key == 16) {
-            let com = await driver.findComponent(ON.id("KeyCodeTest1"));
-            await com.click();
-          } else if (key == 2674 || key == 2675) {
-            await driver?.triggerKey(1);
-            await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
-          }
         }
         let KeyResult: number = ndkfunction();
         await Utils.sleep(10);

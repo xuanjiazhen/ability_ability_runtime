@@ -113,16 +113,6 @@ export default function KeyCodeNdkTest1() {
     Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_DOWN_0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 17, keyCodeNdk.GetKeyCodeEventVolumeDown)
     /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_POWER_0100
-     * @tc.name    : testGetKeyCodeEventPower0100
-     * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    // Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_POWER_0100', TestType.FUNCTION |
-    //     Size.MEDIUMTEST | Level.LEVEL1, 18, keyCodeNdk.GetKeyCodeEventPower)
-    /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_CAMERA_0100
      * @tc.name    : testGetKeyCodeEventCamera0100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
