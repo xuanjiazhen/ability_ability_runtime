@@ -45,7 +45,7 @@ static napi_module demoModule = {
     .reserved = {0},
 };
 extern "C" __attribute__((constructor)) void RegisterModule(void) {
-    napi_module_register(&demoModule); 
+    napi_module_register(&demoModule);
 }
 
 

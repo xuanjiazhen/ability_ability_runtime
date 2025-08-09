@@ -36,9 +36,7 @@ napi_value TestDestroyInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_VBuckets *buckets = nullptr;
-    
     int ret = OH_VBuckets_Destroy(buckets);
-
     napi_create_int32(env, ret, &result);
     return result;
 }
@@ -47,13 +45,9 @@ napi_value TestPutRowInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_VBuckets *buckets = nullptr;
-    
     OH_VBucket *row = OH_Rdb_CreateValuesBucket();
-    
     int ret = OH_VBuckets_PutRow(buckets, row);
-
     napi_create_int32(env, ret, &result);
-    
     row->destroy(row);
     return result;
 }
@@ -62,13 +56,9 @@ napi_value TestPutRowsInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_VBuckets *buckets = nullptr;
-    
     OH_Data_VBuckets *rows = OH_VBuckets_Create();
-    
     int ret = OH_VBuckets_PutRows(buckets, rows);
-
     napi_create_int32(env, ret, &result);
-    
     OH_VBuckets_Destroy(rows);
     return result;
 }
@@ -77,15 +67,8 @@ napi_value TestRowCountInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_VBuckets *buckets = nullptr;
-    
     size_t count = 0;
-    
     int ret = OH_VBuckets_RowCount(buckets, &count);
-
     napi_create_int32(env, ret, &result);
-    
     return result;
 }
-
-
-

@@ -87,10 +87,10 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"testGetAssetsCountDataTypeNull", nullptr, TestGetAssetsCountDataTypeNull, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
 
-    addRelationStoreValueTestOne(descData);
+    addRelationStoreValueTest1(descData);
 }
 
-void addRelationStoreValueTestOne(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsInvalidParam", nullptr, TestGetAssetsInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -770,6 +770,3 @@ napi_value TestGetUnlimitedIntTypeNull(napi_env env, napi_callback_info info)
     OH_Value_Destroy(value);
     return result;
 }
-
-
-
