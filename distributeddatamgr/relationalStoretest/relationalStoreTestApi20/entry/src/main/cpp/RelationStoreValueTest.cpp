@@ -88,7 +88,6 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
                         nullptr, napi_default, nullptr});
 
     addRelationStoreValueTestA(descData);
-  
 }
 
 void addRelationStoreValueTestA(std::vector<napi_property_descriptor>& descData)

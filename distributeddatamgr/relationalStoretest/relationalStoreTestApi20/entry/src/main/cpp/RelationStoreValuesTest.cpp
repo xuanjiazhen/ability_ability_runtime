@@ -21,7 +21,8 @@
 #include <napi/native_api.h>
 #include <vector>
 
-void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData){
+void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
+{
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
     descData.push_back({"testPutNullInvalidParam", nullptr, TestPutNullInvalidParam, nullptr, nullptr, nullptr,
@@ -48,6 +49,13 @@ void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
         {"testGetInvalidParam", nullptr, TestGetInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
         {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
+    
+    addRelationStoreValuesTestA(descData);
+    addRelationStoreValuesTestB(descData);
+}
+
+void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData)
+{
     descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
     descData.push_back({"testGetIntTypeMismatchA", nullptr, TestGetIntTypeMismatchA, nullptr, nullptr, nullptr,
@@ -64,13 +72,6 @@ void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
                         napi_default, nullptr});
     descData.push_back({"testGetTextTypeMismatchA", nullptr, TestGetTextTypeMismatchA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
-    
-    addRelationStoreValuesTestA(descData);
-    
-}
-
-void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData)
-{
     descData.push_back(
         {"testGetTextTypeNullA", nullptr, TestGetTextTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"testGetBlobInvalidParamA", nullptr, TestGetBlobInvalidParamA, nullptr, nullptr, nullptr,
@@ -87,6 +88,10 @@ void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData
                         napi_default, nullptr});
     descData.push_back(
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+
+void addRelationStoreValuesTestB(std::vector<napi_property_descriptor>& descData)
+{
     descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
     descData.push_back({"testGetAssetsCountTypeMismatchA", nullptr, TestGetAssetsCountTypeMismatchA, nullptr, nullptr,
