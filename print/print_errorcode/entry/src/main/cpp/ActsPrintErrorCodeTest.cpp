@@ -30,11 +30,16 @@ static constexpr int32_t ERROR_COMMON = -1;
 
 void addPrintErrorCodeTest(std::vector<napi_property_descriptor>& descData)
 {
-    descData.push_back({"OHPrintNoError", nullptr, OHPrintNoError, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHPrintInvalidParameter", nullptr, OHPrintInvalidParameter, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHPrintGenericFailure", nullptr, OHPrintGenericFailure, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHPrintInvalidPrintJob", nullptr, OHPrintInvalidPrintJob, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintNoError", nullptr, OHPrintNoError,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidParameter", nullptr, OHPrintInvalidParameter,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintGenericFailure", nullptr, OHPrintGenericFailure,
+             nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidPrintJob", nullptr, OHPrintInvalidPrintJob,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 napi_value OHPrintNoError(napi_env env, napi_callback_info info)
