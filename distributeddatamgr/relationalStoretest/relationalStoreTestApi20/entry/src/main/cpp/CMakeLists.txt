@@ -11,14 +11,7 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(relationndk SHARED RelationalStoreTest.cpp)
-target_link_libraries(relationndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_rdb_ndk.z.so)
+add_library(relationNdk SHARED RelationalStoreTestApi20.cpp RelationalStoreTest.cpp RelationStoreValueTest.cpp RelationStoreValuesTest.cpp RelationStoreBucketsTest.cpp)
+target_link_libraries(relationNdk PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_rdb_ndk.z.so)
 
-add_library(relationstoretest SHARED RelationStoreValueTest.cpp)
-target_link_libraries(relationstoretest PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_rdb_ndk.z.so)
 
-add_library(relationstorevaluestest SHARED RelationStoreValuesTest.cpp)
-target_link_libraries(relationstorevaluestest PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_rdb_ndk.z.so)
-
-add_library(relationstorebucketstest SHARED RelationStoreBucketsTest.cpp)
-target_link_libraries(relationstorebucketstest PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_rdb_ndk.z.so)

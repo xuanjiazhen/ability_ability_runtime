@@ -12,15 +12,120 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "RelationStoreValuesTest.h"
 #include "napi/native_api.h"
 #include <cstdint>
 #include <database/data/oh_data_values.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-#include <hilog/log.h>
 #include <vector>
 
-static napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
+void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData){
+    descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutNullInvalidParam", nullptr, TestPutNullInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testPutIntInvalidParam", nullptr, TestPutIntInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testPutRealInvalidParam", nullptr, TestPutRealInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutTextInvalidParam", nullptr, TestPutTextInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutBlobInvalidParam", nullptr, TestPutBlobInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutAssetInvalidParam", nullptr, TestPutAssetInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutAssetsInvalidParam", nullptr, TestPutAssetsInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testPutUnlimitedIntInvalidParam", nullptr, TestPutUnlimitedIntInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"testCountInvalidParam", nullptr, TestCountInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetTypeInvalidParam", nullptr, TestGetTypeInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetInvalidParam", nullptr, TestGetInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetIntTypeMismatchA", nullptr, TestGetIntTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetIntTypeNullA", nullptr, TestGetIntTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetRealInvalidParamA", nullptr, TestGetRealInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetRealTypeMismatchA", nullptr, TestGetRealTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetRealTypeNullA", nullptr, TestGetRealTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetTextInvalidParamA", nullptr, TestGetTextInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetTextTypeMismatchA", nullptr, TestGetTextTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    
+    addRelationStoreValuesTestA(descData);
+    
+}
+
+void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData)
+{
+    descData.push_back(
+        {"testGetTextTypeNullA", nullptr, TestGetTextTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetBlobInvalidParamA", nullptr, TestGetBlobInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetBlobTypeMismatchA", nullptr, TestGetBlobTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetBlobTypeNullA", nullptr, TestGetBlobTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetAssetInvalidParamA", nullptr, TestGetAssetInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetTypeMismatchA", nullptr, TestGetAssetTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetTypeMismatchA", nullptr, TestGetAssetTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetAssetsCountTypeMismatchA", nullptr, TestGetAssetsCountTypeMismatchA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetAssetsCountTypeNullA", nullptr, TestGetAssetsCountTypeNullA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetsInvalidParamA", nullptr, TestGetAssetsInvalidParamA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetsTypeMismatchA", nullptr, TestGetAssetsTypeMismatchA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back(
+        {"testGetAssetsTypeNullA", nullptr, TestGetAssetsTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountInvalidParamA", nullptr, TestGetFloatVectorCountInvalidParamA, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountTypeMismatchA", nullptr, TestGetFloatVectorCountTypeMismatchA, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountTypeNullA", nullptr, TestGetFloatVectorCountTypeNullA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorInvalidParamA", nullptr, TestGetFloatVectorInvalidParamA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorTypeMismatchA", nullptr, TestGetFloatVectorTypeMismatchA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorTypeNullA", nullptr, TestGetFloatVectorTypeNullA, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandInvalidParamA", nullptr, TestGetUnlimitedIntBandInvalidParamA, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandTypeMismatchA", nullptr, TestGetUnlimitedIntBandTypeMismatchA, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandTypeNullA", nullptr, TestGetUnlimitedIntBandTypeNullA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntInvalidParamA", nullptr, TestGetUnlimitedIntInvalidParamA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntTypeMismatchA", nullptr, TestGetUnlimitedIntTypeMismatchA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntTypeNullA", nullptr, TestGetUnlimitedIntTypeNullA, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+}
+
+napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -31,7 +136,7 @@ static napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutNullInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutNullInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -42,7 +147,7 @@ static napi_value TestPutNullInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutIntInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutIntInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -54,7 +159,7 @@ static napi_value TestPutIntInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutRealInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutRealInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -66,7 +171,7 @@ static napi_value TestPutRealInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutTextInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutTextInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -78,7 +183,7 @@ static napi_value TestPutTextInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutBlobInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutBlobInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -91,7 +196,7 @@ static napi_value TestPutBlobInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -105,7 +210,7 @@ static napi_value TestPutAssetInvalidParam(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestPutAssetsInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutAssetsInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -118,7 +223,7 @@ static napi_value TestPutAssetsInvalidParam(napi_env env, napi_callback_info inf
     return result;
 }
 
-static napi_value TestPutUnlimitedIntInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestPutUnlimitedIntInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -132,7 +237,7 @@ static napi_value TestPutUnlimitedIntInvalidParam(napi_env env, napi_callback_in
     return result;
 }
 
-static napi_value TestCountInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestCountInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -144,7 +249,7 @@ static napi_value TestCountInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetTypeInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestGetTypeInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -157,7 +262,7 @@ static napi_value TestGetTypeInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestGetInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -171,7 +276,7 @@ static napi_value TestGetInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestIsNullInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestIsNullInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -185,7 +290,7 @@ static napi_value TestIsNullInvalidParam(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetIntInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetIntInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -199,7 +304,7 @@ static napi_value TestGetIntInvalidParamA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetIntTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetIntTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -217,7 +322,7 @@ static napi_value TestGetIntTypeMismatchA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetIntTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetIntTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -234,7 +339,7 @@ static napi_value TestGetIntTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetRealInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetRealInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -248,7 +353,7 @@ static napi_value TestGetRealInvalidParamA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetRealTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetRealTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -266,7 +371,7 @@ static napi_value TestGetRealTypeMismatchA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetRealTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetRealTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -283,7 +388,7 @@ static napi_value TestGetRealTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetTextInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetTextInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -297,7 +402,7 @@ static napi_value TestGetTextInvalidParamA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetTextTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetTextTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -315,7 +420,7 @@ static napi_value TestGetTextTypeMismatchA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetTextTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetTextTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -332,7 +437,7 @@ static napi_value TestGetTextTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetBlobInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetBlobInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -347,7 +452,7 @@ static napi_value TestGetBlobInvalidParamA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetBlobTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetBlobTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -366,7 +471,7 @@ static napi_value TestGetBlobTypeMismatchA(napi_env env, napi_callback_info info
     return result;
 }
 
-static napi_value TestGetBlobTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetBlobTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -384,7 +489,7 @@ static napi_value TestGetBlobTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetAssetInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -398,7 +503,7 @@ static napi_value TestGetAssetInvalidParamA(napi_env env, napi_callback_info inf
     return result;
 }
 
-static napi_value TestGetAssetTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -417,7 +522,7 @@ static napi_value TestGetAssetTypeMismatchA(napi_env env, napi_callback_info inf
     return result;
 }
 
-static napi_value TestGetAssetTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -435,7 +540,7 @@ static napi_value TestGetAssetTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetAssetsCountInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsCountInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -449,7 +554,7 @@ static napi_value TestGetAssetsCountInvalidParamA(napi_env env, napi_callback_in
     return result;
 }
 
-static napi_value TestGetAssetsCountTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsCountTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -467,7 +572,7 @@ static napi_value TestGetAssetsCountTypeMismatchA(napi_env env, napi_callback_in
     return result;
 }
 
-static napi_value TestGetAssetsCountTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsCountTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -484,7 +589,7 @@ static napi_value TestGetAssetsCountTypeNullA(napi_env env, napi_callback_info i
     return result;
 }
 
-static napi_value TestGetAssetsInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -501,7 +606,7 @@ static napi_value TestGetAssetsInvalidParamA(napi_env env, napi_callback_info in
     return result;
 }
 
-static napi_value TestGetAssetsTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -523,7 +628,7 @@ static napi_value TestGetAssetsTypeMismatchA(napi_env env, napi_callback_info in
     return result;
 }
 
-static napi_value TestGetAssetsTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetAssetsTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -544,7 +649,7 @@ static napi_value TestGetAssetsTypeNullA(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestGetFloatVectorCountInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorCountInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -558,7 +663,7 @@ static napi_value TestGetFloatVectorCountInvalidParamA(napi_env env, napi_callba
     return result;
 }
 
-static napi_value TestGetFloatVectorCountTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorCountTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -574,7 +679,7 @@ static napi_value TestGetFloatVectorCountTypeMismatchA(napi_env env, napi_callba
     return result;
 }
 
-static napi_value TestGetFloatVectorCountTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorCountTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -590,7 +695,7 @@ static napi_value TestGetFloatVectorCountTypeNullA(napi_env env, napi_callback_i
     return result;
 }
 
-static napi_value TestGetFloatVectorInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorInvalidParamA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = nullptr;
@@ -606,7 +711,7 @@ static napi_value TestGetFloatVectorInvalidParamA(napi_env env, napi_callback_in
     return result;
 }
 
-static napi_value TestGetFloatVectorTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorTypeMismatchA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -625,7 +730,7 @@ static napi_value TestGetFloatVectorTypeMismatchA(napi_env env, napi_callback_in
     return result;
 }
 
-static napi_value TestGetFloatVectorTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetFloatVectorTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
@@ -644,9 +749,8 @@ static napi_value TestGetFloatVectorTypeNullA(napi_env env, napi_callback_info i
     return result;
 }
 
-static napi_value TestGetUnlimitedIntBandInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntBandInvalidParamA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntBandInvalidParamA Enter");
     napi_value result;
     OH_Data_Values *values = nullptr;
     
@@ -659,9 +763,8 @@ static napi_value TestGetUnlimitedIntBandInvalidParamA(napi_env env, napi_callba
     return result;
 }
 
-static napi_value TestGetUnlimitedIntBandTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntBandTypeMismatchA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntBandTypeMismatchA Enter");
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
@@ -678,9 +781,8 @@ static napi_value TestGetUnlimitedIntBandTypeMismatchA(napi_env env, napi_callba
     return result;
 }
 
-static napi_value TestGetUnlimitedIntBandTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntBandTypeNullA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntBandTypeNullA Enter");
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
@@ -696,9 +798,8 @@ static napi_value TestGetUnlimitedIntBandTypeNullA(napi_env env, napi_callback_i
     return result;
 }
 
-static napi_value TestGetUnlimitedIntInvalidParamA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntInvalidParamA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntInvalidParamA Enter");
     napi_value result;
     OH_Data_Values *values = nullptr;
     
@@ -714,9 +815,8 @@ static napi_value TestGetUnlimitedIntInvalidParamA(napi_env env, napi_callback_i
     return result;
 }
 
-static napi_value TestGetUnlimitedIntTypeMismatchA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntTypeMismatchA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntTypeMismatchA Enter");
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
@@ -736,9 +836,8 @@ static napi_value TestGetUnlimitedIntTypeMismatchA(napi_env env, napi_callback_i
     return result;
 }
 
-static napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info info)
+napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info info)
 {
-    OH_LOG_INFO(LOG_APP, "TestGetUnlimitedIntTypeNullA Enter");
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
     
@@ -757,106 +856,7 @@ static napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info 
     return result;
 }
 
-static void InitDescOne(std::vector<napi_property_descriptor> &descVe)
-{
-    descVe.push_back({"testGetAssetsCountTypeMismatchA", nullptr, TestGetAssetsCountTypeMismatchA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetAssetsCountTypeNullA", nullptr, TestGetAssetsCountTypeNullA, nullptr, nullptr, nullptr,
-                      napi_default, nullptr});
-    descVe.push_back({"testGetAssetsInvalidParamA", nullptr, TestGetAssetsInvalidParamA, nullptr, nullptr, nullptr,
-                      napi_default, nullptr});
-    descVe.push_back({"testGetAssetsTypeMismatchA", nullptr, TestGetAssetsTypeMismatchA, nullptr, nullptr, nullptr,
-                      napi_default, nullptr});
-    descVe.push_back(
-        {"testGetAssetsTypeNullA", nullptr, TestGetAssetsTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorCountInvalidParamA", nullptr, TestGetFloatVectorCountInvalidParamA, nullptr,
-                      nullptr, nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorCountTypeMismatchA", nullptr, TestGetFloatVectorCountTypeMismatchA, nullptr,
-                      nullptr, nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorCountTypeNullA", nullptr, TestGetFloatVectorCountTypeNullA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorInvalidParamA", nullptr, TestGetFloatVectorInvalidParamA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorTypeMismatchA", nullptr, TestGetFloatVectorTypeMismatchA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetFloatVectorTypeNullA", nullptr, TestGetFloatVectorTypeNullA, nullptr, nullptr, nullptr,
-                      napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntBandInvalidParamA", nullptr, TestGetUnlimitedIntBandInvalidParamA, nullptr,
-                      nullptr, nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntBandTypeMismatchA", nullptr, TestGetUnlimitedIntBandTypeMismatchA, nullptr,
-                      nullptr, nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntBandTypeNullA", nullptr, TestGetUnlimitedIntBandTypeNullA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntInvalidParamA", nullptr, TestGetUnlimitedIntInvalidParamA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntTypeMismatchA", nullptr, TestGetUnlimitedIntTypeMismatchA, nullptr, nullptr,
-                      nullptr, napi_default, nullptr});
-    descVe.push_back({"testGetUnlimitedIntTypeNullA", nullptr, TestGetUnlimitedIntTypeNullA, nullptr, nullptr, nullptr,
-                      napi_default, nullptr});
-}
 
-EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports)
-{
-    std::vector<napi_property_descriptor> descVe = {
-        {"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutNullInvalidParam", nullptr, TestPutNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutIntInvalidParam", nullptr, TestPutIntInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutRealInvalidParam", nullptr, TestPutRealInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutTextInvalidParam", nullptr, TestPutTextInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutBlobInvalidParam", nullptr, TestPutBlobInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testPutAssetInvalidParam", nullptr, TestPutAssetInvalidParam, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testPutAssetsInvalidParam", nullptr, TestPutAssetsInvalidParam, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testPutUnlimitedIntInvalidParam", nullptr, TestPutUnlimitedIntInvalidParam, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"testCountInvalidParam", nullptr, TestCountInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetTypeInvalidParam", nullptr, TestGetTypeInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetInvalidParam", nullptr, TestGetInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetIntTypeMismatchA", nullptr, TestGetIntTypeMismatchA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetIntTypeNullA", nullptr, TestGetIntTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetRealInvalidParamA", nullptr, TestGetRealInvalidParamA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetRealTypeMismatchA", nullptr, TestGetRealTypeMismatchA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetRealTypeNullA", nullptr, TestGetRealTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetTextInvalidParamA", nullptr, TestGetTextInvalidParamA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetTextTypeMismatchA", nullptr, TestGetTextTypeMismatchA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetTextTypeNullA", nullptr, TestGetTextTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetBlobInvalidParamA", nullptr, TestGetBlobInvalidParamA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetBlobTypeMismatchA", nullptr, TestGetBlobTypeMismatchA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetBlobTypeNullA", nullptr, TestGetBlobTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetAssetInvalidParamA", nullptr, TestGetAssetInvalidParamA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetAssetTypeMismatchA", nullptr, TestGetAssetTypeMismatchA, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-    };
-    
-    InitDescOne(descVe);
 
-    napi_define_properties(env, exports, descVe.size(), descVe.data());
-    return exports;
-}
-EXTERN_C_END
 
-static napi_module demoModule = {
-    .nm_version = 1,
-    .nm_flags = 0,
-    .nm_filename = nullptr,
-    .nm_register_func = Init,
-    .nm_modname = "relationstorevaluestest",
-    .nm_priv = ((void *)0),
-    .reserved = {0},
-};
 
-extern "C" __attribute__((constructor)) void RegisterModule(void) { napi_module_register(&demoModule); }

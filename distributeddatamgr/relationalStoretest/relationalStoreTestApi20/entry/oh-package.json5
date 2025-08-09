@@ -15,7 +15,7 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/libentry.so": "file:./src/main/cpp/types/libentry"
+    "@types/librelationNdk.so": "file:./src/main/cpp/types/librelationndk"
   },
   "author": "",
   "name": "entry",

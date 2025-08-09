@@ -14,7 +14,7 @@
  */
 
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
-import testNapi from 'librelationstorevaluestest.so'
+import testNapi from 'librelationNdk.so'
 
 const RDB_E_INVALID_ARGS = 14800001;
 const RDB_E_DATA_TYPE_NULL = 14800063;
