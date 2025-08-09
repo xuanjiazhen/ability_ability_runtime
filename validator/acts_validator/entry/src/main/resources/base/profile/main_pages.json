@@ -160,6 +160,7 @@
     "pages/ArkUI/AccessibilityHoverEvent",
     "pages/ArkUI/CapiDragAction",
     "pages/ArkUI/CapiDragEvent",
-    "pages/ArkUI/SliderTest"
+    "pages/ArkUI/SliderTest",
+    "pages/ArkUI/ModalTransition"
   ]
 }
