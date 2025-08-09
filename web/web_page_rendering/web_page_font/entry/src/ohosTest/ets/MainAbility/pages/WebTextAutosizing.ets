@@ -68,39 +68,16 @@ struct WebTextAutosizing {
               }else if((this.userAgentPC).includes("Tablet")){
                 Utils.emitEvent(true, 4350);
                 break;
-              }
-              const checkClientWidth = async () => {
-              for (let attempt = 1; attempt <= 10; attempt++) {
-                // 每次循环都重新获取最新值
-                await new Promise(resolve => {
+              } else {
                 this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
-                    if (!err) this.ClientWidth = Number(res || 0)
-                    resolve()
+                  this.ClientWidth = Number(res);
+                  Utils.sleep(3000);
                 })
-                })
-    
-                console.log(`Attempt ${attempt}: ${this.ClientWidth}`)
-    
-                // 满足条件立即退出
-                if (this.ClientWidth > 980) {
-                console.log('success22255' + this.ClientWidth)
-                Utils.emitEvent(true, 4350)
-                return true
+                if(this.ClientWidth > 980) {
+                  Utils.emitEvent(true, 4352)
                 }
-    
-                // 非0值但不满足>980也退出
-                if (this.ClientWidth !== 0) break
-                
-                await Utils.sleep(2000) // 需确保这是异步sleep
+                break;
               }
-              return false
-            }
-
-// 在case中调用
-if (await checkClientWidth()) {
-  break // 直接跳出switch
-}
-     
               let value: boolean = false;
               this.isTextAutosizing = false;
               this.de = 1
