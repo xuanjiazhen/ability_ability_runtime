@@ -321,5 +321,30 @@ export default function colorSpaceManagerTest(context: common.UIAbilityContext, 
       }
     })
 
+    /**
+     * @tc.number: SUB_GRAPHIC_CREATE_JSAPI_011
+     * @tc.name Test: SUB_GRAPHIC_CREATE_JSAPI_011
+     * @tc.desc: test the DISPLAY_BT2020_SRGB
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('SUB_GRAPHIC_CREATE_JSAPI_011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
+      console.info('test createcolorspacemanager begin');
+      try {
+        expect(27).assertEqual(colorSpaceManager.ColorSpace.DISPLAY_BT2020_SRGB);
+        let colorSpace = colorSpaceManager.create(colorSpaceManager.ColorSpace.DISPLAY_BT2020_SRGB);
+        expect(colorSpace != null).assertTrue();
+        let colorSpaceName = colorSpace.getColorSpaceName();
+        console.info("the name is " + colorSpaceName);
+        expect(colorSpaceName).assertEqual(colorSpaceManager.ColorSpace.DISPLAY_BT2020_SRGB);
+        done();
+      } catch (err) {
+        console.log('test enum value of ColorSpace Manager error ' + JSON.stringify(err));
+        expect.assertFail();
+        done();
+      }
+    })
+
   })
 }
