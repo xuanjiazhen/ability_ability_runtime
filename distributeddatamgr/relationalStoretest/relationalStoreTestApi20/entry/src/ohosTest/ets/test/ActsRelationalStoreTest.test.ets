@@ -39,7 +39,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetUri_0100 catch err: " + err);
-          done();
         }
       })
 
@@ -61,7 +60,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetPath_0200 catch err: " + err);
-          done();
         }
       })
 
@@ -83,7 +81,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetCreateTime_0300 catch err: " + err);
-          done();
         }
       })
 
@@ -105,7 +102,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetModifyTime_0400 catch err: " + err);
-          done();
         }
       })
 
@@ -127,7 +123,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0500 catch err: " + err);
-          done();
         }
       })
 
@@ -149,7 +144,7 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 catch err: " + err);
-          done();
+          expect(1).assertEqual(0);
         }
       })
 
