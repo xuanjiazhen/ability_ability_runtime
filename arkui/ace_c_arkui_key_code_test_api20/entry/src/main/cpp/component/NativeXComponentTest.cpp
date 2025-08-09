@@ -22,6 +22,7 @@ EXTERN_C_START
 
 static void InitPushTouchPoint(napi_property_descriptor* desc)
 {
+    int Offset = 41;
     napi_property_descriptor descTemp[] = {
         XL("CreateTouchNativeNode", TouchPoint::CreateTouchNativeNode),
         XL("GetTouchPointWindowX", TouchPoint::GetTouchPointWindowX),
@@ -55,12 +56,13 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
         XL("TouchEventTimeStamp", TouchPoint::TouchEventTimeStamp),
     };
     for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + 41] = descTemp[index];
+        desc[index + Offset] = descTemp[index];
     }
 }
 
 static void InitPushXComponentMouse(napi_property_descriptor* desc)
 {
+    int Offset = 71;
     napi_property_descriptor descTemp[] = {
         XL("CreateMouseNativeNode", XComponentMouse::CreateMouseNativeNode),
         XL("MouseEventAction", XComponentMouse::MouseEventAction),
@@ -68,12 +70,13 @@ static void InitPushXComponentMouse(napi_property_descriptor* desc)
         XL("MouseEventTimeStamp", XComponentMouse::MouseEventTimeStamp),
     };
     for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + 71] = descTemp[index];
+        desc[index + Offset] = descTemp[index];
     }
 }
 
 static void InitPushNodeAttribute(napi_property_descriptor* desc)
 {
+    int Offset = 75;
     napi_property_descriptor descTemp[] = {
         XL("CreateAttributeNativeNode", NodeAttribute::CreateAttributeNativeNode),
         XL("CheckNodeTextHalfLeading", NodeAttribute::CheckNodeTextHalfLeading),
@@ -98,7 +101,7 @@ static void InitPushNodeAttribute(napi_property_descriptor* desc)
         XL("CheckNodeTextPickSelectedBackgroundStyle", NodeAttribute::CheckNodeTextPickSelectedBackgroundStyle),
     };
     for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + 75] = descTemp[index];
+        desc[index + Offset] = descTemp[index];
     }
 }
 
@@ -109,7 +112,6 @@ static napi_value Init(napi_env env, napi_value exports)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init","env or exports is null");
         return nullptr;
     }
-
     napi_property_descriptor desc[96] = {
         XL("XComponentCreate", ArkUICapiTest::CreateNativeNode),
         XL("ChooseTestFunction", ArkUICapiTest::ChooseTestFunction),
