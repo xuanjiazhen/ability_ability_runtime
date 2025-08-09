@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace RunnerRuntime {
 
+const int ABC_LENGTH = 4;
+
 std::unique_ptr<TestRunner> JsTestRunner::Create(const std::unique_ptr<Runtime> &runtime,
     const std::shared_ptr<AbilityDelegatorArgs> &args, const AppExecFwk::BundleInfo &bundleInfo, bool isFaJsModel)
 {
@@ -240,14 +242,18 @@ void JsTestRunner::ReportStatus(const std::string &msg)
 std::string JsTestRunner::GetTestRunnerPath(const std::shared_ptr<AbilityDelegatorArgs> &args)
 {
     std::string result;
+    result.append(args->GetTestModuleName());
     if (!args->GetTestRunnerClassName().empty()) {
-        result.append(args->GetTestModuleName());
         if (args->GetTestRunnerClassName().find("/") == std::string::npos) {
             result.append(LOWERCASETESTRUNNER);
         }
         result.append(args->GetTestRunnerClassName());
     } else {
+        result.append("/");
         result.append(args->GetTestRunnerPath());
+        if (result.compare(result.size() - ABC_LENGTH, ABC_LENGTH, ".ets") == 0) {
+            result.erase(result.size() - ABC_LENGTH);
+        }
     }
     return result;
 }
