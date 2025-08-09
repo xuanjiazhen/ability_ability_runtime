@@ -19,11 +19,7 @@
     "type": "feature",
     "mainElement": "TestAbility",
     "srcEntry": "./ets/MyAbilityStage/MyAbilityStage.ts",
-    "deviceTypes": [
-      "default",
-      "tablet",
-      "2in1"
-    ],
+    "deviceTypes": [],
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:test_pages",
