@@ -55,12 +55,12 @@ export default function backgroundImageOption() {
     });
 
     /**
-     * @tc.number motionBlurTest_0100
-     * @tc.name motionBlurTest_0100
-     * @tc.desc api: motionBlur
+     * @tc.number backgroundImageOption_0100
+     * @tc.name backgroundImageOption_0100
+     * @tc.desc api: backgroundImage Option
      * @tc.level: Level 2
-     * @tc.type :
-     * @tc.size :
+     * @tc.type : Function
+     * @tc.size : MEDIUMTEST
      */
     it('backgroundImageOption_0100', Level.LEVEL2, async (done: Function) => {
       console.info('backgroundImageOption_0100 START');
