@@ -16,7 +16,6 @@
 #ifndef NATIVE_XCOMPONENT_COMMON_H
 #define NATIVE_XCOMPONENT_COMMON_H
 
-#include "common/NativeCommon.h"
 #include <napi/native_api.h>
 #include <hilog/log.h>
 #include <cstdio>
@@ -149,6 +148,14 @@
 #define PARAM_NEGATIVE_100 (-100)
 #define PARAM_NEGATIVE_5 (-5)
 #define COLUMN_WIDTH_AND_HEIGHT 210
+
+#define DECLARE_KEYCODE_EVENT(name)                                                 \
+static napi_value GetKeyCodeEvent##name(napi_env env, napi_callback_info info)      \
+{                                                                                   \
+    napi_value retValue = 0;                                                        \
+    if (g_key##name##IsTrue) {                                                      \
+        napi_create_int32(env, g_key##name##IsTrue, &retValue);                     \
+    }
 
 /**
  * Log print domain.

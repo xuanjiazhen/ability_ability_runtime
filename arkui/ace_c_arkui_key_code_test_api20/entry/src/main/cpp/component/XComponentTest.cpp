@@ -36,7 +36,7 @@ static OH_NativeXComponent_TouchEvent g_touchEvent;
 static int g_touchIndex = 0;
 static int32_t g_point = 0;
 static int32_t g_action_result = 0;
-static void (*const TEST_FUNCTIONS[])() = {
+static void (*const TEST_FUNCTIONS[19])() = {
     XComponent::GetKeyEventAction001,
     XComponent::GetKeyEventAction002,
     XComponent::GetKeyEventSourceType001,
