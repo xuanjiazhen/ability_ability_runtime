@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 import bindSheetKeyboardAvoidMode from './bindSheetTest/bindSheetKeyboardAvoidMode.test'
+import bindContextMenuAnchorPosition from './menuControlTest/bindContextMenuAnchorPosition.test';
+import bindMenuAnchorPosition from './menuControlTest/bindMenuAnchorPosition.test';
 
 export default function testsuite() {
   bindSheetKeyboardAvoidMode()
+  bindContextMenuAnchorPosition()
+  bindMenuAnchorPosition()     
 }

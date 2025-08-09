@@ -16,6 +16,15 @@ import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level
 import { BY, UiDriver } from '@kit.TestKit';
 import { router } from '@kit.ArkUI';
 import Utils from '../../MainAbility/common/Utils';
+function spliceColor(sysColor: Resource) {
+  let resourceColor = getContext().resourceManager.getColorSync(sysColor.id)
+  let newArgb: string =  resourceColor.toString(16).toUpperCase()
+  while(newArgb.length<8){
+    newArgb = '0' + newArgb
+  }
+  newArgb = '#' + newArgb
+  return newArgb;
+}
 
 export default function TextPickerPage() {
   describe('TextPickerPage', () => {
@@ -132,7 +141,7 @@ export default function TextPickerPage() {
       let obj1 :string = obj.$attrs.selectedBackgroundStyle.borderRadius;
       let obj2 :string = obj.$attrs.selectedBackgroundStyle.color;
       expect(obj1).assertEqual("radiusTopLeft: [24.00vp]radiusTopRight: [24.00vp]radiusBottomLeft: [24.00vp]radiusBottomRight: [24.00vp]");
-      expect(obj2).assertEqual("#0C182431");
+      expect(obj2).assertEqual(spliceColor($r('sys.color.comp_background_tertiary')));
       done();
     });
   })
