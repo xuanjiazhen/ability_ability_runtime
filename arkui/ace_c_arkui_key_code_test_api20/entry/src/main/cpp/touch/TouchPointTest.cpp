@@ -37,7 +37,8 @@ napi_value GetTouchPointWindowX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+                                                          PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
@@ -67,7 +68,8 @@ napi_value GetTouchPointWindowY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+                                                          PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
@@ -97,7 +99,8 @@ napi_value GetTouchPointDisplayX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+                                                          PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
@@ -127,7 +130,8 @@ napi_value GetTouchPointDisplayY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+                                                          PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
@@ -671,8 +675,8 @@ napi_value CreateTouchNativeNode(napi_env env, napi_callback_info info)
 
 void InitNode()
 {
-    int Width = 480;
-    ColumnComponent.SetWidth(Width);
+    int width = 480;
+    ColumnComponent.SetWidth(width);
     XComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     XComponent.SetXComponentId("TestXComponent");
     XComponent.SetXComponentSurfaceSize(PARAM_15, PARAM_15);

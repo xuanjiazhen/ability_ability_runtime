@@ -36,7 +36,7 @@ static OH_NativeXComponent_TouchEvent g_touchEvent;
 static int g_touchIndex = 0;
 static int32_t g_point = 0;
 static int32_t g_action_result = 0;
-static void (*const testFunctions[])() = {
+static void (*const TEST_FUNCTIONS[])() = {
     XComponent::GetKeyEventAction001,
     XComponent::GetKeyEventAction002,
     XComponent::GetKeyEventSourceType001,
@@ -285,7 +285,7 @@ napi_value RegisterOnFrameCallback002(napi_env env, napi_callback_info info)
     napi_value retValue = 0;
     int32_t result = 0;
     result = OH_NativeXComponent_RegisterOnFrameCallback(nullptr, OnFrameCallback) == PARAM_NEGATIVE_2 ?
-                                                                                      ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+                                                         ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -513,7 +513,9 @@ napi_value GetExtraMouseEventInfo002(napi_env env, napi_callback_info info)
     OH_NativeXComponent_ExtraMouseEventInfo* ExtraMouseEventInfo;
     result = OH_NativeXComponent_GetExtraMouseEventInfo(nullptr, &ExtraMouseEventInfo);
     result = OH_NativeXComponent_GetExtraMouseEventInfo(g_childXComponent->GetXComponent(),
-                                                        nullptr) == ARKUI_ERROR_CODE_PARAM_INVALID && result == ARKUI_ERROR_CODE_PARAM_INVALID ? ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+                                                        nullptr) == ARKUI_ERROR_CODE_PARAM_INVALID && result ==
+                                                        ARKUI_ERROR_CODE_PARAM_INVALID ?
+                                                        ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -537,7 +539,8 @@ napi_value GetMouseEventModifierKeyStates002(napi_env env, napi_callback_info in
     OH_NativeXComponent_GetExtraMouseEventInfo(g_childXComponent->GetXComponent(), &ExtraMouseEventInfo);
     result = OH_NativeXComponent_GetMouseEventModifierKeyStates(nullptr, &g_keys);
     result = OH_NativeXComponent_GetMouseEventModifierKeyStates(ExtraMouseEventInfo, nullptr) ==
-             ARKUI_ERROR_CODE_PARAM_INVALID && result == ARKUI_ERROR_CODE_PARAM_INVALID ? ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+             ARKUI_ERROR_CODE_PARAM_INVALID && result == ARKUI_ERROR_CODE_PARAM_INVALID ?
+             ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -557,7 +560,8 @@ napi_value RegisterFocusEventCallback002(napi_env env, napi_callback_info info)
     int32_t result = 0;
     result = OH_NativeXComponent_RegisterFocusEventCallback(nullptr, OnFocusEvent);
     result = OH_NativeXComponent_RegisterFocusEventCallback(g_childXComponent->GetXComponent(),
-                                                            nullptr) == PARAM_NEGATIVE_2 && result == PARAM_NEGATIVE_2 ? ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+                                                            nullptr) == PARAM_NEGATIVE_2 && result == PARAM_NEGATIVE_2 ?
+                                                            ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -577,7 +581,8 @@ napi_value RegisterBlurEventCallback002(napi_env env, napi_callback_info info)
     int32_t result = 0;
     result = OH_NativeXComponent_RegisterBlurEventCallback(nullptr, OnBlurEvent);
     result = OH_NativeXComponent_RegisterBlurEventCallback(g_childXComponent->GetXComponent(),
-                                                           nullptr) == PARAM_NEGATIVE_2 && result == PARAM_NEGATIVE_2 ? ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+                                                           nullptr) == PARAM_NEGATIVE_2 && result == PARAM_NEGATIVE_2 ?
+                                                           ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -695,7 +700,7 @@ void OnKeyEvent(OH_NativeXComponent* component, void* window)
     }
     // 3. 处理按键事件
     if (g_testFunctionIndex >= PARAM_0 && g_testFunctionIndex <= PARAM_18) {
-        testFunctions[g_testFunctionIndex]();
+        TEST_FUNCTIONS[g_testFunctionIndex]();
     }
 }
 
