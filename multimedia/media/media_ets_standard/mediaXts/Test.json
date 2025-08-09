@@ -88,7 +88,7 @@
       "run-command": [
         "hilog -Q pidoff",
         "hilog -Q domainoff",
-        "hilog -b D -D 0xD002B70"
+        "hilog -b D -D 0xD002b2b"
       ],
       "teardown-command": [
         "power-shell setmode 600",
