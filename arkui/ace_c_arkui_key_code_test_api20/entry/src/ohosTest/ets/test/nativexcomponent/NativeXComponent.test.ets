@@ -613,13 +613,13 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0100
-     * @tc.name    : UnregisterOnFrameCallback001
+     * @tc.name    : testUnregisterOnFrameCallback001
      * @tc.desc    : Test native xcomopnent unregister on frame callback works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0100', TestType.FUNCTION |
+    it('testUnregisterOnFrameCallback001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0100 start<====`);
@@ -634,13 +634,13 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0200
-     * @tc.name    : UnregisterOnFrameCallback002
+     * @tc.name    : testUnregisterOnFrameCallback002
      * @tc.desc    : Test native xcomopnent unregister on frame callback invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0200', TestType.FUNCTION |
+    it('testUnregisterOnFrameCallback002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_UNREGISTERONFRAMECALLBACK_0200 start<====`);
@@ -960,13 +960,13 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERBLUREVENTCALLBACK_0100
-     * @tc.name    : RegisterBlurEventCallback001
+     * @tc.name    : testRegisterBlurEventCallback001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERBLUREVENTCALLBACK_0100', TestType.FUNCTION |
+    it('testRegisterBlurEventCallback001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(0);
@@ -982,13 +982,13 @@ export default function NativeXComponent() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_REGISTERBLUREVENTCALLBACK_0200
-     * @tc.name    : RegisterBlurEventCallback002
+     * @tc.name    : testRegisterBlurEventCallback002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERBLUREVENTCALLBACK_0200', TestType.FUNCTION |
+    it('testRegisterBlurEventCallback002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(1);

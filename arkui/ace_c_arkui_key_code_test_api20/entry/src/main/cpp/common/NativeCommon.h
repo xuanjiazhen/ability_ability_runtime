@@ -30,8 +30,6 @@
         (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, nullptr \
     }
 
-#define XL DECLARE_NAPI_FUNCTION
-
 #define DECLARE_NAPI_FUNCTION_WITH_DATA(name, func, data)                         \
     {                                                                             \
         (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, data    \
