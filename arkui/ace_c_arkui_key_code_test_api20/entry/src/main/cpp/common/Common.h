@@ -155,7 +155,7 @@
  */
 const unsigned int LOG_PRINT_DOMAIN = 0xFF00;
 
-napi_property_descriptor XL(char* functionName, napi_callback func)
+static napi_property_descriptor XL(char* functionName, napi_callback func)
 {
     return { functionName, nullptr, func, nullptr, nullptr, nullptr, napi_default, nullptr };
 }

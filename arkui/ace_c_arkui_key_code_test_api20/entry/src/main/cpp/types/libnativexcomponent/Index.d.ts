@@ -76,6 +76,7 @@ export const HistoricalPointTitlY: () => number;
 export const HistoricalPointSourceTool: () => number;
 export const GetTouchEventSourceTool: (Index: number) => number;
 export const GetTouchPointToolTypeResult: (Index: number) => number;
+export const GetTouchEventSourceType: (Index: number) => number;
 export const TouchPointId: () => number;
 export const TouchPointSize: () => number;
 export const TouchPointForce: () => number;

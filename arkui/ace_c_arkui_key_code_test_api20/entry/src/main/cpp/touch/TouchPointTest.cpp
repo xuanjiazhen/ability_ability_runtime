@@ -472,6 +472,29 @@ napi_value GetTouchPointToolTypeResult(napi_env env, napi_callback_info info)
     return retValue;
 }
 
+napi_value GetTouchEventSourceType(napi_env env, napi_callback_info info)
+{
+    if ((env == nullptr) || (info == nullptr)) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode env or info is null");
+        return nullptr;
+    }
+    size_t argCnt = 1;
+    napi_value args[1] = { nullptr };
+    if (napi_get_cb_info(env, info, &argCnt, args, nullptr, nullptr) != napi_ok) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "PluginManager", "CreateNativeNode napi_get_cb_info failed");
+    }
+    if (argCnt != PARAM_1) {
+        napi_throw_type_error(env, NULL, "Wrong number of arguments");
+        return nullptr;
+    }
+    int32_t Index;
+    napi_get_value_int32(env, args[0], &Index);
+    napi_value retValue = 0;
+    int32_t result = g_touchEventSourceMap.count(OH_NativeXComponent_EventSourceType(Index)) != 0 ? Index : 0;
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
 napi_value TouchPointId(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
@@ -719,6 +742,13 @@ void TouchEventCallback(OH_NativeXComponent* component, void* window)
         OH_NativeXComponent_GetTouchPointToolType(XComponent.GetXComponent(), index, &toolType);
         if (g_touchPointToolMap.count(toolType) == 0) {
             g_touchPointToolMap.insert({ toolType, toolType });
+        }
+    }
+    OH_NativeXComponent_EventSourceType sourceType;
+    for (size_t index = 0; index < g_touchEvent.numPoints; index++) {
+        OH_NativeXComponent_GetTouchEventSourceType(XComponent.GetXComponent(), index, &sourceType);
+        if (g_touchEventSourceMap.count(sourceType) == 0) {
+            g_touchEventSourceMap.insert({ sourceType, sourceType });
         }
     }
     bool condition = size > 0 && g_historicalPoint.type == OH_NativeXComponent_TouchEventType() &&

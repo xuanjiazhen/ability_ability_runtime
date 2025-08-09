@@ -90,7 +90,7 @@ export default function NativeXComponent() {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0100 start<====`);
         await driver.triggerKey(40);
         let Result: number = nativexcomponent.GetKeyEventSourceType();
-        expect(true).assertEqual(Result <= 8);
+        expect(true).assertEqual(Result <= 5);
         done()
       } catch (err) {
         console.error(`====>SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0100 catch err: ` + err);
@@ -998,6 +998,29 @@ export default function NativeXComponent() {
         done()
       } catch (err) {
         console.error(`====>SUB_ARKUI_ACE_ENGINE_REGISTERBLUREVENTCALLBACK_0200 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_KEYBOARD_0100
+     * @tc.name    : testGetKeyEventSourceType003
+     * @tc.desc    : Test get native xcomopnent key event sourcetype works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetKeyEventSourceType003', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        nativexcomponent.ChooseTestFunction(2);
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_KEYBOARD_0100 start<====`);
+        await driver.triggerKey(40);
+        let Result: number = nativexcomponent.GetKeyEventSourceType();
+        expect(5).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_KEYBOARD_0100 catch err: ` + err);
         expect(false).assertEqual(err);
         done()
       }

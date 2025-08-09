@@ -44,6 +44,7 @@ static std::unordered_map<OH_NativeXComponent_TouchEvent_SourceTool,
                           OH_NativeXComponent_HistoricalPoint> g_historicalPointMap;
 static std::unordered_map<bool, OH_NativeXComponent_TouchPoint> g_touchPointMap;
 static std::unordered_map<OH_NativeXComponent_TouchPointToolType, int32_t> g_touchPointToolMap;
+static std::unordered_map<OH_NativeXComponent_EventSourceType, int32_t> g_touchEventSourceMap;
 static OH_NativeXComponent_TouchEvent g_touchEvent = {
     .id = -1,
     .screenX = -1,
@@ -80,6 +81,7 @@ napi_value HistoricalPointTitlY(napi_env env, napi_callback_info info);
 napi_value HistoricalPointSourceTool(napi_env env, napi_callback_info info);
 napi_value GetTouchEventSourceTool(napi_env env, napi_callback_info info);
 napi_value GetTouchPointToolTypeResult(napi_env env, napi_callback_info info);
+napi_value GetTouchEventSourceType(napi_env env, napi_callback_info info);
 napi_value TouchPointId(napi_env env, napi_callback_info info);
 napi_value TouchPointSize(napi_env env, napi_callback_info info);
 napi_value TouchPointForce(napi_env env, napi_callback_info info);

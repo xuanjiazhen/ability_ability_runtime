@@ -111,22 +111,16 @@ napi_value GetKeyEventSourceType(napi_env env, napi_callback_info info)
     int32_t result = PARAM_NEGATIVE_2;
     if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN) {
         result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_FINGER) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_FINGER;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_PEN) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_PEN;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_RUBBER) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_RUBBER;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_BRUSH) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_BRUSH;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_PENCIL) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_PENCIL;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_AIRBRUSH) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_AIRBRUSH;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_MOUSE) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_MOUSE;
-    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_LENS) {
-        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_LENS;
+    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_MOUSE) {
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_MOUSE;
+    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHSCREEN) {
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHSCREEN;
+    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHPAD) {
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHPAD;
+    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_JOYSTICK) {
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_JOYSTICK;
+    } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_KEYBOARD) {
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_KEYBOARD;
     }
     g_eventSourceType = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
     napi_create_int32(env, result, &retValue);

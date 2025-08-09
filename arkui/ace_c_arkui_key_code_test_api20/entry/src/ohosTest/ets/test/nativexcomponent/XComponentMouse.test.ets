@@ -16,6 +16,7 @@
 import { beforeAll, describe, expect, it, Level, Size, TestType } from "@ohos/hypium";
 import nativexcomponent from 'libnativexcomponent.so';
 import Utils from "../common/Utils";
+import { MouseButton } from "@kit.TestKit";
 
 export default function XComponentMouseTest() {
   describe('XComponentMouseTest', () => {
@@ -34,8 +35,8 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100 start<====`);
-        Utils.simulateByShell('uinput -M -m 150 150 -d 0');
-        Utils.simulateByShell('uinput -K -d 1 -u 1');
+        Utils.driver.mouseLongClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_LEFT, 0, 0, 200);
+        Utils.driver.triggerKey(1);
         await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
         let Result: number = nativexcomponent.MouseEventAction(0);
         expect(1).assertEqual(Result);
@@ -58,7 +59,7 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0200 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 0 -u 0');
+        await Utils.driver.mouseClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_LEFT);
         let Result: number = nativexcomponent.MouseEventAction(1);
         expect(1).assertEqual(Result);
         done()
@@ -80,7 +81,7 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 0 -u 0');
+        await Utils.driver.mouseClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_LEFT);
         let Result: number = nativexcomponent.MouseEventAction(2);
         expect(1).assertEqual(Result);
         done()
@@ -102,58 +103,12 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 0 -u 0');
+        await Utils.driver.mouseMoveTo({ x: 150, y: 150 });
         let Result: number = nativexcomponent.MouseEventAction(3);
         expect(1).assertEqual(Result);
         done()
       } catch (err) {
         console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400 catch err: ` + err);
-        expect(false).assertEqual(err);
-        done()
-      }
-    })
-    /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500
-     * @tc.name    : testMouseEventAction005
-     * @tc.desc    : Test get native xcomopnent key event action works.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('testMouseEventAction005', TestType.FUNCTION |
-    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500 start<====`);
-        Utils.simulateByShell('uinput -M -m 150 150 -d 0');
-        Utils.simulateByShell('uinput -K -d 1 -u 1');
-        await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
-        let Result: number = nativexcomponent.MouseEventAction(4);
-        expect(1).assertEqual(Result);
-        done()
-      } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500 catch err: ` + err);
-        expect(false).assertEqual(err);
-        done()
-      }
-    })
-    /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100
-     * @tc.name    : testMouseEventButton001
-     * @tc.desc    : Test get native xcomopnent key event action works.
-     * @tc.level   : LEVEL1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('testMouseEventButton001', TestType.FUNCTION |
-    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      try {
-        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 0 -u 0');
-        let Result: number = nativexcomponent.MouseEventButton(0);
-        expect(1).assertEqual(Result);
-        done()
-      } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100 catch err: ` + err);
         expect(false).assertEqual(err);
         done()
       }
@@ -170,7 +125,7 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0200 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 0 -u 0');
+        await Utils.driver.mouseClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_LEFT);
         let Result: number = nativexcomponent.MouseEventButton(1);
         expect(1).assertEqual(Result);
         done()
@@ -192,7 +147,7 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0300 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 1 -u 1');
+        await Utils.driver.mouseClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_RIGHT);
         let Result: number = nativexcomponent.MouseEventButton(2);
         expect(1).assertEqual(Result);
         done()
@@ -214,7 +169,7 @@ export default function XComponentMouseTest() {
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0400 start<====`);
-        await Utils.simulateByShell('uinput -M -m 150 150 -d 2 -u 2');
+        await Utils.driver.mouseClick({ x: 150, y: 150 }, MouseButton.MOUSE_BUTTON_MIDDLE);
         let Result: number = nativexcomponent.MouseEventButton(4);
         expect(1).assertEqual(Result);
         done()

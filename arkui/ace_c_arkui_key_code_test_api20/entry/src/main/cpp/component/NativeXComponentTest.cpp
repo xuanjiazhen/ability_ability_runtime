@@ -94,6 +94,7 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
         XL("HistoricalPointSourceTool", TouchPoint::HistoricalPointSourceTool),
         XL("GetTouchEventSourceTool", TouchPoint::GetTouchEventSourceTool),
         XL("GetTouchPointToolTypeResult", TouchPoint::GetTouchPointToolTypeResult),
+        XL("GetTouchEventSourceType", TouchPoint::GetTouchEventSourceType),
         XL("TouchPointId", TouchPoint::TouchPointId),
         XL("TouchPointSize", TouchPoint::TouchPointSize),
         XL("TouchPointForce", TouchPoint::TouchPointForce),
@@ -112,7 +113,7 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
 
 static void InitPushXComponentMouse(napi_property_descriptor* desc)
 {
-    int offset = 71;
+    int offset = 72;
     napi_property_descriptor descTemp[] = {
         XL("CreateMouseNativeNode", XComponentMouse::CreateMouseNativeNode),
         XL("MouseEventAction", XComponentMouse::MouseEventAction),
@@ -126,7 +127,7 @@ static void InitPushXComponentMouse(napi_property_descriptor* desc)
 
 static void InitPushNodeAttribute(napi_property_descriptor* desc)
 {
-    int offset = 75;
+    int offset = 76;
     napi_property_descriptor descTemp[] = {
         XL("CreateAttributeNativeNode", NodeAttribute::CreateAttributeNativeNode),
         XL("CheckNodeTextHalfLeading", NodeAttribute::CheckNodeTextHalfLeading),
@@ -162,7 +163,7 @@ static napi_value Init(napi_env env, napi_value exports)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "env or exports is null");
         return nullptr;
     }
-    napi_property_descriptor desc[96] = {};
+    napi_property_descriptor desc[97] = {};
     InitPushXComponent(desc);
     InitPushTouchPoint(desc);
     InitPushXComponentMouse(desc);

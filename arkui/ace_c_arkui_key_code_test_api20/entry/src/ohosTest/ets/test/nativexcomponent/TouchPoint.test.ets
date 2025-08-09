@@ -16,7 +16,7 @@
 import { beforeAll, describe, expect, it, Level, Size, TestType } from "@ohos/hypium";
 import nativexcomponent from 'libnativexcomponent.so';
 import Utils from "../common/Utils";
-import { Driver, Point, UiDirection } from "@kit.TestKit";
+import { Driver, MouseButton, Point, UiDirection } from "@kit.TestKit";
 
 const OH_NATIVEXCOMPONENT_RESULT_SUCCESS = 0;
 const OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER = -2;
@@ -819,6 +819,28 @@ export default function TouchPointTest() {
         done()
       } catch (err) {
         console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHEVENT_TIMESTAMP_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHSCREEN_0100
+     * @tc.name    : testGetTouchEventSourceType003
+     * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchPointDisplayY function works fine.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testGetTouchEventSourceType003', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHSCREEN_0100 start<====`);
+        await driver.swipe(150, 150, 150, 200, speed);
+        let Result: number = nativexcomponent.GetTouchEventSourceType(2);
+        expect(2).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_SOURCE_TYPE_TOUCHSCREEN_0100 catch err: ` + err);
         expect(false).assertEqual(err);
         done()
       }
