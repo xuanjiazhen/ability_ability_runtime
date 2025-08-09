@@ -977,6 +977,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
           console.info(TAG, testName + ' succeed to set PlaybackStrategy');
           expect(true).assertTrue();
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        console.info(TAG, testName + ' set PlaybackStrategy end');
         await avPlayer?.prepare();
         break;
       case PREPARED:
@@ -1011,8 +1012,8 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
       case ERROR:
         console.info(TAG, testName + ' play state is ERROR');
         expect().assertFail();
-        avPlayer?.release().then(() => {
-        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        console.info(TAG, testName + ' failed1111');
+        done();
         break;
       default:
         break;
@@ -1021,10 +1022,8 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
   avPlayer?.on('error', async (err: BusinessError) => {
     console.error(TAG, testName + ` case error called, errMessage is ${err.message}`);
     expect().assertFail();
-    await avPlayer?.release().then(() => {
-      avPlayer = null;
-      done();
-    });
+    console.info(TAG, testName + ' failed2222');
+    done();
   });
 }
 
@@ -1406,13 +1405,19 @@ export default function AVPlayerTest() {
     });
 
     afterEach(async () => {
+      console.info(TAG, 'afterEach start');
+      await sleep(SLEEP_TIME_500);
       if (avPlayer != null) {
         avPlayer.off('stateChange');
+        console.info(TAG, 'afterEach case off stateChange-listen');
+        avPlayer.off('error');
+        console.info(TAG, 'afterEach case off error-listen');
         await avPlayer.release().then(() => {
+          console.info(TAG, 'afterEach case release succeed.');
+          avPlayer = null;
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
       }
-      await sleep(SLEEP_TIME_20);
-      console.info(TAG, 'afterEach case');
+      console.info(TAG, 'afterEach end');
     });
 
     afterAll(async () => {

@@ -35,6 +35,6 @@ export default function testsuite() {
   AVScreenCaptureRecorderTest();
   MediaSourceTest();
   MediaSourceLoadingRequestTest();
-  //SoundPoolTest();
+  SoundPoolTest();
   AVPlayerStabilityTest();
 }
