@@ -105,3 +105,8 @@
 10:30:04:270 log after task size: 0
 10:30:04:532 log timer task size: 1
 10:30:04:782 log timer task size: 1
+14:04:24:455 log task queue not empty
+14:04:24:456 log task size: 1
+14:04:24:456 log before pop task size: 1
+14:04:24:456 log after task size: 0
+14:04:24:959 log timer task size: 1
