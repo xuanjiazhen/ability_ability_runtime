@@ -64,19 +64,10 @@ struct WebTextAutosizing {
             case "TextAutosizing0100": {
               this.userAgentPC = this.webviewController.getUserAgent();
               if ((this.userAgentPC).includes("PC")) {
-                  this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
-                  this.ClientWidth = Number(res);
-                   console.log('ClientWidth22' + this.ClientWidth)
-                  Utils.sleep(3000);
-                 if(this.ClientWidth > 980) {
-                  Utils.emitEvent(true, 4350)
-                 }
-                  console.log('ClientWidth' + this.ClientWidth)
-                })
-                 console.log('ClientWidth11' + this.ClientWidth)
+                Utils.emitEvent(true, 4350)
                 break;
               }else if((this.userAgentPC).includes("Tablet")){
-                Utils.emitEvent(true, 4350);
+                Utils.emitEvent(true, 4350)
                 break;
               }
               this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
