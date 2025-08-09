@@ -323,7 +323,7 @@ export default function colorSpaceManagerTest(context: common.UIAbilityContext, 
 
     /**
      * @tc.number: SUB_GRAPHIC_CREATE_JSAPI_011
-     * @tc.name Test: SUB_GRAPHIC_CREATE_JSAPI_011
+     * @tc.name: Test: SUB_GRAPHIC_CREATE_JSAPI_011
      * @tc.desc: test the DISPLAY_BT2020_SRGB
      * @tc.size      : MediumTest
      * @tc.type      : Function
