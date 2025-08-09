@@ -33,7 +33,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_NoError_0100', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_NoError_0100 start====");
-        let result: number = await printerror.OHPrintNoError();
+        let result: number = printerror.OHPrintNoError();
         expect(result).assertEqual(Success);
         console.info("====>SUB_Oh_Print_NoError_0100 result: " + result);
         done()
@@ -54,7 +54,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidParameter_0200', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidParameter_0200 sta`rt====");
-        let result: number = await printerror.OHPrintInvalidParameter();
+        let result: number = printerror.OHPrintInvalidParameter();
         expect(result).assertEqual(InvalidParameter);
         console.info("====>SUB_Oh_Print_InvalidParameter_0200 result: " + result);
         done();
@@ -75,7 +75,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_GenericFailure_0300', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_GenericFailure_0300 start====");
-        let result: number = await printerror.OHPrintGenericFailure();
+        let result: number = printerror.OHPrintGenericFailure();
         expect(result).assertEqual(GenericFailure);
         console.info("====>SUB_Oh_Print_GenericFailure_0300 result: " + result);
         done();
@@ -96,7 +96,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidPrintJob_0400', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
-        let result: number = await printerror.OHPrintInvalidPrintJob();
+        let result: number = printerror.OHPrintInvalidPrintJob();
         expect(result).assertEqual(InvalidPrintJob);
         console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
         done();
@@ -117,7 +117,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidPrinter_0500', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidPrinter_0500 start====");
-        let result: number = await printerror.OHPrintInvalidPrinter();
+        let result: number = printerror.OHPrintInvalidPrinter();
         expect(result).assertEqual(InvalidPrinter);
         console.info("====>SUB_Oh_Print_InvalidPrinter_0500 result: " + result);
         done();

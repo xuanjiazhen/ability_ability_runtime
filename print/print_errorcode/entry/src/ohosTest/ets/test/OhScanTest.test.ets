@@ -15,7 +15,6 @@
 
 import { describe, it, expect, Level } from '@ohos/hypium'
 import printerror from 'libprinterrorcode.so'
-
 const ERR_OK = 0;
 const INVALID_PARAMETER = 401;
 const UNSUPPORTED = 24300104;
