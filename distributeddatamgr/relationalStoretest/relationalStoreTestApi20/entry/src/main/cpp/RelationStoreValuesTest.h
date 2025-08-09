@@ -35,8 +35,8 @@
 #include <vector>
 
 void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData);
-void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData);
-void addRelationStoreValuesTestB(std::vector<napi_property_descriptor>& descData);
+void addRelationStoreValuesTestOne(std::vector<napi_property_descriptor>& descData);
+void addRelationStoreValuesTestTwo(std::vector<napi_property_descriptor>& descData);
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestPutNullInvalidParam(napi_env env, napi_callback_info info);
 napi_value TestPutIntInvalidParam(napi_env env, napi_callback_info info);

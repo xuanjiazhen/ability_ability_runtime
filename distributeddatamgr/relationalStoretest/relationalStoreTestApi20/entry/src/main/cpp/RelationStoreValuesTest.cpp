@@ -50,11 +50,11 @@ void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back(
         {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
     
-    addRelationStoreValuesTestA(descData);
-    addRelationStoreValuesTestB(descData);
+    addRelationStoreValuesTestOne(descData);
+    addRelationStoreValuesTestTwo(descData);
 }
 
-void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValuesTestOne(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -90,7 +90,7 @@ void addRelationStoreValuesTestA(std::vector<napi_property_descriptor>& descData
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTestB(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValuesTestTwo(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
