@@ -19,7 +19,7 @@
 #include <network/netstack/net_http.h>
 #include "napi/native_api.h"
 #include <js_native_api_types.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 using namespace std;
 
