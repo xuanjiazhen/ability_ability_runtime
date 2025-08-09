@@ -33,6 +33,7 @@ struct WebTextAutosizing {
   @State det: number = 13
   @State userAgentPC:string = "";
   @State isTextAutosizing: boolean | undefined | null= false;
+  @State flag:boolean = false
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
@@ -65,30 +66,28 @@ struct WebTextAutosizing {
               if ((this.userAgentPC).includes("PC")) {
                   this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
                   this.ClientWidth = Number(res);
+                   console.log('ClientWidth22' + this.ClientWidth)
                   Utils.sleep(3000);
+                 if(this.ClientWidth > 980) {
+                  Utils.emitEvent(true, 4350)
+                 }
                   console.log('ClientWidth' + this.ClientWidth)
                 })
                  console.log('ClientWidth11' + this.ClientWidth)
-                if(this.ClientWidth > 980) {
-                  Utils.emitEvent(true, 4350)
-                   console.log('ClientWidth22' + this.ClientWidth)
-                }
                 break;
-                //Utils.emitEvent(true, 4350)
-                //break;
               }else if((this.userAgentPC).includes("Tablet")){
                 Utils.emitEvent(true, 4350);
                 break;
-              } else {
-                this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
+              }
+              this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
                   this.ClientWidth = Number(res);
                   Utils.sleep(3000);
+                  //判断是否是智慧屏
+                  if(this.ClientWidth > 980) {
+                   this.flag = true;
+                  }
                 })
-                if(this.ClientWidth > 980) {
-                  Utils.emitEvent(true, 4350)
-                }
-                break;
-              }
+              
               let value: boolean = false;
               this.isTextAutosizing = false;
               this.de = 1
@@ -118,11 +117,19 @@ struct WebTextAutosizing {
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
+  
 
               setTimeout(() => {
                 console.log("value01: " + value);
-                Utils.emitEvent(value, 4350)
+                // 判断是否是智慧屏
+                if(this.flag == true) {
+                    Utils.emitEvent(true, 4350)
+                } else {
+                   Utils.emitEvent(value, 4350)
+                }
+                
               }, 3000)
+
               break;
             }
 
