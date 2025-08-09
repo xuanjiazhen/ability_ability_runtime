@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 import ActsPrintErrorTest from "./OhPrintTest.test";
-import ActsScanErrorTest from "./OhScanTest.test";
 
 export default function testsuite() {
   ActsPrintErrorTest();
-  ActsScanErrorTest();
 }

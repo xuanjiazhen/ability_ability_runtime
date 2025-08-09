@@ -20,6 +20,10 @@ const InvalidParameter = 401;
 const GenericFailure = 24300001;
 const InvalidPrintJob = 24300006;
 const InvalidPrinter = 24300005;
+const ERR_OK = 0;
+const INVALID_PARAMETER = 401;
+const UNSUPPORTED = 24300104;
+const INVALID = 24300107;
 export default function ActsPrintErrorTest() {
   describe('ActsPrintErrorTest', () => {
     /**
@@ -126,5 +130,61 @@ export default function ActsPrintErrorTest() {
         done()
       }
     })
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_NoError_0100
+     * @tc.name    : SUB_Oh_Scan_NoError_0100
+     * @tc.desc    : Test OHScanNoError
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_NoError_0100', Level.LEVEL1, async (done: Function) => {
+      let result: number = printerror.OHScanNoError();
+      expect(result).assertEqual(ERR_OK);
+      done()
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_InvalidParameter_0200
+     * @tc.name    : SUB_Oh_Scan_InvalidParameter_0200
+     * @tc.desc    : Test OHScanInvalidParameter
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_InvalidParameter_0200', Level.LEVEL1, async (done: Function) => {
+      let result: number = printerror.OHScanInvalidParameter();
+      expect(result).assertEqual(INVALID_PARAMETER);
+      done()
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_UnSupported_0300
+     * @tc.name    : SUB_Oh_Scan_UnSupported_0300
+     * @tc.desc    : Test OHScanUnSupported
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_UnSupported_0300', Level.LEVEL1, async (done: Function) => {
+      let result: number = printerror.OHScanUnSupported();
+      expect(result).assertEqual(UNSUPPORTED);
+      done()
+    });
+
+    /**
+     * @tc.number  : SUB_Oh_Scan_INVALID_0400
+     * @tc.name    : SUB_Oh_Scan_INVALID_0400
+     * @tc.desc    : Test OHPrintINVALID
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_Oh_Scan_INVALID_0400', Level.LEVEL1, async (done: Function) => {
+      let result: number = printerror.OHPrintINVALID();
+      expect(result).assertEqual(INVALID);
+      done()
+    });
   })
 }
