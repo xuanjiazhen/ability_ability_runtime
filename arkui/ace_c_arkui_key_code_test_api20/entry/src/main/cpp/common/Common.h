@@ -72,6 +72,7 @@
 #define PARAM_10000 10000
 #define PARAM_NEGATIVE_1 (-1)
 #define PARAM_NEGATIVE_2 (-2)
+#define PARAM_NEGATIVE_9 (-9)
 #define PARAM_NEGATIVE_10 (-10)
 #define PARAM_NEGATIVE_30 (-30)
 #define PARAM_NEGATIVE_50 (-50)
@@ -147,96 +148,11 @@
 #define PARAM_NEGATIVE_1 (-1)
 #define PARAM_NEGATIVE_100 (-100)
 #define PARAM_NEGATIVE_5 (-5)
-#define ColumnWidthAndHeight 210
-#define DefaultError2 (-2)
+#define COLUMN_WIDTH_AND_HEIGHT 210
 
 /**
  * Log print domain.
  */
 const unsigned int LOG_PRINT_DOMAIN = 0xFF00;
-
-#define ASSERT_EQ(result, expect)                                                                                      \
-    do {                                                                                                               \
-        if ((result) != (expect)) {                                                                                    \
-            std::string assertStr = "assert equal failed, expect is " + std::to_string(expect) + " and result is " +   \
-                                    std::to_string(result);                                                            \
-            char assertChars[assertStr.size() + PARAM_1];                                                              \
-            strcpy(assertChars, assertStr.c_str());                                                                    \
-            napi_throw_error((env), nullptr, assertChars);                                                             \
-            napi_value errorResult = nullptr;                                                                          \
-            napi_create_int32(env, PARAM_NEGATIVE_1, &errorResult);                                                    \
-            return errorResult;                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define ASSERT_NE(result, expect)                                                                                      \
-    do {                                                                                                               \
-        if ((result) == (expect)) {                                                                                    \
-            std::string assertStr = "assert not equal failed, expect is " + std::to_string(expect) +                   \
-                                    " and result is " + std::to_string(result);                                        \
-            char assertChars[assertStr.size() + PARAM_1];                                                              \
-            strcpy(assertChars, assertStr.c_str());                                                                    \
-            napi_throw_error((env), nullptr, assertChars);                                                             \
-            napi_value errorResult = nullptr;                                                                          \
-            napi_create_int32(env, PARAM_NEGATIVE_1, &errorResult);                                                    \
-            return errorResult;                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define ASSERT_STREQ(result, expect)                                                                                   \
-    do {                                                                                                               \
-        auto *res1 = (result);                                                                                         \
-        decltype(res1) res2 = (expect);                                                                                \
-        std::string str1 = res1;                                                                                       \
-        std::string str2 = res2;                                                                                       \
-        if (::strcmp(res1, res2) != 0) {                                                                               \
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "ASSERT_STREQ",                                         \
-                         "assert equal failed, expect is %{public}s and result is %{public}s", res2, res1);            \
-            napi_value errorResult = nullptr;                                                                          \
-            napi_create_int32(env, PARAM_NEGATIVE_1, &errorResult);                                                    \
-            return errorResult;                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define ASSERT_STRNE(result, expect)                                                                                   \
-    do {                                                                                                               \
-        auto *res1 = (result);                                                                                         \
-        decltype(res1) res2 = (expect);                                                                                \
-        std::string str1 = res1;                                                                                       \
-        std::string str2 = res2;                                                                                       \
-        if (::strcmp(res1, res2) == 0) {                                                                               \
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "ASSERT_STRNE",                                         \
-                         "assert not equal failed, expect is %{public}s and result is %{public}s", res2, res1);        \
-            napi_value errorResult = nullptr;                                                                          \
-            napi_create_int32(env, PARAM_NEGATIVE_1, &errorResult);                                                    \
-            return errorResult;                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define ASSERT_OBJ(result, expect)                                                                                     \
-    do {                                                                                                               \
-        if ((result) != (expect)) {                                                                                    \
-            napi_value errorResult = nullptr;                                                                          \
-            return errorResult;                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define NAPI_END                                                                                                       \
-    do {                                                                                                               \
-        napi_value result = nullptr;                                                                                   \
-        napi_create_int32(env, SUCCESS, &result);                                                                      \
-        return result;                                                                                                 \
-    } while (0)
-
-#define NAPI_START(componentName, componentType)                                                                       \
-    auto nodeAPI = reinterpret_cast<ArkUI_NativeNodeAPI_1 *>(                                                          \
-        OH_ArkUI_QueryModuleInterfaceByName(ARKUI_NATIVE_NODE, "ArkUI_NativeNodeAPI_1"));                              \
-    auto(componentName) = nodeAPI->createNode(componentType);                                                          \
-    do {                                                                                                               \
-        if ((env == nullptr) || (info == nullptr)) {                                                                   \
-            OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "NAPI_CHECK_PARAMS", "GetContext env or info is null"); \
-            return nullptr;                                                                                            \
-        }                                                                                                              \
-    } while (0)
 
 #endif // NATIVE_XCOMPONENT_COMMON_H

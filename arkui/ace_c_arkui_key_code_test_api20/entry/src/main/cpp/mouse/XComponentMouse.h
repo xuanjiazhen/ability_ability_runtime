@@ -25,8 +25,7 @@ namespace XComponentMouse {
 static OH_NativeXComponent_MouseEvent_Callback XComponentCallback;
 static XC ColumnComponent = XC(ARKUI_NODE_COLUMN);
 static XC XComponent = XC(ARKUI_NODE_XCOMPONENT);
-static OH_NativeXComponent_MouseEvent g_mouseEvent =
-{
+static OH_NativeXComponent_MouseEvent g_mouseEvent = {
     .x = -1,
     .y = -1,
     .screenX = -1,

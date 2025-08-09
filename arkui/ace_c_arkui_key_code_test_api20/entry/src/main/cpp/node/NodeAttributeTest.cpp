@@ -101,7 +101,7 @@ napi_value CheckNodeTextLinearGradient(napi_env env, napi_callback_info info)
     } else if (condition) {
         result = setResult;
     } else {
-        result = -9;
+        result = PARAM_NEGATIVE_9;
     }
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -138,7 +138,7 @@ napi_value CheckNodeTextRadialGradient(napi_env env, napi_callback_info info)
     } else if (condition) {
         result = setResult;
     } else {
-        result = -9;
+        result = PARAM_NEGATIVE_9;
     }
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -337,7 +337,7 @@ napi_value CheckNodeTextAreaMaxLines(napi_env env, napi_callback_info info)
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item;
     const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES);
-    if (itemptr->value[0].i32 == 3) {
+    if (itemptr->value[0].i32 == PARAM_3) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -386,7 +386,7 @@ napi_value CheckNodeTextAreaMaxLinesWithScroll(napi_env env, napi_callback_info 
     XC TextComponent = XC(ARKUI_NODE_TEXT_AREA);
     ArkUI_AttributeItem item;
     const ArkUI_AttributeItem* itemptr = TextComponent.getAttribute(NODE_TEXT_AREA_MAX_LINES_WITH_SCROLL);
-    if (itemptr->value[0].i32 == 3) {
+    if (itemptr->value[0].i32 == PARAM_3) {
         result = 1;
     }
     napi_create_int32(env, result, &retValue);
@@ -438,7 +438,7 @@ napi_value CheckNodeTextPickSelectedBackgroundStyle(napi_env env, napi_callback_
         } else if (condition) {
             result = setResult;
         } else {
-            result = -9;
+            result = PARAM_NEGATIVE_9;
         }
     } else {
         ArkUI_NumberValue value[] = { { .u32 = color }, { .f32 = radius1 }, { .f32 = radius2 },
@@ -452,7 +452,7 @@ napi_value CheckNodeTextPickSelectedBackgroundStyle(napi_env env, napi_callback_
         } else if (condition) {
             result = setResult;
         } else {
-            result = -9;
+            result = PARAM_NEGATIVE_9;
         }
     }
     napi_create_int32(env, result, &retValue);
@@ -489,8 +489,8 @@ napi_value CreateAttributeNativeNode(napi_env env, napi_callback_info info)
 
 void InitNode()
 {
-    ColumnComponent.SetPercentWidth(0.5);
-    ColumnComponent.SetPercentHeight(0.5);
+    ColumnComponent.SetPercentWidth(PARAM_0_POINT_5);
+    ColumnComponent.SetPercentHeight(PARAM_0_POINT_5);
     ColumnComponent.SetBackgroundColor(0xff3d8aed);
     ColumnComponent.SetId("rootnode");
 }

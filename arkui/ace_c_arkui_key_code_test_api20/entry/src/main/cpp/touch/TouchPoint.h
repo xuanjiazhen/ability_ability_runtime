@@ -26,8 +26,7 @@ static OH_NativeXComponent_Callback XComponentCallback;
 static XC ColumnComponent = XC(ARKUI_NODE_COLUMN);
 static XC XComponent = XC(ARKUI_NODE_XCOMPONENT);
 static int32_t g_getHistoricalPointsResult = 1;
-static OH_NativeXComponent_HistoricalPoint g_historicalPoint =
-{
+static OH_NativeXComponent_HistoricalPoint g_historicalPoint = {
     .id = -1,
     .screenX = -1,
     .screenY = -1,

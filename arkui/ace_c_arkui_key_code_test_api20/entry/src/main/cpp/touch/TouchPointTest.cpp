@@ -37,9 +37,9 @@ napi_value GetTouchPointWindowX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
-                                                          result == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -67,9 +67,9 @@ napi_value GetTouchPointWindowY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
-                                                          result == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -97,9 +97,9 @@ napi_value GetTouchPointDisplayX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
-                                                          result == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -127,9 +127,9 @@ napi_value GetTouchPointDisplayY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
-                                                          result == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -148,8 +148,7 @@ napi_value HistoricalPointId(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.id != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -171,8 +170,7 @@ napi_value HistoricalPointScreenX(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.screenX != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -194,8 +192,7 @@ napi_value HistoricalPointScreenY(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.screenY != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -217,8 +214,7 @@ napi_value HistoricalPointX(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.x != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -240,8 +236,7 @@ napi_value HistoricalPointY(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.y != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -263,8 +258,7 @@ napi_value HistoricalPointType(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.type != OH_NativeXComponent_TouchEventType();
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -286,8 +280,7 @@ napi_value HistoricalPointSize(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.size != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -309,8 +302,7 @@ napi_value HistoricalPointForce(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.force != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -332,8 +324,7 @@ napi_value HistoricalPointTimeStamp(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.timeStamp != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -355,8 +346,7 @@ napi_value HistoricalPointTitlX(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.titlX != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -378,8 +368,7 @@ napi_value HistoricalPointTitlY(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.titlY != -1;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -401,8 +390,7 @@ napi_value HistoricalPointSourceTool(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = g_historicalPoint.sourceTool != OH_NativeXComponent_TouchEvent_SourceTool();
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -439,8 +427,7 @@ napi_value GetTouchEventSourceTool(napi_env env, napi_callback_info info)
     napi_get_value_int32(env, args[0], &Index);
     napi_value retValue = 0;
     int32_t result = g_historicalPointMap.count(OH_NativeXComponent_TouchEvent_SourceTool(Index)) != 0 ? Index : 0;
-    g_historicalPoint =
-    {
+    g_historicalPoint = {
         .id = -1,
         .screenX = -1,
         .screenY = -1,
@@ -684,8 +671,8 @@ napi_value CreateTouchNativeNode(napi_env env, napi_callback_info info)
 
 void InitNode()
 {
-    ColumnComponent.SetWidth(480);
-    ColumnComponent.SetMargin(10);
+    int Width = 480;
+    ColumnComponent.SetWidth(Width);
     XComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     XComponent.SetXComponentId("TestXComponent");
     XComponent.SetXComponentSurfaceSize(PARAM_15, PARAM_15);
@@ -730,9 +717,12 @@ void TouchEventCallback(OH_NativeXComponent* component, void* window)
             g_touchPointToolMap.insert({ toolType, toolType });
         }
     }
-    if (size > 0 && g_historicalPoint.type == OH_NativeXComponent_TouchEventType() && g_historicalPoint.sourceTool == OH_NativeXComponent_TouchEvent_SourceTool()) {
+    bool condition = size > 0 && g_historicalPoint.type == OH_NativeXComponent_TouchEventType() &&
+                g_historicalPoint.sourceTool == OH_NativeXComponent_TouchEvent_SourceTool();
+    if (condition) {
         g_historicalPoint = historicalPoints[0];
-        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "TouchEvent", "g_historicalPoint.sourceTool: %{public}d", g_historicalPoint.sourceTool);
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN,
+                     "TouchEvent", "g_historicalPoint.sourceTool: %{public}d", g_historicalPoint.sourceTool);
     }
     if (g_touchEvent.numPoints > 0 && g_touchPointMap.count(g_touchEvent.touchPoints[0].isPressed) == 0) {
         g_touchPointMap.insert({g_touchEvent.touchPoints[0].isPressed, g_touchEvent.touchPoints[0]});

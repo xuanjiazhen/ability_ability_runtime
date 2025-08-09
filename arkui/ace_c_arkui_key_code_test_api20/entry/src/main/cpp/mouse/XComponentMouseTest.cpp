@@ -112,8 +112,8 @@ napi_value CreateMouseNativeNode(napi_env env, napi_callback_info info)
 
 void InitNode()
 {
-    ColumnComponent.SetWidth(480);
-    ColumnComponent.SetMargin(10);
+    int Width = 480;
+    ColumnComponent.SetWidth(Width);
     XComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     XComponent.SetXComponentId("TestXComponent");
     XComponent.SetXComponentSurfaceSize(PARAM_15, PARAM_15);

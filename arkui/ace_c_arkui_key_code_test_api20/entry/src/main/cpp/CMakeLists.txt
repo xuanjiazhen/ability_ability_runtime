@@ -15,11 +15,11 @@ add_library(keycodendk SHARED nativekeycode/KeyCodeTest.cpp)
 
 add_library(nativexcomponent SHARED
     component/NativeXComponentTest.cpp
-    component/Component.cpp
-    component/XComponent.cpp
-    touch/TouchPoint.cpp
-    mouse/XComponentMouse.cpp
-    node/NodeAttribute.cpp
+    component/ComponentTest.cpp
+    component/XComponentTest.cpp
+    touch/TouchPointTest.cpp
+    mouse/XComponentMouseTest.cpp
+    node/NodeAttributeTest.cpp
 )
 
 find_library(

@@ -19,7 +19,7 @@ import Utils from "../common/Utils";
 import { Driver, Point, UiDirection } from "@kit.TestKit";
 
 const OH_NATIVEXCOMPONENT_RESULT_SUCCESS = 0;
-const OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER = DefaultError2;
+const OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER = -2;
 
 const driver = Driver.create();
 const moveFrom: Point = { x: 150, y: 150 };

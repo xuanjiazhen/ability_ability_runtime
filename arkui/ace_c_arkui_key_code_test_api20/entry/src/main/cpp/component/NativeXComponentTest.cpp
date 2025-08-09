@@ -20,99 +20,9 @@
 namespace NativeXComponentTest {
 EXTERN_C_START
 
-static void InitPushTouchPoint(napi_property_descriptor* desc)
+static void InitPushXComponent(napi_property_descriptor* desc)
 {
-    int Offset = 41;
     napi_property_descriptor descTemp[] = {
-        XL("CreateTouchNativeNode", TouchPoint::CreateTouchNativeNode),
-        XL("GetTouchPointWindowX", TouchPoint::GetTouchPointWindowX),
-        XL("GetTouchPointWindowY", TouchPoint::GetTouchPointWindowY),
-        XL("GetTouchPointDisplayX", TouchPoint::GetTouchPointDisplayX),
-        XL("GetTouchPointDisplayY", TouchPoint::GetTouchPointDisplayY),
-        XL("GetHistoricalPoints", TouchPoint::GetHistoricalPoints),
-        XL("HistoricalPointId", TouchPoint::HistoricalPointId),
-        XL("HistoricalPointScreenX", TouchPoint::HistoricalPointScreenX),
-        XL("HistoricalPointScreenY", TouchPoint::HistoricalPointScreenY),
-        XL("HistoricalPointX", TouchPoint::HistoricalPointX),
-        XL("HistoricalPointY", TouchPoint::HistoricalPointY),
-        XL("HistoricalPointType", TouchPoint::HistoricalPointType),
-        XL("HistoricalPointSize", TouchPoint::HistoricalPointSize),
-        XL("HistoricalPointForce", TouchPoint::HistoricalPointForce),
-        XL("HistoricalPointTimeStamp", TouchPoint::HistoricalPointTimeStamp),
-        XL("HistoricalPointTitlX", TouchPoint::HistoricalPointTitlX),
-        XL("HistoricalPointTitlY", TouchPoint::HistoricalPointTitlY),
-        XL("HistoricalPointSourceTool", TouchPoint::HistoricalPointSourceTool),
-        XL("GetTouchEventSourceTool", TouchPoint::GetTouchEventSourceTool),
-        XL("GetTouchPointToolTypeResult", TouchPoint::GetTouchPointToolTypeResult),
-        XL("TouchPointId", TouchPoint::TouchPointId),
-        XL("TouchPointSize", TouchPoint::TouchPointSize),
-        XL("TouchPointForce", TouchPoint::TouchPointForce),
-        XL("TouchPointTimeStamp", TouchPoint::TouchPointTimeStamp),
-        XL("TouchPointIsPressed", TouchPoint::TouchPointIsPressed),
-        XL("TouchEventId", TouchPoint::TouchEventId),
-        XL("TouchEventSize", TouchPoint::TouchEventSize),
-        XL("TouchEventForce", TouchPoint::TouchEventForce),
-        XL("TouchEventDeviceId", TouchPoint::TouchEventDeviceId),
-        XL("TouchEventTimeStamp", TouchPoint::TouchEventTimeStamp),
-    };
-    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + Offset] = descTemp[index];
-    }
-}
-
-static void InitPushXComponentMouse(napi_property_descriptor* desc)
-{
-    int Offset = 71;
-    napi_property_descriptor descTemp[] = {
-        XL("CreateMouseNativeNode", XComponentMouse::CreateMouseNativeNode),
-        XL("MouseEventAction", XComponentMouse::MouseEventAction),
-        XL("MouseEventButton", XComponentMouse::MouseEventButton),
-        XL("MouseEventTimeStamp", XComponentMouse::MouseEventTimeStamp),
-    };
-    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + Offset] = descTemp[index];
-    }
-}
-
-static void InitPushNodeAttribute(napi_property_descriptor* desc)
-{
-    int Offset = 75;
-    napi_property_descriptor descTemp[] = {
-        XL("CreateAttributeNativeNode", NodeAttribute::CreateAttributeNativeNode),
-        XL("CheckNodeTextHalfLeading", NodeAttribute::CheckNodeTextHalfLeading),
-        XL("CheckNodeTextLineCount", NodeAttribute::CheckNodeTextLineCount),
-        XL("CheckNodeTextOptimizeTrailingSpace", NodeAttribute::CheckNodeTextOptimizeTrailingSpace),
-        XL("CheckNodeTextLinearGradient", NodeAttribute::CheckNodeTextLinearGradient),
-        XL("CheckNodeTextRadialGradient", NodeAttribute::CheckNodeTextRadialGradient),
-        XL("CheckNodeTextVerticalAlign", NodeAttribute::CheckNodeTextVerticalAlign),
-        XL("CheckNodeTextInputHalfLeading", NodeAttribute::CheckNodeTextInputHalfLeading),
-        XL("CheckNodeTextInputKeyboardAppearance", NodeAttribute::CheckNodeTextInputKeyboardAppearance),
-        XL("CheckNodeTextInputEnableFillAnimation", NodeAttribute::CheckNodeTextInputEnableFillAnimation),
-        XL("CheckNodeTextInputLineHeight", NodeAttribute::CheckNodeTextInputLineHeight),
-        XL("CheckNodeTextAreaInputFilter", NodeAttribute::CheckNodeTextAreaInputFilter),
-        XL("CheckNodeTextAreaContentType", NodeAttribute::CheckNodeTextAreaContentType),
-        XL("CheckNodeTextAreaHalfLeading", NodeAttribute::CheckNodeTextAreaHalfLeading),
-        XL("CheckNodeTextAreaKeyboardAppearance", NodeAttribute::CheckNodeTextAreaKeyboardAppearance),
-        XL("CheckNodeTextAreaMaxLines", NodeAttribute::CheckNodeTextAreaMaxLines),
-        XL("CheckNodeTextAreaLineSpacing", NodeAttribute::CheckNodeTextAreaLineSpacing),
-        XL("CheckNodeTextAreaMinLines", NodeAttribute::CheckNodeTextAreaMinLines),
-        XL("CheckNodeTextAreaMaxLinesWithScroll", NodeAttribute::CheckNodeTextAreaMaxLinesWithScroll),
-        XL("CheckNodeTextAreaLineHeight", NodeAttribute::CheckNodeTextAreaLineHeight),
-        XL("CheckNodeTextPickSelectedBackgroundStyle", NodeAttribute::CheckNodeTextPickSelectedBackgroundStyle),
-    };
-    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
-        desc[index + Offset] = descTemp[index];
-    }
-}
-
-static napi_value Init(napi_env env, napi_value exports)
-{
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Init", "Init begins");
-    if ((env == nullptr) || (exports == nullptr)) {
-        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init","env or exports is null");
-        return nullptr;
-    }
-    napi_property_descriptor desc[96] = {
         XL("XComponentCreate", ArkUICapiTest::CreateNativeNode),
         XL("ChooseTestFunction", ArkUICapiTest::ChooseTestFunction),
         XL("GetKeyEventAction", ArkUICapiTest::GetKeyEventAction),
@@ -155,6 +65,105 @@ static napi_value Init(napi_env env, napi_value exports)
         XL("RegisterBlurEventCallback001", ArkUICapiTest::RegisterBlurEventCallback001),
         XL("RegisterBlurEventCallback002", ArkUICapiTest::RegisterBlurEventCallback002),
     };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index] = descTemp[index];
+    }
+}
+
+static void InitPushTouchPoint(napi_property_descriptor* desc)
+{
+    int offset = 41;
+    napi_property_descriptor descTemp[] = {
+        XL("CreateTouchNativeNode", TouchPoint::CreateTouchNativeNode),
+        XL("GetTouchPointWindowX", TouchPoint::GetTouchPointWindowX),
+        XL("GetTouchPointWindowY", TouchPoint::GetTouchPointWindowY),
+        XL("GetTouchPointDisplayX", TouchPoint::GetTouchPointDisplayX),
+        XL("GetTouchPointDisplayY", TouchPoint::GetTouchPointDisplayY),
+        XL("GetHistoricalPoints", TouchPoint::GetHistoricalPoints),
+        XL("HistoricalPointId", TouchPoint::HistoricalPointId),
+        XL("HistoricalPointScreenX", TouchPoint::HistoricalPointScreenX),
+        XL("HistoricalPointScreenY", TouchPoint::HistoricalPointScreenY),
+        XL("HistoricalPointX", TouchPoint::HistoricalPointX),
+        XL("HistoricalPointY", TouchPoint::HistoricalPointY),
+        XL("HistoricalPointType", TouchPoint::HistoricalPointType),
+        XL("HistoricalPointSize", TouchPoint::HistoricalPointSize),
+        XL("HistoricalPointForce", TouchPoint::HistoricalPointForce),
+        XL("HistoricalPointTimeStamp", TouchPoint::HistoricalPointTimeStamp),
+        XL("HistoricalPointTitlX", TouchPoint::HistoricalPointTitlX),
+        XL("HistoricalPointTitlY", TouchPoint::HistoricalPointTitlY),
+        XL("HistoricalPointSourceTool", TouchPoint::HistoricalPointSourceTool),
+        XL("GetTouchEventSourceTool", TouchPoint::GetTouchEventSourceTool),
+        XL("GetTouchPointToolTypeResult", TouchPoint::GetTouchPointToolTypeResult),
+        XL("TouchPointId", TouchPoint::TouchPointId),
+        XL("TouchPointSize", TouchPoint::TouchPointSize),
+        XL("TouchPointForce", TouchPoint::TouchPointForce),
+        XL("TouchPointTimeStamp", TouchPoint::TouchPointTimeStamp),
+        XL("TouchPointIsPressed", TouchPoint::TouchPointIsPressed),
+        XL("TouchEventId", TouchPoint::TouchEventId),
+        XL("TouchEventSize", TouchPoint::TouchEventSize),
+        XL("TouchEventForce", TouchPoint::TouchEventForce),
+        XL("TouchEventDeviceId", TouchPoint::TouchEventDeviceId),
+        XL("TouchEventTimeStamp", TouchPoint::TouchEventTimeStamp),
+    };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index + offset] = descTemp[index];
+    }
+}
+
+static void InitPushXComponentMouse(napi_property_descriptor* desc)
+{
+    int offset = 71;
+    napi_property_descriptor descTemp[] = {
+        XL("CreateMouseNativeNode", XComponentMouse::CreateMouseNativeNode),
+        XL("MouseEventAction", XComponentMouse::MouseEventAction),
+        XL("MouseEventButton", XComponentMouse::MouseEventButton),
+        XL("MouseEventTimeStamp", XComponentMouse::MouseEventTimeStamp),
+    };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index + offset] = descTemp[index];
+    }
+}
+
+static void InitPushNodeAttribute(napi_property_descriptor* desc)
+{
+    int offset = 75;
+    napi_property_descriptor descTemp[] = {
+        XL("CreateAttributeNativeNode", NodeAttribute::CreateAttributeNativeNode),
+        XL("CheckNodeTextHalfLeading", NodeAttribute::CheckNodeTextHalfLeading),
+        XL("CheckNodeTextLineCount", NodeAttribute::CheckNodeTextLineCount),
+        XL("CheckNodeTextOptimizeTrailingSpace", NodeAttribute::CheckNodeTextOptimizeTrailingSpace),
+        XL("CheckNodeTextLinearGradient", NodeAttribute::CheckNodeTextLinearGradient),
+        XL("CheckNodeTextRadialGradient", NodeAttribute::CheckNodeTextRadialGradient),
+        XL("CheckNodeTextVerticalAlign", NodeAttribute::CheckNodeTextVerticalAlign),
+        XL("CheckNodeTextInputHalfLeading", NodeAttribute::CheckNodeTextInputHalfLeading),
+        XL("CheckNodeTextInputKeyboardAppearance", NodeAttribute::CheckNodeTextInputKeyboardAppearance),
+        XL("CheckNodeTextInputEnableFillAnimation", NodeAttribute::CheckNodeTextInputEnableFillAnimation),
+        XL("CheckNodeTextInputLineHeight", NodeAttribute::CheckNodeTextInputLineHeight),
+        XL("CheckNodeTextAreaInputFilter", NodeAttribute::CheckNodeTextAreaInputFilter),
+        XL("CheckNodeTextAreaContentType", NodeAttribute::CheckNodeTextAreaContentType),
+        XL("CheckNodeTextAreaHalfLeading", NodeAttribute::CheckNodeTextAreaHalfLeading),
+        XL("CheckNodeTextAreaKeyboardAppearance", NodeAttribute::CheckNodeTextAreaKeyboardAppearance),
+        XL("CheckNodeTextAreaMaxLines", NodeAttribute::CheckNodeTextAreaMaxLines),
+        XL("CheckNodeTextAreaLineSpacing", NodeAttribute::CheckNodeTextAreaLineSpacing),
+        XL("CheckNodeTextAreaMinLines", NodeAttribute::CheckNodeTextAreaMinLines),
+        XL("CheckNodeTextAreaMaxLinesWithScroll", NodeAttribute::CheckNodeTextAreaMaxLinesWithScroll),
+        XL("CheckNodeTextAreaLineHeight", NodeAttribute::CheckNodeTextAreaLineHeight),
+        XL("CheckNodeTextPickSelectedBackgroundStyle", NodeAttribute::CheckNodeTextPickSelectedBackgroundStyle),
+    };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index + offset] = descTemp[index];
+    }
+}
+
+static napi_value Init(napi_env env, napi_value exports)
+{
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Init", "Init begins");
+    if ((env == nullptr) || (exports == nullptr)) {
+        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "env or exports is null");
+        return nullptr;
+    }
+    napi_property_descriptor desc[96] = {};
+    InitPushXComponent(desc);
     InitPushTouchPoint(desc);
     InitPushXComponentMouse(desc);
     InitPushNodeAttribute(desc);
@@ -162,7 +171,6 @@ static napi_value Init(napi_env env, napi_value exports)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "napi_define_properties failed");
         return nullptr;
     }
-    
     return exports;
 }
 EXTERN_C_END
