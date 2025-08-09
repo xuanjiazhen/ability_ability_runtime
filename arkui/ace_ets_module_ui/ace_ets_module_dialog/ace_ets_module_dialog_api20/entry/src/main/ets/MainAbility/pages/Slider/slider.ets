@@ -46,7 +46,7 @@ struct SliderTest {
     new ComponentContent<Params>(this.uiContext, wrapBuilder(buildTest), new Params(
       '😎😌👨‍👩‍👦‍👦👨👨‍👩‍👦‍👦👁‍🗨123',3));
   private suffixNode2: ComponentContent<Params> =
-    new ComponentContent(this.uiContext, wrapBuilder(buildTest), new Params($r('sys.string.ohos_id_menu_has_filter'),4));
+    new ComponentContent(this.uiContext, wrapBuilder(buildTest), new Params($r('app.string.maxFontSize'),4));
   private prefixNode3: ComponentContent<Params> =
     new ComponentContent<Params>(this.uiContext, wrapBuilder(buildTest), new Params(
       'message5',5));
