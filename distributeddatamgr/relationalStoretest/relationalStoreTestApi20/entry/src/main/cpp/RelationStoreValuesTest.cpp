@@ -15,13 +15,11 @@
 
 #include "RelationStoreValuesTest.h"
 #include "napi/native_api.h"
-#include <cstdint>
-#include <database/data/oh_data_values.h>
 #include <js_native_api_types.h>
-#include <napi/native_api.h>
+#include <cstdint>
 #include <vector>
 
-void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -49,12 +47,9 @@ void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
         {"testGetInvalidParam", nullptr, TestGetInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back(
         {"testIsNullInvalidParam", nullptr, TestIsNullInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr});
-    
-    addRelationStoreValuesTest1(descData);
-    addRelationStoreValuesTest2(descData);
 }
 
-void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetIntInvalidParamA", nullptr, TestGetIntInvalidParamA, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
@@ -90,7 +85,7 @@ void addRelationStoreValuesTest1(std::vector<napi_property_descriptor>& descData
         {"testGetAssetTypeNullA", nullptr, TestGetAssetTypeNullA, nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
-void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData)
+void addRelationStoreValuesTest3(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testGetAssetsCountInvalidParamA", nullptr, TestGetAssetsCountInvalidParamA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
@@ -128,6 +123,13 @@ void addRelationStoreValuesTest2(std::vector<napi_property_descriptor>& descData
                         nullptr, napi_default, nullptr});
     descData.push_back({"testGetUnlimitedIntTypeNullA", nullptr, TestGetUnlimitedIntTypeNullA, nullptr, nullptr,
                         nullptr, napi_default, nullptr});
+}
+
+void addRelationStoreValuesTest(std::vector<napi_property_descriptor>& descData)
+{
+    addRelationStoreValuesTest1(descData);
+    addRelationStoreValuesTest2(descData);
+    addRelationStoreValuesTest3(descData);
 }
 
 napi_value TestDestroyInvalidParam(napi_env env, napi_callback_info info)
@@ -845,23 +847,16 @@ napi_value TestGetUnlimitedIntTypeNullA(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_Data_Values *values = OH_Values_Create();
-    
     OH_Values_PutNull(values);
-    
     int index = 0;
     int sign = 0;
     uint64_t data[5];
     size_t inLen = 5;
     size_t outLen;
     int ret = OH_Values_GetUnlimitedInt(values, index, &sign, data, inLen, &outLen);
-
     napi_create_int32(env, ret, &result);
-    
     OH_Values_Destroy(values);
     return result;
 }
-
-
-
 
 

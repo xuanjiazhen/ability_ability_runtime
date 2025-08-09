@@ -41,6 +41,40 @@ static void InitRdbConfig()
     config_.selfSize = sizeof(OH_Rdb_Config);
 }
 
+void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
+{
+    descData.push_back({"testGetAssetsInvalidParam", nullptr, TestGetAssetsInvalidParam, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetsTypeMismatch", nullptr, TestGetAssetsTypeMismatch, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetAssetsDataTypeNull", nullptr, TestGetAssetsDataTypeNull, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountInvalidParam", nullptr, TestGetFloatVectorCountInvalidParam, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountTypeMismatch", nullptr, TestGetFloatVectorCountTypeMismatch, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorCountTypeNull", nullptr, TestGetFloatVectorCountTypeNull, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorInvalidParam", nullptr, TestGetFloatVectorInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorTypeMismatch", nullptr, TestGetFloatVectorTypeMismatch, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetFloatVectorTypeNull", nullptr, TestGetFloatVectorTypeNull, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandInvalidParam", nullptr, TestGetUnlimitedIntBandInvalidParam, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandTypeMismatch", nullptr, TestGetUnlimitedIntBandTypeMismatch, nullptr,
+                        nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntBandTypeNull", nullptr, TestGetUnlimitedIntBandTypeNull, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntInvalidParam", nullptr, TestGetUnlimitedIntInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntTypeMismatch", nullptr, TestGetUnlimitedIntTypeMismatch, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+    descData.push_back({"testGetUnlimitedIntTypeNull", nullptr, TestGetUnlimitedIntTypeNull, nullptr, nullptr, nullptr,
+                        napi_default, nullptr});
+}
+
 void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"testEnumerate", nullptr, TestEnumerate, nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -88,40 +122,6 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
                         nullptr, napi_default, nullptr});
 
     addRelationStoreValueTest1(descData);
-}
-
-void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
-{
-    descData.push_back({"testGetAssetsInvalidParam", nullptr, TestGetAssetsInvalidParam, nullptr, nullptr, nullptr,
-                        napi_default, nullptr});
-    descData.push_back({"testGetAssetsTypeMismatch", nullptr, TestGetAssetsTypeMismatch, nullptr, nullptr, nullptr,
-                        napi_default, nullptr});
-    descData.push_back({"testGetAssetsDataTypeNull", nullptr, TestGetAssetsDataTypeNull, nullptr, nullptr, nullptr,
-                        napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorCountInvalidParam", nullptr, TestGetFloatVectorCountInvalidParam, nullptr,
-                        nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorCountTypeMismatch", nullptr, TestGetFloatVectorCountTypeMismatch, nullptr,
-                        nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorCountTypeNull", nullptr, TestGetFloatVectorCountTypeNull, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorInvalidParam", nullptr, TestGetFloatVectorInvalidParam, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorTypeMismatch", nullptr, TestGetFloatVectorTypeMismatch, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetFloatVectorTypeNull", nullptr, TestGetFloatVectorTypeNull, nullptr, nullptr, nullptr,
-                        napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntBandInvalidParam", nullptr, TestGetUnlimitedIntBandInvalidParam, nullptr,
-                        nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntBandTypeMismatch", nullptr, TestGetUnlimitedIntBandTypeMismatch, nullptr,
-                        nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntBandTypeNull", nullptr, TestGetUnlimitedIntBandTypeNull, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntInvalidParam", nullptr, TestGetUnlimitedIntInvalidParam, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntTypeMismatch", nullptr, TestGetUnlimitedIntTypeMismatch, nullptr, nullptr,
-                        nullptr, napi_default, nullptr});
-    descData.push_back({"testGetUnlimitedIntTypeNull", nullptr, TestGetUnlimitedIntTypeNull, nullptr, nullptr, nullptr,
-                        napi_default, nullptr});
 }
 
 napi_value TestEnumerate(napi_env env, napi_callback_info info)
