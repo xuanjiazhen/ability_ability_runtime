@@ -24,13 +24,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100
-     * @tc.name    : testMouseEventAction
+     * @tc.name    : testMouseEventAction001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100', TestType.FUNCTION |
+    it('testMouseEventAction001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100 start<====`);
@@ -48,13 +48,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0200
-     * @tc.name    : testMouseEventAction
+     * @tc.name    : testMouseEventAction002
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0200', TestType.FUNCTION |
+    it('testMouseEventAction002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0200 start<====`);
@@ -70,13 +70,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0300
-     * @tc.name    : testMouseEventAction
+     * @tc.name    : testMouseEventAction003
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0300', TestType.FUNCTION |
+    it('testMouseEventAction003', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0100 start<====`);
@@ -92,13 +92,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400
-     * @tc.name    : testMouseEventAction
+     * @tc.name    : testMouseEventAction004
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400', TestType.FUNCTION |
+    it('testMouseEventAction004', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400 start<====`);
@@ -114,13 +114,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500
-     * @tc.name    : testMouseEventAction
+     * @tc.name    : testMouseEventAction005
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500', TestType.FUNCTION |
+    it('testMouseEventAction005', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0500 start<====`);
@@ -138,13 +138,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton001
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100', TestType.FUNCTION |
+    it('testMouseEventButton001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0100 start<====`);
@@ -160,13 +160,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0200
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton002
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0200', TestType.FUNCTION |
+    it('testMouseEventButton002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0200 start<====`);
@@ -182,13 +182,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0300
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton003
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0300', TestType.FUNCTION |
+    it('testMouseEventButton003', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0300 start<====`);
@@ -204,13 +204,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0400
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton004
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0400', TestType.FUNCTION |
+    it('testMouseEventButton004', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0400 start<====`);
@@ -226,13 +226,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0500
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton005
      * @tc.desc    : Test get native xcomopnent key event action works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0500', TestType.FUNCTION |
+    it('testMouseEventButton005', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0500 start<====`);
@@ -248,13 +248,13 @@ export default function XComponentMouseTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0600
-     * @tc.name    : testMouseEventButton
+     * @tc.name    : testMouseEventButton006
      * @tc.desc    : Test get native xcomopnent key event action invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0600', TestType.FUNCTION |
+    it('testMouseEventButton006', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTBUTTON_0600 start<====`);
@@ -276,7 +276,7 @@ export default function XComponentMouseTest() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENT_TIMESTAMP_0100', TestType.FUNCTION |
+    it('testMouseEventTimeStamp', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENT_TIMESTAMP_0100 start<====`);

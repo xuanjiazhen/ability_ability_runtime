@@ -31,6 +31,7 @@ export default class Utils {
   static rect_right: number;
   static rect_bottom: number;
   static rect_value: RectValue;
+  static driver: Driver = Driver.create();
   
   static sleep(time: number) {
     return new Promise<string>((resolve, reject) => {

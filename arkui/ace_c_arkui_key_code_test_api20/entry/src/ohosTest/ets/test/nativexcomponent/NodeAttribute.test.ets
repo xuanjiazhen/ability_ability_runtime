@@ -30,7 +30,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_HALF_LEADING_0100', TestType.FUNCTION |
+    it('testCheckNodeTextHalfLeading', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_HALF_LEADING_0100 start<====`);
@@ -51,7 +51,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_LINE_COUNT_0100', TestType.FUNCTION |
+    it('testCheckNodeTextLineCount', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_LINE_COUNT_0100 start<====`);
@@ -72,7 +72,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_OPTIMIZE_TRAILING_SPACE_0100', TestType.FUNCTION |
+    it('testCheckNodeTextOptimizeTrailingSpace', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_OPTIMIZE_TRAILING_SPACE_0100 start<====`);
@@ -93,7 +93,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_LINEAR_GRADIENT_0100', TestType.FUNCTION |
+    it('testCheckNodeTextLinearGradient', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_LINEAR_GRADIENT_0100 start<====`);
@@ -114,7 +114,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_RADIAL_GRADIENT_0100', TestType.FUNCTION |
+    it('testCheckNodeTextRadialGradient', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_RADIAL_GRADIENT_0100 start<====`);
@@ -135,7 +135,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_VERTICAL_ALIGN_0100', TestType.FUNCTION |
+    it('testCheckNodeTextVerticalAlign', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_VERTICAL_ALIGN_0100 start<====`);
@@ -156,7 +156,7 @@ export default function NodeAttribute() {
     //  * @tc.size    : MediumTest
     //  * @tc.type    : Function
     //  */
-    // it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100', TestType.FUNCTION |
+    // it('testCheckNodeTextInputHalfLeading', TestType.FUNCTION |
     // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
     //   try {
     //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_HALF_LEADING_0100 start<====`);
@@ -177,7 +177,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_KEYBOARD_APPEARANCE_0100', TestType.FUNCTION |
+    it('testCheckNodeTextInputKeyboardAppearance', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_KEYBOARD_APPEARANCE_0100 start<====`);
@@ -198,7 +198,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_ENABLE_FILL_ANIMATION_0100', TestType.FUNCTION |
+    it('testCheckNodeTextInputEnableFillAnimation', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_ENABLE_FILL_ANIMATION_0100 start<====`);
@@ -219,7 +219,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_LINE_HEIGHT_0100', TestType.FUNCTION |
+    it('testCheckNodeTextInputLineHeight', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_INPUT_LINE_HEIGHT_0100 start<====`);
@@ -240,7 +240,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_INPUT_FILTER_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaInputFilter', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_INPUT_FILTER_0100 start<====`);
@@ -261,7 +261,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_CONTENT_TYPE_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaContentType', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_CONTENT_TYPE_0100 start<====`);
@@ -282,7 +282,7 @@ export default function NodeAttribute() {
     //  * @tc.size    : MediumTest
     //  * @tc.type    : Function
     //  */
-    // it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100', TestType.FUNCTION |
+    // it('testCheckNodeTextAreaHalfLeading', TestType.FUNCTION |
     // Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
     //   try {
     //     console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_HALF_LEADING_0100 start<====`);
@@ -303,7 +303,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_KEYBOARD_APPEARANCE_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaKeyboardAppearance', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_KEYBOARD_APPEARANCE_0100 start<====`);
@@ -324,7 +324,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MAX_LINES_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaMaxLines', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MAX_LINES_0100 start<====`);
@@ -345,7 +345,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_LINE_SPACING_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaLineSpacing', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_LINE_SPACING_0100 start<====`);
@@ -366,7 +366,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MIN_LINES_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaMinLines', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MIN_LINES_0100 start<====`);
@@ -387,7 +387,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MAX_LINES_WITH_SCROLL_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaMaxLinesWithScroll', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_MAX_LINES_WITH_SCROLL_0100 start<====`);
@@ -408,7 +408,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_LINE_HEIGHT_0100', TestType.FUNCTION |
+    it('testCheckNodeTextAreaLineHeight', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_AREA_LINE_HEIGHT_0100 start<====`);
@@ -429,7 +429,7 @@ export default function NodeAttribute() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE_0100', TestType.FUNCTION |
+    it('testCheckNodeTextPickSelectedBackgroundStyle', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TEXT_PICKER_SELECTED_BACKGROUND_STYLE_0100 start<====`);

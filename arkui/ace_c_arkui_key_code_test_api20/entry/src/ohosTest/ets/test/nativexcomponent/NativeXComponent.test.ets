@@ -14,7 +14,6 @@
  */
 
 import { describe, beforeAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
-import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import nativexcomponent from 'libnativexcomponent.so';
 import { Driver } from '@kit.TestKit';
 import Utils from '../common/Utils';
@@ -38,7 +37,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTION_0100', TestType.FUNCTION |
+    it('testGetKeyEventAction001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(0);
@@ -61,7 +60,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTION_0200', TestType.FUNCTION |
+    it('testGetKeyEventAction002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(1);
@@ -84,7 +83,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0100', TestType.FUNCTION |
+    it('testGetKeyEventSourceType001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(2);
@@ -107,7 +106,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSOURCETYPE_0200', TestType.FUNCTION |
+    it('testGetKeyEventSourceType002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(3);
@@ -130,7 +129,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTDEVICEID_0100', TestType.FUNCTION |
+    it('testGetKeyEventDeviceId001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(4);
@@ -153,7 +152,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTDEVICEID_0200', TestType.FUNCTION |
+    it('testGetKeyEventDeviceId002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(5);
@@ -176,7 +175,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTTIMESTAMP_0100', TestType.FUNCTION |
+    it('testGetKeyEventTimestamp001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(6);
@@ -199,7 +198,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTTIMESTAMP_0200', TestType.FUNCTION |
+    it('testGetKeyEventTimestamp002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(7);
@@ -222,7 +221,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTMODIFIERKEYSTATES_0100', TestType.FUNCTION |
+    it('testGetKeyEventModifierKeyStates001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(8);
@@ -245,7 +244,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTMODIFIERKEYSTATES_0200', TestType.FUNCTION |
+    it('testGetKeyEventModifierKeyStates002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(9);
@@ -268,7 +267,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTNUMLOCKSTATE_0100', TestType.FUNCTION |
+    it('testGetKeyEventNumLockState001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(10);
@@ -291,7 +290,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTNUMLOCKSTATE_0200', TestType.FUNCTION |
+    it('testGetKeyEventNumLockState002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(11);
@@ -314,7 +313,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTCAPSLOCKSTATE_0100', TestType.FUNCTION |
+    it('testGetKeyEventCapsLockState001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(12);
@@ -337,7 +336,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTCAPSLOCKSTATE_0200', TestType.FUNCTION |
+    it('testGetKeyEventCapsLockState002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(13);
@@ -360,7 +359,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSCROLLLOCKSTATE_0100', TestType.FUNCTION |
+    it('testGetKeyEventScrollLockState001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(14);
@@ -383,7 +382,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTSCROLLLOCKSTATE_0200', TestType.FUNCTION |
+    it('testGetKeyEventScrollLockState002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(15);
@@ -406,7 +405,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTIONENUM_0100', TestType.FUNCTION |
+    it('testGetKeyEventActionEnum001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(16);
@@ -429,7 +428,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETKEYEVENTACTIONENUM_0200', TestType.FUNCTION |
+    it('testGetKeyEventActionEnum002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(17);
@@ -452,7 +451,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0100', TestType.FUNCTION |
+    it('testAttachNativeRootNode001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0100 start<====`);
@@ -473,7 +472,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0200', TestType.FUNCTION |
+    it('testAttachNativeRootNode002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_ATTACHNATIVEROOTNODE_0200 start<====`);
@@ -494,7 +493,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0100', TestType.FUNCTION |
+    it('testDetachNativeRootNode001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0100 start<====`);
@@ -515,7 +514,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0200', TestType.FUNCTION |
+    it('testDetachNativeRootNode002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_DETACHNATIVEROOTNODE_0200 start<====`);
@@ -536,7 +535,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0100', TestType.FUNCTION |
+    it('testSetExpectedFrameRateRange001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0100 start<====`);
@@ -557,7 +556,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0200', TestType.FUNCTION |
+    it('testSetExpectedFrameRateRange002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_SETEXPECTEDFRAMERATERANGE_0200 start<====`);
@@ -578,7 +577,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0100', TestType.FUNCTION |
+    it('testRegisterOnFrameCallback001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0100 start<====`);
@@ -599,7 +598,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0200', TestType.FUNCTION |
+    it('testRegisterOnFrameCallback002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERONFRAMECALLBACK_0200 start<====`);
@@ -662,7 +661,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0100', TestType.FUNCTION |
+    it('testRegisterUIInputEventCallback001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0100 start<====`);
@@ -683,7 +682,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0200', TestType.FUNCTION |
+    it('testRegisterUIInputEventCallback002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERUIINPUTEVENTCALLBACK_0200 start<====`);
@@ -704,7 +703,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0100', TestType.FUNCTION |
+    it('testGetNativeAccessibilityProvider001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0100 start<====`);
@@ -725,7 +724,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0200', TestType.FUNCTION |
+    it('testGetNativeAccessibilityProvider002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0200 start<====`);
@@ -746,7 +745,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0100', TestType.FUNCTION |
+    it('testRegisterKeyEventCallbackWithResult001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0100 start<====`);
@@ -767,7 +766,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0200', TestType.FUNCTION |
+    it('testRegisterKeyEventCallbackWithResult002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_REGISTERKEYEVENTCALLBACKWITHRESULT_0200 start<====`);
@@ -788,7 +787,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_XCOMPONENTINITIALIZE_0100', TestType.FUNCTION |
+    it('testXComponentInitialize001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_XCOMPONENTINITIALIZE_0100 start<====`);
@@ -809,7 +808,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_XCOMPONENTFINALIZE_0100', TestType.FUNCTION |
+    it('testXComponentFinalize002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_XCOMPONENTFINALIZE_0100 start<====`);
@@ -830,7 +829,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_XCOMPONENTSETNEEDSOFTKEYBOARD_0200', TestType.FUNCTION |
+    it('testXComponentSetNeedSoftKeyboard002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_XCOMPONENTSETNEEDSOFTKEYBOARD_0200 start<====`);
@@ -851,7 +850,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETEXTRAMOUSEEVENTINFO_0100', TestType.FUNCTION |
+    it('testGetExtraMouseEventInfo001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(0);
@@ -875,7 +874,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETEXTRAMOUSEEVENTINFO_0200', TestType.FUNCTION |
+    it('testGetExtraMouseEventInfo002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(1);
@@ -899,7 +898,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_GETMOUSEEVENTMODIFIERKEYSTATES_0200', TestType.FUNCTION |
+    it('testGetMouseEventModifierKeyStates002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(1);
@@ -923,7 +922,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERFOCUSEVENTCALLBACK_0100', TestType.FUNCTION |
+    it('testRegisterFocusEventCallback001', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(0);
@@ -945,7 +944,7 @@ export default function NativeXComponent() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_ARKUI_ACE_ENGINE_REGISTERFOCUSEVENTCALLBACK_0200', TestType.FUNCTION |
+    it('testRegisterFocusEventCallback002', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         nativexcomponent.ChooseTestFunction(1);
