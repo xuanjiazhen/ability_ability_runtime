@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "ActsPrintErrorCodeTest.h"
 #include "napi/native_api.h"
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
@@ -27,7 +28,16 @@ static void PrinterChangeCallback(Print_PrinterEvent event, const Print_PrinterI
 static constexpr size_t ARG_SIZE_ONE = 1;
 static constexpr int32_t ERROR_COMMON = -1;
 
-static napi_value OHPrintNoError(napi_env env, napi_callback_info info)
+void addPrintErrorCodeTest(std::vector<napi_property_descriptor>& descData)
+{
+    descData.push_back({"OHPrintNoError", nullptr, OHPrintNoError, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidParameter", nullptr, OHPrintInvalidParameter, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintGenericFailure", nullptr, OHPrintGenericFailure, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidPrintJob", nullptr, OHPrintInvalidPrintJob, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter, nullptr, nullptr, nullptr, napi_default, nullptr});
+}
+
+napi_value OHPrintNoError(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -35,7 +45,7 @@ static napi_value OHPrintNoError(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
+napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -45,7 +55,7 @@ static napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
+napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
@@ -56,7 +66,7 @@ static napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
+napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_StartPrintJob(nullptr);
@@ -64,7 +74,7 @@ static napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
+napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     OH_Print_RegisterPrinterChangeListener(PrinterChangeCallback);
@@ -73,31 +83,3 @@ static napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
     napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
     return result;
 }
-
-EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports)
-{
-    napi_property_descriptor desc[] = {
-        {"OHPrintNoError", nullptr, OHPrintNoError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHPrintInvalidParameter", nullptr, OHPrintInvalidParameter, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHPrintGenericFailure", nullptr, OHPrintGenericFailure, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHPrintInvalidPrintJob", nullptr, OHPrintInvalidPrintJob, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter, nullptr, nullptr, nullptr, napi_default, nullptr}
-    };
-
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
-    return exports;
-}
-EXTERN_C_END
-
-static napi_module demoModule = {
-    .nm_version = 1,
-    .nm_flags = 0,
-    .nm_filename = nullptr,
-    .nm_register_func = Init,
-    .nm_modname = "printerrorcode",
-    .nm_priv = ((void *)0),
-    .reserved = {0},
-};
-
-extern "C" __attribute__((constructor)) void RegisterModule(void) { napi_module_register(&demoModule); }

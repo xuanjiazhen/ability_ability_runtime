@@ -12,9 +12,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const OHPrintNoError: () => Promise<number>;
-export const OHPrintInvalidParameter: () => Promise<number>;
-export const OHPrintGenericFailure: () => Promise<number>;
-export const OHPrintInvalidPrintJob: () => Promise<number>;
-export const OHPrintInvalidPrinter: () => Promise<number>;
 
