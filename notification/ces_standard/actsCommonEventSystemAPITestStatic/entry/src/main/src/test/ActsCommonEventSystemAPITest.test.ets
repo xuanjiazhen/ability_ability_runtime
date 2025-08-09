@@ -861,7 +861,6 @@ export default function ActsCommonEventSystemAPITest() {
             }
           ],
           actionType: wantAgent.OperationType.START_ABILITY,
-          requestCode: 0,
           actionFlags: [wantAgent.WantAgentFlags.ONE_TIME_FLAG]
         }
         let wantAgentData = wantAgent.getWantAgent(wantagent);

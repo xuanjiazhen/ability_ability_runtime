@@ -645,7 +645,7 @@ export default function ActsEmitterandComEventTest() {
      */
     it('Sub_Notification_Emitter_Publish_Sendable_Static_0003', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL3, async (done: () => void): Promise<void> => {
       let Tag :string = 'Sub_Notification_Emitter_Publish_Sendable_Static_0003==>'
-
+      let eventData: emitter.GenericEventData<Sample> = {data:a};
       let onConsume_number : number= 0
 
       let callback = (eventData: emitter.GenericEventData<Sample>): void => {
@@ -674,7 +674,7 @@ export default function ActsEmitterandComEventTest() {
      */
     it('Sub_Notification_Emitter_Publish_Sendable_Static_0004', TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0, async (done: () => void): Promise<void> => {
       let Tag :string = 'Sub_Notification_Emitter_Publish_Sendable_Static_0004==>'
-
+      let eventData: emitter.GenericEventData<Sample> = {data:a};
       let onConsume_number : number = 0
       let emit_number : number = 0
 
