@@ -25,20 +25,7 @@
         "runtimeOS": "OpenHarmony"
       }
     ],
-    "signingConfigs": [
-      {
-        "name": "default",
-        "material": {
-          "certpath": "C:/Users/lenovo/.ohos/config/openharmony/default_relationalStoreTestApi20_IlIMacfJYt7aO6ow7CbLu8C8BxQE1wyr3Tuzw9xSYbU=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BD81889107E3A697F1CAA7125D31352D390A74B003D2D40097EDDE5F14738832F66EEF277CDF2C9",
-          "profile": "C:/Users/lenovo/.ohos/config/openharmony/default_relationalStoreTestApi20_IlIMacfJYt7aO6ow7CbLu8C8BxQE1wyr3Tuzw9xSYbU=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "C:/Users/lenovo/.ohos/config/openharmony/default_relationalStoreTestApi20_IlIMacfJYt7aO6ow7CbLu8C8BxQE1wyr3Tuzw9xSYbU=.p12",
-          "storePassword": "0000001B381D0570BD9461EAC4460E3D502F81C7297AE4D680F56B8FD355C2FCCF1579F8139028DEDDFD13"
-        }
-      }
-    ]
+    "signingConfigs": []
   },
   "modules": [
     {
