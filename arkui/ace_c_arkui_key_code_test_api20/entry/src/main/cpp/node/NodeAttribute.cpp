@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "node/nodeattribute.h"
+#include "node/NodeAttribute.h"
 
 namespace NodeAttribute {
 

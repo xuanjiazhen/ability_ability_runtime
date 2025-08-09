@@ -14,7 +14,7 @@
  */
 #ifndef FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION1_H
 #define FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION1_H
-#include "common/common.h"
+#include "common/Common.h"
 #include "nativekeycode/KeyCodeGlobal.h"
 
 DECLARE_KEYCODE_EVENT(Plus)

@@ -16,7 +16,7 @@
 #ifndef NDKXCOMPONENT_ATTRIBUTE_H
 #define NDKXCOMPONENT_ATTRIBUTE_H
 
-#include "component/xcomponent.h"
+#include "component/XComponent.h"
 
 #define XC ArkUICapiTest::XComponent
 

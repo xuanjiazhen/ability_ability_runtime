@@ -14,7 +14,7 @@
  */
 #ifndef FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION3_H
 #define FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION3_H
-#include "common/common.h"
+#include "common/Common.h"
 #include "nativekeycode/KeyCodeGlobal.h"
 
 DECLARE_KEYCODE_EVENT(Apostrophe)

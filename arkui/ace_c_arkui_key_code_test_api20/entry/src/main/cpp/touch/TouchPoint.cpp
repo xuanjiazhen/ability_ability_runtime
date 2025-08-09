@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "touch/touchpoint.h"
+#include "touch/TouchPoint.h"
 
 namespace TouchPoint {
 
@@ -37,8 +37,9 @@ napi_value GetTouchPointWindowX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == -2 ? -2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == -2 && result == -2 ? -2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
+                                                          result == DefaultError2 ? DefaultError2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -66,8 +67,9 @@ napi_value GetTouchPointWindowY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == -2 ? -2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == -2 && result == -2 ? -2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
+                                                          result == DefaultError2 ? DefaultError2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -95,8 +97,9 @@ napi_value GetTouchPointDisplayX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == -2 ? -2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == -2 && result == -2 ? -2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
+                                                          result == DefaultError2 ? DefaultError2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -124,8 +127,9 @@ napi_value GetTouchPointDisplayY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == -2 ? -2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == -2 && result == -2 ? -2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) == DefaultError2 ? DefaultError2 : 0;
+        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == DefaultError2 &&
+                                                          result == DefaultError2 ? DefaultError2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
     }
@@ -533,7 +537,7 @@ napi_value TouchPointIsPressed(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = 0;
-    result = g_touchPointMap.size() == 2;
+    result = g_touchPointMap.size() == PARAM_2;
     g_touchPointMap.clear();
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -684,7 +688,7 @@ void InitNode()
     ColumnComponent.SetMargin(10);
     XComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     XComponent.SetXComponentId("TestXComponent");
-    XComponent.SetXComponentSurfaceSize(15, 15);
+    XComponent.SetXComponentSurfaceSize(PARAM_15, PARAM_15);
     XComponent.SetFocusable(true);
     XComponent.SetFocusDefault(true);
     XComponent.SetPercentWidth(1.0);

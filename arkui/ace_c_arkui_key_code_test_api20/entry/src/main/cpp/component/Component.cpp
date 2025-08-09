@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "component.h"
+#include "component/Component.h"
 
 namespace ArkUICapiTest {
 

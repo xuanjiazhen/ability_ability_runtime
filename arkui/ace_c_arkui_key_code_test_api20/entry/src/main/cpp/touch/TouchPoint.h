@@ -16,7 +16,7 @@
 #ifndef NDKXCOMPONENT_TOUCHPOINT_H
 #define NDKXCOMPONENT_TOUCHPOINT_H
 
-#include "component/xcomponent.h"
+#include "component/XComponent.h"
 
 #define XC ArkUICapiTest::XComponent
 
@@ -45,8 +45,7 @@ static std::unordered_map<OH_NativeXComponent_TouchEvent_SourceTool,
                           OH_NativeXComponent_HistoricalPoint> g_historicalPointMap;
 static std::unordered_map<bool, OH_NativeXComponent_TouchPoint> g_touchPointMap;
 static std::unordered_map<OH_NativeXComponent_TouchPointToolType, int32_t> g_touchPointToolMap;
-static OH_NativeXComponent_TouchEvent g_touchEvent =
-{
+static OH_NativeXComponent_TouchEvent g_touchEvent = {
     .id = -1,
     .screenX = -1,
     .screenY = -1,

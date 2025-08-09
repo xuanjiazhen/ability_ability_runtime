@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "mouse/xcomponentmouse.h"
+#include "mouse/XComponentMouse.h"
 
 namespace XComponentMouse {
 
@@ -116,7 +116,7 @@ void InitNode()
     ColumnComponent.SetMargin(10);
     XComponent.SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     XComponent.SetXComponentId("TestXComponent");
-    XComponent.SetXComponentSurfaceSize(15, 15);
+    XComponent.SetXComponentSurfaceSize(PARAM_15, PARAM_15);
     XComponent.SetFocusable(true);
     XComponent.SetFocusDefault(true);
     XComponent.SetPercentWidth(1.0);

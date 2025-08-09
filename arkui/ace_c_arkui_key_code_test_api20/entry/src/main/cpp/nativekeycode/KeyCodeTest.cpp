@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "common/common.h"
+#include "common/Common.h"
 #include "nativekeycode/KeyCodeFunction1.h"
 #include "nativekeycode/KeyCodeFunction2.h"
 #include "nativekeycode/KeyCodeFunction3.h"

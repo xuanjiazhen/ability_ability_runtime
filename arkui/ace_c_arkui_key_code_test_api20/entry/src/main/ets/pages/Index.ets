@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import Utils from '../../../ohosTest/ets/test/common/Utils'
 
 @Entry
 @Component
@@ -23,9 +24,9 @@ struct Index {
       Column() {
         Button('keyCodeEvent')
           .defaultFocus(true)
-          .onKeyEvent(()=>{
+          .onClick(()=>{
+            Utils.simulateByShell('uinput -K -d 1 -u 1');
           })
-        TextInput()
       }
       .width('100%')
     }

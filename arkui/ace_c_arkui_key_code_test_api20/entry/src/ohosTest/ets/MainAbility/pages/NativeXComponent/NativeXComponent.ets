@@ -18,7 +18,7 @@ import { NodeContent } from '@kit.ArkUI';
 @Entry
 @Component
 struct NativeXComponent {
-  @State currentStatus: string = "init";
+  @State currentStatus: string = 'init';
   @State currentWindowX: number = 0;
   private nodeContent: NodeContent = new NodeContent();
   aboutToAppear():void{

@@ -16,7 +16,7 @@
 #ifndef ACE_C_ARKUI_INTERFACE_XCOMPONENT_TEST_API20_XCOMPONENT_H
 #define ACE_C_ARKUI_INTERFACE_XCOMPONENT_TEST_API20_XCOMPONENT_H
 
-#include "component/component.h"
+#include "component/Component.h"
 
 namespace ArkUICapiTest {
 class XComponent : public Component {
@@ -48,35 +48,11 @@ public:
     static void GetKeyEventCapsLockState002();
     static void GetKeyEventScrollLockState001();
     static void GetKeyEventScrollLockState002();
-
 };
-extern OH_NativeXComponent_Callback callback_;
-static int32_t g_testFunctionIndex = 0;
-static int32_t g_result = -1;
-static OH_NativeXComponent_KeyEvent* g_keyEvent = nullptr;
-static OH_NativeXComponent_KeyAction g_action = OH_NATIVEXCOMPONENT_KEY_ACTION_UNKNOWN;
-static OH_NativeXComponent_EventSourceType g_eventSourceType = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
-static int64_t g_deviceId = -2;
-static int64_t g_timestamp = -2;
-static uint64_t g_targetTimestamp = 0;
-static uint64_t g_keys = -2;
-static bool isNumLockOn = NULL;
-static bool isCapsLockOn = NULL;
-static bool isScrollLockOn = NULL;
-static XComponent g_xComponent = XComponent(ARKUI_NODE_COLUMN);
-static XComponent* ChildXComponent = new XComponent(ARKUI_NODE_XCOMPONENT);
-static XComponent Column = XComponent(ARKUI_NODE_COLUMN);
-static OHNativeWindow* g_nativeWindow = nullptr;
-static OH_NativeXComponent_TouchEvent g_touchEvent;
-static int g_touchIndex = 0;
-static int32_t g_point = 0;
-static int32_t g_action_result = 0;
-static OH_NativeXComponent_MouseEvent mouseEvent;
 napi_value ChooseTestFunction(napi_env env, napi_callback_info info);
 void OnKeyEvent(OH_NativeXComponent* component, void* window);
 void OnFocusEvent(OH_NativeXComponent* component, void* window);
 void OnBlurEvent(OH_NativeXComponent* component, void* window);
-void OnMouseEvent(OH_NativeXComponent* component, void* window);
 void OnFrameCallback(OH_NativeXComponent* component, uint64_t timestamp, uint64_t targetTimestamp);
 void UIInputEventCallback(OH_NativeXComponent* component, ArkUI_UIInputEvent* event, ArkUI_UIInputEvent_Type type);
 bool OnKeyEventCallbackWithResult(OH_NativeXComponent* component, void* window);
@@ -121,9 +97,6 @@ napi_value RegisterFocusEventCallback001(napi_env env, napi_callback_info info);
 napi_value RegisterFocusEventCallback002(napi_env env, napi_callback_info info);
 napi_value RegisterBlurEventCallback001(napi_env env, napi_callback_info info);
 napi_value RegisterBlurEventCallback002(napi_env env, napi_callback_info info);
-napi_value GetEventSourceType(napi_env env, napi_callback_info info);
-napi_value MouseEventAction(napi_env env, napi_callback_info info);
-napi_value MouseEventButton(napi_env env, napi_callback_info info);
 }
 
 #endif //ACE_C_ARKUI_INTERFACE_XCOMPONENT_TEST_API20_XCOMPONENT_H

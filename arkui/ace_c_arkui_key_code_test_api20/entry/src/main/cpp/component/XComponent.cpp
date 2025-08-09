@@ -13,9 +13,29 @@
  * limitations under the License.
  */
 
-#include "xcomponent.h"
+#include "component/XComponent.h"
 
 namespace ArkUICapiTest {
+
+static int32_t g_testFunctionIndex = 0;
+static int32_t g_result = -1;
+static OH_NativeXComponent_KeyEvent* g_keyEvent = nullptr;
+static OH_NativeXComponent_KeyAction g_action = OH_NATIVEXCOMPONENT_KEY_ACTION_UNKNOWN;
+static OH_NativeXComponent_EventSourceType g_eventSourceType = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
+static int64_t g_deviceId = DefaultError2;
+static int64_t g_timestamp = DefaultError2;
+static uint64_t g_targetTimestamp = 0;
+static uint64_t g_keys = DefaultError2;
+static bool isNumLockOn = NULL;
+static bool isCapsLockOn = NULL;
+static bool isScrollLockOn = NULL;
+static XComponent g_xComponent = XComponent(ARKUI_NODE_COLUMN);
+static XComponent* ChildXComponent = new XComponent(ARKUI_NODE_XCOMPONENT);
+static OHNativeWindow* g_nativeWindow = nullptr;
+static OH_NativeXComponent_TouchEvent g_touchEvent;
+static int g_touchIndex = 0;
+static int32_t g_point = 0;
+static int32_t g_action_result = 0;
 
 napi_value ChooseTestFunction(napi_env env, napi_callback_info info)
 {
@@ -39,7 +59,7 @@ napi_value ChooseTestFunction(napi_env env, napi_callback_info info)
 napi_value GetKeyEventAction(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = -2;
+    int32_t result = DefaultError2;
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN,
                  "KeyEventXComponent", "Choose Function GetKeyEventAction");
     if (g_action == OH_NATIVEXCOMPONENT_KEY_ACTION_UNKNOWN) {
@@ -67,25 +87,25 @@ napi_value GetKeyEventActionEnum(napi_env env, napi_callback_info info)
 napi_value GetKeyEventSourceType(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = -2;
+    int32_t result = DefaultError2;
     if (g_eventSourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN) {
-        result = 0;
+        result = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_FINGER) {
-        result = 1;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_FINGER;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_PEN) {
-        result = 2;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_PEN;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_RUBBER) {
-        result = 3;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_RUBBER;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_BRUSH) {
-        result = 4;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_BRUSH;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_PENCIL) {
-        result = 5;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_PENCIL;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_AIRBRUSH) {
-        result = 6;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_AIRBRUSH;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_MOUSE) {
-        result = 7;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_MOUSE;
     } else if (g_eventSourceType == OH_NATIVEXCOMPONENT_TOOL_TYPE_LENS) {
-        result = 8;
+        result = OH_NATIVEXCOMPONENT_TOOL_TYPE_LENS;
     }
     g_eventSourceType = OH_NATIVEXCOMPONENT_SOURCE_TYPE_UNKNOWN;
     napi_create_int32(env, result, &retValue);
@@ -95,13 +115,13 @@ napi_value GetKeyEventSourceType(napi_env env, napi_callback_info info)
 napi_value GetKeyEventDeviceId(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int64_t result = -2;
-    if (g_deviceId == -2) {
+    int64_t result = DefaultError2;
+    if (g_deviceId == DefaultError2) {
         result = 0;
     } else {
         result = 1;
     }
-    g_deviceId = -2;
+    g_deviceId = DefaultError2;
     napi_create_int64(env, result, &retValue);
     return retValue;
 }
@@ -109,13 +129,13 @@ napi_value GetKeyEventDeviceId(napi_env env, napi_callback_info info)
 napi_value GetKeyEventTimestamp(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int64_t result = -2;
-    if (g_timestamp == -2) {
+    int64_t result = DefaultError2;
+    if (g_timestamp == DefaultError2) {
         result = 0;
     } else {
         result = 1;
     }
-    g_timestamp = -2;
+    g_timestamp = DefaultError2;
     napi_create_int64(env, result, &retValue);
     return retValue;
 }
@@ -148,6 +168,7 @@ napi_value GetKeyEventScrollLockState(napi_env env, napi_callback_info info)
 
 napi_value AttachNativeRootNode001(napi_env env, napi_callback_info info)
 {
+    XComponent Column = XComponent(ARKUI_NODE_COLUMN);
     Column.SetBackgroundColor(0xffff0000);
     Column.SetWidth(ColumnWidthAndHeight);
     Column.SetHeight(ColumnWidthAndHeight);
@@ -155,7 +176,7 @@ napi_value AttachNativeRootNode001(napi_env env, napi_callback_info info)
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, _nodeAPI);
     _nodeAPI->addChild(ChildXComponent->GetComponent(), Column.GetComponent());
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_AttachNativeRootNode(ChildXComponent->GetXComponent(), Column.GetComponent());
     OH_NativeXComponent_DetachNativeRootNode(ChildXComponent->GetXComponent(), Column.GetComponent());
     napi_create_int32(env, result, &retValue);
@@ -168,7 +189,7 @@ napi_value AttachNativeRootNode002(napi_env env, napi_callback_info info)
     int32_t result = 0;
     if (OH_NativeXComponent_AttachNativeRootNode(g_xComponent.GetXComponent(), nullptr) ==
         OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER) {
-        result = 401;
+        result = ARKUI_ERROR_CODE_PARAM_INVALID;
     }
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -176,14 +197,15 @@ napi_value AttachNativeRootNode002(napi_env env, napi_callback_info info)
 
 napi_value DetachNativeRootNode001(napi_env env, napi_callback_info info)
 {
+    XComponent Column = XComponent(ARKUI_NODE_COLUMN);
     Column.SetBackgroundColor(0xffff0000);
-    Column.SetWidth(210);
-    Column.SetHeight(210);
+    Column.SetWidth(ColumnWidthAndHeight);
+    Column.SetHeight(ColumnWidthAndHeight);
     ArkUI_NativeNodeAPI_1* _nodeAPI;
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, _nodeAPI);
     _nodeAPI->addChild(ChildXComponent->GetComponent(), Column.GetComponent());
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     OH_NativeXComponent_AttachNativeRootNode(ChildXComponent->GetXComponent(), Column.GetComponent());
     result = OH_NativeXComponent_DetachNativeRootNode(ChildXComponent->GetXComponent(), Column.GetComponent());
     napi_create_int32(env, result, &retValue);
@@ -196,7 +218,7 @@ napi_value DetachNativeRootNode002(napi_env env, napi_callback_info info)
     int32_t result = 0;
     if (OH_NativeXComponent_DetachNativeRootNode(g_xComponent.GetXComponent(), nullptr) ==
         OH_NATIVEXCOMPONENT_RESULT_BAD_PARAMETER) {
-        result = 401;
+        result = ARKUI_ERROR_CODE_PARAM_INVALID;
     }
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -224,14 +246,14 @@ napi_value SetExpectedFrameRateRange002(napi_env env, napi_callback_info info)
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
 napi_value RegisterOnFrameCallback001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_RegisterOnFrameCallback(ChildXComponent->GetXComponent(), OnFrameCallback);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -254,7 +276,7 @@ void OnFrameCallback(OH_NativeXComponent* component, uint64_t timestamp, uint64_
 napi_value UnregisterOnFrameCallback001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_UnregisterOnFrameCallback(ChildXComponent->GetXComponent());
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -264,7 +286,7 @@ napi_value UnregisterOnFrameCallback002(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = 0;
-    result = OH_NativeXComponent_UnregisterOnFrameCallback(nullptr) == -2 ? 401 : 0;
+    result = OH_NativeXComponent_UnregisterOnFrameCallback(nullptr) == DefaultError2 ? ARKUI_ERROR_CODE_PARAM_INVALID : 0;
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -273,7 +295,7 @@ napi_value RegisterUIInputEventCallback001(napi_env env, napi_callback_info info
 {
     napi_value retValue = 0;
     OH_NativeXComponent_ExpectedRateRange ExpectedRateRange = { .min = 30, .max = 60, .expected = 45 };
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_RegisterUIInputEventCallback(ChildXComponent->GetXComponent(), UIInputEventCallback, ARKUI_UIINPUTEVENT_TYPE_AXIS);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -303,7 +325,7 @@ napi_value RegisterUIInputEventCallback002(napi_env env, napi_callback_info info
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
@@ -332,7 +354,7 @@ napi_value RegisterOnTouchInterceptCallback002(napi_env env, napi_callback_info 
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
@@ -364,7 +386,7 @@ napi_value GetNativeAccessibilityProvider002(napi_env env, napi_callback_info in
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
@@ -373,7 +395,8 @@ napi_value RegisterKeyEventCallbackWithResult001(napi_env env, napi_callback_inf
     napi_value retValue = 0;
     int32_t result = 0;
     ArkUI_AccessibilityProvider* handle;
-    result = OH_NativeXComponent_RegisterKeyEventCallbackWithResult(ChildXComponent->GetXComponent(), OnKeyEventCallbackWithResult);
+    result = OH_NativeXComponent_RegisterKeyEventCallbackWithResult(ChildXComponent->GetXComponent(),
+                                                                    OnKeyEventCallbackWithResult);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }
@@ -390,7 +413,7 @@ napi_value RegisterKeyEventCallbackWithResult002(napi_env env, napi_callback_inf
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
@@ -446,7 +469,7 @@ napi_value XComponentSetNeedSoftKeyboard002(napi_env env, napi_callback_info inf
         napi_create_int32(env, 0, &retValue);
         return retValue;
     }
-    napi_create_int32(env, 401, &retValue);
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
     return retValue;
 }
 
@@ -455,7 +478,7 @@ napi_value XComponentSetNeedSoftKeyboard002(napi_env env, napi_callback_info inf
 napi_value GetExtraMouseEventInfo001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     OH_NativeXComponent_ExtraMouseEventInfo* ExtraMouseEventInfo;
     result = OH_NativeXComponent_GetExtraMouseEventInfo(ChildXComponent->GetXComponent(), &ExtraMouseEventInfo);
     napi_create_int32(env, result, &retValue);
@@ -476,7 +499,7 @@ napi_value GetExtraMouseEventInfo002(napi_env env, napi_callback_info info)
 napi_value GetMouseEventModifierKeyStates001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     OH_NativeXComponent_ExtraMouseEventInfo* ExtraMouseEventInfo;
     OH_NativeXComponent_GetExtraMouseEventInfo(ChildXComponent->GetXComponent(), &ExtraMouseEventInfo);
     result = OH_NativeXComponent_GetMouseEventModifierKeyStates(ExtraMouseEventInfo, &g_keys);
@@ -499,7 +522,7 @@ napi_value GetMouseEventModifierKeyStates002(napi_env env, napi_callback_info in
 napi_value RegisterFocusEventCallback001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_RegisterFocusEventCallback(ChildXComponent->GetXComponent(), OnFocusEvent);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -518,7 +541,7 @@ napi_value RegisterFocusEventCallback002(napi_env env, napi_callback_info info)
 napi_value RegisterBlurEventCallback001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
-    int32_t result = 401;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
     result = OH_NativeXComponent_RegisterBlurEventCallback(ChildXComponent->GetXComponent(), OnBlurEvent);
     napi_create_int32(env, result, &retValue);
     return retValue;
@@ -551,14 +574,14 @@ napi_value CreateNativeNode(napi_env env, napi_callback_info info)
     }
     ArkUI_NodeContentHandle nodeContentHandle_ = nullptr;
     OH_ArkUI_GetNodeContentFromNapiValue(env, args[0], &nodeContentHandle_);
-    g_xComponent.SetPercentWidth(80);
-    g_xComponent.SetPercentHeight(80);
+    g_xComponent.SetPercentWidth(PARAM_80);
+    g_xComponent.SetPercentHeight(PARAM_80);
     g_xComponent.SetBackgroundColor(0xffff0000);
     ChildXComponent->SetXComponentType(ARKUI_XCOMPONENT_TYPE_SURFACE);
     ChildXComponent->SetXComponentId("TestXComponent");
 //    ChildXComponent->SetXComponentSurfaceSize(480, 320);
-    ChildXComponent->SetPercentWidth(100);
-    ChildXComponent->SetPercentHeight(100);
+    ChildXComponent->SetPercentWidth(PARAM_100);
+    ChildXComponent->SetPercentHeight(PARAM_100);
     ChildXComponent->SetId("NativeXComponentTest");
     ChildXComponent->SetFocusable(true);
     ChildXComponent->SetFocusDefault(true);
@@ -623,7 +646,7 @@ void XComponent::PrintXComponentInfo()
                 typeRet->value[0].i32);
     auto idRet = _nodeAPI->getAttribute(_component, NODE_XCOMPONENT_ID);
     OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "PluginManager", "xcomponent id: %{public}s",
-                idRet->string);
+                 idRet->string);
 }
 
 void OnFocusEvent(OH_NativeXComponent* component, void* window)
@@ -649,61 +672,61 @@ void OnKeyEvent(OH_NativeXComponent* component, void* window)
 
     // 3. 处理按键事件
     switch (g_testFunctionIndex) {
-        case 0:
+        case PARAM_0:
             XComponent::GetKeyEventAction001();
             break;
-        case 1:
+        case PARAM_1:
             XComponent::GetKeyEventAction002();
             break;
-        case 2:
+        case PARAM_2:
             XComponent::GetKeyEventSourceType001();
             break;
-        case 3:
+        case PARAM_3:
             XComponent::GetKeyEventSourceType002();
             break;
-        case 4:
+        case PARAM_4:
             XComponent::GetKeyEventDeviceId001();
             break;
-        case 5:
+        case PARAM_5:
             XComponent::GetKeyEventDeviceId002();
             break;
-        case 6:
+        case PARAM_6:
             XComponent::GetKeyEventTimestamp001();
             break;
-        case 7:
+        case PARAM_7:
             XComponent::GetKeyEventTimestamp002();
             break;
-        case 8:
+        case PARAM_8:
             XComponent::GetKeyEventModifierKeyStates001();
             break;
-        case 9:
+        case PARAM_9:
             XComponent::GetKeyEventModifierKeyStates002();
             break;
-        case 10:
+        case PARAM_10:
             XComponent::GetKeyEventNumLockState001();
             break;
-        case 11:
+        case PARAM_11:
             XComponent::GetKeyEventNumLockState002();
             break;
-        case 12:
+        case PARAM_12:
             XComponent::GetKeyEventCapsLockState001();
             break;
-        case 13:
+        case PARAM_13:
             XComponent::GetKeyEventCapsLockState002();
             break;
-        case 14:
+        case PARAM_14:
             XComponent::GetKeyEventScrollLockState001();
             break;
-        case 15:
+        case PARAM_15:
             XComponent::GetKeyEventScrollLockState002();
             break;
-        case 16:
+        case PARAM_16:
             XComponent::GetKeyEventActionEnum001();
             break;
-        case 17:
+        case PARAM_17:
             XComponent::GetKeyEventActionEnum002();
             break;
-        case 18:
+        case PARAM_18:
             XComponent::GetKeyEventActionEnum003();
             break;
     }

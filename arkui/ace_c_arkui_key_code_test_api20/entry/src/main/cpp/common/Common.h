@@ -16,7 +16,7 @@
 #ifndef NATIVE_XCOMPONENT_COMMON_H
 #define NATIVE_XCOMPONENT_COMMON_H
 
-#include "common/native_common.h"
+#include "common/NativeCommon.h"
 #include <napi/native_api.h>
 #include <hilog/log.h>
 #include <cstdio>
@@ -148,6 +148,7 @@
 #define PARAM_NEGATIVE_100 (-100)
 #define PARAM_NEGATIVE_5 (-5)
 #define ColumnWidthAndHeight 210
+#define DefaultError2 (-2)
 
 /**
  * Log print domain.

@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-#include <hilog/log.h>
-
-#include "mouse/xcomponentmouse.h"
-#include "touch/touchpoint.h"
-#include "node/nodeattribute.h"
+#include "mouse/XComponentMouse.h"
+#include "touch/TouchPoint.h"
+#include "node/NodeAttribute.h"
 
 namespace NativeXComponentTest {
 EXTERN_C_START
@@ -45,16 +43,16 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
         XL("HistoricalPointSourceTool", TouchPoint::HistoricalPointSourceTool),
         XL("GetTouchEventSourceTool", TouchPoint::GetTouchEventSourceTool),
         XL("GetTouchPointToolTypeResult", TouchPoint::GetTouchPointToolTypeResult),
-        XL("TouchPointId",TouchPoint::TouchPointId),
-        XL("TouchPointSize",TouchPoint::TouchPointSize),
-        XL("TouchPointForce",TouchPoint::TouchPointForce),
-        XL("TouchPointTimeStamp",TouchPoint::TouchPointTimeStamp),
-        XL("TouchPointIsPressed",TouchPoint::TouchPointIsPressed),
-        XL("TouchEventId",TouchPoint::TouchEventId),
-        XL("TouchEventSize",TouchPoint::TouchEventSize),
-        XL("TouchEventForce",TouchPoint::TouchEventForce),
-        XL("TouchEventDeviceId",TouchPoint::TouchEventDeviceId),
-        XL("TouchEventTimeStamp",TouchPoint::TouchEventTimeStamp),
+        XL("TouchPointId", TouchPoint::TouchPointId),
+        XL("TouchPointSize", TouchPoint::TouchPointSize),
+        XL("TouchPointForce", TouchPoint::TouchPointForce),
+        XL("TouchPointTimeStamp", TouchPoint::TouchPointTimeStamp),
+        XL("TouchPointIsPressed", TouchPoint::TouchPointIsPressed),
+        XL("TouchEventId", TouchPoint::TouchEventId),
+        XL("TouchEventSize", TouchPoint::TouchEventSize),
+        XL("TouchEventForce", TouchPoint::TouchEventForce),
+        XL("TouchEventDeviceId", TouchPoint::TouchEventDeviceId),
+        XL("TouchEventTimeStamp", TouchPoint::TouchEventTimeStamp),
     };
     for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
         desc[index + 41] = descTemp[index];
@@ -106,7 +104,7 @@ static void InitPushNodeAttribute(napi_property_descriptor* desc)
 
 static napi_value Init(napi_env env, napi_value exports)
 {
-    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Init","Init begins");
+    OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "Init", "Init begins");
     if ((env == nullptr) || (exports == nullptr)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init","env or exports is null");
         return nullptr;

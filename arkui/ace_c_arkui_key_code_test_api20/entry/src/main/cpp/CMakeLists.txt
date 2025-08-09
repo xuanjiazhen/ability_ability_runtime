@@ -14,12 +14,12 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 add_library(keycodendk SHARED nativekeycode/KeyCodeTest.cpp)
 
 add_library(nativexcomponent SHARED
-    component/nativexcomponentTest.cpp
-    component/component.cpp
-    component/xcomponent.cpp
-    touch/touchpoint.cpp
-    mouse/xcomponentmouse.cpp
-    node/nodeattribute.cpp
+    component/NativeXComponentTest.cpp
+    component/Component.cpp
+    component/XComponent.cpp
+    touch/TouchPoint.cpp
+    mouse/XComponentMouse.cpp
+    node/NodeAttribute.cpp
 )
 
 find_library(

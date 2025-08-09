@@ -16,7 +16,7 @@
 #ifndef ARKUI_CAPI_DEMO_COMPONENT_H
 #define ARKUI_CAPI_DEMO_COMPONENT_H
 
-#include "common/common.h"
+#include "common/Common.h"
 
 namespace ArkUICapiTest {
 

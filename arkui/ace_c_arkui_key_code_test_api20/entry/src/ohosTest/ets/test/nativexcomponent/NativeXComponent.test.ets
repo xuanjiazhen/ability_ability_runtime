@@ -699,7 +699,7 @@ export default function NativeXComponent() {
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0100
      * @tc.name    : testGetNativeAccessibilityProvider001
-     * @tc.desc    : Test native xcomopnent get native accessibility provider works.
+     * @tc.desc    : Test native xcomopnent get native accessibilityprovider works.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
@@ -720,7 +720,7 @@ export default function NativeXComponent() {
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_GETNATIVEACCESSIBILITYPROVIDER_0200
      * @tc.name    : testGetNativeAccessibilityProvider002
-     * @tc.desc    : Test native xcomopnent get native accessibility provider invalid.
+     * @tc.desc    : Test native xcomopnent get native accessibilityprovider invalid.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function

@@ -16,7 +16,7 @@
 #ifndef NDKXCOMPONENT_XCOMPONENTMOUSE_H
 #define NDKXCOMPONENT_XCOMPONENTMOUSE_H
 
-#include "component/xcomponent.h"
+#include "component/XComponent.h"
 
 #define XC ArkUICapiTest::XComponent
 
