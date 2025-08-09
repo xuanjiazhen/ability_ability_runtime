@@ -31,6 +31,9 @@ import textPickerDialogBackgroundEffectTest from './textPickerDialogTest/textPic
 import textPickerDialogBlurStyleOptionsTest from './textPickerDialogTest/textPickerDialogBlurStyleOptions.test'
 import timePickerDialogBackgroundEffectTest from './timePickerDialogTest/timePickerDialogBackgroundEffect.test'
 import timePickerDialogBlurStyleOptionsTest from './timePickerDialogTest/timePickerDialogBlurStyleOptions.test'
+import openMenuAnchorPositionTest from './promptActionTest/openMenuAnchorPosition.test'
+import updateMenuAnchorPositionTest from './promptActionTest/updateMenuAnchorPosition.test'
+import maxWidth from './PopupTest/Maxwidth.test'
 
 export default function testsuite() {
   actionSheetBackgroundEffectTest()
@@ -51,4 +54,7 @@ export default function testsuite() {
   textPickerDialogBlurStyleOptionsTest()
   timePickerDialogBackgroundEffectTest()
   timePickerDialogBlurStyleOptionsTest()
+  openMenuAnchorPositionTest()
+  updateMenuAnchorPositionTest()  
+  maxWidth();
 }
