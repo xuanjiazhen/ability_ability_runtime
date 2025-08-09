@@ -21,8 +21,9 @@ import promptAction from '@ohos.promptAction';
 @Component
 struct BindContentCoverOption {
   @State name: string = 'BindContentCoverOption';
-  @State stepTips: string = '预置条件：\n设置->系统->开发者选项->过渡动画缩放5x\n操作步骤：\n1、点击按钮transition modal 1,点击close modal1按钮 \n2、点击按钮transition modal 2,点击close modal2按钮' +
-  '\n3、点击按钮transition modal 3,点击close modal3按钮' +
+  @State stepTips: string = '预置条件：\n设置->系统->开发者选项->过渡动画缩放5x\n操作步骤：\n' +
+    '1、点击按钮transition modal 1,点击close modal1按钮 \n2、点击按钮transition modal 2,点击close modal2按钮' +
+    '\n3、点击按钮transition modal 3,点击close modal3按钮' +
     '\n' + '预期结果：\n1、点击transition modal 1 模态进场有从下到上的动画效果\n2、点击transition modal 2 模态进场有渐变的动画效果' +
     '\n3、点击transition modal 3 模态进场无动画效果';
   @State isVue: boolean = false;
@@ -208,7 +209,7 @@ struct BindContentCoverOption {
             this.isShow2 = true;
           })
           .margin(10)
-          .bindContentCover(this.isShow2,this.myBuilder2(),  {modalTransition: ModalTransition.ALPHA,
+          .bindContentCover(this.isShow2, this.myBuilder2(),  {modalTransition: ModalTransition.ALPHA,
             backgroundColor: Color.Pink})
         Button('transition modal 3')
 
@@ -216,7 +217,8 @@ struct BindContentCoverOption {
             this.isShow3 = true;
           })
           .margin(10)
-          .bindContentCover(this.isShow3,this.myBuilder3(), { modalTransition:ModalTransition.NONE,backgroundColor:Color.Blue })
+          .bindContentCover(this.isShow3, this.myBuilder3(), { modalTransition:ModalTransition.NONE,
+            backgroundColor:Color.Blue })
       }
       .height('80%')
       .width('100%')
@@ -252,9 +254,9 @@ struct BindContentCoverOption {
       .width('100%')
       .justifyContent(FlexAlign.SpaceEvenly)
       .backgroundColor(Color.Black)
-      }
-      .width('100%')
-      .height('100%')
-      .backgroundColor('#F1F3F5')
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#F1F3F5')
   }
 }
