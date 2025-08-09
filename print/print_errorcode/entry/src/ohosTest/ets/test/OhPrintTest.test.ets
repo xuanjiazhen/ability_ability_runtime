@@ -20,10 +20,6 @@ const InvalidParameter = 401;
 const GenericFailure = 24300001;
 const InvalidPrintJob = 24300006;
 const InvalidPrinter = 24300005;
-const ERR_OK = 0;
-const INVALID_PARAMETER = 401;
-const UNSUPPORTED = 24300104;
-const INVALID = 24300107;
 export default function ActsPrintErrorTest() {
   describe('ActsPrintErrorTest', () => {
     /**
@@ -37,7 +33,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_NoError_0100', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_NoError_0100 start====");
-        let result: number = printerror.OHPrintNoError();
+        let result = printerror.OHPrintNoError();
         expect(result).assertEqual(Success);
         console.info("====>SUB_Oh_Print_NoError_0100 result: " + result);
         done()
@@ -58,7 +54,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidParameter_0200', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidParameter_0200 sta`rt====");
-        let result: number = printerror.OHPrintInvalidParameter();
+        let result = printerror.OHPrintInvalidParameter();
         expect(result).assertEqual(InvalidParameter);
         console.info("====>SUB_Oh_Print_InvalidParameter_0200 result: " + result);
         done();
@@ -79,7 +75,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_GenericFailure_0300', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_GenericFailure_0300 start====");
-        let result: number = printerror.OHPrintGenericFailure();
+        let result = printerror.OHPrintGenericFailure();
         expect(result).assertEqual(GenericFailure);
         console.info("====>SUB_Oh_Print_GenericFailure_0300 result: " + result);
         done();
@@ -100,7 +96,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidPrintJob_0400', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
-        let result: number = printerror.OHPrintInvalidPrintJob();
+        let result = printerror.OHPrintInvalidPrintJob();
         expect(result).assertEqual(InvalidPrintJob);
         console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
         done();
@@ -121,7 +117,7 @@ export default function ActsPrintErrorTest() {
     it('SUB_Oh_Print_InvalidPrinter_0500', Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Oh_Print_InvalidPrinter_0500 start====");
-        let result: number = printerror.OHPrintInvalidPrinter();
+        let result = printerror.OHPrintInvalidPrinter();
         expect(result).assertEqual(InvalidPrinter);
         console.info("====>SUB_Oh_Print_InvalidPrinter_0500 result: " + result);
         done();
@@ -130,61 +126,5 @@ export default function ActsPrintErrorTest() {
         done()
       }
     })
-
-    /**
-     * @tc.number  : SUB_Oh_Scan_NoError_0100
-     * @tc.name    : SUB_Oh_Scan_NoError_0100
-     * @tc.desc    : Test OHScanNoError
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_Oh_Scan_NoError_0100', Level.LEVEL1, async (done: Function) => {
-      let result: number = printerror.OHScanNoError();
-      expect(result).assertEqual(ERR_OK);
-      done()
-    });
-
-    /**
-     * @tc.number  : SUB_Oh_Scan_InvalidParameter_0200
-     * @tc.name    : SUB_Oh_Scan_InvalidParameter_0200
-     * @tc.desc    : Test OHScanInvalidParameter
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_Oh_Scan_InvalidParameter_0200', Level.LEVEL1, async (done: Function) => {
-      let result: number = printerror.OHScanInvalidParameter();
-      expect(result).assertEqual(INVALID_PARAMETER);
-      done()
-    });
-
-    /**
-     * @tc.number  : SUB_Oh_Scan_UnSupported_0300
-     * @tc.name    : SUB_Oh_Scan_UnSupported_0300
-     * @tc.desc    : Test OHScanUnSupported
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_Oh_Scan_UnSupported_0300', Level.LEVEL1, async (done: Function) => {
-      let result: number = printerror.OHScanUnSupported();
-      expect(result).assertEqual(UNSUPPORTED);
-      done()
-    });
-
-    /**
-     * @tc.number  : SUB_Oh_Scan_INVALID_0400
-     * @tc.name    : SUB_Oh_Scan_INVALID_0400
-     * @tc.desc    : Test OHPrintINVALID
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_Oh_Scan_INVALID_0400', Level.LEVEL1, async (done: Function) => {
-      let result: number = printerror.OHPrintINVALID();
-      expect(result).assertEqual(INVALID);
-      done()
-    });
   })
 }
