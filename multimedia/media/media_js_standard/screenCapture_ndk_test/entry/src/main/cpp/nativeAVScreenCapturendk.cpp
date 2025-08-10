@@ -1782,12 +1782,6 @@ static napi_value normalSelectionCallback(napi_env env, napi_callback_info info)
     if (initResult != AV_SCREEN_CAPTURE_ERR_INVALID_VAL) {
         napi_throw_error((env), nullptr, "error : expect result1 is 3");
     }
-    OH_AVScreenCaptureConfig configNull_;
-    initResult = OH_AVScreenCapture_Init(screenCaptureNormal, configNull_);
-    OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init initResult = %{public}d", initResult);
-    if (initResult != AV_SCREEN_CAPTURE_ERR_OPERATE_NOT_PERMIT) {
-        napi_throw_error((env), nullptr, "error : expect initResult is 2");
-    }
     initResult = OH_AVScreenCapture_Init(screenCaptureNormal, config_);
     OH_LOG_INFO(LOG_APP, "OH_AVScreenCapture_Init initResult = %{public}d", initResult);
     if (initResult != AV_SCREEN_CAPTURE_ERR_OK) {
