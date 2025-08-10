@@ -25,6 +25,10 @@
 #define AAFWK_FUNC_FMT "[%{public}s:%{public}d]"
 #endif
 
+#ifndef AAFWK_FUNC_FMT_V2
+#define AAFWK_FUNC_FMT_V2 "[%{public}s]"
+#endif
+
 #ifndef AAFWK_FILE_NAME
 #define AAFWK_FILE_NAME \
     (__builtin_strrchr(__FILE_NAME__, '/') ? __builtin_strrchr(__FILE_NAME__, '/') + 1 : __FILE_NAME__)
@@ -32,6 +36,10 @@
 
 #ifndef AAFWK_FUNC_INFO
 #define AAFWK_FUNC_INFO AAFWK_FILE_NAME, __LINE__
+#endif
+
+#ifndef AAFWK_FUNC_INFO_V2
+#define AAFWK_FUNC_INFO AAFWK_FILE_NAME
 #endif
 
 
@@ -208,19 +216,25 @@ static inline const char* GetTagInfoFromDomainId(AAFwkLogTag tag)
         default: return "UN";
     }
 }
+
 } // OHOS::AAFwk
 
 using AAFwkTag = OHOS::AAFwk::AAFwkLogTag;
 
-#define AAFWK_PRINT_LOG(level, tag, fmt, ...)                                                           \
+#define AAFWK_PRINT_LOG(level, tag, flag, fmt, ...)                                                           \
     do {                                                                                                \
-        AAFwkTag logTag = tag;                                                                          \
-        ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                  \
-        OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
+        AAFwkTag logTag = tag;
+        if (flag) {
+            ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                  \
+            OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT_V2 fmt, AAFWK_FUNC_INFO_V2, ##__VA_ARGS__)); \
+        } else {
+            ((void)HILOG_IMPL(LOG_CORE, level, static_cast<uint32_t>(logTag),                                      \
+                OHOS::AAFwk::GetTagInfoFromDomainId(logTag), AAFWK_FUNC_FMT fmt, AAFWK_FUNC_INFO, ##__VA_ARGS__)); \
+        }                                                                                                      \
     } while (0)
 
 #define TAG_LOGD(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_DEBUG, tag, fmt, ##__VA_ARGS__)
-#define TAG_LOGI(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_INFO,  tag, fmt, ##__VA_ARGS__)
+#define TAG_LOGI(tag, flag, fmt, ...) AAFWK_PRINT_LOG(LOG_INFO,  tag, flag, fmt, ##__VA_ARGS__)
 #define TAG_LOGW(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_WARN,  tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGE(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_ERROR, tag, fmt, ##__VA_ARGS__)
 #define TAG_LOGF(tag, fmt, ...) AAFWK_PRINT_LOG(LOG_FATAL, tag, fmt, ##__VA_ARGS__)
