@@ -4865,7 +4865,7 @@ export default function ArrayTest() {
     it('testCollectionsArrayOf0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayOf0001";
       try {
-        let result = collections.Array.of(1);
+        let result: collections.Array<number> = collections.Array.of(1);
         expect(JSON.stringify(result)).assertEqual('[1]');
         done();
       } catch (err) {
@@ -4886,7 +4886,7 @@ export default function ArrayTest() {
     it('testCollectionsArrayOf0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayOf0002";
       try {
-        let result = collections.Array.of(1, 2, 3);
+        let result: collections.Array<number> = collections.Array.of(1, 2, 3);
         expect(JSON.stringify(result)).assertEqual('[1,2,3]');
         done();
       } catch (err) {
@@ -4907,7 +4907,7 @@ export default function ArrayTest() {
     it('testCollectionsArrayOf0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayOf0003";
       try {
-        let result = collections.Array.of(undefined);
+        let result: collections.Array<undefined> = collections.Array.of(undefined);
         expect(JSON.stringify(result)).assertEqual('[null]');
         done();
       } catch (err) {
@@ -4928,7 +4928,7 @@ export default function ArrayTest() {
     it('testCollectionsArrayOf0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayOf0004";
       try {
-        let result = collections.Array.of(null);
+        let result: collections.Array<null> = collections.Array.of(null);
         expect(JSON.stringify(result)).assertEqual('[null]');
         done();
       } catch (err) {
@@ -4950,8 +4950,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayCopyWithin0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayCopyWithin0001";
       try {
-        let arr1 = new collections.Array(1, 2, 3, 4, 5);
-        const obj = arr1.copyWithin(-2, 1);
+        let arr1 : collections.Array<number> = new collections.Array(1, 2, 3, 4, 5);
+        const obj : collections.Array<number> = arr1.copyWithin(-2, 1);
         console.log(`${TAG} result:` + JSON.stringify(obj));
         expect(JSON.stringify(obj)).assertEqual('[1,2,3,2,3]');
         done();
@@ -4973,8 +4973,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayCopyWithin0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayCopyWithin0002";
       try {
-        let arr1 = new collections.Array(1, 2, 3, 4, 5);
-        const obj = arr1.copyWithin(0, 3);
+        let arr1 : collections.Array<number> = new collections.Array(1, 2, 3, 4, 5);
+        const obj : collections.Array<number> = arr1.copyWithin(0, 3);
         console.log(`${TAG} result:` + JSON.stringify(obj));
         expect(JSON.stringify(obj)).assertEqual('[4,5,3,4,5]');
         done();
@@ -4996,8 +4996,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayCopyWithin0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayCopyWithin0003";
       try {
-        let arr1 = new collections.Array(1, 2, 3, 4, 5);
-        const obj = arr1.copyWithin(0, 3, 4);
+        let arr1 : collections.Array<number> = new collections.Array(1, 2, 3, 4, 5);
+        const obj : collections.Array<number> = arr1.copyWithin(0, 3, 4);
         console.log(`${TAG} result:` + JSON.stringify(obj));
         expect(JSON.stringify(obj)).assertEqual('[4,2,3,4,5]');
         done();
@@ -5019,8 +5019,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayCopyWithin0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayCopyWithin0004";
       try {
-        let arr1 = new collections.Array(1, 2, 3, 4, 5);
-        const obj = arr1.copyWithin(-2, -3, -1);
+        let arr1 : collections.Array<number> = new collections.Array(1, 2, 3, 4, 5);
+        const obj : collections.Array<number> = arr1.copyWithin(-2, -3, -1);
         console.log(`${TAG} result:` + JSON.stringify(obj));
         expect(JSON.stringify(obj)).assertEqual('[1,2,3,3,4]');
         done();
@@ -5042,8 +5042,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayReverse0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayReverse0001";
       try {
-        const items = new collections.Array(1, 2, 3);
-        const result = items.reverse();
+        const items : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result : collections.Array<number> = items.reverse();
         expect(JSON.stringify(result)).assertEqual('[3,2,1]');
         done();
       } catch (err) {
@@ -5064,8 +5064,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayReverse0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayReverse0002";
       try {
-        const items = new collections.Array(1, 2, undefined);
-        const result = items.reverse();
+        const items : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : collections.Array<number | undefined> = items.reverse();
         expect(JSON.stringify(result)).assertEqual('[null,2,1]');
         done();
       } catch (err) {
@@ -5086,8 +5086,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayReverse0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayReverse0003";
       try {
-        const items = new collections.Array<number | null>(1, null , 3);
-        const result = items.reverse();
+        const items : collections.Array<number | null> = new collections.Array<number | null>(1, null , 3);
+        const result : collections.Array<number | null> = items.reverse();
         expect(JSON.stringify(result)).assertEqual('[3,null,1]');
         done();
       } catch (err) {
@@ -5108,8 +5108,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0001";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(2);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(2);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(3);
         done();
@@ -5131,8 +5131,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0002";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(2.5);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(2.5);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(-1);
         done();
@@ -5154,8 +5154,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0003";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(7);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(7);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(-1);
         done();
@@ -5177,8 +5177,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0004";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(2, 3);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(2, 3);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(3);
         done();
@@ -5200,8 +5200,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0005";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(2, 2);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(2, 2);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(0);
         done();
@@ -5223,8 +5223,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0006";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(2, -2);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(2, -2);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(0);
         done();
@@ -5246,8 +5246,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0008";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(-1);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(-1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(-1);
         done();
@@ -5269,8 +5269,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0009";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(500);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(500);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(-1);
         done();
@@ -5292,8 +5292,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayLastIndexOf0010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayLastIndexOf0010";
       try {
-        const numbers = new collections.Array(2, 5, 9, 2);
-        const result = numbers.lastIndexOf(NaN);
+        const numbers : collections.Array<number> = new collections.Array(2, 5, 9, 2);
+        const result : number = numbers.lastIndexOf(NaN);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(-1);
         done();
@@ -5315,8 +5315,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0001";
       try {
-        let array = new collections.Array(1, 2, 3);
-        const result = array.some((x) => x === 1);
+        let array : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result: boolean = array.some((x: number) => x === 1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5338,8 +5338,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0002";
       try {
-        let array = new collections.Array(1, 2, 3);
-        const result = array.some((x) => x === -1);
+        let array : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result : boolean  = array.some((x: number) => x === -1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5361,8 +5361,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0003";
       try {
-        let array = new collections.Array(1, 2, 3);
-        const result = array.some((x) => x === undefined);
+        let array : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result : boolean  = array.some((x: number) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5384,8 +5384,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0004";
       try {
-        let array = new collections.Array<number | null>(1, null , 3);
-        const result = array.some((x) => x === 1);
+        let array : collections.Array<number | null> = new collections.Array<number | null>(1, null , 3);
+        const result : boolean  = array.some((x: number | null) => x === 1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5407,8 +5407,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0005";
       try {
-        let array = new collections.Array<number | null>(1, null , 3);
-        const result = array.some((x) => x === -2);
+        let array : collections.Array<number | null> = new collections.Array<number | null>(1, null , 3);
+        const result : boolean  = array.some((x: number | null) => x === -2);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5430,8 +5430,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0006";
       try {
-        let array = new collections.Array<number | null >(1, null , 3);
-        const result = array.some((x) => x === undefined);
+        let array : collections.Array<number | null> = new collections.Array<number | null>(1, null , 3);
+        const result: boolean  = array.some((x: number | null) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5453,8 +5453,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0007";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.some((x) => x === 3);
+        let array : collections.Array<number | string> = new collections.Array<number | string>(1, '2', 3);
+        const result : boolean  = array.some((x: number | string) => x === 3);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5476,8 +5476,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0008";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.some((x) => x === undefined);
+        let array : collections.Array<number | string> = new collections.Array<number | string>(1, '2', 3);
+        const result : boolean  = array.some((x: number | string) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5499,8 +5499,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0009";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.some((x) => x === -5);
+        let array : collections.Array<number | string> = new collections.Array<number | string>(1, '2', 3);
+        const result : boolean  = array.some((x: number | string) => x === -5);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5522,8 +5522,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0010";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.some((x) => x === 2);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean  = array.some((x: number | undefined) => x === 2);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5545,8 +5545,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0011";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.some((x) => x === -10);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean  = array.some((x: number | undefined) => x === -10);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5568,8 +5568,8 @@ export default function ArrayTest() {
     it('testCollectionsArraySome0012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArraySome0012";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.some((x) => x === undefined);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean  = array.some((x: number | undefined) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5591,8 +5591,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToString0001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToString0001";
       try {
-        const array1 = new collections.Array<number|string>(1, 2, 'a', '1a');
-        const result = array1.toString();
+        const array1 : collections.Array<number|string> = new collections.Array<number|string>(1, 2, 'a', '1a');
+        const result : string = array1.toString();
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual('1,2,a,1a');
         done();
@@ -5614,8 +5614,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToString0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToString0002";
       try {
-        const array1 = new collections.Array('1a');
-        let value = array1.toString();
+        const array1 : collections.Array<string> = new collections.Array('1a');
+        let value : string = array1.toString();
         console.log(`${TAG} result:` + value);
         expect(value).assertEqual('1a');
         done();
@@ -5637,8 +5637,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToString0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToString0003";
       try {
-        const array1 = new collections.Array('');
-        let value = array1.toString();
+        const array1 : collections.Array<string> = new collections.Array('');
+        let value : string = array1.toString();
         console.log(`${TAG} result:` + value);
         expect(value).assertEqual('');
         done();
@@ -5660,8 +5660,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToString0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToString0004";
       try {
-        const array1 = new collections.Array(null);
-        let value = array1.toString();
+        const array1 : collections.Array<number | null> = new collections.Array(null);
+        let value : string = array1.toString();
         console.log(`${TAG} result:` + value);
         expect(value).assertEqual('');
         done();
@@ -5683,8 +5683,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToLocaleString0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToLocaleString0002";
       try {
-        const array1 = new collections.Array<number>();
-        const iterator1 = array1.toLocaleString();
+        const array1 : collections.Array<number> = new collections.Array<number>();
+        const iterator1 : string = array1.toLocaleString();
         console.log(`${TAG} result:` + iterator1);
         expect(iterator1).assertEqual('');
         done();
@@ -5706,8 +5706,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToLocaleString0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToLocaleString0003";
       try {
-        const array1 = new collections.Array(undefined);
-        const iterator1 = array1.toLocaleString();
+        const array1 : collections.Array<number | undefined> = new collections.Array(undefined);
+        const iterator1 : string = array1.toLocaleString();
         console.log(`${TAG} result:` + iterator1);
         expect(iterator1).assertEqual('');
         done();
@@ -5729,8 +5729,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToLocaleString0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToLocaleString0004";
       try {
-        const array1 = new collections.Array(null);
-        const iterator1 = array1.toLocaleString();
+        const array1 : collections.Array<number | null> = new collections.Array(null);
+        const iterator1 : string = array1.toLocaleString();
         console.log(`${TAG} result:` + iterator1);
         expect(iterator1).assertEqual('');
         done();
@@ -5752,8 +5752,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToLocaleString0005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToLocaleString0005";
       try {
-        const array1 = new collections.Array(1);
-        const iterator1 = array1.toLocaleString();
+        const array1 : collections.Array<number> = new collections.Array(1);
+        const iterator1 : string = array1.toLocaleString();
         console.log(`${TAG} result:` + iterator1);
         expect(iterator1).assertEqual('1');
         done();
@@ -5775,8 +5775,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayToLocaleString0006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayToLocaleString0006";
       try {
-        const array1 = new collections.Array('Test');
-        const iterator1 = array1.toLocaleString();
+        const array1 : collections.Array<string> = new collections.Array('Test');
+        const iterator1 : string = array1.toLocaleString();
         console.log(`${TAG} result:` + iterator1);
         expect(iterator1).assertEqual('Test');
         done();
@@ -5903,7 +5903,7 @@ export default function ArrayTest() {
       console.log(`${caseName} test start `);
       try {
         let arrayLike: ArrayLike<number> = [1, 2, 3];
-        let array: collections.Array<number> = collections.Array.from<number>(arrayLike, (value, index) => value + index);
+        let array: collections.Array<number> = collections.Array.from<number>(arrayLike, (value: number, index: number) => value + index);
         console.log(`${caseName} array length ${array.length}`);
         expect('1,3,5').assertEqual(array.toString());
         done();
@@ -5927,7 +5927,7 @@ export default function ArrayTest() {
       console.log(`${caseName} test start `);
       try {
         let arrayLike: ArrayLike<number> = [1, 2, 3];
-        let array: collections.Array<string> = collections.Array.from<number, string>(arrayLike, (value, index) => value + "." + index);
+        let array: collections.Array<string> = collections.Array.from<number, string>(arrayLike, (value: number, index: number) => value + "." + index);
         console.log(`${caseName} array length ${array.length}`);
         expect('1.0,2.1,3.2').assertEqual(array.toString());
         done();
@@ -5951,7 +5951,7 @@ export default function ArrayTest() {
       const TAG = "testCollectionsArrayEvery0001";
       try {
         let array = new collections.Array(1, 2, 3);
-        const result = array.every((x) => x > 0);
+        const result : boolean = array.every((x: number) => x > 0);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -5973,8 +5973,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0002";
       try {
-        let array = new collections.Array(1, 2, 3);
-        const result = array.every((x) => x > 3 );
+        let array : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result : boolean = array.every((x: number) => x > 3 );
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -5996,8 +5996,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0003";
       try {
-        let array = new collections.Array(1, 2, 3);
-        const result = array.every((x) => x === undefined);
+        let array : collections.Array<number> = new collections.Array(1, 2, 3);
+        const result : boolean = array.every((x: number) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6019,8 +6019,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0004";
       try {
-        let array = new collections.Array<number | null >(1, null , 3);
-        const result = array.every((x) => x != 0);
+        let array : collections.Array<number | null> = new collections.Array<number | null >(1, null , 3);
+        const result : boolean = array.every((x: number | null) => x != 0);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -6042,8 +6042,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0005', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0005";
       try {
-        let array = new collections.Array<number | null >(1, null , 3);
-        const result = array.every((x) => x != 1);
+        let array : collections.Array<number | null> = new collections.Array<number | null >(1, null , 3);
+        const result : boolean = array.every((x: number | null) => x != 1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6065,8 +6065,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0006', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0006";
       try {
-        let array = new collections.Array<number | null >(1, null , 3);
-        const result = array.every((x) => x === undefined);
+        let array : collections.Array<number | null> = new collections.Array<number | null >(1, null , 3);
+        const result : boolean = array.every((x: number | null) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6088,8 +6088,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0007";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.every((x) => x != 0);
+        let array : collections.Array<number | string> = new collections.Array<number|string>(1, '2', 3);
+        const result : boolean = array.every((x: number|string) => x != 0);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -6111,8 +6111,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0008";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.every((x) => x === undefined);
+        let array : collections.Array<number | string> = new collections.Array<number|string>(1, '2', 3);
+        const result : boolean = array.every((x: number|string) => x === undefined);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6134,8 +6134,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0009";
       try {
-        let array = new collections.Array<number|string>(1, '2', 3);
-        const result = array.every((x) => x === '2');
+        let array : collections.Array<number | string> = new collections.Array<number|string>(1, '2', 3);
+        const result : boolean = array.every((x: number|string) => x === '2');
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6157,8 +6157,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0010', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0010";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.every((x) => x != 0);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean = array.every((x: number | undefined) => x != 0);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
@@ -6180,8 +6180,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0011";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.every((x) => x === 1);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean = array.every((x: number | undefined) => x === 1);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(false);
         done();
@@ -6203,8 +6203,8 @@ export default function ArrayTest() {
     it('testCollectionsArrayEvery0012', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       const TAG = "testCollectionsArrayEvery0012";
       try {
-        let array = new collections.Array(1, 2, undefined);
-        const result = array.every((x) => x != 0);
+        let array : collections.Array<number | undefined> = new collections.Array(1, 2, undefined);
+        const result : boolean = array.every((x: number | undefined) => x != 0);
         console.log(`${TAG} result:` + result);
         expect(result).assertEqual(true);
         done();
