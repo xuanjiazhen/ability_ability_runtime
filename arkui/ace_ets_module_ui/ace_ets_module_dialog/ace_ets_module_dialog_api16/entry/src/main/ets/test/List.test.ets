@@ -15,7 +15,6 @@
 import openPopup from './promptActionTest/openPopup.test'
 import updatePopup from './promptActionTest/updatePopup.test'
 import closePopup from './promptActionTest/closePopup.test'
-import subwindowDialog from './promptActionTest/subwindowDialog.test'
 import menuitemOnChangeModifierTest from './MenuTest/menuitemOnChangeModifierTest.test'
 import menuFontsizeModifierTest from './MenuTest/menuFontsizeModifierTest.test'
 import menuBindMenuModifierTest from './MenuTest/menuBindMenuModifierTest.test'
@@ -33,7 +32,6 @@ export default function testsuite() {
     openPopup();
     updatePopup();
     closePopup();
-    subwindowDialog();
     menuitemOnChangeModifierTest();
     menuFontsizeModifierTest();
     menuBindMenuModifierTest();

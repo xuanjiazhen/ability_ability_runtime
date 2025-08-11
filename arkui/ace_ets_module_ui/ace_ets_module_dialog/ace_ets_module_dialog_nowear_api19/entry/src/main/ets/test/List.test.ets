@@ -33,6 +33,7 @@ import timePickerDialogBackgroundEffectTest from './timePickerDialogTest/timePic
 import timePickerDialogBlurStyleOptionsTest from './timePickerDialogTest/timePickerDialogBlurStyleOptions.test'
 import openMenuAnchorPositionTest from './promptActionTest/openMenuAnchorPosition.test'
 import updateMenuAnchorPositionTest from './promptActionTest/updateMenuAnchorPosition.test'
+import subwindowDialog from './promptActionTest/subwindowDialog.test'
 import maxWidth from './PopupTest/Maxwidth.test'
 
 export default function testsuite() {
@@ -56,5 +57,6 @@ export default function testsuite() {
   timePickerDialogBlurStyleOptionsTest()
   openMenuAnchorPositionTest()
   updateMenuAnchorPositionTest()  
+  subwindowDialog();
   maxWidth();
 }
