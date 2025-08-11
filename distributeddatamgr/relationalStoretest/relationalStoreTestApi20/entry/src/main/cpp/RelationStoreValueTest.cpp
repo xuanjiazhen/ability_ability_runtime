@@ -29,7 +29,7 @@ static void InitRdbConfig()
 {
     const char *rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
     char rdbStoreName[] = "rdb_store_test.db";
-    char bundleName[] = "com.acts.acttransactiontest";
+    char bundleName[] = "com.acts.actsrelationstoretest";
     char moduleName[] = "";
 
     config_.dataBaseDir = rdbTestPath;
