@@ -62,7 +62,13 @@ export default function Rawfile0140() {
       let text_2 = await (await driver.findComponent(ON.id('id2'))).getText();
       let text_3 = await (await driver.findComponent(ON.id('id3'))).getText();
       let text_4 = await (await driver.findComponent(ON.id('id4'))).getText();
+      console.info("[Rawfile0140_001] component text_1 is: " + text_1);
+      console.info("[Rawfile0140_001] component text_2 is: " + text_2);
+      console.info("[Rawfile0140_001] component text_3 is: " + text_3);
+      console.info("[Rawfile0140_001] component text_4 is: " + text_4);
+      expect(text_1).assertNotEqual('-1');
       expect(text_1).assertEqual(text_2);
+      expect(text_3).assertNotEqual('-1');
       expect(text_3).assertEqual(text_4);
       await CommonFunc.sleep(1000);
       console.info('[Rawfile0140_001] END');
