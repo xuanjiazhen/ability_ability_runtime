@@ -1567,7 +1567,7 @@ static napi_value OHAIModelResizeOne(napi_env env, napi_callback_info)
     OH_AI_ShapeInfo shape_infos = {};
     OH_AI_Status resize_ret = OH_AI_ModelResize(model, inputs, &shape_infos, inputs.handle_num);
 
-    napi_create_int32(env, resize_ret == OH_AI_STATUS_SUCCESS, &result);
+    napi_create_int32(env, resize_ret == OH_AI_STATUS_LITE_ERROR, &result);
     return result;
 }
 
