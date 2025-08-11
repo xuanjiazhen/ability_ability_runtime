@@ -14,8 +14,10 @@
  */
 import backgroundBlurStyleTest from './background/backgroundBlurStyle.test'
 import backgroundEffectTest from './background/backgroundEffect.test'
+import backgroundImageOption from './background/backgroundImageOption.test'
 
 export default function testsuite() {
   backgroundBlurStyleTest();
   backgroundEffectTest();
+  backgroundImageOption();
 }
