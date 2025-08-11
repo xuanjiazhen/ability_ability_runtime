@@ -641,6 +641,68 @@ static napi_value WebStructProxyObjectWithResult(napi_env env, napi_callback_inf
     return result;
 }
 
+static napi_value WebStructComponentAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructComponentAPI start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ComponentAPI api = {0};
+    auto onCallBack = [](const char *webTag, ArkWeb_OnComponentCallback callback, void *userData) { return; };
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_ComponentAPI);
+            break;
+        case CASE_NUM_1:
+            api.onControllerAttached = onCallBack;
+            break;
+        case CASE_NUM_2:
+            api.onPageBegin = onCallBack;
+            break;
+        case CASE_NUM_3:
+            api.onPageEnd = onCallBack;
+            break;
+        case CASE_NUM_4:
+            api.onDestroy = onCallBack;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructComponentAPI end..");
+    return result;
+}
+
+static napi_value WebStructMessagePortAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructMessagePortAPI start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_WebMessagePortAPI api = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_WebMessagePortAPI);
+            break;
+        case CASE_NUM_1:
+            api.postMessage = [](const ArkWeb_WebMessagePortPtr webMessagePort, const char *webTag,
+                                 const ArkWeb_WebMessagePtr webMessage) -> ArkWeb_ErrorCode { return ARKWEB_SUCCESS; };
+            break;
+        case CASE_NUM_2:
+            api.close = [](const ArkWeb_WebMessagePortPtr webMessagePort, const char* webTag) { return; };
+            break;
+        case CASE_NUM_3:
+            api.setMessageEventHandler = [](const ArkWeb_WebMessagePortPtr webMessagePort, const char *webTag,
+                                            ArkWeb_OnMessageEventHandler handler, void *userData) { return; };
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructMessagePortAPI end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -664,6 +726,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"WebStructProxyObject", nullptr, WebStructProxyObject, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebStructProxyObjectWithResult", nullptr, WebStructProxyObjectWithResult, nullptr, nullptr, nullptr,
          napi_default, nullptr},
+        {"WebStructComponentAPI", nullptr, WebStructComponentAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebStructMessagePortAPI", nullptr, WebStructMessagePortAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

@@ -1276,6 +1276,186 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiProxyObjectWithResultSize catch err: " + err);
         }
       })
+    /**
+     * @tc.number  : SUB_Web_Napi_ComponentAPI_0100
+     * @tc.name    : testWebNapiComponentAPISize
+     * @tc.desc    : test ArkWeb_ComponentAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiComponentAPISize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiComponentAPISize start====");
+          let result: number = nativeInterface.WebStructComponentAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiComponentAPISize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiComponentAPISize catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ComponentAPI_0200
+     * @tc.name    : testWebNapiComponentAPIAttached
+     * @tc.desc    : test ArkWeb_ComponentAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiComponentAPIAttached', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiComponentAPIAttached start====");
+          let result: number = nativeInterface.WebStructComponentAPI(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiComponentAPIAttached stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiComponentAPIAttached catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ComponentAPI_0300
+     * @tc.name    : testWebNapiComponentAPIPageBegin
+     * @tc.desc    : test ArkWeb_ComponentAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiComponentAPIPageBegin', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiComponentAPIPageBegin start====");
+          let result: number = nativeInterface.WebStructComponentAPI(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiComponentAPIPageBegin stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiComponentAPIPageBegin catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ComponentAPI_0400
+     * @tc.name    : testWebNapiComponentAPIPageEnd
+     * @tc.desc    : test ArkWeb_ComponentAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiComponentAPIPageEnd', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiComponentAPIPageEnd start====");
+          let result: number = nativeInterface.WebStructComponentAPI(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiComponentAPIPageEnd stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiComponentAPIPageEnd catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ComponentAPI_0500
+     * @tc.name    : testWebNapiComponentAPIDestroy
+     * @tc.desc    : test ArkWeb_ComponentAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiComponentAPIDestroy', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiComponentAPIDestroy start====");
+          let result: number = nativeInterface.WebStructComponentAPI(4);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiComponentAPIDestroy stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiComponentAPIDestroy catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_MessagePortAPI_0100
+     * @tc.name    : testWebNapiMessagePortAPISize
+     * @tc.desc    : test ArkWeb_WebMessagePortAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiMessagePortAPISize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiMessagePortAPISize start====");
+          let result: number = nativeInterface.WebStructComponentAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiMessagePortAPISize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiMessagePortAPISize catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_MessagePortAPI_0200
+     * @tc.name    : testWebNapiMessagePortAPIPost
+     * @tc.desc    : test ArkWeb_WebMessagePortAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiMessagePortAPIPost', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiMessagePortAPIPost start====");
+          let result: number = nativeInterface.WebStructComponentAPI(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiMessagePortAPIPost stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiMessagePortAPIPost catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_MessagePortAPI_0300
+     * @tc.name    : testWebNapiMessagePortAPIClose
+     * @tc.desc    : test ArkWeb_WebMessagePortAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiMessagePortAPIClose', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiMessagePortAPIClose start====");
+          let result: number = nativeInterface.WebStructComponentAPI(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiMessagePortAPIClose stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiMessagePortAPIClose catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_MessagePortAPI_0400
+     * @tc.name    : testWebNapiMessagePortAPISetHandler
+     * @tc.desc    : test ArkWeb_WebMessagePortAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiMessagePortAPISetHandler', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiMessagePortAPISetHandler start====");
+          let result: number = nativeInterface.WebStructComponentAPI(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiMessagePortAPISetHandler stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiMessagePortAPISetHandler catch err: " + err);
+        }
+      })
 
 
   })
