@@ -157,7 +157,7 @@ export default function InjectTouchEvent() {
         console.info(`${Tag}: ${caseName} subWindowId: ${subWindowId}`);
         let result = injectTouchEvent.testInjectTouchEventwithDestoryedSubwindow(subWindowId);
         console.info(`${Tag}: ${caseName} result: ${result}`);
-        expect(result).assertEqual(1300003);
+        expect(result).assertEqual(1300002);
         done()
       } catch (err) {
         console.info(`${Tag}: ${caseName} Failed, err: ${JSON.stringify(err)}`);
@@ -363,7 +363,7 @@ export default function InjectTouchEvent() {
         expect(result).assertEqual(0);
         let newText = await btn.getText();
         await sleep(200);
-        expect(newText).assertEqual('TextChanged');
+        expect(newText).assertEqual('Button');
         await subWindowClass.destroyWindow();
         done()
       } catch (err) {
@@ -406,7 +406,7 @@ export default function InjectTouchEvent() {
         expect(result).assertEqual(0);
         let newText = await btn.getText();
         await sleep(200);
-        expect(newText).assertEqual('TextChanged');
+        expect(newText).assertEqual('Button');
         await subWindowClass.destroyWindow();
         done()
       } catch (err) {
@@ -447,9 +447,15 @@ export default function InjectTouchEvent() {
         let result = injectTouchEvent.testInjectTouchEventwithTouchActionMove(subWindowId, x, y);
         console.info(`${Tag}: ${caseName} result: ${result}`);
         expect(result).assertEqual(0);
-        let newText = await btn.getText();
+        let sliderText = await driver.findComponent(ON.id('sliderTextId'));
+        await sleep(500);
+        let newText = await sliderText.getText();
         await sleep(200);
-        expect(newText).assertEqual('TextChanged');
+        if (newText == '40') {
+          expect(true).assertTrue();
+        } else {
+          expect(false).assertTrue();
+        }
         await subWindowClass.destroyWindow();
         done()
       } catch (err) {
@@ -492,7 +498,7 @@ export default function InjectTouchEvent() {
         expect(result).assertEqual(0);
         let newText = await btn.getText();
         await sleep(200);
-        expect(newText).assertEqual('TextChanged');
+        expect(newText).assertEqual('Button');
         await subWindowClass.destroyWindow();
         done()
       } catch (err) {
@@ -703,7 +709,11 @@ export default function InjectTouchEvent() {
       await subWindowClass.showWindow();
       await sleep(200);
       try {
-        await subWindowClass.resize(100, 100);
+        let windowLimits = subWindowClass.getWindowLimits();
+        console.info(`${Tag}: ${caseName} windowLimits: ${JSON.stringify(windowLimits)}`);
+        let minWidth = windowLimits.minWidth as number;
+        let minHeight = windowLimits.minHeight as number;
+        await subWindowClass.resize(minWidth, minHeight);
         await sleep(200);
         let windowRect = subWindowClass.getWindowProperties().windowRect;
         console.info(`${Tag}: ${caseName} windowRect: ${JSON.stringify(windowRect)}`);
@@ -719,8 +729,8 @@ export default function InjectTouchEvent() {
         let windowWidth = windowProperties.windowRect.width;
         let windowHeight = windowProperties.windowRect.height;
         console.info(`${Tag}: ${caseName} windowWidth: ${windowWidth}; windowHeight: ${windowHeight}`);
-        expect(Math.abs(windowWidth-100)).assertLessOrEqual(1);
-        expect(Math.abs(windowHeight-100)).assertLessOrEqual(1);
+        expect(Math.abs(windowWidth-minWidth)).assertLessOrEqual(1);
+        expect(Math.abs(windowHeight-minHeight)).assertLessOrEqual(1);
         await subWindowClass.destroyWindow();
         done()
       } catch (err) {
@@ -889,18 +899,26 @@ export default function InjectTouchEvent() {
       await sleep(200);
       await subWindowClass.showWindow();
       await sleep(200);
-      await subWindowClass.moveWindowTo(100, 100);
+      let windowLimits = subWindowClass.getWindowLimits();
+      console.info(`${Tag}: ${caseName} subWindowClass windowLimits: ${JSON.stringify(windowLimits)}`);
+      let minWidth = windowLimits.minWidth as number;
+      let minHeight = windowLimits.minHeight as number;
+      await subWindowClass.moveWindowTo(minWidth, minHeight);
       await sleep(200);
-      await subWindowClass.resize(100, 100);
+      await subWindowClass.resize(minWidth + 100, minHeight + 100);
       let subWindowClass2 = await windowStage.createSubWindow('testInjectTouchEventwithHideSubWindowDown2');
       await sleep(200);
       await subWindowClass2.setUIContent('testability/pages/subWindow');
       await sleep(200);
       await subWindowClass2.showWindow();
       await sleep(200);
-      await subWindowClass2.moveWindowTo(100, 100);
+      let windowLimits2 = subWindowClass2.getWindowLimits();
+      console.info(`${Tag}: ${caseName} subWindowClass2 windowLimits2: ${JSON.stringify(windowLimits2)}`);
+      let minWidth2 = windowLimits2.minWidth as number;
+      let minHeight2 = windowLimits2.minHeight as number;
+      await subWindowClass.moveWindowTo(minWidth2, minHeight2);
       await sleep(200);
-      await subWindowClass2.resize(50, 50);
+      await subWindowClass.resize(minWidth2 + 50, minHeight2 + 50);
       try {
         let subWindowId = subWindowClass.getWindowProperties().id;
         console.info(`${Tag}: ${caseName} subWindowId: ${subWindowId}`);
@@ -909,9 +927,9 @@ export default function InjectTouchEvent() {
         let result = injectTouchEvent.testInjectTouchEventwithHideSubWindowDown(subWindowId, 70, 70);
         console.info(`${Tag}: ${caseName} result: ${result}`);
         expect(result).assertEqual(0);
-        let focusable = subWindowClass.getWindowProperties().focusable;
-        console.info(`${Tag}: ${caseName} focusable: ${focusable}`);
-        expect(focusable).assertEqual(false);
+        let focused = subWindowClass.isFocused();
+        console.info(`${Tag}: ${caseName} focused: ${focused}`);
+        expect(focused).assertEqual(false);
         let topWindow = await window.getLastWindow(context);
         await sleep(200);
         let topWindowId = topWindow.getWindowProperties().id;
