@@ -265,6 +265,29 @@ napi_value SetExpectedFrameRateRange002(napi_env env, napi_callback_info info)
     return retValue;
 }
 
+napi_value SetArkUIExpectedFrameRateRange001(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    OH_NativeXComponent_ExpectedRateRange ExpectedRateRange = { .min = 30, .max = 60, .expected = 45 };
+    int32_t result = 0;
+    OH_ArkUI_XComponent_Initialize(g_childXComponent->GetComponent());
+    result = OH_ArkUI_XComponent_SetExpectedFrameRateRange(g_childXComponent->GetComponent(), ExpectedRateRange);
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
+napi_value SetArkUIExpectedFrameRateRange002(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    OH_NativeXComponent_ExpectedRateRange ExpectedRateRange = { .min = 30, .max = 60, .expected = 45 };
+    if (OH_ArkUI_XComponent_SetExpectedFrameRateRange(nullptr, ExpectedRateRange) == 0) {
+        napi_create_int32(env, 0, &retValue);
+        return retValue;
+    }
+    napi_create_int32(env, ARKUI_ERROR_CODE_PARAM_INVALID, &retValue);
+    return retValue;
+}
+
 napi_value RegisterOnFrameCallback001(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
@@ -284,7 +307,30 @@ napi_value RegisterOnFrameCallback002(napi_env env, napi_callback_info info)
     return retValue;
 }
 
+napi_value ArkUIRegisterOnFrameCallback001(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
+    result = OH_ArkUI_XComponent_RegisterOnFrameCallback(g_childXComponent->GetComponent(), OnArkUIFrameCallback);
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
+napi_value ArkUIRegisterOnFrameCallback002(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    int32_t result = 0;
+    result = OH_ArkUI_XComponent_RegisterOnFrameCallback(nullptr, OnArkUIFrameCallback);
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
 void OnFrameCallback(OH_NativeXComponent* component, uint64_t timestamp, uint64_t targetTimestamp)
+{
+    return;
+}
+
+void OnArkUIFrameCallback(ArkUI_NodeHandle node, uint64_t timestamp, uint64_t targetTimestamp)
 {
     return;
 }
@@ -304,6 +350,24 @@ napi_value UnregisterOnFrameCallback002(napi_env env, napi_callback_info info)
     int32_t result = 0;
     result = OH_NativeXComponent_UnregisterOnFrameCallback(nullptr) == PARAM_NEGATIVE_2 ?
                                                                        ARKUI_ERROR_CODE_PARAM_INVALID : 0;
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
+napi_value ArkUIUnregisterOnFrameCallback001(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    int32_t result = ARKUI_ERROR_CODE_PARAM_INVALID;
+    result = OH_ArkUI_XComponent_UnregisterOnFrameCallback(g_childXComponent->GetComponent());
+    napi_create_int32(env, result, &retValue);
+    return retValue;
+}
+
+napi_value ArkUIUnregisterOnFrameCallback002(napi_env env, napi_callback_info info)
+{
+    napi_value retValue = 0;
+    int32_t result = 0;
+    result = OH_ArkUI_XComponent_UnregisterOnFrameCallback(nullptr);
     napi_create_int32(env, result, &retValue);
     return retValue;
 }

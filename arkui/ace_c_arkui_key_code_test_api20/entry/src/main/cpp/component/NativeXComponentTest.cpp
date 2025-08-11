@@ -20,7 +20,7 @@
 namespace NativeXComponentTest {
 EXTERN_C_START
 
-static void InitPushXComponent(napi_property_descriptor* desc)
+static void InitPushXComponent1(napi_property_descriptor* desc)
 {
     napi_property_descriptor descTemp[] = {
         XL("XComponentCreate", ArkUICapiTest::CreateNativeNode),
@@ -70,9 +70,25 @@ static void InitPushXComponent(napi_property_descriptor* desc)
     }
 }
 
-static void InitPushTouchPoint(napi_property_descriptor* desc)
+static void InitPushXComponent2(napi_property_descriptor* desc)
 {
     int offset = 41;
+    napi_property_descriptor descTemp[] = {
+        XL("SetArkUIExpectedFrameRateRange001", ArkUICapiTest::SetArkUIExpectedFrameRateRange001),
+        XL("SetArkUIExpectedFrameRateRange002", ArkUICapiTest::SetArkUIExpectedFrameRateRange002),
+        XL("ArkUIRegisterOnFrameCallback001", ArkUICapiTest::ArkUIRegisterOnFrameCallback001),
+        XL("ArkUIRegisterOnFrameCallback002", ArkUICapiTest::ArkUIRegisterOnFrameCallback002),
+        XL("ArkUIUnregisterOnFrameCallback001", ArkUICapiTest::ArkUIUnregisterOnFrameCallback001),
+        XL("ArkUIUnregisterOnFrameCallback002", ArkUICapiTest::ArkUIUnregisterOnFrameCallback002),
+    };
+    for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
+        desc[index + offset] = descTemp[index];
+    }
+}
+
+static void InitPushTouchPoint(napi_property_descriptor* desc)
+{
+    int offset = 47;
     napi_property_descriptor descTemp[] = {
         XL("CreateTouchNativeNode", TouchPoint::CreateTouchNativeNode),
         XL("GetTouchPointWindowX", TouchPoint::GetTouchPointWindowX),
@@ -113,7 +129,7 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
 
 static void InitPushXComponentMouse(napi_property_descriptor* desc)
 {
-    int offset = 72;
+    int offset = 78;
     napi_property_descriptor descTemp[] = {
         XL("CreateMouseNativeNode", XComponentMouse::CreateMouseNativeNode),
         XL("MouseEventAction", XComponentMouse::MouseEventAction),
@@ -127,7 +143,7 @@ static void InitPushXComponentMouse(napi_property_descriptor* desc)
 
 static void InitPushNodeAttribute(napi_property_descriptor* desc)
 {
-    int offset = 76;
+    int offset = 82;
     napi_property_descriptor descTemp[] = {
         XL("CreateAttributeNativeNode", NodeAttribute::CreateAttributeNativeNode),
         XL("CheckNodeTextHalfLeading", NodeAttribute::CheckNodeTextHalfLeading),
@@ -163,8 +179,9 @@ static napi_value Init(napi_env env, napi_value exports)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "env or exports is null");
         return nullptr;
     }
-    napi_property_descriptor desc[97] = {};
-    InitPushXComponent(desc);
+    napi_property_descriptor desc[103] = {};
+    InitPushXComponent1(desc);
+    InitPushXComponent2(desc);
     InitPushTouchPoint(desc);
     InitPushXComponentMouse(desc);
     InitPushNodeAttribute(desc);

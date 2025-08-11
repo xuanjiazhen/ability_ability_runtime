@@ -30,7 +30,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_BACK_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventBack0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2, keyCodeNdk.GetKeyCodeEventBack)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_PLAY_PAUSE_0100
@@ -40,7 +40,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_PLAY_PAUSE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaPlayPause0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 10, keyCodeNdk.GetKeyCodeEventMediaPlayPause)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_STOP_0100
@@ -50,7 +50,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_STOP_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaStop0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 11, keyCodeNdk.GetKeyCodeEventMediaStop)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_NEXT_0100
@@ -60,7 +60,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_NEXT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaNext0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 12, keyCodeNdk.GetKeyCodeEventMediaNext)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_PREVIOUS_0100
@@ -70,7 +70,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_PREVIOUS_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaPrevious0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 13, keyCodeNdk.GetKeyCodeEventMediaPrevious)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_REWIND_0100
@@ -80,7 +80,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_REWIND_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaRewind0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 14, keyCodeNdk.GetKeyCodeEventMediaRewind)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_FAST_FORWARD_0100
@@ -90,7 +90,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MEDIA_FAST_FORWARD_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMediaFastForward0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 15, keyCodeNdk.GetKeyCodeEventMediaFastForward)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_UP_0100
@@ -100,7 +100,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_UP_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventVolumeUp0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 16, keyCodeNdk.GetKeyCodeEventVolumeUp)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_DOWN_0100
@@ -110,7 +110,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_DOWN_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventVolumeDown0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 17, keyCodeNdk.GetKeyCodeEventVolumeDown)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_CAMERA_0100
@@ -120,7 +120,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_CAMERA_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventCamera0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 19, keyCodeNdk.GetKeyCodeEventCamera)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_MUTE_0100
@@ -130,7 +130,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_VOLUME_MUTE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventVolumeMute0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 22, keyCodeNdk.GetKeyCodeEventVolumeMute)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MUTE_0100
@@ -140,7 +140,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MUTE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMute0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 23, keyCodeNdk.GetKeyCodeEventMute)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_BRIGHTNESS_UP_0100
@@ -150,7 +150,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_BRIGHTNESS_UP_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventBrightnessUp0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 40, keyCodeNdk.GetKeyCodeEventBrightnessUp)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_BRIGHTNESS_DOWN_0100
@@ -160,107 +160,107 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_BRIGHTNESS_DOWN_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventBrightnessDown0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 41, keyCodeNdk.GetKeyCodeEventBrightnessDown)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_0_0100
-     * @tc.name    : testGetKeyCodeEvent01000
+     * @tc.name    : testGetKeyCodeEvent00100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_0_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent00100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2000, keyCodeNdk.GetKeyCodeEvent0)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_1_0100
-     * @tc.name    : testGetKeyCodeEvent01001
+     * @tc.name    : testGetKeyCodeEvent10100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_1_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent10100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2001, keyCodeNdk.GetKeyCodeEvent1)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_2_0100
-     * @tc.name    : testGetKeyCodeEvent01002
+     * @tc.name    : testGetKeyCodeEvent20100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_2_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent20100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2002, keyCodeNdk.GetKeyCodeEvent2)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_3_0100
-     * @tc.name    : testGetKeyCodeEvent01003
+     * @tc.name    : testGetKeyCodeEvent30100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_3_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent30100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2003, keyCodeNdk.GetKeyCodeEvent3)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_4_0100
-     * @tc.name    : testGetKeyCodeEvent01004
+     * @tc.name    : testGetKeyCodeEvent40100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_4_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent40100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2004, keyCodeNdk.GetKeyCodeEvent4)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_5_0100
-     * @tc.name    : testGetKeyCodeEvent01005
+     * @tc.name    : testGetKeyCodeEvent50100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_5_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent50100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2005, keyCodeNdk.GetKeyCodeEvent5)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_6_0100
-     * @tc.name    : testGetKeyCodeEvent01006
+     * @tc.name    : testGetKeyCodeEvent60100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_6_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent60100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2006, keyCodeNdk.GetKeyCodeEvent6)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_7_0100
-     * @tc.name    : testGetKeyCodeEvent01007
+     * @tc.name    : testGetKeyCodeEvent70100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_7_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent70100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2007, keyCodeNdk.GetKeyCodeEvent7)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_8_0100
-     * @tc.name    : testGetKeyCodeEvent01008
+     * @tc.name    : testGetKeyCodeEvent80100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_8_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent80100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2008, keyCodeNdk.GetKeyCodeEvent8)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_9_0100
-     * @tc.name    : testGetKeyCodeEvent01009
+     * @tc.name    : testGetKeyCodeEvent90100
      * @tc.desc    : Test whether the key KEY_ADDRESSBOOK are working properly.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_9_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEvent90100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2009, keyCodeNdk.GetKeyCodeEvent9)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_STAR_0100
@@ -270,7 +270,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_STAR_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventStar0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2010, keyCodeNdk.GetKeyCodeEventStar)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_POUND_0100
@@ -280,7 +280,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_POUND_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventPound0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2011, keyCodeNdk.GetKeyCodeEventPound)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DPAD_UP_0100
@@ -290,7 +290,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DPAD_UP_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDpadUp0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2012, keyCodeNdk.GetKeyCodeEventDpadUp)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DPAD_DOWN_0100
@@ -300,7 +300,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DPAD_DOWN_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDpadDown0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2013, keyCodeNdk.GetKeyCodeEventDpadDown)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DPAD_LEFT_0100
@@ -310,7 +310,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DPAD_LEFT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDpadLeft0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2014, keyCodeNdk.GetKeyCodeEventDpadLeft)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DPAD_RIGHT_0100
@@ -320,7 +320,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DPAD_RIGHT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDpadRight0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2015, keyCodeNdk.GetKeyCodeEventDpadRight)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DPAD_CENTER_0100
@@ -330,7 +330,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DPAD_CENTER_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDpadCenter0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2016, keyCodeNdk.GetKeyCodeEventDpadCenter)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_A_0100
@@ -340,7 +340,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_A_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventA0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2017, keyCodeNdk.GetKeyCodeEventA)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_B_0100
@@ -350,7 +350,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_B_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventB0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2018, keyCodeNdk.GetKeyCodeEventB)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_C_0100
@@ -360,7 +360,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_C_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventC0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2019, keyCodeNdk.GetKeyCodeEventC)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_D_0100
@@ -370,7 +370,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_D_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventD0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2020, keyCodeNdk.GetKeyCodeEventD)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_E_0100
@@ -380,7 +380,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_E_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventE0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2021, keyCodeNdk.GetKeyCodeEventE)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_F_0100
@@ -390,7 +390,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_F_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventF0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2022, keyCodeNdk.GetKeyCodeEventF)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_G_0100
@@ -400,7 +400,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_G_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventG0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2023, keyCodeNdk.GetKeyCodeEventG)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_H_0100
@@ -410,7 +410,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_H_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventH0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2024, keyCodeNdk.GetKeyCodeEventH)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_I_0100
@@ -420,7 +420,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_I_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventI0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2025, keyCodeNdk.GetKeyCodeEventI)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_J_0100
@@ -430,7 +430,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_J_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventJ0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2026, keyCodeNdk.GetKeyCodeEventJ)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_K_0100
@@ -440,7 +440,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_K_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventK0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2027, keyCodeNdk.GetKeyCodeEventK)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_L_0100
@@ -450,7 +450,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_L_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventL0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2028, keyCodeNdk.GetKeyCodeEventL)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_M_0100
@@ -460,7 +460,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_M_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventM0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2029, keyCodeNdk.GetKeyCodeEventM)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_N_0100
@@ -470,7 +470,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_N_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventN0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2030, keyCodeNdk.GetKeyCodeEventN)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_O_0100
@@ -480,7 +480,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_O_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventO0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2031, keyCodeNdk.GetKeyCodeEventO)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_P_0100
@@ -490,7 +490,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_P_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventP0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2032, keyCodeNdk.GetKeyCodeEventP)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_Q_0100
@@ -500,7 +500,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_Q_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventQ0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2033, keyCodeNdk.GetKeyCodeEventQ)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_R_0100
@@ -510,7 +510,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_R_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventR0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2034, keyCodeNdk.GetKeyCodeEventR)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_S_0100
@@ -520,7 +520,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_S_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventS0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2035, keyCodeNdk.GetKeyCodeEventS)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_T_0100
@@ -530,7 +530,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_T_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventT0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2036, keyCodeNdk.GetKeyCodeEventT)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_U_0100
@@ -540,7 +540,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_U_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventU0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2037, keyCodeNdk.GetKeyCodeEventU)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_V_0100
@@ -550,7 +550,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_V_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventV0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2038, keyCodeNdk.GetKeyCodeEventV)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_W_0100
@@ -560,7 +560,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_W_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventW0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2039, keyCodeNdk.GetKeyCodeEventW)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_X_0100
@@ -570,7 +570,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_X_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventX0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2040, keyCodeNdk.GetKeyCodeEventX)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_Y_0100
@@ -580,7 +580,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_Y_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventY0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2041, keyCodeNdk.GetKeyCodeEventY)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_Z_0100
@@ -590,7 +590,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_Z_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventZ0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2042, keyCodeNdk.GetKeyCodeEventZ)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_COMMA_0100
@@ -600,7 +600,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_COMMA_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventComma0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2043, keyCodeNdk.GetKeyCodeEventComma)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_PERIOD_0100
@@ -610,7 +610,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_PERIOD_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventPeriod0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2044, keyCodeNdk.GetKeyCodeEventPeriod)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_ALT_LEFT_0100
@@ -620,7 +620,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_ALT_LEFT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventAltLeft0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2045, keyCodeNdk.GetKeyCodeEventAltLeft)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_ALT_RIGHT_0100
@@ -630,7 +630,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_ALT_RIGHT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventAltRight0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2046, keyCodeNdk.GetKeyCodeEventAltRight)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_SHIFT_LEFT_0100
@@ -640,7 +640,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_SHIFT_LEFT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventShiftLeft0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2047, keyCodeNdk.GetKeyCodeEventShiftLeft)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_SHIFT_RIGHT_0100
@@ -650,7 +650,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_SHIFT_RIGHT_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventShiftRight0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2048, keyCodeNdk.GetKeyCodeEventShiftRight)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_TAB_0100
@@ -660,7 +660,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_TAB_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventTab0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2049, keyCodeNdk.GetKeyCodeEventTab)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_SPACE_0100
@@ -670,7 +670,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_SPACE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventSpace0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2050, keyCodeNdk.GetKeyCodeEventSpace)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_SYM_0100
@@ -680,7 +680,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_SYM_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventSym0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2051, keyCodeNdk.GetKeyCodeEventSym)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_EXPLORER_0100
@@ -690,7 +690,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_EXPLORER_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventExplorer0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2052, keyCodeNdk.GetKeyCodeEventExplorer)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_ENVELOPE_0100
@@ -700,7 +700,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_ENVELOPE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventEnvelope0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2053, keyCodeNdk.GetKeyCodeEventEnvelope)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_ENTER_0100
@@ -710,7 +710,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_ENTER_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventEnter0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2054, keyCodeNdk.GetKeyCodeEventEnter)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_DEL_0100
@@ -720,7 +720,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_DEL_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventDel0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2055, keyCodeNdk.GetKeyCodeEventDel)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_PLUS_0100
@@ -730,7 +730,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_PLUS_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventPlus0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2066, keyCodeNdk.GetKeyCodeEventPlus)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_MENU_0100
@@ -740,7 +740,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_MENU_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventMenu0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2067, keyCodeNdk.GetKeyCodeEventMenu)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_PAGE_UP_0100
@@ -750,7 +750,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_PAGE_UP_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventPageUp0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2068, keyCodeNdk.GetKeyCodeEventPageUp)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_PAGE_DOWN_0100
@@ -760,7 +760,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_PAGE_DOWN_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventPageDown0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2069, keyCodeNdk.GetKeyCodeEventPageDown)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_ESCAPE_0100
@@ -770,7 +770,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_ESCAPE_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventEscape0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2070, keyCodeNdk.GetKeyCodeEventEscape)
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_KEY_FORWARD_DEL_0100
@@ -780,7 +780,7 @@ export default function KeyCodeNdkTest1() {
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    Utils.keydo('SUB_ARKUI_ACE_ENGINE_KEY_FORWARD_DEL_0100', TestType.FUNCTION |
+    Utils.keydo('testGetKeyCodeEventForwardDel0100', TestType.FUNCTION |
         Size.MEDIUMTEST | Level.LEVEL1, 2071, keyCodeNdk.GetKeyCodeEventForwardDel)
   })
 }
