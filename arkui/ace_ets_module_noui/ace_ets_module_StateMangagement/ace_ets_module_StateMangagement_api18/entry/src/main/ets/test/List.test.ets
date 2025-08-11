@@ -25,6 +25,7 @@ import repeatReusableTrue from './ReusableTest/repeatReusableTrue.test';
 import Consumer0130Test from './consumerTest/Consumer0130Test.test';
 import Consumer0140Test from './consumerTest/Consumer0140Test.test';
 import Consumer0170Test from './consumerTest/Consumer0170Test.test';
+import Rawfile0140 from './useRes/Rawfile0140.test';
 
 export default function testsuite() {
     PerGlobalConnectTest();
@@ -39,4 +40,5 @@ export default function testsuite() {
     Consumer0130Test();
     Consumer0140Test();
     Consumer0170Test();
+    Rawfile0140();
 }
