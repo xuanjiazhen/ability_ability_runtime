@@ -14,13 +14,7 @@
  */
  
 import ActsRelationalStoreTest from './ActsRelationalStoreTest.test'
-import ActsRelationStoreValueTest from './ActsRelationStoreValueTest.test'
-import ActsRelationStoreValuesTest from './ActsRelationStoreValuesTest.test'
-import ActsRelationStoreBucketsTest from './ActsRelationStoreBucketsTest.test'
 
 export default function testsuite() {
   ActsRelationalStoreTest()
-  // ActsRelationStoreValueTest()
-  // ActsRelationStoreValuesTest()
-  // ActsRelationStoreBucketsTest()
 }
