@@ -31,7 +31,7 @@
     {
       "name": "entry",
       "srcPath": "./entry",
-      "targets": [
+      "targets": [ add
         {
           "name": "default",
           "applyToProducts": [

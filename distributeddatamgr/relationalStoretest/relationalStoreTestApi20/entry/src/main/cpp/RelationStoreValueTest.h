@@ -36,7 +36,6 @@
 
 void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData);
 
-napi_value TestEnumerate(napi_env env, napi_callback_info info);
 napi_value Destroy(napi_env env, napi_callback_info info);
 napi_value PutNull(napi_env env, napi_callback_info info);
 napi_value PutReal(napi_env env, napi_callback_info info);

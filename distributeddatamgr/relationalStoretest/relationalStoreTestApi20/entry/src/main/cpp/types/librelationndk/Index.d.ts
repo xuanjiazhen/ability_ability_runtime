@@ -22,7 +22,6 @@ export const getStatusSuccess: () => number;
 export const getDestroyOneSuccess: () => number;
 export const testDestroyMultipleInvalidParam: () => number;
 // database/data/oh_data_value.h
-export const testEnumerate: () => number;
 export const destroy: () => number;
 export const putNull: () => number;
 export const putReal: () => number;

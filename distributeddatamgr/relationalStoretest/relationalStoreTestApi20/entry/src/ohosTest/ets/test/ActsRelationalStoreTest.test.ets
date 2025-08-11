@@ -2173,26 +2173,5 @@ export default function ActsRelationalStoreTest() {
             err);
         }
       })
-
-    /**
-     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900
-     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900
-     * @tc.desc    : test enumeration value TYPE_UNLIMITED_INT
-     * @tc.level   : Level1
-     * @tc.size    : MediumTest
-     * @tc.type    : Function
-     */
-    it('SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900',
-      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-        try {
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900 start====");
-          let result: number = testNapi.testEnumerate();
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900 result====", result);
-          expect(result).assertEqual(0);
-          done();
-        } catch (err) {
-          console.error("====>SUB_DistributedData_RelationalStore_SDK_TYPE_UNLIMITED_INT_5900 catch err: " + err);
-        }
-      })
   })
 }

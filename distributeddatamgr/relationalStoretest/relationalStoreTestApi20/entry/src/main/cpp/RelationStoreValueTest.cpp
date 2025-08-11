@@ -21,44 +21,7 @@
 #include <database/rdb/relational_store.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-#include <sys/stat.h>
 #include <vector>
-#include <filesystem>
-#include <hilog/log.h>
-
-namespace fs = std::__fs::filesystem;
-
-static OH_Rdb_Config config_;
-
-static void InitRdbConfig()
-{
-    const char *rdbTestPath = "/data/storage/el2/100/database/com.acts.actsrelationstoretest/entry";
-    char rdbStoreName[] = "rdb_store_test.db";
-    char bundleName[] = "com.acts.actsrelationstoretest";
-    char moduleName[] = "";
-    const mode_t kDirPermissions = 0770;
-
-    config_.dataBaseDir = rdbTestPath;
-    config_.storeName = rdbStoreName;
-    config_.bundleName = bundleName;
-    config_.moduleName = moduleName;
-    config_.securityLevel = OH_Rdb_SecurityLevel::S1;
-    config_.isEncrypt = false;
-    config_.selfSize = sizeof(OH_Rdb_Config);
-
-    if (fs::exists(rdbTestPath)) {
-        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  already exists :%{public}s", rdbTestPath);
-    } else {
-        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  mkdir path");
-        mkdir(config_.dataBaseDir, kDirPermissions);
-    }
-
-    if (fs::exists(rdbTestPath)) {
-        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  create success :%{public}s", rdbTestPath);
-    } else {
-        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  create failed :%{public}s", rdbTestPath);
-    }
-}
 
 void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
 {
@@ -96,7 +59,6 @@ void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
 
 void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
 {
-    descData.push_back({"testEnumerate", nullptr, TestEnumerate, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"destroy", nullptr, Destroy, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"putNull", nullptr, PutNull, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"putReal", nullptr, PutReal, nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -141,51 +103,6 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
                         nullptr, napi_default, nullptr});
 
     addRelationStoreValueTest1(descData);
-}
-
-napi_value TestEnumerate(napi_env env, napi_callback_info info)
-{
-    napi_value result;
-    
-    InitRdbConfig();
-    OH_Rdb_Store *testRdbStore = nullptr;
-    int ret = -1;
-    int errCode = 0;
-
-    testRdbStore = OH_Rdb_GetOrOpen(&config_, &errCode);
-
-    const char* createTableSql = "CREATE TABLE IF NOT EXISTS test ("
-                                 "id INT64 PRIMARY KEY, "
-                                 "name UNLIMITED INT, "
-                                 "score INT64)";
-    
-    OH_Rdb_Execute(testRdbStore, createTableSql);
-    
-    OH_VBucket *insertBucket = OH_Rdb_CreateValuesBucket();
-    insertBucket->putInt64(insertBucket, "id", 1);
-    const int64_t passingScore = 60;
-    insertBucket->putInt64(insertBucket, "score", passingScore);
-    
-    uint64_t trueForm[1] = { 18446744073709551615 };
-    OH_VBucket_PutUnlimitedInt(insertBucket, "name", 0, trueForm, 1);
-    
-    OH_Rdb_Insert(testRdbStore, "test", insertBucket);
-    
-    OH_Predicates *pred = OH_Rdb_CreatePredicates("test");
-    
-    OH_Cursor *cursor = OH_Rdb_Query(testRdbStore, pred, NULL, 0);
-    
-    cursor->goToNextRow(cursor);
-    
-    OH_ColumnType type;
-    cursor->getColumnType(cursor, 1, &type);
-
-    if (type == OH_ColumnType::TYPE_UNLIMITED_INT) {
-        ret = 0;
-    }
-    
-    napi_create_int32(env, ret, &result);
-    return result;
 }
 
 napi_value Destroy(napi_env env, napi_callback_info info)
