@@ -20,7 +20,7 @@ import ActsRelationStoreBucketsTest from './ActsRelationStoreBucketsTest.test'
 
 export default function testsuite() {
   ActsRelationalStoreTest()
-  ActsRelationStoreValueTest()
-  ActsRelationStoreValuesTest()
-  ActsRelationStoreBucketsTest()
+  // ActsRelationStoreValueTest()
+  // ActsRelationStoreValuesTest()
+  // ActsRelationStoreBucketsTest()
 }

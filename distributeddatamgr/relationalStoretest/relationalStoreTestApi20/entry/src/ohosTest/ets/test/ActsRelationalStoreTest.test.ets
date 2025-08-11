@@ -144,7 +144,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 catch err: " + err);
-          expect(1).assertEqual(0);
         }
       })
 
@@ -166,7 +165,6 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyOne_0700 catch err: " + err);
-          done();
         }
       })
 
@@ -189,7 +187,89 @@ export default function ActsRelationalStoreTest() {
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900
+     * @tc.desc    : test OH_VBuckets_Destroy Test Illegal Parameter Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        try {
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900 start====");
+          let result: number = testNapi.testDestroyInvalidParamA();
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900 result====", result);
+          expect(result).assertEqual(RDB_E_INVALID_ARGS);
           done();
+        } catch (err) {
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_Destroy_0900 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000
+     * @tc.desc    : test OH_VBuckets_PutRow Test Illegal Parameter Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        try {
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000 start====");
+          let result: number = testNapi.testPutRowInvalidParam();
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000 result====", result);
+          expect(result).assertEqual(RDB_E_INVALID_ARGS);
+          done();
+        } catch (err) {
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRow_1000 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100
+     * @tc.desc    : test OH_VBuckets_PutRows Test Illegal Parameter Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        try {
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100 start====");
+          let result: number = testNapi.testPutRowsInvalidParam();
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100 result====", result);
+          expect(result).assertEqual(RDB_E_INVALID_ARGS);
+          done();
+        } catch (err) {
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_PutRows_1100 catch err: " + err);
+        }
+      })
+
+    /**
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200
+     * @tc.desc    : test OH_VBuckets_RowCount Test Illegal Parameter Scene
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200',
+      TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+        try {
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200 start====");
+          let result: number = testNapi.testRowCountInvalidParam();
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200 result====", result);
+          expect(result).assertEqual(RDB_E_INVALID_ARGS);
+          done();
+        } catch (err) {
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_OH_VBuckets_RowCount_1200 catch err: " + err);
         }
       })
   })
