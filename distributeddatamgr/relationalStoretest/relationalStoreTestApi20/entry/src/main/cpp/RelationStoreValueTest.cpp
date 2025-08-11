@@ -23,10 +23,10 @@
 #include <napi/native_api.h>
 #include <sys/stat.h>
 #include <vector>
-#include <filesystem>  // 需要包含文件系统头文件
+#include <filesystem>
 #include <hilog/log.h>
 
-namespace fs = std::filesystem;  // 命名空间别名，方便使用
+namespace fs = std::__fs::filesystem;
 
 static OH_Rdb_Config config_;
 
