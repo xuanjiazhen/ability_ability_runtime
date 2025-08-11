@@ -714,11 +714,11 @@ static napi_value WebStructCookieManagerAPI(napi_env env, napi_callback_info inf
             api.size = sizeof(ArkWeb_CookieManagerAPI);
             break;
         case CASE_NUM_1:
-            api.fetchCookieSync = [](const char* url, bool incognito, bool includeHttpOnly, 
+            api.fetchCookieSync = [](const char* url, bool incognito, bool includeHttpOnly,
                                      char** cookieValue) -> ArkWeb_ErrorCode { return ARKWEB_SUCCESS; };
             break;
         case CASE_NUM_2:
-            api.configCookieSync = [](const char* url, const char* cookieValue, bool incognito, 
+            api.configCookieSync = [](const char *url, const char *cookieValue, bool incognito,
                                       bool includeHttpOnly) -> ArkWeb_ErrorCode { return ARKWEB_SUCCESS; };
             break;
         case CASE_NUM_3:
@@ -751,7 +751,7 @@ static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info i
             api.size = sizeof(ArkWeb_JavaScriptValueAPI);
             break;
         case CASE_NUM_1:
-            api.createJavaScriptValue = [](ArkWeb_JavaScriptValueType type, void* data, 
+            api.createJavaScriptValue = [](ArkWeb_JavaScriptValueType type, void* data,
                                            size_t dataLength) -> ArkWeb_JavaScriptValuePtr { return nullptr; };
             break;
         default:
