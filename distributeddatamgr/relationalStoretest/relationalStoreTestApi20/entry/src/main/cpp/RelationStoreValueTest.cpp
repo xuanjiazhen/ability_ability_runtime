@@ -36,7 +36,7 @@ static void InitRdbConfig()
     char rdbStoreName[] = "rdb_store_test.db";
     char bundleName[] = "com.acts.actsrelationstoretest";
     char moduleName[] = "";
-    constexpr mode_t DIR_PERMISSIONS = 0770;
+    constexpr mode_t kDirPermissions = 0770;
 
     config_.dataBaseDir = rdbTestPath;
     config_.storeName = rdbStoreName;
@@ -50,7 +50,7 @@ static void InitRdbConfig()
         OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  already exists :%{public}s", rdbTestPath);
     } else {
         OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  mkdir path");
-        mkdir(config_.dataBaseDir, DIR_PERMISSIONS);
+        mkdir(config_.dataBaseDir, kDirPermissions);
     }
 
     if (fs::exists(rdbTestPath)) {
