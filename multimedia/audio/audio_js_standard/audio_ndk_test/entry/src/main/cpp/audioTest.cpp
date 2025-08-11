@@ -7651,6 +7651,99 @@ static napi_value AudioLowLatencyOut(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value AudioWorkGroupSet(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    
+    constexpr float volume = 0.5f;
+    constexpr int32_t streamRate = 48000;
+    OH_AudioStream_Type streamType = OH_AudioStream_Type::AUDIOSTREAM_TYPE_RENDERER;
+    
+    OH_AudioStream_Result BuilderCreateResult = OH_AudioStreamBuilder_Create(&builder, streamType);
+    if (BuilderCreateResult != OH_AudioStream_Result::AUDIOSTREAM_SUCCESS) {
+        napi_create_int32(env, static_cast<int32_t>(TEST_RESULT::TEST_FAIL), &result);
+        LOG("OH_AudioStreamBuilder_Create FAILED, result is: %{public}d", result);
+        return result;
+    }
+    LOG("OH_AudioStreamBuilder_Create SUCCESS");
+    
+    // 设置音频采样率。
+    OH_AudioStreamBuilder_SetSamplingRate(builder, streamRate);
+    // 设置音频声道。
+    OH_AudioStreamBuilder_SetChannelLayout(builder, CH_LAYOUT_STEREO);
+    // 设置音频采样格式。
+    OH_AudioStreamBuilder_SetSampleFormat(builder, OH_AudioStream_SampleFormat::AUDIOSTREAM_SAMPLE_S16LE);
+    // 设置音频流的编码类型。
+    OH_AudioStreamBuilder_SetEncodingType(builder, AUDIOSTREAM_ENCODING_TYPE_RAW);
+    // 设置输出音频流的工作场景。
+    OH_AudioStreamBuilder_SetRendererInfo(builder, AUDIOSTREAM_USAGE_MUSIC);
+    // 设置低时延模式
+    OH_AudioStreamBuilder_SetLatencyMode(builder, AUDIOSTREAM_LATENCY_MODE_FAST);
+    
+    OH_AudioRenderer_Callbacks rendererCallBacks;
+    
+    // 使用前，初始化并清零结构体。
+    memset(&rendererCallBacks, 0, sizeof(OH_AudioRenderer_Callbacks));
+    
+    rendererCallBacks.OH_AudioRenderer_OnStreamEvent = OnStreamEvent;
+    rendererCallBacks.OH_AudioRenderer_OnInterruptEvent = OnInterruptEvent;
+    rendererCallBacks.OH_AudioRenderer_OnError = OnError;
+    rendererCallBacks.OH_AudioRenderer_OnWriteData = nullptr;
+    
+    OH_AudioStreamBuilder_SetRendererCallback(builder, rendererCallBacks, nullptr);
+    
+    OH_AudioStream_Result GenerateRendererResult = OH_AudioStreamBuilder_GenerateRenderer(builder, &audioRenderer);
+    if (GenerateRendererResult != OH_AudioStream_Result::AUDIOSTREAM_SUCCESS) {
+        napi_create_int32(env, static_cast<int32_t>(TEST_RESULT::TEST_FAIL), &result);
+        LOG("OH_AudioStreamBuilder_GenerateRenderer FAILED, result is: %{public}d", result);
+        return result;
+    }
+    LOG("OH_AudioStreamBuilder_GenerateRenderer SUCCESS");
+    
+    // 设置音频流音量
+    OH_AudioStream_Result SetVolumeResult = OH_AudioRenderer_SetVolume(audioRenderer, volume);
+    if (SetVolumeResult != OH_AudioStream_Result::AUDIOSTREAM_SUCCESS) {
+        napi_create_int32(env, static_cast<int32_t>(TEST_RESULT::TEST_FAIL), &result);
+        LOG("OH_AudioRenderer_SetVolume FAILED, result is: %{public}d", result);
+        return result;
+    }
+    LOG("OH_AudioRenderer_SetVolume SUCCESS");
+
+
+    int32_t tid;
+    OH_AudioResourceManager *mgr;
+    OH_AudioWorkgroup *grp;
+    OH_AudioCommon_Result mgrresult = OH_AudioManager_GetAudioResourceManager(&mgr);
+    LOG("OH_AudioManager_GetAudioResourceManager result is: %{public}d", mgrresult);
+
+    OH_AudioCommon_Result cwgresult = OH_AudioResourceManager_CreateWorkgroup(mgr, "new", &grp);
+    LOG("OH_AudioResourceManager_CreateWorkgroup result is: %{public}d", cwgresult);
+
+    OH_AudioCommon_Result addtrdresult = OH_AudioWorkgroup_AddCurrentThread(grp, &tid);
+    LOG("OH_AudioWorkgroup_AddCurrentThread result is: %{public}d", addtrdresult);
+
+    OH_AudioCommon_Result startresult = OH_AudioWorkgroup_Start(grp, STATE_TIME, END_TIME);
+    LOG("OH_AudioWorkgroup_Start result is: %{public}d", startresult);
+
+    OH_AudioCommon_Result stopresult = OH_AudioWorkgroup_Stop(grp);
+    LOG("OH_AudioWorkgroup_Stop result is: %{public}d", stopresult);
+
+    OH_AudioCommon_Result rmresult = OH_AudioWorkgroup_RemoveThread(grp, tid);
+    LOG("OH_AudioWorkgroup_RemoveThread result is: %{public}d", rmresult);
+
+    OH_AudioCommon_Result rsresult=OH_AudioResourceManager_ReleaseWorkgroup(mgr, grp);
+    LOG("OH_AudioResourceManager_ReleaseWorkgroup result is: %{public}d", rsresult);
+    
+    g_fileOffset = 0;
+
+    LOG("FileRecourceManager::len SUCCESS: %{public}d", FileRecourceManager::len);
+    LOG("FileRecourceManager::data SUCCESS: %{public}p", FileRecourceManager::dataCopy.get());
+    
+    napi_create_int32(env, static_cast<int32_t>(TEST_RESULT::TEST_PASS), &result);
+    return result;
+}
+
+
 static napi_value StartAudioRenderer(napi_env env, napi_callback_info info)
 {
     OH_AudioRenderer_Start(audioRenderer);
@@ -7887,6 +7980,7 @@ napi_property_descriptor desc1[] = {
     {"audioManagerGetAudioScene_01", nullptr, AudioManagerGetAudioScene_01, nullptr, nullptr, nullptr, napi_default,
         nullptr},
     {"AudioLowLatencyOut", nullptr, AudioLowLatencyOut, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"AudioWorkGroupSet", nullptr, AudioWorkGroupSet, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"StopAndReleaseRenderer", nullptr, StopAndReleaseRenderer, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"GetRawFileContent", nullptr, &FileRecourceManager::GetRawFileContent, nullptr, nullptr, nullptr, napi_default,
         nullptr},
