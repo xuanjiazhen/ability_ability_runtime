@@ -43,6 +43,9 @@ export default function JsLeakWatcherNewTest() {
           console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 heapDumpFileName: ' + filepath[1]);
           leakFilePath = filepath
         });
+        let obj : Object = new Object();
+        jsLeakWatcher.watch(obj, 'test_watch');
+        console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 test_' + obj.toString());
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 wait start')
         await asyncSleep(35000);
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 wait end')
