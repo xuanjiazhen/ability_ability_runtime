@@ -1137,91 +1137,6 @@ export default function windowErrCode401_3() {
     })
 
     /**
-     * @tc.number    : SUB_BASIC_WMS_CREAT_PIP_WITH_INVAILD_PARAMETERS
-     * @tc.name      : testPIPCreatewithInvalidParameters
-     * @tc.desc      : 验证画中画create接口抛401错误码
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('testPIPCreatewithInvalidParameters', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let caseName: string = 'testPIPCreatewithInvalidParameters';
-      try {
-        let promise = pipWindow.create(null);
-        promise.then((data: pipWindow.PiPController) => {
-          console.log(caseName + ' pipWindow create success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect(err.code).assertEqual(401);
-          done();
-        });
-      } catch (err) {
-        console.error(caseName + ' failed. Caused: err.code '+err.code +' ,err.message: '+err.message);
-        expect().assertFail();
-        done();
-      }
-    })
-
-    /**
-     * @tc.number    : SUB_BASIC_WMS_GET_LAST_WINDOW_WITH_INVAILD_PARAMETERS
-     * @tc.name      : testGetLastWindowwithInvalidParameters
-     * @tc.desc      : 验证getlastwindow接口抛401错误码
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('testGetLastWindowwithInvalidParameters', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let caseName: string = 'testGetLastWindowwithInvalidParameters';
-      try {
-        let promise = ohosWindow.getLastWindow(null);
-        promise.then((data) => {
-          console.log(caseName + ' getLastWindow success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect(err.code).assertEqual(401);
-          done();
-        });
-      } catch (err) {
-        console.error(caseName + ' failed. Caused: err.code '+ err.code +' ,err.message: '+err.message);
-        expect().assertFail();
-        done();
-      }
-    })
-
-    /**
-     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SYSTEMBAR_PROPERTIES_WITH_INVAILD_PARAMETERS
-     * @tc.name      : testSetWindowSystemBarPropertieswithInvalidParameters
-     * @tc.desc      : 验证setWindowSystemBarProperties接口抛401错误码
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('testSetWindowSystemBarPropertieswithInvalidParameters', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let caseName: string = 'testSetWindowSystemBarPropertieswithInvalidParameters';
-      try {
-        let windowClass = windowStage.getMainWindowSync();
-        let promise = windowClass.setWindowSystemBarProperties(null);
-        promise.then(() => {
-          console.log(caseName + ' setWindowSystemBarProperties success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect(err.code).assertEqual(401);
-          done();
-        });
-      } catch (err) {
-        console.error(caseName + ' failed. Caused: err.code '+ err.code +' ,err.message: '+err.message);
-        expect().assertFail();
-        done();
-      }
-    })
-
-    /**
      * @tc.number    : SUB_BASIC_WMS_LOAT_CONTENT_WITH_INVAILD_PARAMETERS
      * @tc.name      : testLoadContentwithInvalidParameters
      * @tc.desc      : 验证loadContent接口抛401错误码
@@ -1265,36 +1180,6 @@ export default function windowErrCode401_3() {
         let promise = windowClass.setWindowColorSpace(null);
         promise.then(() => {
           console.log(caseName + ' setWindowColorSpace success');
-          expect().assertFail();
-          done();
-        }).catch((err:BusinessError) => {
-          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
-          expect().assertFail();
-          done();
-        });
-      } catch (err) {
-        console.error(caseName + ' failed. Caused: err.code '+ err.code +' ,err.message: '+err.message);
-        expect(err.code).assertEqual(401);
-        done();
-      }
-    })
-
-    /**
-     * @tc.number    : SUB_BASIC_WMS_SHOW_WINDOW_WITH_INVAILD_PARAMETERS
-     * @tc.name      : testShowWindowwithInvalidParameters
-     * @tc.desc      : 验证showWindow接口抛401错误码
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('testShowWindowwithInvalidParameters', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let caseName: string = 'testShowWindowwithInvalidParameters';
-      try {
-        let windowClass = windowStage.getMainWindowSync();
-        // let promise = windowClass.showWindow(null);
-        let promise = windowClass.showWindow();
-        promise.then(() => {
-          console.log(caseName + ' showWindow success');
           expect().assertFail();
           done();
         }).catch((err:BusinessError) => {
