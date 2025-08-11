@@ -68,12 +68,12 @@ napi_value GetTouchPointWindowY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+        result = OH_NativeXComponent_GetTouchPointWindowY(nullptr, 0, &point) ==
                                                           PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+        result = OH_NativeXComponent_GetTouchPointWindowY(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
+        result = OH_NativeXComponent_GetTouchPointWindowY(XComponent.GetXComponent(), 0, &point);
     }
     napi_create_int32(env, result, &args[0]);
     return args[0];
@@ -99,12 +99,12 @@ napi_value GetTouchPointDisplayX(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+        result = OH_NativeXComponent_GetTouchPointDisplayX(nullptr, 0, &point) ==
                                                           PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+        result = OH_NativeXComponent_GetTouchPointDisplayX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
+        result = OH_NativeXComponent_GetTouchPointDisplayX(XComponent.GetXComponent(), 0, &point);
     }
     napi_create_int32(env, result, &args[0]);
     return args[0];
@@ -130,12 +130,12 @@ napi_value GetTouchPointDisplayY(napi_env env, napi_callback_info info)
     float point = 0;
     int32_t result;
     if (isNullptr) {
-        result = OH_NativeXComponent_GetTouchPointWindowX(nullptr, 0, &point) ==
+        result = OH_NativeXComponent_GetTouchPointDisplayY(nullptr, 0, &point) ==
                                                           PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
+        result = OH_NativeXComponent_GetTouchPointDisplayY(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
-        result = OH_NativeXComponent_GetTouchPointWindowX(XComponent.GetXComponent(), 0, &point);
+        result = OH_NativeXComponent_GetTouchPointDisplayY(XComponent.GetXComponent(), 0, &point);
     }
     napi_create_int32(env, result, &args[0]);
     return args[0];
@@ -495,14 +495,14 @@ napi_value GetTouchEventSourceType(napi_env env, napi_callback_info info)
     return retValue;
 }
 
-napi_value TouchPointId(napi_env env, napi_callback_info info)
+napi_value TouchPointType(napi_env env, napi_callback_info info)
 {
     napi_value retValue = 0;
     int32_t result = 0;
     OH_NativeXComponent_TouchPoint tempTouchPoint = g_touchPointMap[true];
-    result = tempTouchPoint.id != -1;
+    result = OH_NativeXComponent_TouchEventType(tempTouchPoint.type) >= 0 && OH_NativeXComponent_TouchEventType(tempTouchPoint.type) < 5;
     tempTouchPoint = g_touchPointMap[false];
-    result = tempTouchPoint.id != -1 && result;
+    result = OH_NativeXComponent_TouchEventType(tempTouchPoint.type) >= 0 && OH_NativeXComponent_TouchEventType(tempTouchPoint.type) < 5 && result;
     g_touchPointMap.clear();
     napi_create_int32(env, result, &retValue);
     return retValue;

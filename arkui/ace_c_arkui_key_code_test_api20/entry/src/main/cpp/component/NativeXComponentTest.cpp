@@ -111,7 +111,7 @@ static void InitPushTouchPoint(napi_property_descriptor* desc)
         XL("GetTouchEventSourceTool", TouchPoint::GetTouchEventSourceTool),
         XL("GetTouchPointToolTypeResult", TouchPoint::GetTouchPointToolTypeResult),
         XL("GetTouchEventSourceType", TouchPoint::GetTouchEventSourceType),
-        XL("TouchPointId", TouchPoint::TouchPointId),
+        XL("TouchPointType", TouchPoint::TouchPointType),
         XL("TouchPointSize", TouchPoint::TouchPointSize),
         XL("TouchPointForce", TouchPoint::TouchPointForce),
         XL("TouchPointTimeStamp", TouchPoint::TouchPointTimeStamp),

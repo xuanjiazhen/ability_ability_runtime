@@ -82,7 +82,7 @@ napi_value HistoricalPointSourceTool(napi_env env, napi_callback_info info);
 napi_value GetTouchEventSourceTool(napi_env env, napi_callback_info info);
 napi_value GetTouchPointToolTypeResult(napi_env env, napi_callback_info info);
 napi_value GetTouchEventSourceType(napi_env env, napi_callback_info info);
-napi_value TouchPointId(napi_env env, napi_callback_info info);
+napi_value TouchPointType(napi_env env, napi_callback_info info);
 napi_value TouchPointSize(napi_env env, napi_callback_info info);
 napi_value TouchPointForce(napi_env env, napi_callback_info info);
 napi_value TouchPointTimeStamp(napi_env env, napi_callback_info info);

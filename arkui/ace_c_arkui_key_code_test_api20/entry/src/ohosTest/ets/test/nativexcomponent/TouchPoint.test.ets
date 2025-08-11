@@ -604,23 +604,23 @@ export default function TouchPointTest() {
       }
     })
     /**
-     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_ID_0100
-     * @tc.name    : testTouchPointId
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_TYPE_0100
+     * @tc.name    : testTouchPointType
      * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchPointDisplayY function works fine.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testTouchPointId', TestType.FUNCTION |
+    it('testTouchPointType', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_ID_0100 start<====`);
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_TYPE_0100 start<====`);
         await driver.swipe(150, 150, 150, 200, speed);
-        let Result: number = nativexcomponent.TouchPointId();
+        let Result: number = nativexcomponent.TouchPointType();
         expect(1).assertEqual(Result);
         done()
       } catch (err) {
-        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_ID_0100 catch err: ` + err);
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_TYPE_0100 catch err: ` + err);
         expect(false).assertEqual(err);
         done()
       }
@@ -671,13 +671,13 @@ export default function TouchPointTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_TIMESTAMP_0100
-     * @tc.name    : testTouchPointTimeStamp001
+     * @tc.name    : testTouchPointTimeStamp
      * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchPointDisplayY function works fine.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testTouchPointTimeStamp001', TestType.FUNCTION |
+    it('testTouchPointTimeStamp', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_TIMESTAMP_0100 start<====`);
@@ -693,13 +693,13 @@ export default function TouchPointTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_ISPRESSED_0100
-     * @tc.name    : testTouchPointTimeStamp002
+     * @tc.name    : testTouchPointIsPressed
      * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchPointDisplayY function works fine.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testTouchPointTimeStamp002', TestType.FUNCTION |
+    it('testTouchPointIsPressed', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHPOINT_ISPRESSED_0100 start<====`);
@@ -781,13 +781,13 @@ export default function TouchPointTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHEVENT_DEVICEID_0100
-     * @tc.name    : testTouchEventTimeStamp001
+     * @tc.name    : testTouchEventDeviceId
      * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchEventDisplayY function works fine.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testTouchEventTimeStamp001', TestType.FUNCTION |
+    it('testTouchEventDeviceId', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHEVENT_DEVICEID_0100 start<====`);
@@ -803,13 +803,13 @@ export default function TouchPointTest() {
     })
     /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHEVENT_TIMESTAMP_0100
-     * @tc.name    : testTouchEventTimeStamp002
+     * @tc.name    : testTouchEventTimeStamp
      * @tc.desc    : Test SUB_ARKUI_ACE_ENGINE_GetTouchEventDisplayY function works fine.
      * @tc.level   : LEVEL1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('testTouchEventTimeStamp002', TestType.FUNCTION |
+    it('testTouchEventTimeStamp', TestType.FUNCTION |
     Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_TOUCHEVENT_TIMESTAMP_0100 start<====`);
