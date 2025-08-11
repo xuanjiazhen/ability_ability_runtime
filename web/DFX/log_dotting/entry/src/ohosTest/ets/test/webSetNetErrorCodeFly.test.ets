@@ -12,69 +12,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterEach, beforeAll, beforeEach, describe, it, expect , TestType, Size, Level } from '@ohos/hypium';
-import events_emitter from '@ohos.events.emitter';
+import { beforeAll, beforeEach, describe, it, TestType, Size, Level } from '@ohos/hypium';
 import Utils from './Utils';
 import router from '@ohos.router';
-import emitter from '@ohos.events.emitter';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
 let emitKey = ""
+const EVENT_ID_SET_EIMIT_KEY = 108000;
+const driver = Driver.create();
 
 export default function ActsAceWebSetNetErrorCodeFly() {
   describe('ActsAceWebSetNetErrorCodeFly', () => {
-
     beforeAll(async (done: Function) => {
       let options : router.RouterOptions = {
         url: 'testability/pages/webSetNetErrorCodeFly',
       }
 
       try {
-        await Utils.sleep(1000)
         router.clear();
         let pages = router.getState();
         console.info("get webSetNetErrorCodeFly state success " + JSON.stringify(pages));
         if (!("webSetNetErrorCodeFly" == pages.name)) {
           console.info("get webSetNetErrorCodeFly state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(1000);
           console.info("push webSetNetErrorCodeFly state success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webSetNetErrorCodeFly page error:" + err);
       }
+      await driver.waitForComponent(ON.id("webSetNetErrorCodeFly"), 10000);
+      console.log("waitForComponent webSetNetErrorCodeFly");
       done()
     });
 
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
-        }).catch((err: object) => {
+      }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
-      done();
-    })
-
-    afterEach(async (done: Function) => {
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent : events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.error("emit emitKey error:" + JSON.stringify(err));
-      }
-      await Utils.sleep(1000);
       done();
     })
 
@@ -88,9 +68,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_UNKNOWN_URL_SCHEME', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNKNOWN_URL_SCHEME"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNKNOWN_URL_SCHEME", true, 1301, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNKNOWN_URL_SCHEME", true, 108010, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -103,9 +83,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_INVALID_REDIRECT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INVALID_REDIRECT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_REDIRECT", true, 1302, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_REDIRECT", true, 108020, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -118,9 +98,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_TOO_MANY_REDIRECTS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_TOO_MANY_REDIRECTS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_REDIRECTS", true, 1303, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_REDIRECTS", true, 108030, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -133,9 +113,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_ERR_UNSAFE_REDIRECT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNSAFE_REDIRECT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_ERR_UNSAFE_REDIRECT", true, 1304, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_ERR_UNSAFE_REDIRECT", true, 108040, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -148,9 +128,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_UNSAFE_PORT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNSAFE_PORT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNSAFE_PORT", true, 1305, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNSAFE_PORT", true, 108050, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -163,9 +143,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_INVALID_RESPONSE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INVALID_RESPONSE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_RESPONSE", true, 1306, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_RESPONSE", true, 108060, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -178,9 +158,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_INVALID_CHUNKED_ENCODING', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INVALID_CHUNKED_ENCODING"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_CHUNKED_ENCODING", true, 1307, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_CHUNKED_ENCODING", true, 108070, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -193,9 +173,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_METHOD_UNSUPPORTED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_METHOD_UNSUPPORTED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_METHOD_UNSUPPORTED", true, 1308, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_METHOD_UNSUPPORTED", true, 108080, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
 
     /*
@@ -208,10 +188,9 @@ export default function ActsAceWebSetNetErrorCodeFly() {
      */
     it('testWebSetNetErrorCode_ERR_UNEXPECTED_PROXY_AUTH', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNEXPECTED_PROXY_AUTH"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNEXPECTED_PROXY_AUTH", true, 1309, done);
-      sendEventByKey('webSetNetErrorCodeFly', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNEXPECTED_PROXY_AUTH", true, 108090, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCodeFly");
     })
-
   })
 }
