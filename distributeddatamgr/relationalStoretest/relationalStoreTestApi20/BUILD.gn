@@ -13,6 +13,14 @@
 
 import("//test/xts/tools/build/suite.gni")
 
+ohos_app_assist_suite("ActsRelationalStoreMainTest") {
+  testonly = true
+  certificate_profile = "./signature/openharmony_sx.p7b"
+  hap_name = "ActsRelationalStoreMainTest"
+  subsystem_name = "distributeddatamgr"
+  part_name = "relational_store"
+}
+
 ohos_js_app_suite("ActsRelationalStoreTest") {
   test_hap = true
   testonly = true
@@ -20,4 +28,5 @@ ohos_js_app_suite("ActsRelationalStoreTest") {
   hap_name = "ActsRelationalStoreTest"
   part_name = "relational_store"
   subsystem_name = "distributeddatamgr"
+  deps = [ ":ActsRelationalStoreMainTest" ]
 }
