@@ -15,6 +15,7 @@
 
 import { image } from '@kit.ImageKit';
 import { LengthMetrics } from '@ohos.arkui.node'
+import { BusinessError } from '@kit.BasicServicesKit';
 
 @Entry
 @Component
@@ -73,18 +74,40 @@ struct styled_string_demo8 {
 
       Button("toHtml")
         .id('button_toHtml')
-        .height('15%')
+        .height('5%')
         .onClick(() => {
           this.html = StyledString.toHtml(this.styledString);
         })
 
       Button("fromHtml")
         .id('button_fromHtml')
+        .height('5%')
         .onClick(async () => {
           let styledString = await StyledString.fromHtml(this.html);
           this.controller2.setStyledString(styledString);
         })
-
+      Button('test170001')
+        .id('button_fromHtml_170001')
+        .height('5%')
+        .onClick(async () => {
+          try {
+            await StyledString.fromHtml('')
+          }catch (e){
+            console.log('fromHtmlErrorCode170001:'+(e as BusinessError).code)
+            AppStorage.SetOrCreate('fromHtmlErrorCode170001',(e as BusinessError).code)
+          }
+        })
+      Button('test401')
+        .id('button_fromHtml_401')
+        .height('5%')
+        .onClick(async () => {
+          try {
+            await StyledString.fromHtml(null)
+          }catch (e){
+            console.log('fromHtmlErrorCode401:'+(e as BusinessError).code)
+            AppStorage.SetOrCreate('fromHtmlErrorCode401',(e as BusinessError).code)
+          }
+        })
       Text(undefined, { controller: this.controller2 })
         .id('Text_content_2')
         .height('15%')

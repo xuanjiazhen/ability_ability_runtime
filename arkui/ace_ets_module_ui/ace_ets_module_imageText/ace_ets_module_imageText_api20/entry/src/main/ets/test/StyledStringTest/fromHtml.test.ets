@@ -73,5 +73,47 @@ export default function fromHtmlTest() {
       console.info('[fromHtmlTest_0010] END');
       done();
     });
+
+    /**
+     * @tc.number    SUB_ACE_fromHtmlTest_0020
+     * @tc.name      fromHtmlTest_0020
+     * @tc.desc      test the function of fromHtmlErrorCode 170001
+     * @tc.level:    Level 2
+     * @tc.type :
+     * @tc.size :
+     */
+    it('fromHtmlTest_0020', Level.LEVEL2, async (done: Function) => {
+      console.info('[fromHtmlTest_0020] START');
+      let driver = Driver.create();
+      await CommonFunc.sleep(500);
+      let errorButton170001 = await driver.findComponent(ON.id('button_fromHtml_170001'));
+      await errorButton170001.click();     
+      await CommonFunc.sleep(1000);
+      expect(AppStorage.Get('fromHtmlErrorCode170001')+'').assertEqual('170001');
+      AppStorage.delete('fromHtmlErrorCode170001')
+      console.info('[fromHtmlTest_0020] END');
+      done();
+    });
+
+    /**
+     * @tc.number    SUB_ACE_fromHtmlTest_0030
+     * @tc.name      fromHtmlTest_0030
+     * @tc.desc      test the function of fromHtmlErrorCode 401
+     * @tc.level:    Level 2
+     * @tc.type :
+     * @tc.size :
+     */
+    it('fromHtmlTest_0030', Level.LEVEL2, async (done: Function) => {
+      console.info('[fromHtmlTest_0030] START');
+      let driver = Driver.create();
+      await CommonFunc.sleep(500);
+      let errorButton401 = await driver.findComponent(ON.id('button_fromHtml_401'));
+      await errorButton401.click();     
+      await CommonFunc.sleep(1000);
+      expect(AppStorage.Get('fromHtmlErrorCode401')+'').assertEqual('401');
+      AppStorage.delete('fromHtmlErrorCode401')
+      console.info('[fromHtmlTest_0030] END');
+      done();
+    });
   })
 }
