@@ -24,9 +24,12 @@ group("ces_standard") {
       "actsCommonEventSubscribeNDKTest:ActsCommonEventSubscribeNDKTest",
       "actsCommonEventSubscriberCAPITest:ActsCommonEventSubscriberCAPITest",
       "actsCommonEventSupportTest:ActsCommonEventSupportTest",
+      "actsCommonEventSupportTestStatic:ActsCommonEventSupportStaticTest",
       "actsCommonEventSystemAPITest:ActsCommonEventSystemAPITest",
+      "actsCommonEventSystemAPITestStatic:ActsCommonEventSystemAPIStaticTest",
       "actsNotificationCommonEventCAPITest:ActsNotificationCommonEventCAPITest",
       "subscribeandpublish:SubscribeAndPublish",
+      "subScribeAndPublishTestStatic:SubScribeAndPublishTestStatic",
     ]
   }
 }

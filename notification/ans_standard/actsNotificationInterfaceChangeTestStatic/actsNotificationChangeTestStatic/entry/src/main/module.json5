@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
 {
   "module": {
     "name": "entry",
@@ -22,6 +23,10 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",
+    "testRunner": {
+      "srcPath": "",
+      "name": ""
+    },
     "abilities": [
       {
         "name": "EntryAbility",
@@ -38,7 +43,7 @@
               "entity.system.home"
             ],
             "actions": [
-              "action.system.home"
+              "ohos.want.action.home"
             ]
           }
         ]
