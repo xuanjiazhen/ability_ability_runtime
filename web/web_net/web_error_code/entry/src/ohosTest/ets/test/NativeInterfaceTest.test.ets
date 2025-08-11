@@ -1228,7 +1228,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiProxyObjectWithResultName start====");
-          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(0);
+          let result: number = nativeInterface.WebStructProxyObjectWithResult(0);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiProxyObjectWithResultName stop====");
           done();
@@ -1248,7 +1248,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiProxyObjectWithResultMethodList start====");
-          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(1);
+          let result: number = nativeInterface.WebStructProxyObjectWithResult(1);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiProxyObjectWithResultMethodList stop====");
           done();
@@ -1268,7 +1268,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiProxyObjectWithResultSize start====");
-          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(2);
+          let result: number = nativeInterface.WebStructProxyObjectWithResult(2);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiProxyObjectWithResultSize stop====");
           done();
@@ -1388,7 +1388,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiMessagePortAPISize start====");
-          let result: number = nativeInterface.WebStructComponentAPI(0);
+          let result: number = nativeInterface.WebStructMessagePortAPI(0);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiMessagePortAPISize stop====");
           done();
@@ -1408,7 +1408,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiMessagePortAPIPost start====");
-          let result: number = nativeInterface.WebStructComponentAPI(1);
+          let result: number = nativeInterface.WebStructMessagePortAPI(1);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiMessagePortAPIPost stop====");
           done();
@@ -1428,7 +1428,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiMessagePortAPIClose start====");
-          let result: number = nativeInterface.WebStructComponentAPI(2);
+          let result: number = nativeInterface.WebStructMessagePortAPI(2);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiMessagePortAPIClose stop====");
           done();
@@ -1448,7 +1448,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiMessagePortAPISetHandler start====");
-          let result: number = nativeInterface.WebStructComponentAPI(3);
+          let result: number = nativeInterface.WebStructMessagePortAPI(3);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiMessagePortAPISetHandler stop====");
           done();
@@ -1608,7 +1608,7 @@ export default function NativeInterfaceTest() {
       async (done: Function) => {
         try {
           console.info("====>testWebNapiJavaScriptValueAPICreate start====");
-          let result: number = nativeInterface.WebStructJavaScriptValueAPI(0);
+          let result: number = nativeInterface.WebStructJavaScriptValueAPI(1);
           expect(result).assertEqual(0);
           console.info("====>testWebNapiJavaScriptValueAPICreate stop====");
           done();
