@@ -33,7 +33,7 @@ class FileRecourceManager {
         static std::unique_ptr<uint8_t[]> dataCopy;
         static long len;
 
-        static constexpr MAX_ALLOWED_SIZE = 1024;
+        static constexpr size_t MAX_ALLOWED_SIZE = 1024;
     
     public:
         static napi_value CreateJsArrayValue(napi_env env, std::unique_ptr<uint8_t[]> &data, long length);
