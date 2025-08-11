@@ -121,7 +121,7 @@ void EtsQueryERMSObserver::AddEtsObserverObject(const std::string &appId, const 
 bool EtsQueryERMSObserver::WrapAtomicServiceStartupRule(ani_env *env,
     const AbilityRuntime::AtomicServiceStartupRule &rule, ani_object &ruleObj)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "WrapAtomicServiceStartupRule");
+    TAG_LOGD(AAFwkTag::QUERY_ERMS, "WrapAtomicServiceStartupRule");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "null env");
         return false;
@@ -134,11 +134,11 @@ bool EtsQueryERMSObserver::WrapAtomicServiceStartupRule(ani_env *env,
     }
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK || method == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::QUERY_ERMS, "status : %{public}d", status);
         return false;
     }
     if ((status = env->Object_New(cls, method, &ruleObj)) != ANI_OK || ruleObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+        TAG_LOGE(AAFwkTag::QUERY_ERMS, "status : %{public}d", status);
         return false;
     }
     if (!env->Object_SetFieldByName_Boolean(ruleObj, "isOpenAllowed", rule.isOpenAllowed)) {

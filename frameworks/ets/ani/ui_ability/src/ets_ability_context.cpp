@@ -809,21 +809,21 @@ void EtsAbilityContext::OnStartAbilityForResult(
 
 ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj, ani_object wantObj)
 {
-    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByCall");
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartAbilityByCall");
     auto etsContext = GetEtsAbilityContext(env, aniObj);
     if (etsContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
     }
     auto context = etsContext ? etsContext->context_.lock() : nullptr;
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext is nullptr");
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetAbilityContext is nullptr");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return nullptr;
     }
 
     AAFwk::Want want;
     if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "parse want failed");
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
         return nullptr;
     }
@@ -832,7 +832,7 @@ ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj
     CallUtil::GenerateCallerCallBack(callData, callerCallBack);
     auto ret = context->StartAbilityByCall(want, callerCallBack, -1);
     if (ret != 0) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "startAbility failed");
+        TAG_LOGE(AAFwkTag::CONTEXT, "startAbility failed");
         EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
         return nullptr;
     }
@@ -1726,40 +1726,40 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
 
 ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani_object input)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "transfer static UIAbilityContext");
+    TAG_LOGD(AAFwkTag::CONTEXT, "transfer static UIAbilityContext");
     void *unwrapResult = nullptr;
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "failed to unwrap");
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed to unwrap");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     if (unwrapResult == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null unwrapResult");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null unwrapResult");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto context = reinterpret_cast<std::weak_ptr<AbilityContext> *>(unwrapResult)->lock();
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto abilityContext = Context::ConvertTo<AbilityContext>(context);
     if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null abilityContext");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto &bindingObj = abilityContext->GetBindingObject();
     if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto staticContext = bindingObj->Get<ani_ref>();
     if (staticContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null staticContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null staticContext");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
@@ -1768,33 +1768,33 @@ ani_object EtsAbilityContext::NativeTransferStatic(ani_env *env, ani_object, ani
 
 ani_object EtsAbilityContext::NativeTransferDynamic(ani_env *env, ani_object, ani_object input)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "transfer dynamic UIAbilityContext");
+    TAG_LOGD(AAFwkTag::CONTEXT, "transfer dynamic UIAbilityContext");
     if (!IsInstanceOf(env, input)) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "not UIAbilityContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "not UIAbilityContext");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto context = ContextUtil::GetBaseContext(env, input);
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null context");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto abilityContext = Context::ConvertTo<AbilityContext>(context);
     if (abilityContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null abilityContext");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto &bindingObj = abilityContext->GetBindingObject();
     if (bindingObj == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObj");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
     auto dynamicContext = bindingObj->Get<NativeReference>();
     if (dynamicContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null dynamicContext");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null dynamicContext");
         EtsErrorUtil::ThrowEtsTransferClassError(env);
         return nullptr;
     }
@@ -1808,16 +1808,16 @@ bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
     ani_class cls {};
     ani_status status = ANI_ERROR;
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
         return false;
     }
     if ((status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return false;
     }
     ani_boolean isInstanceOf = false;
     if ((status = env->Object_InstanceOf(aniObj, cls, &isInstanceOf)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return false;
     }
     return isInstanceOf;
@@ -1825,9 +1825,9 @@ bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
 
 void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
+    TAG_LOGD(AAFwkTag::CONTEXT, "NativeOnSetRestoreEnabled");
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
         return;
     }
 
@@ -2092,7 +2092,7 @@ void EtsAbilityContext::OnStartAbilityWithAccount(
     ErrCode innerErrCode = ERR_OK;
     auto context = context_.lock();
     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return;
     }

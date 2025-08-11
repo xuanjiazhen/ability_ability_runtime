@@ -450,7 +450,7 @@ void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object 
 
 ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long displayId)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateDisplayContext");
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeCreateDisplayContext");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
@@ -458,7 +458,7 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
     ani_ref undefRef = nullptr;
     ani_status status = env->GetUndefined(&undefRef);
     if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        TAG_LOGE(AAFwkTag::APPKIT, "GetUndefined failed %{public}d", status);
         return nullptr;
     }
 #ifdef SUPPORT_GRAPHICS
@@ -499,7 +499,7 @@ ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long 
 
 ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_object areaModeObj)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateAreaModeContext");
+    TAG_LOGD(AAFwkTag::APPKIT, "NativeCreateAreaModeContext");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
@@ -507,7 +507,7 @@ ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_obje
     ani_ref undefRef = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GetUndefined(&undefRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        TAG_LOGE(AAFwkTag::APPKIT, "GetUndefined failed %{public}d", status);
         return nullptr;
     }
     auto context = GetBaseContext(env, aniObj);
@@ -545,7 +545,7 @@ ani_object NativeCreateAreaModeContext(ani_env *env, ani_object aniObj, ani_obje
 ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object aniObj,
     ani_string bundleNameObj, ani_string moduleNameObj)
 {
-    TAG_LOGE(AAFwkTag::UIABILITY, "NativeCreateSystemHspModuleResourceManager");
+    TAG_LOGE(AAFwkTag::APPKIT, "NativeCreateSystemHspModuleResourceManager");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "env is nullptr");
         return nullptr;
@@ -553,7 +553,7 @@ ani_object NativeCreateSystemHspModuleResourceManager(ani_env *env, ani_object a
     ani_ref undefRef = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = env->GetUndefined(&undefRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITY, "GetUndefined failed %{public}d", status);
+        TAG_LOGE(AAFwkTag::APPKIT, "GetUndefined failed %{public}d", status);
         return nullptr;
     }
     auto context = GetBaseContext(env, aniObj);
