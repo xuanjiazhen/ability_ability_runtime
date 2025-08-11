@@ -116,35 +116,7 @@ napi_value OHInputInjectTouchEventGlobalError(napi_env env, napi_callback_info i
     return result;
 }
 
-napi_value OHInputInjectTouchEventGlobalSuccess(napi_env env, napi_callback_info info)
-{
-    struct Input_TouchEvent *touchEvent = OH_Input_CreateTouchEvent();
-    OH_Input_SetTouchEventAction(touchEvent, TOUCH_ACTION_DOWN);
-    OH_Input_SetTouchEventFingerId(touchEvent, 0);
-    OH_Input_SetTouchEventGlobalX(touchEvent, 1);
-    OH_Input_SetTouchEventGlobalY(touchEvent, 1);
-    OH_Input_SetTouchEventActionTime(touchEvent, -1);
-    napi_value result;
-    napi_create_int32(env, OH_Input_InjectTouchEventGlobal(touchEvent) == INPUT_SUCCESS ? 0 : -1, &result);
-    OH_Input_DestroyTouchEvent(&touchEvent);
-    return result;
-}
-
-napi_value OHInputInjectTouchEventGlobalSetX(napi_env env, napi_callback_info info)
-{
-    struct Input_TouchEvent *touchEvent = OH_Input_CreateTouchEvent();
-    OH_Input_SetTouchEventAction(touchEvent, TOUCH_ACTION_DOWN);
-    OH_Input_SetTouchEventFingerId(touchEvent, 0);
-    OH_Input_SetTouchEventGlobalX(touchEvent, 1);
-    OH_Input_SetTouchEventGlobalY(touchEvent, 1);
-    OH_Input_SetTouchEventActionTime(touchEvent, -1);
-    napi_value result;
-    napi_create_int32(env, OH_Input_InjectTouchEventGlobal(touchEvent) == INPUT_SUCCESS ? 0 : -1, &result);
-    OH_Input_DestroyTouchEvent(&touchEvent);
-    return result;
-}
-
-napi_value OHInputInjectTouchEventGlobalSetY(napi_env env, napi_callback_info info)
+napi_value OHInputInjectTouchEventGlobal(napi_env env, napi_callback_info info)
 {
     struct Input_TouchEvent *touchEvent = OH_Input_CreateTouchEvent();
     OH_Input_SetTouchEventAction(touchEvent, TOUCH_ACTION_DOWN);
@@ -164,12 +136,7 @@ napi_value OHInputGetTouchEventGlobalX(napi_env env, napi_callback_info info)
     struct Input_TouchEvent *touchEvent = OH_Input_CreateTouchEvent();
     OH_Input_SetTouchEventGlobalX(touchEvent, 1);
     int32_t retResult = OH_Input_GetTouchEventGlobalX(touchEvent);
-    if (retResult != 1) {
-        napi_create_int32(env, -1, &result);
-        OH_Input_DestroyTouchEvent(&touchEvent);
-        return result;
-    }
-    napi_create_int32(env, 0, &result);
+    napi_create_int32(env, retResult != 1 ? -1 : 0, &result);
     OH_Input_DestroyTouchEvent(&touchEvent);
     return result;
 }
@@ -180,12 +147,7 @@ napi_value OHInputGetTouchEventGlobalY(napi_env env, napi_callback_info info)
     struct Input_TouchEvent *touchEvent = OH_Input_CreateTouchEvent();
     OH_Input_SetTouchEventGlobalY(touchEvent, 1);
     int32_t retResult = OH_Input_GetTouchEventGlobalY(touchEvent);
-    if (retResult != 1) {
-        napi_create_int32(env, -1, &result);
-        OH_Input_DestroyTouchEvent(&touchEvent);
-        return result;
-    }
-    napi_create_int32(env, 0, &result);
+    napi_create_int32(env, retResult != 1 ? -1 : 0, &result);
     OH_Input_DestroyTouchEvent(&touchEvent);
     return result;
 }
@@ -226,63 +188,23 @@ napi_value OHInputInjectMouseEventGlobalDenied(napi_env env, napi_callback_info 
     return result;
 }
 
-napi_value OHInputInjectMouseEventGlobalGetXEvent(napi_env env, napi_callback_info info)
+napi_value OHInputInjectMouseEventGlobalGetSetXEvent(napi_env env, napi_callback_info info)
 {
     struct Input_MouseEvent *mouseEvent = OH_Input_CreateMouseEvent();
     OH_Input_SetMouseEventGlobalX(mouseEvent, 1);
     int currentX = OH_Input_GetMouseEventGlobalX(mouseEvent);
-    if (currentX != 1) {
-        napi_value result;
-        napi_create_int32(env, -1, &result);
-        return result;
-    }
     napi_value result;
-    napi_create_int32(env, 0, &result);
+    napi_create_int32(env, currentX != 1 ? -1 : 0, &result);
     return result;
 }
 
-napi_value OHInputInjectMouseEventGlobalGetYEvent(napi_env env, napi_callback_info info)
+napi_value OHInputInjectMouseEventGlobalGetSetYEvent(napi_env env, napi_callback_info info)
 {
     struct Input_MouseEvent *mouseEvent = OH_Input_CreateMouseEvent();
     OH_Input_SetMouseEventGlobalY(mouseEvent, 1);
     int currentY = OH_Input_GetMouseEventGlobalY(mouseEvent);
-    if (currentY != 1) {
-        napi_value result;
-        napi_create_int32(env, -1, &result);
-        return result;
-    }
     napi_value result;
-    napi_create_int32(env, 0, &result);
-    return result;
-}
-
-napi_value OHInputInjectMouseEventGlobalSetXEvent(napi_env env, napi_callback_info info)
-{
-    struct Input_MouseEvent *mouseEvent = OH_Input_CreateMouseEvent();
-    OH_Input_SetMouseEventGlobalX(mouseEvent, 1);
-    int currentX = OH_Input_GetMouseEventGlobalX(mouseEvent);
-    if (currentX != 1) {
-        napi_value result;
-        napi_create_int32(env, -1, &result);
-        return result;
-    }
-    napi_value result;
-    napi_create_int32(env, 0, &result);
-    return result;
-}
-
-napi_value OHInputInjectMouseEventGlobalSetYEvent(napi_env env, napi_callback_info info)
-{
-    struct Input_MouseEvent *mouseEvent = OH_Input_CreateMouseEvent();
-    OH_Input_SetMouseEventGlobalY(mouseEvent, 1);
-    int currentY = OH_Input_GetMouseEventGlobalY(mouseEvent);
-    if (currentY != 1) {
-        napi_value result;
-        napi_create_int32(env, -1, &result);
-        return result;
-    }
-    napi_value result;
-    napi_create_int32(env, 0, &result);
+    napi_create_int32(env, currentY != 1 ? -1 :0, &result);
     return result;
 }
 
@@ -717,16 +639,10 @@ napi_value OHInputQueryMaxTouchPointsError(napi_env env, napi_callback_info info
     return result;
 }
 
-
-
-
 void addInjectKeyEventTest1(std::vector<napi_property_descriptor>& descData)
 {
     descData.push_back({"OHInputInjectTouchEventGlobalError",
                        nullptr, OHInputInjectTouchEventGlobalError,
-                       nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectTouchEventGlobalSuccess",
-                       nullptr, OHInputInjectTouchEventGlobalSuccess,
                        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHInputInjectTouchEventError",
                        nullptr, OHInputInjectTouchEventError, nullptr, nullptr, nullptr, napi_default, nullptr});
@@ -739,23 +655,14 @@ void addInjectKeyEventTest1(std::vector<napi_property_descriptor>& descData)
                        nullptr, OHInputInjectMouseEventGlobalDenied, nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHInputInjectMouseEventError",
                        nullptr, OHInputInjectMouseEventError, nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectMouseEventGlobalGetXEvent",
-                       nullptr, OHInputInjectMouseEventGlobalGetXEvent,
+    descData.push_back({"OHInputInjectMouseEventGlobalGetSetXEvent",
+                       nullptr, OHInputInjectMouseEventGlobalGetSetXEvent,
                        nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectMouseEventGlobalGetYEvent",
-                       nullptr, OHInputInjectMouseEventGlobalGetYEvent,
+    descData.push_back({"OHInputInjectMouseEventGlobalGetSetYEvent",
+                       nullptr, OHInputInjectMouseEventGlobalGetSetYEvent,
                        nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectMouseEventGlobalSetXEvent",
-                       nullptr, OHInputInjectMouseEventGlobalSetXEvent,
-                       nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectMouseEventGlobalSetYEvent",
-                       nullptr, OHInputInjectMouseEventGlobalSetYEvent,
-                       nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectTouchEventGlobalSetX",
-                       nullptr, OHInputInjectTouchEventGlobalSetX,
-                       nullptr, nullptr, nullptr, napi_default, nullptr});
-    descData.push_back({"OHInputInjectTouchEventGlobalSetY",
-                       nullptr, OHInputInjectTouchEventGlobalSetY,
+    descData.push_back({"OHInputInjectTouchEventGlobal",
+                       nullptr, OHInputInjectTouchEventGlobal,
                        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHInputGetTouchEventGlobalX",
                        nullptr, OHInputGetTouchEventGlobalX,

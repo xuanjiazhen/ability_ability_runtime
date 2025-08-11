@@ -407,7 +407,7 @@ export default function SetKeyEventKeyCodeTest() {
     it('SUB_Input_Inject_key_event_11300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_11300 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalSetXEvent();
+        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetSetXEvent();
         console.info("====>SUB_Input_Inject_key_event_11300 result: " + result);
         expect(result).assertEqual(0);
         done()
@@ -428,7 +428,7 @@ export default function SetKeyEventKeyCodeTest() {
     it('SUB_Input_Inject_key_event_11400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_11400 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalSetYEvent();
+        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetSetYEvent();
         console.info("====>SUB_Input_Inject_key_event_11400 result: " + result);
         expect(result).assertEqual(0);
         done()
@@ -470,7 +470,7 @@ export default function SetKeyEventKeyCodeTest() {
     it('SUB_Input_Inject_key_event_11700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_11700 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobalSetX();
+        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobal();
         console.info("====>SUB_Input_Inject_key_event_11700 result: " + result);
         expect(result).assertEqual(0);
         done()
@@ -491,7 +491,7 @@ export default function SetKeyEventKeyCodeTest() {
     it('SUB_Input_Inject_key_event_11800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_11800 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobalSetY();
+        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobal();
         console.info("====>SUB_Input_Inject_key_event_11800 result: " + result);
         expect(result).assertEqual(0);
         done()

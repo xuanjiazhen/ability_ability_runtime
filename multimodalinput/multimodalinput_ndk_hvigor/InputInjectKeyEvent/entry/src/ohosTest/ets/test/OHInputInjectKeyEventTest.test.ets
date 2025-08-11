@@ -303,7 +303,7 @@ export default function ActsInputInjectKeyEventTest() {
     it('SUB_Input_Inject_key_event_1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_1400 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetXEvent();
+        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetSetXEvent();
         console.info("====>SUB_Input_Inject_key_event_1400 result: " + result);
         expect(result).assertEqual(0);
         done()
@@ -514,7 +514,7 @@ export default function ActsInputInjectKeyEventTest() {
     it('SUB_Input_Inject_key_event_2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_2500 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetYEvent();
+        let result = inputinjectkeyeventndk.OHInputInjectMouseEventGlobalGetSetYEvent();
         console.info("====>SUB_Input_Inject_key_event_2500 result: " + result);
         expect(result).assertEqual(0);
         done()
@@ -682,7 +682,7 @@ export default function ActsInputInjectKeyEventTest() {
     it('SUB_Input_Inject_key_event_3300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>SUB_Input_Inject_key_event_3300 start====");
-        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobalSuccess();
+        let result = inputinjectkeyeventndk.OHInputInjectTouchEventGlobal();
         console.info("====>SUB_Input_Inject_key_event_3300 result: " + result);
         expect(result).assertEqual(0);
         done()

@@ -12,17 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const OHInputInjectTouchEventGlobalSuccess: () => number;
+export const OHInputInjectTouchEventGlobal: () => number;
 export const OHInputInjectTouchEventGlobalError: () => number;
 export const OHInputInjectTouchEventSuccess: () => number;
 export const OHInputInjectTouchEventError: () => number;
 export const OHInputInjectMouseEventError: () => number;
 export const OHInputInjectMouseEventGlobalEventError: () => number;
 export const OHInputInjectMouseEventGlobalDenied: () => number;
-export const OHInputInjectMouseEventGlobalGetXEvent: () => number;
-export const OHInputInjectMouseEventGlobalGetYEvent: () => number;
-export const OHInputInjectMouseEventGlobalSetXEvent: () => number;
-export const OHInputInjectMouseEventGlobalSetYEvent: () => number;
+export const OHInputInjectMouseEventGlobalGetSetXEvent: () => number;
+export const OHInputInjectMouseEventGlobalGetSetYEvent: () => number;
 export const OHInputInjectKeyEventDpadDown: () => number;
 export const OHInputInjectKeyEventDpadRight: () => number;
 export const OHInputInjectKeyEventDpadCenter: () => number;
@@ -131,8 +129,6 @@ export const OHInputInjectKeyEventKeycodeNumpadEquals: () => number;
 export const OHInputInjectKeyEventKeycodeNumpadLeftParen: () => number;
 export const OHInputInjectKeyEventKeycodeNumpadRightParen: () => number;
 export const OHInputInjectionStatusError: () => number;
-export const OHInputInjectTouchEventGlobalSetX: () => number;
-export const OHInputInjectTouchEventGlobalSetY: () => number;
 export const OHInputGetTouchEventGlobalX: () => number;
 export const OHInputGetTouchEventGlobalY: () => number;
 

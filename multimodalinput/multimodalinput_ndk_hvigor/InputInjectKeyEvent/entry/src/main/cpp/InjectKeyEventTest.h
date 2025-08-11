@@ -23,20 +23,14 @@
 void addInjectKeyEventTest(std::vector<napi_property_descriptor>& descData);
 
 napi_value OHInputInjectTouchEventGlobalError(napi_env env, napi_callback_info info);
-napi_value OHInputInjectTouchEventGlobalSuccess(napi_env env, napi_callback_info info);
+napi_value OHInputInjectTouchEventGlobal(napi_env env, napi_callback_info info);
 napi_value OHInputInjectTouchEventError(napi_env env, napi_callback_info info);
 napi_value OHInputInjectTouchEventSuccess(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventGlobalEvent(napi_env env, napi_callback_info info);
 napi_value OHInputInjectMouseEventGlobalEventError(napi_env env, napi_callback_info info);
 napi_value OHInputInjectMouseEventGlobalDenied(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventSuccess(napi_env env, napi_callback_info info);
 napi_value OHInputInjectMouseEventError(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventGlobalGetXEvent(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventGlobalGetYEvent(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventGlobalSetXEvent(napi_env env, napi_callback_info info);
-napi_value OHInputInjectMouseEventGlobalSetYEvent(napi_env env, napi_callback_info info);
-napi_value OHInputInjectTouchEventGlobalSetX(napi_env env, napi_callback_info info);
-napi_value OHInputInjectTouchEventGlobalSetY(napi_env env, napi_callback_info info);
+napi_value OHInputInjectMouseEventGlobalGetSetXEvent(napi_env env, napi_callback_info info);
+napi_value OHInputInjectMouseEventGlobalGetSetYEvent(napi_env env, napi_callback_info info);
 napi_value OHInputGetTouchEventGlobalX(napi_env env, napi_callback_info info);
 napi_value OHInputGetTouchEventGlobalY(napi_env env, napi_callback_info info);
 napi_value OHInputSetAxisEventGlobalXSuccess(napi_env env, napi_callback_info info);
