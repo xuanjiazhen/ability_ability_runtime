@@ -21,6 +21,7 @@
     "MainAbility/pages/UIContext/showTimePickerDialogBlurStyleOptions",
     "MainAbility/pages/promptAction/openMenuAnchorPosition",
     "MainAbility/pages/promptAction/updateMenuAnchorPosition",
+    "MainAbility/pages/promptAction/subwindowDialog",
     "MainAbility/pages/Popup/Maxwidth"   
   ]
 }
