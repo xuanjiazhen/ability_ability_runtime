@@ -21,13 +21,18 @@
 #include <database/rdb/relational_store.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
+#include <sys/stat.h>
 #include <vector>
+#include <filesystem>  // 需要包含文件系统头文件
+#include <hilog/log.h>
+
+namespace fs = std::filesystem;  // 命名空间别名，方便使用
 
 static OH_Rdb_Config config_;
 
 static void InitRdbConfig()
 {
-    const char *rdbTestPath = "/data/storage/el2/database/com.acts.actsrelationstoretest/";
+    const char *rdbTestPath = "/data/storage/el2/100/database/com.acts.actsrelationstoretest/entry";
     char rdbStoreName[] = "rdb_store_test.db";
     char bundleName[] = "com.acts.actsrelationstoretest";
     char moduleName[] = "";
@@ -39,6 +44,19 @@ static void InitRdbConfig()
     config_.securityLevel = OH_Rdb_SecurityLevel::S1;
     config_.isEncrypt = false;
     config_.selfSize = sizeof(OH_Rdb_Config);
+
+    if (fs::exists(rdbTestPath)) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  already exists :%{public}s", rdbTestPath);
+    } else {
+        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  mkdir path");
+        mkdir(config_.dataBaseDir, 0770);
+    }
+
+    if (fs::exists(rdbTestPath)) {
+        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  create success :%{public}s", rdbTestPath);
+    } else {
+        OH_LOG_Print(LOG_APP, LOG_INFO, 0xFF00, "ArkData", "=======zh  create failed :%{public}s", rdbTestPath);
+    }
 }
 
 void addRelationStoreValueTest1(std::vector<napi_property_descriptor>& descData)
@@ -127,6 +145,7 @@ void addRelationStoreValueTest(std::vector<napi_property_descriptor>& descData)
 napi_value TestEnumerate(napi_env env, napi_callback_info info)
 {
     napi_value result;
+    
     InitRdbConfig();
     OH_Rdb_Store *testRdbStore = nullptr;
     int ret = -1;

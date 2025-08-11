@@ -129,23 +129,23 @@ export default function ActsRelationalStoreTest() {
       })
 
     /**
-     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetSize_0600
-     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetSize_0600
+     * @tc.number  : SUB_DistributedData_RelationalStore_SDK_GetStatus_0600
+     * @tc.name    : SUB_DistributedData_RelationalStore_SDK_GetStatus_0600
      * @tc.desc    : test OH_Data_Asset_GetStatus Test Normal Scene
      * @tc.level   : Level1
      * @tc.size    : MediumTest
      * @tc.type    : Function
      */
-    it('SUB_DistributedData_RelationalStore_SDK_GetSize_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+    it('SUB_DistributedData_RelationalStore_SDK_GetStatus_0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
       async (done: Function) => {
         try {
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 start====");
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetStatus_0600 start====");
           let result: number = testNapi.getStatusSuccess();
-          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 result====", result);
+          console.info("====>SUB_DistributedData_RelationalStore_SDK_GetStatus_0600 result====", result);
           expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
-          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetSize_0600 catch err: " + err);
+          console.error("====>SUB_DistributedData_RelationalStore_SDK_GetStatus_0600 catch err: " + err);
         }
       })
 
