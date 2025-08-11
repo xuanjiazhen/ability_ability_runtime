@@ -219,9 +219,9 @@ Camera_ErrorCode NDKCamera::CreatePreviewOutput(int useCaseCode)
     int videoHeight = vProfile_->size.height;
     int previewWidth = cameraOutputCapability_->previewProfiles[0]->size.width;
     int previewHeight = cameraOutputCapability_->previewProfiles[0]->size.height;
-    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0; 
+    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0;
     i < cameraOutputCapability_->videoProfilesSize; i++) {
-        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0; 
+        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0;
         j < cameraOutputCapability_->previewProfilesSize; j++) {
             videoWidth = cameraOutputCapability_->videoProfiles[i]->size.width;
             videoHeight = cameraOutputCapability_->videoProfiles[i]->size.height;
@@ -913,9 +913,9 @@ Camera_ErrorCode NDKCamera::CreateVideoOutput(char *videoId, int useCaseCode)
     int videoHeight = vProfile_->size.height;
     int previewWidth = cameraOutputCapability_->previewProfiles[0]->size.width;
     int previewHeight = cameraOutputCapability_->previewProfiles[0]->size.height;
-    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0; 
+    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0;
     i < cameraOutputCapability_->videoProfilesSize; i++) {
-        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0; 
+        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0;
         j < cameraOutputCapability_->previewProfilesSize; j++) {
             videoWidth = cameraOutputCapability_->videoProfiles[i]->size.width;
             videoHeight = cameraOutputCapability_->videoProfiles[i]->size.height;
