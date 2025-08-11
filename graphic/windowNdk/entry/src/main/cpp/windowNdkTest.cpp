@@ -1127,7 +1127,7 @@ static napi_value TestInjectTouchEventwithSubWindowButtonDownCancle(napi_env env
     OH_Input_SetTouchEventActionTime(touchEvent1, 0);
     OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
     auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
-    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventAction(touchEvent1, 0);
     res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
     napi_value resultValue;
     napi_create_int32(env, res, &resultValue);
@@ -1155,7 +1155,7 @@ static napi_value TestInjectTouchEventwithSubWindowSlideDownCancle(napi_env env,
     OH_Input_SetTouchEventActionTime(touchEvent1, 0);
     OH_Input_SetTouchEventWindowId(touchEvent1, windowId);
     auto res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
-    OH_Input_SetTouchEventAction(touchEvent1, THREE);
+    OH_Input_SetTouchEventAction(touchEvent1, 0);
     res = OH_WindowManager_InjectTouchEvent(windowId, touchEvent1, windowX, windowY);
     napi_value resultValue;
     napi_create_int32(env, res, &resultValue);
