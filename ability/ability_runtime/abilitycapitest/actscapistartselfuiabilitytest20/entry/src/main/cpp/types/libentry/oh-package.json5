@@ -12,6 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export const DestroyChildProcessConfigsParamInvalid: () => number;
-export const DestroyChildProcessConfigsNoError: () => number;
+{
+  "name": "libentry.so",
+  "types": "./Index.d.ts",
+  "version": "1.0.0",
+  "description": "Function list of osaccount capi."
+}
