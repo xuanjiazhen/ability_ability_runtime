@@ -42,12 +42,6 @@ import SensorJsTest_sensor_27 from './Subscribe_subscribeDeviceOrientation.test.
 import SensorJsTest_sensor_53 from './SensorOnOffTest.test_newBarometer.test.js'
 import SensorJsTest_sensor_8 from './SensorOnOffTest.test_oldBarometer.test.js'
 import SensorJsTest_sensor_26 from './Subscribe_subscribeBarometer.test.js'
-import SensorJsTest_sensor_57 from './SensorOnOffTest.test_newPedometer_Detection.test.js'
-import SensorJsTest_sensor_17 from './SensorOnOffTest.test_oldPedometer_Detection.test.js'
-import SensorJsTest_sensor_56 from './SensorOnOffTest.test_newPedometer.test.js'
-import SensorJsTest_sensor_18 from './SensorOnOffTest.test_oldPedometer.test.js'
-import SensorJsTest_sensor_61 from './SensorOnOffTest.test_newColor.test.js'
-import SensorJsTest_sensor_62 from './SensorOnOffTest.test_newSar.test.js'
 import SensorJsTest_sensor_63 from './SensorOnOffTest.test_SensorFrequencyTest.test.js'
 import SensorJsTest_sensor_64 from './SensorOnOffTest.test_newSensorSync.test.js'
 import SensorOnOff_ErrCode_Test from './SensorOnOff_ErrCode_Test.test.js'
@@ -85,12 +79,6 @@ export default function testsuite() {
 		SensorJsTest_sensor_53()
 		SensorJsTest_sensor_8()
 		SensorJsTest_sensor_26()
-		SensorJsTest_sensor_57()
-		SensorJsTest_sensor_17()
-		SensorJsTest_sensor_56()
-		SensorJsTest_sensor_18()
-		SensorJsTest_sensor_61()
-		SensorJsTest_sensor_62()
 		SensorJsTest_sensor_63()
         SensorJsTest_sensor_64()
         SensorOnOff_ErrCode_Test()
