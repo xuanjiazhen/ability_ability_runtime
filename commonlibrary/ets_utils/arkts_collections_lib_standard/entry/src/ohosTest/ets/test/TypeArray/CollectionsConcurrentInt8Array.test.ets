@@ -983,5 +983,40 @@ export default function collectionsConcurrentInt8Array() {
         console.info(`${caseName} test end`);
         done()
       })
+    /**
+     * @tc.number    : SUB_COLLECTION_CONCURRENT_MODIFY_6500
+     * @tc.name      : CollectionsConcurrentModifyTest6500
+     * @tc.desc      : ConcatArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsConcurrentModifyTest6500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsConcurrentModifyTest6500';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let int8Array: collections.Int8Array = new collections.Int8Array(10);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testModifyInt8Array, i, int8Array).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            int8Array.lastIndexOf(0,0)
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
   })
 }
