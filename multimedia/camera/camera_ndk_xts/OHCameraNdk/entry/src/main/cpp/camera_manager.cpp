@@ -215,6 +215,22 @@ Camera_ErrorCode NDKCamera::GetSupportedOutputCapability(int useCaseCode)
 Camera_ErrorCode NDKCamera::CreatePreviewOutput(int useCaseCode)
 {
     profile_ = cameraOutputCapability_->previewProfiles[0];
+    int videoWidth = vProfile_->size.width;
+    int videoHeight = vProfile_->size.height;
+    int previewWidth = cameraOutputCapability_->previewProfiles[0]->size.width;
+    int previewHeight = cameraOutputCapability_->previewProfiles[0]->size.height;
+    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0; i < cameraOutputCapability_->videoProfilesSize; i++) {
+        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0; j < cameraOutputCapability_->previewProfilesSize; j++) {
+            videoWidth = cameraOutputCapability_->videoProfiles[i]->size.width;
+            videoHeight = cameraOutputCapability_->videoProfiles[i]->size.height;
+            previewWidth = cameraOutputCapability_->previewProfiles[j]->size.width;
+            previewHeight = cameraOutputCapability_->previewProfiles[j]->size.height;
+            if (videoWidth * previewHeight == videoHeight * previewWidth) {
+                profile_ = cameraOutputCapability_->previewProfiles[j];
+                break;
+            }
+        }
+    }
 
     if (useCaseCode == PARAMETER_OK) {
         ret_ = OH_CameraManager_CreatePreviewOutput(cameraManager_, profile_, previewSurfaceId_, &previewOutput_);
@@ -891,6 +907,22 @@ Camera_ErrorCode NDKCamera::AddVideoOutput(int useCaseCode)
 Camera_ErrorCode NDKCamera::CreateVideoOutput(char *videoId, int useCaseCode)
 {
     vProfile_ = cameraOutputCapability_->videoProfiles[0];
+    int videoWidth = vProfile_->size.width;
+    int videoHeight = vProfile_->size.height;
+    int previewWidth = cameraOutputCapability_->previewProfiles[0]->size.width;
+    int previewHeight = cameraOutputCapability_->previewProfiles[0]->size.height;
+    for (decltype(cameraOutputCapability_->videoProfilesSize) i = 0; i < cameraOutputCapability_->videoProfilesSize; i++) {
+        for (decltype(cameraOutputCapability_->previewProfilesSize) j = 0; j < cameraOutputCapability_->previewProfilesSize; j++) {
+            videoWidth = cameraOutputCapability_->videoProfiles[i]->size.width;
+            videoHeight = cameraOutputCapability_->videoProfiles[i]->size.height;
+            previewWidth = cameraOutputCapability_->previewProfiles[j]->size.width;
+            previewHeight = cameraOutputCapability_->previewProfiles[j]->size.height;
+            if (videoWidth * previewHeight == videoHeight * previewWidth) {
+                vProfile_ = cameraOutputCapability_->videoProfiles[i];
+                break;
+            }
+        }
+    }
 
     if (useCaseCode == PARAMETER_OK) {
         ret_ = OH_CameraManager_CreateVideoOutput(cameraManager_, vProfile_, videoId, &videoOutput_);
