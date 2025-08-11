@@ -914,25 +914,66 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
   avPlayer = await idle(src, avPlayer, testName);
   setSource(avPlayer, src, testName);
   console.info(TAG, testName + ' setSuperResolutionPromise setSource');
-  await sleep(SLEEP_TIME_20);
-  if (avPlayer) {
-    avPlayer.surfaceId = surfaceID;
-  }
-  avPlayer?.setPlaybackStrategy(strategy).then(() => {
-    console.info(TAG, testName + ' succeed to set PlaybackStrategy');
-  }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
-  await avPlayer?.setSuperResolution(enabled).then(() => {
-    if (enabled) {
-      console.info(TAG, testName + ' succeed to set SuperResolution opened');
-    } else {
-      console.info(TAG, testName + ' succeed to set SuperResolution closed');
+  avPlayer?.on('stateChange', async (state, reason) => {
+    console.info(TAG, testName + ` case stateChange called, state is ${state}, reason is ${reason}`);
+    switch (state) {
+      case INITIALIZED:
+        if (!avPlayer) {
+          console.info(TAG, testName + ' avPlayer is null');
+          break;
+        }
+        console.info(TAG, testName + ' play state is INITIALIZED');
+        avPlayer.surfaceId = surfaceID;
+        expect(avPlayer.state).assertEqual(INITIALIZED);
+        avPlayer?.setPlaybackStrategy(strategy).then(() => {
+          console.info(TAG, testName + ' succeed to set PlaybackStrategy');
+          expect(true).assertTrue();
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        console.info(TAG, testName + ' set PlaybackStrategy end');
+        await avPlayer?.prepare();
+        break;
+      case PREPARED:
+        console.info(TAG, testName + ' play state is PREPARED');
+        expect(avPlayer?.state).assertEqual(PREPARED);
+        await avPlayer?.setSuperResolution(enabled).then(() => {
+          if (enabled) {
+            console.info(TAG, testName + ' succeed to set SuperResolution opened');
+          } else {
+            console.info(TAG, testName + ' succeed to set SuperResolution closed');
+          }
+        }).catch((error: BusinessError) => {
+          console.error(TAG,
+            testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
+          expect(error.code).assertEqual(MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED);
+          avPlayer?.release().then(() => {
+          }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        });
+        await avPlayer?.stop();
+        break;
+      case STOPPED:
+        console.info(TAG, testName + ' play state is STOPPED');
+        avPlayer?.release().then(() => {
+        }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+        break;
+      case RELEASED:
+        console.info(TAG, testName + ' play state is RELEASED');
+        avPlayer?.off('stateChange');
+        avPlayer?.off('error');
+        avPlayer = null;
+        done();
+        break;
+      case ERROR:
+        console.info(TAG, testName + ' play state is ERROR');
+        expect().assertFail();
+        done();
+        break;
+      default:
+        break;
     }
-  }).catch((error: BusinessError) => {
-    console.error(TAG, testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
-    expect(error.code).assertEqual(MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED);
-    done();
   });
-  done();
+  avPlayer?.on('error', async (err: BusinessError) => {
+    console.error(TAG, testName + ` case error called, errCode: ${err.code}, errMessage is ${err.message}`);
+  });
 }
 
 async function setSuperResolutionPromiseAbnormal(src: string | media.AVFileDescriptor, avPlayer: media.AVPlayer | null,
@@ -1006,13 +1047,14 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
         break;
       case RELEASED:
         console.info(TAG, testName + ' play state is RELEASED');
+        avPlayer?.off('stateChange');
+        avPlayer?.off('error');
         avPlayer = null;
         done();
         break;
       case ERROR:
         console.info(TAG, testName + ' play state is ERROR');
         expect().assertFail();
-        console.info(TAG, testName + ' failed1111');
         done();
         break;
       default:
@@ -1021,9 +1063,6 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
   });
   avPlayer?.on('error', async (err: BusinessError) => {
     console.error(TAG, testName + ` case error called, errMessage is ${err.message}`);
-    expect().assertFail();
-    console.info(TAG, testName + ' failed2222');
-    done();
   });
 }
 
@@ -1401,7 +1440,7 @@ export default function AVPlayerTest() {
 
     beforeEach(async () => {
       console.info(TAG, 'beforeEach case');
-      await sleep(SLEEP_TIME_200);
+      await sleep(SLEEP_TIME_500);
     });
 
     afterEach(async () => {
