@@ -1476,7 +1476,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0100', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_AUD,
         isMuted: true,
@@ -1493,7 +1493,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0200', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_VID,
         isMuted: true,
@@ -1510,7 +1510,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0300', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_AUD,
         isMuted: false,
@@ -1527,7 +1527,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_0400', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_VID,
         isMuted: false,
@@ -1544,7 +1544,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0100', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_AUD,
         isMuted: true,
@@ -1562,7 +1562,7 @@ export default function AVPlayerLocalTest() {
     * @tc.level     : Level1
     */
     it('SUB_MULTIMEDIA_MEDIA_VIDEO_MUTE_ERROR_0200', Level.LEVEL0,async (done: Function) => {
-      except(fileDescriptor).not().assertUndefined()
+      expect(fileDescriptor).not().assertUndefined()
       const params: MediaMutedParams = {
         MediaType: media.MediaType.MEDIA_TYPE_SUBTITLE,
         isMuted: true,
