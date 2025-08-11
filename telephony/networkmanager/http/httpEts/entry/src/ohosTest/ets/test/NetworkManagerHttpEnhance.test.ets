@@ -19,7 +19,7 @@ import http from '@ohos.net.http';
 let httpRequest = http.createHttp();
 let address_baidu = 'https://www.baidu.com';
 let address_baidu2 = 'http://www.baidu.com';
-let address_post = 'https://httpbin.org/post';
+let address_post = 'https://www.baidu.com';
 let address_post1:string = 'https://mirrors.huaweicloud.com/ubuntu-cdimage/ubuntu/releases/22.04.5/release/ubuntu-22.04.5-live-server-arm64.iso';
 
 let httpRequestOptions_post: http.HttpRequestOptions = {
