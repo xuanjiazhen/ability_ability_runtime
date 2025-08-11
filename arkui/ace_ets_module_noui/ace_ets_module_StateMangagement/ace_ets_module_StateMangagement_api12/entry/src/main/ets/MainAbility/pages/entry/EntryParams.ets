@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-let para1: Record<string, number> = { 'PropA': 47 };
-let storage1: LocalStorage = new LocalStorage(para1);
+let para0001: Record<string, number> = { 'PropA': 47 };
+let storage0001: LocalStorage = new LocalStorage(para0001);
 
 @Component
-struct Child {
+struct Child0001 {
   @LocalStorageLink('PropA') childLinkNumber: number = 1;
 
   build() {
@@ -34,20 +34,31 @@ struct Child {
     }
   }
 }
-@Entry({routeName: 'EntryParams',storage: storage1, useSharedStorage: false})
+@Entry({routeName: 'EntryParams',storage: storage0001, useSharedStorage: false})
 @Component
-struct Parent {
-  @LocalStorageLink('PropA') parentLinkNumber: number = 1;
-
+struct Parent0001 {
+  @State flag: boolean = true;
+  @State flag2: boolean = false;
   build() {
     Column({ space: 15 }) {
-      Button(`Parent from LocalStorage ${this.parentLinkNumber}`)
+      Text(`${this.flag2 ? 'true': 'false'}`)
+        .id('clear')
+        .height('5%')
+      Button(`flag`)
         .onClick(() => {
-          this.parentLinkNumber += 1;
+          this.flag = false;
         })
         .id('btn1')
         .height('5%')
-      Child()
+      Button(`clear localStorage`)
+        .onClick(() => {
+          this.flag2 = storage0001.clear();
+        })
+        .id('btn3')
+        .height('5%')
+      if (this.flag) {
+        Child0001()
+      }
     }
   }
 }

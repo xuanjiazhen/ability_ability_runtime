@@ -58,16 +58,23 @@ export default function EntryParamsTest() {
       await CommonFunc.sleep(1000);
       let driver: Driver = Driver.create();
       await CommonFunc.sleep(1000);
-      let btn1: Component = await driver.findComponent(ON.id("btn1"));
-      await btn1.click();
-      await CommonFunc.sleep(1000);
       let btn2: Component = await driver.findComponent(ON.id("btn2"));
       await btn2.click();
       await CommonFunc.sleep(1000);
       let text_1 = await (await driver.findComponent(ON.id('propA'))).getText();
       console.info("[EntryParamsTest_001] component text_1 is: " + text_1);
-      expect(text_1).assertEqual('49');
+      expect(text_1).assertEqual('48');
+      await CommonFunc.sleep(1000);
+      let btn1: Component = await driver.findComponent(ON.id("btn1"));
+      await btn1.click();
+      await CommonFunc.sleep(1000);
+      let btn3: Component = await driver.findComponent(ON.id("btn3"));
+      await btn3.click();
+      let text_2 = await (await driver.findComponent(ON.id('clear'))).getText();
+      console.info("[EntryParamsTest_001] component text_2 is: " + text_2);
+      expect(text_2).assertEqual('true');
       console.info('[EntryParamsTest_001] END');
+      await CommonFunc.sleep(1000);
       done();
     });
   })
