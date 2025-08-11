@@ -14,11 +14,10 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+
+const EVENT_ID_SET_EMIT_KEY = 112210;
 
 @Entry
 @Component
@@ -26,7 +25,7 @@ struct webViewContWebMessageExtReturnError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   ports: web_webview.WebMessagePort[] | null = null;
   nativePort: web_webview.WebMessagePort | null= null;
-  @State str: string = "emitWebMessageExtGetStringError";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -40,14 +39,20 @@ struct webViewContWebMessageExtReturnError {
   @State errorTestCode: number = 0;
   @State errorMsg: string = 'failed';
   @State webResult: string = ''
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
   message: web_webview.WebMessageExt = new web_webview.WebMessageExt();
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -56,6 +61,7 @@ struct webViewContWebMessageExtReturnError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -63,8 +69,11 @@ struct webViewContWebMessageExtReturnError {
   build() {
     Column() {
       Row() {
-        Button("WebMessageExtErrorTest").key('webViewContWebMessageExtReturnError').onClick(() => {
-          console.info("key==>" + this.str)
+        Button("WebMessageExtErrorTest").key('webViewContWebMessageExtReturnError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContWebMessageExtReturnErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContWebMessageExtReturnErrorIsReceive', 1, 1000);
+          console.info("key==>" + this.str);
+          this.isReceive = -1;
           switch (this.str) {
             case "emitWebMessageExtGetStringError": {
               this.ports = this.controller.createWebMessagePorts(true);
@@ -93,8 +102,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetStringError onMessageEventExt getString result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 826)
-                  Utils.emitEvent(this.errorMsg, 827)
+                  Utils.emitEvent(this.errorTestCode, 112220)
+                  Utils.emitEvent(this.errorMsg, 112230)
                 }
               });
               break;
@@ -128,8 +137,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetNumberError onMessageEventExt getNumber result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 828)
-                  Utils.emitEvent(this.errorMsg, 829)
+                  Utils.emitEvent(this.errorTestCode, 112240)
+                  Utils.emitEvent(this.errorMsg, 112250)
                 }
               });
               break;
@@ -163,8 +172,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetBooleanError onMessageEventExt getBoolean result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 830)
-                  Utils.emitEvent(this.errorMsg, 831)
+                  Utils.emitEvent(this.errorTestCode, 112260)
+                  Utils.emitEvent(this.errorMsg, 112270)
                 }
               });
               break;
@@ -198,8 +207,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetArrayBufferError onMessageEventExt getArrayBuffer result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 832)
-                  Utils.emitEvent(this.errorMsg, 833)
+                  Utils.emitEvent(this.errorTestCode, 112280)
+                  Utils.emitEvent(this.errorMsg, 112290)
                 }
               });
               break;
@@ -233,8 +242,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetArrayError onMessageEventExt getArray result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 834)
-                  Utils.emitEvent(this.errorMsg, 835)
+                  Utils.emitEvent(this.errorTestCode, 112300)
+                  Utils.emitEvent(this.errorMsg, 112310)
                 }
               });
               break;
@@ -268,8 +277,8 @@ struct webViewContWebMessageExtReturnError {
                   this.errorTestCode = resError.code;
                   this.errorMsg = resError.message;
                   console.error("emitWebMessageExtGetErrorError onMessageEventExt getError result is :" + this.errorTestCode + this.errorMsg);
-                  Utils.emitEvent(this.errorTestCode, 836)
-                  Utils.emitEvent(this.errorMsg, 837)
+                  Utils.emitEvent(this.errorTestCode, 112320)
+                  Utils.emitEvent(this.errorMsg, 112330)
                 }
               });
               break;
@@ -288,6 +297,7 @@ struct webViewContWebMessageExtReturnError {
         .userAgent(this.userAgent)
         .zoomAccess(this.zoomAccess)
         .onPageEnd(err => {
+          this.isPageEnd = 1;
           console.log("In eTS side message onPageEnd init mesaage channel");
           console.log("1.create message port")
           this.ports = this.controller.createWebMessagePorts(true);

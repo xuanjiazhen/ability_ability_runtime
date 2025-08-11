@@ -14,15 +14,15 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import { webview } from '@kit.ArkWeb';
+
+const EVENT_ID_SET_EMIT_KEY = 110650;
+
 class myInstance {
-	applyNormalAttribute(webInstance: WebAttribute): void {
-	webInstance.zoomAccess(false)
-	}
+  applyNormalAttribute(webInstance: WebAttribute): void {
+    webInstance.zoomAccess(false)
+  }
 }
 
 @Entry
@@ -44,6 +44,8 @@ struct webViewContCreatePdfAndOthersError {
   @State errorMsg: string = 'failed';
   @State factor: number = 1;
   @State searchString: string = 'test';
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
   @State editMenuOptions: EditMenuOptions = { onCreateMenu: this.onCreateMenu, onMenuItemClick: this.onMenuItemClick }
   optionsTrue: EmbedOptions = { supportDefaultIntrinsicSize: true };
   optionsFalse: EmbedOptions = { supportDefaultIntrinsicSize: false };
@@ -71,14 +73,14 @@ struct webViewContCreatePdfAndOthersError {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -87,9 +89,11 @@ struct webViewContCreatePdfAndOthersError {
       console.info('valueChangeCallBack:' + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
   }
+
   pdfConfig: webview.PdfConfiguration = {
     width: 8.27,
     height: 11.69,
@@ -103,20 +107,23 @@ struct webViewContCreatePdfAndOthersError {
   build() {
     Column() {
       Row() {
-        Button('createPdfAndOthersError').key('webViewContCreatePdfAndOthersError').onClick(() => {
-          console.info('XXXXXXXX key==>' + this.str)
+        Button('createPdfAndOthersError').key('webViewContCreatePdfAndOthersError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContCreatePdfAndOthersErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContCreatePdfAndOthersErrorIsReceive', 1, 1000);
+          console.info('key==>' + this.str);
+          this.isReceive = -1;
           switch (this.str) {
             case 'emitCreatePdfCallbackInitErr': {
               try {
                 this.controllerNull.createPdf(this.pdfConfig, () => {
                 })
               } catch (error) {
-                console.error(`XXXXXXXX emitCreatePdfCallbackInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitCreatePdfCallbackInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110660)
+                Utils.emitEvent(this.errorMsg, 110670)
               }
-              Utils.emitEvent(this.errorCode, 17101)
-              Utils.emitEvent(this.errorMsg, 17102)
               break;
             }
             case 'emitCreatePdfPromiseInitErr': {
@@ -124,216 +131,192 @@ struct webViewContCreatePdfAndOthersError {
                 this.controllerNull.createPdf(this.pdfConfig).then(() => {
                 })
               } catch (error) {
-                console.error(`XXXXXXXX emitCreatePdfPromiseInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitCreatePdfPromiseInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110680)
+                Utils.emitEvent(this.errorMsg, 110690)
               }
-              Utils.emitEvent(this.errorCode, 17103)
-              Utils.emitEvent(this.errorMsg, 17104)
               break;
             }
             case 'emitPrefetchPageInitErr': {
               try {
                 this.controllerNull.prefetchPage('https://www.huawei.com', [{ headerKey: 'c', headerValue: 'z' }])
               } catch (error) {
-                console.error(`XXXXXXXX emitPrefetchPageInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitPrefetchPageInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110700)
+                Utils.emitEvent(this.errorMsg, 110710)
               }
-              Utils.emitEvent(this.errorCode, 17105)
-              Utils.emitEvent(this.errorMsg, 17106)
               break;
             }
             case 'emitCreateWebPrintDocumentAdapterInitErr': {
               try {
                 this.controllerNull.createWebPrintDocumentAdapter('example.pdf')
               } catch (error) {
-                console.error(`XXXXXXXX emitCreateWebPrintDocumentAdapterInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitCreateWebPrintDocumentAdapterInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110720)
+                Utils.emitEvent(this.errorMsg, 110730)
               }
-              Utils.emitEvent(this.errorCode, 17107)
-              Utils.emitEvent(this.errorMsg, 17108)
               break;
             }
             case 'emitSetScrollableInitErr': {
               try {
                 this.controllerNull.setScrollable(true, webview.ScrollType.EVENT)
               } catch (error) {
-                console.error(`XXXXXXXX emitSetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitSetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110740)
+                Utils.emitEvent(this.errorMsg, 110750)
               }
-              Utils.emitEvent(this.errorCode, 17109)
-              Utils.emitEvent(this.errorMsg, 17110)
               break;
             }
             case 'emitGetScrollableInitErr': {
               try {
                 this.controllerNull.getScrollable()
               } catch (error) {
-                console.error(`XXXXXXXX emitGetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitGetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110760)
+                Utils.emitEvent(this.errorMsg, 110770)
               }
-              Utils.emitEvent(this.errorCode, 17111)
-              Utils.emitEvent(this.errorMsg, 17112)
               break;
             }
             case 'emitSetPrintBackgroundInitErr': {
               try {
                 this.controllerNull.setPrintBackground(false)
               } catch (error) {
-                console.error(`XXXXXXXX emitGetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitGetScrollableInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110780)
+                Utils.emitEvent(this.errorMsg, 110790)
               }
-              Utils.emitEvent(this.errorCode, 17113)
-              Utils.emitEvent(this.errorMsg, 17114)
               break;
             }
             case 'emitGetPrintBackgroundInitErr': {
               try {
                 this.controllerNull.getPrintBackground()
               } catch (error) {
-                console.error(`XXXXXXXX emitGetPrintBackgroundInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitGetPrintBackgroundInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110800)
+                Utils.emitEvent(this.errorMsg, 110810)
               }
-              Utils.emitEvent(this.errorCode, 17115)
-              Utils.emitEvent(this.errorMsg, 17116)
               break;
             }
             case 'emitStartCameraInitErr': {
               try {
                 this.controllerNull.startCamera()
               } catch (error) {
-                console.error(`XXXXXXXX testStartCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`testStartCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110820)
+                Utils.emitEvent(this.errorMsg, 110830)
               }
-              Utils.emitEvent(this.errorCode, 17117)
-              Utils.emitEvent(this.errorMsg, 17118)
               break;
             }
             case 'emitStopCameraInitErr': {
               try {
                 this.controllerNull.stopCamera()
               } catch (error) {
-                console.error(`XXXXXXXX emitStopCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitStopCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110840)
+                Utils.emitEvent(this.errorMsg, 110850)
               }
-              Utils.emitEvent(this.errorCode, 17119)
-              Utils.emitEvent(this.errorMsg, 17120)
               break;
             }
             case 'emitCloseCameraInitErr': {
               try {
                 this.controllerNull.closeCamera()
               } catch (error) {
-                console.error(`XXXXXXXX emitCloseCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitCloseCameraInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110860)
+                Utils.emitEvent(this.errorMsg, 110870)
               }
-              Utils.emitEvent(this.errorCode, 17121)
-              Utils.emitEvent(this.errorMsg, 17122)
-              break;
-            }
-            case 'emitPauseAllTimersInitErr': {
-              try {
-                webview.WebviewController.pauseAllTimers();
-              } catch (error) {
-                console.error(`XXXXXXXX emitPauseAllTimersInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
-                this.errorCode = error.code;
-                this.errorMsg = error.message;
-              }
-              Utils.emitEvent(this.errorCode, 17123)
-              Utils.emitEvent(this.errorMsg, 17124)
-              break;
-            }
-            case 'emitResumeAllTimersInitErr': {
-              try {
-                webview.WebviewController.resumeAllTimers();
-              } catch (error) {
-                console.error(`XXXXXXXX emitResumeAllTimersInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
-                this.errorCode = error.code;
-                this.errorMsg = error.message;
-              }
-              Utils.emitEvent(this.errorCode, 17125)
-              Utils.emitEvent(this.errorMsg, 17126)
               break;
             }
             case 'emitStopAllMediaInitErr': {
               try {
                 this.controllerNull.stopAllMedia()
               } catch (error) {
-                console.error(`XXXXXXXX emitStopAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitStopAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110920)
+                Utils.emitEvent(this.errorMsg, 110930)
               }
-              Utils.emitEvent(this.errorCode, 17127)
-              Utils.emitEvent(this.errorMsg, 17128)
               break;
             }
             case 'emitResumeAllMediaInitErr': {
               try {
-                webview.WebviewController.pauseAllTimers();
+                this.controllerNull.resumeAllMedia();
               } catch (error) {
-                console.error(`XXXXXXXX emitResumeAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitResumeAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110940)
+                Utils.emitEvent(this.errorMsg, 110950)
               }
-              Utils.emitEvent(this.errorCode, 17129)
-              Utils.emitEvent(this.errorMsg, 17130)
               break;
             }
             case 'emitPauseAllMediaInitErr': {
               try {
-                webview.WebviewController.pauseAllTimers();
+                this.controllerNull.pauseAllMedia();
               } catch (error) {
-                console.error(`XXXXXXXX emitPauseAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitPauseAllMediaInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110960)
+                Utils.emitEvent(this.errorMsg, 110970)
               }
-              Utils.emitEvent(this.errorCode, 17131)
-              Utils.emitEvent(this.errorMsg, 17132)
               break;
             }
             case 'emitCloseAllMediaPresentationsInitErr': {
               try {
                 this.controllerNull.closeAllMediaPresentations();
               } catch (error) {
-                console.error(`XXXXXXXX emitCloseAllMediaPresentationsInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitCloseAllMediaPresentationsInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 110980)
+                Utils.emitEvent(this.errorMsg, 110990)
               }
-              Utils.emitEvent(this.errorCode, 17133)
-              Utils.emitEvent(this.errorMsg, 17134)
               break;
             }
             case 'emitGetMediaPlaybackStateInitErr': {
               try {
                 this.controllerNull.getMediaPlaybackState();
               } catch (error) {
-                console.error(`XXXXXXXX emitGetMediaPlaybackStateInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitGetMediaPlaybackStateInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111000)
+                Utils.emitEvent(this.errorMsg, 111010)
               }
-              Utils.emitEvent(this.errorCode, 17135)
-              Utils.emitEvent(this.errorMsg, 17136)
               break;
             }
             case 'emitTerminateRenderProcessInitErr': {
               try {
                 this.controllerNull.terminateRenderProcess();
               } catch (error) {
-                console.error(`XXXXXXXX emitTerminateRenderProcessInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitTerminateRenderProcessInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111020)
+                Utils.emitEvent(this.errorMsg, 111030)
               }
-              Utils.emitEvent(this.errorCode, 17137)
-              Utils.emitEvent(this.errorMsg, 17138)
               break;
             }
             case 'emitPrecompileJavaScriptInitErr': {
@@ -348,12 +331,12 @@ struct webViewContCreatePdfAndOthersError {
                 }).then(() => {
                 })
               } catch (error) {
-                console.error(`XXXXXXXX emitPrecompileJavaScriptInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitPrecompileJavaScriptInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111040)
+                Utils.emitEvent(this.errorMsg, 111050)
               }
-              Utils.emitEvent(this.errorCode, 17139)
-              Utils.emitEvent(this.errorMsg, 17140)
               break;
             }
             case 'emitSetPathAllowingUniversalAccessInitErr': {
@@ -363,36 +346,36 @@ struct webViewContCreatePdfAndOthersError {
                   getContext().filesDir + '/example'
                 ])
               } catch (error) {
-                console.error(`XXXXXXXX emitSetPathAllowingUniversalAccessInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitSetPathAllowingUniversalAccessInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111060)
+                Utils.emitEvent(this.errorMsg, 111070)
               }
-              Utils.emitEvent(this.errorCode, 17141)
-              Utils.emitEvent(this.errorMsg, 17142)
               break;
             }
             case 'emitScrollByWithResultInitErr': {
               try {
                 this.controllerNull.scrollByWithResult(50, 50)
               } catch (error) {
-                console.error(`XXXXXXXX emitScrollByWithResultInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitScrollByWithResultInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111080)
+                Utils.emitEvent(this.errorMsg, 111090)
               }
-              Utils.emitEvent(this.errorCode, 17143)
-              Utils.emitEvent(this.errorMsg, 17144)
               break;
             }
             case 'emitGetLastHitTestInitErr': {
               try {
-                this.controllerNull.getLastHitTest()
+                this.controllerNull.getHitTest()
               } catch (error) {
-                console.error(`XXXXXXXX emitGetLastHitTestInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.error(`emitGetLastHitTestInitErr ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
+                Utils.emitEvent(this.errorCode, 111100)
+                Utils.emitEvent(this.errorMsg, 111110)
               }
-              Utils.emitEvent(this.errorCode, 17145)
-              Utils.emitEvent(this.errorMsg, 17146)
               break;
             }
 
@@ -413,6 +396,10 @@ struct webViewContCreatePdfAndOthersError {
         .editMenuOptions(this.editMenuOptions)
         .enableNativeEmbedMode(true)
         .nativeEmbedOptions(this.optionsFalse)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

@@ -14,90 +14,57 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import UIAbility from '@ohos.app.ability.UIAbility';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+
+const EVENT_ID_SET_EMIT_KEY = 111830;
 
 @Entry
 @Component
 struct webViewContPageAndprepareForPageLoadErrorOne {
   controller20: web_webview.WebviewController = new web_webview.WebviewController();
-  ports: web_webview.WebMessagePort[];
-  msgPort: web_webview.WebMessagePort[] = null;
-  @State str: string = "emitPrefetchPageErr";
+  @State str: string = "";
   @State errorCode: string = '0';
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
     console.info("webViewContPageAndprepareForPageLoadErrorOne page valueChangeCallBack");
     if (eventData != null) {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
-      if (eventData.data.ACTION != null) {
+      if (eventData.data?.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 1;
       }
     }
-  }
-  // private jsObj = {
-  //   test: (res) => {
-  //     Utils.emitEvent(res, 102);
-  //   },
-  //   toString: (str) => {
-  //     console.info("ets toString:" + String(str));
-  //   },
-  //   register: (res) => {
-  //     Utils.emitEvent(res, 86);
-  //     return "web222"
-  //   }
-  // }
-
-  private jsObj: ESObject = {
-    test: (res: ESObject) => {
-      Utils.emitEvent(res, 102);
-    },
-    toString: (str: ESObject) => {
-      console.info("ets toString:" + String(str));
-    },
-    register: (res: ESObject) => {
-      Utils.emitEvent(res, 86);
-      return "web222";
-    }
-  }
-
-
-  aboutToAppear() {
-    let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator()
-    // abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator()
-    let abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments()
-    // abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments()
-    console.info('start run testcase!!!')
-    Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite)
   }
 
   build() {
     Column() {
       Row() {
-        Button("messageEventErrorTest").key('webViewContPageAndprepareForPageLoadErrorOne').onClick(() => {
+        Button("messageEventErrorTest").key('webViewContPageAndprepareForPageLoadErrorOne').onClick(async () => {
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContPageAndprepareForPageLoadErrorOneIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = 1;
           switch (this.str) {
             case "emitPrefetchPageErr": {
               try {
                 this.controller20.prefetchPage('百度');
-                console.info("---666---444---8888")
               } catch (error) {
-                console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
+                console.info(`ErrorCode: ${error.code},  Message: ${error.message}`);
                 this.errorCode = error.code
-                console.info("789+++987" + this.errorCode)
-                Utils.emitEvent(this.errorCode, 900)
+                Utils.emitEvent(this.errorCode, 111840);
               }
               break;
             }
