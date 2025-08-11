@@ -39,6 +39,8 @@ export const webNativeCookieManger: () => number;
 export const webNativeJavaScriptValue: () => number;
 export const webNetErrorResponeseSetError: (errName: string) => number;
 export const webArkWebResponseGetError: (errName: string) => number;
+export const webArkWebConnectError: (errName: string) => number;
+export const webArkWebSSLError: (errName: string) => number;
 export const NativeArkWebLoadDataInitError: () => number;
 export const loadData: (webName: string, caseNum: number) => number;
 export const GetBlanklessInfo: (webName: string, key: string) => number;
@@ -51,8 +53,11 @@ export const WebJSValueAPI: (caseNum: number) => number;
 export const WebJSValueType: (caseNum: number) => number;
 export const WebControllerAPI: (caseNum: number) => number;
 export const WebJSObject: (caseNum: number) => number;
-export const webArkWebConnectError: (errName: string) => number;
-export const webArkWebSSLError: (errName: string) => number;
+export const WebStructProxyMethod: (caseNum: number) => number;
+export const WebStructProxyMethodWithResult: (caseNum: number) => number;
+export const WebStructProxyObject: (caseNum: number) => number;
+export const WebStructProxyObjectWithResult: (caseNum: number) => number;
+
 
 
 

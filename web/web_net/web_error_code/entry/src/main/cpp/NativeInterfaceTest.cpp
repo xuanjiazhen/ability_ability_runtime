@@ -532,9 +532,117 @@ static napi_value WebControllerAPI(napi_env env, napi_callback_info info)
     return result;
 }
 
-EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports)
+static napi_value WebStructProxyMethod(napi_env env, napi_callback_info info)
 {
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyMethod start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ProxyMethod proxyMethod = {0};
+    char data[] = "test for user data";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            proxyMethod.methodName = "test";
+            break;
+        case CASE_NUM_1:
+            proxyMethod.callback = JSProxyCallBack;
+            break;
+        case CASE_NUM_2:
+            proxyMethod.userData = static_cast<void*>(data);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyMethod end..");
+    return result;
+}
+
+static napi_value WebStructProxyMethodWithResult(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyMethodWithResult start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ProxyMethodWithResult method = {0};
+    char data[] = "test for user data";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            method.methodName = "test";
+            break;
+        case CASE_NUM_1:
+            method.callback = [](const char* webTag, const ArkWeb_JavaScriptBridgeData* dataArray, 
+                size_t arraySize, void* userData)->ArkWeb_JavaScriptValuePtr { return nullptr;};
+            break;
+        case CASE_NUM_2:
+            method.userData = static_cast<void*>(data);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyMethodWithResult end..");
+    return result;
+}
+
+static napi_value WebStructProxyObject(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyObject start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ProxyObject obj = {0};
+    const size_t listSize = 10;
+    ArkWeb_ProxyMethod methodList[listSize] = {0};
+    char data[] = "test for user data";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            obj.objName = "testObj";
+            break;
+        case CASE_NUM_1:
+            obj.methodList = methodList;
+            break;
+        case CASE_NUM_2:
+            obj.size = listSize;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyObject end..");
+    return result;
+}
+
+static napi_value WebStructProxyObjectWithResult(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyObjectWithResult start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ProxyObjectWithResult obj = {0};
+    const size_t listSize = 10;
+    ArkWeb_ProxyMethodWithResult methodList[listSize] = {0};
+    char data[] = "test for user data";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            obj.objName = "testObjWithResult";
+            break;
+        case CASE_NUM_1:
+            obj.methodList = methodList;
+            break;
+        case CASE_NUM_2:
+            obj.size = listSize;
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructProxyObjectWithResult end..");
+    return result;
+}
+
+EXTERN_C_START
+static napi_value Init(napi_env env, napi_value exports) {
     napi_property_descriptor desc[] = {
         {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
          napi_default, nullptr},
@@ -549,6 +657,12 @@ static napi_value Init(napi_env env, napi_value exports)
         {"WebJSValueType", nullptr, WebJSValueType, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebControllerAPI", nullptr, WebControllerAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebJSObject", nullptr, WebJSObject, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebStructProxyMethod", nullptr, WebStructProxyMethod, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebStructProxyMethodWithResult", nullptr, WebStructProxyMethodWithResult, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
+        {"WebStructProxyObject", nullptr, WebStructProxyObject, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebStructProxyObjectWithResult", nullptr, WebStructProxyObjectWithResult, nullptr, nullptr, nullptr,
+         napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

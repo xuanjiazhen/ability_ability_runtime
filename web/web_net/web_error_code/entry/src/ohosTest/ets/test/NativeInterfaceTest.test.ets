@@ -1036,6 +1036,247 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiJSObjectUserData catch err: " + err);
         }
       })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethod_0100
+     * @tc.name    : testWebNapiProxyMethodName
+     * @tc.desc    : test ArkWeb_ProxyMethod struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodName', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodName start====");
+          let result: number = nativeInterface.WebStructProxyMethod(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodName stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodName catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethod_0200
+     * @tc.name    : testWebNapiProxyMethodCallback
+     * @tc.desc    : test ArkWeb_ProxyMethod struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodCallback', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodCallback start====");
+          let result: number = nativeInterface.WebStructProxyMethod(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodCallback stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodCallback catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethod_0300
+     * @tc.name    : testWebNapiProxyMethodUserdata
+     * @tc.desc    : test ArkWeb_ProxyMethod struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodUserdata', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodUserdata start====");
+          let result: number = nativeInterface.WebStructProxyMethod(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodUserdata stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodUserdata catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0100
+     * @tc.name    : testWebNapiProxyMethodWithResultName
+     * @tc.desc    : test ArkWeb_ProxyMethodWithResult struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodWithResultName', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodWithResultName start====");
+          let result: number = nativeInterface.WebStructProxyMethodWithResult(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodWithResultName stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodWithResultName catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0200
+     * @tc.name    : testWebNapiProxyMethodWithResultCallback
+     * @tc.desc    : test ArkWeb_ProxyMethodWithResult struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodWithResultCallback', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodWithResultCallback start====");
+          let result: number = nativeInterface.WebStructProxyMethodWithResult(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodWithResultCallback stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodWithResultCallback catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0300
+     * @tc.name    : testWebNapiProxyMethodWithResultUserdata
+     * @tc.desc    : test ArkWeb_ProxyMethodWithResult struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyMethodWithResultUserdata', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyMethodWithResultUserdata start====");
+          let result: number = nativeInterface.WebStructProxyMethodWithResult(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyMethodWithResultUserdata stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyMethodWithResultUserdata catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyObject_0100
+     * @tc.name    : testWebNapiProxyObjectName
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectName', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectName start====");
+          let result: number = nativeInterface.WebStructProxyObject(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectName stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectName catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0200
+     * @tc.name    : testWebNapiProxyObjectMethodList
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectMethodList', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectMethodList start====");
+          let result: number = nativeInterface.WebStructProxyObject(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectMethodList stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectMethodList catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0300
+     * @tc.name    : testWebNapiProxyObjectSize
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectSize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectSize start====");
+          let result: number = nativeInterface.WebStructProxyObject(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectSize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectSize catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyObjectWithResult_0100
+     * @tc.name    : testWebNapiProxyObjectWithResultName
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectWithResultName', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectWithResultName start====");
+          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectWithResultName stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectWithResultName catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyObjectWithResult_0200
+     * @tc.name    : testWebNapiProxyObjectWithResultMethodList
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectWithResultMethodList', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectWithResultMethodList start====");
+          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectWithResultMethodList stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectWithResultMethodList catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_ProxyObjectWithResult_0300
+     * @tc.name    : testWebNapiProxyObjectWithResultSize
+     * @tc.desc    : test ArkWeb_ProxyObject struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiProxyObjectWithResultSize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiProxyObjectWithResultSize start====");
+          let result: number = nativeInterface.ArkWeb_ProxyObjectWithResult(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiProxyObjectWithResultSize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiProxyObjectWithResultSize catch err: " + err);
+        }
+      })
+
 
   })
 }
