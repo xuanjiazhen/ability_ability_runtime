@@ -29,6 +29,7 @@ group("multimodalinput") {
       "multimodalinput_ndk_hvigor/InputNdkSystem:ActsMultimodalInputNdkSystemTest",
       "multimodalinput_ets_hvigor_static/Pointer:ActsMultimodalPointerStaticTest",
       "multimodalinput_ets_hvigor_static/InputDevice:ActsMultimodalInputDeviceStaticTest",
+      "multimodalinput_ndk_hvigor/InputInjectKeyEvent:ActsInputInjectKeyEventTest"
     ]
   }
 }
