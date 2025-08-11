@@ -690,7 +690,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0100', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureTest();
       console.info(Tag + "normalAVScreenCaptureTest-------------result:" + result);
       expect(result).assertEqual(0);
@@ -710,7 +710,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0200', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
       console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
       expect(result).assertEqual(0);
@@ -730,7 +730,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0300', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
       console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
       expect(result).assertEqual(0);
@@ -759,7 +759,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0400', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
       console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
       expect(result).assertEqual(0);
@@ -788,7 +788,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0500', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenRecordTest();
       console.info(Tag + "normalAVScreenRecordTest-------------result:" + result);
       expect(result).assertEqual(0);
@@ -818,7 +818,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_PROVIDNDKINTERFACES_0600', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
       console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------res:" + result);
       expect(result).assertEqual(0);
@@ -885,7 +885,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0200', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
       console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------res:" + result);
       expect(result).assertEqual(0);
@@ -906,7 +906,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0300', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureShowCursorTest();
       console.info(Tag + "normalAVScreenCaptureShowCursorTest-------------res:" + result);
       expect(result).assertEqual(0);
@@ -927,7 +927,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0400', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureSelectionCallbackSuccess();
       console.info(Tag + "normalAVScreenCaptureSelectionCallbackSuccess-------------result:" + result);
       expect(result).assertEqual(0);
@@ -947,7 +947,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0500', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureContentChangedCallback();
       console.info(Tag + "normalAVScreenCaptureContentChangedCallback-------------res:" + result);
       expect(result).assertEqual(0);
@@ -968,7 +968,7 @@ export default function nativeAVScreenCaptureNdkTest() {
      * @tc.level        Level 0
      */
     it('SUB_MULTIMEDIA_MEDIA_INTEGRATION_INTERFACE_SUPPORTSURFACE_0700', Level.LEVEL0, async (done: Function) => {
-      
+
       let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForPrivacyMaskModeScreen();
       console.info(Tag + "normalAVScreenCaptureStrategyForPrivacyMaskModeScreen-------------res:" + result);
       expect(result).assertEqual(0);
@@ -1000,6 +1000,34 @@ export default function nativeAVScreenCaptureNdkTest() {
         resultStop);
       expect(resultStop).assertEqual(0);
       expect(isShowDialog).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0001
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0001
+     * @tc.desc         OH_AVScreenCapture_StrategyForFillMode-Aspect
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0001', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForFillModeAspect();
+      expect(result).assertEqual(0);
+      done();
+    });
+
+    /**
+     * @tc.number       SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0002
+     * @tc.name         SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0002
+     * @tc.desc         OH_AVScreenCapture_StrategyForFillMode-Scale
+     * @tc.size         MediumTest
+     * @tc.type         Function
+     * @tc.level        Level 0
+     */
+    it('SUB_MULTIMEDIA_SCREEN_CAPTURE_NORMAL_FILL_MODE_0002', Level.LEVEL0, async (done: Function) => {
+      let result: number = myScreenCaptureNdk.normalAVScreenCaptureStrategyForFillModeScale();
+      expect(result).assertEqual(0);
       done();
     });
   })
