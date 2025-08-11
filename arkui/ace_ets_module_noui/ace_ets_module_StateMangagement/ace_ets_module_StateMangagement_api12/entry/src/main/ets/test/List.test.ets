@@ -206,6 +206,7 @@ import RepeatwithAnimateTo from './RepeatTest/RepeatwithAnimateTo.test';
 import LazyForEach001 from './LazyForEach/LazyForEach001.test';
 import IfElse006 from './IfElseTest/IfElse006.test';
 import ForEach001 from './foreachTest/ForEach001.test';
+import EntryParamsTest from './entryTest/EntryParamsTest.test';
 export default function testsuite() {
     ExtendTrackTest();
     Extend0010TestJsunit();
@@ -400,4 +401,5 @@ export default function testsuite() {
     ForEach001();
     IfElse006();
     LazyForEach001();
+    EntryParamsTest();
 }
