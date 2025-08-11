@@ -7875,8 +7875,8 @@ int32_t AppMgrServiceInner::UnregisterAppDebugListener(const sptr<IAppDebugListe
 int32_t AppMgrServiceInner::AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false");
+    if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && !isDebugFromLocal) {
+        TAG_LOGE(AAFwkTag::APPMGR, "developer mode false or no local debug");
         return ERR_INVALID_OPERATION;
     }
 

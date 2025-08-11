@@ -39,6 +39,7 @@ private:
     ~HdcRegister();
 
     void StopHdcRegister();
+    void OpenRegisterSo(DebugRegisterMode debugMode);
 
     void* registerHdcHandler_ = nullptr;
     void* registerLocalHandler_ = nullptr;

@@ -164,8 +164,8 @@ void JsRuntime::StartDebugMode(const DebugOption dOption)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "localDebug %{public}d", dOption.isDebugFromLocal);
-    if (!dOption.isDebugFromLocal && !dOption.isDeveloperMode) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "developer Mode false");
+    if (!IsAllowStartWithDebug(dOption)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "developer mode false or no locl debug");
         return;
     }
     CHECK_POINTER(jsEnv_);
@@ -1765,6 +1765,18 @@ void JsRuntime::StartLocalDebugMode(bool isDebugFromLocal)
 {
     debugOption_.isDebugFromLocal = isDebugFromLocal;
     StartDebugMode(debugOption_);
+}
+
+bool JsRuntime::IsAllowStartWithDebug(const DebugOption debugOption)
+{
+    if (debugOption.isDebugFromLocal && debugOption.isStartWithDebug) {
+        return true;
+    }
+    if (debugOption.isDeveloperMode && !debugOption.isDebugFromLocal) {
+        return true;
+    }
+    TAG_LOGE(AAFwkTag::JSRUNTIME, "not allow debug");
+    return false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

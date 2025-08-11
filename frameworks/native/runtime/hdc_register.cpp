@@ -41,14 +41,8 @@ void HdcRegister::StartHdcRegister(const std::string& bundleName, const std::str
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
 
-    if (debugMode == BOTH_REG) {
-        registerLocalHandler_ = dlopen("libda_register.z.so", RTLD_LAZY);
-        registerHdcHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
-    } else if (debugMode == LOCAL_DEBUG_REG) {
-        registerLocalHandler_ = dlopen("libda_register.z.so", RTLD_LAZY);
-    } else {
-        registerHdcHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
-    }
+    OpenRegisterSo(debugMode);
+
     if (registerLocalHandler_ != nullptr) {
         auto startRegister = reinterpret_cast<StartRegister>(dlsym(registerLocalHandler_, "StartConnect"));
         if (startRegister != nullptr) {
@@ -95,6 +89,26 @@ void HdcRegister::StopHdcRegister()
         registerHdcHandler_ = nullptr;
     } else {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null registerHdcHandler_");
+    }
+}
+
+void HdcRegister::OpenRegisterSo(DebugRegisterMode debugMode)
+{
+    if (debugMode == BOTH_REG) {
+        if (registerLocalHandler_ == nullptr) {
+            registerLocalHandler_ = dlopen("libda_register.z.so", RTLD_LAZY);
+        }
+        if (registerHdcHandler_ == nullptr) {
+            registerHdcHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
+        }
+    } else if (debugMode == LOCAL_DEBUG_REG) {
+        if (registerLocalHandler_ == nullptr) {
+            registerLocalHandler_ = dlopen("libda_register.z.so", RTLD_LAZY);
+        }
+    } else {
+        if (registerHdcHandler_ == nullptr) {
+            registerHdcHandler_ = dlopen("libhdc_register.z.so", RTLD_LAZY);
+        }
     }
 }
 } // namespace OHOS::AbilityRuntime
