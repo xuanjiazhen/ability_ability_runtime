@@ -89,5 +89,39 @@ export default function closeToastTest() {
       console.info('closeToastTest_0100 END');
       done();
     });
+     /**
+     * @tc.number closeToastTest_0200
+     * @tc.name closeToastTest_0200
+     * @tc.desc To test that the promptAction.closeToast parameter is an abnormal value(0,undefined,null).
+     * @tc.level: Level 1
+     * @tc.type : Function
+     * @tc.size : MEDIUMTEST
+     */
+    it('closeToastTest_0200', TestType.Function | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      console.info('closeToastTest_0200 START');
+      let driver = await Driver.create()
+      await CommonFunc.sleep(1000);
+      let button = await driver.findComponent(ON.id('open'));
+      await button.click();
+      await CommonFunc.sleep(2000);
+
+     let toast = await driver.findComponent(ON.text('Toast Massage'));
+      expect(toast != null).assertTrue()
+      console.info('closeToastTest_0200 0  ok');
+      await CommonFunc.sleep(1500);
+      
+      let closeErrBtn = await driver.findComponent(ON.text('closeToastError'));
+      await closeErrBtn.click();
+      let code: string | undefined = AppStorage.get('103401Code')
+      expect(code).assertEqual('103401');
+      AppStorage.delete('103401Code'); 
+      await CommonFunc.sleep(1000);
+      let closeBtn = await driver.findComponent(ON.text('closeToast'));
+      await closeBtn.click();
+      await CommonFunc.sleep(2000);
+      toast = await driver.findComponent(ON.text('Toast Massage'));
+      expect(toast == null).assertTrue()
+      console.info('closeToastTest_0200 END');
+      done();
   })
 }
