@@ -68,6 +68,17 @@ static napi_value GLUniformMatrixARBTest(napi_env env, napi_callback_info info)
     gl4ApiTest.Release();
     return getError(env, glError);
 }
+
+static napi_value GLLineStippleHalfEmpty(napi_env env, napi_callback_info info)
+{
+    // 测试标准虚线模式
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple(1, 0x00FF);  // 一半像素实线一半像素空白
+    GLenum glError = glGetError();
+    glDisable(GL_LINE_STIPPLE); // 清理状态
+    return getError(env, glError);
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -76,6 +87,7 @@ static napi_value Init(napi_env env, napi_value exports)
         {"gLBufferARBTest", nullptr, GLBufferARBTest, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"gLUniformARBTest", nullptr, GLUniformARBTest, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"gLUniformMatrixARBTest", nullptr, GLUniformMatrixARBTest, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"glLineStippleHalfEmpty", nullptr, GLLineStippleHalfEmpty, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     setenv("NEED_OPENGL", "1", 1);
