@@ -123,5 +123,6 @@ export default function closeToastTest() {
       expect(toast == null).assertTrue()
       console.info('closeToastTest_0200 END');
       done();
+    });
   })
 }
