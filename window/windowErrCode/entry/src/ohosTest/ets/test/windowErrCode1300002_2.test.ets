@@ -1199,10 +1199,100 @@ export default function windowErrCode1300002_2() {
         expect(err.code).assertEqual(1300002);
         done();
       }
-
     })
 
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SYSTEMBAR_ENABLE_WITH_DESTROYED_SUBWINDOW
+     * @tc.name      : testSetWindowSystemBarEnablewithDestroyedSubwindow
+     * @tc.desc      : 验证子窗销毁后调用setWindowSystemBarEnable接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testSetWindowSystemBarEnablewithDestroyedSubwindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let CaseName:string = 'testSetWindowSystemBarEnablewithDestroyedSubwindow';
+      let subWindow = await windowStage.createSubWindow('testSetWindowSystemBarEnablewithDestroyedSubwindow');
+      await sleep(200);
+      await subWindow.destroyWindow();
+      try {
+        let promise = subWindow.setWindowSystemBarEnable(['status']);
+        promise.then(()=>{
+          console.log(CaseName + ' setWindowSystemBarEnable success ');
+          expect(false).assertTrue();
+          done();
+        }).catch((err:BusinessError)=>{
+          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+          expect(err.code).assertEqual(1300002);
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
+        expect(false).assertTrue();
+        done();
+      }
+    })
 
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_PRIVACY_MODE_WITH_DESTROYED_SUBWINDOW
+     * @tc.name      : testSetWindowPrivacyModewithDestroyedSubwindow
+     * @tc.desc      : 验证setWindowPrivacyMode接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testSetWindowPrivacyModewithDestroyedSubwindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let CaseName:string = 'testSetWindowPrivacyModewithDestroyedSubwindow';
+      let subWindow = await windowStage.createSubWindow('testSetWindowSystemBarEnablewithDestroyedSubwindow');
+      await sleep(200);
+      await subWindow.destroyWindow();
+      try {
+        let promise = subWindow.setWindowPrivacyMode(false);
+        promise.then(()=>{
+          console.log(CaseName + ' setWindowPrivacyMode success ');
+          expect(false).assertTrue();
+          done();
+        }).catch((err:BusinessError)=>{
+          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+          expect(err.code).assertEqual(1300002);
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
+        expect(false).assertTrue();
+        done();
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_SET_WINDOW_SHADOW_ENABLED_WITH_DESTROYED_SUBWINDOW
+     * @tc.name      : testSetWindowShadowEnabledwithDestroyedSubwindow
+     * @tc.desc      : 验证setWindowShadowEnabled接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testSetWindowShadowEnabledwithDestroyedSubwindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      let CaseName:string = 'testSetWindowShadowEnabledwithDestroyedSubwindow';
+      let subWindow = await windowStage.createSubWindow('testSetWindowShadowEnabledwithDestroyedSubwindow');
+      await sleep(200);
+      await subWindow.destroyWindow();
+      try {
+        let promise = subWindow.setWindowShadowEnabled(false);
+        promise.then(()=>{
+          console.log(CaseName + ' setWindowShadowEnabled success ');
+          expect(false).assertTrue();
+          done();
+        }).catch((err:BusinessError)=>{
+          console.error(CaseName + ' failed,caused: err.code '+err.code +' ,err.message: '+err.message);
+          expect(err.code).assertEqual(1300002);
+          done();
+        })
+      }catch (err) {
+        console.error(CaseName + ' failed, err: ' + JSON.stringify(err));
+        expect(false).assertTrue();
+        done();
+      }
+    })
 
   })
 }
