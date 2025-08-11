@@ -684,6 +684,41 @@ export default function CollectionsUint8ClampedArray() {
         done()
       })
     /**
+     * @tc.number    : SUB_COLLECTION_UINT8CLAMPEDARRAY_TEST_64181
+     * @tc.name      : CollectionsUint8ClampedArrayTest64181
+     * @tc.desc      : ConcatArray entries 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsUint8ClampedArrayTest64181', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsModifyTest64181';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let uint8ClampedArray: collections.Uint8ClampedArray = new collections.Uint8ClampedArray();
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testModifyUint8ClampedArray, i, uint8ClampedArray).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            uint8ClampedArray.entries()
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
      * @tc.number    : SUB_COLLECTION_UINT8CLAMPEDARRAY_TEST_6419
      * @tc.name      : CollectionsUint8ClampedArrayTest6419
      * @tc.desc      : ConcatArray keys 10200201
