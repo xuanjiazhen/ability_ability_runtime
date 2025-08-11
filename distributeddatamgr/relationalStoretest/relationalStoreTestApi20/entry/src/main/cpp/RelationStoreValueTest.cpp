@@ -36,7 +36,7 @@ static void InitRdbConfig()
     char rdbStoreName[] = "rdb_store_test.db";
     char bundleName[] = "com.acts.actsrelationstoretest";
     char moduleName[] = "";
-    constexpr mode_t kDirPermissions = 0770;
+    const mode_t kDirPermissions = 0770;
 
     config_.dataBaseDir = rdbTestPath;
     config_.storeName = rdbStoreName;

@@ -1283,7 +1283,6 @@ export default function ActsRelationalStoreTest() {
         }
       })
 
-
     /**
      * @tc.number  : SUB_DistributedData_RelationalStore_SDK_OH_Value_Destroy_6000
      * @tc.name    : SUB_DistributedData_RelationalStore_SDK_OH_Value_Destroy_6000
