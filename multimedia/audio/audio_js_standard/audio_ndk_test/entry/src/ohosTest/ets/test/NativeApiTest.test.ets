@@ -4354,5 +4354,50 @@ export default function audioNDK() {
         expect(true).assertTrue();
         done();
       })
+      /**
+     * @tc.number    : SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100
+     * @tc.name      : SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100
+     * @tc.desc      : test WRITEONCALLBACKENHANCE
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2,
+      async (done: Function) => {
+        let testContext = AppStorage.get<common.UIAbilityContext>('testContext') as common.UIAbilityContext;
+        let resMgr: resourceManager.ResourceManager = testContext!.resourceManager;
+        let fileList: Array<String> = myaudioNdk.getFileList(resMgr, '');
+
+        let fileName: string = fileList.filter((file: String) => {return file === 'S16LE.pcm';})?.[0] as string;
+
+        try {
+          let fileSize: number = 6156288;
+          let getRawFileContent: number = myaudioNdk.GetRawFileContent(resMgr, fileName).byteLength;
+          expect(getRawFileContent).assertEqual(fileSize);
+        } catch (error) {
+          console.info(`getRawFileContent ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          let res: number = myaudioNdk.AudioWorkGroupSet();
+          expect(Boolean(res)).assertTrue();
+        } catch (error) {
+          console.info(`AudioWorkGroupSet ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+
+        try {
+          myaudioNdk.StartAudioRenderer();
+        } catch (error) {
+          console.info(`StartAudioRenderer ERROR: ${error.message}`);
+          expect().assertFail();
+        }
+        await sleep(1000);
+        myaudioNdk.StopAndReleaseRenderer();
+        console.info(`Tag: SUB_MULTIMEDIA_AUDIORENDERER_AUDIOWORKGROUPSET_0100 StopAndReleaseRenderer`);
+        expect(true).assertTrue();
+        done();
+      })
   })
 }
