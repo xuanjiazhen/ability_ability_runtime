@@ -703,6 +703,66 @@ static napi_value WebStructMessagePortAPI(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value WebStructCookieManagerAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_CookieManagerAPI api = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_CookieManagerAPI);
+            break;
+        case CASE_NUM_1:
+            api.fetchCookieSync = [](const char* url, bool incognito, bool includeHttpOnly, 
+                                     char** cookieValue) -> ArkWeb_ErrorCode { return ARKWEB_SUCCESS; };
+            break;
+        case CASE_NUM_2:
+            api.configCookieSync = [](const char* url, const char* cookieValue, bool incognito, 
+                                      bool includeHttpOnly) -> ArkWeb_ErrorCode { return ARKWEB_SUCCESS; };
+            break;
+        case CASE_NUM_3:
+            api.existCookies = [](bool incognito) { return false; };
+            break;
+        case CASE_NUM_4:
+            api.clearAllCookiesSync = [](bool incognito) { return; };
+            break;
+        case CASE_NUM_5:
+            api.clearSessionCookiesSync = []() { return; };
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI end..");
+    return result;
+}
+
+
+static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_JavaScriptValueAPI api = {0};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            api.size = sizeof(ArkWeb_JavaScriptValueAPI);
+            break;
+        case CASE_NUM_1:
+            api.createJavaScriptValue = [](ArkWeb_JavaScriptValueType type, void* data, 
+                                           size_t dataLength) -> ArkWeb_JavaScriptValuePtr { return nullptr; };
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -728,6 +788,10 @@ static napi_value Init(napi_env env, napi_value exports)
          napi_default, nullptr},
         {"WebStructComponentAPI", nullptr, WebStructComponentAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebStructMessagePortAPI", nullptr, WebStructMessagePortAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebStructCookieManagerAPI", nullptr, WebStructCookieManagerAPI, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
+        {"WebStructJavaScriptValueAPI", nullptr, WebStructJavaScriptValueAPI, nullptr, nullptr, nullptr, napi_default,
+         nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

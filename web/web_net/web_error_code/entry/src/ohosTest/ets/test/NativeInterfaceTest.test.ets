@@ -1456,6 +1456,167 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiMessagePortAPISetHandler catch err: " + err);
         }
       })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0100
+     * @tc.name    : testWebNapiCookieManagerAPISize
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPISize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPISize start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPISize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPISize catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0200
+     * @tc.name    : testWebNapiCookieManagerAPIFetch
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPIFetch', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPIFetch start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPIFetch stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPIFetch catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0300
+     * @tc.name    : testWebNapiCookieManagerAPIConfig
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPIConfig', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPIConfig start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(2);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPIConfig stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPIConfig catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0400
+     * @tc.name    : testWebNapiCookieManagerAPIExist
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPIExist', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPIExist start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPIExist stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPIExist catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0500
+     * @tc.name    : testWebNapiCookieManagerAPIClearAll
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPIClearAll', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPIClearAll start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(4);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPIClearAll stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPIClearAll catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_CookieManagerAPI_0600
+     * @tc.name    : testWebNapiCookieManagerAPIClearSession
+     * @tc.desc    : test ArkWeb_CookieManagerAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiCookieManagerAPIClearSession', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiCookieManagerAPIClearSession start====");
+          let result: number = nativeInterface.WebStructCookieManagerAPI(5);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiCookieManagerAPIClearSession stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiCookieManagerAPIClearSession catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_JavaScriptValueAPI_0100
+     * @tc.name    : testWebNapiJavaScriptValueAPISize
+     * @tc.desc    : test ArkWeb_JavaScriptValueAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiJavaScriptValueAPISize', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiJavaScriptValueAPISize start====");
+          let result: number = nativeInterface.WebStructJavaScriptValueAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiJavaScriptValueAPISize stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiJavaScriptValueAPISize catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_JavaScriptValueAPI_0200
+     * @tc.name    : testWebNapiJavaScriptValueAPICreate
+     * @tc.desc    : test ArkWeb_JavaScriptValueAPI struct interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiJavaScriptValueAPICreate', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiJavaScriptValueAPICreate start====");
+          let result: number = nativeInterface.WebStructJavaScriptValueAPI(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiJavaScriptValueAPICreate stop====");
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiJavaScriptValueAPICreate catch err: " + err);
+        }
+      })
+
 
 
   })

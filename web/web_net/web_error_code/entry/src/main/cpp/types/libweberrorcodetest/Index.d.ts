@@ -59,6 +59,8 @@ export const WebStructProxyObject: (caseNum: number) => number;
 export const WebStructProxyObjectWithResult: (caseNum: number) => number;
 export const WebStructComponentAPI: (caseNum: number) => number;
 export const WebStructMessagePortAPI: (caseNum: number) => number;
+export const WebStructCookieManagerAPI: (caseNum: number) => number;
+export const WebStructJavaScriptValueAPI: (caseNum: number) => number;
 
 
 
