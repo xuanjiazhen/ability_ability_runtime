@@ -1177,7 +1177,7 @@ export default function NativeInterfaceTest() {
         }
       })
     /**
-     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0200
+     * @tc.number  : SUB_Web_Napi_ProxyObject_0200
      * @tc.name    : testWebNapiProxyObjectMethodList
      * @tc.desc    : test ArkWeb_ProxyObject struct interface
      * @tc.level   : Level2
@@ -1197,7 +1197,7 @@ export default function NativeInterfaceTest() {
         }
       })
     /**
-     * @tc.number  : SUB_Web_Napi_ProxyMethodWithResult_0300
+     * @tc.number  : SUB_Web_Napi_ProxyObject_0300
      * @tc.name    : testWebNapiProxyObjectSize
      * @tc.desc    : test ArkWeb_ProxyObject struct interface
      * @tc.level   : Level2

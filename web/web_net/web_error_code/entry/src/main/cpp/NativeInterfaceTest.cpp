@@ -570,8 +570,8 @@ static napi_value WebStructProxyMethodWithResult(napi_env env, napi_callback_inf
             method.methodName = "test";
             break;
         case CASE_NUM_1:
-            method.callback = [](const char* webTag, const ArkWeb_JavaScriptBridgeData* dataArray, 
-                size_t arraySize, void* userData)->ArkWeb_JavaScriptValuePtr { return nullptr;};
+            method.callback = [](const char *webTag, const ArkWeb_JavaScriptBridgeData *dataArray, size_t arraySize,
+                                 void *userData) -> ArkWeb_JavaScriptValuePtr { return nullptr; };
             break;
         case CASE_NUM_2:
             method.userData = static_cast<void*>(data);
@@ -642,7 +642,8 @@ static napi_value WebStructProxyObjectWithResult(napi_env env, napi_callback_inf
 }
 
 EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports) {
+static napi_value Init(napi_env env, napi_value exports)
+{
     napi_property_descriptor desc[] = {
         {"NativeArkWebLoadDataInitError", nullptr, NativeArkWebLoadDataInitError, nullptr, nullptr, nullptr,
          napi_default, nullptr},
