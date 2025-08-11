@@ -20,7 +20,7 @@ let httpRequest = http.createHttp();
 let address_baidu = 'https://www.baidu.com';
 let address_baidu2 = 'http://www.baidu.com';
 let address_post = 'https://httpbin.org/post';
-let address_huawei:string = 'https://mirrors.huaweicloud.com/ubuntu-cdimage/releases/24.04.2/release/ubuntu-24.04.2-live-server-arm64.iso';
+let address_post1:string = 'https://mirrors.huaweicloud.com/ubuntu-cdimage/ubuntu/releases/22.04.5/release/ubuntu-22.04.5-live-server-arm64.iso';
 
 let httpRequestOptions_post: http.HttpRequestOptions = {
   method: http.RequestMethod.POST,
@@ -405,7 +405,7 @@ export default function NetworkManagerHttpEnhanceTest() {
       let caseName:string = 'testNetworkMgrHTTPRequestResumeFrom0100';
       console.info(`${caseName}---Start`);
       try {
-        httpRequest.request(address_huawei, httpRequestOptions_resumeFrom_1, (err, data) => {
+        httpRequest.request(address_post1, httpRequestOptions_resumeFrom_1, (err, data) => {
           if (err) {
             console.log(`${caseName} request failed, err: ${JSON.stringify(err)}`);
             expectFalse();
