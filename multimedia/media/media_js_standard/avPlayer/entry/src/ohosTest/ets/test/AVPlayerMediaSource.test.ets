@@ -182,6 +182,7 @@ export default function AVPlayerMediaSource() {
     it('SUB_MULTIMEDIA_PLAYER_MEDIASOURCE_FUNCTION_0700', Level.LEVEL0, async (done: Function) => {
       console.info('AVPlayerMediaSource success');
       let mediaSource = media.createMediaSourceWithUrl(url_1a1v_mp4, header);
+      expect(mediaSource).not().assertUndefined()
       let playStrategy: media.PlaybackStrategy = {
         preferredWidth: 1,
         preferredHeight: 2,
