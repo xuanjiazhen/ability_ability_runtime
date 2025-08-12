@@ -1137,6 +1137,39 @@ export default function windowErrCode401_3() {
     })
 
     /**
+     * @tc.number    : SUB_BASIC_WMS_CREAT_PIP_WITH_INVAILD_PARAMETERS
+     * @tc.name      : testPIPCreatewithInvalidParameters
+     * @tc.desc      : 验证画中画create接口抛401错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testPIPCreatewithInvalidParameters', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
+      let caseName: string = 'testPIPCreatewithInvalidParameters';
+      let xComponentController: XComponentController = new XComponentController();
+      let config: pipWindow.PiPConfiguration = {
+        context: context,
+        componentController: xComponentController,
+        templateType: 10,
+      };
+      try {
+        let promise = pipWindow.create(config);
+        promise.then((data: pipWindow.PiPController) => {
+          console.log(caseName + ' pipWindow create success');
+          expect().assertFail();
+          done();
+        }).catch((err:BusinessError) => {
+          console.error(caseName + ' failed, err: ' + JSON.stringify(err));
+          expect().assertFail();
+          done();
+        });
+      } catch (err) {
+        console.error(caseName + ' failed. Caused: err.code '+err.code +' ,err.message: '+err.message);
+        expect(err.code).assertEqual(401);
+        done();
+      }
+    })
+    /**
      * @tc.number    : SUB_BASIC_WMS_LOAT_CONTENT_WITH_INVAILD_PARAMETERS
      * @tc.name      : testLoadContentwithInvalidParameters
      * @tc.desc      : 验证loadContent接口抛401错误码

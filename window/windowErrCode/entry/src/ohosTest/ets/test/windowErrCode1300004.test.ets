@@ -541,7 +541,7 @@ export default function windowErrCode1300004() {
           if (err.code == 801) {
             console.info(msgStr + '此设备不支持 setAspectRatio 能力.');
           } else {
-            expect(err.code).assertEqual(1300004);
+            expect().assertFail();
           }
           done()
         });
@@ -549,7 +549,7 @@ export default function windowErrCode1300004() {
         console.error(msgStr + 'Failed to set the call setAspectRatio. Cause:' +
         JSON.stringify(exception));
         await (subWin! as ohosWindow.Window).destroyWindow();
-        expect().assertFail();
+        expect(exception.code).assertEqual(1300004);
         done()
       }
     })
