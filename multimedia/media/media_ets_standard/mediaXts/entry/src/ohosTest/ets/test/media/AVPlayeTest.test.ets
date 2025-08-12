@@ -925,7 +925,7 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
         console.info(TAG, testName + ' play state is INITIALIZED');
         avPlayer.surfaceId = surfaceID;
         expect(avPlayer.state).assertEqual(INITIALIZED);
-        avPlayer?.setPlaybackStrategy(strategy).then(() => {
+        await avPlayer?.setPlaybackStrategy(strategy).then(() => {
           console.info(TAG, testName + ' succeed to set PlaybackStrategy');
           expect(true).assertTrue();
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
@@ -941,18 +941,18 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
           } else {
             console.info(TAG, testName + ' succeed to set SuperResolution closed');
           }
-        }).catch((error: BusinessError) => {
+        }).catch(async (error: BusinessError) => {
           console.error(TAG,
             testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
           expect(error.code).assertEqual(MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED);
-          avPlayer?.release().then(() => {
+          await avPlayer?.release().then(() => {
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         });
         await avPlayer?.stop();
         break;
       case STOPPED:
         console.info(TAG, testName + ' play state is STOPPED');
-        avPlayer?.release().then(() => {
+        await avPlayer?.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         break;
       case RELEASED:
@@ -1014,7 +1014,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
         console.info(TAG, testName + ' play state is INITIALIZED');
         avPlayer.surfaceId = surfaceID;
         expect(avPlayer.state).assertEqual(INITIALIZED);
-        avPlayer?.setPlaybackStrategy(strategy).then(() => {
+        await avPlayer?.setPlaybackStrategy(strategy).then(() => {
           console.info(TAG, testName + ' succeed to set PlaybackStrategy');
           expect(true).assertTrue();
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
@@ -1026,7 +1026,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
         expect(avPlayer?.state).assertEqual(PREPARED);
         await avPlayer?.setVideoWindowSize(width, height).then(() => {
           console.info(TAG, testName + ' succeed to set VideoWindowSize');
-        }).catch((error: BusinessError) => {
+        }).catch(async (error: BusinessError) => {
           console.error(TAG,
             testName + ' Failed to set VideoWindowSize, code: ' + error.code + ', msg: ' + error.message);
           if (error.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED) {
@@ -1034,7 +1034,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
             return;
           } else {
             expect(error.code).assertEqual(MediaErrorCode.PARAMETER_ERROR);
-            avPlayer?.release().then(() => {
+            await avPlayer?.release().then(() => {
             }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
           }
         });
@@ -1042,7 +1042,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
         break;
       case STOPPED:
         console.info(TAG, testName + ' play state is STOPPED');
-        avPlayer?.release().then(() => {
+        await avPlayer?.release().then(() => {
         }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         break;
       case RELEASED:
@@ -1062,7 +1062,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
     }
   });
   avPlayer?.on('error', async (err: BusinessError) => {
-    console.error(TAG, testName + ` case error called, errMessage is ${err.message}`);
+    console.error(TAG, testName + ` case error called, errCode: ${err.code}, errMessage is ${err.message}`);
   });
 }
 
