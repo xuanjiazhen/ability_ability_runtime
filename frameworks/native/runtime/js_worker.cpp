@@ -395,9 +395,6 @@ bool AssetHelper::ReadFilePathData(const std::string& filePath, uint8_t** buff, 
 
     std::string newHapPath;
     size_t pos = filePath.find('/');
-    if (pos == std::string::npos) {
-        return false;
-    }
     if (!GetIsStageModel()) {
         newHapPath = (workerInfo_->hapPath).GetOriginString();
     } else {
@@ -434,7 +431,10 @@ bool AssetHelper::ReadFilePathData(const std::string& filePath, uint8_t** buff, 
             return flag;
         }
     } else {
-        realfilePath = filePath.substr(pos + 1);
+        if (pos != std::string::npos) {
+            pos = pos + 1;
+        }
+        realfilePath = filePath.substr(pos);
         TAG_LOGD(AAFwkTag::JSRUNTIME, "realfilePath: %{private}s", realfilePath.c_str());
         int32_t apiTargetVersion = static_cast<int32_t>(workerInfo_->apiTargetVersion.GetOriginPointer());
         bool apiSatisfy = apiTargetVersion == 0 || apiTargetVersion > API8;
