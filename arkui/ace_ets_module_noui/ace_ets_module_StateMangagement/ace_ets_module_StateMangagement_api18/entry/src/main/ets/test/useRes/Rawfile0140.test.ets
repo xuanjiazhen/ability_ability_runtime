@@ -66,9 +66,9 @@ export default function Rawfile0140() {
       console.info("[Rawfile0140_001] component text_2 is: " + text_2);
       console.info("[Rawfile0140_001] component text_3 is: " + text_3);
       console.info("[Rawfile0140_001] component text_4 is: " + text_4);
-      expect(text_1).assertNotEqual('-1');
+      expect(text_1).not().assertEqual('-1');
       expect(text_1).assertEqual(text_2);
-      expect(text_3).assertNotEqual('-1');
+      expect(text_3).not().assertEqual('-1');
       expect(text_3).assertEqual(text_4);
       await CommonFunc.sleep(1000);
       console.info('[Rawfile0140_001] END');
