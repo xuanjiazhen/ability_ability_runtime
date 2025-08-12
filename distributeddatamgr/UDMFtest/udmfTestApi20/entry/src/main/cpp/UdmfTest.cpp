@@ -441,7 +441,7 @@ napi_value TestSetUnifiedDataError(napi_env env, napi_callback_info info)
     OH_UdmfRecord* record = OH_UdmfRecord_Create();
     OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
 
-    const char *restrictedUri = "/proc/sys/kernel/hostname"; 
+    const char *restrictedUri = "/proc/sys/kernel/hostname";
     OH_UdsFileUri_SetFileUri(fileUri, restrictedUri);
     OH_UdsFileUri_SetFileType(fileUri, UDMF_META_HYPERLINK);
     
