@@ -12,4 +12,4 @@ include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
 add_library(locationcapi20 SHARED GeoLocationCApi20Test.cpp)
-target_link_libraries(locationcapi20 PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so liblocation_ndk.so)
+target_link_libraries(locationcapi20 PUBLIC libace_napi.z.so liblocation_ndk.so)
