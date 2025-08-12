@@ -98,13 +98,13 @@ napi_value TestAddFileUriInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_UdmfRecord *record = nullptr;
-    OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
-    const char *fileUriPath = "./resources/base/media/icon.png"; 
-    
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    const char *fileUriPath = "./resources/base/media/icon.png";
+
     OH_UdsFileUri_SetFileUri(fileUri, fileUriPath);
-    
+
     int ret = OH_UdmfRecord_AddFileUri(record, fileUri);
-    
+
     OH_UdsFileUri_Destroy(fileUri);
 
     napi_create_int32(env, ret, &result);
@@ -115,13 +115,13 @@ napi_value TestAddFileUriSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_UdmfRecord *record = OH_UdmfRecord_Create();
-    OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
-    const char *fileUriPath = "./resources/base/media/icon.png"; 
-    
+    OH_UdsFileUri *fileUri = OH_UdsFileUri_Create();
+    const char *fileUriPath = "./resources/base/media/icon.png";
+
     OH_UdsFileUri_SetFileUri(fileUri, fileUriPath);
-    
+
     int ret = OH_UdmfRecord_AddFileUri(record, fileUri);
-    
+
     OH_UdsFileUri_Destroy(fileUri);
     OH_UdmfRecord_Destroy(record);
     napi_create_int32(env, ret, &result);
@@ -384,7 +384,8 @@ napi_value TestGetUnifiedDataError(napi_env env, napi_callback_info info)
     OH_UdmfData_AddRecord(udmfUnifiedData, record);
     Udmf_Intention intention = UDMF_INTENTION_DRAG;
     char key[256];
-    OH_Udmf_SetUnifiedData(intention, udmfUnifiedData, key, 256);
+    unsigned int keyLen = 256;
+    OH_Udmf_SetUnifiedData(intention, udmfUnifiedData, key, keyLen);
     OH_UdmfData *readUnifiedData = OH_UdmfData_Create();
     int ret = OH_Udmf_GetUnifiedData(key, intention, readUnifiedData);
     
@@ -413,7 +414,8 @@ napi_value TestGetUnifiedDataByOptionsError(napi_env env, napi_callback_info inf
     Udmf_Intention testIntention = UDMF_INTENTION_PICKER;
     OH_UdmfOptions_SetIntention(options, testIntention);
     char key[256];
-    OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, 256);
+    unsigned int keyLen = 256;
+    OH_Udmf_SetUnifiedDataByOptions(options, udmfUnifiedData, key, keyLen);
     
     OH_UdmfOptions* options1 = OH_UdmfOptions_Create();
     OH_UdmfOptions_SetIntention(options1, testIntention);
@@ -438,8 +440,8 @@ napi_value TestSetUnifiedDataError(napi_env env, napi_callback_info info)
     OH_UdmfData* udmfData = OH_UdmfData_Create();
     OH_UdmfRecord* record = OH_UdmfRecord_Create();
     OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
-    
-    const char* restrictedUri = "/proc/sys/kernel/hostname"; 
+
+    const char *restrictedUri = "/proc/sys/kernel/hostname"; 
     OH_UdsFileUri_SetFileUri(fileUri, restrictedUri);
     OH_UdsFileUri_SetFileType(fileUri, UDMF_META_HYPERLINK);
     
