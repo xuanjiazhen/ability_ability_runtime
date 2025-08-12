@@ -14,7 +14,13 @@
  */
 
 import ActsNeuralNetworkCoreTest from './ActsNeuralNetworkCoreTest.test'
+import ActsNeuralNetworkRuntimeTest from './ActsNeuralNetworkRuntimeTest.test'
+import ActsNeuralNetworkRuntimeTypeTest1 from './ActsNeuralNetworkRuntimeTypeTest1.test'
+import ActsNeuralNetworkRuntimeTypeTest2 from './ActsNeuralNetworkRuntimeTypeTest2.test'
 
 export default function testsuite() {
   ActsNeuralNetworkCoreTest()
+  ActsNeuralNetworkRuntimeTest()
+  ActsNeuralNetworkRuntimeTypeTest1()
+  ActsNeuralNetworkRuntimeTypeTest2()
 }
