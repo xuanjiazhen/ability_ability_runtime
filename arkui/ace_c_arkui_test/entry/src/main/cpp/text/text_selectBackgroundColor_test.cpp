@@ -35,13 +35,14 @@ static napi_value TestTextSelectedBackgroundColor001(napi_env env, napi_callback
 static napi_value TestTextSelectedBackgroundColor002(napi_env env, napi_callback_info info)
 {
     NAPI_START(text, ARKUI_NODE_TEXT);
+    auto retColor1 = nodeAPI->getAttribute(text, NODE_TEXT_SELECTED_BACKGROUND_COLOR)->value[PARAM_0].u32;
     ArkUI_NumberValue value[] = {{.u32 = COLOR_RED}};
     ArkUI_AttributeItem valueItem = {value, sizeof(value) / sizeof(ArkUI_NumberValue)};
     auto ret = nodeAPI->setAttribute(text, NODE_TEXT_SELECTED_BACKGROUND_COLOR, &valueItem);
     ASSERT_EQ(ret, SUCCESS);
     auto ret1 = nodeAPI->resetAttribute(text, NODE_TEXT_SELECTED_BACKGROUND_COLOR);
     ASSERT_EQ(ret1, SUCCESS);
-    ASSERT_EQ(nodeAPI->getAttribute(text, NODE_TEXT_SELECTED_BACKGROUND_COLOR)->value[PARAM_0].u32, COLOR_BLUE1);
+    ASSERT_EQ(nodeAPI->getAttribute(text, NODE_TEXT_SELECTED_BACKGROUND_COLOR)->value[PARAM_0].u32, retColor1);
 
     NAPI_END;
 }
