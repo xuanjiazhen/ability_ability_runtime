@@ -43,6 +43,7 @@
         "MainAbility/pages/back_router/DisableAlertBeforeBackPage",
         "MainAbility/pages/back_router/EnableAlertBeforeBackPage",
         "MainAbility/pages/ohosRouter/RouterMode",
-        "MainAbility/pages/ohosRouter/RouterModeCall"
+        "MainAbility/pages/ohosRouter/RouterModeCall",
+        "MainAbility/pages/ohosRouter/RouterCall"
     ]
 }
