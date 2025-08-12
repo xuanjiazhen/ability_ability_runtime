@@ -144,7 +144,6 @@ private:
     void CleanResource(const wptr<IRemoteObject> &remote);
     std::string GetSelfApplicationBundleName();
     bool CheckSelfApplication(const std::string &bundleName);
-    int32_t GetValidUserId(int32_t userId);
     bool GetBundleInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
         AppExecFwk::BundleInfo &bundleInfo);
     bool GetAbilityData(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);

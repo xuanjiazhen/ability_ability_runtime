@@ -592,7 +592,7 @@ HWTEST_F(AbilityManagerServiceTenhtTest, StartHighestPriorityAbility_001, TestSi
     int32_t userId = 1;
     bool isBoot = false;
     bool isAppRecovery = true;
-    auto ret = abilityMs_->StartHighestPriorityAbility(userId, isBoot, isAppRecovery);
+    auto ret = abilityMs_->StartHighestPriorityAbility(userId, 0, isBoot, isAppRecovery);
     EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTenhtTest StartHighestPriorityAbility_001 end");
 }

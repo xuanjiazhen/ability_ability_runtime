@@ -61,6 +61,7 @@ ohos_unittest("user_controller_unit_test") {
     "../../mock/uri",
     "../../mock/user_event_handler",
     "../../mock/user_callback",
+    "../../mock/user_controller",
     "../../mock/want",
     "../../mock/want_params",
   ]
@@ -73,6 +74,7 @@ ohos_unittest("user_controller_unit_test") {
     "../../mock/ability_manager_service/ability_manager_service.cpp",
     "../../mock/app_scheduler/app_scheduler.cpp",
     "../../mock/parameters/parameters.cpp",
+    "../../mock/user_controller/user_controller/user_manager.cpp",
   ]
 
   deps = [

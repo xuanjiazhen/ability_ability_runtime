@@ -211,7 +211,7 @@ void ResidentProcessManager::UpdateResidentProcessesStatus(
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    auto currentUser = DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId();
+    auto currentUser = DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId();
     std::set<int32_t> users{0, currentUser};
 
     for (const auto &userId: users) {
