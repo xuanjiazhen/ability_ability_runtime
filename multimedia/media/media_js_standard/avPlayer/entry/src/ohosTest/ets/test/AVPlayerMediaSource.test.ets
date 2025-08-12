@@ -335,6 +335,7 @@ export default function AVPlayerMediaSource() {
         }
         if(state == "released"){
           console.info(`avPlayer enter released state`)
+          await new Promise<void>((res) => setTimeout(() => res(),1000))
           expect(SourceCallbackCount).assertEqual(3)
           done()
         }
