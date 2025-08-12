@@ -22,9 +22,9 @@
 #define LOG(fmt, ...) (void)OH_LOG_Print(LOG_APP, LOG_INFO, CAMERA_LOG_DOMAIN, CAMERA_LOG_TAG, fmt, ##__VA_ARGS__)
 CameraCallbackCode NDKCamera::cameraCallbackCode_ = NoReceived;
 
-const Camera_Profile DEFAULT_PREVIEW_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 640, 480 } };
+const Camera_Profile DEFAULT_PREVIEW_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 1920, 1080 } };
 const Camera_Profile DEFAULT_PHOTO_PROFILE = { CAMERA_FORMAT_JPEG, { 640, 480 } };
-const Camera_VideoProfile DEFAULT_VIDEO_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 640, 480 }, {30, 30} };
+const Camera_VideoProfile DEFAULT_VIDEO_PROFILE = { CAMERA_FORMAT_YUV_420_SP, { 1920, 1080 }, {30, 30} };
 
 Camera_Size SecureSize = {640, 480};
 Camera_Profile PhotoOutputWithoutSurface = {CAMERA_FORMAT_JPEG, {1920, 1080}};
