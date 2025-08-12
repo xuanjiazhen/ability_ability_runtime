@@ -18,10 +18,16 @@ import CanvasPenTest from './CanvasPenTest.test.ets'
 import RectFontTest from './RectFontTest.test.ets'
 import EffectTest from './EffectTest.test.ets'
 import BufferTextTest from './BufferTextTest.test.ets'
+import ColorSpaceNameTest from './ColorSpaceNameTest.test.ets'
+import NativeBufferColorSpaceTest from './NativeBufferTest.test'
+import ExternalWindowTest from './ExternalWindowTest.test'
 export default function testsuite() {
   BrushPointRecordTest()
   CanvasPenTest()
   RectFontTest()
   EffectTest()
   BufferTextTest()
+  ColorSpaceNameTest()
+  NativeBufferColorSpaceTest()
+  ExternalWindowTest()
 }
