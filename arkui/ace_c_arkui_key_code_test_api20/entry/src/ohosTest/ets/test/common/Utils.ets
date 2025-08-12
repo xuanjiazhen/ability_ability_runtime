@@ -392,12 +392,12 @@ export default class Utils {
         if (key == 16) {
           let com = await Utils.driver.findComponent(ON.id("KeyCodeTest1"));
           await com.click();
+          await com.click();
         } else if (key == 2674) {
           await Utils.driver.triggerKey(1);
           await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
         }
         let KeyResult: number = ndkfunction();
-        await Utils.sleep(10);
         expect(KEY_CODE_EVENT_OK).assertEqual(KeyResult);
         done()
       } catch (err) {

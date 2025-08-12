@@ -81,6 +81,7 @@ export default function XComponentMouseTest() {
         console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_MOUSEEVENTACTION_0400 start<====`);
         await Utils.driver.mouseMoveTo({ x: 150, y: 150 });
         await Utils.driver.mouseMoveTo({ x: 300, y: 300 });
+        await Utils.driver.mouseMoveTo({ x: 150, y: 150 });
         let Result: number = nativexcomponent.MouseEventAction(3);
         expect(1).assertEqual(Result);
         done()
