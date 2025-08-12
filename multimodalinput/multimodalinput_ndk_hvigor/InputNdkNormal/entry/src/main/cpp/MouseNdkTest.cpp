@@ -35,8 +35,8 @@ static napi_value GetPointerLocation1(napi_env env, napi_callback_info info)
     double displayY;
     Input_Result retResult = OH_Input_GetPointerLocation(&displayId, &displayX, &displayY);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_GetPointerLocation_0100 retResult:%{public}d", retResult);
-    napi_create_int32(env, (retResult == INPUT_SUCCESS || ret == INPUT_SERVICE_EXCEPTION ||
-        ret == INPUT_DEVICE_NOT_SUPPORTED) ? 1 : 0, &result);
+    napi_create_int32(env, (retResult == INPUT_SUCCESS || retResult == INPUT_SERVICE_EXCEPTION ||
+        retResult == INPUT_DEVICE_NOT_SUPPORTED) ? 1 : 0, &result);
     return result;
 }
 
@@ -90,7 +90,7 @@ static napi_value RequestInjection1(napi_env env, napi_callback_info info)
 {
     napi_value result;
 
-    auto fnCallBack = [](Input_InjectionStatus authorizedStatus){
+    auto fnCallBack = [](Input_InjectionStatus authorizedStatus) {
         OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_RequestInjection_0100 authorizedStatus:%{public}d", authorizedStatus);
     };
     Input_Result retResult = OH_Input_RequestInjection(fnCallBack);
@@ -135,7 +135,7 @@ static napi_value InjectMouseEventGlobal2(napi_env env, napi_callback_info info)
     struct Input_MouseEvent* mouseEvent = OH_Input_CreateMouseEvent();
     OH_Input_SetMouseEventGlobalX(mouseEvent, 100);
     int32_t globalX = OH_Input_GetMouseEventGlobalX(mouseEvent);
-    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectMouseEventGlobal_0200 retResult:%{public}d", retResult);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectMouseEventGlobal_0200 globalX:%{public}d", globalX);
     napi_create_int32(env, (mouseEvent != nullptr && globalX == 100) ? 1 : 0, &result);
     OH_Input_DestroyMouseEvent(&mouseEvent);
     return result;
@@ -148,7 +148,7 @@ static napi_value InjectMouseEventGlobal3(napi_env env, napi_callback_info info)
     struct Input_MouseEvent* mouseEvent = OH_Input_CreateMouseEvent();
     OH_Input_SetMouseEventGlobalY(mouseEvent, 100);
     int32_t globalY = OH_Input_GetMouseEventGlobalY(mouseEvent);
-    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectMouseEventGlobal_0300 retResult:%{public}d", retResult);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectMouseEventGlobal_0300 globalY:%{public}d", globalY);
     napi_create_int32(env, (mouseEvent != nullptr && globalY == 100) ? 1 : 0, &result);
     OH_Input_DestroyMouseEvent(&mouseEvent);
     return result;

@@ -41,11 +41,11 @@ static napi_value QueryMaxTouchPoints2(napi_env env, napi_callback_info info)
     napi_value result;
 
     int32_t count;
-    int32_t MIN_COUNT = -1;
-    int32_t MAX_COUNT =10;
+    int32_t minCount = -1;
+    int32_t maxCount = 10;
     Input_Result retResult = OH_Input_QueryMaxTouchPoints(&count);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_QueryMaxTouchPoints_0200 retResult:%{public}d", retResult);
-    napi_create_int32(env, (retResult == INPUT_SUCCESS && (count >= MIN_COUNT && count <= MAX_COUNT)) ? 1 : 0, &result);
+    napi_create_int32(env, (retResult == INPUT_SUCCESS && (count >= minCount && count <= maxCount)) ? 1 : 0, &result);
     return result;
 }
 
@@ -60,7 +60,7 @@ static napi_value InjectTouchEventGlobal1(napi_env env, napi_callback_info info)
     int32_t retResult = OH_Input_InjectTouchEventGlobal(touchEvent);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0100 retResult:%{public}d", retResult);
     napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
-    OH_Input_DestroyTouchEvent(&touchEvent)
+    OH_Input_DestroyTouchEvent(&touchEvent);
     return result;
 }
 
@@ -71,9 +71,9 @@ static napi_value InjectTouchEventGlobal2(napi_env env, napi_callback_info info)
     struct Input_TouchEvent* touchEvent = OH_Input_CreateTouchEvent();
     OH_Input_SetTouchEventGlobalX(touchEvent, 100);
     int32_t globalX = OH_Input_GetTouchEventGlobalX(touchEvent);
-    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0200 retResult:%{public}d", retResult);
-    napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
-    OH_Input_DestroyTouchEvent(&touchEvent)
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0200 globalX:%{public}d", globalX);
+    napi_create_int32(env, (touchEvent != nullptr && globalX == 100) ? 1 : 0, &result);
+    OH_Input_DestroyTouchEvent(&touchEvent);
     return result;
 }
 
@@ -84,9 +84,9 @@ static napi_value InjectTouchEventGlobal3(napi_env env, napi_callback_info info)
     struct Input_TouchEvent* touchEvent = OH_Input_CreateTouchEvent();
     OH_Input_SetTouchEventGlobalY(touchEvent, 100);
     int32_t globalY = OH_Input_GetTouchEventGlobalY(touchEvent);
-    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0300 retResult:%{public}d", retResult);
-    napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
-    OH_Input_DestroyTouchEvent(&touchEvent)
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0300 globalY:%{public}d", globalY);
+    napi_create_int32(env, (touchEvent != nullptr && globalY == 100) ? 1 : 0, &result);
+    OH_Input_DestroyTouchEvent(&touchEvent);
     return result;
 }
 
@@ -100,7 +100,7 @@ static napi_value AxisEventGlobal1(napi_env env, napi_callback_info info)
     Input_Result retResult = OH_Input_GetAxisEventGlobalX(axisEvent, &globalX);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_AxisEventGlobal_0100 retResult:%{public}d", retResult);
     napi_create_int32(env, (globalX == 100 && retResult == INPUT_SUCCESS) ? 1 : 0, &result);
-    OH_Input_DestroyAxisEvent(&axisEvent)
+    OH_Input_DestroyAxisEvent(&axisEvent);
     return result;
 }
 
@@ -109,12 +109,12 @@ static napi_value AxisEventGlobal2(napi_env env, napi_callback_info info)
     napi_value result;
 
     struct Input_AxisEvent* axisEvent = OH_Input_CreateAxisEvent();
-    OH_Input_SetAxisEventGlobalY(axisEvent, 100);
+    OH_Input_SetAxisEventGlobalY(axisEvent, 99);
     int32_t globalY;
     Input_Result retResult = OH_Input_GetAxisEventGlobalY(axisEvent, &globalY);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_AxisEventGlobal_0200 retResult:%{public}d", retResult);
-    napi_create_int32(env, (globalY == 100 && retResult == INPUT_SUCCESS) ? 1 : 0, &result);
-    OH_Input_DestroyAxisEvent(&axisEvent)
+    napi_create_int32(env, (globalY == 99 && retResult == INPUT_SUCCESS) ? 1 : 0, &result);
+    OH_Input_DestroyAxisEvent(&axisEvent);
     return result;
 }
 
