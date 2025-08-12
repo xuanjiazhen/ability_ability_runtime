@@ -262,8 +262,9 @@ napi_value OhNnQuantParamCode(napi_env env, napi_callback_info info)
     uint32_t numBits = 8;
     double scale = 0.f;
     int32_t zeroPoint = 0;
-    OH_NN_QuantParam quantParam = 
-        {.quantCount = quantCount, .numBits = &numBits, .scale = &scale, .zeroPoint = &zeroPoint};
+    OH_NN_QuantParam quantParam = {
+        .quantCount = quantCount, .numBits = &numBits, .scale = &scale, .zeroPoint = &zeroPoint
+    };
     OH_NNModel *model = OH_NNModel_Construct();
     OH_NN_Tensor operand{OH_NN_FLOAT32, 3, dimensions, &quantParam, OH_NN_TENSOR};
     auto ret = OH_NNModel_AddTensor(model, &operand);
@@ -283,7 +284,7 @@ napi_value OhNnMemoryCode(napi_env env, napi_callback_info info)
     OH_NNCompilation *compilation = OH_NNCompilation_Construct(model);
     OH_NNExecutor *executor = OH_NNExecutor_Construct(compilation);
     uint32_t inputIndex = 1;
-    OH_NN_Memory* ohnnmemory = new OH_NN_Memory{data,length};
+    OH_NN_Memory* ohnnmemory = new OH_NN_Memory{data, length};
     try {
         OH_NNExecutor_DestroyInputMemory(executor, inputIndex, &ohnnmemory);
         napi_value napiRet;
