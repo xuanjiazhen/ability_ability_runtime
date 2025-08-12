@@ -42,13 +42,14 @@ export default function basicabilityapi() {
                         uri: 'pages/index/index'
                     });
                     resolve();
-                }, 500);
+                }, 1500);
             });
             let clearPromise = new Promise((resolve, reject) => {
                 setTimeout(() => {
                     router.clear();
+                      console.info('backIndexSuccess');
                     resolve();
-                }, 500);
+                }, 1500);
             });
             await backToIndexPromise.then(() => {
                 return clearPromise;
@@ -61,7 +62,7 @@ export default function basicabilityapi() {
          * @tc.desc      Cancel the repetitive timing tasks previously set by setInterval.
          */
         it('testClearInterval', Level.LEVEL0, async function(done) {
-            console.info('testClearInterval START');
+            console.info('testClearInterval yangrong START');
             let res = 0;
             let intervalID = -1;
             let promise1 = new Promise((resolve, reject) => {
@@ -139,6 +140,7 @@ export default function basicabilityapi() {
             });
             await backToIndex();
             console.info('testRouterPush END');
+            console.info('testRouterPush ENDx');
             done();
         });
 
@@ -148,8 +150,11 @@ export default function basicabilityapi() {
          * @tc.desc      Test push not exist page.
          */
         it('testRouterPushNotExist', Level.LEVEL0, async function (done) {
-            console.info('testRouterPushNotExist START');
+            // console.info('testRouterPushNotExist START');
+             console.info('testRouterPushNotExist START');
+
             let promise1 = new Promise((resolve, reject) => {
+                console.info('testRouterPushNotExist 2clear');
                 router.push({
                     uri: 'pages/routerNotExist/index'
                 });
@@ -164,7 +169,7 @@ export default function basicabilityapi() {
                     expect("1").assertEqual(router.getLength());
                     console.info('testRouterPushNotExist success');
                     resolve();
-                }, 500);
+                }, 1500);
             });
             await promise1.then(() => {
                 return promise2;
@@ -179,7 +184,7 @@ export default function basicabilityapi() {
          * @tc.desc      Replace the current page with a page in the application, and destroy the replaced page.
          */
         it('testRouterReplace', Level.LEVEL0, async function (done) {
-            console.info('testRouterReplace START');
+            console.info('testRouterReplace01 START');
             let options = {
                 uri : 'pages/routerPush/index'
             }
@@ -191,14 +196,19 @@ export default function basicabilityapi() {
                 uri : 'pages/routerReplace/index'
             }
             let promise2 = new Promise((resolve, reject) => {
+
+                console.info("testRouterReplace 3x");
                 setTimeout(() => {
+                    console.info("testRouterReplace 1");
                     router.replace(repleasePage);
                     resolve();
-                }, 500);
+                }, 1500);
+
             });
             //替换堆栈数量不会变
             let promise3 = new Promise((resolve, reject) => {
                 setTimeout(() => {
+                    console.info("testRouterReplace 4x");
                     let pages = router.getState();
                     console.info("[router.replace] getState" + JSON.stringify(pages));
                     expect("pages/routerReplace/").assertEqual(pages.path);
@@ -206,7 +216,7 @@ export default function basicabilityapi() {
                     expect("2").assertEqual(router.getLength());
                     console.info('testRouterReplace SUCCESS');
                     resolve();
-                }, 1000);
+                }, 2000);
             });
             await promise1.then(() => {
                 return promise2;
@@ -229,7 +239,7 @@ export default function basicabilityapi() {
                 router.replace({
                     uri: 'pages/routerNotExist/index'
                 });
-            }, 500);
+            }, 2500);
             await setTimeout(() => {
                 let pages = router.getState();
                 console.info("testRouterReplaceNotExist getState" + JSON.stringify(pages));
@@ -238,7 +248,7 @@ export default function basicabilityapi() {
                 expect("1").assertEqual(router.getLength());
                 console.info('testRouterReplaceNotExist END');
                 done();
-            }, 1000);
+            }, 2000);
         });
 
         /**
@@ -260,7 +270,7 @@ export default function basicabilityapi() {
                         uri: 'pages/index/index'
                     });
                     resolve();
-                }, 500);
+                }, 2000);
             });
             let promise3 = new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -271,7 +281,7 @@ export default function basicabilityapi() {
                     expect("1").assertEqual(router.getLength());
                     console.info('testRouterBack SUCCESS');
                     resolve();
-                }, 1000);
+                }, 4000);
             });
             await promise1.then(() => {
                 return promise2;
@@ -334,7 +344,7 @@ export default function basicabilityapi() {
          * @tc.desc      Get the status information of the current page.
          */
         it('testRouterGetState', Level.LEVEL0, async function (done) {
-            console.info('testRouterGetState START');
+            console.info('[jyl] testRouterGetState START');
             await setTimeout(() => {
                 let page = router.getState();
                 console.info('[router.getState] index: ' + page.index);
@@ -345,7 +355,7 @@ export default function basicabilityapi() {
                 expect(page.path).assertEqual('pages/index/');
                 console.info('testRouterGetState END');
                 done();
-            }, 500);
+            }, 2000);
         });
 
         /**
@@ -526,3 +536,4 @@ export default function basicabilityapi() {
         });
     });
 }
+
