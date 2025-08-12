@@ -119,6 +119,10 @@ int32_t PendingWantRecord::ExecuteOperation(
             break;
         case static_cast<int32_t>(OperationType::START_ABILITIES): {
             std::vector<WantsInfo> allWantsInfos = key_->GetAllWantsInfos();
+            if (allWantsInfos.size() == 0) {
+                TAG_LOGI(AAFwkTag::WANTAGENT, "no want info");
+                return ERR_OK;
+            }
             allWantsInfos.back().want = want;
             res = pendingWantManager->PendingWantStartAbilitys(
                 allWantsInfos, senderInfo.startOptions, senderInfo.callerToken, -1, callerUid_, callerTokenId_);
