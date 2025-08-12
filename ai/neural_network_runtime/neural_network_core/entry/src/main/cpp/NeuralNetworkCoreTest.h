@@ -73,6 +73,9 @@ napi_value NNOperationType_OpsExpandDimsA(napi_env env, napi_callback_info info)
 napi_value NNDataTypeCommonTest(napi_env env, napi_callback_info info);
 napi_value NNOperationTypeCommonTest(napi_env env, napi_callback_info info);
 napi_value NNDeviceTypeCommonTest(napi_env env, napi_callback_info info);
+napi_value HandleTensorOperations(napi_env env, napi_callback_info info);
+napi_value OhNnQuantParamCode(napi_env env, napi_callback_info info);
+napi_value OhNnMemoryCode(napi_env env, napi_callback_info info);
 
 template <class T>
 class TestOptional {

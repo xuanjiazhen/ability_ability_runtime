@@ -67,3 +67,6 @@ export const NNOperationType_OpsExpandDimsA: () => number;
 export const NNDataTypeCommonTest: (opType: string, neelModel: boolean) => number;
 export const NNOperationTypeCommonTest: (opType: string, neelModel: boolean) => number;
 export const NNDeviceTypeCommonTest: (opType: string) => number;
+export const HandleTensorOperations: (a:number) => number;
+export const OhNnQuantParamCode: () => number;
+export const OhNnMemoryCode: () => number;
