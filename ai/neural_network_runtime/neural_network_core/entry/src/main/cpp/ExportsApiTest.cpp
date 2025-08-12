@@ -96,6 +96,12 @@ static void AddDescToDescVectorTwo(std::vector<napi_property_descriptor>& desc)
         nullptr, nullptr, nullptr, napi_default, nullptr});
     desc.push_back({"NNDeviceTypeCommonTest", nullptr, NNDeviceTypeCommonTest,
         nullptr, nullptr, nullptr, napi_default, nullptr});
+    desc.push_back({"HandleTensorOperations", nullptr, HandleTensorOperations,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    desc.push_back({"OhNnQuantParamCode", nullptr, OhNnQuantParamCode,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
+    desc.push_back({"OhNnMemoryCode", nullptr, OhNnMemoryCode,
+        nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 EXTERN_C_START
