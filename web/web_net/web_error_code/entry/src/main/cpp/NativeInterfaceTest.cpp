@@ -739,7 +739,6 @@ static napi_value WebStructCookieManagerAPI(napi_env env, napi_callback_info inf
     return result;
 }
 
-
 static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI start..");
@@ -760,6 +759,105 @@ static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info i
     napi_value result;
     napi_create_int32(env, 0, &result);
     OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI end..");
+    return result;
+}
+
+const int32_t MAX_WEB_NAME_SIZE = 32;
+static void GetTestCase(napi_env &env, napi_callback_info &info, char* webName, int32_t &caseNum)
+{
+    size_t argc = 2;
+    napi_value args[ARGS_INDEX_TWO] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    // 获取第一个参数 webName
+    size_t webNameSize = 0;
+    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
+    if (webNameSize > MAX_WEB_NAME_SIZE) {
+        napi_throw_type_error(env, nullptr, "webName must less than 32");
+        return;
+    }
+    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
+    // 获取第二个参数 caseNum
+    napi_valuetype valuetype;
+    napi_typeof(env, args[ARGS_INDEX_ONE], &valuetype);
+    if (valuetype != napi_number) {
+        napi_throw_type_error(env, nullptr, "Argument must be a number");
+        return;
+    }
+    napi_get_value_int32(env, args[ARGS_INDEX_ONE], &caseNum);
+    return;
+}
+
+static napi_value WebRegisterJSProxy(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebRegJSProxy start..");
+    char webName[MAX_WEB_NAME_SIZE] = {0};
+    int32_t caseNum = -1;
+    GetTestCase(env, info, webName, caseNum);
+
+    ArkWeb_ProxyObjectWithResult proxyObject = {0};
+    proxyObject.objName = "registerForTest";
+    ArkWeb_ProxyMethodWithResult method = {"test", nullptr, nullptr};
+    proxyObject.size = 1;
+    proxyObject.methodList = &method;
+    const char* permission = "all";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, permission);
+            break;
+        case CASE_NUM_1:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, nullptr);
+            break;
+        case CASE_NUM_2:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, nullptr, permission);
+            break;
+        case CASE_NUM_3:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy("newTest", &proxyObject, permission);
+            break;
+        case CASE_NUM_4:
+            proxyObject.size = 0;
+            proxyObject.methodList = nullptr;
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, permission);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebRegJSProxy end..");
+    return result;
+}
+
+static napi_value WebClearBlankCache(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebClearBlankCache start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    const uint32_t keyArrayLen = 100;
+    const char* key[] = {"web0731", "new", "xxxxx"};
+    const char* tempKey[keyArrayLen + 1] = {nullptr};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(nullptr, 0);
+            break;
+        case CASE_NUM_1:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(key, sizeof(key) / sizeof(key[0]));
+            break;
+        case CASE_NUM_2:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(tempKey, keyArrayLen);
+            break;
+        case CASE_NUM_3:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(tempKey, keyArrayLen + 1);
+            break;
+        case CASE_NUM_4:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(nullptr, sizeof(key) / sizeof(key[0]));
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebClearBlankCache end..");
     return result;
 }
 
@@ -792,6 +890,8 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"WebStructJavaScriptValueAPI", nullptr, WebStructJavaScriptValueAPI, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"WebRegisterJSProxy", nullptr, WebRegisterJSProxy, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebClearBlankCache", nullptr, WebClearBlankCache, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
