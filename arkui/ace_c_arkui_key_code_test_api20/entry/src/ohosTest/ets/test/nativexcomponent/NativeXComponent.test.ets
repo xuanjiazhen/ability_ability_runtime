@@ -675,6 +675,48 @@ export default function NativeXComponent() {
       }
     })
     /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0100
+     * @tc.name    : testRegisterOnTouchInterceptCallback001
+     * @tc.desc    : Test native xcomopnent register ui input event callback works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testRegisterOnTouchInterceptCallback001', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0100 start<====`);
+        let Result: number = nativexcomponent.RegisterOnTouchInterceptCallback001();
+        expect(ARKUI_ERROR_CODE_NO_ERROR).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0200
+     * @tc.name    : testRegisterOnTouchInterceptCallback002
+     * @tc.desc    : Test native xcomopnent register ui input event callback invalid.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testRegisterOnTouchInterceptCallback002', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0200 start<====`);
+        let Result: number = nativexcomponent.RegisterOnTouchInterceptCallback002();
+        expect(ARKUI_ERROR_CODE_PARAM_INVALID).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_REGISTERONTOUCHINTERCEPTCALLBACK_0200 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
      * @tc.number  : SUB_ARKUI_ACE_ENGINE_OH_NATIVEXCOMPONENT_GETNATIVEACCESSIBILITYPROVIDER_0100
      * @tc.name    : testGetNativeAccessibilityProvider001
      * @tc.desc    : Test native xcomopnent get native accessibilityprovider works.

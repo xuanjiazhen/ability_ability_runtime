@@ -101,8 +101,9 @@ napi_value GetTouchPointDisplayX(napi_env env, napi_callback_info info)
     if (isNullptr) {
         result = OH_NativeXComponent_GetTouchPointDisplayX(nullptr, 0, &point) ==
                                                           PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
-        result = OH_NativeXComponent_GetTouchPointDisplayX(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
-                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointDisplayX(XComponent.GetXComponent(),
+                                                           0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointDisplayX(XComponent.GetXComponent(), 0, &point);
     }
@@ -132,8 +133,9 @@ napi_value GetTouchPointDisplayY(napi_env env, napi_callback_info info)
     if (isNullptr) {
         result = OH_NativeXComponent_GetTouchPointDisplayY(nullptr, 0, &point) ==
                                                           PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
-        result = OH_NativeXComponent_GetTouchPointDisplayY(XComponent.GetXComponent(), 0, nullptr) == PARAM_NEGATIVE_2 &&
-                                                          result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
+        result = OH_NativeXComponent_GetTouchPointDisplayY(XComponent.GetXComponent(),
+                                                           0, nullptr) == PARAM_NEGATIVE_2 &&
+                                                           result == PARAM_NEGATIVE_2 ? PARAM_NEGATIVE_2 : 0;
     } else {
         result = OH_NativeXComponent_GetTouchPointDisplayY(XComponent.GetXComponent(), 0, &point);
     }
@@ -500,9 +502,11 @@ napi_value TouchPointType(napi_env env, napi_callback_info info)
     napi_value retValue = 0;
     int32_t result = 0;
     OH_NativeXComponent_TouchPoint tempTouchPoint = g_touchPointMap[true];
-    result = OH_NativeXComponent_TouchEventType(tempTouchPoint.type) >= 0 && OH_NativeXComponent_TouchEventType(tempTouchPoint.type) < 5;
+    result = tempTouchPoint.type >= OH_NATIVEXCOMPONENT_DOWN &&
+             tempTouchPoint.type <= OH_NATIVEXCOMPONENT_UNKNOWN;
     tempTouchPoint = g_touchPointMap[false];
-    result = OH_NativeXComponent_TouchEventType(tempTouchPoint.type) >= 0 && OH_NativeXComponent_TouchEventType(tempTouchPoint.type) < 5 && result;
+    result = tempTouchPoint.type >= OH_NATIVEXCOMPONENT_DOWN &&
+             tempTouchPoint.type <= OH_NATIVEXCOMPONENT_UNKNOWN && result;
     g_touchPointMap.clear();
     napi_create_int32(env, result, &retValue);
     return retValue;
