@@ -184,7 +184,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Int8Array(arrayLike)
-        expect(Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
         expect(arr.buffer.byteLength).assertEqual(3)
         expect(arr.byteLength).assertEqual(3)
         expect(arr.byteOffset).assertEqual(0)
@@ -213,7 +213,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Int16Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Int16Array.BYTES_PER_ELEMENT).assertEqual(2)
         expect(arr.buffer.byteLength).assertEqual(6)
         expect(arr.byteLength).assertEqual(6)
         expect(arr.byteOffset).assertEqual(0)
@@ -242,7 +242,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Uint16Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Uint16Array.BYTES_PER_ELEMENT).assertEqual(2)
         expect(arr.buffer.byteLength).assertEqual(6)
         expect(arr.byteLength).assertEqual(6)
         expect(arr.byteOffset).assertEqual(0)
@@ -271,7 +271,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Int32Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Int32Array.BYTES_PER_ELEMENT).assertEqual(4)
         expect(arr.buffer.byteLength).assertEqual(12)
         expect(arr.byteLength).assertEqual(12)
         expect(arr.byteOffset).assertEqual(0)
@@ -300,7 +300,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Uint32Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Uint32Array.BYTES_PER_ELEMENT).assertEqual(4)
         expect(arr.buffer.byteLength).assertEqual(12)
         expect(arr.byteLength).assertEqual(12)
         expect(arr.byteOffset).assertEqual(0)
@@ -328,7 +328,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Float32Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Float32Array.BYTES_PER_ELEMENT).assertEqual(4)
         expect(arr.buffer.byteLength).assertEqual(12)
         expect(arr.byteLength).assertEqual(12)
         expect(arr.byteOffset).assertEqual(0)
@@ -357,7 +357,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Uint8Array(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Uint8Array.BYTES_PER_ELEMENT).assertEqual(1)
         expect(arr.buffer.byteLength).assertEqual(3)
         expect(arr.byteLength).assertEqual(3)
         expect(arr.byteOffset).assertEqual(0)
@@ -387,7 +387,7 @@ export default function collectionsAddTest() {
         console.info(`${caseName} test start`);
         let arrayLike = [1, 2, 3];
         let arr = new collections.Uint8ClampedArray(arrayLike)
-        expect(collections.Int8Array.BYTES_PER_ELEMENT).assertEqual(1)
+        expect(collections.Uint8ClampedArray.BYTES_PER_ELEMENT).assertEqual(1)
         expect(arr.buffer.byteLength).assertEqual(3)
         expect(arr.byteLength).assertEqual(3)
         expect(arr.byteOffset).assertEqual(0)

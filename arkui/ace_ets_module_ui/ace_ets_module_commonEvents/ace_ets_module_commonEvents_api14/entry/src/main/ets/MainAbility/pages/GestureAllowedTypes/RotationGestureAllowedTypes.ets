@@ -18,14 +18,17 @@ struct RotationGestureAllowedTypes {
   @State types: Array<SourceTool | undefined | null> = [];
   @State result: string = 'allowed types default';
   @State angle: number = 0;
+
   build() {
-    Column({space: 10}) {
+    Column() {
       Column() {
         Text('RotationGesture').fontSize(20)
       }
       .rotate({ angle: this.angle })
-      .width(160).height(160)
-      .backgroundColor(Color.Yellow).key('RotationGestureAllowedTypes_Text')
+      .width('90%')
+      .height('10%')
+      .backgroundColor(Color.Yellow)
+      .key('RotationGestureAllowedTypes_Text')
       .gesture(
         RotationGesture()
           .allowedTypes(this.types)
@@ -52,10 +55,16 @@ struct RotationGestureAllowedTypes {
           this.types = [SourceTool.Finger];
         })
       Button('Invalid').id('Invalid_type')
-          .onClick(() => {
-            this.result = 'allowed types default';
-            this.types = [null, undefined];
-          })
-    }.padding({top: 10, left:40 }).alignItems(HorizontalAlign.Start).width('100%').height('100%').backgroundColor('#ffbebaba').key('RotationGestureAllowedTypes_Father')
+        .onClick(() => {
+          this.result = 'allowed types default';
+          this.types = [null, undefined];
+        })
+    }
+    .padding({ top: 10, left: 40 })
+    .alignItems(HorizontalAlign.Start)
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#ffbebaba')
+    .key('RotationGestureAllowedTypes_Father')
   }
 }

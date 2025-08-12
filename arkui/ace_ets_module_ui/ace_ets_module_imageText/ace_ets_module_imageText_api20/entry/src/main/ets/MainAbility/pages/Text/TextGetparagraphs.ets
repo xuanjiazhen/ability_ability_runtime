@@ -207,12 +207,15 @@ struct MeasureUtilsGetParagraphs {
             console.log('获取返回所有的文本行:' + JSON.stringify(paragraphArr[0].getTextLines()))
             console.log('获取指定行的实际可见文本范围，不包括溢出的省略号:' + JSON.stringify(paragraphArr[0].getActualTextRange(0, true)))
             console.log('获取文本行的行度量数组:' + JSON.stringify(paragraphArr[0].getLineMetrics()))
-            console.log('获取特定行号的行度量信息:' + JSON.stringify(paragraphArr[0].getLineMetrics(0)))
-            console.log('获取特定行号的行度量信息-runMetrics:' + paragraphArr[0].getLineMetrics(0).runMetrics.toString())
-            let map = paragraphArr[0].getLineMetrics(0).runMetrics as Map<string, string>;
-            map.forEach((value, key) => {
-              console.log('获取-----key:' + key + ',value:' + JSON.stringify(value))
-            })
+            let lineMetric : LineMetrics | undefined = paragraphArr[0].getLineMetrics(0)
+            if (lineMetric) {
+              console.log('获取特定行号的行度量信息:' + JSON.stringify(lineMetric))
+              console.log('获取特定行号的行度量信息-runMetrics:' + lineMetric.runMetrics.toString())
+              let map : Map<number, text.RunMetrics> = lineMetric.runMetrics;
+              map.forEach((value, key) => {
+                console.log('获取-----key:' + key + ',value:' + JSON.stringify(value))
+              })
+            }
           })
         Divider().strokeWidth(8).color(Color.Black).height('1%')
         Text('排版后').height('5%')

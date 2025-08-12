@@ -3791,19 +3791,21 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
     it('testClientToGlobalDisplaywithPositionOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
       const caseName = 'testClientToGlobalDisplaywithPositionOutofRange';
       console.log(caseName + 'begin.');
-      let windowStageStart = await startAbility(caseName, context);
-      let windowClass = windowStageStart.getMainWindowSync();
-      await windowClass.destroyWindow()
+      let windowClass = await windowStage.createSubWindow('testClientToGlobalDisplaywithPositionOutofRange')
+      await windowClass.setUIContent('testability/pages/First/index2');
+      await windowClass.showWindow();
+      windowClass.moveWindowToAsync(50,50);
+      await sleep(1000);
       try {
         const maxInt = 2**31 -1;
         let position = windowClass.clientToGlobalDisplay(maxInt, maxInt);
         console.log(caseName + ' position: ' + JSON.stringify(position));
-        await terminateAbility(caseName);
+        await windowClass.destroyWindow();
         expect().assertFail();
         done();
       } catch (err) {
         console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
-        await terminateAbility(caseName);
+        await windowClass.destroyWindow();
         if (err.code == 801) {
           done()
         } else {

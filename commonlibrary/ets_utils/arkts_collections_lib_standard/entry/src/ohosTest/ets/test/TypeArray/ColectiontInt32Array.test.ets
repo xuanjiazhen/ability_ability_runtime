@@ -29,7 +29,7 @@ export function testTypeArray(index: number, arr: collections.Int32Array) {
   let tag = 'testTypeArray'
   try {
     for (let i = 0; i < 10; i++) {
-      arr.copyWithin(2,1,2)
+      arr.copyWithin(2, 1, 2)
       arr.join('')
       arr.slice(1)
       arr.sort()
@@ -45,7 +45,7 @@ export function testTypeArray2(index: number, arr: collections.Uint16Array) {
   let tag = 'testTypeArray2'
   try {
     for (let i = 0; i < 10; i++) {
-      arr.copyWithin(2,1,2)
+      arr.copyWithin(2, 1, 2)
       arr.join('')
       arr.slice(1)
       arr.sort()
@@ -63,6 +63,7 @@ async function asyncSleep(time: number) {
     }, time)
   })
 }
+
 export default function ColectiontInt32Array() {
   describe('ColectiontInt32Array', () => {
     beforeEach(async () => {
@@ -96,7 +97,7 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.copyWithin(3,1,3)
+            arr.copyWithin(3, 1, 3)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -180,7 +181,7 @@ export default function ColectiontInt32Array() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_0400
      * @tc.name      : CollectionsInt32ArrayTest0400
@@ -385,7 +386,8 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');;
+            arr.reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');
+            ;
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -421,7 +423,44 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduce((accumulator: number, value: number) => accumulator + value, 1);;
+            arr.reduce((accumulator: number, value: number) => accumulator + value, 1);
+            ;
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_09011
+     * @tc.name      : CollectionsInt32ArrayTest09011
+     * @tc.desc      : TypeArray reduce 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsInt32ArrayTest09011', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsInt32ArrayTest09011';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Int32Array = new collections.Int32Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.reduce((accumulator: number, value: number) => accumulator + value);
+            ;
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -505,7 +544,7 @@ export default function ColectiontInt32Array() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_1200
      * @tc.name      : CollectionsInt32ArrayTest1200
@@ -685,7 +724,7 @@ export default function ColectiontInt32Array() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_1600
      * @tc.name      : CollectionsInt32ArrayTest1600
@@ -889,7 +928,7 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduceRight<number>((accumulator: number, value: number) => accumulator + value,1);
+            arr.reduceRight<number>((accumulator: number, value: number) => accumulator + value, 1);
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -901,7 +940,7 @@ export default function ColectiontInt32Array() {
         console.info(`${caseName} test end`);
         done()
       })
-    
+
     /**
      * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_2200
      * @tc.name      : CollectionsInt32ArrayTest2200
@@ -975,6 +1014,42 @@ export default function ColectiontInt32Array() {
       })
 
     /**
+     * @tc.number    : SUB_COLLECTION_INT32ARRAY_TEST_2400
+     * @tc.name      : CollectionsInt32ArrayTest2400
+     * @tc.desc      : TypeArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsInt32ArrayTest2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsInt32ArrayTest2400';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Int32Array = new collections.Int32Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.lastIndexOf(0, 0);
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+
+    /**
      * @tc.number    : SUB_COLLECTION_UINT16ARRAY_TEST_0100
      * @tc.name      : CollectionsUint16ArrayTest0100
      * @tc.desc      : TypeArray join 10200201
@@ -997,7 +1072,7 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.copyWithin(3,1,3)
+            arr.copyWithin(3, 1, 3)
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1286,7 +1361,8 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');;
+            arr.reduce<string>((accumulator: string, value: number) => accumulator + value, 'initialValue');
+            ;
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1322,7 +1398,8 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduce((accumulator: number, value: number) => accumulator + value, 1);;
+            arr.reduce((accumulator: number, value: number) => accumulator + value, 1);
+            ;
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1790,7 +1867,7 @@ export default function ColectiontInt32Array() {
             })
           }
           for (let i = 0; i < 100; i++) {
-            arr.reduceRight<number>((accumulator: number, value: number) => accumulator + value,1);
+            arr.reduceRight<number>((accumulator: number, value: number) => accumulator + value, 1);
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
@@ -1863,6 +1940,149 @@ export default function ColectiontInt32Array() {
           }
           for (let i = 0; i < 100; i++) {
             arr.toLocaleString();
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COLLECTION_UINT16ARRAY_TEST_2400
+     * @tc.name      : CollectionsUint16ArrayTest2400
+     * @tc.desc      : TypeArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsUint16ArrayTest2400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsUint16ArrayTest2400';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Uint16Array = new collections.Uint16Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray2, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.fill(1);
+            arr.fill(1, 0);
+            arr.fill(1, 0, 2);
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COLLECTION_UINT16ARRAY_TEST_2500
+     * @tc.name      : CollectionsUint16ArrayTest2500
+     * @tc.desc      : TypeArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsUint16ArrayTest2500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsUint16ArrayTest2500';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Uint16Array = new collections.Uint16Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray2, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.forEach(() => {
+            });
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COLLECTION_UINT16ARRAY_TEST_2600
+     * @tc.name      : CollectionsUint16ArrayTest2600
+     * @tc.desc      : TypeArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsUint16ArrayTest2600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsUint16ArrayTest2600';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Uint16Array = new collections.Uint16Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray2, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.reduce((accumulator: number, value: number) => accumulator + value);
+          }
+        } catch (e) {
+          console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);
+          expect(e.code).assertEqual(10200201)
+        }
+        while (count < 100) {
+          await asyncSleep(100)
+        }
+        console.info(`${caseName} test end`);
+        done()
+      })
+    /**
+     * @tc.number    : SUB_COLLECTION_UINT16ARRAY_TEST_2700
+     * @tc.name      : CollectionsUint16ArrayTest2700
+     * @tc.desc      : TypeArray toLocaleString 10200201
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level 0
+     */
+    it('CollectionsUint16ArrayTest2700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0,
+      async (done: () => void): Promise<void> => {
+        const caseName = 'CollectionsUint16ArrayTest2700';
+        console.info(`${caseName} test start`);
+        let count = 0;
+        let arr: collections.Uint16Array = new collections.Uint16Array(12);
+        try {
+          for (let i = 0; i < 100; i++) {
+            taskpool.execute(testTypeArray2, i, arr).then(() => {
+              count++
+            }).catch((e: BusinessError) => {
+              console.info(`${caseName} Task execution catch: ${e.message}, code: ${e.code}`);
+            })
+          }
+          for (let i = 0; i < 100; i++) {
+            arr.lastIndexOf(0, 0);
           }
         } catch (e) {
           console.info(`${caseName} Task execution failed with error: ${e.message}, code: ${e.code}`);

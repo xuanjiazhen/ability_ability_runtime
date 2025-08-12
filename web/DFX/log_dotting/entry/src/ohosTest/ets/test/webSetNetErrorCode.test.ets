@@ -12,39 +12,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { afterEach, beforeAll, beforeEach, describe, it, expect , TestType, Size, Level } from '@ohos/hypium';
-import events_emitter from '@ohos.events.emitter';
+import { beforeAll, beforeEach, describe, it, TestType, Size, Level } from '@ohos/hypium';
 import Utils from './Utils';
 import router from '@ohos.router';
-import emitter from '@ohos.events.emitter';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
 let emitKey = ""
+const EVENT_ID_SET_EIMIT_KEY = 104000;
+const driver = Driver.create();
 
 export default function ActsAceWebSetNetErrorCode() {
   describe('ActsAceWebSetNetErrorCode', () => {
-
     beforeAll(async (done: Function) => {
       let options : router.RouterOptions = {
         url: 'testability/pages/webSetNetErrorCode',
       }
 
       try {
-        await Utils.sleep(1000)
         router.clear();
         let pages = router.getState();
         console.info("get webSetNetErrorCode state success " + JSON.stringify(pages));
         if (!("webSetNetErrorCode" == pages.name)) {
           console.info("get webSetNetErrorCode state success " + JSON.stringify(pages.name));
-          let result = await router.pushUrl(options);
-          await Utils.sleep(1000);
-          console.info("push webSetNetErrorCode state success " + JSON.stringify(result));
+          await router.pushUrl(options);
+          console.info("push webSetNetErrorCode state success");
         }
       } catch (err) {
         console.error("push webSetNetErrorCode page error:" + err);
       }
+      await driver.waitForComponent(ON.id("webSetNetErrorCode"), 10000);
+      console.log("waitForComponent webSetNetErrorCode");
       done()
     });
 
@@ -54,27 +55,6 @@ export default function ActsAceWebSetNetErrorCode() {
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
-      done();
-    })
-
-    afterEach(async (done: Function) => {
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent : events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.error("emit emitKey error:" + JSON.stringify(err));
-      }
-      await Utils.sleep(1000);
       done();
     })
 
@@ -88,9 +68,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_EMPTY_RESPONSE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_EMPTY_RESPONSE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_EMPTY_RESPONSE", true, 1001, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_EMPTY_RESPONSE", true, 104010, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -103,9 +83,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TOO_BIG', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TOO_BIG"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TOO_BIG", true, 1002, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TOO_BIG", true, 104020, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -118,9 +98,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_PAC_SCRIPT_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_PAC_SCRIPT_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_SCRIPT_FAILED", true, 1003, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_SCRIPT_FAILED", true, 104030, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -133,9 +113,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_REQUEST_RANGE_NOT_SATISFIABLE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_REQUEST_RANGE_NOT_SATISFIABLE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_REQUEST_RANGE_NOT_SATISFIABLE", true, 1004, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_REQUEST_RANGE_NOT_SATISFIABLE", true, 104040, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -148,9 +128,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_MALFORMED_IDENTITY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_MALFORMED_IDENTITY"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_MALFORMED_IDENTITY", true, 1005, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_MALFORMED_IDENTITY", true, 104050, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -163,9 +143,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CONTENT_DECODING_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CONTENT_DECODING_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_DECODING_FAILED", true, 1006, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_DECODING_FAILED", true, 104060, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -178,9 +158,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_NETWORK_IO_SUSPENDED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_NETWORK_IO_SUSPENDED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_NETWORK_IO_SUSPENDED", true, 1007, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_NETWORK_IO_SUSPENDED", true, 104070, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -193,9 +173,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_SYN_REPLY_NOT_RECEIVED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_SYN_REPLY_NOT_RECEIVED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_SYN_REPLY_NOT_RECEIVED", true, 1008, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_SYN_REPLY_NOT_RECEIVED", true, 104080, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -208,9 +188,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_ENCODING_CONVERSION_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_ENCODING_CONVERSION_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_ENCODING_CONVERSION_FAILED", true, 1009, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_ENCODING_CONVERSION_FAILED", true, 104090, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -223,9 +203,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT", true, 1010, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT", true, 104100, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -238,9 +218,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_NO_SUPPORTED_PROXIES', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_NO_SUPPORTED_PROXIES"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_NO_SUPPORTED_PROXIES", true, 1011, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_NO_SUPPORTED_PROXIES", true, 104110, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -253,9 +233,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_PROTOCOL_ERROR', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_PROTOCOL_ERROR"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PROTOCOL_ERROR", true, 1012, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PROTOCOL_ERROR", true, 104120, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -268,9 +248,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INVALID_AUTH_CREDENTIALS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INVALID_AUTH_CREDENTIALS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_AUTH_CREDENTIALS", true, 1013, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_AUTH_CREDENTIALS", true, 104130, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -283,9 +263,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_UNSUPPORTED_AUTH_SCHEME', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNSUPPORTED_AUTH_SCHEME"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNSUPPORTED_AUTH_SCHEME", true, 1014, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNSUPPORTED_AUTH_SCHEME", true, 104140, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -298,9 +278,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_ENCODING_DETECTION_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_ENCODING_DETECTION_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_ENCODING_DETECTION_FAILED", true, 1015, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_ENCODING_DETECTION_FAILED", true, 104150, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -313,9 +293,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_MISSING_AUTH_CREDENTIALS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_MISSING_AUTH_CREDENTIALS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_MISSING_AUTH_CREDENTIALS", true, 1016, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_MISSING_AUTH_CREDENTIALS", true, 104160, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -328,9 +308,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS", true, 1017, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS", true, 104170, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -343,9 +323,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_MISCONFIGURED_AUTH_ENVIRONMENT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_MISCONFIGURED_AUTH_ENVIRONMENT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_MISCONFIGURED_AUTH_ENVIRONMENT", true, 1018, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_MISCONFIGURED_AUTH_ENVIRONMENT", true, 104180, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -358,9 +338,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS", true, 1019, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS", true, 104190, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -373,9 +353,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN", true, 1020, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN", true, 104200, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -388,9 +368,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH", true, 1021, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH", true, 104210, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -403,9 +383,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INCOMPLETE_HTTP2_HEADERS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INCOMPLETE_HTTP2_HEADERS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCOMPLETE_HTTP2_HEADERS", true, 1022, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCOMPLETE_HTTP2_HEADERS", true, 104220, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -418,9 +398,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_PAC_NOT_IN_DHCP', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_PAC_NOT_IN_DHCP"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_NOT_IN_DHCP", true, 1023, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_NOT_IN_DHCP", true, 104230, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -433,9 +413,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION", true, 1024, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION", true, 104240, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -448,9 +428,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION", true, 1025, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION", true, 104250, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -463,9 +443,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_SERVER_REFUSED_STREAM', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_SERVER_REFUSED_STREAM"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_SERVER_REFUSED_STREAM", true, 1026, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_SERVER_REFUSED_STREAM", true, 104260, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -478,9 +458,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_PING_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_PING_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PING_FAILED", true, 1027, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PING_FAILED", true, 104270, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -493,9 +473,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CONTENT_LENGTH_MISMATCH', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CONTENT_LENGTH_MISMATCH"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_LENGTH_MISMATCH", true, 1028, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_LENGTH_MISMATCH", true, 104280, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -508,9 +488,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INCOMPLETE_CHUNKED_ENCODING', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INCOMPLETE_CHUNKED_ENCODING"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCOMPLETE_CHUNKED_ENCODING", true, 1029, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCOMPLETE_CHUNKED_ENCODING", true, 104290, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -523,9 +503,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_QUIC_PROTOCOL_ERROR', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_QUIC_PROTOCOL_ERROR"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_PROTOCOL_ERROR", true, 1030, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_PROTOCOL_ERROR", true, 104300, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -538,9 +518,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TRUNCATED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TRUNCATED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TRUNCATED", true, 1031, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_RESPONSE_HEADERS_TRUNCATED", true, 104310, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -553,9 +533,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_QUIC_HANDSHAKE_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_QUIC_HANDSHAKE_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_HANDSHAKE_FAILED", true, 1032, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_HANDSHAKE_FAILED", true, 104320, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -568,9 +548,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY", true, 1033, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY", true, 104330, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -583,9 +563,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_FLOW_CONTROL_ERROR', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_FLOW_CONTROL_ERROR"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_FLOW_CONTROL_ERROR", true, 1034, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_FLOW_CONTROL_ERROR", true, 104340, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -598,9 +578,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_FRAME_SIZE_ERROR', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_FRAME_SIZE_ERROR"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_FRAME_SIZE_ERROR", true, 1035, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_FRAME_SIZE_ERROR", true, 104350, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -613,9 +593,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_COMPRESSION_ERROR', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_COMPRESSION_ERROR"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_COMPRESSION_ERROR", true, 1036, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_COMPRESSION_ERROR", true, 104360, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -628,9 +608,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION", true, 1037, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION", true, 104370, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -643,9 +623,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP_1_1_REQUIRED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP_1_1_REQUIRED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP_1_1_REQUIRED", true, 1038, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP_1_1_REQUIRED", true, 104380, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -658,9 +638,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_PROXY_HTTP_1_1_REQUIRED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_PROXY_HTTP_1_1_REQUIRED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_PROXY_HTTP_1_1_REQUIRED", true, 1039, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_PROXY_HTTP_1_1_REQUIRED", true, 104390, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -673,9 +653,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_PAC_SCRIPT_TERMINATED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_PAC_SCRIPT_TERMINATED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_SCRIPT_TERMINATED", true, 1040, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_PAC_SCRIPT_TERMINATED", true, 104400, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -688,9 +668,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INVALID_HTTP_RESPONSE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INVALID_HTTP_RESPONSE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_HTTP_RESPONSE", true, 1041, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INVALID_HTTP_RESPONSE", true, 104410, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -703,9 +683,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CONTENT_DECODING_INIT_FAILED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CONTENT_DECODING_INIT_FAILED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_DECODING_INIT_FAILED", true, 1042, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CONTENT_DECODING_INIT_FAILED", true, 104420, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -718,9 +698,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED", true, 1043, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED", true, 104430, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -733,9 +713,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE", true, 1044, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE", true, 104440, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -748,9 +728,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER", true, 1045, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER", true, 104450, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -763,9 +743,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_TOO_MANY_RETRIES', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_TOO_MANY_RETRIES"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_RETRIES", true, 1046, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_RETRIES", true, 104460, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -778,9 +758,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_STREAM_CLOSED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_STREAM_CLOSED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_STREAM_CLOSED", true, 1047, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_STREAM_CLOSED", true, 104470, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -793,9 +773,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_CLIENT_REFUSED_STREAM', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_CLIENT_REFUSED_STREAM"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_CLIENT_REFUSED_STREAM", true, 1048, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_CLIENT_REFUSED_STREAM", true, 104480, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -808,9 +788,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH", true, 1049, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH", true, 104490, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -823,9 +803,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_HTTP_RESPONSE_CODE_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_HTTP_RESPONSE_CODE_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP_RESPONSE_CODE_FAILURE", true, 1050, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_HTTP_RESPONSE_CODE_FAILURE", true, 104500, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -838,9 +818,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_QUIC_UNKNOWN_CERT_ROOT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_QUIC_UNKNOWN_CERT_ROOT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_UNKNOWN_CERT_ROOT", true, 1051, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_UNKNOWN_CERT_ROOT", true, 104510, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -853,9 +833,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED", true, 1052, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED", true, 104520, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -868,9 +848,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_TOO_MANY_ACCEPT_CH_RESTARTS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_TOO_MANY_ACCEPT_CH_RESTARTS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_ACCEPT_CH_RESTARTS", true, 1053, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_TOO_MANY_ACCEPT_CH_RESTARTS", true, 104530, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -883,9 +863,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INCONSISTENT_IP_ADDRESS_SPACE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INCONSISTENT_IP_ADDRESS_SPACE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCONSISTENT_IP_ADDRESS_SPACE", true, 1054, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INCONSISTENT_IP_ADDRESS_SPACE", true, 104540, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -898,9 +878,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY", true, 1055, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY", true, 104550, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -913,9 +893,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_MISS', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_MISS"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_MISS", true, 1056, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_MISS", true, 104560, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -928,9 +908,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_READ_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_READ_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_READ_FAILURE", true, 1057, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_READ_FAILURE", true, 104570, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -943,9 +923,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_WRITE_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_WRITE_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_WRITE_FAILURE", true, 1058, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_WRITE_FAILURE", true, 104580, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -958,9 +938,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_OPERATION_UNSUPPORTED', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_OPERATION_UNSUPPORTED"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPERATION_UNSUPPORTED", true, 1059, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPERATION_UNSUPPORTED", true, 104590, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -973,9 +953,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_OPEN_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_OPEN_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPEN_FAILURE", true, 1060, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPEN_FAILURE", true, 104600, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -988,9 +968,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_CREATE_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_CREATE_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CREATE_FAILURE", true, 1061, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CREATE_FAILURE", true, 104610, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1003,9 +983,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_RACE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_RACE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_RACE", true, 1062, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_RACE", true, 104620, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1018,9 +998,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_READ_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_CHECKSUM_READ_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_READ_FAILURE", true, 1063, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_READ_FAILURE", true, 104630, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1033,9 +1013,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_MISMATCH', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_CHECKSUM_MISMATCH"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_MISMATCH", true, 1064, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_CHECKSUM_MISMATCH", true, 104640, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1048,9 +1028,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_LOCK_TIMEOUT', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_LOCK_TIMEOUT"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_LOCK_TIMEOUT", true, 1065, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_LOCK_TIMEOUT", true, 104650, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1063,9 +1043,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_AUTH_FAILURE_AFTER_READ', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_AUTH_FAILURE_AFTER_READ"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_AUTH_FAILURE_AFTER_READ", true, 1066, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_AUTH_FAILURE_AFTER_READ", true, 104660, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1078,9 +1058,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_ENTRY_NOT_SUITABLE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_ENTRY_NOT_SUITABLE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_ENTRY_NOT_SUITABLE", true, 1067, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_ENTRY_NOT_SUITABLE", true, 104670, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1093,9 +1073,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_DOOM_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_DOOM_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_DOOM_FAILURE", true, 1068, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_DOOM_FAILURE", true, 104680, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1108,9 +1088,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_CACHE_OPEN_OR_CREATE_FAILURE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_CACHE_OPEN_OR_CREATE_FAILURE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPEN_OR_CREATE_FAILURE", true, 1069, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_CACHE_OPEN_OR_CREATE_FAILURE", true, 104690, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1123,9 +1103,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_ERR_INSECURE_RESPONSE', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_ERR_INSECURE_RESPONSE"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_ERR_INSECURE_RESPONSE", true, 1070, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_ERR_INSECURE_RESPONSE", true, 104700, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
 
     /*
@@ -1138,9 +1118,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_null', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_null"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_null", true, 1071, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_null", true, 104710, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
     /*
      *@tc.number SUB_ACE_WEB_SET_1000_API_0071
@@ -1152,11 +1132,9 @@ export default function ActsAceWebSetNetErrorCode() {
      */
     it('testWebSetNetErrorCode_1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       emitKey = "emitWebSetNetErrorCode_1000"
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebSetNetErrorCode_1000", true, 1072, done);
-      sendEventByKey('webSetNetErrorCode', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EIMIT_KEY);
+      Utils.registerEvent("testWebSetNetErrorCode_1000", true, 104720, done);
+      Utils.waitAndClickComponent(driver, "webSetNetErrorCode");
     })
-
-
   })
 }

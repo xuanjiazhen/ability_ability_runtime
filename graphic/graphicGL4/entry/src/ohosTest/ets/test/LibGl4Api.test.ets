@@ -73,5 +73,20 @@ export default function gl4ApiTest() {
       expect(result).assertEqual(0);
       done();
     });
+
+    /**
+     * @tc.number     : SUB_GRAPHIC_GRAPHIC_2D_LIBGL4_GLLINESTIPPLE_001
+     * @tc.name       : testGLLineStippleHalfEmpty
+     * @tc.desc       : test glLineStippleHalfEmpty
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 1
+     */
+    it('testGLLineStippleHalfEmpty', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      let result: number = gl4api.glLineStippleHalfEmpty();
+      expect(result).assertEqual(0);
+      done();
+    });
+
   })
 }

@@ -58,7 +58,7 @@ struct PanGestureExample03 {
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Left | PanDirection.Right | PanDirection.All | PanDirection.Horizontal | PanDirection.Vertical})
   build() {
     Column({space:10}) {
-      Text('PanGesture03').fontSize(20).width(160).height(80).margin({left:0,top:0}).padding({left:0,top:0}).backgroundColor(Color.Yellow).key('PanGestureExample03_Click')
+      Text('PanGesture03').fontSize(20).width(320).height(80).margin({left:0,top:0}).padding({left:0,top:0}).backgroundColor(Color.Yellow).key('PanGestureExample03_Click')
         .translate({ x: this.offsetX, y: this.offsetY, z: 0 })
         .gesture(
           PanGesture(this.panOption)

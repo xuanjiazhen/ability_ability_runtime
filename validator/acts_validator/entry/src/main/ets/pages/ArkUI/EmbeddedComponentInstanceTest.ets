@@ -20,7 +20,7 @@ struct EmbeddedComponentInstanceTest {
   @State name: string = 'EmbeddedComponentInstanceTest';
   @State StepTips: string = '测试目的：验证EmbeddedComponentInstance。\n' +
     '\n' +    '操作步骤：将当前窗口最小化\n' +
-    '\n' +	'预期结果：若为PC环境，则页面依次输出"Termination: code = 0, want = undefined"、"EmbeddedUIExtAbility"、"Error: code = 100018";若不为PC环境，则页面输出"Error: code = 100018"、"Error: code = 100018"。';;
+    '\n' +	'预期结果：使用hdc shell param get persist.sys.abilityms.multi_process_model命令查看设备是否支持多进程，若返回结果为true，则设备环境为支持多进程的环境，页面输出"Termination: code = 0, want = undefined"、"EmbeddedUIExtAbility"、"Error: code = 100018";若返回结果为false，则设备环境为不支持多进程的环境，页面输出"Error: code = 100018"、"Error: code = 100018"。';;
   @State Vue: boolean = true;
   @State active: boolean = false;
   @State intervalNum: number = 0;

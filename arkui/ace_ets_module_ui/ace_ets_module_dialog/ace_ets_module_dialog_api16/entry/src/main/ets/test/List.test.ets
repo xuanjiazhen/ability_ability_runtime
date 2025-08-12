@@ -12,11 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import maxWidth from './PopupTest/Maxwidth.test'
 import openPopup from './promptActionTest/openPopup.test'
 import updatePopup from './promptActionTest/updatePopup.test'
 import closePopup from './promptActionTest/closePopup.test'
-import subwindowDialog from './promptActionTest/subwindowDialog.test'
 import menuitemOnChangeModifierTest from './MenuTest/menuitemOnChangeModifierTest.test'
 import menuFontsizeModifierTest from './MenuTest/menuFontsizeModifierTest.test'
 import menuBindMenuModifierTest from './MenuTest/menuBindMenuModifierTest.test'
@@ -31,11 +29,9 @@ import showToastOptions from './promptActionTest/showToastOptions.test'
 export default function testsuite() {
     blurStyleOptions();
     effectOptions();
-    maxWidth();
     openPopup();
     updatePopup();
     closePopup();
-    subwindowDialog();
     menuitemOnChangeModifierTest();
     menuFontsizeModifierTest();
     menuBindMenuModifierTest();

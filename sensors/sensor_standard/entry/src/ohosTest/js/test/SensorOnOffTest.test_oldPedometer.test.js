@@ -17,6 +17,8 @@ import bundle from '@ohos.bundle'
 import osAccount from '@ohos.account.osAccount'
 import sensor from '@ohos.sensor'
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
+import { UiDriver, BY } from '@ohos.UiTest'
+import featureAbility from '@ohos.ability.featureAbility';
 
 export default function SensorJsTest_sensor_18() {
 let PermissionFlag = {
@@ -53,6 +55,32 @@ async function grantPerm(){
         console.error('SensorJsTest_sensor_18 exception in, msg:' + JSON.stringify(error))
     }
 }
+async function requestPermission() {
+    try {
+        console.info(`====>sensors getPermission is start`);
+        let context = featureAbility.getContext();
+        await context.requestPermissionsFromUser(['ohos.permission.ACTIVITY_MOTION'], 0, (data) => {
+            console.info("====>sensors requestPermission success data: " + JSON.stringify(data));
+        });
+    } catch (err) {
+        console.error('====>sensors requestPermissionsFromUser fail:' + JSON.stringify(err));
+    }
+}
+
+async function driveFn() {
+    try {
+        let driver = await UiDriver.create();
+        console.info(`====>sensors test come in driveFn`);
+        console.info(`====>sensors test driver is ${JSON.stringify(driver)}`);
+        let button = await driver.findComponent(BY.text('允许'));
+        console.info(`====>button is ${JSON.stringify(button)}`);
+        await button.click();
+        await driver.delayMs(1000);
+    } catch (err) {
+        console.info('====>sensors motion test err code is ' + err);
+        return;
+    }
+}
 describe("SensorJsTest_sensor_18", function () {
     function callback(data) {
         console.info("SensorJsTest_sensor_18 callback" + JSON.stringify(data));
@@ -71,6 +99,10 @@ describe("SensorJsTest_sensor_18", function () {
          * @tc.setup: setup invoked before all testcases
          */
         console.info('beforeAll called')
+        await requestPermission();
+        console.info('====>sensors requestPermission success');
+        await driveFn();
+        console.info('====>sensors driveFn success');
         await grantPerm();
         done();
     })

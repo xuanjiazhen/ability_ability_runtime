@@ -13,11 +13,20 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_js_app_suite("ActslocationCApi20Test") {
+ohos_js_app_suite("ActsLocationCApi20MainTest") {
+  testonly = true
+  certificate_profile = "./signature/openharmony_sx.p7b"
+  hap_name = "ActsLocationCApi20MainTest"
+  subsystem_name = "location"
+  part_name = "location"
+}
+
+ohos_js_app_suite("ActsLocationCApi20Test") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActslocationCApi20Test"
+  hap_name = "ActsLocationCApi20Test"
   subsystem_name = "location"
   part_name = "location"
+  deps = [ ":ActsLocationCApi20MainTest" ]
 }

@@ -69,14 +69,14 @@ export default function SwipeGestureAllowedTypesTest() {
       let areaHeight1 = areaObj1.bottom - areaObj1.top
       let areaWidth1 = areaObj1.right - areaObj1.left
       console.log('SwipeGestureAllowedTypesTest_0010 areaObj1',areaObj1.left,areaObj1.top,areaObj1.right,areaObj1.bottom)
-      console.log('SwipeGestureAllowedTypesTest_0010 areaObj1 clicked start',Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('SwipeGestureAllowedTypesTest_0010 areaObj1 clicked start',Math.round(areaObj1.left + areaWidth1 * 0.4),Math.round(areaObj1.top + areaHeight1/2))
       console.log('SwipeGestureAllowedTypesTest_0010 areaObj1 clicked end',Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
 
       // trigger gesture with finger
       let driver = Driver.create();
       let speed = Math.floor(areaWidth1 * 0.6 / 0.016 / 1000) * 1000
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
+      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.4),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
       await CommonFunc.sleep(3000);
       let text1 = getInspectorByKey('SwipeGestureAllowedTypes_result');
       let obj1: ESObject = JSON.parse(text1);
@@ -94,7 +94,7 @@ export default function SwipeGestureAllowedTypesTest() {
 
       // trigger gesture again with finger
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
+      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.4),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
       await CommonFunc.sleep(3000);
       let text3 = getInspectorByKey('SwipeGestureAllowedTypes_result');
       let obj3: ESObject = JSON.parse(text3);
@@ -112,13 +112,13 @@ export default function SwipeGestureAllowedTypesTest() {
 
       // trigger gesture again with finger
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
+      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.4),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2), speed)
       await CommonFunc.sleep(3000);
       let text5 = getInspectorByKey('SwipeGestureAllowedTypes_result');
       let obj5: ESObject = JSON.parse(text5);
       console.log('SwipeGestureAllowedTypesTest_0010 obj5 $attrs content',obj5.$attrs.content,obj5)
       expect(obj5.$attrs.content).assertEqual('allowed types success');
-      
+
       // change types to invalid types
       await CommonFunc.sleep(1000);
       let button3 = await driver.findComponent(ON.id('Invalid_type'));
@@ -131,7 +131,7 @@ export default function SwipeGestureAllowedTypesTest() {
 
       // trigger gesture again with finger
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2),speed)
+      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.4),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2),speed)
       await CommonFunc.sleep(3000);
       let text10 = getInspectorByKey('SwipeGestureAllowedTypes_result');
       let obj10: ESObject = JSON.parse(text10);

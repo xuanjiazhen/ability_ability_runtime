@@ -13,12 +13,31 @@
  * limitations under the License.
  */
 
+#include "RelationalStoreTest.h"
 #include "napi/native_api.h"
 #include <database/data/data_asset.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
+#include <database/rdb/relational_store_error_code.h>
 
-static napi_value GetURISuccess(napi_env env, napi_callback_info info)
+void addRelationalStoreTest(std::vector<napi_property_descriptor>& descData)
+{
+    descData.push_back({"getURISuccess", nullptr, GetURISuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"getPathSuccess", nullptr, GetPathSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"getCreateTimeSuccess", nullptr, GetCreateTimeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"getModifyTimeSuccess", nullptr, GetModifyTimeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"getSizeSuccess", nullptr, GetSizeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"getStatusSuccess", nullptr, GetStatusSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back(
+        {"getDestroyOneSuccess", nullptr, GetDestroyOneSuccess, nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"testDestroyMultipleInvalidParam", nullptr, TestDestroyMultipleInvalidParam, nullptr, nullptr,
+                        nullptr, napi_default, nullptr});
+}
+
+napi_value GetURISuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -27,12 +46,12 @@ static napi_value GetURISuccess(napi_env env, napi_callback_info info)
     size_t length = 10;
     int ret = OH_Data_Asset_GetUri(readData5, uri, &length);
 
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == OH_Rdb_ErrCode::RDB_OK ? 0 : 1, &result);
     OH_Data_Asset_DestroyOne(readData5);
     return result;
 }
 
-static napi_value GetPathSuccess(napi_env env, napi_callback_info info)
+napi_value GetPathSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -46,7 +65,7 @@ static napi_value GetPathSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value GetCreateTimeSuccess(napi_env env, napi_callback_info info)
+napi_value GetCreateTimeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -59,7 +78,7 @@ static napi_value GetCreateTimeSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info)
+napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -72,7 +91,7 @@ static napi_value GetModifyTimeSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value GetSizeSuccess(napi_env env, napi_callback_info info)
+napi_value GetSizeSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -85,7 +104,7 @@ static napi_value GetSizeSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value GetStatusSuccess(napi_env env, napi_callback_info info)
+napi_value GetStatusSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *readData5 = OH_Data_Asset_CreateOne();
@@ -98,7 +117,7 @@ static napi_value GetStatusSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info)
+napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
     Data_Asset *asset = OH_Data_Asset_CreateOne();
@@ -109,7 +128,7 @@ static napi_value GetDestroyOneSuccess(napi_env env, napi_callback_info info)
     return result;
 }
 
-static napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info)
+napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_info info)
 {
     napi_value result;
     
@@ -122,35 +141,3 @@ static napi_value TestDestroyMultipleInvalidParam(napi_env env, napi_callback_in
     napi_create_int32(env, ret, &result);
     return result;
 }
-
-EXTERN_C_START
-static napi_value Init(napi_env env, napi_value exports)
-{
-    napi_property_descriptor desc[] = {
-        {"getURISuccess", nullptr, GetURISuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getPathSuccess", nullptr, GetPathSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getCreateTimeSuccess", nullptr, GetCreateTimeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getModifyTimeSuccess", nullptr, GetModifyTimeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getSizeSuccess", nullptr, GetSizeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getStatusSuccess", nullptr, GetStatusSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"getDestroyOneSuccess", nullptr, GetDestroyOneSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"testDestroyMultipleInvalidParam", nullptr, TestDestroyMultipleInvalidParam, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-    };
-
-    napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
-    return exports;
-}
-EXTERN_C_END
-
-static napi_module demoModule = {
-    .nm_version = 1,
-    .nm_flags = 0,
-    .nm_filename = nullptr,
-    .nm_register_func = Init,
-    .nm_modname = "relationndk",
-    .nm_priv = ((void *)0),
-    .reserved = {0},
-};
-
-extern "C" __attribute__((constructor)) void RegisterModule(void) { napi_module_register(&demoModule); }

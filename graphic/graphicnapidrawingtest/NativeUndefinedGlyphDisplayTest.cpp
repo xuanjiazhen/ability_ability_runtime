@@ -35,7 +35,6 @@ bool ExistNotoSans()
 {
     return std::filesystem::exists("/system/fonts/NotoSans[wdth,wght].ttf");
 }
-
 } // namespace
 
 namespace OHOS {
@@ -203,7 +202,7 @@ HWTEST_F(NativeUndefinedGlyphDisplayTest, OHDrawingSetTextUndefinedGlyphDisplay0
     if (ExistNotdef()) {
         BoundsResult(tofuTypography, noGlyphTofuResult_, NUM_1);
     } else {
-        BoundsResult(defaultTypography, noGlyphTofuResult_, NUM_1);
+        BoundsResult(defaultTypography, noGlyphDefaultResult_, NUM_1);
     }
     OH_Drawing_DestroyTypography(defaultTypography);
     OH_Drawing_DestroyTypography(tofuTypography);

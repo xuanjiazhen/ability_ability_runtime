@@ -84,9 +84,16 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再点击web 抢焦点
-                await buttonTwo.click()
+                await buttonThree.click()
                 await Utils.sleep(5000);
 
               } catch (error) {
@@ -103,9 +110,16 @@ struct WebComponent {
                 let buttonOne = await driver.findComponent(ON.text('textInput'));
                 await buttonOne.click()
                 await Utils.sleep(2000);
-                let buttonTwo = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
+                let buttonTwo = await driver.findComponent(ON.id('KeyHideKbd'));
+                if (buttonTwo) {
+                  await buttonTwo.click()
+                } else {
+                  this.inputMethodController.hideTextInput()
+                }
+                await Utils.sleep(2000);
+                let buttonThree = await driver.findComponent(ON.id('WebViewWebGestureTapButton'));
                 //再长按web 抢焦点
-                await buttonTwo.longClick()
+                await buttonThree.longClick()
                 await Utils.sleep(5000);
               } catch (error) {
                 console.error(`Errorcode: ${error.code}, Message: ${error.message}`);

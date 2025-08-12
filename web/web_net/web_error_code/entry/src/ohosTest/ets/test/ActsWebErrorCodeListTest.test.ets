@@ -3632,5 +3632,974 @@ export default function ActsWebErrorCodeListTest() {
       }
     })
 
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_18600
+     * @tc.name    : testArkWebCacheWriteFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_WRITE_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheWriteFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_WRITE_FAILURE");
+        console.info("====>testArkWebCacheWriteFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheWriteFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_18700
+     * @tc.name    : testArkWebCacheOperationUnsupported
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_OPERATION_UNSUPPORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheOperationUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPERATION_UNSUPPORTED");
+        console.info("====>testArkWebCacheOperationUnsupported result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheOperationUnsupported catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_18800
+     * @tc.name    : testArkWebCacheOpenFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_OPEN_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheOpenFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPEN_FAILURE");
+        console.info("====>testArkWebCacheOpenFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheOpenFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_18900
+     * @tc.name    : testArkWebCacheCreateFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_CREATE_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheCreateFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CREATE_FAILURE");
+        console.info("====>testArkWebCacheCreateFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheCreateFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19000
+     * @tc.name    : testArkWebCacheRace
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_RACE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheRace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_RACE");
+        console.info("====>testArkWebCacheRace result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheRace catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19100
+     * @tc.name    : testArkWebCacheChecksumReadFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_CHECKSUM_READ_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheChecksumReadFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CHECKSUM_READ_FAILURE");
+        console.info("====>testArkWebCacheChecksumReadFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheChecksumReadFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19200
+     * @tc.name    : testArkWebCacheChecksumMismatch
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_CHECKSUM_MISMATCH
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheChecksumMismatch', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CHECKSUM_MISMATCH");
+        console.info("====>testArkWebCacheChecksumMismatch result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheChecksumMismatch catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19300
+     * @tc.name    : testArkWebCacheLockTimeout
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_LOCK_TIMEOUT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheLockTimeout', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_LOCK_TIMEOUT");
+        console.info("====>testArkWebCacheLockTimeout result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheLockTimeout catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19400
+     * @tc.name    : testArkWebCacheAuthFailureAfterRead
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_AUTH_FAILURE_AFTER_READ
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheAuthFailureAfterRead', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_AUTH_FAILURE_AFTER_READ");
+        console.info("====>testArkWebCacheAuthFailureAfterRead result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheAuthFailureAfterRead catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19500
+     * @tc.name    : testArkWebCacheEntryNotSuitable
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_ENTRY_NOT_SUITABLE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheEntryNotSuitable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_ENTRY_NOT_SUITABLE");
+        console.info("====>testArkWebCacheEntryNotSuitable result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheEntryNotSuitable catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19600
+     * @tc.name    : testArkWebCacheDoomFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_DOOM_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheDoomFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_DOOM_FAILURE");
+        console.info("====>testArkWebCacheDoomFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheDoomFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19700
+     * @tc.name    : testArkWebCacheOpenOrCreateFailure
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CACHE_OPEN_OR_CREATE_FAILURE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCacheOpenOrCreateFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPEN_OR_CREATE_FAILURE");
+        console.info("====>testArkWebCacheOpenOrCreateFailure result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCacheOpenOrCreateFailure catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19800
+     * @tc.name    : testArkWebInsecureResponse
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_INSECURE_RESPONSE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebInsecureResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INSECURE_RESPONSE");
+        console.info("====>testArkWebInsecureResponse result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebInsecureResponse catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_19900
+     * @tc.name    : testArkWebNoPrivateKeyForCert
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebNoPrivateKeyForCert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT");
+        console.info("====>testArkWebNoPrivateKeyForCert result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebNoPrivateKeyForCert catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20000
+     * @tc.name    : testArkWebAddUserCertFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_ADD_USER_CERT_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebAddUserCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ADD_USER_CERT_FAILED");
+        console.info("====>testArkWebAddUserCertFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebAddUserCertFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20100
+     * @tc.name    : testArkWebInvalidSignedExchange
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_INVALID_SIGNED_EXCHANGE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebInvalidSignedExchange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_SIGNED_EXCHANGE");
+        console.info("====>testArkWebInvalidSignedExchange result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebInvalidSignedExchange catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20200
+     * @tc.name    : testArkWebInvalidWebBundle
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_INVALID_WEB_BUNDLE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebInvalidWebBundle', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_WEB_BUNDLE");
+        console.info("====>testArkWebInvalidWebBundle result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebInvalidWebBundle catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20300
+     * @tc.name    : testArkWebTrustTokenOperationFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebTrustTokenOperationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED");
+        console.info("====>testArkWebTrustTokenOperationFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebTrustTokenOperationFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20400
+     * @tc.name    : testArkWebTrustTokenOperationSuccessWithoutSendingRequest
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebTrustTokenOperationSuccessWithoutSendingRequest', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST");
+        console.info("====>testArkWebTrustTokenOperationSuccessWithoutSendingRequest result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebTrustTokenOperationSuccessWithoutSendingRequest catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20500
+     * @tc.name    : testArkWebFtpFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_FAILED");
+        console.info("====>testArkWebFtpFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20600
+     * @tc.name    : testArkWebFtpServiceUnavailable
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpServiceUnavailable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE");
+        console.info("====>testArkWebFtpServiceUnavailable result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpServiceUnavailable catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20700
+     * @tc.name    : testArkWebFtpTransferAborted
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_TRANSFER_ABORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpTransferAborted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_TRANSFER_ABORTED");
+        console.info("====>testArkWebFtpTransferAborted result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpTransferAborted catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20800
+     * @tc.name    : testArkWebFtpFileBusy
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_FILE_BUSY
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpFileBusy', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_FILE_BUSY");
+        console.info("====>testArkWebFtpFileBusy result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpFileBusy catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_20900
+     * @tc.name    : testArkWebFtpSyntaxError
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_SYNTAX_ERROR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpSyntaxError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_SYNTAX_ERROR");
+        console.info("====>testArkWebFtpSyntaxError result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpSyntaxError catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21000
+     * @tc.name    : testArkWebFtpCommandUnsupported
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpCommandUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED");
+        console.info("====>testArkWebFtpCommandUnsupported result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpCommandUnsupported catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21100
+     * @tc.name    : testArkWebFtpBadCommandSequence
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebFtpBadCommandSequence', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE");
+        console.info("====>testArkWebFtpBadCommandSequence result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebFtpBadCommandSequence catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21200
+     * @tc.name    : testArkWebPkcs12ImportBadPassword
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPkcs12ImportBadPassword', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD");
+        console.info("====>testArkWebPkcs12ImportBadPassword result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPkcs12ImportBadPassword catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21300
+     * @tc.name    : testArkWebPkcs12ImportFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PKCS12_IMPORT_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPkcs12ImportFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_FAILED");
+        console.info("====>testArkWebPkcs12ImportFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPkcs12ImportFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21400
+     * @tc.name    : testArkWebImportCaCertNotCa
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebImportCaCertNotCa', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA");
+        console.info("====>testArkWebImportCaCertNotCa result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebImportCaCertNotCa catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21500
+     * @tc.name    : testArkWebImportCertAlreadyExists
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebImportCertAlreadyExists', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS");
+        console.info("====>testArkWebImportCertAlreadyExists result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebImportCertAlreadyExists catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21600
+     * @tc.name    : testArkWebImportCaCertFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_IMPORT_CA_CERT_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebImportCaCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CA_CERT_FAILED");
+        console.info("====>testArkWebImportCaCertFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebImportCaCertFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21700
+     * @tc.name    : testArkWebImportServerCertFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebImportServerCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED");
+        console.info("====>testArkWebImportServerCertFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebImportServerCertFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21800
+     * @tc.name    : testArkWebPkcs12ImportInvalidMac
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPkcs12ImportInvalidMac', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC");
+        console.info("====>testArkWebPkcs12ImportInvalidMac result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPkcs12ImportInvalidMac catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_21900
+     * @tc.name    : testArkWebPkcs12ImportInvalidFile
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPkcs12ImportInvalidFile', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE");
+        console.info("====>testArkWebPkcs12ImportInvalidFile result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPkcs12ImportInvalidFile catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22000
+     * @tc.name    : testArkWebPkcs12ImportUnsupported
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPkcs12ImportUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED");
+        console.info("====>testArkWebPkcs12ImportUnsupported result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPkcs12ImportUnsupported catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22100
+     * @tc.name    : testArkWebKeyGenerationFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_KEY_GENERATION_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebKeyGenerationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_KEY_GENERATION_FAILED");
+        console.info("====>testArkWebKeyGenerationFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebKeyGenerationFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22200
+     * @tc.name    : testArkWebPrivateKeyExportFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebPrivateKeyExportFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED");
+        console.info("====>testArkWebPrivateKeyExportFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebPrivateKeyExportFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22300
+     * @tc.name    : testArkWebSelfSignedCertGenerationFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebSelfSignedCertGenerationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED");
+        console.info("====>testArkWebSelfSignedCertGenerationFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebSelfSignedCertGenerationFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22400
+     * @tc.name    : testArkWebCertDatabaseChanged
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CERT_DATABASE_CHANGED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCertDatabaseChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_DATABASE_CHANGED");
+        console.info("====>testArkWebCertDatabaseChanged result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCertDatabaseChanged catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22500
+     * @tc.name    : testArkWebCertVerifierChanged
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_CERT_VERIFIER_CHANGED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebCertVerifierChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_VERIFIER_CHANGED");
+        console.info("====>testArkWebCertVerifierChanged result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebCertVerifierChanged catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22600
+     * @tc.name    : testArkWebDnsMalformedResponse
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_MALFORMED_RESPONSE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsMalformedResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_MALFORMED_RESPONSE");
+        console.info("====>testArkWebDnsMalformedResponse result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsMalformedResponse catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22700
+     * @tc.name    : testArkWebDnsServerRequiresTcp
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsServerRequiresTcp', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP");
+        console.info("====>testArkWebDnsServerRequiresTcp result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsServerRequiresTcp catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22800
+     * @tc.name    : testArkWebDnsServerFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_SERVER_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsServerFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SERVER_FAILED");
+        console.info("====>testArkWebDnsServerFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsServerFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_22900
+     * @tc.name    : testArkWebDnsTimedOut
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_TIMED_OUT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_TIMED_OUT");
+        console.info("====>testArkWebDnsTimedOut result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsTimedOut catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23000
+     * @tc.name    : testArkWebDnsCacheMiss
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_CACHE_MISS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsCacheMiss', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_CACHE_MISS");
+        console.info("====>testArkWebDnsCacheMiss result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsCacheMiss catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23100
+     * @tc.name    : testArkWebDnsSearchEmpty
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_SEARCH_EMPTY
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsSearchEmpty', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SEARCH_EMPTY");
+        console.info("====>testArkWebDnsSearchEmpty result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsSearchEmpty catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23200
+     * @tc.name    : testArkWebDnsSortError
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_SORT_ERROR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsSortError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SORT_ERROR");
+        console.info("====>testArkWebDnsSortError result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsSortError catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23300
+     * @tc.name    : testArkWebDnsSecureResolverHostnameResolutionFailed
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsSecureResolverHostnameResolutionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED");
+        console.info("====>testArkWebDnsSecureResolverHostnameResolutionFailed result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsSecureResolverHostnameResolutionFailed catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23400
+     * @tc.name    : testArkWebDnsNameHttpsOnly
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_NAME_HTTPS_ONLY
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsNameHttpsOnly', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_NAME_HTTPS_ONLY");
+        console.info("====>testArkWebDnsNameHttpsOnly result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsNameHttpsOnly catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23500
+     * @tc.name    : testArkWebDnsRequestCanceled
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_REQUEST_CANCELED
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsRequestCanceled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_REQUEST_CANCELED");
+        console.info("====>testArkWebDnsRequestCanceled result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsRequestCanceled catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_WEB_NET_ERROR_23600
+     * @tc.name    : testArkWebDnsNoMatchingSupportedAlpn
+     * @tc.desc    : test ArkWeb_NetError Test ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testArkWebDnsNoMatchingSupportedAlpn', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN");
+        console.info("====>testArkWebDnsNoMatchingSupportedAlpn result====", result);
+        expect(result).assertEqual(0);
+        done();
+      } catch (err) {
+        console.error("====>testArkWebDnsNoMatchingSupportedAlpn catch err: " + err);
+      }
+    })
+
   })
 }

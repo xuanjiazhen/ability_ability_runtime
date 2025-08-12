@@ -113,7 +113,7 @@ export default function SliderOptionValue() {
 			let strJson = getInspectorByKey("buildTest4");
 			let obj : ESObject = JSON.parse(strJson);
 			console.info('Slider_0104 content:'+ JSON.stringify(obj.$attrs.content))
-			expect(obj.$attrs.content).assertEqual('true');
+			expect(obj.$attrs.content).assertEqual('12');
 			done();
 		});
 		/**

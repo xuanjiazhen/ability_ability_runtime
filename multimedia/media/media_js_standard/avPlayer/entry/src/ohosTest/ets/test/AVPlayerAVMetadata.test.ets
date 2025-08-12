@@ -35,6 +35,73 @@ function openFileFailed() {
   console.info('case file fail');
 }
 
+function fullZero(num: string, digitalNum: number = 2){
+  const stringLength = num.length
+  let len = digitalNum - stringLength
+  len = len < 0 ? 0 : len
+  const zeroString: string = Array(len).fill('0').reduce((p: string, c: string): string => p + c, '')
+  return stringLength < digitalNum ? `${num}${zeroString}` : num
+}
+
+function validateType(track: media.MediaDescription, key: string, type: string, composedKeys: string): void{
+  const trackType = Math.pow(2,track[media.MediaDescriptionKey.MD_KEY_TRACK_TYPE] as number).toString(2)
+  const composedKeysFirstPart = Number(`0b${composedKeys.split('.')[0]}`)
+  const composedKeysSecondPart = Number(`0b${fullZero(composedKeys.split('.')[1] || '0')}`)
+  console.log(`composedKeys: ${composedKeys}`)
+  console.log(`composedKeysFirstPart: ${composedKeysFirstPart} - composedKeysSecondPart: ${composedKeysSecondPart}`)
+  const trackTypeFirstPart = Number(`0b${trackType.split('.')[0]}`)
+  const trackTypeSecondPart = Number(`0b${fullZero(trackType.split('.')[1] || '0')}`)
+  console.log(`trackType: ${trackType}`)
+  console.log(`trackTypeFirstPart: ${trackTypeFirstPart} - trackTypeSecondPart: ${trackTypeSecondPart}`)
+  const needed = trackTypeFirstPart & composedKeysFirstPart || trackTypeSecondPart & composedKeysSecondPart
+  console.log(`needed: ${needed}`)
+  console.info(`key: ${key} --- value: ${track[key]} --- exceptType: ${type}`)
+  if(needed){
+    console.info(`Trigger Verification!`)
+    expect(typeof track[key] == type).assertTrue()
+  }
+}
+
+const MediaType = [
+  "MEDIA_TYPE_UNSUPPORTED",
+  "MEDIA_TYPE_AUD",
+  "MEDIA_TYPE_VID",
+  "MEDIA_TYPE_SUBTITLE",
+  "MEDIA_TYPE_ATTACHMENT",
+  "MEDIA_TYPE_DATA",
+  "MEDIA_TYPE_TIMED_METADATA",
+  "MEDIA_TYPE_AUXILIARY"
+]
+type BinaryKeysMap = Map<string, string>
+const BinaryKeys: BinaryKeysMap = (() =>{
+  return MediaType.reduce((pre_BinaryKeys: BinaryKeysMap,cur_BinaryKeys: string) => {
+    const key = cur_BinaryKeys.split('_')[2]
+    pre_BinaryKeys.set(key, Math.pow(2,media.MediaType[cur_BinaryKeys]).toString(2))
+    return pre_BinaryKeys
+  },new Map())
+})()
+BinaryKeys.set("ALL", String(MediaType.reduce((result: number, MediaType: string): number => {
+  const key = MediaType.split('_')[2]
+  result = result + Number(BinaryKeys.get(key))
+  return result
+},0)))
+
+function composeKeys(keys: string[]){
+  return String(keys.reduce((p, c) => p + Number(c), 0))
+}
+
+function validateMediaDescriptionKey(track: media.MediaDescription): void{
+  validateType(track, media.MediaDescriptionKey.MD_KEY_TRACK_INDEX, 'number', composeKeys([BinaryKeys.get("ALL")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_TRACK_TYPE, 'number', composeKeys([BinaryKeys.get("ALL")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_CODEC_MIME, 'string', composeKeys([BinaryKeys.get("AUD")!,BinaryKeys.get("VID")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_WIDTH, 'number', composeKeys([BinaryKeys.get("VID")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_HEIGHT, 'number', composeKeys([BinaryKeys.get("VID")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_FRAME_RATE, 'number', composeKeys([BinaryKeys.get("VID")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_AUD_CHANNEL_COUNT, 'number', composeKeys([BinaryKeys.get("AUD")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_AUD_SAMPLE_RATE, 'number', composeKeys([BinaryKeys.get("AUD")!]))
+  validateType(track, media.MediaDescriptionKey.MD_KEY_HDR_TYPE, 'number', composeKeys([BinaryKeys.get("VID")!]))
+}
+
 export default function AVMetadata() {
   describe('AVMetadata', () => {
     beforeAll(async () => {
@@ -1147,6 +1214,7 @@ export default function AVMetadata() {
             const value = element[media.MediaDescriptionKey.MD_KEY_CODEC_MIME] as string;
             expect(value).not().assertUndefined();
           }
+          validateMediaDescriptionKey(element)
         }
       } else {
         console.error('get avmetadata tracks failed');
