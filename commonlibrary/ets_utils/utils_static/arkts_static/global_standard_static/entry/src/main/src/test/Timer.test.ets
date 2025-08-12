@@ -187,7 +187,6 @@ export default function TimerTest() {
       expect(new Number(result2) === undefined).assertFalse();
       clearTimeout(result1);
       clearTimeout(result2);
-      expect(true).assertTrue();
       done();
     });
 
@@ -323,7 +322,6 @@ export default function TimerTest() {
       expect(new Number(result2) === undefined).assertFalse();
       clearInterval(result1);
       clearInterval(result2);
-      expect(true).assertTrue();
       done();
     });
 
@@ -342,7 +340,6 @@ export default function TimerTest() {
       clearTimeout(result1);
       clearTimeout(result2);
       clearTimeout(result3);
-      expect(true).assertTrue();
       done();
     });
 
@@ -362,7 +359,6 @@ export default function TimerTest() {
       clearInterval(result1);
       clearInterval(result2);
       clearInterval(result3);
-      expect(true).assertTrue();
       done();
     });
 
@@ -376,7 +372,6 @@ export default function TimerTest() {
     //  */
     // it('testTimer003', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: () => void): Promise<void> => {
     //   clearTimeout();
-    //   expect(true).assertTrue();
     //   done();
     // });
 
@@ -390,7 +385,6 @@ export default function TimerTest() {
      */
     // it('testTimer004', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: () => void): Promise<void> => {
     //   clearInterval();
-    //   expect(true).assertTrue();
     //   done();
     // });
 

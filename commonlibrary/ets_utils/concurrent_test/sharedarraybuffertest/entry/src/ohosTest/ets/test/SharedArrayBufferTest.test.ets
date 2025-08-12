@@ -669,7 +669,6 @@ export default function SharedArrayBufferTest() {
         console.info(`${caseName}: Completed 1000 iterations with GC in ${endTime - startTime} ms with total sum: ${totalSum}`);
         
         expect(totalSum).assertEqual(1000 * referenceSum);
-        expect(true).assertTrue();
       } catch (error) {
         console.error(`${caseName} Test failed: ${error}`);
         expect(false).assertTrue();
