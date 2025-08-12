@@ -14,3 +14,8 @@
  */
 export const QueryMaxTouchPoints1: () => number;
 export const QueryMaxTouchPoints2: () => number;
+export const InjectTouchEventGlobal1: () => number;
+export const InjectTouchEventGlobal2: () => number;
+export const InjectTouchEventGlobal3: () => number;
+export const AxisEventGlobal1: () => number;
+export const AxisEventGlobal2: () => number;

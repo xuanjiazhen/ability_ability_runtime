@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,9 +41,80 @@ static napi_value QueryMaxTouchPoints2(napi_env env, napi_callback_info info)
     napi_value result;
 
     int32_t count;
+    int32_t MIN_COUNT = -1;
+    int32_t MAX_COUNT =10;
     Input_Result retResult = OH_Input_QueryMaxTouchPoints(&count);
     OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_QueryMaxTouchPoints_0200 retResult:%{public}d", retResult);
-    napi_create_int32(env, (retResult == INPUT_SUCCESS && (count >= -1 && count <= 10)) ? 1 : 0, &result);
+    napi_create_int32(env, (retResult == INPUT_SUCCESS && (count >= MIN_COUNT && count <= MAX_COUNT)) ? 1 : 0, &result);
+    return result;
+}
+
+static napi_value InjectTouchEventGlobal1(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+
+    struct Input_TouchEvent* touchEvent = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventGlobalX(touchEvent, 100);
+    OH_Input_SetTouchEventGlobalY(touchEvent, 100);
+    OH_Input_SetTouchEventAction(touchEvent, 1);
+    int32_t retResult = OH_Input_InjectTouchEventGlobal(touchEvent);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0100 retResult:%{public}d", retResult);
+    napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
+    OH_Input_DestroyTouchEvent(&touchEvent)
+    return result;
+}
+
+static napi_value InjectTouchEventGlobal2(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+
+    struct Input_TouchEvent* touchEvent = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventGlobalX(touchEvent, 100);
+    int32_t globalX = OH_Input_GetTouchEventGlobalX(touchEvent);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0200 retResult:%{public}d", retResult);
+    napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
+    OH_Input_DestroyTouchEvent(&touchEvent)
+    return result;
+}
+
+static napi_value InjectTouchEventGlobal3(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+
+    struct Input_TouchEvent* touchEvent = OH_Input_CreateTouchEvent();
+    OH_Input_SetTouchEventGlobalY(touchEvent, 100);
+    int32_t globalY = OH_Input_GetTouchEventGlobalY(touchEvent);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_InjectTouchEventGlobal_0300 retResult:%{public}d", retResult);
+    napi_create_int32(env, (touchEvent != nullptr && retResult == INPUT_PERMISSION_DENIED) ? 1 : 0, &result);
+    OH_Input_DestroyTouchEvent(&touchEvent)
+    return result;
+}
+
+static napi_value AxisEventGlobal1(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+
+    struct Input_AxisEvent* axisEvent = OH_Input_CreateAxisEvent();
+    OH_Input_SetAxisEventGlobalX(axisEvent, 100);
+    int32_t globalX;
+    Input_Result retResult = OH_Input_GetAxisEventGlobalX(axisEvent, &globalX);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_AxisEventGlobal_0100 retResult:%{public}d", retResult);
+    napi_create_int32(env, (globalX == 100 && retResult == INPUT_SUCCESS) ? 1 : 0, &result);
+    OH_Input_DestroyAxisEvent(&axisEvent)
+    return result;
+}
+
+static napi_value AxisEventGlobal2(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+
+    struct Input_AxisEvent* axisEvent = OH_Input_CreateAxisEvent();
+    OH_Input_SetAxisEventGlobalY(axisEvent, 100);
+    int32_t globalY;
+    Input_Result retResult = OH_Input_GetAxisEventGlobalY(axisEvent, &globalY);
+    OH_LOG_INFO(LOG_APP, "SUB_MMI_Input_Api_AxisEventGlobal_0200 retResult:%{public}d", retResult);
+    napi_create_int32(env, (globalY == 100 && retResult == INPUT_SUCCESS) ? 1 : 0, &result);
+    OH_Input_DestroyAxisEvent(&axisEvent)
     return result;
 }
 
@@ -53,6 +124,11 @@ static napi_value Init(napi_env env, napi_value exports)
     napi_property_descriptor desc[] = {
         {"QueryMaxTouchPoints1", nullptr, QueryMaxTouchPoints1, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"QueryMaxTouchPoints2", nullptr, QueryMaxTouchPoints2, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"InjectTouchEventGlobal1", nullptr, InjectTouchEventGlobal1, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"InjectTouchEventGlobal2", nullptr, InjectTouchEventGlobal2, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"InjectTouchEventGlobal3", nullptr, InjectTouchEventGlobal3, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"AxisEventGlobal1", nullptr, AxisEventGlobal1, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"AxisEventGlobal2", nullptr, AxisEventGlobal2, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
