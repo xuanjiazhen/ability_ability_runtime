@@ -324,7 +324,7 @@ export default function AVPlayerMediaSource() {
 
       mediaSource.setMediaResourceLoaderDelegate(resourceLoader);
       console.log(`setMediaResourceLoaderDelegate success`)
-      avPlayer.on("stateChange",(state: media.AVPlayerState) => {
+      avPlayer.on("stateChange",async (state: media.AVPlayerState) => {
         console.info(`state change, current state is: ${state}`)
         if(state == "initialized"){
           console.info(`avPlayer enter initialized state`)
