@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,6 @@ export default function webSetAppCustomUserAgent() {
         if (!("webSetAppCustomUserAgent" == pages.name)) {
           console.info("get webSetAppCustomUserAgent state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webSetAppCustomUserAgent page success " + JSON.stringify(result));
         }
       } catch (err) {
@@ -74,8 +73,8 @@ export default function webSetAppCustomUserAgent() {
     * @tc.level      : Level 0
     */
     it('testSetAppCustomUserAgent', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent('emitSetAppCustomUserAgent', 18);
-      Utils.registerBaseEvent('testSetAppCustomUserAgent', true, 2025052801, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent('emitSetAppCustomUserAgent', 174010);
+      Utils.registerBaseEvent('testSetAppCustomUserAgent', true, 174020, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('WebSetAppCustomUserAgentButton', 10, '');
@@ -89,8 +88,8 @@ export default function webSetAppCustomUserAgent() {
     * @tc.level      : Level 0
     */
     it('testSetAppCustomUserAgentNull', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent('emitSetAppCustomUserAgentNull', 18);
-      Utils.registerBaseEvent('testSetAppCustomUserAgentNull', '401', 2025052802, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent('emitSetAppCustomUserAgentNull', 174010);
+      Utils.registerBaseEvent('testSetAppCustomUserAgentNull', '401', 174030, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('WebSetAppCustomUserAgentButton', 10, '');
@@ -104,8 +103,8 @@ export default function webSetAppCustomUserAgent() {
     * @tc.level      : Level 0
     */
     it('testSetAppCustomUserAgentUndefined', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      Utils.emitEvent('emitSetAppCustomUserAgentUndefined', 18);
-      Utils.registerBaseEvent('testSetAppCustomUserAgentUndefined', '401', 2025052803, done, (backData: events_emitter.EventData, expected: Object) => {
+      Utils.emitEvent('emitSetAppCustomUserAgentUndefined', 174010);
+      Utils.registerBaseEvent('testSetAppCustomUserAgentUndefined', '401', 174040, done, (backData: events_emitter.EventData, expected: Object) => {
         expect(backData?.data?.ACTION).assertEqual(expected);
       });
       sendEventByKey('WebSetAppCustomUserAgentButton', 10, '');

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,14 +46,14 @@ struct webSetUserAgentForHosts {
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 19,
+      eventId: 174050,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(19)
+    events_emitter.off(174050)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -94,13 +94,13 @@ struct webSetUserAgentForHosts {
                     if (result) {
                       console.info(`runJavaScript The test() return value is: ${result}`);
                       let isGetResult = result.includes('setUserAgentForHosts');
-                      Utils.emitEvent(isGetResult, 2025052804)
+                      Utils.emitEvent(isGetResult, 174060)
                     }
                   })
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent(true, 2025052804)
+                    Utils.emitEvent(true, 174060)
                   }
                 }
                 break;
@@ -121,13 +121,13 @@ struct webSetUserAgentForHosts {
                     if (result) {
                       console.info(`runJavaScript The test() return value is: ${result}`);
                       let isGetResult = result.includes('setUserAgentForHosts');
-                      Utils.emitEvent(isGetResult, 2025052805)
+                      Utils.emitEvent(isGetResult, 174070)
                     }
                   })
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent(true, 2025052805)
+                    Utils.emitEvent(true, 174070)
                   }
                 }
                 break;
@@ -138,9 +138,9 @@ struct webSetUserAgentForHosts {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052806);
+                    Utils.emitEvent('401', 174080);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052806);
+                    Utils.emitEvent(String(error.code), 174080);
                   }
                 }
                 break;
@@ -151,9 +151,9 @@ struct webSetUserAgentForHosts {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052807);
+                    Utils.emitEvent('401', 174090);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052807);
+                    Utils.emitEvent(String(error.code), 174090);
                   }
                 }
                 break;
@@ -167,9 +167,9 @@ struct webSetUserAgentForHosts {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052808);
+                    Utils.emitEvent('401', 174100);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052808);
+                    Utils.emitEvent(String(error.code), 174100);
                   }
                 }
                 break;
@@ -183,9 +183,9 @@ struct webSetUserAgentForHosts {
                 } catch (error) {
                   console.error(`catch ErrorCode: ${error.code},  Message: ${error.message}`);
                   if (error.code == 801) {
-                    Utils.emitEvent('401', 2025052809);
+                    Utils.emitEvent('401', 174110);
                   } else {
-                    Utils.emitEvent(String(error.code), 2025052809);
+                    Utils.emitEvent(String(error.code), 174110);
                   }
                 }
                 break;
