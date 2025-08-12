@@ -5091,9 +5091,9 @@ export default function JsvmJsunit() {
        `;
       try {
         napitest.runJsVm(script);
-        expect(true).assertFalse();
-      } catch (error) {
-        expect(true).assertTrue();
+        throw new Error('Test jsvm throw failed');
+      } catch (e) {
+        expect(e.message).assertEqual('Test jsvm throw failed').assertFalse();
       }
     });
 	/**
@@ -5107,9 +5107,9 @@ export default function JsvmJsunit() {
        `;
       try {
         napitest.runJsVm(script);
-        expect(true).assertFalse();
+        throw new Error('Test jsvm throw failed');
       } catch (e) {
-        expect(true).assertTrue();
+        expect(e.message).assertEqual('Test jsvm throw failed').assertFalse();
       }
     });
 	/**

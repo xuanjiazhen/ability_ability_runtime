@@ -972,10 +972,9 @@ export default function TreeSetTest2() {
     //   try {
     //     let treeSet: TreeSet<string> = new TreeSet<string>();
     //     treeSet.getLowerValue(null);
-    //     expect(true).assertTrue();
     //   } catch (err: BusinessError) {
     //     console.error(`${TAG} failed, error: ${err}`);
-    //     expect(err.code).assertEqual(401);
+    //     expect().assertFail();
     //   }
     // });
     // /**
@@ -991,10 +990,9 @@ export default function TreeSetTest2() {
     //   try {
     //     let treeSet: TreeSet<string> = new TreeSet<string>();
     //     treeSet.getLowerValue(undefined);
-    //     expect(true).assertTrue();
     //   } catch (err: BusinessError) {
     //     console.error(`${TAG} failed, error: ${err}`);
-    //     expect(err.code).assertEqual(401);
+    //     expect().assertFail();
     //   }
     // });
     // /**
@@ -1113,10 +1111,9 @@ export default function TreeSetTest2() {
     //   try {
     //     let treeSet: TreeSet<string> = new TreeSet<string>();
     //     treeSet.getHigherValue(null);
-    //     expect(true).assertTrue();
     //   } catch (err: BusinessError) {
     //     console.error(`${TAG} failed, error: ${err}`);
-    //     expect(err.code).assertEqual(401);
+    //     expect().assertFail();
     //   }
     // });
     // /**
@@ -1132,10 +1129,9 @@ export default function TreeSetTest2() {
     //   try {
     //     let treeSet: TreeSet<string> = new TreeSet<string>();
     //     treeSet.getHigherValue(undefined);
-    //     expect(true).assertTrue();
     //   } catch (err: BusinessError) {
     //     console.error(`${TAG} failed, error: ${err}`);
-    //     expect(err.code).assertEqual(401);
+    //     expect().assertFail();
     //   }
     // });
     /**
