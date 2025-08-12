@@ -17,9 +17,11 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import media from '@ohos.multimedia.media';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, Level } from '@ohos/hypium'
 import HashMap from '@ohos.util.HashMap';
+import MediaTestBase from './MediaTestBase';
 
 
 export default function AVPlayerMediaSource() {
+  let mediaTestBase = new MediaTestBase()
   let player: media.AVPlayer;
   let header: Record<string, string>;
   //const url_1a1v_mp4 = "http://8.138.194.43:1000/0221/H264/1a1v.mp4"
@@ -335,7 +337,7 @@ export default function AVPlayerMediaSource() {
         }
         if(state == "released"){
           console.info(`avPlayer enter released state`)
-          await new Promise<void>((res) => setTimeout(() => res(),1000))
+          await mediaTestBase.msleepAsync(1000)
           expect(SourceCallbackCount).assertEqual(3)
           done()
         }
