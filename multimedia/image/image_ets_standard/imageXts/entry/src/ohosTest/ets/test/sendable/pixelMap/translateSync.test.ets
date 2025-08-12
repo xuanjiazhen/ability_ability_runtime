@@ -30,7 +30,6 @@ async function translateSyncPromiseTest(done: Function, testName: string, opts: 
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.translateSync(translateX, translateY);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function translateSyncAbnormalPromiseTest(done: Function, testName: string
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.translateSync(translateX, translateY);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

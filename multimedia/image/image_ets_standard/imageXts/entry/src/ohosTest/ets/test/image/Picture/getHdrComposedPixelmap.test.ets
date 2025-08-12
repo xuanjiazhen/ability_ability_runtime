@@ -42,7 +42,6 @@ async function getHdrComposedPixelmapAbnormalPromiseTest(done: Function, testNam
           if (imageInfo != null) {
             console.info(TAG, 'GetMainPixelmap information height:' + imageInfo.size.height + ' width:' +
             imageInfo.size.width);
-            expect(true).assertTrue();
             done();
           }
         }).catch((error: BusinessError) => {

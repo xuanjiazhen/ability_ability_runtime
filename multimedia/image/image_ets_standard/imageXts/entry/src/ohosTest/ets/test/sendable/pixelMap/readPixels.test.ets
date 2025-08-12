@@ -30,7 +30,6 @@ async function readPixelsPromiseTest(done: Function, testName: string, area: ima
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.readPixels(area);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function readPixelsAbnormalPromiseTest(done: Function, testName: string, a
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.readPixels(area);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

@@ -39,7 +39,6 @@ async function getMainPixelmapPromiseTest(done: Function, testName: string, path
         if (imageInfo != null) {
           console.info('GetMainPixelmap information height:' + imageInfo.size.height + ' width:' +
           imageInfo.size.width);
-          expect(true).assertTrue();
           done();
         }
       }).catch((error: BusinessError) => {

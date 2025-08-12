@@ -30,7 +30,6 @@ async function rotateSyncPromiseTest(done: Function, testName: string, opts: ima
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.rotateSync(angle);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function rotateSyncAbnormalPromiseTest(done: Function, testName: string, o
 
     if (sendablePixelMap != undefined) {
       sendablePixelMap.rotateSync(angle);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

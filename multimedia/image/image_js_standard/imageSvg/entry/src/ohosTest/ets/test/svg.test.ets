@@ -106,7 +106,6 @@ export default function imageSvg() {
                 line++;
               }
               console.info(`${testNum} packing show end(line: ${line}  )`);
-              expect(true).assertTrue();
               done();
             } else {
               console.info(`${testNum} packing failed`);
@@ -228,7 +227,6 @@ export default function imageSvg() {
             expect(false).assertTrue();
             done();
           } catch (error) {
-            expect(true).assertTrue();
             console.info(`${testNum} error: ` + error);
             done();
           }

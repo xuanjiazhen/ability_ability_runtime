@@ -74,7 +74,6 @@ async function marshallingPromiseTest(done: Function, testName: string, path: st
       // unmarshalling.
       data.readParcelable(ret);
       PictureObj.release();
-      expect(true).assertTrue();
       done();
     } else {
       console.error(TAG, 'PictureObj is null');

@@ -167,13 +167,11 @@ export default function ImageReceiverModuleTest() {
     it('SUB_MULTIMEDIA_IMAGE_RECEIVERNDK_SINGLE_PHOTO_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportedCamerasResult) {
         console.info('Failed to obtain the default camera or device object.Not support usb camera');
-        expect(true).assertTrue();
         done();
         return;
       }
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object. Not support usb camera');
-        expect(true).assertTrue();
         done();
       }
       else {

@@ -26,7 +26,6 @@ async function releasePromiseTest(done: Function, testName: string, path: string
     const sendableImageSourceApi: sendableImage.ImageSource = sendableImage.createImageSource(path);
     sendableImageSourceApi.release().then(() => {
       console.info('Succeeded in releasing the image source instance.');
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG,

@@ -91,7 +91,6 @@ async function packingPromiseFail(done: Function, testNum: string, args: ESObjec
                     done();
                 }).catch((error: ESObject) => {
                     console.log(` ${testNum} error: ` + error);
-                    expect(true).assertTrue();
                     done();
                 })
             }
@@ -326,7 +325,6 @@ export default function imageColorSpace() {
         it('SUB_MULTIMEDIA_IMAGE_COLORSPACE_ENCODE_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
             if (isSupportGifEncode) {
                 console.info("SUB_MULTIMEDIA_IMAGE_COLORSPACE_ENCODE_CALLBACK_0200: The device support gif encode")
-                expect(true).assertTrue();
                 done();
             } else {
                 let packOpts: ESObject = { format: ["image/gif"], quality: 90 }
@@ -392,7 +390,6 @@ export default function imageColorSpace() {
         it('SUB_MULTIMEDIA_IMAGE_COLORSPACE_ENCODE_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
             if (isSupportGifEncode) {
                 console.info("SUB_MULTIMEDIA_IMAGE_COLORSPACE_ENCODE_PROMISE_0200: The device support gif encode")
-                expect(true).assertTrue();
                 done();
             } else {
                 let packOpts: ESObject = { format: ["image/gif"], quality: 90 }

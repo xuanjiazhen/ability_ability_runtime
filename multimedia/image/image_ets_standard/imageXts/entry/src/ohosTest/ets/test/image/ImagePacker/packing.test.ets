@@ -37,7 +37,6 @@ async function packingPromiseTest(done: Function, testName: string, path: string
     if (imagePackerApi != null) {
       await imagePackerApi.packing(pictureObj, opts).then((data: ArrayBuffer) => {
         console.info(TAG, funcName, 'Succeeded in packing the image.' + data);
-        expect(true).assertTrue();
       }).catch((error: BusinessError) => {
         console.error(TAG, funcName, `Failed to pack the image.code ${error.code},message is ${error.message}`);
         expect().assertFail();

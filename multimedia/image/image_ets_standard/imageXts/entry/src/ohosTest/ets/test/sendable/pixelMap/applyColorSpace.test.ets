@@ -31,7 +31,6 @@ async function applyColorSpacePromiseTest(done: Function, testName: string, opts
     if (sendablePixelMap != undefined) {
       let targetColorSpace: colorSpaceManager.ColorSpaceManager = colorSpaceManager.create(colorSpaceName);
       await sendablePixelMap.applyColorSpace(targetColorSpace);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -49,7 +48,6 @@ async function applyColorSpaceAbnormalPromiseTest(done: Function, testName: stri
       new ArrayBuffer(opts.size.height * opts.size.height * 4);
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     await sendablePixelMap.applyColorSpace(targetColorSpace);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

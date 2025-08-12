@@ -38,7 +38,6 @@ async function readPixelsToBufferPromiseTest(done: Function, testName: string, p
       let pixelsBuffer: ArrayBuffer = await auxPictureObj.readPixelsToBuffer();
       await auxPictureObj.readPixelsToBuffer()
       console.info(TAG, 'Write pixels from buffer success.', pixelsBuffer);
-      expect(true).assertTrue();
       done();
     } else {
       console.error(TAG, 'AuxPictureObj is null.');

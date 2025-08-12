@@ -95,7 +95,6 @@ async function testGetImageProperties(done: Function, testNum: string, type: str
     imageSourceApi.getImageProperties(args)
       .then((data) => {
         console.info(`${testNum} ${args}` + JSON.stringify(data));
-        expect(true).assertTrue();
         done();
       })
       .catch((error: BusinessError) => {

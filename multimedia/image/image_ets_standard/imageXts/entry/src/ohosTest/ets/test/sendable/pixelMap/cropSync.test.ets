@@ -28,7 +28,6 @@ async function cropSyncPromiseTest(done: Function, testName: string, opts: image
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.cropSync(region);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -46,7 +45,6 @@ async function cropSyncAbnormalPromiseTest(done: Function, testName: string, opt
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.cropSync(region);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

@@ -140,7 +140,6 @@ async function packingPromise(done:Function, testNum:string, pixelmap:ESObject) 
         line++;
       }
       console.info(`${testNum} packing show end line: ${line}`);
-      expect(true).assertTrue();
       done();
     } catch (error) {
       console.info(`${testNum} packingPromise error: ${error}`);
@@ -164,7 +163,6 @@ async function getDelayTimePromise(done:Function, testNum:string, picName:string
       let delayTimes = await imageSourceApi.getDelayTimeList();
       if (delayTimes != undefined) {
         console.info(`${testNum} getDelayTimePromise getDelayTime success`);
-        expect(true).assertTrue();
         console.info(`${testNum} delayTimes show begin length: ${delayTimes.length} `);
         for (let i = 0; i < delayTimes.length; i++) {
           console.info(`${testNum} delayTimes[ ${i} ]= ${delayTimes[i]}`);
@@ -227,7 +225,6 @@ async function testGetDisposalTypePromise(done:Function, testNum:string, picName
       console.info(`${testNum} testGetDisposalTypePromise create imagesource success`);
       imageSourceApi.getDisposalTypeList().then((disposalTypes) => {
         console.info(`${testNum} testGetDisposalTypePromise getDisposalTypeList success`);
-        expect(true).assertTrue();
         console.info(`${testNum} disposalTypes show begin length: ${disposalTypes.length} `);
         for (let i = 0; i < disposalTypes.length; i++) {
           console.info(`${testNum} disposalTypes[ ${i} ]= ${disposalTypes[i]}`);

@@ -112,7 +112,6 @@ async function getImageInfoSyncPromiseTest(done: Function, testName: string, pat
       console.info(TAG, 'Succeeded in obtaining the image information.');
       console.info(TAG, 'imageInfo.size.height:' + imageInfo.size.height);
       console.info(TAG, 'imageInfo.size.width:' + imageInfo.size.width);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

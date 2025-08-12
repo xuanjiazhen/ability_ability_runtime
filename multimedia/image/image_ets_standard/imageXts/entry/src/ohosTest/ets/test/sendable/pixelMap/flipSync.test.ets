@@ -29,7 +29,6 @@ async function flipSyncPromiseTest(done: Function, testName: string, opts: image
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.flipSync(horizontal, vertical);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -47,7 +46,6 @@ async function flipSyncAbnormalPromiseTest(done: Function, testName: string, opt
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.flipSync(horizontal, vertical);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

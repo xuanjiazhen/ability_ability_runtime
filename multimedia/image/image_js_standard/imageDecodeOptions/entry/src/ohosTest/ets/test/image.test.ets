@@ -300,7 +300,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0100 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0100 fail  " + pixelmap);
@@ -354,7 +353,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0200 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0200 fail  " + pixelmap);
@@ -408,7 +406,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_SAMPLESIZE_0100 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info(
@@ -464,7 +461,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0100 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info(
@@ -522,7 +518,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_UNSUPPORTED_PIXELFORMAT_0100 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info(
@@ -756,7 +751,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0100 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0100 fail  " + pixelmap);
@@ -808,7 +802,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0200 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0200 fail  " + pixelmap);
@@ -862,7 +855,6 @@ export default function imageDecodeOptions() {
                                 "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0200 createPixelMap error " +
                                     JSON.stringify(err)
                             );
-                            expect(true).assertTrue();
                             done();
                         } else {
                             console.info(
@@ -1184,7 +1176,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0400 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0400 fail  " + pixelmap);
@@ -1232,7 +1223,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_SAMPLESIZE_0200 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -1280,7 +1270,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0300 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0300 fail  " + pixelmap);
@@ -1330,7 +1319,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_UNSUPPORTED_PIXELFORMAT_0200 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -1532,7 +1520,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0300createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0300 fail  " + pixelmap);
@@ -1578,7 +1565,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0400 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0400 fail  " + pixelmap);
@@ -1624,7 +1610,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0400 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0400 fail  " + pixelmap);
@@ -1876,7 +1861,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0500 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0500 fail  " + pixelmap);
@@ -1922,7 +1906,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0600 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0600 fail  " + pixelmap);
@@ -1970,7 +1953,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_SAMPLESIZE_0300 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -2018,7 +2000,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0500 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0500 fail  " + pixelmap);
@@ -2068,7 +2049,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_UNSUPPORTED_PIXELFORMAT_0300 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -2271,7 +2251,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0500 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0500 fail  " + pixelmap);
@@ -2317,7 +2296,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0600 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0600 fail  " + pixelmap);
@@ -2363,7 +2341,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0600 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0600 fail  " + pixelmap);
@@ -2553,7 +2530,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0700 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0700 fail  " + pixelmap);
@@ -2600,7 +2576,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0800 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_INDEX_0800 fail  " + pixelmap);
@@ -2649,7 +2624,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_SAMPLESIZE_0400 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -2698,7 +2672,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0700 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0700 fail  " + pixelmap);
@@ -2749,7 +2722,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_UNSUPPORTED_PIXELFORMAT_0400 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info(
@@ -2955,7 +2927,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0700 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0700 fail  " + pixelmap);
@@ -3002,7 +2973,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0800 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_XY_0800 fail  " + pixelmap);
@@ -3048,7 +3018,6 @@ export default function imageDecodeOptions() {
                             "SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0800 createPixelMap error " +
                                 JSON.stringify(err)
                         );
-                        expect(true).assertTrue();
                         done();
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_DECODEOPTIONS_CREATEPIXELMAP_ROTATE_0800 fail  " + pixelmap);

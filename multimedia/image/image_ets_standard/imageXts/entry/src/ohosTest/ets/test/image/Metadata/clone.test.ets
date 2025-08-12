@@ -37,7 +37,6 @@ async function clonePromiseTest(done: Function, testName: string, path: string,
     if (metaData != null) {
       let new_metadata: image.Metadata = await metaData.clone();
       await new_metadata.getProperties(attributeKey)
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

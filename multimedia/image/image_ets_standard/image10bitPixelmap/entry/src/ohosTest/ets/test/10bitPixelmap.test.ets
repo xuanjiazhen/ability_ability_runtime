@@ -291,7 +291,6 @@ export default function image10bitPixelMap() {
       }
       if (res) {
         logger.log('no change after writeBuffer');
-        expect(true).assertTrue();
         done();
       }
     }
@@ -461,7 +460,6 @@ export default function image10bitPixelMap() {
                 expect(false).assertTrue();
                 logger.log('set alpha failed');
               } else {
-                expect(true).assertTrue();
                 logger.log('set alpha success');
               }
               done();
@@ -469,7 +467,6 @@ export default function image10bitPixelMap() {
           } else if (type == 'promise') {
             try {
               await pixelMap.opacity(0.8);
-              expect(true).assertTrue();
               logger.log('set alpha success.');
               done();
             } catch (error) {
@@ -480,7 +477,6 @@ export default function image10bitPixelMap() {
           } else {
             try {
               pixelMap.opacitySync(0.8)
-              expect(true).assertTrue();
               logger.log('set alpha success.');
               done();
             } catch (error) {
@@ -603,7 +599,6 @@ export default function image10bitPixelMap() {
                                           orgInfo: image.ImageInfo, sizeCheck: Function) => {
       let newInfo = await pixelMap.getImageInfo()
       sizeCheck(done, logger, orgInfo, newInfo)
-      expect(true).assertTrue();
       done();
     }
 
@@ -696,7 +691,6 @@ export default function image10bitPixelMap() {
             fs.closeSync(writeFile.fd);
             if (!isSupportHdr) {
               logger.log(`device not support hdr`);
-              expect(true).assertTrue();
               done();
               return;
             } else {
@@ -709,7 +703,6 @@ export default function image10bitPixelMap() {
           globalPacker.packToFile(pixelMap, writeFile.fd, packOpt, async (err: BusinessError) => {
             if (!isSupportHdr) {
               logger.log(`device not support hdr`);
-              expect(true).assertTrue();
               done();
               return;
             } else {
@@ -754,7 +747,6 @@ export default function image10bitPixelMap() {
           }).catch((error: BusinessError) => {
             if (!isSupportHdr) {
               logger.log(`device not support hdr`);
-              expect(true).assertTrue();
               done();
               return;
             }
@@ -768,7 +760,6 @@ export default function image10bitPixelMap() {
           globalPacker.packing(pixelMap, packOpt, async (err: BusinessError, data: ArrayBuffer) => {
             if (!isSupportHdr) {
               logger.log(`device not support hdr`);
-              expect(true).assertTrue();
               done();
               return;
             } else {
@@ -951,12 +942,10 @@ export default function image10bitPixelMap() {
           if (interfaceType == "promise") {
             await pixelMap.release();
             logger.log('PixelMap release success')
-            expect(true).assertTrue();
             done();
           } else {
             pixelMap.release(() => {
               logger.log('PixelMap release success')
-              expect(true).assertTrue();
               done();
             });
           }
@@ -1008,7 +997,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0100');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToBuffer(done, logger, 'promise', "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1030,7 +1018,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0200');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToBuffer(done, logger, 'callback', "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1052,7 +1039,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0300');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToBuffer(done, logger, 'sync', "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1074,7 +1060,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0400');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToArea(done, logger, 'promise',"CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1096,7 +1081,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0500');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToArea(done, logger, 'callback',"HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1118,7 +1102,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0600');
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         await writerAndReadPixelsToArea(done, logger, 'sync',"HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1137,7 +1120,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await getImageInfoTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0700', 'promise', "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1156,7 +1138,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0800', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await getImageInfoTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0800', 'callback', "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1175,7 +1156,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0900', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await getImageInfoTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_0900', 'sync', "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1194,7 +1174,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1000', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetBytesNumberPerRow(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1000", "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1213,7 +1192,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1100', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetBytesNumberPerRow(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1100", "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1232,7 +1210,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1200', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetBytesNumberPerRow(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1200", "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1251,7 +1228,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1300', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetPixelBytesNumber(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1300", "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1270,7 +1246,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1400', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetPixelBytesNumber(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1400", "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1371,7 +1346,6 @@ export default function image10bitPixelMap() {
     try {
       receiver.on('imageArrival', callbackFunc)
       receiver.off('imageArrival', callbackFunc)
-      expect(true).assertTrue()
       done()
     } catch (error) {
       console.info(`Listening error. ${error.code},error is ${error}`);
@@ -1396,7 +1370,6 @@ export default function image10bitPixelMap() {
     try {
       creator.on('imageRelease', callbackFunc)
       creator.off('imageRelease', callbackFunc)
-      expect(true).assertTrue()
       done()
     } catch (error) {
       console.info(`Listen error. ${error.code},error is ${error}`);
@@ -1499,7 +1472,6 @@ export default function image10bitPixelMap() {
     try {
       receiver.on('imageArrival', callbackFunc)
       receiver.off('imageArrival', callbackFunc)
-      expect(true).assertTrue()
       done()
     } catch (error) {
       console.info(`Listening error. ${error.code},error is ${error}`);
@@ -1524,7 +1496,6 @@ export default function image10bitPixelMap() {
     try {
       creator.on('imageRelease', callbackFunc)
       creator.off('imageRelease', callbackFunc)
-      expect(true).assertTrue()
       done()
     } catch (error) {
       console.info(`Listen error. ${error.code},error is ${error}`);
@@ -1711,7 +1682,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1500', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetPixelBytesNumber(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1500", "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1730,7 +1700,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1600', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetDensity(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1600", "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1749,7 +1718,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetDensity(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1700", "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -1768,7 +1736,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1800', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testGetDensity(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1800", "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -1787,7 +1754,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1900', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await opacityTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_1900', 'promise', "CUVAHdrMulti.jpg");
@@ -1806,7 +1772,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2000', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await opacityTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2000', 'callback', "HDRVividSingleLayer.heic");
@@ -1825,7 +1790,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2100', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await opacityTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2100', 'sync', "HDRVividSingleLayer.heic");
@@ -1846,7 +1810,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2200', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await createAlphaPixelmapTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2200', 'promise', "CUVAHdrMulti.jpg");
@@ -1867,7 +1830,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2300', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await createAlphaPixelmapTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2300', 'callback', "HDRVividSingleLayer.heic");
@@ -1888,7 +1850,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2400', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await createAlphaPixelmapTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2400', 'sync', "HDRVividSingleLayer.heic");
@@ -1908,7 +1869,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2500', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testSetAndGetColorSpace(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2500",  "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -1928,7 +1888,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2600', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testSetAndGetColorSpace(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2600",  "CUVAHdrMulti.jpg", YCBCR_P010);
@@ -1948,7 +1907,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testSetAndGetColorSpace(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2700",  "CUVAHdrMulti.jpg", YCRCB_P010);
@@ -1968,7 +1926,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2800', Level.LEVEL1, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2800', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await applyColorSpaceTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2800', 'promise', "CUVAHdrMulti.jpg");
@@ -1988,7 +1945,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2900', Level.LEVEL1, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2900', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await applyColorSpaceTest(done, 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_2900', 'callback', "HDRVividSingleLayer.heic");
@@ -2011,7 +1967,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3000', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testMarshallingPixelmap(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3000", "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -2035,7 +1990,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3100', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testMarshallingPixelmap(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3100", "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -2058,7 +2012,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3200', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testMarshallingPixelmap(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3200", "HDRVividSingleLayer.heic", YCRCB_P010);
@@ -2079,7 +2032,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3300', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2108,7 +2060,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3400', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2137,7 +2088,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3500', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2166,7 +2116,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3600', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2195,7 +2144,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2224,7 +2172,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3800', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2253,7 +2200,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_3900', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2282,7 +2228,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4000', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2311,7 +2256,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4100', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2340,7 +2284,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4200', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2369,7 +2312,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4300', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2398,7 +2340,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4400', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let sizeCheck = (done: Function, logger: Logger, orgInfo: image.ImageInfo, newInfo: image.ImageInfo) => {
@@ -2428,7 +2369,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4500', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let region: image.Region = { size: { height: 3, width: 3 }, x: 1, y: 1 };
@@ -2459,7 +2399,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4600', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let region: image.Region = { size: { height: 3, width: 3 }, x: 1, y: 1 };
@@ -2490,7 +2429,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let region: image.Region = { size: { height: 3, width: 3 }, x: 1, y: 1 };
@@ -2518,7 +2456,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4800', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testRelease(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4800", "CUVAHdrMulti.jpg", RGBA_1010102, "promise");
@@ -2537,7 +2474,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4900', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testRelease(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_4900", "HDRVividSingleLayer.heic", YCBCR_P010, "callback");
@@ -2557,7 +2493,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5000', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testRelease(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5000", "HDRVividSingleLayer.heic", YCRCB_P010, "callback");
@@ -2577,7 +2512,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFile = getWriteFile("test_pack_to_file_promise.jpg");
@@ -2603,7 +2537,6 @@ export default function image10bitPixelMap() {
         } else {
           logger.log("device is not support heic encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFile = getWriteFile("test_pack_to_file_callback.heic");
@@ -2625,7 +2558,6 @@ export default function image10bitPixelMap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let packOpt: image.PackingOption = { format: "image/jpeg", quality: 100, desiredDynamicRange: image.PackingDynamicRange.AUTO };
@@ -2650,7 +2582,6 @@ export default function image10bitPixelMap() {
         } else {
           logger.log("device is not support heic encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let packOpt: image.PackingOption = { format: "image/heic", quality: 100, desiredDynamicRange: image.PackingDynamicRange.AUTO };
@@ -2670,7 +2601,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5500', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testToSdr(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5500", "CUVAHdrMulti.jpg", RGBA_1010102);
@@ -2689,7 +2619,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5600', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testToSdr(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5600", "HDRVividSingleLayer.heic", YCBCR_P010);
@@ -2708,7 +2637,6 @@ export default function image10bitPixelMap() {
     it('SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportHdr) {
         hilog.info(0x0000, "image10bitPixelMap", 'case: %{public}s msg:%{public}s', 'SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5700', 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         await testToSdr(done, "SUB_MULTIMEDIA_IMAGE_PIXELMAPADAPTION_10bit_5700", "HDRVividSingleLayer.heic", YCRCB_P010);

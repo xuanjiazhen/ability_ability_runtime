@@ -27,7 +27,6 @@ async function createPixelMapFromSurfaceAbnormalPromiseTest(done: Function, test
   let region: image.Region = { x: 0, y: 0, size: { height: 100, width: 100 } };
   await sendableImage.createPixelMapFromSurface(surfaceId, region).then(() => {
     console.info('Succeeded in creating pixelmap from Surface');
-    expect(true).assertTrue();
     done();
   }).catch((error: ESObject) => {
     console.error(TAG,

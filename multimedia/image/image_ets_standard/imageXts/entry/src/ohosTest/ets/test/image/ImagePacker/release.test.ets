@@ -24,7 +24,6 @@ async function releasePromiseTest(done: Function, testName: string) {
   try {
     const imagePackerApi: image.ImagePacker = await image.createImagePacker();
     await imagePackerApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -42,7 +41,6 @@ async function releaseCallbackTest(done: Function, testName: string) {
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in releasing image packaging.');
-        expect(true).assertTrue();
       }
       done();
     });

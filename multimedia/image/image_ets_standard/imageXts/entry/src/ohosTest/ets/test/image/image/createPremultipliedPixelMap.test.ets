@@ -39,7 +39,6 @@ async function createPremultipliedPixelMapCallbackTest(done: Function, testName:
         done();
       } else {
         console.info(TAG, 'Succeeded in converting pixelmap.');
-        expect(true).assertTrue();
         done();
       }
     })
@@ -63,7 +62,6 @@ async function createPremultipliedPixelMapPromiseTest(done: Function, testName: 
     let srcPixelmap = image.createPixelMapSync(color, optsForUnpre);
     let dstPixelMap = image.createPixelMapSync(optsForPre);
     await image.createPremultipliedPixelMap(srcPixelmap, dstPixelMap);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
