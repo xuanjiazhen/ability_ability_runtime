@@ -19,6 +19,7 @@ import { ComponentInfo, RectInfo } from './Interfaces';
 import systemDateTime from '@ohos.systemDateTime';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry'
 import fs from '@ohos.file.fs';
+import { waitForComponent } from './WaitTest.test';
 
 export default class Utils {
   static sleep(time: number) {
@@ -123,8 +124,7 @@ export default class Utils {
   }
 
   static async clickComponent(id: string) {
-    let driver = Driver.create();
-    let component = await driver.findComponent(ON.id(id));
+    let component = await waitForComponent(id);
     await component.click();
   }
 
@@ -180,7 +180,7 @@ export default class Utils {
         eventId: eventId,
         priority: events_emitter.EventPriority.LOW
       }
-      events_emitter.on(innerEvent, callBack)
+      events_emitter.once(innerEvent, callBack)
     } catch (err) {
       console.info(`[${testCaseName}] err:` + JSON.stringify(err));
     }

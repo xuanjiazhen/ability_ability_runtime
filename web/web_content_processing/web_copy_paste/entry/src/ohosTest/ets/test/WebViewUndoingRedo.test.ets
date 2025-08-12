@@ -17,7 +17,7 @@ import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils.test';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
-import { Driver, ON, MouseButton } from '@ohos.UiTest';
+import { waitForComponent } from './WaitTest.test';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 // @ts-nocheck
@@ -31,28 +31,25 @@ export default function ActswebviewUndoingRedo() {
         url: 'testability/pages/WebViewUndoingRedo',
       }
       try {
-        await Utils.sleep(1000)
         router.clear();
         let pages = router.getState();
         console.info("get webviewUndoingRedo state success " + JSON.stringify(pages));
         if (!("WebViewUndoingRedo" == pages.name)) {
           console.info("get webviewUndoingRedo state success " + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
-          await Utils.sleep(2000);
           console.info("push webviewUndoingRedo page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webviewUndoingRedo page error: " + err);
       }
-      let driver: Driver = Driver.create();
-      await driver.waitForComponent(ON.id("webviewUndoingRedoButton"),10000);
+      await waitForComponent("webviewUndoingRedoButton");
       done()
     });
 
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
-        }).catch((err: object) => {
+      }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
       console.info("web beforeEach start");
@@ -67,7 +64,7 @@ export default function ActswebviewUndoingRedo() {
           }
         };
         let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
+          eventId: 130700,
           priority: events_emitter.EventPriority.LOW
         };
         console.info("start send emitKey");
@@ -75,7 +72,6 @@ export default function ActswebviewUndoingRedo() {
       } catch (err) {
         console.info("emit emitKey  err: " + JSON.stringify(err));
       }
-      await Utils.sleep(2000);
       done();
     })
 
@@ -89,8 +85,8 @@ export default function ActswebviewUndoingRedo() {
     */
     it('testWebviewUndoingRedo', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebviewUndoingRedo";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewUndoingRedo", true, 20250528, done);
+      Utils.emitEvent(emitKey, 130700);
+      Utils.registerEvent("testWebviewUndoingRedo", true, 130710, done);
       sendEventByKey('webviewUndoingRedoButton', 10, '');
     })
 
@@ -104,8 +100,8 @@ export default function ActswebviewUndoingRedo() {
     */
     it('testWebviewUndoingRedo002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitWebviewUndoingRedo002";
-      Utils.emitEvent(emitKey, 10);
-      Utils.registerEvent("testWebviewUndoingRedo002", true, 20250529, done);
+      Utils.emitEvent(emitKey, 130700);
+      Utils.registerEvent("testWebviewUndoingRedo002", true, 130720, done);
       sendEventByKey('webviewUndoingRedoButton', 10, '');
     })
 
