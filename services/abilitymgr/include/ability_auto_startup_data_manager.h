@@ -42,7 +42,7 @@ public:
 
     AutoStartupStatus QueryAutoStartupData(const AutoStartupInfo &info);
 
-    int32_t QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList, int32_t userId, bool isCalledByEDM);
+    int32_t QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList, int32_t userId);
 
     int32_t GetCurrentAppAutoStartupData(const std::string &bundleName,
         std::vector<AutoStartupInfo> &infoList, const std::string &accessTokenId);
@@ -52,13 +52,11 @@ private:
     DistributedKv::Status GetKvStore();
     bool CheckKvStore();
     DistributedKv::Value ConvertAutoStartupStatusToValue(
-        const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce);
-    void ConvertAutoStartupStatusFromValue(const DistributedKv::Value &value, AutoStartupStatus &startupStatus);
+        bool isAutoStartup, bool isEdmForce, const std::string &abilityTypeName);
+    void ConvertAutoStartupStatusFromValue(const DistributedKv::Value &value, bool &isAutoStartup, bool &isEdmForce);
     DistributedKv::Key ConvertAutoStartupDataToKey(const AutoStartupInfo &info);
     AutoStartupInfo ConvertAutoStartupInfoFromKeyAndValue(
         const DistributedKv::Key &key, const DistributedKv::Value &value);
-    void ConvertAutoStartupInfoFromKey(const DistributedKv::Key &key, AutoStartupInfo &info);
-    void ConvertAutoStartupInfoFromValue(const DistributedKv::Value &value, AutoStartupInfo &info);
     bool IsEqual(const DistributedKv::Key &key, const AutoStartupInfo &info);
     bool IsEqual(const DistributedKv::Key &key, const std::string &accessTokenId);
     bool IsEqual(const DistributedKv::Key &key, int32_t userId);
