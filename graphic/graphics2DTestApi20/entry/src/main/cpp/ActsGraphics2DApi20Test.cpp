@@ -22,6 +22,8 @@
 #include "NativeBufferTest.h"
 #include "ExternalWindowTest.h"
 #include "TypographyTest.h"
+#include "ErrorCodeTest.h"
+#include "VSyncFenceTest.h"
 #include <vector>
 
 EXTERN_C_START
@@ -38,6 +40,8 @@ static napi_value Init(napi_env env, napi_value exports)
     addColorSpaceNameTest(descData);
     addExternalWindowTest(descData);
     addTypographyTest(descData);
+    addVSyncFenceTest(descData);
+    addErrorCodeTest(descData);
     napi_define_properties(env, exports, descData.size(), descData.data());
     return exports;
 }
