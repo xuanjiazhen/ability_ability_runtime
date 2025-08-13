@@ -36,11 +36,12 @@ static int FindDirAndCheck(DIR *dir, char *fileResult, int pid)
     }
     while((ptr = readdir(dir)) != NULL) {
         if (strstr(ptr->d_name, file) != NULL) {
-            int findRes = snprintf_s(fileResult, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE - 1, "%s/%s", "/data/storage/el2/log/", ptr->d_name);
+            int findRes = snprintf_s(fileResult, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE - 1, "%s/%s",
+                "/data/storage/el2/log/", ptr->d_name);
             if (findRes < 0) {
                 return -1;
             }
-	    return 1;
+            return 1;
         }
     }
     return -1;
