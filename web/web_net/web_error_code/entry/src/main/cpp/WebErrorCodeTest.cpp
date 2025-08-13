@@ -159,7 +159,7 @@ static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info in
 
     napi_value result;
     if (resultCode != ARKWEB_INVALID_COOKIE_VALUE) {
-        napi_create_int32(env, ret, &result);    
+        napi_create_int32(env, ret, &result);
     } else {
         napi_create_int32(env, resultCode, &result);
     }
@@ -202,7 +202,7 @@ static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback
     int saveRet = OH_ArkWebCookieManager_SaveCookieSync();
     napi_value result;
     if (saveRet != ARKWEB_SUCCESS) {
-        napi_create_int32(env, saveRet, &result);    
+        napi_create_int32(env, saveRet, &result);
     } else {
         napi_create_int32(env, ret, &result);
     }
