@@ -17,6 +17,8 @@
   "devDependencies": {
     "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
     "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libaccessibilityndk.so": "file:./src/main/cpp/types/libaccessibilityndk",
+    "@types/libanimatendk.so": "file:./src/main/cpp/types/libanimatendk",
     "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk",
     "@types/libnoderenderndk.so": "file:./src/main/cpp/types/libnoderenderndk"
   },
@@ -28,6 +30,8 @@
   "dependencies": {
     "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
     "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libaccessibilityndk.so": "file:./src/main/cpp/types/libaccessibilityndk",
+    "@types/libanimatendk.so": "file:./src/main/cpp/types/libanimatendk",
     "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk",
     "@types/libnoderenderndk.so": "file:./src/main/cpp/types/libnoderenderndk"
   }

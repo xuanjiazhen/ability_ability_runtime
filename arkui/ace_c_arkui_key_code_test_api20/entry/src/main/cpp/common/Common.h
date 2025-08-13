@@ -164,5 +164,4 @@ static napi_value GetKeyCodeEvent##name(napi_env env, napi_callback_info info)  
 const unsigned int LOG_PRINT_DOMAIN = 0xFF00;
 
 napi_property_descriptor XL(char* functionName, napi_callback func);
-
 #endif // NATIVE_XCOMPONENT_COMMON_H

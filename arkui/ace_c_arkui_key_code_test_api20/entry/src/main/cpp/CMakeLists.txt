@@ -62,7 +62,28 @@ target_link_libraries(nativexcomponent PUBLIC
 
 target_link_libraries(keycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libohinput.so)
 
-add_library(arkuikeycodendk SHARED arkuikeycode/ArkUIKeyCodeTest.cpp)
+add_library(accessibilityndk SHARED accessibilitytest/AccessibilityTest.cpp
+                                    accessibilitytest/Accessibility1Test.cpp
+                                    accessibilitytest/Accessibility2Test.cpp
+                                    accessibilitytest/Accessibility3Test.cpp
+                                    accessibilitytest/Accessibility4Test.cpp
+                                    accessibilitytest/Accessibility5Test.cpp
+                                    accessibilitytest/Accessibility6Test.cpp
+                                    common/CommonTest.cpp
+)
+target_link_libraries(accessibilityndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
+                            libace_ndk.z.so)
+
+add_library(animatendk SHARED animateoptiontest/AnimatorOptionTest.cpp
+                              animateoptiontest/KeyframeAnimateOptionTest.cpp
+                              animateoptiontest/AnimatorOption1Test.cpp
+                              animateoptiontest/AnimatorOption2Test.cpp
+                              common/CommonTest.cpp)
+target_link_libraries(animatendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
+                            libace_ndk.z.so)
+
+add_library(arkuikeycodendk SHARED arkuikeycode/ArkUIKeyCodeTest.cpp
+common/CommonTest.cpp)
 target_link_libraries(arkuikeycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so)
 
 add_library(noderenderndk SHARED NapiRenderInitTest.cpp
@@ -85,6 +106,7 @@ add_library(noderenderndk SHARED NapiRenderInitTest.cpp
     nodeutilstest/NodeUtils1Test.cpp
     nodeutilstest/NodeUtilsTest.cpp
     nodeutilstest/NodeUtils2Test.cpp
+    common/CommonTest.cpp
 )
 
 target_link_libraries(noderenderndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
