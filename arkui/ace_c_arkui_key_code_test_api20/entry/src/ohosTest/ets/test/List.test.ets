@@ -22,6 +22,28 @@ import NativeXComponent from './nativexcomponent/NativeXComponent.test'
 import NodeAttribute from './nativexcomponent/NodeAttribute.test'
 import TouchPointTest from './nativexcomponent/TouchPoint.test'
 import XComponentMouseTest from './nativexcomponent/XComponentMouse.test'
+import ArkUIKeyCodeNdkTest1 from './arkuikeycodetest/ArkUIKeyCodeTest1.test'
+import ArkUIKeyCodeNdkTest2 from './arkuikeycodetest/ArkUIKeyCodeTest2.test'
+import ArkUIKeyCodeNdkTest3 from './arkuikeycodetest/ArkUIKeyCodeTest3.test'
+import ArkUIKeyCodeNdkTest4 from './arkuikeycodetest/ArkUIKeyCodeTest4.test'
+import FocusControlTest from './foucscontroltest/FocusRequestTest.test'
+import KeyEventTest from './keyeventtest/KeyEventTest.test'
+import NodeEventTest from './nodeeventtest/NodeEventTest.test'
+import NodeAdapterTest from './nodeadaptertest/NodeAdapterTest.test'
+import NodeContentTest from './nodecontenttest/NodecontentTest.test'
+import SnapShotTest from './snapshottest/SnapShotTest.test'
+import RunTaskInscopeTest from './scopetest/RunTaskInScopeTest.test'
+import NodeNapiTest from './nodenapitest/NodeNapiTest.test'
+import NodeNapiTest1 from './nodenapitest/NodeNapiTest1.test'
+import NodeNapiTest2 from './nodenapitest/NodeNapiTest2.test'
+import NodeNapiTest3 from './nodenapitest/NodeNapiTest3.test'
+import NodeNapiTest4 from './nodenapitest/NodeNapiTest4.test'
+import NavigationTest from './nodenapitest/NavigationTest.test'
+import NavDestinationTest from './nodenapitest/NavDestinationTest.test'
+import GetRouterTest from './nodenapitest/GetRouterTest.test'
+import NodeUtilsTest from './nodeutilstest/NodeUtilsTest.test'
+import NodeUtilsTest1 from './nodeutilstest/NodeUtilsTest1.test'
+import NodeUtilsTest2 from './nodeutilstest/NodeUtilsTest2.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
@@ -33,4 +55,26 @@ export default function testsuite() {
   TouchPointTest()
   XComponentMouseTest()
   NodeAttribute()
+  ArkUIKeyCodeNdkTest1()
+  ArkUIKeyCodeNdkTest2()
+  ArkUIKeyCodeNdkTest3()
+  ArkUIKeyCodeNdkTest4()
+  FocusControlTest()
+  KeyEventTest()
+  NodeEventTest()
+  NodeAdapterTest()
+  NodeContentTest()
+  SnapShotTest()
+  RunTaskInscopeTest()
+  NodeNapiTest()
+  NodeNapiTest1()
+  NodeNapiTest2()
+  NodeNapiTest3()
+  NodeNapiTest4()
+  NavigationTest()
+  NavDestinationTest()
+  GetRouterTest()
+  NodeUtilsTest1()
+  NodeUtilsTest()
+  NodeUtilsTest2()
 }

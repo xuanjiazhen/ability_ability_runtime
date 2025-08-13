@@ -16,7 +16,9 @@
   "license": "",
   "devDependencies": {
     "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
-    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent"
+    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk",
+    "@types/libnoderenderndk.so": "file:./src/main/cpp/types/libnoderenderndk"
   },
   "author": "",
   "name": "entry",
@@ -25,6 +27,8 @@
   "version": "1.0.0",
   "dependencies": {
     "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
-    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent"
+    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libarkuikeycodendk.so": "file:./src/main/cpp/types/libarkuikeycodendk",
+    "@types/libnoderenderndk.so": "file:./src/main/cpp/types/libnoderenderndk"
   }
 }
