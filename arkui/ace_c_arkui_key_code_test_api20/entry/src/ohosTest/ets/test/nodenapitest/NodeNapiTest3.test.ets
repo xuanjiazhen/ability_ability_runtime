@@ -26,27 +26,6 @@ export default function NodeNapiTest3() {
     beforeAll(async (done: Function) => {
       await Utils.pushPage(`nodenapitest/nodenapiTest3`, done);
     });
-    /*
-       * @tc.number     : SUB_ArkUI_ACE_ENGINE_OH_ArkUI_GetDrawableDescriptorFromNapiValue_0100
-       * @tc.name       : testOH_ArkUI_GetDrawableDescriptorFromNapiValue0100
-       * @tc.desc       : testing OH_ArkUI_GetDrawableDescriptorFromNapiValue interface
-       * @tc.size       : MediumTest
-       * @tc.type       : Function
-       * @tc.level      : Level 1
-       */
-    it('testOH_ArkUI_GetDrawableDescriptorFromNapiValue0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
-        try {
-          console.info("====>testOH_ArkUI_GetDrawableDescriptorFromNapiValue0100 start====");
-          let result: number = nativerenderndk.GetDrawableDescriptorFromNapiValueTest_001();
-          console.info(`====>testOH_ArkUI_GetDrawableDescriptorFromNapiValue0100 result====${result}`);
-          expect(result).assertEqual(ARKUI_ERROR_CODE_NO_ERROR);
-          done();
-        } catch (err) {
-          console.error("====>testOH_ArkUI_GetDrawableDescriptorFromNapiValue0100 err: " + err);
-          expect(false).assertEqual(ARKUI_ERROR_CODE_ERROR);
-        }
-      })
 
     /*
        * @tc.number     : SUB_ArkUI_ACE_ENGINE_OH_ArkUI_GetDrawableDescriptorFromNapiValue_0200

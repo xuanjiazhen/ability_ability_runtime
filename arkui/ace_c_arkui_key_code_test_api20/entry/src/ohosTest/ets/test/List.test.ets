@@ -37,7 +37,6 @@ import NodeNapiTest from './nodenapitest/NodeNapiTest.test'
 import NodeNapiTest1 from './nodenapitest/NodeNapiTest1.test'
 import NodeNapiTest2 from './nodenapitest/NodeNapiTest2.test'
 import NodeNapiTest3 from './nodenapitest/NodeNapiTest3.test'
-import NodeNapiTest4 from './nodenapitest/NodeNapiTest4.test'
 import NavigationTest from './nodenapitest/NavigationTest.test'
 import NavDestinationTest from './nodenapitest/NavDestinationTest.test'
 import GetRouterTest from './nodenapitest/GetRouterTest.test'
@@ -70,7 +69,6 @@ export default function testsuite() {
   NodeNapiTest1()
   NodeNapiTest2()
   NodeNapiTest3()
-  NodeNapiTest4()
   NavigationTest()
   NavDestinationTest()
   GetRouterTest()

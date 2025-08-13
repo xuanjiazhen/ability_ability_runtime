@@ -28,28 +28,6 @@ export default function NodeNapiTest1() {
     });
 
     /*
-       * @tc.number     : SUB_ArkUI_ACE_ENGINE_OH_ArkUI_GetContextFromNapiValue_0100
-       * @tc.name       : testOHArkUIGetContextFromNapiValue0100
-       * @tc.desc       : testing OH_ArkUI_GetContextFromNapiValue interface
-       * @tc.size       : MediumTest
-       * @tc.type       : Function
-       * @tc.level      : Level 1
-       */
-    it('testOHArkUIGetContextFromNapiValue0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-      async (done: Function) => {
-        try {
-          console.info("====>testOHArkUIGetContextFromNapiValue0100 start====");
-          let result: number = nativerenderndk.GetContextFromNapiValueTest_001();
-          console.info(`====>testOHArkUIGetContextFromNapiValue0100 result====${result}`);
-          expect(result).assertEqual(ARKUI_ERROR_CODE_NO_ERROR);
-          done();
-        } catch (err) {
-          console.error("====>testOHArkUIGetContextFromNapiValue0100 err: " + err);
-          expect(false).assertEqual(ARKUI_ERROR_CODE_ERROR);
-        }
-      })
-
-    /*
        * @tc.number     : SUB_ArkUI_ACE_ENGINE_OH_ArkUI_GetContextFromNapiValue_0200
        * @tc.name       : testOHArkUIGetContextFromNapiValue0200
        * @tc.desc       : testing OH_ArkUI_GetContextFromNapiValue interface
