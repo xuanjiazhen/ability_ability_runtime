@@ -1721,8 +1721,7 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
                     TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -s' no arg", cmd_.c_str());
 
                     resultReceiver_.append("error: option ");
-                    resultReceiver_.append(argv_[optind - 1]);
-                    resultReceiver_.append("' requires a value.\n");
+                    resultReceiver_.append("requires a value.\n");
 
                     result = OHOS::ERR_INVALID_VALUE;
                     break;
