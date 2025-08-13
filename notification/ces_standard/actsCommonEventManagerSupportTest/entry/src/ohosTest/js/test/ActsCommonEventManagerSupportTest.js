@@ -551,7 +551,7 @@ export default function ActsCommonEventManagerSupportTest() {
      */
     it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800', Level.LEVEL2, async  function () {
       console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800 START`)
-      expect(commonEventManager.Support.COMMON_EVENT_SCREEN_CAPTURE).assertEqual('usual.event.SCREEN_CAPTURE')
+      expect(commonEventManager.Support.COMMON_EVENT_SCREEN_SHARE).assertEqual('usual.event.SCREEN_SHARE')
       console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800 END`)
     })
 }
