@@ -105,7 +105,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = new ArkTSUtils.locks.ConditionVariable();
         conditionVariable.wait();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -154,7 +153,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = ArkTSUtils.locks.ConditionVariable.request("Test");
         conditionVariable.wait();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -204,7 +202,6 @@ export default function conditionVariableTest() {
         const waitTime: number = 500;
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = new ArkTSUtils.locks.ConditionVariable();
         conditionVariable.waitFor(waitTime);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -349,7 +346,6 @@ export default function conditionVariableTest() {
         const waitTime: number = 500;
         const conditionVariable = ArkTSUtils.locks.ConditionVariable.request('Test');
         conditionVariable.waitFor(waitTime);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -493,7 +489,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = new ArkTSUtils.locks.ConditionVariable();
         conditionVariable.notifyAll();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -895,7 +890,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable = ArkTSUtils.locks.ConditionVariable.request('Test');
         conditionVariable.notifyAll();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -1297,7 +1291,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = new ArkTSUtils.locks.ConditionVariable();
         conditionVariable.notifyOne();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -1320,7 +1313,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable: ArkTSUtils.locks.ConditionVariable = new ArkTSUtils.locks.ConditionVariable();
         await taskpool.execute(threadNotifyOne, conditionVariable).then(() => {
-          expect(true).assertTrue();
         });
       } catch (err) {
         console.error(`${CASE} error:` + err);
@@ -1805,7 +1797,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable = ArkTSUtils.locks.ConditionVariable.request('Test');
         conditionVariable.notifyOne();
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -1828,7 +1819,6 @@ export default function conditionVariableTest() {
       try {
         const conditionVariable = ArkTSUtils.locks.ConditionVariable.request('Test');
         await taskpool.execute(threadNotifyOne, conditionVariable).then(() => {
-          expect(true).assertTrue();
         });
       } catch (err) {
         console.error(`${CASE} error:` + err);
@@ -2713,7 +2703,6 @@ export default function conditionVariableTest() {
         }
         GCFull();
         console.log(`${CASE} threadGC thread continuing...`);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
@@ -2772,7 +2761,6 @@ export default function conditionVariableTest() {
         }
         GCFull();
         console.log(`${CASE} threadGC thread continuing...`);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${CASE} error:` + err);
         expect().assertFail();
