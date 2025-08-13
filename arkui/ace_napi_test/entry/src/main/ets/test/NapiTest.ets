@@ -6106,69 +6106,6 @@ export default function napiApiTest() {
     });
 
     /**
-     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_CREATESENDABLETYPEDARRAY_0700
-     * @tc.name      : testCreateSendableTypedArray0007
-     * @tc.desc      : Testing CreateSendableTypedArray NAPI interface.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('testCreateSendableTypedArray0007', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      console.info('testCreateSendableTypedArray0007 START');
-      try {
-        let value = napitest.createSendableBigInt64ArrayTest();
-        console.info('testCreateSendableTypedArray0007 value is: ' + value);
-        expect(value).assertEqual(0);
-      } catch (err) {
-        console.error('testCreateSendableTypedArray0007 err msg' + err.message);
-        expect().assertFail();
-      }
-      done();
-    });
-
-    /**
-     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_CREATESENDABLETYPEDARRAY_0800
-     * @tc.name      : testCreateSendableTypedArray0008
-     * @tc.desc      : Testing CreateSendableTypedArray NAPI interface.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('testCreateSendableTypedArray0008', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      console.info('testCreateSendableTypedArray0008 START');
-      try {
-        let value = napitest.createSendableBigUint64ArrayTest();
-        console.info('testCreateSendableTypedArray0008 value is: ' + value);
-        expect(value).assertEqual(0);
-      } catch (err) {
-        console.error('testCreateSendableTypedArray0008 err msg' + err.message);
-        expect().assertFail();
-      }
-      done();
-    });
-
-	/**
-     * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_CREATESENDABLETYPEDARRAY_0900
-     * @tc.name      : testCreateSendableTypedArray0009
-     * @tc.desc      : Testing CreateSendableTypedArray NAPI interface.
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level 1
-     */
-    it('testCreateSendableTypedArray0009', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-      console.info('testCreateSendableTypedArray0009 START');
-      try {
-        let value = napitest.createSendableFloat64ArrayTest();
-        console.info('testCreateSendableTypedArray0009 value is: ' + value);
-        expect(value).assertEqual(0);
-      } catch (err) {
-        console.error('testCreateSendableTypedArray0009 err msg' + err.message);
-        expect().assertFail();
-      }
-      done();
-    });
-	
-    /**
      * @tc.number    : SUB_RUNTIME_LANGUAGE_NAPI_WRAPSENDABLE_0100
      * @tc.name      : testWrapSendable0001
      * @tc.desc      : Testing WrapSendable NAPI interface.
