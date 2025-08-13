@@ -18,6 +18,10 @@ import KeyCodeNdkTest1 from './nativekeycode/KeyCodeTest1.test'
 import KeyCodeNdkTest2 from './nativekeycode/KeyCodeTest2.test'
 import KeyCodeNdkTest3 from './nativekeycode/KeyCodeTest3.test'
 import KeyCodeNdkTest4 from './nativekeycode/KeyCodeTest4.test'
+import NativeXComponent from './nativexcomponent/NativeXComponent.test'
+import NodeAttribute from './nativexcomponent/NodeAttribute.test'
+import TouchPointTest from './nativexcomponent/TouchPoint.test'
+import XComponentMouseTest from './nativexcomponent/XComponentMouse.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
@@ -25,4 +29,8 @@ export default function testsuite() {
   KeyCodeNdkTest2()
   KeyCodeNdkTest3()
   KeyCodeNdkTest4()
+  NativeXComponent()
+  TouchPointTest()
+  XComponentMouseTest()
+  NodeAttribute()
 }

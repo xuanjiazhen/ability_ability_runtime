@@ -12,22 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import nativexcomponent from 'libnativexcomponent.so';
+import { NodeContent } from '@kit.ArkUI';
 
 @Entry
 @Component
-struct TestG {
-
-  @State message: string = 'Hello World'
+struct NativeXComponent {
+  @State currentStatus: string = 'init';
+  @State currentWindowX: number = 0;
+  private nodeContent: NodeContent = new NodeContent();
+  aboutToAppear():void{
+    // 通过C-API创建节点，并添加到管理器nodeContent上
+    if (nativexcomponent) {
+      nativexcomponent.XComponentCreate(this.nodeContent);
+    }
+  }
 
   build() {
-    Row() {
-      Column() {
-        Text(this.message)
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
-      }
-      .width('100%')
+    Column() {
+      ContentSlot(this.nodeContent);
     }
+    .width('100%')
     .height('100%')
   }
 }
