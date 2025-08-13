@@ -553,7 +553,7 @@ export default function PowerTest() {
 
     /**
      * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0170
-     * @tc.name testSystem_API_Test_Power_Manager_1000
+     * @tc.name testSystem_API_Test_Power_Manager_1100
      * @tc.desc Test the third-party application call setScreenOffTime will be blocked
      * @tc.level: Level 3
      * @tc.type: Function
@@ -563,6 +563,25 @@ export default function PowerTest() {
       let TAG = 'System_API_Test_Power_Manager_1100';
       try {
         power.hibernate(false);
+      } catch (error) {
+        console.error(`${TAG} error: ${JSON.stringify(error)}`);
+        expect(error.code).assertEqual(202);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0180
+     * @tc.name testSystem_API_Test_Power_Manager_1200
+     * @tc.desc Test the third-party application call refreshActivity will be blocked
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('System_API_Test_Power_Manager_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+      let TAG = 'System_API_Test_Power_Manager_1200';
+      try {
+        power.refreshActivity(TAG);
       } catch (error) {
         console.error(`${TAG} error: ${JSON.stringify(error)}`);
         expect(error.code).assertEqual(202);
