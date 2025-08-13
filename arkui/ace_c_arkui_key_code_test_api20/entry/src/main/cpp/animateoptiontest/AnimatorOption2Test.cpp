@@ -15,7 +15,7 @@
 
 #include "AnimatorOptionTest.h"
 #include <arkui/native_animate.h>
-#include "common/common.h"
+#include "common/Common.h"
 
 namespace AnimatorOptionTest {
 

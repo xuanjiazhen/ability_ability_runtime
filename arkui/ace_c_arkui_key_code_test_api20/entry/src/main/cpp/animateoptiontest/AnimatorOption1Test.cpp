@@ -15,7 +15,7 @@
 
 #include "arkui/native_animate.h"
 #include "AnimatorOptionTest.h"
-#include "common/common.h"
+#include "common/Common.h"
 
 namespace AnimatorOptionTest {
 napi_value AnimatorOptionSetDuration0100(napi_env env, napi_callback_info info)

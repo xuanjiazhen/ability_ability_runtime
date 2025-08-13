@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "common/Common.h"
 #include "napi/native_api.h"
 #include <js_native_api_types.h>
 #include <accessibilitytest/AccessibilityTest.h>
-#include "native_common.h"
 #include <vector>
 
 EXTERN_C_START

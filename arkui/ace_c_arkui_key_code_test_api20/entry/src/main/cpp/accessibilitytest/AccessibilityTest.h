@@ -17,7 +17,7 @@
 #define TEST1_H
 
 #include <arkui/native_node_napi.h>
-#include "common/common.h"
+#include "common/Common.h"
 #include "napi/native_api.h"
 #include <arkui/native_interface_accessibility.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
