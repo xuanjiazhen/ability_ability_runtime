@@ -57,7 +57,7 @@ namespace ArkUICapiTest
                 napi_default, nullptr},
             {"testRunTaskInScope", nullptr, RunTaskInScopeTest::testRunTaskInScope, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
-            {"createCrossLanguageListNativeNode", nullptr, ListCrossLanguageTest::createCrossLanguageListNativeNode,
+            {"createCrossLanguageListNode", nullptr, ListCrossLanguageTest::createCrossLanguageListNode,
              nullptr, nullptr, nullptr, napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)
