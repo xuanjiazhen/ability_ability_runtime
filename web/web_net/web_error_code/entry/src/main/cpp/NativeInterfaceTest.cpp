@@ -24,6 +24,11 @@
 #include <web/arkweb_type.h>
 #include <web/native_interface_arkweb.h>
 
+#undef LOG_DOMAIN
+#undef LOG_TAG
+#define LOG_DOMAIN 0x0000
+#define LOG_TAG "web_net"
+
 static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError start..");
@@ -867,23 +872,26 @@ static napi_value WebSetBlankCacheCap(napi_env env, napi_callback_info info)
     int32_t caseNum = GetCaseNum(env, info);
 
     uint32_t capacity = 30;
+    const uint32_t maxCap = 100;
+    const uint32_t defaultCap = 30;
+    const uint32_t minCap = 0;
     // set default
-    capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(30);
+    capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(defaultCap);
     switch (caseNum) {
         case CASE_NUM_0:
-            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(0);
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(minCap);
             break;
         case CASE_NUM_1:
-            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(100);
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(maxCap);
             break;
         case CASE_NUM_2:
-            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(101);
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(maxCap + 1);
             break;
         case CASE_NUM_3:
             capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(-1);
             break;
         case CASE_NUM_4:
-            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(30);
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(defaultCap);
             break;
         default:
             break;
@@ -891,6 +899,28 @@ static napi_value WebSetBlankCacheCap(napi_env env, napi_callback_info info)
     napi_value result;
     napi_create_int32(env, capacity, &result);
     OH_LOG_DEBUG(LOG_APP, "WebSetBlankCacheCap end..");
+    return result;
+}
+
+static napi_value WebSaveCookieAsync(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    OH_ArkWeb_OnCookieSaveCallback callback = [](ArkWeb_ErrorCode errorCode) {
+        OH_LOG_DEBUG(LOG_APP, "async save cookie result = %d", errorCode);
+        return;
+        };
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_ArkWebCookieManager_SaveCookieAsync(callback);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync end..");
     return result;
 }
 
