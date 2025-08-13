@@ -152,9 +152,9 @@ export default function InjectTouchEvent() {
       let caseName = 'testInjectTouchEventwithDestoryedSubwindow';
       try {
         let subWindowClass = await windowStage.createSubWindow('testInjectTouchEventwithDestoryedSubwindow');
-        await subWindowClass.destroyWindow();
         let subWindowId = subWindowClass.getWindowProperties().id;
         console.info(`${Tag}: ${caseName} subWindowId: ${subWindowId}`);
+        await subWindowClass.destroyWindow();
         let result = injectTouchEvent.testInjectTouchEventwithDestoryedSubwindow(subWindowId);
         console.info(`${Tag}: ${caseName} result: ${result}`);
         expect(result).assertEqual(1300002);
