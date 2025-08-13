@@ -137,7 +137,7 @@ export const RunTaskInScopeTest_004: () => number;
 
 export const CreateFrameNode: (Node: FrameNode, Tag: string) => void;
 
-export const CreateUIContext: (Node: UIContext, Tag: string) => void;
+export const GetUIContext: (Node: UIContext) => void;
 
 export const CreateNodeContent: (Node: Content, Tag: string) => void;
 

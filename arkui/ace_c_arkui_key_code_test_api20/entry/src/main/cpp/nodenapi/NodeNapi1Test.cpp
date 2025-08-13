@@ -26,39 +26,20 @@ static int g_nodenapiresult6 = 2;
 static int g_nodenapiresult7 = 2;
 namespace NodeNapiTest {
 
-napi_value CreateUIContext(napi_env env, napi_callback_info info)
+napi_value GetUIContext(napi_env env, napi_callback_info info)
 {
     OH_LOG_Print(
         LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "HybirdGetNodeHandleTest", "HybirdGetNodeHandleTest CreateNativeNode");
-
-    size_t argc = 3;
-    napi_value args[3] = { nullptr };
+    size_t argc = 1;
+    napi_value args[1] = { nullptr };
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    size_t length = 64;
-    size_t strLength = 0;
-    char xComponentID[64] = { 0 };
-    napi_get_value_string_utf8(env, args[0], xComponentID, length, &strLength);
     if ((env == nullptr) || (info == nullptr)) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "HybirdGetNodeHandleTest", "GetContext env or info is null");
         return nullptr;
     }
-  
     //获取context
-    static ArkUI_ContextHandle context = nullptr;
+    ArkUI_ContextHandle context = nullptr;
     g_nodenapiresult2 = OH_ArkUI_GetContextFromNapiValue(env, args[0], &context);
-
-    ArkUI_NativeNodeAPI_1* nodeAPI = nullptr;
-    OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, nodeAPI);
-    // set parent node
-    auto parentColumn = nodeAPI->createNode(ARKUI_NODE_COLUMN);
-
-    std::string id(xComponentID);
-    if (OH_NativeXComponent_AttachNativeRootNode(ArkUICapiTest::PluginManager::GetInstance()->
-                                                 GetNativeXComponent(id), parentColumn) ==INVALID_PARAM) {
-        OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "HybirdGetNodeHandleTest",
-            "OH_NativeXComponent_AttachNativeRootNode failed");
-    }
-
     napi_value exports;
     if (napi_create_object(env, &exports) != napi_ok) {
         napi_throw_type_error(env, NULL, "napi_create_object failed");

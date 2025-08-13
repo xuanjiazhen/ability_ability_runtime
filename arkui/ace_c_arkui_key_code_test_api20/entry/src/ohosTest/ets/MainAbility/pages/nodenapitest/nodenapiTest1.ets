@@ -20,18 +20,16 @@ import { UIContext } from '@kit.ArkUI';
 @Component
 struct NodeNapiTest1 {
   PAGE_TAG: string = 'NodeNapiTest1';
-  private uiContext: UIContext = new UIContext();
   aboutToAppear():void{
     // 通过C-API创建节点，并添加到管理器nodeContent上
     if (render) {
-      render.CreateUIContext(this.getUIContext(), 'TestAPP');
+      render.GetUIContext(this.getUIContext());
     }
   }
   build() {
     Row() {
       Column() {
         Button('NodeNapiTest1')
-        ContentSlot(this.uiContext);
       }
       .width('100%')
     }

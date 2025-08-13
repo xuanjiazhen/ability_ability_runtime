@@ -209,7 +209,7 @@ static void RenderInitPush4(napi_property_descriptor* desc)
             NodeNapiTest::GetDrawableDescriptorFromResourceTest_002, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"CreateFrameNode", nullptr, NodeNapiTest::CreateFrameNode,
             nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"CreateUIContext", nullptr, NodeNapiTest::CreateUIContext,
+        {"GetUIContext", nullptr, NodeNapiTest::GetUIContext,
             nullptr, nullptr, nullptr, napi_default, nullptr},
         {"CreateNodeContent", nullptr, NodeNapiTest::CreateNodeContent,
             nullptr, nullptr, nullptr, napi_default, nullptr},

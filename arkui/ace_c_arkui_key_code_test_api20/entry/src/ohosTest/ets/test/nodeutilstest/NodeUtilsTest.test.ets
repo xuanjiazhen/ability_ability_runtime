@@ -201,50 +201,6 @@ export default function NodeUtilsTest() {
         }
       })
 
-    // /*
-    //   * @tc.number     : SUB_ArkUI_ACE_ENGINE_OHArkUINodeUtilsGetLayoutPositionInGlobalDisplay_0100
-    //   * @tc.name       : testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0100
-    //   * @tc.desc       : testing OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay interface
-    //   * @tc.size       : MediumTest
-    //   * @tc.type       : Function
-    //   * @tc.level      : Level 1
-    //   */
-    // it('testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-    //   async (done: Function) => {
-    //     try {
-    //       console.info("====>OHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0100 start====");
-    //       let result: number = nativerenderndk.GetLayoutPositionInGlobalDisplayTest_001()
-    //       console.info(`====>OHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0100 result====${result}`);
-    //       expect(result).assertEqual(ARKUI_ERROR_CODE_NO_ERROR);
-    //       done();
-    //     } catch (err) {
-    //       console.error("====>OHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0100 catch err: " + err);
-    //       expect(false).assertEqual(ARKUI_ERROR_CODE_ERROR);
-    //     }
-    //   })
-    //
-    // /*
-    //    * @tc.number     : SUB_ArkUI_ACE_ENGINE_OHArkUINodeUtilsGetLayoutPositionInGlobalDisplay_0200
-    //    * @tc.name       : testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0200
-    //    * @tc.desc       : testing OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay interface
-    //    * @tc.size       : MediumTest
-    //    * @tc.type       : Function
-    //    * @tc.level      : Level 1
-    //    */
-    // it('testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
-    //   async (done: Function) => {
-    //     try {
-    //       console.info("====>testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0200 start====");
-    //       let result: number = nativerenderndk.GetLayoutPositionInGlobalDisplayTest_002()
-    //       console.info(`====>testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0200 result====${result}`);
-    //       expect(result).assertEqual(ARKUI_ERROR_CODE_PARAM_INVALID);
-    //       done();
-    //     } catch (err) {
-    //       console.error("====>testOHArkUINodeUtilsGetLayoutPositionInGlobalDisplay0200 catch err: " + err);
-    //       expect(false).assertEqual(ARKUI_ERROR_CODE_ERROR);
-    //     }
-    //   })
-
     /*
       * @tc.number     : SUB_ArkUI_ACE_ENGINE_OHArkUINodeUtilsGetPositionWithTranslateInWindow_0100
       * @tc.name       : testOHArkUINodeUtilsGetPositionWithTranslateInWindow0100

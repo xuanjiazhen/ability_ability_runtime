@@ -28,7 +28,7 @@ struct ArkUIKeyCodeTest1 {
           .onKeyEvent((event: KeyEvent)=>{
             ArkUIkeyCodeNdk.InitArkUIKeyMonitor1(event?.keyCode);
           })
-          .id("ArkUIKeyCodeTest1")
+          .id('ArkUIKeyCodeTest1')
       }
       .width('100%')
     }

@@ -36,7 +36,7 @@ namespace NodeNapiTest {
     napi_value GetDrawableDescriptorFromResourceTest_002(napi_env env, napi_callback_info info);
 
     napi_value CreateFrameNode(napi_env env, napi_callback_info info);
-    napi_value CreateUIContext(napi_env env, napi_callback_info info);
+    napi_value GetUIContext(napi_env env, napi_callback_info info);
     napi_value CreateNodeContent(napi_env env, napi_callback_info info);
     napi_value CreateDrawableDescriptor(napi_env env, napi_callback_info info);
     napi_value CreateResource(napi_env env, napi_callback_info info);

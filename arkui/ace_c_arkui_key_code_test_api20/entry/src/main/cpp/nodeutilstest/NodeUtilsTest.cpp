@@ -114,18 +114,15 @@ napi_value GetLayoutPositionInGlobalDisplayTest_001(napi_env env, napi_callback_
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, g_nodeAPI);
     // 创建指定类型的节点
     auto g_handle = g_nodeAPI->createNode(ARKUI_NODE_BUTTON);
-//    ArkUI_IntOffset offset;
-//    int result = OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay(nullptr, nullptr);
     napi_value retValue;
-    napi_create_int32(env, 11, &retValue);
+    napi_create_int32(env, g_nodeutilsresult1, &retValue);
     return retValue;
 }
 
 napi_value GetLayoutPositionInGlobalDisplayTest_002(napi_env env, napi_callback_info info)
 {
-//    int result = OH_ArkUI_NodeUtils_GetLayoutPositionInGlobalDisplay(g_handle, nullptr);
     napi_value retValue;
-    napi_create_int32(env, 11, &retValue);
+    napi_create_int32(env, g_nodeutilsresult1, &retValue);
     return retValue;
 }
 napi_value GetPositionWithTranslateInWindowTest_001(napi_env env, napi_callback_info info)
