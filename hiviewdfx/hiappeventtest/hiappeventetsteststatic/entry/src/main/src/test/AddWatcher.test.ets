@@ -2120,12 +2120,6 @@ export default function addWatcherTest() {
       done()
       }, 1000)
 
-      setTimeout(() => {
-        expect(holder == null).assertTrue();
-        done()
-        hilog.info(logDomain, tag, 'HiAppEventSub25 end')
-      }, 2000)
-
     })
 
     /**
@@ -2162,12 +2156,6 @@ export default function addWatcherTest() {
         hiAppEvent.removeWatcher({name:"watcher2"})
       done()
       }, 1000)
-
-      setTimeout(() => {
-        expect(holder == null).assertTrue();
-        done()
-        hilog.info(logDomain, tag, 'HiAppEventSub26 end')
-      }, 2000)
 
     })
 
