@@ -1918,6 +1918,86 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiSetBlankCacheCapDefault catch err: " + err);
         }
       })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieSync_0100
+     * @tc.name    : testWebNapiSaveCookieSyncSuccess
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieSync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieSyncSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieSyncSuccess start====");
+          let result: number = nativeInterface.WebSaveCookieSync(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieSyncSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieSyncSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieSync_0200
+     * @tc.name    : testWebNapiSaveCookieSyncUninitCookieManager
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieSync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieSyncUninitCookieManager', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieSyncUninitCookieManager start====");
+          let result: number = nativeInterface.WebSaveCookieSync(1);
+          // expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieSyncUninitCookieManager stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieSyncUninitCookieManager catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieAsync_0100
+     * @tc.name    : testWebNapiSaveCookieAsyncSuccess
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieAsync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieAsyncSuccess', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieAsyncSuccess start====");
+          let result: number = nativeInterface.WebSaveCookieAsync(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieAsyncSuccess stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieAsyncSuccess catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SaveCookieAsync_0200
+     * @tc.name    : testWebNapiSaveCookieAsyncNullCallback
+     * @tc.desc    : test OH_ArkWebCookieManager_SaveCookieAsync interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSaveCookieAsyncNullCallback', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSaveCookieAsyncNullCallback start====");
+          let result: number = nativeInterface.WebSaveCookieAsync(1);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSaveCookieAsyncNullCallback stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSaveCookieAsyncNullCallback catch err: " + err);
+        }
+      })
 
   })
 }

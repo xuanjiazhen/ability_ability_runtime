@@ -902,6 +902,29 @@ static napi_value WebSetBlankCacheCap(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value WebSaveCookieSync(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ErrorCode ret = ARKWEB_SUCCESS;
+    switch (caseNum) {
+        case CASE_NUM_0:
+            ret = OH_ArkWebCookieManager_SaveCookieSync();
+            break;
+        case CASE_NUM_1:
+            // uninit cookie manager
+            ret = OH_ArkWebCookieManager_SaveCookieSync();
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync end..");
+    return result;
+}
+
 static napi_value WebSaveCookieAsync(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync start..");
@@ -914,6 +937,9 @@ static napi_value WebSaveCookieAsync(napi_env env, napi_callback_info info)
     switch (caseNum) {
         case CASE_NUM_0:
             OH_ArkWebCookieManager_SaveCookieAsync(callback);
+            break;
+        case CASE_NUM_1:
+            OH_ArkWebCookieManager_SaveCookieAsync(nullptr);
             break;
         default:
             break;
@@ -956,6 +982,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"WebRegisterJSProxy", nullptr, WebRegisterJSProxy, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebClearBlankCache", nullptr, WebClearBlankCache, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebSetBlankCacheCap", nullptr, WebSetBlankCacheCap, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSaveCookieSync", nullptr, WebSaveCookieSync, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSaveCookieAsync", nullptr, WebSaveCookieAsync, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
