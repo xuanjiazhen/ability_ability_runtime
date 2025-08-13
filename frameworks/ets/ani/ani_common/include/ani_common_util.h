@@ -90,6 +90,7 @@ ani_env *AttachAniEnv(ani_vm * etsVm, bool &isAttachThread);
 void DetachAniEnv(ani_vm * etsVm, bool &isAttachThread);
 bool IsValidProperty(ani_env *env, ani_ref param);
 bool CheckCallerIsSystemApp();
+ani_object WrapLocale(ani_env *env, const std::string &locale);
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ANI_COMMON_UTIL_H
