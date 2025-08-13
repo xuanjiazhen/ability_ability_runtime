@@ -31,9 +31,9 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"fenceIsValidTrue", nullptr, OH_NativeFence_IsValidTrue,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceIsValidFalse", nullptr, OH_NativeFence_IsValidFalse,
-        nullptr, nullptr, nullptr, napi_default, nullptr});    
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceWaitTrue", nullptr, OH_NativeFence_WaitTrue,
-        nullptr, nullptr, nullptr, napi_default, nullptr});    
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceWaitFalse", nullptr, OH_NativeFence_WaitFalse,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceWaitForeverTrue", nullptr, OH_NativeFence_WaitForeverTrue,
@@ -50,20 +50,18 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
 {
     napi_value result;
     OH_NativeVSync* nativeVsync = OH_NativeVSync_Create("Test", 4);
-    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){
-    };
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){};
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
     int32_t res2 = OH_NativeVSync_DVSyncSwitch(nativeVsync, true);
     napi_create_int32(env, res == NATIVE_ERROR_OK, &result);
     return result;
-} 
+}
  napi_value OH_NativeVSync_RequestFrameInvalue(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeVSync* nativeVsync = nullptr;
-    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){
-    };
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){};
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);

@@ -21,7 +21,7 @@
 #include <napi/native_api.h>
 #include <vector>
 void addErrorCodeTest(std::vector<napi_property_descriptor> &descData);
-napi_value OH_OHNativeErrorCodeOK (napi_env env, napi_callback_info info);
+napi_value OH_OHNativeErrorCodeOK(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeInvalid(napi_env env, napi_callback_info info);
 napi_value OH_Drawing_BufferErrorCodeOK(napi_env env, napi_callback_info info);
 napi_value OH_OHNativeErrorCodeBufferInvalid(napi_env env, napi_callback_info info);
