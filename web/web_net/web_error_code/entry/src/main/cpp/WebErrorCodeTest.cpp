@@ -429,10 +429,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
         DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
         DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
-        DECLARE_NAPI_FUNCTION("webNetErrorResponeseSetError", WebNetErrorResponeseSetError),
-        DECLARE_NAPI_FUNCTION("webArkWebResponseGetError", WebArkWebResponseGetError),
-        DECLARE_NAPI_FUNCTION("webArkWebConnectError", WebArkWebConnectError),
-        DECLARE_NAPI_FUNCTION("webArkWebSSLError", WebArkWebSSLError),
+        DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
         DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
     };
 

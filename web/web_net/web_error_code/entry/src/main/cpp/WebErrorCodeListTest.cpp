@@ -23,10 +23,14 @@
 #include "WebTestUtils.h"
 
 
-static ArkWeb_NetError GetNetErrorByName(const char* name)
+static void AddNetErrorByName(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
-    std::string strName(name);
-    std::map<std::string, ArkWeb_NetError> netErrorMap = {
+    std::map<std::string, ArkWeb_NetError> libErrorMap = {
+        {"ARKWEB_ERR_UNEXPECTED_PROXY_AUTH", ARKWEB_ERR_UNEXPECTED_PROXY_AUTH},
+        {"ARKWEB_ERR_EMPTY_RESPONSE", ARKWEB_ERR_EMPTY_RESPONSE},
+        {"ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG", ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG},
+        {"ARKWEB_ERR_PAC_SCRIPT_FAILED", ARKWEB_ERR_PAC_SCRIPT_FAILED},
+        {"ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE", ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE},
         {"ARKWEB_ERR_IO_PENDING", ArkWeb_NetError::ARKWEB_ERR_IO_PENDING},
         {"ARKWEB_ERR_FAILED", ArkWeb_NetError::ARKWEB_ERR_FAILED},
         {"ARKWEB_ERR_ABORTED", ArkWeb_NetError::ARKWEB_ERR_ABORTED},
@@ -48,21 +52,17 @@ static ArkWeb_NetError GetNetErrorByName(const char* name)
         {"ARKWEB_ERR_NETWORK_CHANGED", ArkWeb_NetError::ARKWEB_ERR_NETWORK_CHANGED},
         {"ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR", ArkWeb_NetError::ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR},
         {"ARKWEB_ERR_SOCKET_CONNECTED", ArkWeb_NetError::ARKWEB_ERR_SOCKET_CONNECTED},
-        {"ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED",
-         ArkWeb_NetError::ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED},
+        {"ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED", ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED},
     };
 
-    auto it = netErrorMap.find(strName);
-    if (it != netErrorMap.end()) {
-        return it->second;
+    for (const auto& pair : libErrorMap) {
+        netErrorMap[pair.first] = pair.second;
     }
-    return ARKWEB_NET_OK;
 }
 
-static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
+static void AddNetErrorConnectCode(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
-    std::string strName(name);
-    std::map<std::string, ArkWeb_NetError> netErrorMap = {
+    std::map<std::string, ArkWeb_NetError> libErrorMap = {
         {"ARKWEB_ERR_CONTEXT_SHUT_DOWN", ArkWeb_NetError::ARKWEB_ERR_CONTEXT_SHUT_DOWN},
         {"ARKWEB_ERR_BLOCKED_BY_RESPONSE", ArkWeb_NetError::ARKWEB_ERR_BLOCKED_BY_RESPONSE},
         {"ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED", ArkWeb_NetError::ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED},
@@ -93,11 +93,9 @@ static ArkWeb_NetError GetNetErrorConnectCode(const char* name)
         {"ARKWEB_ERR_ALPN_NEGOTIATION_FAILED", ArkWeb_NetError::ARKWEB_ERR_ALPN_NEGOTIATION_FAILED},
     };
 
-    auto it = netErrorMap.find(strName);
-    if (it != netErrorMap.end()) {
-        return it->second;
+    for (const auto& pair : libErrorMap) {
+        netErrorMap[pair.first] = pair.second;
     }
-    return ARKWEB_NET_OK;
 }
 
 static void AddWebErrorSSLCodeMap(std::map<std::string, ArkWeb_NetError>& netErrorMap)
@@ -129,29 +127,24 @@ static void AddWebErrorSSLCodeMap(std::map<std::string, ArkWeb_NetError>& netErr
     }
 }
 
-static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
+static void AddNetErrorSSLCode(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
-    std::string strName(name);
-    std::map<std::string, ArkWeb_NetError> netErrorMap = {
+    std::map<std::string, ArkWeb_NetError> libErrorMap = {
         {"ARKWEB_ERR_SSL_NO_RENEGOTIATION", ArkWeb_NetError::ARKWEB_ERR_SSL_NO_RENEGOTIATION},
         {"ARKWEB_ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES", ArkWeb_NetError::ARKWEB_ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES},
         {"ARKWEB_ERR_SSL_DECOMPRESSION_FAILURE_ALERT", ArkWeb_NetError::ARKWEB_ERR_SSL_DECOMPRESSION_FAILURE_ALERT},
         {"ARKWEB_ERR_SSL_BAD_RECORD_MAC_ALERT", ArkWeb_NetError::ARKWEB_ERR_SSL_BAD_RECORD_MAC_ALERT},
         {"ARKWEB_ERR_PROXY_AUTH_REQUESTED", ArkWeb_NetError::ARKWEB_ERR_PROXY_AUTH_REQUESTED},
         {"ARKWEB_ERR_PROXY_CONNECTION_FAILED", ArkWeb_NetError::ARKWEB_ERR_PROXY_CONNECTION_FAILED},
-        {"ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED",
-         ArkWeb_NetError::ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED},
+        {"ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED", ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED},
         {"ARKWEB_ERR_PRECONNECT_MAX_SOCKET_LIMIT", ArkWeb_NetError::ARKWEB_ERR_PRECONNECT_MAX_SOCKET_LIMIT},
-        {"ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED",
-         ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED},
-        {"ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY",
-         ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY},
+        {"ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED", ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED},
+        {"ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY", ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY},
         {"ARKWEB_ERR_PROXY_CERTIFICATE_INVALID", ArkWeb_NetError::ARKWEB_ERR_PROXY_CERTIFICATE_INVALID},
         {"ARKWEB_ERR_NAME_RESOLUTION_FAILED", ArkWeb_NetError::ARKWEB_ERR_NAME_RESOLUTION_FAILED},
         {"ARKWEB_ERR_NETWORK_ACCESS_DENIED", ArkWeb_NetError::ARKWEB_ERR_NETWORK_ACCESS_DENIED},
         {"ARKWEB_ERR_TEMPORARILY_THROTTLED", ArkWeb_NetError::ARKWEB_ERR_TEMPORARILY_THROTTLED},
-        {"ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT",
-         ArkWeb_NetError::ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT},
+        {"ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT", ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT},
         {"ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED", ArkWeb_NetError::ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED},
         {"ARKWEB_ERR_MSG_TOO_BIG", ArkWeb_NetError::ARKWEB_ERR_MSG_TOO_BIG},
         {"ARKWEB_ERR_WS_PROTOCOL_ERROR", ArkWeb_NetError::ARKWEB_ERR_WS_PROTOCOL_ERROR},
@@ -164,22 +157,18 @@ static ArkWeb_NetError GetNetErrorSSLCode(const char *name)
         {"ARKWEB_ERR_WS_THROTTLE_QUEUE_TOO_LARGE", ArkWeb_NetError::ARKWEB_ERR_WS_THROTTLE_QUEUE_TOO_LARGE},
         {"ARKWEB_ERR_SSL_SERVER_CERT_CHANGED", ArkWeb_NetError::ARKWEB_ERR_SSL_SERVER_CERT_CHANGED},
         {"ARKWEB_ERR_SSL_UNRECOGNIZED_NAME_ALERT", ArkWeb_NetError::ARKWEB_ERR_SSL_UNRECOGNIZED_NAME_ALERT},
-        {"ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR",
-         ArkWeb_NetError::ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR},
+        {"ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR", ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR},
         {"ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR", ArkWeb_NetError::ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR},
         {"ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE", ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE},
         {"ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE", ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE},
     };
     
-    AddWebErrorSSLCodeMap(netErrorMap);
-    auto it = netErrorMap.find(strName);
-    if (it != netErrorMap.end()) {
-        return it->second;
+    for (const auto& pair : libErrorMap) {
+        netErrorMap[pair.first] = pair.second;
     }
-    return ARKWEB_NET_OK;
 }
 
-static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> &netErrorMap)
+static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
     std::map<std::string, ArkWeb_NetError> codeExMap = {
         {"ARKWEB_ERR_MALFORMED_IDENTITY", ARKWEB_ERR_MALFORMED_IDENTITY},
@@ -215,7 +204,7 @@ static void AddWebNetErrorCERTAndECHCode(std::map<std::string, ArkWeb_NetError> 
     }
 }
 
-static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError> netErrorMap)
+static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
     std::map<std::string, ArkWeb_NetError> codeExMap = {
         {"ARKWEB_ERR_QUIC_PROTOCOL_ERROR", ARKWEB_ERR_QUIC_PROTOCOL_ERROR},
@@ -266,7 +255,7 @@ static void AddNetErrorHTTPCode(std::map<std::string, ArkWeb_NetError> netErrorM
     }
 }
 
-static void AddErrCodeFTPPandDNS(std::map<std::string, ArkWeb_NetError> netErrorMap)
+static void AddErrCodeFTPPandDNS(std::map<std::string, ArkWeb_NetError>& netErrorMap)
 {
     std::map<std::string, ArkWeb_NetError> codeExMap = {
         {"ARKWEB_ERR_INSECURE_RESPONSE", ARKWEB_ERR_INSECURE_RESPONSE},
@@ -316,7 +305,7 @@ static void AddErrCodeFTPPandDNS(std::map<std::string, ArkWeb_NetError> netError
     }
 }
 
-static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
+static ArkWeb_NetError GetWebNetErrorCode(const char *name)
 {
     std::string strName(name);
     std::map<std::string, ArkWeb_NetError> netErrorMap = {
@@ -351,13 +340,12 @@ static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
         {"ARKWEB_ERR_INVALID_RESPONSE", ARKWEB_ERR_INVALID_RESPONSE},
         {"ARKWEB_ERR_INVALID_CHUNKED_ENCODING", ARKWEB_ERR_INVALID_CHUNKED_ENCODING},
         {"ARKWEB_ERR_METHOD_UNSUPPORTED", ARKWEB_ERR_METHOD_UNSUPPORTED},
-        {"ARKWEB_ERR_UNEXPECTED_PROXY_AUTH", ARKWEB_ERR_UNEXPECTED_PROXY_AUTH},
-        {"ARKWEB_ERR_EMPTY_RESPONSE", ARKWEB_ERR_EMPTY_RESPONSE},
-        {"ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG", ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG},
-        {"ARKWEB_ERR_PAC_SCRIPT_FAILED", ARKWEB_ERR_PAC_SCRIPT_FAILED},
-        {"ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE", ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE},
     };
     
+    AddNetErrorByName(netErrorMap);
+    AddNetErrorConnectCode(netErrorMap);
+    AddWebErrorSSLCodeMap(netErrorMap);
+    AddNetErrorSSLCode(netErrorMap);
     AddWebNetErrorCERTAndECHCode(netErrorMap);
     AddNetErrorHTTPCode(netErrorMap);
     AddErrCodeFTPPandDNS(netErrorMap);
@@ -368,92 +356,23 @@ static ArkWeb_NetError GetNetErrorCERTAndECHCode(const char *name)
     return ARKWEB_NET_OK;
 }
 
-napi_value WebNetErrorResponeseSetError(napi_env env, napi_callback_info info)
-{
-    OH_LOG_DEBUG(LOG_APP, "WebNetErrorResponeseSetError start..");
-    auto netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorCERTAndECHCode(netErrorName.get());
-    ArkWeb_Response *response = nullptr;
-    OH_ArkWeb_CreateResponse(&response);
-    int ret = OH_ArkWebResponse_SetError(response, errorCode);
-    
-    napi_value result;
-    if (ret == ARKWEB_NET_OK) {
-        napi_create_int32(env, 0, &result);
-    } else {
-        napi_create_int32(env, ret, &result);
-    }
-
-    OH_LOG_DEBUG(LOG_APP, "WebNetErrorResponeseSetError end..");
-    return result;
-}
-
-napi_value WebArkWebResponseGetError(napi_env env, napi_callback_info info)
-{
-    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError start..");
-
-    ArkWeb_Response* response = nullptr;
-    OH_ArkWeb_DestroyResponse(response);
-    const char* url = "www.example.com";
-    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
-
-    auto netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorByName(netErrorName.get());
-    ret = OH_ArkWebResponse_SetError(response, errorCode);
-    ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
-    
-    napi_value result;
-    if (errorCodeRes == ARKWEB_ERR_FAILED) {
-        napi_create_int32(env, 0, &result);
-    } else {
-        napi_create_int32(env, errorCodeRes, &result);
-    }
-
-    OH_LOG_DEBUG(LOG_APP, "WebArkWebResponseGetError end..");
-    return result;
-}
-
-napi_value WebArkWebConnectError(napi_env env, napi_callback_info info)
-{
-    OH_LOG_DEBUG(LOG_APP, "WebArkWebConnectError start..");
-
-    ArkWeb_Response* response = nullptr;
-    OH_ArkWeb_DestroyResponse(response);
-    const char* url = "UnInvalid Url";
-    int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
-
-    auto  netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorConnectCode(netErrorName.get());
-    ret = OH_ArkWebResponse_SetError(response, errorCode);
-    ArkWeb_NetError errorCodeRes = OH_ArkWebResponse_GetError(response);
-    
-    napi_value result;
-    if (errorCodeRes == ARKWEB_ERR_FAILED) {
-        napi_create_int32(env, 0, &result);
-    } else {
-        napi_create_int32(env, errorCodeRes, &result);
-    }
-
-    OH_LOG_DEBUG(LOG_APP, "WebArkWebConnectError end..");
-    return result;
-}
-
-napi_value WebArkWebSSLError(napi_env env, napi_callback_info info)
+napi_value WebArkWebNetError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError start..");
-    const char* url = "test ssl";
+    const char* url = "www.example.com";
     ArkWeb_Response* response = nullptr;
     OH_ArkWeb_CreateResponse(&response);
     int32_t ret = OH_ArkWebResponse_SetUrl(response, url);
     auto  netErrorName = WebTestUtils::GetArgsOneParameter(env, info);
-    ArkWeb_NetError errorCode = GetNetErrorSSLCode(netErrorName.get());
+    ArkWeb_NetError errorCode = GetWebNetErrorCode(netErrorName.get());
     ret = OH_ArkWebResponse_SetError(response, errorCode);
+    ArkWeb_NetError errorCodeRet = OH_ArkWebResponse_GetError(response);
     
     napi_value result;
-    if (ret == ARKWEB_NET_OK) {
+    if (errorCode == errorCodeRet) {
         napi_create_int32(env, 0, &result);
     } else {
-        napi_create_int32(env, ret, &result);
+        napi_create_int32(env, errorCodeRet, &result);
     }
     OH_ArkWeb_DestroyResponse(response);
     OH_LOG_DEBUG(LOG_APP, "WebArkWebSSLError end..");

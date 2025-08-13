@@ -30,7 +30,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrIOPending', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrIOPending start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_IO_PENDING");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_IO_PENDING");
         console.info("====>testArkWebErrIOPending result====", result);
         expect(result).assertEqual(0);
         done();
@@ -50,7 +50,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFailed start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FAILED");
         console.info("====>testArkWebErrFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -70,7 +70,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAboorted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAboorted start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_ABORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ABORTED");
         console.info("====>testArkWebErrAboorted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -90,7 +90,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInvaliedHandle', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInvaliedHandle start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_INVALID_HANDLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_HANDLE");
         console.info("====>testArkWebErrInvaliedHandle result====", result);
         expect(result).assertEqual(0);
         done();
@@ -110,7 +110,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTimedOut start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_TIMED_OUT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TIMED_OUT");
         console.info("====>testArkWebErrTimedOut result====", result);
         expect(result).assertEqual(0);
         done();
@@ -130,7 +130,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileTooLarge', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileTooLarge start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_TOO_LARGE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FILE_TOO_LARGE");
         console.info("====>testArkWebErrFileTooLarge result====", result);
         expect(result).assertEqual(0);
         done();
@@ -150,7 +150,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrUnexpected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrUnexpected start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UNEXPECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNEXPECTED");
         console.info("====>testArkWebErrUnexpected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -170,7 +170,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAccessDenied', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAccessDenied start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_ACCESS_DENIED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ACCESS_DENIED");
         console.info("====>testArkWebErrAccessDenied result====", result);
         expect(result).assertEqual(0);
         done();
@@ -190,7 +190,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNotImplemented', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNotImplemented start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_NOT_IMPLEMENTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NOT_IMPLEMENTED");
         console.info("====>testArkWebErrNotImplemented result====", result);
         expect(result).assertEqual(0);
         done();
@@ -210,7 +210,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInsufficientResources', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInsufficientResources start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INSUFFICIENT_RESOURCES");
         console.info("====>testArkWebErrInsufficientResources result====", result);
         expect(result).assertEqual(0);
         done();
@@ -230,7 +230,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrOutofMemory', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrOutofMemory start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_OUT_OF_MEMORY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_OUT_OF_MEMORY");
         console.info("====>testArkWebErrOutofMemory result====", result);
         expect(result).assertEqual(0);
         done();
@@ -250,7 +250,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrUploadFileChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrUploadFileChanged start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UPLOAD_FILE_CHANGED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UPLOAD_FILE_CHANGED");
         console.info("====>testArkWebErrUploadFileChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -271,7 +271,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrSocketNotConnected start====");
-          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_SOCKET_NOT_CONNECTED");
+          let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_NOT_CONNECTED");
           console.info("====>testArkWebErrSocketNotConnected result====", result);
           expect(result).assertEqual(0);
           done();
@@ -291,7 +291,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileExists', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileExists start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_EXISTS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FILE_EXISTS");
         console.info("====>testArkWebErrFileExists result====", result);
         expect(result).assertEqual(0);
         done();
@@ -311,7 +311,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFilePathTooLong', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFilePathTooLong start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_PATH_TOO_LONG");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FILE_PATH_TOO_LONG");
         console.info("====>testArkWebErrFilePathTooLong result====", result);
         expect(result).assertEqual(0);
         done();
@@ -331,7 +331,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileNoSpace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileNoSpace start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_NO_SPACE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FILE_NO_SPACE");
         console.info("====>testArkWebErrFileNoSpace result====", result);
         expect(result).assertEqual(0);
         done();
@@ -351,7 +351,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrFileVirusInfected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrFileVirusInfected start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_FILE_VIRUS_INFECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FILE_VIRUS_INFECTED");
         console.info("====>testArkWebErrFileVirusInfected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -371,7 +371,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBlockedByClient', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByClient start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_CLIENT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BLOCKED_BY_CLIENT");
         console.info("====>testArkWebErrBlockedByClient result====", result);
         expect(result).assertEqual(0);
         done();
@@ -391,7 +391,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNetWorkChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNetWorkChanged start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_NETWORK_CHANGED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NETWORK_CHANGED");
         console.info("====>testArkWebErrNetWorkChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -412,7 +412,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrBlockedByAdministarator start====");
-          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR");
+          let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BLOCKED_BY_ADMINISTRATOR");
           console.info("====>testArkWebErrBlockedByAdministarator result====", result);
           expect(result).assertEqual(0);
           done();
@@ -432,7 +432,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSocketConnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByAdministarator start====");
-        let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_SOCKET_CONNECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_CONNECTED");
         console.info("====>testArkWebErrBlockedByAdministarator result====", result);
         expect(result).assertEqual(0);
         done();
@@ -453,7 +453,7 @@ export default function ActsWebErrorCodeListTest() {
       async (done: Function) => {
         try {
           console.info("====>testArkWebErrUploadStreamRewindNotSupported start====");
-          let result: number = webCode.webArkWebResponseGetError("ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED");
+          let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UPLOAD_STREAM_REWIND_NOT_SUPPORTED");
           console.info("====>testArkWebErrUploadStreamRewindNotSupported result====", result);
           expect(result).assertEqual(0);
           done();
@@ -473,7 +473,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrContextShutDown', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>testArkWebErrContextShutDown start====");
-          let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONTEXT_SHUT_DOWN");
+          let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONTEXT_SHUT_DOWN");
           console.info("====>testArkWebErrContextShutDown result====", result);
           expect(result).assertEqual(0);
           done();
@@ -493,7 +493,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBlockByResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockByResponse start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BLOCKED_BY_RESPONSE");
         console.info("====>testArkWebErrBlockByResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -513,7 +513,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrCleartextNotPermitted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrCleartextNotPermitted start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CLEARTEXT_NOT_PERMITTED");
         console.info("====>testArkWebErrCleartextNotPermitted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -533,7 +533,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBlockedByCSP', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByCSP start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_CSP");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BLOCKED_BY_CSP");
         console.info("====>testArkWebErrBlockedByCSP result====", result);
         expect(result).assertEqual(0);
         done();
@@ -553,7 +553,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrH2orQUICRequired', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrH2orQUICRequired start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_H2_OR_QUIC_REQUIRED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_H2_OR_QUIC_REQUIRED");
         console.info("====>testArkWebErrH2orQUICRequired result====", result);
         expect(result).assertEqual(0);
         done();
@@ -573,7 +573,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBlockedByORB', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBlockedByORB start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BLOCKED_BY_ORB");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BLOCKED_BY_ORB");
         console.info("====>testArkWebErrBlockedByORB result====", result);
         expect(result).assertEqual(0);
         done();
@@ -593,7 +593,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionClosed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionClosed start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_CLOSED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_CLOSED");
         console.info("====>testArkWebErrConnectionClosed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -613,7 +613,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionReset', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionReset start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_RESET");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_RESET");
         console.info("====>testArkWebErrConnectionReset result====", result);
         expect(result).assertEqual(0);
         done();
@@ -633,7 +633,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionRefused', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionRefused start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_REFUSED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_REFUSED");
         console.info("====>testArkWebErrConnectionRefused result====", result);
         expect(result).assertEqual(0);
         done();
@@ -653,7 +653,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionAborted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionAborted start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_ABORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_ABORTED");
         console.info("====>testArkWebErrConnectionAborted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -673,7 +673,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionFailed start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_FAILED");
         console.info("====>testArkWebErrConnectionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -693,7 +693,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNameNotResolved', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNameNotResolved start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_NAME_NOT_RESOLVED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NAME_NOT_RESOLVED");
         console.info("====>testArkWebErrNameNotResolved result====", result);
         expect(result).assertEqual(0);
         done();
@@ -713,7 +713,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrInternetDisconnected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrInternetDisconnected start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_INTERNET_DISCONNECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INTERNET_DISCONNECTED");
         console.info("====>testArkWebErrInternetDisconnected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -733,7 +733,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLProtocolError start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SSL_PROTOCOL_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_PROTOCOL_ERROR");
         console.info("====>testArkWebErrSSLProtocolError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -753,7 +753,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAddressInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAddressInvalid start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_ADDRESS_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ADDRESS_INVALID");
         console.info("====>testArkWebErrAddressInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -773,7 +773,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAddressUnreachable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAddressUnreachable start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_ADDRESS_UNREACHABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ADDRESS_UNREACHABLE");
         console.info("====>testArkWebErrAddressUnreachable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -793,7 +793,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLClientAuthCertNeeded', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAddretestArkWebErrSSLClientAuthCertNeededssUnreachable start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NEEDED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NEEDED");
         console.info("====>testArkWebErrSSLClientAuthCertNeeded result====", result);
         expect(result).assertEqual(0);
         done();
@@ -813,7 +813,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTunnelConnectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTunnelConnectionFailed start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_TUNNEL_CONNECTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TUNNEL_CONNECTION_FAILED");
         console.info("====>testArkWebErrTunnelConnectionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -833,7 +833,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNoSSLVersionsEnabled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
         try {
           console.info("====>testArkWebErrNoSSLVersionsEnabled start====");
-          let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_NO_SSL_VERSIONS_ENABLED");
+          let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NO_SSL_VERSIONS_ENABLED");
           console.info("====>testArkWebErrNoSSLVersionsEnabled result====", result);
           expect(result).assertEqual(0);
           done();
@@ -853,7 +853,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLVersionOrCIPHERMismatch', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLVersionOrCIPHERMismatch start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SSL_VERSION_OR_CIPHER_MISMATCH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_VERSION_OR_CIPHER_MISMATCH");
         console.info("====>testArkWebErrSSLVersionOrCIPHERMismatch result====", result);
         expect(result).assertEqual(0);
         done();
@@ -873,7 +873,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLRenegotiationRequested', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLRenegotiationRequested start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SSL_RENEGOTIATION_REQUESTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_RENEGOTIATION_REQUESTED");
         console.info("====>testArkWebErrSSLRenegotiationRequested result====", result);
         expect(result).assertEqual(0);
         done();
@@ -893,7 +893,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrProxyAuthUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrProxyAuthUnsupported start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_PROXY_AUTH_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_AUTH_UNSUPPORTED");
         console.info("====>testArkWebErrProxyAuthUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -913,7 +913,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrBadSSLClientAuthCert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrBadSSLClientAuthCert start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_BAD_SSL_CLIENT_AUTH_CERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_BAD_SSL_CLIENT_AUTH_CERT");
         console.info("====>testArkWebErrBadSSLClientAuthCert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -933,7 +933,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrConnectionTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrConnectionTimedOut start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_CONNECTION_TIMED_OUT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONNECTION_TIMED_OUT");
         console.info("====>testArkWebErrConnectionTimedOut result====", result);
         expect(result).assertEqual(0);
         done();
@@ -953,7 +953,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrHostResolverQueueTooLarge', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrHostResolverQueueTooLarge start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_HOST_RESOLVER_QUEUE_TOO_LARGE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HOST_RESOLVER_QUEUE_TOO_LARGE");
         console.info("====>testArkWebErrHostResolverQueueTooLarge result====", result);
         expect(result).assertEqual(0);
         done();
@@ -973,7 +973,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSocksConnectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSocksConnectionFailed start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SOCKS_CONNECTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKS_CONNECTION_FAILED");
         console.info("====>testArkWebErrSocksConnectionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -993,7 +993,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSocksConnectionHostUnreachable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSocksConnectionHostUnreachable start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_SOCKS_CONNECTION_HOST_UNREACHABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKS_CONNECTION_HOST_UNREACHABLE");
         console.info("====>testArkWebErrSocksConnectionHostUnreachable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1013,7 +1013,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrAlpnNegotiationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrAlpnNegotiationFailed start====");
-        let result: number = webCode.webArkWebConnectError("ARKWEB_ERR_ALPN_NEGOTIATION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ALPN_NEGOTIATION_FAILED");
         console.info("====>testArkWebErrAlpnNegotiationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1033,7 +1033,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLNoRenegotiation', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLNoRenegotiation start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_NO_RENEGOTIATION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_NO_RENEGOTIATION");
         console.info("====>testArkWebErrSSLNoRenegotiation result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1053,7 +1053,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrWinsockUnexpectedWrittenBytes', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrWinsockUnexpectedWrittenBytes start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES");
         console.info("====>testArkWebErrWinsockUnexpectedWrittenBytes result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1073,7 +1073,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLDecompressionFailureAlert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLDecompressionFailureAlert start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_DECOMPRESSION_FAILURE_ALERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_DECOMPRESSION_FAILURE_ALERT");
         console.info("====>testArkWebErrSSLDecompressionFailureAlert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1093,7 +1093,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLBadRecordMacAlert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLBadRecordMacAlert start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_BAD_RECORD_MAC_ALERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_BAD_RECORD_MAC_ALERT");
         console.info("====>testArkWebErrSSLBadRecordMacAlert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1113,7 +1113,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrProxyAuthRequested', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrProxyAuthRequested start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_PROXY_AUTH_REQUESTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_AUTH_REQUESTED");
         console.info("====>testArkWebErrProxyAuthRequested result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1133,7 +1133,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrProxyConnectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrProxyConnectionFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_PROXY_CONNECTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_CONNECTION_FAILED");
         console.info("====>testArkWebErrProxyConnectionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1153,7 +1153,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrProxyConfigurationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrProxyConfigurationFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_MANDATORY_PROXY_CONFIGURATION_FAILED");
         console.info("====>testArkWebErrProxyConfigurationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1173,7 +1173,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrPreconnectMaxSocketLimit', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrPreconnectMaxSocketLimit start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_PRECONNECT_MAX_SOCKET_LIMIT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PRECONNECT_MAX_SOCKET_LIMIT");
         console.info("====>testArkWebErrProxyConfigurationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1193,7 +1193,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLClientAuthPrivateKeyAccessDenied', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLClientAuthPrivateKeyAccessDenied start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_PRIVATE_KEY_ACCESS_DENIED");
         console.info("====>testArkWebErrSSLClientAuthPrivateKeyAccessDenied result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1213,7 +1213,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrSSLClientAuthCertNoPrivateKey', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrSSLClientAuthCertNoPrivateKey start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_NO_PRIVATE_KEY");
         console.info("====>testArkWebErrSSLClientAuthCertNoPrivateKey result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1233,7 +1233,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrProxyCertificateInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrProxyCertificateInvalid start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_PROXY_CERTIFICATE_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_CERTIFICATE_INVALID");
         console.info("====>testArkWebErrProxyCertificateInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1253,7 +1253,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNameResolutionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNameResolutionFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_NAME_RESOLUTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NAME_RESOLUTION_FAILED");
         console.info("====>testArkWebErrNameResolutionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1273,7 +1273,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrNetworkAccessDenied', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrNetworkAccessDenied start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_NETWORK_ACCESS_DENIED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NETWORK_ACCESS_DENIED");
         console.info("====>testArkWebErrNetworkAccessDenied result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1293,7 +1293,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebErrTemporarilyThrottled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebErrTemporarilyThrottled start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_TEMPORARILY_THROTTLED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TEMPORARILY_THROTTLED");
         console.info("====>testArkWebErrTemporarilyThrottled result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1313,7 +1313,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebHttpsProxyTunnelResponseRedirect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebHttpsProxyTunnelResponseRedirect start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT");
         console.info("====>testArkWebHttpsProxyTunnelResponseRedirect result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1333,7 +1333,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLClientAuthSignatureFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLClientAuthSignatureFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_SIGNATURE_FAILED");
         console.info("====>testArkWebSSLClientAuthSignatureFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1353,7 +1353,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebMsgTooBig', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebMsgTooBig start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_MSG_TOO_BIG");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_MSG_TOO_BIG");
         console.info("====>testArkWebMsgTooBig result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1373,7 +1373,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebWSProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebWSProtocolError start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WS_PROTOCOL_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_WS_PROTOCOL_ERROR");
         console.info("====>testArkWebWSProtocolError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1393,7 +1393,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebAddressInUse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebAddressInUse start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_ADDRESS_IN_USE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ADDRESS_IN_USE");
         console.info("====>testArkWebAddressInUse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1413,7 +1413,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLHandshakeNotCompleted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLHandshakeNotCompleted start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_HANDSHAKE_NOT_COMPLETED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_HANDSHAKE_NOT_COMPLETED");
         console.info("====>testArkWebSSLHandshakeNotCompleted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1433,7 +1433,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLBadPeerPublicKey', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLBadPeerPublicKey start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_BAD_PEER_PUBLIC_KEY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_BAD_PEER_PUBLIC_KEY");
         console.info("====>testArkWebSSLBadPeerPublicKey result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1453,7 +1453,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLPinnedKeyNotInCERTChain', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLPinnedKeyNotInCERTChain start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN");
         console.info("====>testArkWebSSLPinnedKeyNotInCERTChain result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1473,7 +1473,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebClientAuthCERTTypeUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebClientAuthCERTTypeUnsupported start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_CLIENT_AUTH_CERT_TYPE_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CLIENT_AUTH_CERT_TYPE_UNSUPPORTED");
         console.info("====>testArkWebClientAuthCERTTypeUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1493,7 +1493,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLDecryptErrorAlert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLDecryptErrorAlert start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_DECRYPT_ERROR_ALERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_DECRYPT_ERROR_ALERT");
         console.info("====>testArkWebSSLDecryptErrorAlert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1513,7 +1513,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebWSThrottleQueueTooLarge', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebWSThrottleQueueTooLarge start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WS_THROTTLE_QUEUE_TOO_LARGE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_WS_THROTTLE_QUEUE_TOO_LARGE");
         console.info("====>testArkWebWSThrottleQueueTooLarge result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1533,7 +1533,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLServerCertChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLServerCertChanged start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_SERVER_CERT_CHANGED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_SERVER_CERT_CHANGED");
         console.info("====>testArkWebSSLServerCertChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1553,7 +1553,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLUnrecognizedNameAlert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLUnrecognizedNameAlert start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_UNRECOGNIZED_NAME_ALERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_UNRECOGNIZED_NAME_ALERT");
         console.info("====>testArkWebSSLUnrecognizedNameAlert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1573,7 +1573,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSocketSetReceiveBufferSizeError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSocketSetReceiveBufferSizeError start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_SET_RECEIVE_BUFFER_SIZE_ERROR");
         console.info("====>testArkWebSocketSetReceiveBufferSizeError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1593,7 +1593,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSetSendBufferSizeError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSetSendBufferSizeError start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_SET_SEND_BUFFER_SIZE_ERROR");
         console.info("====>testArkWebSetSendBufferSizeError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1613,7 +1613,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSocketReceiveBufferSizeUnchangeable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSocketReceiveBufferSizeUnchangeable start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_RECEIVE_BUFFER_SIZE_UNCHANGEABLE");
         console.info("====>testArkWebSocketReceiveBufferSizeUnchangeable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1633,7 +1633,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSocketSendBufferSizeUnchangeable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSocketSendBufferSizeUnchangeable start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SOCKET_SEND_BUFFER_SIZE_UNCHANGEABLE");
         console.info("====>testArkWebSocketSendBufferSizeUnchangeable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1653,7 +1653,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLClientAuthCertBadFormat', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLClientAuthCertBadFormat start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_CERT_BAD_FORMAT");
         console.info("====>testArkWebSSLClientAuthCertBadFormat result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1673,7 +1673,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebICANNNameCollision', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebICANNNameCollision start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_ICANN_NAME_COLLISION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ICANN_NAME_COLLISION");
         console.info("====>testArkWebICANNNameCollision result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1693,7 +1693,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLServerCertBadFormat', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLServerCertBadFormat start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_SERVER_CERT_BAD_FORMAT");
         console.info("====>testArkWebSSLServerCertBadFormat result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1713,7 +1713,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebCTSthParsingFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebCTSthParsingFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_CT_STH_PARSING_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CT_STH_PARSING_FAILED");
         console.info("====>testArkWebCTSthParsingFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1733,7 +1733,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebCTSthIncomplete', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebCTSthIncomplete start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_CT_STH_INCOMPLETE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CT_STH_INCOMPLETE");
         console.info("====>testArkWebCTSthIncomplete result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1753,7 +1753,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebUnableToReuseConnectionForProxyAuth', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebUnableToReuseConnectionForProxyAuth start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNABLE_TO_REUSE_CONNECTION_FOR_PROXY_AUTH");
         console.info("====>testArkWebUnableToReuseConnectionForProxyAuth result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1773,7 +1773,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebCTConsistencyProofParsingFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebCTConsistencyProofParsingFailed start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CT_CONSISTENCY_PROOF_PARSING_FAILED");
         console.info("====>testArkWebCTConsistencyProofParsingFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1793,7 +1793,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLObsoleteCipher', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLObsoleteCipher start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_OBSOLETE_CIPHER");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_OBSOLETE_CIPHER");
         console.info("====>testArkWebSSLObsoleteCipher result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1813,7 +1813,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebWSUpgrade', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebWSUpgrade start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WS_UPGRADE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_WS_UPGRADE");
         console.info("====>testArkWebWSUpgrade result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1833,7 +1833,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebReadIfReadyNotImplemented', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebReadIfReadyNotImplemented start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_READ_IF_READY_NOT_IMPLEMENTED");
         console.info("====>testArkWebReadIfReadyNotImplemented result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1853,7 +1853,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebNoBufferSpace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebNoBufferSpace start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_NO_BUFFER_SPACE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NO_BUFFER_SPACE");
         console.info("====>testArkWebNoBufferSpace result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1873,7 +1873,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebSSLClientAuthNoCommonAlgorithms', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebSSLClientAuthNoCommonAlgorithms start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_CLIENT_AUTH_NO_COMMON_ALGORITHMS");
         console.info("====>testArkWebSSLClientAuthNoCommonAlgorithms result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1893,7 +1893,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebEarlyDataRejected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebEarlyDataRejected start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_EARLY_DATA_REJECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_EARLY_DATA_REJECTED");
         console.info("====>testArkWebEarlyDataRejected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1913,7 +1913,7 @@ export default function ActsWebErrorCodeListTest() {
     it('testArkWebWrongVersionOnEarlyData', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
         console.info("====>testArkWebWrongVersionOnEarlyData start====");
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_WRONG_VERSION_ON_EARLY_DATA");
         console.info("====>testArkWebWrongVersionOnEarlyData result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1932,7 +1932,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTLS13DowngradeDetected', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TLS13_DOWNGRADE_DETECTED");
         console.info("====>testArkWebTLS13DowngradeDetected result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1951,7 +1951,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebSSLKeyUsageIncompatible', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webArkWebSSLError("ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_KEY_USAGE_INCOMPATIBLE");
         console.info("====>testArkWebSSLKeyUsageIncompatible result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1970,7 +1970,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvaliedECHConfigList', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_ECH_CONFIG_LIST");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_ECH_CONFIG_LIST");
         console.info("====>testArkWebInvaliedECHConfigList result====", result);
         expect(result).assertEqual(0);
         done();
@@ -1989,7 +1989,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebECHNotNegotiated', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ECH_NOT_NEGOTIATED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ECH_NOT_NEGOTIATED");
         console.info("====>testArkWebECHNotNegotiated result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2008,7 +2008,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebECHFallbackCertificateInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ECH_FALLBACK_CERTIFICATE_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ECH_FALLBACK_CERTIFICATE_INVALID");
         console.info("====>testArkWebECHFallbackCertificateInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2027,7 +2027,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTCommonNameInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_COMMON_NAME_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_COMMON_NAME_INVALID");
         console.info("====>testArkWebCERTCommonNameInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2046,7 +2046,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTDateInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_DATE_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_DATE_INVALID");
         console.info("====>testArkWebCERTDateInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2065,7 +2065,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTAuthorityInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_AUTHORITY_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_AUTHORITY_INVALID");
         console.info("====>testArkWebCERTAuthorityInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2084,7 +2084,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTContainsErrors', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_CONTAINS_ERRORS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_CONTAINS_ERRORS");
         console.info("====>testArkWebCERTContainsErrors result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2103,7 +2103,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTNoRevocationMechanism', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_NO_REVOCATION_MECHANISM");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_NO_REVOCATION_MECHANISM");
         console.info("====>testArkWebCERTNoRevocationMechanism result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2122,7 +2122,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTUnableToCheckRevocation', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_UNABLE_TO_CHECK_REVOCATION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_UNABLE_TO_CHECK_REVOCATION");
         console.info("====>testArkWebCERTUnableToCheckRevocation result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2141,7 +2141,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTRevoked', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_REVOKED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_REVOKED");
         console.info("====>testArkWebCERTRevoked result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2160,7 +2160,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTInvalid', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_INVALID");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_INVALID");
         console.info("====>testArkWebCERTInvalid result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2179,7 +2179,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTWeakSignatureAlgorithm', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_WEAK_SIGNATURE_ALGORITHM");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_WEAK_SIGNATURE_ALGORITHM");
         console.info("====>testArkWebCERTWeakSignatureAlgorithm result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2198,7 +2198,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTNonUniqueName', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_NON_UNIQUE_NAME");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_NON_UNIQUE_NAME");
         console.info("====>testArkWebCERTNonUniqueName result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2217,7 +2217,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTWeakKey', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_WEAK_KEY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_WEAK_KEY");
         console.info("====>testArkWebCERTWeakKey result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2236,7 +2236,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTNameConstraintViolation', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_NAME_CONSTRAINT_VIOLATION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_NAME_CONSTRAINT_VIOLATION");
         console.info("====>testArkWebCERTNameConstraintViolation result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2255,7 +2255,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTValidityTooLong', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_VALIDITY_TOO_LONG");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_VALIDITY_TOO_LONG");
         console.info("====>testArkWebCERTValidityTooLong result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2274,7 +2274,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCeritificateTransparencyRequired', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERTIFICATE_TRANSPARENCY_REQUIRED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERTIFICATE_TRANSPARENCY_REQUIRED");
         console.info("====>testArkWebCeritificateTransparencyRequired result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2293,7 +2293,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTSymantecLegacy', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_SYMANTEC_LEGACY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_SYMANTEC_LEGACY");
         console.info("====>testArkWebCERTSymantecLegacy result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2312,7 +2312,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCERTKnowInterceptionBlocked', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_KNOWN_INTERCEPTION_BLOCKED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_KNOWN_INTERCEPTION_BLOCKED");
         console.info("====>testArkWebCERTKnowInterceptionBlocked result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2331,7 +2331,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebSSLObsoleteVersionOrCipher', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_SSL_OBSOLETE_VERSION_OR_CIPHER");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SSL_OBSOLETE_VERSION_OR_CIPHER");
         console.info("====>testArkWebSSLObsoleteVersionOrCipher result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2350,7 +2350,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebErrCERTEnd', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_END");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_END");
         console.info("====>testArkWebErrCERTEnd result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2369,7 +2369,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidURL', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_URL");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_URL");
         console.info("====>testArkWebInvalidURL result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2388,7 +2388,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDisallowedUrlScheme', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DISALLOWED_URL_SCHEME");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DISALLOWED_URL_SCHEME");
         console.info("====>testArkWebDisallowedUrlScheme result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2407,7 +2407,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnknownUrlScheme', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNKNOWN_URL_SCHEME");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNKNOWN_URL_SCHEME");
         console.info("====>testArkWebUnknownUrlScheme result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2426,7 +2426,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidRedirect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_REDIRECT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_REDIRECT");
         console.info("====>testArkWebInvalidRedirect result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2445,7 +2445,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTooManyRedirects', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TOO_MANY_REDIRECTS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TOO_MANY_REDIRECTS");
         console.info("====>testArkWebTooManyRedirects result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2464,7 +2464,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnsafeRedirect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNSAFE_REDIRECT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNSAFE_REDIRECT");
         console.info("====>testArkWebUnsafeRedirect result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2483,7 +2483,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnsafePort', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNSAFE_PORT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNSAFE_PORT");
         console.info("====>testArkWebUnsafePort result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2502,7 +2502,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_RESPONSE");
         console.info("====>testArkWebInvalidResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2521,7 +2521,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidChunkedEncoding', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_CHUNKED_ENCODING");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_CHUNKED_ENCODING");
         console.info("====>testArkWebInvalidChunkedEncoding result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2540,7 +2540,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebMethodUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_METHOD_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_METHOD_UNSUPPORTED");
         console.info("====>testArkWebMethodUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2559,7 +2559,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnexpectedProxyAuth', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNEXPECTED_PROXY_AUTH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNEXPECTED_PROXY_AUTH");
         console.info("====>testArkWebUnexpectedProxyAuth result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2578,7 +2578,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebEmptyResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_EMPTY_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_EMPTY_RESPONSE");
         console.info("====>testArkWebEmptyResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2597,7 +2597,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseHeadersTooBig', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_HEADERS_TOO_BIG");
         console.info("====>testArkWebResponseHeadersTooBig result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2616,7 +2616,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPacScriptFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PAC_SCRIPT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PAC_SCRIPT_FAILED");
         console.info("====>testArkWebPacScriptFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2635,7 +2635,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebRequestRangeNotSatisfiable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_REQUEST_RANGE_NOT_SATISFIABLE");
         console.info("====>testArkWebRequestRangeNotSatisfiable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2654,7 +2654,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebMalformedIdentity', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_MALFORMED_IDENTITY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_MALFORMED_IDENTITY");
         console.info("====>testArkWebMalformedIdentity result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2673,7 +2673,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebContentDecodingFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CONTENT_DECODING_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONTENT_DECODING_FAILED");
         console.info("====>testArkWebContentDecodingFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2692,7 +2692,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebNetworkIoSuspended', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_NETWORK_IO_SUSPENDED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NETWORK_IO_SUSPENDED");
         console.info("====>testArkWebNetworkIoSuspended result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2711,7 +2711,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebSynReplyNotReceived', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SYN_REPLY_NOT_RECEIVED");
         console.info("====>testArkWebSynReplyNotReceived result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2730,7 +2730,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebEncodingConversionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ENCODING_CONVERSION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ENCODING_CONVERSION_FAILED");
         console.info("====>testArkWebEncodingConversionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2749,7 +2749,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnrecognizedFtpDirectoryListingFormat', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT");
         console.info("====>testArkWebUnrecognizedFtpDirectoryListingFormat result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2768,7 +2768,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebNoSupportedProxies', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_NO_SUPPORTED_PROXIES");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NO_SUPPORTED_PROXIES");
         console.info("====>testArkWebNoSupportedProxies result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2787,7 +2787,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2ProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_PROTOCOL_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_PROTOCOL_ERROR");
         console.info("====>testArkWebHttp2ProtocolError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2806,7 +2806,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidAuthCredentials', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_AUTH_CREDENTIALS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_AUTH_CREDENTIALS");
         console.info("====>testArkWebInvalidAuthCredentials result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2825,7 +2825,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnsupportedAuthScheme', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNSUPPORTED_AUTH_SCHEME");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNSUPPORTED_AUTH_SCHEME");
         console.info("====>testArkWebUnsupportedAuthScheme result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2844,7 +2844,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebEncodingDetectionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ENCODING_DETECTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ENCODING_DETECTION_FAILED");
         console.info("====>testArkWebEncodingDetectionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2863,7 +2863,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebMissingAuthCredentials', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_MISSING_AUTH_CREDENTIALS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_MISSING_AUTH_CREDENTIALS");
         console.info("====>testArkWebMissingAuthCredentials result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2882,7 +2882,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUnexpectedSecurityLibraryStatus', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNEXPECTED_SECURITY_LIBRARY_STATUS");
         console.info("====>testArkWebUnexpectedSecurityLibraryStatus result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2901,7 +2901,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebMisconfiguredAuthEnvironment', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_MISCONFIGURED_AUTH_ENVIRONMENT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_MISCONFIGURED_AUTH_ENVIRONMENT");
         console.info("====>testArkWebMisconfiguredAuthEnvironment result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2920,7 +2920,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebUndocumentedSecurityLibraryStatus', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_UNDOCUMENTED_SECURITY_LIBRARY_STATUS");
         console.info("====>testArkWebUndocumentedSecurityLibraryStatus result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2939,7 +2939,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseBodyTooBigToDrain', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_BODY_TOO_BIG_TO_DRAIN");
         console.info("====>testArkWebResponseBodyTooBigToDrain result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2958,7 +2958,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseHeadersMultipleContentLength', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_LENGTH");
         console.info("====>testArkWebResponseHeadersMultipleContentLength result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2977,7 +2977,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebIncompleteHttp2Headers', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INCOMPLETE_HTTP2_HEADERS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INCOMPLETE_HTTP2_HEADERS");
         console.info("====>testArkWebIncompleteHttp2Headers result====", result);
         expect(result).assertEqual(0);
         done();
@@ -2996,7 +2996,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPacNotInDhcp', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PAC_NOT_IN_DHCP");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PAC_NOT_IN_DHCP");
         console.info("====>testArkWebPacNotInDhcp result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3015,7 +3015,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseHeadersMultipleContentDisposition', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION");
         console.info("====>testArkWebResponseHeadersMultipleContentDisposition result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3034,7 +3034,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseHeadersMultipleLocation', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_HEADERS_MULTIPLE_LOCATION");
         console.info("====>testArkWebResponseHeadersMultipleLocation result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3053,7 +3053,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2ServerRefusedStream', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_SERVER_REFUSED_STREAM");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_SERVER_REFUSED_STREAM");
         console.info("====>testArkWebHttp2ServerRefusedStream result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3072,7 +3072,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2PingFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_PING_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_PING_FAILED");
         console.info("====>testArkWebHttp2PingFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3091,7 +3091,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebContentLengthMismatch', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CONTENT_LENGTH_MISMATCH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONTENT_LENGTH_MISMATCH");
         console.info("====>testArkWebContentLengthMismatch result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3110,7 +3110,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebIncompleteChunkedEncoding', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INCOMPLETE_CHUNKED_ENCODING");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INCOMPLETE_CHUNKED_ENCODING");
         console.info("====>testArkWebIncompleteChunkedEncoding result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3129,7 +3129,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebQuicProtocolError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_QUIC_PROTOCOL_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_QUIC_PROTOCOL_ERROR");
         console.info("====>testArkWebQuicProtocolError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3148,7 +3148,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebResponseHeadersTruncated', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_RESPONSE_HEADERS_TRUNCATED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_RESPONSE_HEADERS_TRUNCATED");
         console.info("====>testArkWebResponseHeadersTruncated result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3167,7 +3167,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebQuicHandshakeFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_QUIC_HANDSHAKE_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_QUIC_HANDSHAKE_FAILED");
         console.info("====>testArkWebQuicHandshakeFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3186,7 +3186,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2InadequateTransportSecurity', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_INADEQUATE_TRANSPORT_SECURITY");
         console.info("====>testArkWebHttp2InadequateTransportSecurity result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3205,7 +3205,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2FlowControlError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_FLOW_CONTROL_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_FLOW_CONTROL_ERROR");
         console.info("====>testArkWebHttp2FlowControlError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3224,7 +3224,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2FrameSizeError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_FRAME_SIZE_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_FRAME_SIZE_ERROR");
         console.info("====>testArkWebHttp2FrameSizeError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3243,7 +3243,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2CompressionError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_COMPRESSION_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_COMPRESSION_ERROR");
         console.info("====>testArkWebHttp2CompressionError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3262,7 +3262,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebProxyAuthRequestedWithNoConnection', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_AUTH_REQUESTED_WITH_NO_CONNECTION");
         console.info("====>testArkWebProxyAuthRequestedWithNoConnection result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3281,7 +3281,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp11Required', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP_1_1_REQUIRED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP_1_1_REQUIRED");
         console.info("====>testArkWebHttp11Required result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3300,7 +3300,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebProxyHttp11Required', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PROXY_HTTP_1_1_REQUIRED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PROXY_HTTP_1_1_REQUIRED");
         console.info("====>testArkWebProxyHttp11Required result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3319,7 +3319,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPacScriptTerminated', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PAC_SCRIPT_TERMINATED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PAC_SCRIPT_TERMINATED");
         console.info("====>testArkWebPacScriptTerminated result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3338,7 +3338,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidHttpResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_HTTP_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_HTTP_RESPONSE");
         console.info("====>testArkWebInvalidHttpResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3357,7 +3357,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebContentDecodingInitFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CONTENT_DECODING_INIT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CONTENT_DECODING_INIT_FAILED");
         console.info("====>testArkWebContentDecodingInitFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3376,7 +3376,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2RstStreamNoErrorReceived', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_RST_STREAM_NO_ERROR_RECEIVED");
         console.info("====>testArkWebHttp2RstStreamNoErrorReceived result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3395,7 +3395,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2PushedStreamNotAvailable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_PUSHED_STREAM_NOT_AVAILABLE");
         console.info("====>testArkWebHttp2PushedStreamNotAvailable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3414,7 +3414,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2ClaimedPushedStreamResetByServer', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_CLAIMED_PUSHED_STREAM_RESET_BY_SERVER");
         console.info("====>testArkWebHttp2ClaimedPushedStreamResetByServer result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3433,7 +3433,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTooManyRetries', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TOO_MANY_RETRIES");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TOO_MANY_RETRIES");
         console.info("====>testArkWebTooManyRetries result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3452,7 +3452,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2StreamClosed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_STREAM_CLOSED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_STREAM_CLOSED");
         console.info("====>testArkWebHttp2StreamClosed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3471,7 +3471,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2ClientRefusedStream', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_CLIENT_REFUSED_STREAM");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_CLIENT_REFUSED_STREAM");
         console.info("====>testArkWebHttp2ClientRefusedStream result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3490,7 +3490,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttp2PushedResponseDoesNotMatch', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP2_PUSHED_RESPONSE_DOES_NOT_MATCH");
         console.info("====>testArkWebHttp2PushedResponseDoesNotMatch result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3509,7 +3509,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebHttpResponseCodeFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_HTTP_RESPONSE_CODE_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_HTTP_RESPONSE_CODE_FAILURE");
         console.info("====>testArkWebHttpResponseCodeFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3528,7 +3528,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebQuicUnknownCertRoot', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_QUIC_UNKNOWN_CERT_ROOT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_QUIC_UNKNOWN_CERT_ROOT");
         console.info("====>testArkWebQuicUnknownCertRoot result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3547,7 +3547,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebQuicGoawayRequestCanBeRetried', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_QUIC_GOAWAY_REQUEST_CAN_BE_RETRIED");
         console.info("====>testArkWebQuicGoawayRequestCanBeRetried result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3566,7 +3566,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTooManyAcceptChRestarts', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TOO_MANY_ACCEPT_CH_RESTARTS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TOO_MANY_ACCEPT_CH_RESTARTS");
         console.info("====>testArkWebTooManyAcceptChRestarts result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3585,7 +3585,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInconsistentIpAddressSpace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INCONSISTENT_IP_ADDRESS_SPACE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INCONSISTENT_IP_ADDRESS_SPACE");
         console.info("====>testArkWebInconsistentIpAddressSpace result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3604,7 +3604,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCachedIpAddressSpaceBlockedByLocalNetworkAccessPolicy', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY");
         console.info("====>testArkWebCachedIpAddressSpaceBlockedByLocalNetworkAccessPolicy result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3623,7 +3623,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheMiss', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_MISS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_MISS");
         console.info("====>testArkWebCacheMiss result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3642,7 +3642,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheWriteFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_WRITE_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_WRITE_FAILURE");
         console.info("====>testArkWebCacheWriteFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3661,7 +3661,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheOperationUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPERATION_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_OPERATION_UNSUPPORTED");
         console.info("====>testArkWebCacheOperationUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3680,7 +3680,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheOpenFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPEN_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_OPEN_FAILURE");
         console.info("====>testArkWebCacheOpenFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3699,7 +3699,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheCreateFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CREATE_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_CREATE_FAILURE");
         console.info("====>testArkWebCacheCreateFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3718,7 +3718,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheRace', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_RACE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_RACE");
         console.info("====>testArkWebCacheRace result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3737,7 +3737,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheChecksumReadFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CHECKSUM_READ_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_CHECKSUM_READ_FAILURE");
         console.info("====>testArkWebCacheChecksumReadFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3756,7 +3756,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheChecksumMismatch', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_CHECKSUM_MISMATCH");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_CHECKSUM_MISMATCH");
         console.info("====>testArkWebCacheChecksumMismatch result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3775,7 +3775,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheLockTimeout', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_LOCK_TIMEOUT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_LOCK_TIMEOUT");
         console.info("====>testArkWebCacheLockTimeout result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3794,7 +3794,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheAuthFailureAfterRead', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_AUTH_FAILURE_AFTER_READ");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_AUTH_FAILURE_AFTER_READ");
         console.info("====>testArkWebCacheAuthFailureAfterRead result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3813,7 +3813,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheEntryNotSuitable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_ENTRY_NOT_SUITABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_ENTRY_NOT_SUITABLE");
         console.info("====>testArkWebCacheEntryNotSuitable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3832,7 +3832,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheDoomFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_DOOM_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_DOOM_FAILURE");
         console.info("====>testArkWebCacheDoomFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3851,7 +3851,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCacheOpenOrCreateFailure', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CACHE_OPEN_OR_CREATE_FAILURE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CACHE_OPEN_OR_CREATE_FAILURE");
         console.info("====>testArkWebCacheOpenOrCreateFailure result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3870,7 +3870,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInsecureResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INSECURE_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INSECURE_RESPONSE");
         console.info("====>testArkWebInsecureResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3889,7 +3889,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebNoPrivateKeyForCert', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_NO_PRIVATE_KEY_FOR_CERT");
         console.info("====>testArkWebNoPrivateKeyForCert result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3908,7 +3908,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebAddUserCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_ADD_USER_CERT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_ADD_USER_CERT_FAILED");
         console.info("====>testArkWebAddUserCertFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3927,7 +3927,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidSignedExchange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_SIGNED_EXCHANGE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_SIGNED_EXCHANGE");
         console.info("====>testArkWebInvalidSignedExchange result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3946,7 +3946,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebInvalidWebBundle', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_INVALID_WEB_BUNDLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_INVALID_WEB_BUNDLE");
         console.info("====>testArkWebInvalidWebBundle result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3965,7 +3965,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTrustTokenOperationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_FAILED");
         console.info("====>testArkWebTrustTokenOperationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -3984,7 +3984,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebTrustTokenOperationSuccessWithoutSendingRequest', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST");
         console.info("====>testArkWebTrustTokenOperationSuccessWithoutSendingRequest result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4003,7 +4003,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_FAILED");
         console.info("====>testArkWebFtpFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4022,7 +4022,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpServiceUnavailable', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_SERVICE_UNAVAILABLE");
         console.info("====>testArkWebFtpServiceUnavailable result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4041,7 +4041,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpTransferAborted', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_TRANSFER_ABORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_TRANSFER_ABORTED");
         console.info("====>testArkWebFtpTransferAborted result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4060,7 +4060,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpFileBusy', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_FILE_BUSY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_FILE_BUSY");
         console.info("====>testArkWebFtpFileBusy result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4079,7 +4079,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpSyntaxError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_SYNTAX_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_SYNTAX_ERROR");
         console.info("====>testArkWebFtpSyntaxError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4098,7 +4098,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpCommandUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_COMMAND_UNSUPPORTED");
         console.info("====>testArkWebFtpCommandUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4117,7 +4117,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebFtpBadCommandSequence', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_FTP_BAD_COMMAND_SEQUENCE");
         console.info("====>testArkWebFtpBadCommandSequence result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4136,7 +4136,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPkcs12ImportBadPassword', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PKCS12_IMPORT_BAD_PASSWORD");
         console.info("====>testArkWebPkcs12ImportBadPassword result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4155,7 +4155,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPkcs12ImportFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PKCS12_IMPORT_FAILED");
         console.info("====>testArkWebPkcs12ImportFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4174,7 +4174,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebImportCaCertNotCa', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_IMPORT_CA_CERT_NOT_CA");
         console.info("====>testArkWebImportCaCertNotCa result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4193,7 +4193,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebImportCertAlreadyExists', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_IMPORT_CERT_ALREADY_EXISTS");
         console.info("====>testArkWebImportCertAlreadyExists result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4212,7 +4212,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebImportCaCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_CA_CERT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_IMPORT_CA_CERT_FAILED");
         console.info("====>testArkWebImportCaCertFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4231,7 +4231,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebImportServerCertFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_IMPORT_SERVER_CERT_FAILED");
         console.info("====>testArkWebImportServerCertFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4250,7 +4250,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPkcs12ImportInvalidMac', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_MAC");
         console.info("====>testArkWebPkcs12ImportInvalidMac result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4269,7 +4269,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPkcs12ImportInvalidFile', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PKCS12_IMPORT_INVALID_FILE");
         console.info("====>testArkWebPkcs12ImportInvalidFile result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4288,7 +4288,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPkcs12ImportUnsupported', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PKCS12_IMPORT_UNSUPPORTED");
         console.info("====>testArkWebPkcs12ImportUnsupported result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4307,7 +4307,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebKeyGenerationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_KEY_GENERATION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_KEY_GENERATION_FAILED");
         console.info("====>testArkWebKeyGenerationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4326,7 +4326,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebPrivateKeyExportFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_PRIVATE_KEY_EXPORT_FAILED");
         console.info("====>testArkWebPrivateKeyExportFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4345,7 +4345,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebSelfSignedCertGenerationFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_SELF_SIGNED_CERT_GENERATION_FAILED");
         console.info("====>testArkWebSelfSignedCertGenerationFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4364,7 +4364,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCertDatabaseChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_DATABASE_CHANGED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_DATABASE_CHANGED");
         console.info("====>testArkWebCertDatabaseChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4383,7 +4383,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebCertVerifierChanged', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_CERT_VERIFIER_CHANGED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_CERT_VERIFIER_CHANGED");
         console.info("====>testArkWebCertVerifierChanged result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4402,7 +4402,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsMalformedResponse', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_MALFORMED_RESPONSE");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_MALFORMED_RESPONSE");
         console.info("====>testArkWebDnsMalformedResponse result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4421,7 +4421,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsServerRequiresTcp', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_SERVER_REQUIRES_TCP");
         console.info("====>testArkWebDnsServerRequiresTcp result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4440,7 +4440,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsServerFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SERVER_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_SERVER_FAILED");
         console.info("====>testArkWebDnsServerFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4459,7 +4459,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsTimedOut', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_TIMED_OUT");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_TIMED_OUT");
         console.info("====>testArkWebDnsTimedOut result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4478,7 +4478,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsCacheMiss', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_CACHE_MISS");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_CACHE_MISS");
         console.info("====>testArkWebDnsCacheMiss result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4497,7 +4497,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsSearchEmpty', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SEARCH_EMPTY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_SEARCH_EMPTY");
         console.info("====>testArkWebDnsSearchEmpty result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4516,7 +4516,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsSortError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SORT_ERROR");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_SORT_ERROR");
         console.info("====>testArkWebDnsSortError result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4535,7 +4535,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsSecureResolverHostnameResolutionFailed', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_SECURE_RESOLVER_HOSTNAME_RESOLUTION_FAILED");
         console.info("====>testArkWebDnsSecureResolverHostnameResolutionFailed result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4554,7 +4554,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsNameHttpsOnly', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_NAME_HTTPS_ONLY");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_NAME_HTTPS_ONLY");
         console.info("====>testArkWebDnsNameHttpsOnly result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4573,7 +4573,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsRequestCanceled', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_REQUEST_CANCELED");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_REQUEST_CANCELED");
         console.info("====>testArkWebDnsRequestCanceled result====", result);
         expect(result).assertEqual(0);
         done();
@@ -4592,7 +4592,7 @@ export default function ActsWebErrorCodeListTest() {
      */
     it('testArkWebDnsNoMatchingSupportedAlpn', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
       try {
-        let result: number = webCode.webNetErrorResponeseSetError("ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN");
+        let result: number = webCode.webArkWebNetError("ARKWEB_ERR_DNS_NO_MATCHING_SUPPORTED_ALPN");
         console.info("====>testArkWebDnsNoMatchingSupportedAlpn result====", result);
         expect(result).assertEqual(0);
         done();
