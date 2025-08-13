@@ -41,7 +41,7 @@ void addErrorCodeTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"OHNativeErrorCodeImageSupport", nullptr, OH_OHNativeErrorCodeImageSupport,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeImageNoBuffer", nullptr, OH_OHNativeErrorCodeImageNoBuffer,
-        nullptr, nullptr, nullptr, napi_default, nullptr});   
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeVSyncOk", nullptr, OH_OHNativeErrorCodeVSyncOk,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHNativeErrorCodeVSyncInvalid", nullptr, OH_OHNativeErrorCodeVSyncInvalid,
@@ -163,12 +163,12 @@ napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info)
     int32_t res2 = OH_NativeVSync_DVSyncSwitch(nativeVsync, true);
     napi_create_int32(env, res == NATIVE_ERROR_OK, &result);
     return result;
-} 
+}
  napi_value OH_OHNativeErrorCodeVSyncInvalid(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeVSync* nativeVsync = nullptr;
-    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void* data){
     };
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
@@ -182,7 +182,7 @@ napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info)
     napi_value result;
     uint32_t textureId = 1;
     uint32_t textureTarget = 2;
-    OH_NativeImage * image = OH_NativeImage_Create(textureId, textureTarget);
+    OH_NativeImage* image = OH_NativeImage_Create(textureId, textureTarget);
     OHNativeWindow* winNative = OH_NativeImage_AcquireNativeWindow(image);
     int32_t size = 0;
     uint8_t *metadata = nullptr;
@@ -196,7 +196,7 @@ napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info)
     napi_value result;
     uint32_t textureId = 1;
     uint32_t textureTarget = 2;
-    OH_NativeImage * image = OH_NativeImage_Create(textureId, textureTarget);
+    OH_NativeImage* image = OH_NativeImage_Create(textureId, textureTarget);
     OHNativeWindow* winNative = OH_NativeImage_AcquireNativeWindow(image);
     int32_t res = OH_NativeWindow_CleanCache(winNative);
     napi_create_int32(env, res == NATIVE_ERROR_CONSUMER_DISCONNECTED, &result);

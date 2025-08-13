@@ -37,7 +37,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     descData.push_back({"fenceWaitFalse", nullptr, OH_NativeFence_WaitFalse,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceWaitForeverTrue", nullptr, OH_NativeFence_WaitForeverTrue,
-        nullptr, nullptr, nullptr, napi_default, nullptr});    
+        nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceWaitForeverFalse", nullptr, OH_NativeFence_WaitForeverFalse,
         nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"fenceCloseTrue", nullptr, OH_NativeFence_CloseTrue,
@@ -69,6 +69,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);
     return result;
 }
+
  napi_value OH_NativeFence_IsValidTrue(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -76,7 +77,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_IsValid(1);
     napi_create_int32(env, res, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_IsValidFalse(napi_env env, napi_callback_info info)
 {
@@ -85,7 +86,8 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_IsValid(fenceFd);
     napi_create_int32(env, res == false, &result);
     return result;
- }
+}
+
  napi_value OH_NativeFence_WaitTrue(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -94,7 +96,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_Wait(fenceFd, TIMEOUT_MS);
     napi_create_int32(env, res, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_WaitFalse(napi_env env, napi_callback_info info)
 {
@@ -104,7 +106,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_Wait(fenceFd, TIMEOUT_MS);
     napi_create_int32(env, res == false, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_WaitForeverTrue(napi_env env, napi_callback_info info)
 {
@@ -114,7 +116,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_WaitForever(fenceFd);
     napi_create_int32(env, res, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_WaitForeverFalse(napi_env env, napi_callback_info info)
 {
@@ -124,7 +126,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     bool res = OH_NativeFence_WaitForever(fenceFd);
     napi_create_int32(env, res == false, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_CloseTrue(napi_env env, napi_callback_info info)
 {
@@ -134,7 +136,7 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     OH_NativeFence_Close(fenceFd);
     napi_create_int32(env, true, &result);
     return result;
- }
+}
 
  napi_value OH_NativeFence_CloseFalse(napi_env env, napi_callback_info info)
 {
@@ -144,4 +146,4 @@ void addVSyncFenceTest(std::vector<napi_property_descriptor>& descData)
     OH_NativeFence_Close(fenceFd);
     napi_create_int32(env, true, &result);
     return result;
- }
+}

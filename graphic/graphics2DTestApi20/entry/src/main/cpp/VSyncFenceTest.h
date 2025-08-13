@@ -21,16 +21,15 @@
 #include <napi/native_api.h>
 #include <vector>
 void addVSyncFenceTest(std::vector<napi_property_descriptor> &descData);
-
- napi_value OH_NativeVSync_RequestFrameSuccess(napi_env env, napi_callback_info info);
- napi_value OH_NativeVSync_RequestFrameInvalue(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_IsValidTrue(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_IsValidFalse(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_WaitTrue(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_WaitFalse(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_WaitForeverTrue(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_WaitForeverFalse(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_CloseTrue(napi_env env, napi_callback_info info);
- napi_value OH_NativeFence_CloseFalse(napi_env env, napi_callback_info info);
+napi_value OH_NativeVSync_RequestFrameSuccess(napi_env env, napi_callback_info info);
+napi_value OH_NativeVSync_RequestFrameInvalue(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_IsValidTrue(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_IsValidFalse(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_WaitTrue(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_WaitFalse(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_WaitForeverTrue(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_WaitForeverFalse(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_CloseTrue(napi_env env, napi_callback_info info);
+napi_value OH_NativeFence_CloseFalse(napi_env env, napi_callback_info info);
 
 #endif //VSYNC_TEST_H
