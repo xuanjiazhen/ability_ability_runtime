@@ -49,7 +49,8 @@ class RecordWriter {
 
   private parseRecord(obj: NullishType): boolean {
     if (obj instanceof Record) {
-      return this.writeRecordToNative(obj as Object as Record<string, valueType>, this.wantParams);
+      this.writeRecordToNative(obj as Object as Record<string, valueType>, this.wantParams);
+      return true;
       //return this.writeRecord(obj as Object as Record<string, valueType>);
     } else {
       hilog.error(DOMAIN_ID, TAG, `input object not record type`);
@@ -80,6 +81,18 @@ class RecordWriter {
     }
   }
 
+  private tupleToArray(tuple: Tuple): Array<valueType> {
+    let arr: Array<valueType> = [];
+
+    const objType = Type.of(tuple as Object) as ClassType;
+    const writableFields = this.getWritableFields(objType, reflect.Value.of(tuple as Object) as ClassValue);
+    for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
+        const fieldValue = writableFields[fieldIdx][1].getData();
+        arr.push(fieldValue);
+    }
+    return arr;
+  }
+
   private writeObjectToNative(key: string, obj: NullishType, wantParams?: NativeWantParams | null): boolean {
     let localWantParams = (wantParams === undefined) ? this.wantParams : wantParams;
     // skip reserved param
@@ -107,16 +120,21 @@ class RecordWriter {
       this.writeArrayToNative(key, obj as Object as Array<valueType>, localWantParams);
       return true;
     } else if (obj instanceof Tuple) {
-      this.writeArrayToNative(key, obj as Object as Tuple, localWantParams);
+      let tupleAsArray = this.tupleToArray(obj as Tuple);
+      this.writeArrayToNative(key, tupleAsArray as Object as Array<valueType>, localWantParams);
       return true;
     } else if (obj instanceof Record) {
       //this.writeRecord(obj as Object as Record<string, valueType>);
       let newWantParams = new NativeWantParams();
       if (this.writeRecordToNative(obj as Object as Record<string, valueType>, newWantParams) != true) {
         hilog.error(DOMAIN_ID, TAG, `write record to native failed`);
-        return false;
+        localWantParams?.setParam(key, '{}'); // when record is {}
+      } else {
+        localWantParams?.setParam(key, newWantParams);
       }
-      localWantParams?.setParam(key, newWantParams);
+      return true;
+    else if (obj instanceof rpc.RemoteObject) {
+      localWantParams?.setParam(key, obj as rpc.RemoteObject);
       return true;
     } else {
       const objType = Type.of(obj);
@@ -125,6 +143,7 @@ class RecordWriter {
         if (typeof obj === 'string') {
           let value: string = String(obj as Object);
           localWantParams?.setParam(key, value);
+          return true;
         }
         // enum value are number
         if (typeof obj === 'number') {
@@ -144,10 +163,11 @@ class RecordWriter {
         }
         let newWantParams = new NativeWantParams();
         if (this.writeClassValueToNative(obj as Object, objType as ClassType, newWantParams) != true) {
-          //localWantParams?.setParam(key, '{}'); class无可读成员和{}等其他场景不保存
+          localWantParams?.setParam(key, '{}'); // when class no write member
         } else {
           localWantParams?.setParam(key, newWantParams);
         }
+        return true;
       } else {
         //this.buffer.append('null');
         //localWantParams?.setParam(key, 'null'); // 1.1不识别类型不收集
@@ -326,7 +346,7 @@ class RecordWriter {
     }
   }
 
-  private unwrapArray(arr: Array<valueType> | Tuple, complexArray: ComplexArrayData): void {
+  private unwrapArray(arr: Array<valueType>, complexArray: ComplexArrayData): void {
     const length = arr.length as int;
     this.checkReferencesCycle(arr);
     this.store.add(arr);
@@ -394,7 +414,7 @@ class RecordWriter {
     return true;
   }
 
-  private writeArrayToNative(key: string, arr: Array<valueType> | Tuple, wantParams: NativeWantParams | null): void {
+  private writeArrayToNative(key: string, arr: Array<valueType>, wantParams: NativeWantParams | null): void {
     let complexArray: ComplexArrayData = {
         intlist: [],
         boolList: [],
@@ -484,11 +504,10 @@ class RecordWriter {
       if (rec[key] == undefined) {
         continue;
       }
-      isSuccess = this.writeObjectToNative(key as String, rec[key] as Object, wantParams);
-      if (isSuccess != true) {
+      if (this.writeObjectToNative(key as String, rec[key] as Object, wantParams != true) {
         hilog.error(DOMAIN_ID, TAG, `write object to native failed, key: %{public}s`, JSON.stringify(key as String));
-        return false;
       }
+      isSuccess = true;
     }
     this.store.delete(rec);
     if (isSuccess != true) {
