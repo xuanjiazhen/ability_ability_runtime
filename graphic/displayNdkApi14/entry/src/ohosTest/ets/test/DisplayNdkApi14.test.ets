@@ -114,7 +114,7 @@ export default function ActsDisplayNdkApi14Test() {
         }
       }
       await getPermision();
-      await sleep(100);
+      await sleep(300);
       await ClickButtonDriver();
       await sleep(200);
     })
