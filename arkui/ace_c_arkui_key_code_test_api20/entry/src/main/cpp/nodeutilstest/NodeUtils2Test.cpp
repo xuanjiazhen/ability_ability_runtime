@@ -51,9 +51,8 @@ napi_value SetForceDarkConfigTest_003(napi_env env, napi_callback_info info)
     OH_ArkUI_GetModuleInterface(ARKUI_NATIVE_NODE, ArkUI_NativeNodeAPI_1, g_nodeAPI);
     // 创建指定类型的节点
     auto component = g_nodeAPI->createNode(ARKUI_NODE_XCOMPONENT);
-//    int result = OH_ArkUI_SetForceDarkConfig(uiContext, false, ARKUI_NODE_LIST, nullptr);
     napi_value retValue;
-    napi_create_int32(env, 11, &retValue);
+    napi_create_int32(env, g_nodeutilsresult2, &retValue);
     return retValue;
 }
 
