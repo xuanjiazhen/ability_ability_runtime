@@ -3371,7 +3371,7 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
     }
 #endif // SUPPORT_UPMS
 
-    std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
+    std::string value = abilityRequest.want.GetStringParam(Want::PARAM_LAUNCH_REASON_MESSAGE);
     if (!value.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "set launchReasonMessage:%{public}s", value.c_str());
         targetAbilityRecord->SetLaunchReasonMessage(value);
@@ -4062,7 +4062,7 @@ bool MissionListManager::UpdateAbilityRecordLaunchReason(
         return false;
     }
 
-    std::string value = abilityRequest.want.GetStringParam(Want::PARM_LAUNCH_REASON_MESSAGE);
+    std::string value = abilityRequest.want.GetStringParam(Want::PARAM_LAUNCH_REASON_MESSAGE);
     if (!value.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "set launchReasonMessage:%{public}s", value.c_str());
         abilityRecord->SetLaunchReasonMessage(value);
