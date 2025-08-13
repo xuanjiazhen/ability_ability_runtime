@@ -861,6 +861,39 @@ static napi_value WebClearBlankCache(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value WebSetBlankCacheCap(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSetBlankCacheCap start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    uint32_t capacity = 30;
+    // set default
+    capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(30);
+    switch (caseNum) {
+        case CASE_NUM_0:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(0);
+            break;
+        case CASE_NUM_1:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(100);
+            break;
+        case CASE_NUM_2:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(101);
+            break;
+        case CASE_NUM_3:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(-1);
+            break;
+        case CASE_NUM_4:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(30);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, capacity, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSetBlankCacheCap end..");
+    return result;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -892,6 +925,7 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"WebRegisterJSProxy", nullptr, WebRegisterJSProxy, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"WebClearBlankCache", nullptr, WebClearBlankCache, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSetBlankCacheCap", nullptr, WebSetBlankCacheCap, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

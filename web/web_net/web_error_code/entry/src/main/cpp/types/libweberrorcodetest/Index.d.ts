@@ -64,3 +64,4 @@ export const WebStructCookieManagerAPI: (caseNum: number) => number;
 export const WebStructJavaScriptValueAPI: (caseNum: number) => number;
 export const WebRegisterJSProxy: (webName: string, caseNum: number) => number;
 export const WebClearBlankCache: (caseNum: number) => number;
+export const WebSetBlankCacheCap: (caseNum: number) => number;

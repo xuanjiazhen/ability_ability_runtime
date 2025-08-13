@@ -1818,7 +1818,106 @@ export default function NativeInterfaceTest() {
           console.error("====>testWebNapiClearBlankLessCacheNullKey catch err: " + err);
         }
       })
-
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0100
+     * @tc.name    : testWebNapiSetBlankCacheCap0
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCap0', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCap0 start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(0);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSetBlankCacheCap0 stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCap0 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0200
+     * @tc.name    : testWebNapiSetBlankCacheCap100
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCap100', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCap100 start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(1);
+          expect([0, 100]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCap100 stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCap100 catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0300
+     * @tc.name    : testWebNapiSetBlankCacheCapBigger
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapBigger', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapBigger start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(2);
+          expect([0, 100]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCapBigger stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapBigger catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0400
+     * @tc.name    : testWebNapiSetBlankCacheCapSmaller
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapSmaller', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapSmaller start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(3);
+          expect(result).assertEqual(0);
+          console.info("====>testWebNapiSetBlankCacheCapSmaller stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapSmaller catch err: " + err);
+        }
+      })
+    /**
+     * @tc.number  : SUB_Web_Napi_SetBlankCacheCap_0500
+     * @tc.name    : testWebNapiSetBlankCacheCapDefault
+     * @tc.desc    : test OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity interface
+     * @tc.level   : Level2
+     * @tc.size    : SMALLTEST
+     * @tc.type    : Function
+     */
+    it('testWebNapiSetBlankCacheCapDefault', TestType.FUNCTION | Size.SMALLTEST | Level.LEVEL2,
+      async (done: Function) => {
+        try {
+          console.info("====>testWebNapiSetBlankCacheCapDefault start====");
+          let result: number = nativeInterface.WebSetBlankCacheCap(4);
+          expect([0, 30]).assertContain(result);
+          console.info("====>testWebNapiSetBlankCacheCapDefault stop====", result);
+          done();
+        } catch (err) {
+          console.error("====>testWebNapiSetBlankCacheCapDefault catch err: " + err);
+        }
+      })
 
   })
 }
