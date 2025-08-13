@@ -62,7 +62,7 @@ export default function basicabilityapi() {
          * @tc.desc      Cancel the repetitive timing tasks previously set by setInterval.
          */
         it('testClearInterval', Level.LEVEL0, async function(done) {
-            console.info('testClearInterval yangrong START');
+            console.info('testClearInterval START');
             let res = 0;
             let intervalID = -1;
             let promise1 = new Promise((resolve, reject) => {
@@ -140,7 +140,6 @@ export default function basicabilityapi() {
             });
             await backToIndex();
             console.info('testRouterPush END');
-            console.info('testRouterPush ENDx');
             done();
         });
 
@@ -150,11 +149,9 @@ export default function basicabilityapi() {
          * @tc.desc      Test push not exist page.
          */
         it('testRouterPushNotExist', Level.LEVEL0, async function (done) {
-            // console.info('testRouterPushNotExist START');
-             console.info('testRouterPushNotExist START');
-
+            console.info('testRouterPushNotExist START');
             let promise1 = new Promise((resolve, reject) => {
-                console.info('testRouterPushNotExist 2clear');
+                console.info('testRouterPushNotExist clear');
                 router.push({
                     uri: 'pages/routerNotExist/index'
                 });
@@ -184,7 +181,7 @@ export default function basicabilityapi() {
          * @tc.desc      Replace the current page with a page in the application, and destroy the replaced page.
          */
         it('testRouterReplace', Level.LEVEL0, async function (done) {
-            console.info('testRouterReplace01 START');
+            console.info('testRouterReplace START');
             let options = {
                 uri : 'pages/routerPush/index'
             }
@@ -196,10 +193,7 @@ export default function basicabilityapi() {
                 uri : 'pages/routerReplace/index'
             }
             let promise2 = new Promise((resolve, reject) => {
-
-                console.info("testRouterReplace 3x");
                 setTimeout(() => {
-                    console.info("testRouterReplace 1");
                     router.replace(repleasePage);
                     resolve();
                 }, 1500);
@@ -208,7 +202,6 @@ export default function basicabilityapi() {
             //替换堆栈数量不会变
             let promise3 = new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    console.info("testRouterReplace 4x");
                     let pages = router.getState();
                     console.info("[router.replace] getState" + JSON.stringify(pages));
                     expect("pages/routerReplace/").assertEqual(pages.path);
@@ -344,7 +337,7 @@ export default function basicabilityapi() {
          * @tc.desc      Get the status information of the current page.
          */
         it('testRouterGetState', Level.LEVEL0, async function (done) {
-            console.info('[jyl] testRouterGetState START');
+            console.info('testRouterGetState START');
             await setTimeout(() => {
                 let page = router.getState();
                 console.info('[router.getState] index: ' + page.index);
