@@ -2467,14 +2467,14 @@ void AppRunningRecord::SetWatchdogBackgroundStatusRunning(bool status)
 
 bool AppRunningRecord::SetSupportedProcessCache(bool isSupport)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     procCacheSupportState_ = isSupport ? SupportProcessCacheState::SUPPORT : SupportProcessCacheState::NOT_SUPPORT;
     return true;
 }
 
 bool AppRunningRecord::SetEnableProcessCache(bool enable)
 {
-    TAG_LOGI(AAFwkTag::APPMGR, "call");
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
     enableProcessCache_ = enable;
     return true;
 }
