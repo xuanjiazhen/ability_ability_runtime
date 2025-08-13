@@ -51,7 +51,8 @@ void AnnotateRWLockReleased(const char *f, int l, void *m, long isw);
 const unsigned COUNTNUM = 2;
 constexpr int MAX_BUFFER_SIZE = 128;
 
-static int FindDirAndCheck(DIR *dir,char *fileResult, int pid){
+static int FindDirAndCheck(DIR *dir, char *fileResult, int pid)
+{
     struct dirent *ptr;
     char file[MAX_BUFFER_SIZE];
     int filenameres = snprintf_s(file, sizeof(file), sizeof(file) - 1, "%s.%s.%d", "tsanXtsLog", "appspawn", pid);
@@ -60,7 +61,8 @@ static int FindDirAndCheck(DIR *dir,char *fileResult, int pid){
     }
     while((ptr = readdir(dir)) != NULL) {
         if (strstr(ptr->d_name, file) != NULL) {
-            int findRes = snprintf_s(fileResult, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE - 1, "%s/%s", "/data/storage/el2/log/", ptr->d_name);
+            int findRes = snprintf_s(fileResult, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE - 1, "%s/%s",
+                "/data/storage/el2/log/", ptr->d_name);
             if (findRes < 0) {
                 return -1;
             }

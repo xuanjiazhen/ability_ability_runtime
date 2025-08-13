@@ -27,7 +27,7 @@ const int NUMELEVEN = 11;
 const int NUMTWELVE = 12;
 const int NUMNEGATIVEONE = -1;
 
-static int FindDirAndCheck(DIR *dir,char *fileResult, int pid)
+static int FindDirAndCheck(DIR *dir, char *fileResult, int pid)
 {
     struct dirent *ptr;
     char file[MAX_BUFFER_SIZE];

@@ -266,6 +266,7 @@ void *Thread1(void *x)
 {
     pthread_mutex_lock(&g_mtx);
     free(g_mem);
+    g_mem = nullptr;
     pthread_mutex_unlock(&g_mtx);
     BarrierWait(&g_barrier);
     return nullptr;
