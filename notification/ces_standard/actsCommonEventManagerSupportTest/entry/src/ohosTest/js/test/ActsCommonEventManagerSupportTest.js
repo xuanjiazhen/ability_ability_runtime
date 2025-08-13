@@ -545,13 +545,13 @@ export default function ActsCommonEventManagerSupportTest() {
     })
 
     /*
-     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800
+     * @tc.number    : SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000
      * @tc.name      : commonEventManager.Support
      * @tc.desc      : start/stop screen capture
      */
-    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800', Level.LEVEL2, async  function () {
-      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800 START`)
+    it('SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000', Level.LEVEL2, async  function () {
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000 START`)
       expect(commonEventManager.Support.COMMON_EVENT_SCREEN_SHARE).assertEqual('usual.event.SCREEN_SHARE')
-      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_2800 END`)
+      console.info(`${TAG} SUB_NOTIFICATION_CES_MANAGER_SUPPORT_ENUM_TEST_3000 END`)
     })
 }
