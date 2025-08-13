@@ -337,7 +337,7 @@ export default function AVScreenCaptureRecorderTest() {
       let result: number = myScreenCaptureNdk.OHAVMuxerByAddTrackH265();
       if (result != 0) {
         console.info('Failed to obtain the default videoProfiles object.Not support AddTrackH265');
-        expect(true).assertTrue();
+        expect(result).not().assertEqual(0);
         done();
         return;
       }
@@ -386,7 +386,7 @@ export default function AVScreenCaptureRecorderTest() {
       let result: number = myScreenCaptureNdk.OHAVMuxerByAddTrackH265();
       if (result != 0) {
         console.info('Failed to obtain the default videoProfiles object.Not support AddTrackH265');
-        expect(true).assertTrue();
+        expect(result).not().assertEqual(0);
         done();
         return;
       }
