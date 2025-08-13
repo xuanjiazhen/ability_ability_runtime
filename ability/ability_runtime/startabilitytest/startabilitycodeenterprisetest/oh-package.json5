@@ -19,6 +19,7 @@
   },
   "author": "",
   "description": "Please describe the basic information.",
+  "modelVersion": "5.0.0",
   "main": "",
   "version": "1.0.0",
   "dependencies": {}
