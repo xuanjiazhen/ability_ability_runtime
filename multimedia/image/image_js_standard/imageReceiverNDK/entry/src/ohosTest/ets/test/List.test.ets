@@ -18,6 +18,6 @@ import ImageReceiverModuleTest from './imageReceiverModule.test';
 
 export default function testsuite() {
     ImageReceiverTest()
+    ImageReceiverModuleTest()
     ImageReceiverNDKTest()
-    ImageReceiverModuleTest();
 }

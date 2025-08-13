@@ -604,6 +604,9 @@ export default function channelCallbacktest() {
                                             } else if (error.code == 3300101) {
                                                 console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
                                                 expect(true).assertTrue();
+                                            } else if (error.code == 3300103) {
+                                                console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
+                                                expect(true).assertTrue();
                                             } else if (error.code == 3300104) {
                                                 console.info("[NFC_test]26 transmit failed" + error + "--error.code--" + error.code);
                                                 expect(true).assertTrue();

@@ -374,10 +374,9 @@ export default function taskPoolSendableTest() {
           let task1: taskpool.Task = new taskpool.Task(AddFunc, num1);
           taskpool.execute(task1).then((e: NullishType) => {
             console.info(`${caseName} task1 ${JSON.stringify(num1)} then ${JSON.stringify(e)}`);
-            expect(true).assertTrue();
           }).catch((e: NullishType) => {
             console.info(`${caseName} task1 catch ${JSON.stringify(e)}`);
-            expect(true).assertTrue();
+            expect(false).assertTrue();
           });
           done();
         } catch (error: BusinessError) {
@@ -439,7 +438,7 @@ export default function taskPoolSendableTest() {
             expect(a1.state).assertEqual(20);
           }).catch((e: NullishType) => {
             console.info(`${caseName} task1 catch ${JSON.stringify(e)}`);
-            expect(true).assertTrue();
+            expect(false).assertTrue();
           });
           done();
         } catch (error: BusinessError) {
@@ -505,7 +504,6 @@ export default function taskPoolSendableTest() {
           let task1: taskpool.Task = new taskpool.Task(sendAbleAddFunc, sendAble1);
           taskpool.execute(task1).then((e: NullishType) => {
             console.info(`${caseName} task1bb then ${typeof JSON.stringify(sendAble1.numberItem1)}`);
-            expect(true).assertTrue();
             // expectAssertEqual(sendAble1.numberItem1, '40');
             console.info(`${caseName} hahahah`);
           }).catch((e: NullishType) => {
@@ -548,7 +546,7 @@ export default function taskPoolSendableTest() {
             expect(num1.array2.length).assertEqual(3);
           }).catch((e: NullishType) => {
             console.info(`${caseName} task1 catch ${JSON.stringify(e)}`);
-            expect(true).assertTrue();
+            expect(false).assertTrue();
           });
           done();
         } catch (error: BusinessError) {

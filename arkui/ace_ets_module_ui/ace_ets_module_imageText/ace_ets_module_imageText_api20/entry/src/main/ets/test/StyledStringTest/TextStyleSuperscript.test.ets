@@ -30,6 +30,7 @@ export default function TextStyleSuperscriptTest() {
         let pages = router.getState();
         console.info("get TextStyleSuperscriptTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("TextStyleSuperscript" == pages.name)) {
           console.info("get TextStyleSuperscriptTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

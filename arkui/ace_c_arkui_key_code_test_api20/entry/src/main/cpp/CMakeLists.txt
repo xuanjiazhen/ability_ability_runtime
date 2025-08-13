@@ -12,4 +12,49 @@ include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
 add_library(keycodendk SHARED nativekeycode/KeyCodeTest.cpp)
-target_link_libraries(keycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so)
+
+add_library(nativexcomponent SHARED
+    component/NativeXComponentTest.cpp
+    component/ComponentTest.cpp
+    component/XComponentTest.cpp
+    touch/TouchPointTest.cpp
+    mouse/XComponentMouseTest.cpp
+    node/NodeAttributeTest.cpp
+)
+
+find_library(
+    # Sets the name of the path variable.
+    hilog-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    hilog_ndk.z
+)
+
+find_library(
+    # Sets the name of the path variable.
+    libace-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    ace_ndk.z
+)
+
+find_library(
+    # Sets the name of the path variable.
+    libnapi-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    ace_napi.z
+)
+
+find_library(
+    # Sets the name of the path variable.
+    libuv-lib
+    # Specifies the name of the NDK library that
+    # you want CMake to locate.
+    uv
+)
+
+target_link_libraries(nativexcomponent PUBLIC
+    ${hilog-lib} ${libace-lib} ${libnapi-lib} ${libuv-lib} libudmf.so libace_napi.z.so)
+
+target_link_libraries(keycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libohinput.so)

@@ -14,6 +14,7 @@
  */
 
 import printTest from './print.test'
+import scanTest from './Scan.test'
 import oHPrintTest from './ohprint.test'
 import oHScannerServicesInterfaceTest from './ohscan.test'
 import printExtensionTest from './printExtension.test'
@@ -23,4 +24,5 @@ export default function testsuite() {
   oHPrintTest();
   oHScannerServicesInterfaceTest();
   printExtensionTest();
+  scanTest();
 }

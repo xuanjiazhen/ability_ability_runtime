@@ -49,3 +49,5 @@ export const normalAVScreenCaptureStrategyForBFramesEncodingFalse: () => number;
 export const normalAVScreenCaptureStrategyForBFramesEncodingTrue: () => number;
 export const normalAVScreenCaptureStrategyForPickerPopUpFalse: () => number;
 export const normalAVScreenCaptureStrategyForPickerPopUpTrue: () => number;
+export const normalAVScreenCaptureStrategyForFillModeAspect: () => number;
+export const normalAVScreenCaptureStrategyForFillModeScale: () => number;

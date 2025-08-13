@@ -30,6 +30,7 @@ export default function SymbolShadowTest() {
         let pages = router.getState();
         console.info("get SymbolShadowTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("SymbolShadowTest" == pages.name)) {
           console.info("get SymbolShadowTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

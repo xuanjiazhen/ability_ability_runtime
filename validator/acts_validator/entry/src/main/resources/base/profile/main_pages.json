@@ -159,6 +159,9 @@
     "pages/ArkUI/bindPopupTest",
     "pages/ArkUI/AccessibilityHoverEvent",
     "pages/ArkUI/CapiDragAction",
-    "pages/ArkUI/CapiDragEvent"
+    "pages/ArkUI/CapiDragEvent",
+    "pages/ArkUI/SliderTest",
+    "pages/ArkUI/ModalTransition",
+    "pages/ArkUI/BindContentCoverOption"
   ]
 }

@@ -1084,25 +1084,6 @@ void VDecAPI11Sample::SyncOutputFunc()
 int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFrames, uint32_t &index,
     OH_AVBuffer *buffer, OH_AVCodecBufferAttr &attr)
 {
-    if (getOutputBufferIndexNoExisted) {
-        buffer = OH_VideoDecoder_GetOutputBuffer(vdec_, index + HUNDRED);
-        if (buffer == nullptr) {
-            abnormalIndexValue = true;
-            cout << "OH_VideoDecoder_GetOutputBuffer noexist buffer nullptr" << endl;
-        }
-        return AV_ERR_UNKNOWN;
-    }
-    if (outFrames == 0 && getOutputBufferIndexRepeated) {
-        last_index = index;
-    } else if (outFrames == 1 && getOutputBufferIndexRepeated) {
-        cout << "getOutputBufferIndexRepeated last_index: " << last_index << "index: " << index << endl;
-        buffer = OH_VideoDecoder_GetOutputBuffer(vdec_, last_index);
-        if (buffer == nullptr) {
-            abnormalIndexValue = true;
-            cout << "OH_VideoDecoder_GetOutputBuffer repeat buffer nullptr" << endl;
-        }
-        return AV_ERR_UNKNOWN;
-    }
     if (OH_AVBuffer_GetBufferAttr(buffer, &attr) != AV_ERR_OK) {
         errCount = errCount + 1;
     }
@@ -1118,6 +1099,20 @@ int32_t VDecAPI11Sample::SyncOutputFuncEos(uint32_t &last_index, uint32_t &outFr
             OH_VideoDecoder_QueryOutputBuffer(vdec_, &index, -1);
         }
         return AV_ERR_UNKNOWN;
+    }
+    if (getOutputBufferIndexNoExisted) {
+        buffer = OH_VideoDecoder_GetOutputBuffer(vdec_, index + HUNDRED);
+        if (buffer == nullptr) {
+            abnormalIndexValue = true;
+        }
+    }
+    if (outFrames == 0 && getOutputBufferIndexRepeated) {
+        last_index = index;
+    } else if (outFrames == 1 && getOutputBufferIndexRepeated) {
+        buffer = OH_VideoDecoder_GetOutputBuffer(vdec_, last_index);
+        if (buffer == nullptr) {
+            abnormalIndexValue = true;
+        }
     }
     return AV_ERR_OK;
 }

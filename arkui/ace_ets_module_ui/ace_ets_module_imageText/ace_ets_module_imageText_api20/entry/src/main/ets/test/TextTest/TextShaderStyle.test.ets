@@ -30,6 +30,7 @@ export default function TextShaderStyleTest() {
         let pages = router.getState();
         console.info("get TextShaderStyleTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("TextShaderStyle" == pages.name)) {
           console.info("get TextShaderStyleTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

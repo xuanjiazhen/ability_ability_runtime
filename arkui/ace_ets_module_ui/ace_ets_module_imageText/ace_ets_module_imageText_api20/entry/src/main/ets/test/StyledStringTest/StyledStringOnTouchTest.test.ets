@@ -30,6 +30,7 @@ export default function StyledStringOnTouchTest() {
         let pages = router.getState();
         console.info("get StyledStringOnTouchTest state success " + JSON.stringify(pages));
         let result = await router.replaceUrl(options);
+        await CommonFunc.sleep(1000);
         if (!("StyledStringOnTouchTest" == pages.name)) {
           console.info("get StyledStringOnTouchTest state success " + JSON.stringify(pages.name));
           await CommonFunc.sleep(2000);

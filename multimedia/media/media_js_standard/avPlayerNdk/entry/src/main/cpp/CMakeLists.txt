@@ -14,3 +14,6 @@ add_library(avTransCoderNdk SHARED
     AvTransCoderNdkTest.cpp
 )
 target_link_libraries(avTransCoderNdk PUBLIC libavtranscoder.so libace_napi.z.so libace_ndk.z.so libhilog_ndk.z.so libnative_media_core.so libnative_media_codecbase.so libnative_media_venc.so libnative_window.so libavplayer.so libnative_image.so libGLESv3.so libEGL.so)
+add_library(avcapability SHARED avcapabilityTest.cpp)
+target_link_libraries(avcapability PUBLIC libace_napi.z.so libhilog_ndk.z.so libnative_media_avsource.so
+libnative_media_core.so libnative_media_aenc.so libnative_media_codecbase.so libnative_media_adec.so)

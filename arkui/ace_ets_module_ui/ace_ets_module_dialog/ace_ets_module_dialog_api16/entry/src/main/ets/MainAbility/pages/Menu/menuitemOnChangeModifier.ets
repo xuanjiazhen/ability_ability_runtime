@@ -1,4 +1,3 @@
-// checkbox
 import {MenuItemModifier}from '@ohos.arkui.modifier'
 @Entry
 @Component
@@ -14,8 +13,8 @@ struct CheckboxExample {
 
     console.info('selectMenu02 MenuItemModifier change is' + value)
   })
-  private iconStr: ResourceStr = $r('app.media.app_icon')
-  private iconStr2: ResourceStr = $r('app.media.app_icon')
+  private iconStr: ResourceStr = $r('app.media.icon')
+  private iconStr2: ResourceStr = $r('app.media.icon')
 
   @Builder
   SubMenu() {
@@ -41,14 +40,13 @@ struct CheckboxExample {
     Column() {
       Column() {
         Text('menu')
-          .fontSize(5)
           .fontWeight(FontWeight.Bold)
           .fontColor(Color.Green)
       }
       .bindMenu(this.MyMenu)
       .id('MenuItemOnButtonID')
-      .width('10%')
+      .width('50%')
       Text(this.menuItemValue.toString()).key('MenuItemOnChangValueKey')
-    }.width('10')
+    }.width('100%')
   }
 }

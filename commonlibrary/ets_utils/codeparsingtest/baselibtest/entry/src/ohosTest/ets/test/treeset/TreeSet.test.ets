@@ -977,10 +977,9 @@ export default function TreeSetTest() {
       try {
         let treeSet: TreeSet<string> = new TreeSet();
         treeSet.getLowerValue(null);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err}`);
-        expect(err.code).assertEqual(401);
+        expect().assertFail();
       }
     });
     /**
@@ -996,10 +995,9 @@ export default function TreeSetTest() {
       try {
         let treeSet: TreeSet<string> = new TreeSet();
         treeSet.getLowerValue(undefined);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err}`);
-        expect(err.code).assertEqual(401);
+        expect().assertFail();
       }
     });
     /**
@@ -1118,10 +1116,9 @@ export default function TreeSetTest() {
       try {
         let treeSet: TreeSet<string> = new TreeSet();
         treeSet.getHigherValue(null);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err}`);
-        expect(err.code).assertEqual(401);
+        expect().assertFail();
       }
     });
     /**
@@ -1137,10 +1134,9 @@ export default function TreeSetTest() {
       try {
         let treeSet: TreeSet<string> = new TreeSet();
         treeSet.getHigherValue(undefined);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err}`);
-        expect(err.code).assertEqual(401);
+        expect().assertFail();
       }
     });
     /**

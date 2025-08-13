@@ -18,6 +18,10 @@
     "MainAbility/pages/UIContext/showTextPickerDialogBackgroundEffect",
     "MainAbility/pages/UIContext/showTextPickerDialogBlurStyleOptions",
     "MainAbility/pages/UIContext/showTimePickerDialogBackgroundEffect",
-    "MainAbility/pages/UIContext/showTimePickerDialogBlurStyleOptions"
+    "MainAbility/pages/UIContext/showTimePickerDialogBlurStyleOptions",
+    "MainAbility/pages/promptAction/openMenuAnchorPosition",
+    "MainAbility/pages/promptAction/updateMenuAnchorPosition",
+    "MainAbility/pages/promptAction/subwindowDialog",
+    "MainAbility/pages/Popup/Maxwidth"   
   ]
 }

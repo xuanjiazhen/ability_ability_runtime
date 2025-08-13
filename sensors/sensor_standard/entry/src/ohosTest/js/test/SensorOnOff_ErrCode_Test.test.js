@@ -14,15 +14,49 @@
  */
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium'
 import sensor from '@ohos.sensor'
+import { UiDriver, BY } from '@ohos.UiTest'
+import featureAbility from '@ohos.ability.featureAbility';
 export default function SensorOnOff_ErrCode_Test() {
   function callback(data) {
     console.info("callback" + JSON.stringify(data));
     expect(typeof (data.timestamp)).assertEqual("number");
   }
+
+  async function requestPermission() {
+    try {
+        console.info(`====>sensors getPermission is start`);
+        let context = featureAbility.getContext();
+        await context.requestPermissionsFromUser(['ohos.permission.ACTIVITY_MOTION'], 0, (data) => {
+          console.info("====>sensors requestPermission success data: " + JSON.stringify(data));
+        });
+    } catch (err) {
+        console.error('====>sensors requestPermissionsFromUser fail:' + JSON.stringify(err));
+    }
+  }
+
+  async function driveFn() {
+    try {
+        let driver = await UiDriver.create();
+        console.info(`====>sensors motion test come in driveFn`);
+        console.info(`====>sensors motion test driver is ${JSON.stringify(driver)}`);
+        let button = await driver.findComponent(BY.text('允许'));
+        console.info(`====>button is ${JSON.stringify(button)}`);
+        await button.click();
+        await driver.delayMs(1000);
+    } catch (err) {
+        console.info('====>sensors motion test err code is ' + err);
+        return;
+    }
+  }
   describe('SensorOnOff_ErrCode_Test', function () {
 
-    beforeAll(function () {
+    beforeAll(async function (done) {
       console.info('beforeAll called')
+      await requestPermission();
+      console.info('====>sensors requestPermission success');
+      await driveFn();
+      console.info('====>sensors test beforeAll end');
+      done();
     })
 
     afterAll(function () {

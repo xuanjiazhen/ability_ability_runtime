@@ -17,3 +17,4 @@ export const gLTextureARBTest: () => number;
 export const gLBufferARBTest: () => number;
 export const gLUniformARBTest: () => number;
 export const gLUniformMatrixARBTest: () => number;
+export const glLineStippleHalfEmpty: () => number;

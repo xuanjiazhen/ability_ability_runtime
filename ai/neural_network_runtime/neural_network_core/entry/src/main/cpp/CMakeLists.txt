@@ -11,5 +11,7 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(neuralnetworkcoretest SHARED ExportsApiTest.cpp NeuralNetworkCoreTest.cpp)
-target_link_libraries(neuralnetworkcoretest PUBLIC libace_napi.z.so libhilog_ndk.z.so libneural_network_core.so)
+add_library(neuralnetworkcoretest SHARED ExportsApiTest.cpp NeuralNetworkCoreTest.cpp NeuralNetworkRuntimeTest.cpp
+                                            NeuralNetworkRuntimeTypeTest.cpp NeuralNetworkTensorTypeTest.cpp)
+target_link_libraries(neuralnetworkcoretest PUBLIC libace_napi.z.so libhilog_ndk.z.so libneural_network_core.so
+                                                       libneural_network_runtime.so)

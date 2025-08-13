@@ -16,12 +16,14 @@
 #include "napi/native_api.h"
 #include "web/arkweb_interface.h"
 #include "web/arkweb_scheme_handler.h"
+#include "native_common.h"
 #include <cstdint>
 #include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include <web/native_interface_arkweb.h>
 #include "WebErrorCodeList.h"
+#include "WebSchemeHandlerTest.h"
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
 {
@@ -403,47 +405,35 @@ EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"webErrCodeSuccess", nullptr, WebErrorCodeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webInitError", nullptr, WebInitError, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webErrorUnknow", nullptr, WebErrorUnknow, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webErrorInvalidParam", nullptr, WebErrorInvalidParam, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webErrorSchemeRegitsterFailed", nullptr, WebErrorSchemeRegitsterFailed, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"webErrorInvaledURL", nullptr, WebErrorInvaledURL, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webErrorInvaledCookieValue", nullptr, WebErrorInvaledCookieValue, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webErrorLibraryOpenFailure", nullptr, WebErrorLibraryOpenFailure, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webErrorLibraySymbolNotFound", nullptr, WebErrorLibraySymbolNotFound, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webErrorCookeManagerNotInitialized", nullptr, WebErrorCookeManagerNotInitialized, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"webBlanklessSuccess", nullptr, WebBlanklessSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webBlanklessErrUnknown", nullptr, WebBlanklessErrUnknown, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webBlanklessErrInvalidArgs", nullptr, WebBlanklessErrInvalidArgs, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-
-        {"webBlanklessErrControllerNotInited", nullptr, WebBlanklessErrControllerNotInited, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"webBlanklessErrKeyNotMatch", nullptr, WebBlanklessErrKeyNotMatch, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webBlanklessErrSignificantChange", nullptr, WebBlanklessErrSignificantChange, nullptr, nullptr, nullptr,
-         napi_default, nullptr},
-        {"webBlanklessDeviceNotSupport", nullptr, WebBlanklessDeviceNotSupport, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webAnyNativeAPI", nullptr, WebAnyNativeAPI, nullptr, nullptr, nullptr, napi_default, nullptr},
-
-        {"webNativeComponent", nullptr, WebNativeComponent, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webNativeController", nullptr, WebNativeController, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webNativeWebMessagePort", nullptr, WebNativeWebMessagePort, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webNativeWebMessage", nullptr, WebNativeWebMessage, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webNativeCookieManger", nullptr, WebNativeCookieManger, nullptr, nullptr, nullptr, napi_default, nullptr},
-        {"webNativeJavaScriptValue", nullptr, WebNativeJavaScriptValue, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"webNetErrorDidFailWithError", nullptr, WebNetErrorDidFailWithError, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
-        {"WebArkWebResponseGetError", nullptr, WebArkWebResponseGetError, nullptr, nullptr, nullptr, napi_default,
-         nullptr},
+        DECLARE_NAPI_FUNCTION("webErrCodeSuccess", WebErrorCodeSuccess),
+        DECLARE_NAPI_FUNCTION("webInitError", WebInitError),
+        DECLARE_NAPI_FUNCTION("webErrorUnknow", WebErrorUnknow),
+        DECLARE_NAPI_FUNCTION("webErrorInvalidParam", WebErrorInvalidParam),
+        DECLARE_NAPI_FUNCTION("webErrorSchemeRegitsterFailed", WebErrorSchemeRegitsterFailed),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledURL", WebErrorInvaledURL),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledCookieValue", WebErrorInvaledCookieValue),
+        DECLARE_NAPI_FUNCTION("webErrorLibraryOpenFailure", WebErrorLibraryOpenFailure),
+        DECLARE_NAPI_FUNCTION("webErrorLibraySymbolNotFound", WebErrorLibraySymbolNotFound),
+        DECLARE_NAPI_FUNCTION("webErrorCookeManagerNotInitialized", WebErrorCookeManagerNotInitialized),
+        DECLARE_NAPI_FUNCTION("webBlanklessSuccess", WebBlanklessSuccess),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrUnknown", WebBlanklessErrUnknown),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrInvalidArgs", WebBlanklessErrInvalidArgs),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrControllerNotInited", WebBlanklessErrControllerNotInited),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrKeyNotMatch", WebBlanklessErrKeyNotMatch),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrSignificantChange", WebBlanklessErrSignificantChange),
+        DECLARE_NAPI_FUNCTION("webBlanklessDeviceNotSupport", WebBlanklessDeviceNotSupport),
+        DECLARE_NAPI_FUNCTION("webAnyNativeAPI", WebAnyNativeAPI),
+        DECLARE_NAPI_FUNCTION("webNativeComponent", WebNativeComponent),
+        DECLARE_NAPI_FUNCTION("webNativeController", WebNativeController),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessagePort", WebNativeWebMessagePort),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
+        DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
+        DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
+        DECLARE_NAPI_FUNCTION("webNetErrorResponeseSetError", WebNetErrorResponeseSetError),
+        DECLARE_NAPI_FUNCTION("webArkWebResponseGetError", WebArkWebResponseGetError),
+        DECLARE_NAPI_FUNCTION("webArkWebConnectError", WebArkWebConnectError),
+        DECLARE_NAPI_FUNCTION("webArkWebSSLError", WebArkWebSSLError),
+        DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

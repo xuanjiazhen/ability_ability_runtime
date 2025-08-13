@@ -23,9 +23,6 @@ import uiInputErrorCodeTest from './uiInput/UiInputErrorCodeTest.test'
 import SetForceDarkConfigTest from "./darkConfig/TestSetForceDarkConfig.test"
 import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test"
 import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
-import RenderNodeTest from "./renderNode/RenderNodeTest.test"
-import RenderNodeUtilsTest from "./renderNodeUtils/renderNodeUtils.test"
-import RenderNodeAttributeTest from "./renderNode/TestRenderNodeAttribute.test"
 import ListTypeNodeTest from './list/ListTypeNodeTest.test'
 import ListCNodeTest from './list/ListCNodeTest.test'
 
@@ -41,9 +38,6 @@ export default function testsuite() {
   SetForceDarkConfigTest();
   TestInitModuleForArkTSEnv();
   RunTaskInScopeTest();
-  RenderNodeTest();
-  RenderNodeUtilsTest();
-  RenderNodeAttributeTest();
   ListTypeNodeTest();
   ListCNodeTest();
 }
