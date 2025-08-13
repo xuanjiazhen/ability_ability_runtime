@@ -81,7 +81,6 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         params.backgroundRect = {
           color: {
@@ -103,7 +102,6 @@ export default function graphicTextNewAPI() {
           decorationThicknessScale: 2.0,
         });
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -136,7 +134,6 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         paragraph.updateColor({ alpha: 255, red: 255, green: 0, blue: 0 });
         paragraph.updateDecoration({
@@ -146,7 +143,6 @@ export default function graphicTextNewAPI() {
           decorationThicknessScale: 1.0,
         });
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -179,7 +175,6 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         paragraph.updateColor({ alpha: 255, red: 255, green: 0, blue: 0 });
         paragraph.updateDecoration({
@@ -189,7 +184,6 @@ export default function graphicTextNewAPI() {
           decorationThicknessScale: 1.5,
         });
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -219,17 +213,14 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextHighContrast(text.TextHighContrast.TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -260,17 +251,14 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextHighContrast(text.TextHighContrast.TEXT_APP_DISABLE_HIGH_CONTRAST);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -302,17 +290,14 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextHighContrast(text.TextHighContrast.TEXT_APP_ENABLE_HIGH_CONTRAST);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -344,17 +329,14 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextUndefinedGlyphDisplay(text.TextUndefinedGlyphDisplay.USE_TOFU);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         let lines: Array<text.TextLine> = paragraph.getTextLines();
         let length = lines.length;
         for(let i =0 ; i < length ; i++) {
@@ -373,7 +355,6 @@ export default function graphicTextNewAPI() {
             }
             try {
               let advancesRange = runs[0].getAdvances({start:1, end:2});
-              expect(true).assertTrue();
             } catch (err) {
               console.info(msg + JSON.stringify(err));
               expect().assertFail();
@@ -390,7 +371,6 @@ export default function graphicTextNewAPI() {
         }
         try {
           fontCollection.unloadFontSync('custom');
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
@@ -426,17 +406,14 @@ export default function graphicTextNewAPI() {
         let paragraphBuilder: text.ParagraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextUndefinedGlyphDisplay(text.TextUndefinedGlyphDisplay.USE_DEFAULT);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         let lines: Array<text.TextLine> = paragraph.getTextLines();
         let length = lines.length;
         for(let i =0 ; i < length ; i++) {
@@ -472,7 +449,6 @@ export default function graphicTextNewAPI() {
         }
         try {
           fontCollection.unloadFont('custom');
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
@@ -516,17 +492,14 @@ export default function graphicTextNewAPI() {
         let textData = "测试 loadFontSync 加载字体HarmonyClock_01.ttf";
         paragraphBuilder.addText(textData);
         paragraphBuilder.addPlaceholder(myPlaceholderSpan);
-        expect(true).assertTrue();
         let paragraph: text.Paragraph = paragraphBuilder.build();
         try {
           text.setTextUndefinedGlyphDisplay(text.TextUndefinedGlyphDisplay.USE_DEFAULT);
-          expect(true).assertTrue();
         } catch (err) {
           console.info('www data test error ' + msg + err);
           expect().assertFail();
         }
         paragraph.layoutSync(600);
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);

@@ -46,7 +46,6 @@ export default function graphicSendableImageInterfaceTest() {
           console.log(msg + " 1 ")
           let sendablePixelMap: sendableImage.PixelMap = sendableImage.convertFromPixelMap(pixelMap);
           console.log(msg + " Succeed in sendableImage.convertFromPixelmap ")
-          expect(true).assertTrue()
           done()
         }catch(error){
           console.log(msg + " Faild in convertFromPixelmap " + error)
@@ -81,7 +80,6 @@ export default function graphicSendableImageInterfaceTest() {
         sendableImage.createPixelMap(color, opts).then((pixelMap: sendableImage.PixelMap) => {
           let sendablePixelMap: image.PixelMap = sendableImage.convertToPixelMap(pixelMap);
           console.log(msg + " Succeed in sendableImage.convertFromPixelmap " + JSON.stringify(sendablePixelMap))
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(msg + `Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -123,7 +121,6 @@ export default function graphicSendableImageInterfaceTest() {
           pixelMap.readPixelsSync(area);
           console.info(msg + '' + area)
           console.info(msg + '' + JSON.stringify(area))
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -161,7 +158,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((error: BusinessError) => {
             console.error(`Failed to write data from a buffer to a PixelMap. code is ${error.code}, message is ${error.message}`);
           })
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -192,7 +188,6 @@ export default function graphicSendableImageInterfaceTest() {
         sendableImage.createPixelMap(color, opts).then((pixelMap: sendableImage.PixelMap) => {
           let rate: number = 0.5;
           pixelMap.opacitySync(rate);
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -222,7 +217,6 @@ export default function graphicSendableImageInterfaceTest() {
       try {
         sendableImage.createPixelMap(color, opts).then((pixelMap: sendableImage.PixelMap) => {
           let pixelmap: sendableImage.PixelMap = pixelMap.createAlphaPixelmapSync();
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -254,7 +248,6 @@ export default function graphicSendableImageInterfaceTest() {
           let translateX: number = 50.0;
           let translateY: number = 10.0;
           pixelMap.translateSync(translateX, translateY);
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -285,7 +278,6 @@ export default function graphicSendableImageInterfaceTest() {
         sendableImage.createPixelMap(color, opts).then((pixelMap: sendableImage.PixelMap) => {
           let angle: number = 90.0;
           pixelMap.rotateSync(angle);
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -317,7 +309,6 @@ export default function graphicSendableImageInterfaceTest() {
           let horizontal: boolean = true;
           let vertical: boolean = false;
           pixelMap.flipSync(horizontal, vertical);
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -352,7 +343,6 @@ export default function graphicSendableImageInterfaceTest() {
             }
           };
           pixelMap.cropSync(region);
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -388,7 +378,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((err: BusinessError) => {
             console.error(`Failed to scale pixelmap. code is ${err.code}, message is ${err.message}`);
           })
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -424,7 +413,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((err: BusinessError) => {
             console.error(`Failed to translate pixelmap. code is ${err.code}, message is ${err.message}`);
           })
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -459,7 +447,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((err: BusinessError) => {
             console.error(`Failed to rotate pixelmap. code is ${err.code}, message is ${err.message}`);
           })
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -495,7 +482,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((err: BusinessError) => {
             console.error(`Failed to flip pixelmap. code is ${err.code}, message is ${err.message}`);
           })
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -534,7 +520,6 @@ export default function graphicSendableImageInterfaceTest() {
           }).catch((err: BusinessError) => {
             console.error(`Failed to crop pixelmap. code is ${err.code}, message is ${err.message}`);
           });
-          expect(true).assertTrue()
           done()
         }).catch((error: BusinessError) => {
           console.error(`Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);

@@ -56,7 +56,6 @@ export default function windowAnimatorTest(context: common.UIAbilityContext, win
         }
         animatorResult.setExpectedFrameRateRange(expectedFrameRate);
         console.info(msg + 'Succeeded in loading the content.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to load the content. Cause:' + JSON.stringify(exception));

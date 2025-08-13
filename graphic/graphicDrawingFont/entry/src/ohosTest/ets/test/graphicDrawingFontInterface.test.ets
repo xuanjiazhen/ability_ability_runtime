@@ -82,7 +82,6 @@ export default function graphicDrawingFontInterfaceTest() {
         console.log(msg + " Succeed in font.setScaleX " + font)
         console.log(msg + " Succeed in font.setScaleX " + font.setScaleX)
         console.log(msg + " Succeed in font.setScaleX, textBlob: " + textBlob)
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in font.setScaleX " + JSON.stringify(err))
@@ -111,7 +110,6 @@ export default function graphicDrawingFontInterfaceTest() {
         console.log(msg + " Succeed in font.setSkewX " + JSON.stringify(font))
         console.log(msg + " Succeed in font.setSkewX " + font)
         console.log(msg + " Succeed in font.setSkewX " + textBlob)
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in font.setSkewX " + JSON.stringify(err))

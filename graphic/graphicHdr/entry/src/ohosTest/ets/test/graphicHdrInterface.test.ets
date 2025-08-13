@@ -42,7 +42,6 @@ export default function graphicHdrInterfaceTest() {
         expect(hdrCapability.HDRFormat.IMAGE_HDR_VIVID_SINGLE == 5).assertTrue()
         expect(hdrCapability.HDRFormat.IMAGE_HDR_ISO_DUAL == 6).assertTrue()
         expect(hdrCapability.HDRFormat.IMAGE_HDR_ISO_SINGLE == 7).assertTrue()
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in hdrCapability.HDRFormat " + JSON.stringify(err))

@@ -115,7 +115,6 @@ export default function graphicDrawingPathTest() {
         let offset = 0;
         let verb = iter.next(points, offset);
         console.info(msg + ' iter.next(points, offset): ' + verb);
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in PathIterator.next " + JSON.stringify(err))
@@ -140,7 +139,6 @@ export default function graphicDrawingPathTest() {
         let iter: drawing.PathIterator = new drawing.PathIterator(path);
         let res = iter.peek();
         console.info(msg + ' iter.peek(): ' + res);
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in PathIterator.peek " + JSON.stringify(err))
@@ -165,7 +163,6 @@ export default function graphicDrawingPathTest() {
         let iter: drawing.PathIterator = new drawing.PathIterator(path);
         let res = iter.hasNext();
         console.info(msg + ' iter.hasNext(): ' + res);
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in PathIterator.hasNext " + JSON.stringify(err))
@@ -190,7 +187,6 @@ export default function graphicDrawingPathTest() {
         let iter = path.getPathIterator();
         console.info(msg + ' iter.getPathIterator(): ' + iter);
         console.info(msg + ' iter.getPathIterator(): ' + JSON.stringify(iter));
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in Path.getPathIterator " + JSON.stringify(err))
@@ -249,7 +245,6 @@ export default function graphicDrawingPathTest() {
         canvas.detachPen();
         console.info(msg + ' drawing.PathEffect.createPathDashEffect: ' + pathEffect1);
         console.info(msg + ' drawing.PathEffect.createPathDashEffect: ' + JSON.stringify(pathEffect1));
-        expect(true).assertTrue()
         done()
       }).catch((err: BusinessError) => {
         console.log(msg + " Faild in drawing.PathEffect.createPathDashEffect " + JSON.stringify(err))
@@ -287,7 +282,6 @@ export default function graphicDrawingPathTest() {
         let effect = drawing.PathEffect.createSumPathEffect(pathEffectOne, pathEffectTwo);
         console.info(msg + ' drawing.PathEffect.createSumPathEffect: ' + effect);
         console.info(msg + ' drawing.PathEffect.createSumPathEffect: ' + JSON.stringify(effect));
-        expect(true).assertTrue()
         done()
       }).catch((err: BusinessError) => {
         console.log(msg + " Faild in drawing.PathEffect.createSumPathEffect " + JSON.stringify(err))
@@ -322,7 +316,6 @@ export default function graphicDrawingPathTest() {
         let effect = drawing.PathEffect.createDiscretePathEffect(100, -50, 0);
         console.info(msg + ' drawing.PathEffect.createDiscretePathEffect: ' + effect);
         console.info(msg + ' drawing.PathEffect.createDiscretePathEffect: ' + JSON.stringify(effect));
-        expect(true).assertTrue()
         done()
       }).catch((err: BusinessError) => {
         console.log(msg + " Faild in drawing.PathEffect.createDiscretePathEffect " + JSON.stringify(err))
@@ -359,7 +352,6 @@ export default function graphicDrawingPathTest() {
         let effect = drawing.PathEffect.createComposePathEffect(pathEffect1, pathEffect2);
         console.info(msg + ' drawing.PathEffect.createComposePathEffect: ' + effect);
         console.info(msg + ' drawing.PathEffect.createComposePathEffect: ' + JSON.stringify(effect));
-        expect(true).assertTrue()
         done()
       }).catch((err: BusinessError) => {
         console.log(msg + " Faild in drawing.PathEffect.createComposePathEffect " + JSON.stringify(err))
@@ -385,7 +377,6 @@ export default function graphicDrawingPathTest() {
         let hex_color: number = pen.getHexColor();
         console.info(msg + ' getHexColor:  ', hex_color.toString(16));
         console.info(msg + ' pen.getHexColor: ' + JSON.stringify(hex_color));
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in pen.getHexColor " + JSON.stringify(err))
@@ -411,7 +402,6 @@ export default function graphicDrawingPathTest() {
         let hex_color: number = brush.getHexColor();
         console.info(msg + ' brush.getHexColor:  ', hex_color.toString(16));
         console.info(msg + ' brush.getHexColor: ' + JSON.stringify(hex_color));
-        expect(true).assertTrue()
         done()
       } catch (err) {
         console.log(msg + " Faild in brush.getHexColor " + JSON.stringify(err))
