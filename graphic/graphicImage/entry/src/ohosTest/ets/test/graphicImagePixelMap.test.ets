@@ -55,7 +55,6 @@ export default function graphicImagePixelMapTest() {
           }catch (error){
               console.log(msg + ' receiver surfaceId Failed in createPixelMapFromSurfaceSync')
               console.log(msg + ' Example end !')
-              expect(true).assertTrue();
               done();
           }
       })
@@ -95,7 +94,6 @@ export default function graphicImagePixelMapTest() {
           pixelMap!.rotate(180)
           console.info( msg + ' Succeeded in rotate pixelMap.');
           console.log(msg + ' The main process can still invoke pixelmap attributes. Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           console.error( msg + ` Failed to setTransferDetached pixelMap. code is ${error.code}, message is ${error.message}`);
@@ -143,7 +141,6 @@ export default function graphicImagePixelMapTest() {
           pixelMap!.rotate(180)
           console.info( msg + ' Succeeded in rotate pixelMap.');
           console.log(msg + ' The main process can still invoke pixelmap attributes. Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           console.error( msg + ` Failed to setTransferDetached pixelMap. code is ${error.code}, message is ${error.message}`);
@@ -270,13 +267,11 @@ export default function graphicImagePixelMapTest() {
           await pixelMap.setMetadata(1, staticMe)
           console.info( msg + ' Succeeded in pixelMap.setMetadata.');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           if(error == 62980173){
             console.info( msg + ' The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in pixelMap.setMetadata.' + error);
@@ -358,13 +353,11 @@ export default function graphicImagePixelMapTest() {
           await pixelMap.setMetadata(3, gain)
           console.info( msg + ' Succeeded in pixelMap.setMetadata.');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           if(error == 62980173){
             console.info( msg + ' The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in pixelMap.setMetadata.' + error);
@@ -430,7 +423,6 @@ export default function graphicImagePixelMapTest() {
           pixelMap.scale( 1, 2, image.AntiAliasingLevel.MEDIUM)
           console.info( msg + ' Succeeded in scale pixelMap.');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           console.error( msg + ` Failed to scale pixelMap. code is ${error.code}, message is ${error.message}`);
@@ -512,13 +504,11 @@ export default function graphicImagePixelMapTest() {
           let bufferArr = new Uint8Array(bufferValue as ArrayBuffer)
           console.info( msg + ' 8 ');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           if(error == 62980173){
             console.info( msg + ' The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -531,7 +521,6 @@ export default function graphicImagePixelMapTest() {
           if(error.code == 62980173){
             console.info( msg + ' RK The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -588,13 +577,11 @@ export default function graphicImagePixelMapTest() {
           let bufferArr = new Uint8Array(bufferValue as ArrayBuffer)
           console.info( msg + ' 8 ');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           if(error == 62980173){
             console.info( msg + ' The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -607,7 +594,6 @@ export default function graphicImagePixelMapTest() {
           if(error.code == 62980173){
             console.info( msg + ' RK The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -664,13 +650,11 @@ export default function graphicImagePixelMapTest() {
           let bufferArr = new Uint8Array(bufferValue as ArrayBuffer)
           console.info( msg + ' 8 ');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
         }catch(error){
           if(error == 62980173){
             console.info( msg + ' The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -683,7 +667,6 @@ export default function graphicImagePixelMapTest() {
           if(error.code == 62980173){
             console.info( msg + ' RK The DMA memory does not exist. ');
             console.log(msg + ' Example end !')
-            expect(true).assertTrue();
             done();
           }else{
             console.info( msg + ' Faild in .' + error);
@@ -737,14 +720,12 @@ export default function graphicImagePixelMapTest() {
             if(error.code == 62980286){
               console.info( msg + ' The DMA memory does not exist. ');
               console.log(msg + ' Example end !')
-              expect(true).assertTrue();
               done();
             }else{
               console.info( msg + ' 7 ' + error.code );
               if(error.code == 401){
                 console.info( msg + ' The longth of Name is mistake ');
                 console.log(msg + ' Example end !')
-                expect(true).assertTrue();
                 done();
               }else{
                 console.info( msg + ' Faild in .' + error);
@@ -806,13 +787,11 @@ export default function graphicImagePixelMapTest() {
           try{
             pixelMap.setMemoryNameSync(rightName)
             console.info( msg + ' 7 ');
-            expect(true).assertTrue();
             done();
           }catch(error){
             if(error.code == 62980286){
               console.info( msg + ' The memory does not exist. ');
               console.log( msg + ' Example end !')
-              expect(true).assertTrue();
               done();
             }else{
               console.info( msg + ' Faild in .' + error);
@@ -878,14 +857,12 @@ export default function graphicImagePixelMapTest() {
             if(error.code == 62980286){
               console.info( msg + ' The DMA memory does not exist. ');
               console.log(msg + ' Example end !')
-              expect(true).assertTrue();
               done();
             }else{
               console.info( msg + ' 7 ' + error.code );
               if(error.code == 401){
                 console.info( msg + ' The longth of Name is mistake ');
                 console.log(msg + ' Example end !')
-                expect(true).assertTrue();
                 done();
               }else{
                 console.info( msg + ' Faild in .' + error);
@@ -952,14 +929,12 @@ export default function graphicImagePixelMapTest() {
             if(error.code == 62980286){
               console.info( msg + ' The DMA memory does not exist. ');
               console.log(msg + ' Example end !')
-              expect(true).assertTrue();
               done();
             }else{
               console.info( msg + ' 7 ' + error.code );
               if(error.code == 401){
                 console.info( msg + ' The longth of Name is mistake ');
                 console.log(msg + ' Example end !')
-                expect(true).assertTrue();
                 done();
               }else{
                 console.info( msg + ' Faild in .' + error);
@@ -999,7 +974,6 @@ export default function graphicImagePixelMapTest() {
       image.createPixelMap(color, opts).then(async (pixelMap: image.PixelMap) => {
         console.info( msg + ' Succeeded in creating pixelMap.');
           console.log(msg + ' Example end !')
-          expect(true).assertTrue();
           done();
       }).catch((error: BusinessError) => {
         console.error( msg + ` Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -1025,7 +999,6 @@ export default function graphicImagePixelMapTest() {
       image.createPixelMap(color, opts).then(async (pixelMap: image.PixelMap) => {
         console.info( msg + ' Succeeded in creating pixelMap.');
         console.log(msg + ' Example end !')
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error( msg + ` Failed to create pixelmap. code is ${error.code}, message is ${error.message}`);
@@ -1056,7 +1029,6 @@ export default function graphicImagePixelMapTest() {
         if (pixelMap != undefined) {
             pixelMap.createScaledPixelMap(scaleX, scaleY, image.AntiAliasingLevel.LOW).then((scaledPixelMap: image.PixelMap) => {
             console.info(msg + ' Succeeded in creating scaledPixelMap.');
-            expect(true).assertTrue();
             done();
           }).catch((error: BusinessError) => {
             console.error(msg + ` Failed to create scaledPixelMap. Error code is ${error.code}, error message is ${error.message}`);
@@ -1094,7 +1066,6 @@ export default function graphicImagePixelMapTest() {
         if (pixelMap != undefined) {
           let scaledPixelMap = pixelMap.createScaledPixelMapSync(scaleX, scaleY, image.AntiAliasingLevel.LOW);
           console.info(msg + ' Succeeded in creating scaledPixelMap.');
-          expect(true).assertTrue();
           done();
         }
       }).catch((error: BusinessError) => {
@@ -1125,7 +1096,6 @@ export default function graphicImagePixelMapTest() {
         if (pixelMap != undefined) {
           let clonedPixelMap = pixelMap.cloneSync();
           console.info(msg + ' Succeeded in creating cloneSync.');
-          expect(true).assertTrue();
           done();
         }
       }).catch((error: BusinessError) => {

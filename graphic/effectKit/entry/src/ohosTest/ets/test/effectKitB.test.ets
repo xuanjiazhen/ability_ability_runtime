@@ -53,7 +53,6 @@ export default function effectKitBTest() {
               try{
                   let colors = colorPicker.getTopProportionColors(2);
                   console.info(msgStr + ' Succeed in getTopProportionColors.');
-                  expect(true).assertTrue()
                   done()
               }catch(err){
                   console.info(msgStr + ' Succeed in getTopProportionColors. ' + JSON.stringify(err));
@@ -104,7 +103,6 @@ export default function effectKitBTest() {
             try{
               headFilter.invert();
               console.info(msgStr + ' Succeed in invert. ');
-              expect(true).assertTrue()
               done()
             }catch(err){
               console.info(msgStr + ' Failed in invert. ' + JSON.stringify(err));
@@ -163,7 +161,6 @@ export default function effectKitBTest() {
             try{
               headFilter.setColorMatrix(colorMatrix);
               console.info(msgStr + ' Succeed in setColorMatrix. ');
-              expect(true).assertTrue()
               done()
             }catch(err){
               console.info(msgStr + ' Failed in setColorMatrix. ' + JSON.stringify(err));
@@ -232,7 +229,6 @@ export default function effectKitBTest() {
         if (headFilter != null) {
           headFilter.blur(radius, effectKit.TileMode.DECAL);
           console.info(msgStr + ' Succeed in headFilter.blur. ');
-          expect(true).assertTrue()
           done()
         }
       }).catch((err:BusinessError) => {
@@ -263,7 +259,6 @@ export default function effectKitBTest() {
       image.createPixelMap(color, opts).then((pixelMap) => {
         effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(false).then(data => {
           console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
-          expect(true).assertTrue();
           done();
         }).catch((err: BusinessError) => {
           expect().assertFail();
@@ -293,7 +288,6 @@ export default function effectKitBTest() {
       image.createPixelMap(color, opts).then((pixelMap) => {
         effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap(true).then(data => {
           console.info('getPixelBytesNumber = ', data.getPixelBytesNumber());
-          expect(true).assertTrue();
           done();
         }).catch((err: BusinessError) => {
           expect().assertFail();

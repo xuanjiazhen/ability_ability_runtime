@@ -49,7 +49,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -98,7 +97,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -132,7 +130,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -166,7 +163,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -200,7 +196,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -234,7 +229,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -268,7 +262,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -302,7 +295,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -336,7 +328,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -370,7 +361,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -404,7 +394,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -423,7 +412,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         console.info(msgStr + "Napi create ColorPicker.start");
         effectKit.createColorPicker(pixelMap).then(colorPicker => {
           console.info(msgStr + "Napi createColorPicker");
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -436,7 +424,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -456,7 +443,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         console.info(msgStr + "Napi create ColorPicker.start");
         effectKit.createColorPicker(pixelMap).then(colorPicker => {
           console.info(msgStr + "Napi createColorPicker");
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -469,7 +455,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -489,7 +474,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         console.info(msgStr + "Napi create ColorPicker.start");
         effectKit.createColorPicker(pixelMap).then(colorPicker => {
           console.info(msgStr + "Napi create color picker");
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -502,7 +486,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -522,7 +505,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         console.info(msgStr + "Napi create ColorPicker.start");
         effectKit.createColorPicker(pixelMap).then(colorPicker => {
           console.info(msgStr + "Napi createColorPicker");
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -535,7 +517,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -564,12 +545,10 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
             done();
           }
           console.info(msgStr + "Napi create ok");
-          expect(true).assertTrue();
           done();
         })
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -599,12 +578,10 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
             done();
           }
           console.info(msgStr + "Napi create ok");
-          expect(true).assertTrue();
           done();
         })
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -623,7 +600,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         console.info(msgStr + "Napi create ColorPicker.start");
         effectKit.createColorPicker(pixelMap).then(colorPicker => {
           console.info(msgStr + "Napi createColorPicker");
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -636,7 +612,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -657,7 +632,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
           console.info(msgStr + "Napi get main color start");
           colorPicker.getMainColor().then(color => {
             console.info(msgStr + "Napi color[ARGB]=" + color.red + "," + color.green + "," + color.blue);
-            expect(true).assertTrue();
             done();
           }).catch((ex: BusinessError) => {
             console.error(msgStr + "Napi color.error=" + ex.toString());
@@ -675,7 +649,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -696,7 +669,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
           console.info(msgStr + "Napi get main color start");
           colorPicker.getMainColor().then(color => {
             console.info(msgStr + "Napi color[ARGB]=" + color.red + "," + color.green + "," + color.blue);
-            expect(true).assertTrue();
             done();
           }).catch((ex: BusinessError) => {
             console.error(msgStr + "Napi color.error=" + ex.toString());
@@ -714,7 +686,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -735,7 +706,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
           console.info(msgStr + "Napi get main color start");
           let color = colorPicker.getMainColorSync();
           console.info(msgStr + "Napi color[ARGB]=" + color.red + "," + color.green + "," + color.blue);
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -748,7 +718,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
 
@@ -769,7 +738,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
           console.info(msgStr + "Napi get main color start");
           let color = colorPicker.getMainColorSync();
           console.info(msgStr + "Napi color[ARGB]=" + color.red + "," + color.green + "," + color.blue);
-          expect(true).assertTrue();
           done();
         }).catch((ex: BusinessError) => {
           console.error(msgStr + "Napi colorPicker.error=" + ex.toString());
@@ -782,7 +750,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         done();
       })
       console.info(msgStr + "Napi create pixmap.end");
-      expect(true).assertTrue();
       done();
     })
     /**
@@ -1249,7 +1216,6 @@ export default function effectKitTest(context: common.UIAbilityContext, windowSt
         promise.then((pixelMap) => {
           effectKit.createEffect(pixelMap).grayscale().getEffectPixelMap().then(data => {
             console.log(msgStr + 'getPixelBytesNumber = ', data.getPixelBytesNumber());
-            expect(true).assertTrue();
             done();
           })
         }).catch((error: BusinessError) => {
