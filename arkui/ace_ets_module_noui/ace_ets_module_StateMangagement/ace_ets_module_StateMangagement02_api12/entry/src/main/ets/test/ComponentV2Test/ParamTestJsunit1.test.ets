@@ -199,7 +199,14 @@ export default function ParamTestJsunit1() {
       console.info('[ParamTestJsunit1_005] END');
       done();
     });
-    
+    /**
+     * @tc.number    ParamTestJsunit1_006
+     * @tc.name      ParamTestJsunit1_006
+     * @tc.desc      Frequently updating and modifying the values of parent components
+     * @tc.level     Level 1
+     * @tc.type
+     * @tc.size
+     */
     it('ParamTestJsunit1_006', Level.LEVEL0, async (done: Function) => {
       console.info('[ParamTestJsunit1_006] START');
       await CommonFunc.sleep(1000);
@@ -217,7 +224,14 @@ export default function ParamTestJsunit1() {
       console.info('[ParamTestJsunit1_006] END');
       done();
     });
-
+    /**
+     * @tc.number    ParamTestJsunit1_007
+     * @tc.name      ParamTestJsunit1_007
+     * @tc.desc      Frequently updating and modifying the values of parent components
+     * @tc.level     Level 1
+     * @tc.type
+     * @tc.size
+     */
     it('ParamTestJsunit1_007', Level.LEVEL0, async (done: Function) => {
       console.info('[ParamTestJsunit1_007] START');
       await CommonFunc.sleep(1000);

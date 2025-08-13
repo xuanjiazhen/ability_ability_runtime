@@ -60,7 +60,7 @@ export default function LazyForEachVisibleAreaChange() {
 
     /**
      * @tc.number LazyForEachVisibleAreaChange_001
-     * @tc.name LazyForEachVisibleAreaChange
+     * @tc.name LazyForEachVisibleAreaChange_001
      * @tc.desc Test LazyForEachVisibleAreaChange
      */
     it('LazyForEachVisibleAreaChange_001', Level.LEVEL0, async (done: Function) => {

@@ -41,7 +41,7 @@ export default function Provider4Test() {
       done();
     });
     /**
-     * @tc.number    Provider4
+     * @tc.number    Provider4Test_0100
      * @tc.name      Provider4Test_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -74,7 +74,7 @@ export default function Provider4Test() {
       done();
     });
     /**
-     * @tc.number    Provider4
+     * @tc.number    Provider4Test_0200
      * @tc.name      Provider4Test_0200
      * @tc.desc      api
      * @tc.level:    Level 2

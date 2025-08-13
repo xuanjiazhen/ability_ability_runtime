@@ -56,7 +56,7 @@ export default function FreezeV2Test03() {
 
     /**
      * @tc.number SUB_ACE_BASIC_ETS_API_0001
-     * @tc.name Freeze001
+     * @tc.name FreezeTest001
      * @tc.desc aceEtsTest
      */
     it('FreezeTest001', Level.LEVEL0, async () => {
@@ -85,7 +85,7 @@ export default function FreezeV2Test03() {
 
     /**
      * @tc.number SUB_ACE_BASIC_ETS_API_0002
-     * @tc.name Freeze002
+     * @tc.name FreezeTest002
      * @tc.desc aceEtsTest
      */
     it('FreezeTest002', Level.LEVEL0, async () => {
@@ -118,7 +118,7 @@ export default function FreezeV2Test03() {
 
     /**
      * @tc.number SUB_ACE_BASIC_ETS_API_0003
-     * @tc.name Freeze003
+     * @tc.name FreezeTest003
      * @tc.desc aceEtsTest
      */
     it('FreezeTest003', Level.LEVEL0, async () => {
@@ -155,7 +155,7 @@ export default function FreezeV2Test03() {
 
     /**
      * @tc.number SUB_ACE_BASIC_ETS_API_0004
-     * @tc.name Freeze004
+     * @tc.name FreezeTest004
      * @tc.desc aceEtsTest
      */
     it('FreezeTest004', Level.LEVEL0, async () => {
@@ -195,7 +195,7 @@ export default function FreezeV2Test03() {
 
     /**
      * @tc.number SUB_ACE_BASIC_ETS_API_0005
-     * @tc.name Freeze005
+     * @tc.name FreezeTest005
      * @tc.desc aceEtsTest
      */
     it('FreezeTest005', Level.LEVEL0, async () => {

@@ -43,7 +43,7 @@ export default function appStorageRefJsunit() {
       done();
     });
     /**
-     * @tc.number: SUB_ACE_BASIC_ETS_REF_0100
+     * @tc.number: appStorageRefJsunit_0100
      * @tc.name: appStorageRefJsunit_0100
      * @tc.desc: aceEtsTest_ref
      * @tc.level: Level 2

@@ -46,8 +46,8 @@ export default function repeatKeyJsunit() {
     });
 
     /**
-     * @tc.number SUB_ACE_BASIC_ETS_API_001
-     * @tc.name RepeatKey
+     * @tc.number RepeatKey001
+     * @tc.name RepeatKey001
      * @tc.desc aceEtsTest
      */
     it('RepeatKey001', Level.LEVEL0, async () => {
@@ -57,8 +57,8 @@ export default function repeatKeyJsunit() {
     });
 
     /**
-     * @tc.number SUB_ACE_BASIC_ETS_API_002
-     * @tc.name RepeatKey
+     * @tc.number RepeatKey002
+     * @tc.name RepeatKey002
      * @tc.desc aceEtsTest
      */
     it('RepeatKey002', Level.LEVEL0, async () => {

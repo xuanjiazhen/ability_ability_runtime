@@ -46,7 +46,7 @@ export default function RepeatTest0200() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FOREACH_0330
+     * @tc.number    RepeatTest0200_001
      * @tc.name      RepeatTest0200_001
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3
@@ -91,7 +91,7 @@ export default function RepeatTest0200() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FOREACH_0330
+     * @tc.number    RepeatTest0200_002
      * @tc.name      RepeatTest0200_002
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3
@@ -136,7 +136,7 @@ export default function RepeatTest0200() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FOREACH_0330
+     * @tc.number    RepeatTest0200_003
      * @tc.name      RepeatTest0200_003
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3

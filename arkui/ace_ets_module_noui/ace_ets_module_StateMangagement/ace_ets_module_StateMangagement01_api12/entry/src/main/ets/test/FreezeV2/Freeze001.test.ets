@@ -55,8 +55,8 @@ export default function FreezeV2Test() {
     });
 
     /**
-     * @tc.number SUB_ACE_BASIC_ETS_API_001
-     * @tc.name Freeze001
+     * @tc.number FreezeTest001
+     * @tc.name FreezeTest001
      * @tc.desc aceEtsTest
      */
     it('FreezeTest001', Level.LEVEL0, async () => {

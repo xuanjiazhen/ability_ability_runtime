@@ -43,8 +43,8 @@ export default function IfElse004Test() {
       done();
     });
     /**
-     * @tc.number    IfElse001
-     * @tc.name      IfElse001Test_01
+     * @tc.number    IfElse004Test_01
+     * @tc.name      IfElse004Test_01
      * @tc.desc      api
      * @tc.level:    Level 0
      * @tc.type :
@@ -87,6 +87,14 @@ export default function IfElse004Test() {
       console.info('[IfElse004Test_01] END');
       done();
     });
+    /**
+     * @tc.number    IfElse004Test_02
+     * @tc.name      IfElse004Test_02
+     * @tc.desc      api
+     * @tc.level:    Level 0
+     * @tc.type :
+     * @tc.size :
+     */
     it('IfElse004Test_02', Level.LEVEL0, async (done: Function) => {
       console.info('[IfElse004Test_02] START');
       let driver: Driver = Driver.create();

@@ -57,9 +57,17 @@ export default function ProvideConsume0050TestJsunit() {
       await CommonFunc.sleep(1000);
       console.info("ProvideConsume0050TestJsunit after each called");
     });
-    it('assertContain', Level.LEVEL0, async () => {
+    /**
+     * @tc.number    ProvideConsume0050Test_001
+     * @tc.name      ProvideConsume0050Test_001
+     * @tc.desc      api
+     * @tc.level:    Level 0
+     * @tc.type :
+     * @tc.size :
+     */
+    it('ProvideConsume0050Test_001', Level.LEVEL0, async () => {
       await CommonFunc.sleep(1000);
-      console.info('[ProvideConsume0100Test_001] START');
+      console.info('[ProvideConsume0050Test_001] START');
       await CommonFunc.sleep(1000);
       let driver: Driver = Driver.create();
       let btn: Component = await driver.findComponent(ON.id("click"));
@@ -72,7 +80,7 @@ export default function ProvideConsume0050TestJsunit() {
       await CommonFunc.sleep(1000);
       let obj: ESObject = JSON.parse(getInspectorByKey('childText'))
       await CommonFunc.sleep(1000);
-      console.info("[ProvideConsume0100Test_001] component obj is: " + obj.$attrs.content);
+      console.info("[ProvideConsume0050Test_001] component obj is: " + obj.$attrs.content);
       expect(obj.$attrs.content).assertEqual('world')
       await driver.pressBack()
 
@@ -82,9 +90,9 @@ export default function ProvideConsume0050TestJsunit() {
       await CommonFunc.sleep(1000);
       let obj2: ESObject = JSON.parse(getInspectorByKey('parentText'))
       await CommonFunc.sleep(1000);
-      console.info("[ProvideConsume0100Test_001] component obj2 is: " + obj2.$attrs.content);
+      console.info("[ProvideConsume0050Test_001] component obj2 is: " + obj2.$attrs.content);
       expect(obj2.$attrs.content).assertEqual('hello world')
-      console.info('[ProvideConsume0100Test_001] END');
+      console.info('[ProvideConsume0050Test_001] END');
       await driver.pressBack()
 
     })

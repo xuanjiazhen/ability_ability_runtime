@@ -60,7 +60,7 @@ export default function LazyForEachSingleBoolean() {
 
     /**
      * @tc.number LazyForEachSingleBoolean_001
-     * @tc.name LazyForEachSingleBoolean
+     * @tc.name LazyForEachSingleBoolean_001
      * @tc.desc Test LazyForEachSingleBoolean
      */
     it('LazyForEachSingleBoolean_001', Level.LEVEL0, async (done: Function) => {

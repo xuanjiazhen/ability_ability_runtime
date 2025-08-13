@@ -46,7 +46,7 @@ export default function DataOperationTypeTest() {
       done();
     });
     /**
-     * @tc.number    DataOperationType
+     * @tc.number    DataOperationTypeTest_0100
      * @tc.name      DataOperationTypeTest_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -68,7 +68,7 @@ export default function DataOperationTypeTest() {
       done();
     });
     /**
-     * @tc.number    DataOperationType
+     * @tc.number    DataOperationTypeTest_0200
      * @tc.name      DataOperationTypeTest_0200
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -90,8 +90,8 @@ export default function DataOperationTypeTest() {
       done();
     });
     /**
-     * @tc.number    DataOperationType
-     * @tc.name      DataOperationTypeTest_3200
+     * @tc.number    DataOperationTypeTest_0300
+     * @tc.name      DataOperationTypeTest_0300
      * @tc.desc      api
      * @tc.level:    Level 2
      * @tc.type :

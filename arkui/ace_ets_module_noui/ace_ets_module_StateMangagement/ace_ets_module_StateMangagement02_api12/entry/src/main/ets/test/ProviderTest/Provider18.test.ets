@@ -45,7 +45,7 @@ export default function ProviderTestJsunit18() {
       console.info("ProviderTestJsunit18 after each called");
     });
     /**
-     * @tc.number Provider18
+     * @tc.number Provider18Test_0100
      * @tc.name Provider18Test_0100
      * @tc.desc api
      * @tc.level: Level 2
@@ -71,7 +71,7 @@ export default function ProviderTestJsunit18() {
       done();
     });
     /**
-     * @tc.number Provider18
+     * @tc.number Provider18Test_0200
      * @tc.name Provider18Test_0200
      * @tc.desc api
      * @tc.level: Level 2
@@ -108,7 +108,7 @@ export default function ProviderTestJsunit18() {
       done();
     });
     /**
-     * @tc.number Provider18
+     * @tc.number Provider18Test_0300
      * @tc.name Provider18Test_0300
      * @tc.desc api
      * @tc.level: Level 2
@@ -138,7 +138,7 @@ export default function ProviderTestJsunit18() {
       done();
     });
     /**
-     * @tc.number Provider18
+     * @tc.number Provider18Test_0400
      * @tc.name Provider18Test_0400
      * @tc.desc api
      * @tc.level: Level 2
@@ -168,7 +168,7 @@ export default function ProviderTestJsunit18() {
       done();
     });
     /**
-     * @tc.number Provider18
+     * @tc.number Provider18Test_0500
      * @tc.name Provider18Test_0500
      * @tc.desc api
      * @tc.level: Level 2

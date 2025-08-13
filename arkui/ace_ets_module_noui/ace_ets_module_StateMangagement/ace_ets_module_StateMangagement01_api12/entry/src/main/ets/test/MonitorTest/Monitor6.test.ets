@@ -41,7 +41,7 @@ export default function Monitor6Test() {
       done();
     });
     /**
-     * @tc.number    Monitor6
+     * @tc.number    Monitor6Test_0100
      * @tc.name      Monitor6Test_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -63,7 +63,7 @@ export default function Monitor6Test() {
       done();
     });
     /**
-     * @tc.number    Monitor6
+     * @tc.number    Monitor6Test_0200
      * @tc.name      Monitor6Test_0200
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -85,7 +85,7 @@ export default function Monitor6Test() {
       done();
     });
     /**
-     * @tc.number    Monitor6
+     * @tc.number    Monitor6Test_0300
      * @tc.name      Monitor6Test_0300
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -107,7 +107,7 @@ export default function Monitor6Test() {
       done();
 
     /**
-     * @tc.number    Monitor6
+     * @tc.number    Monitor6Test_0400
      * @tc.name      Monitor6Test_0400
      * @tc.desc      api
      * @tc.level:    Level 2

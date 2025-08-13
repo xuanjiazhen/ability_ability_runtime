@@ -60,7 +60,7 @@ export default function LazyForEachMove() {
 
     /**
      * @tc.number LazyForEachMove_001
-     * @tc.name LazyForEachMove
+     * @tc.name LazyForEachMove_001
      * @tc.desc Test LazyForEachMove
      */
     it('LazyForEachMove_001', Level.LEVEL0, async (done: Function) => {

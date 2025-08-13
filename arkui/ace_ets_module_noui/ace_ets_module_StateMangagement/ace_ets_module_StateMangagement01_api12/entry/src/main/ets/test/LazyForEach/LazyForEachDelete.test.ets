@@ -60,7 +60,7 @@ export default function LazyForEachDelete() {
 
     /**
      * @tc.number LazyForEachDelete_001
-     * @tc.name LazyForEachDelete
+     * @tc.name LazyForEachDelete_001
      * @tc.desc Test LazyForEach delete function
      */
     it('LazyForEachDelete_001', Level.LEVEL0, async (done: Function) => {

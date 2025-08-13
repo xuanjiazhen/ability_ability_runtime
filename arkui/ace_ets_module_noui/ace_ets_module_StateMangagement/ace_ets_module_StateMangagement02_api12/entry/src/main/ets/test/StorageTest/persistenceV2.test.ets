@@ -46,8 +46,8 @@ export default function persistenceV2() {
     });
 
     /**
-     * @tc.number    persistenceV2_001
-     * @tc.name      persistenceV2_001
+     * @tc.number    persistenceV2_0100
+     * @tc.name      persistenceV2_0100
      * @tc.desc      all keys in PersistenceV2.
      * @tc.level     Level 2
      * @tc.type
@@ -65,8 +65,8 @@ export default function persistenceV2() {
     });
 
     /**
-     * @tc.number    persistenceV2_002
-     * @tc.name      persistenceV2_002
+     * @tc.number    persistenceV2_0200
+     * @tc.name      persistenceV2_0200
      * @tc.desc      Persistently store UI related data
      * @tc.level     Level 2
      * @tc.type
@@ -102,8 +102,8 @@ export default function persistenceV2() {
     });
 
     /**
-     * @tc.number    persistenceV2_003
-     * @tc.name      persistenceV2_003
+     * @tc.number    persistenceV2_0300
+     * @tc.name      persistenceV2_0300
      * @tc.desc      When the tested value is not the observed object
      * @tc.level     Level 2
      * @tc.type

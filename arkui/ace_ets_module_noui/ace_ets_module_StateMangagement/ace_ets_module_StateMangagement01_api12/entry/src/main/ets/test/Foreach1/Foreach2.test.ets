@@ -59,25 +59,25 @@ export default function Foreach2() {
     });
 
     /**
-     * @tc.number SUB_ACE_BASIC_ETS_API_001
-     * @tc.name ForEachKey
+     * @tc.number ForEach2Test_001
+     * @tc.name ForEach2Test_001
      * @tc.desc aceEtsTest
      */
-    it('ForEachKey001', Level.LEVEL0, async () => {
-      console.info('ForEachKey001 START');
+    it('ForEach2Test_001', Level.LEVEL0, async () => {
+      console.info('ForEach2Test_001 START');
       expect(!!getInspectorByKey('one')).assertTrue();
-      console.info('ForEachKey001 END');
+      console.info('ForEach2Test_001 END');
     });
 
     /**
-     * @tc.number SUB_ACE_BASIC_ETS_API_002
-     * @tc.name ForEachKey
+     * @tc.number ForEach2Test_002
+     * @tc.name ForEach2Test_002
      * @tc.desc aceEtsTest
      */
-    it('ForEachKey002', Level.LEVEL0, async () => {
-      console.info('ForEachKey001 START');
+    it('ForEach2Test_002', Level.LEVEL0, async () => {
+      console.info('ForEach2Test_002 START');
       expect(!getInspectorByKey('one2')).assertTrue();
-      console.info('ForEachKey001 END');
+      console.info('ForEach2Test_002 END');
     });
   })
 }

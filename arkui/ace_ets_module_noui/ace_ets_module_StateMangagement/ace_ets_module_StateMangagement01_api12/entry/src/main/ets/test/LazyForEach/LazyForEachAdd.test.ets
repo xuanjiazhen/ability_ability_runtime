@@ -60,7 +60,7 @@ export default function LazyForEachAdd() {
 
     /**
      * @tc.number LazyForEachAdd_001
-     * @tc.name LazyForEachAdd
+     * @tc.name LazyForEachAdd_001
      * @tc.desc Test LazyForEach add function
      */
     it('LazyForEachAdd_001', Level.LEVEL0, async (done: Function) => {

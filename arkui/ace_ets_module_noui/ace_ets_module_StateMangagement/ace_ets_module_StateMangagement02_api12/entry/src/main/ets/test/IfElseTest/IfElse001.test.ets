@@ -43,7 +43,7 @@ export default function IfElse001Test() {
       done();
     });
     /**
-     * @tc.number    IfElse001
+     * @tc.number    IfElse001Test_01
      * @tc.name      IfElse001Test_01
      * @tc.desc      api
      * @tc.level:    Level 0

@@ -42,7 +42,7 @@ export default function LocalStorageDeleteTest0120() {
       done();
     });
     /**
-     * @tc.number: SUB_ACE_BASIC_ETS_REF_0100
+     * @tc.number: LocalStorageDeleteTest0120_0100
      * @tc.name: LocalStorageDeleteTest0120_0100
      * @tc.desc: aceEtsTest_ref
      * @tc.level: Level 0

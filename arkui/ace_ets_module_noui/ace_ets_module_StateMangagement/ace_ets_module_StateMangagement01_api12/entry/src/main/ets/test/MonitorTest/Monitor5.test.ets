@@ -41,7 +41,7 @@ export default function Monitor5Test() {
       done();
     });
     /**
-     * @tc.number    Monitor5
+     * @tc.number    Monitor5Test_0100
      * @tc.name      Monitor5Test_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -63,8 +63,8 @@ export default function Monitor5Test() {
       done();
     });
     /**
-     * @tc.number    Monitor5
-     * @tc.name      Monitor5Test_0100
+     * @tc.number    Monitor5Test_0200
+     * @tc.name      Monitor5Test_0200
      * @tc.desc      api
      * @tc.level:    Level 2
      * @tc.type :

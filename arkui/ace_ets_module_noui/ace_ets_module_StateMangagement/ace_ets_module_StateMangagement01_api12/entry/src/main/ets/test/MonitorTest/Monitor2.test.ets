@@ -41,7 +41,7 @@ export default function Monitor2Test() {
       done();
     });
     /**
-     * @tc.number    Monitor2
+     * @tc.number    Monitor2Test_0100
      * @tc.name      Monitor2Test_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -63,7 +63,7 @@ export default function Monitor2Test() {
       done();
     });
     /**
-     * @tc.number    Monitor2
+     * @tc.number    Monitor2Test_0200
      * @tc.name      Monitor2Test_0200
      * @tc.desc      api
      * @tc.level:    Level 2

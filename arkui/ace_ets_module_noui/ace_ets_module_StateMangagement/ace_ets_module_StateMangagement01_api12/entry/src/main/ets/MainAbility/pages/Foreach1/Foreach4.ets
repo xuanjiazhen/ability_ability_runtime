@@ -28,8 +28,8 @@ struct Foreach004 {
       List() {
         ForEach(this.creatList(), (item: number, index: number) => {
           ListItem() {
-            Text(`${index} ${item}`).id('foreach' + index)
-              .fontSize(9)
+            Text(`${index} ${item}`).id('Foreach004:' + index)
+            .height('5%')
           }
         })
       };

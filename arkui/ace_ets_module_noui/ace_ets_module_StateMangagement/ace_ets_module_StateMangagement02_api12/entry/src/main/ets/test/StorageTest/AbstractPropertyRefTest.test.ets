@@ -42,7 +42,7 @@ export default function AbstractPropertyRefTest() {
       done();
     });
     /**
-     * @tc.number: SUB_ACE_BASIC_ETS_REF_0100
+     * @tc.number: AbstractPropertyRefTest_0100
      * @tc.name: AbstractPropertyRefTest_0100
      * @tc.desc: aceEtsTest_ref
      * @tc.level: Level 2

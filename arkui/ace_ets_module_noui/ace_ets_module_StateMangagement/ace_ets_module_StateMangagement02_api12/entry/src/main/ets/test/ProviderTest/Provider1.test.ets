@@ -41,7 +41,7 @@ export default function Provider1Test() {
       done();
     });
     /**
-     * @tc.number    Provider1
+     * @tc.number    Provider1Test_0100
      * @tc.name      Provider1Test_0100
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -74,7 +74,7 @@ export default function Provider1Test() {
       done();
     });
     /**
-     * @tc.number    Provider1
+     * @tc.number    Provider1Test_0200
      * @tc.name      Provider1Test_0200
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -108,7 +108,7 @@ export default function Provider1Test() {
       done();
     });
     /**
-     * @tc.number    Provider1
+     * @tc.number    Provider1Test_0300
      * @tc.name      Provider1Test_0300
      * @tc.desc      api
      * @tc.level:    Level 2
@@ -136,7 +136,7 @@ export default function Provider1Test() {
       done();
     });
     /**
-     * @tc.number    Provider1
+     * @tc.number    Provider1Test_0400
      * @tc.name      Provider1Test_0400
      * @tc.desc      api
      * @tc.level:    Level 2

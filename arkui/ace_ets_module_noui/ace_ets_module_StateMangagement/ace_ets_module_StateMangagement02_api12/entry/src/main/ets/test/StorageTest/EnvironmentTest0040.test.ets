@@ -42,7 +42,7 @@ export default function EnvironmentTest0040() {
       done();
     });
     /**
-     * @tc.number: SUB_ACE_BASIC_ETS_REF_0100
+     * @tc.number: EnvironmentTest0040_0100
      * @tc.name: EnvironmentTest0040_0100
      * @tc.desc: aceEtsTest_ref
      * @tc.level: Level 2

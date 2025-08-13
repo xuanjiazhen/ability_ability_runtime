@@ -42,7 +42,7 @@ export default function SubAbstractPropertyLinkTest() {
       done();
     });
     /**
-     * @tc.number: SUB_ACE_BASIC_ETS_REF_0100
+     * @tc.number: SubAbstractPropertyLinkTest_0100
      * @tc.name: SubAbstractPropertyLinkTest_0100
      * @tc.desc: aceEtsTest_ref
      * @tc.level: Level 2

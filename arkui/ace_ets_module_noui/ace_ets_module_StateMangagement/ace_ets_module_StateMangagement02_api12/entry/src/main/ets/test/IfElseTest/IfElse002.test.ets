@@ -69,6 +69,14 @@ export default function IfElse002Test() {
       console.info('[IfElse002Test_01] END');
       done();
     });
+    /**
+     * @tc.number    IfElse002Test_02
+     * @tc.name      IfElse002Test_02
+     * @tc.desc      api
+     * @tc.level:    Level 0
+     * @tc.type :
+     * @tc.size :
+     */
     it('IfElse002Test_02', Level.LEVEL0, async (done: Function) => {
       console.info('[IfElse002Test_02] START');
       let driver: Driver = Driver.create();

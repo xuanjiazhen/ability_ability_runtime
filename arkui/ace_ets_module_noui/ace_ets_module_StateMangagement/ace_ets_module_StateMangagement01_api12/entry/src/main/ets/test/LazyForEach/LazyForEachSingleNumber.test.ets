@@ -60,7 +60,7 @@ export default function LazyForEachSingleNumber() {
 
     /**
      * @tc.number LazyForEachSingleNumber_001
-     * @tc.name LazyForEachSingleNumber
+     * @tc.name LazyForEachSingleNumber_001
      * @tc.desc Test LazyForEachSingleNumber
      */
     it('LazyForEachSingleNumber_001', Level.LEVEL0, async (done: Function) => {

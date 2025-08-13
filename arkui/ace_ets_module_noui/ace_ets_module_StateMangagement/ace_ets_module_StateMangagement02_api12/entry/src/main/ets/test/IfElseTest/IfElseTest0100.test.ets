@@ -46,7 +46,7 @@ export default function IfElseTest0100() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FIELSE_0100
+     * @tc.number    IfElseTest0100_001
      * @tc.name      IfElseTest0100_001
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3
@@ -91,7 +91,7 @@ export default function IfElseTest0100() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FIELSE_0100
+     * @tc.number    IfElseTest0100_002
      * @tc.name      IfElseTest0100_002
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3
@@ -136,7 +136,7 @@ export default function IfElseTest0100() {
     });
 
     /**
-     * @tc.number    SUB_ACE_RENDERINGCONTROL_FIELSE_0100
+     * @tc.number    IfElseTest0100_003
      * @tc.name      IfElseTest0100_003
      * @tc.desc      Frequently updating and modifying the values of parent components
      * @tc.level     Level 3
