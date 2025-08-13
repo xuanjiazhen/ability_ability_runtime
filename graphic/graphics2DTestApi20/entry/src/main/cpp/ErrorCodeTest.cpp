@@ -156,7 +156,7 @@ napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeVSync* nativeVsync = OH_NativeVSync_Create("Test", 4);
-    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data){};
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void *data) {};
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
     int32_t res2 = OH_NativeVSync_DVSyncSwitch(nativeVsync, true);
@@ -167,7 +167,7 @@ napi_value OH_Drawing_BufferHDIError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     OH_NativeVSync* nativeVsync = nullptr;
-    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void* data){};
+    OH_NativeVSync_FrameCallback callback = [](long long timestamp, void* data) {};
     void* data = nullptr;
     int32_t res = OH_NativeVSync_RequestFrame(nativeVsync, callback, data);
     napi_create_int32(env, res == NATIVE_ERROR_INVALID_ARGUMENTS, &result);

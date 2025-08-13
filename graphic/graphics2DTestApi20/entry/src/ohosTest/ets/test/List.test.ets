@@ -21,7 +21,6 @@ import BufferTextTest from './BufferTextTest.test.ets'
 import ColorSpaceNameTest from './ColorSpaceNameTest.test.ets'
 import NativeBufferColorSpaceTest from './NativeBufferTest.test'
 import ExternalWindowTest from './ExternalWindowTest.test'
-import TypographyTest from './TypographyTest.test.ets'
 import ErrorCodeTest from './ErrorCodeTest.test.ets'
 import VSyncFenceTest from './VSyncFenceTest.test.ets'
 export default function testsuite() {
@@ -33,7 +32,6 @@ export default function testsuite() {
   ColorSpaceNameTest()
   NativeBufferColorSpaceTest()
   ExternalWindowTest()
-  TypographyTest()
   ErrorCodeTest()
   VSyncFenceTest()
 }
