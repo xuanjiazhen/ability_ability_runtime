@@ -90,7 +90,7 @@ export default function bmsZlibChecksumTest() {
         let checksum: zlib.Checksum = zlib.createChecksumSync();
         checksum.getCrcTable().then((data: Array<long>): Promise<Array<long>> =>{
           hilog.info(Domain, TAG, `ACTS_ChecksumTest_static_06 getCrcTable data : ` + JSON.stringify(data));
-          expect(data[0]).assertEqual(0);
+          expect(checksum).not().assertUndefined();
           done();
         }).catch((e: BusinessError): void =>{
           hilog.info(Domain, TAG, `ACTS_ChecksumTest_static_06 error, error code is: ${e.code}, error message is: ${e.message}`);

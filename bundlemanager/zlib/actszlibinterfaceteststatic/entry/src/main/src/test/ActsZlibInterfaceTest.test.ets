@@ -71,11 +71,11 @@ export default function ActsZlibInterfaceTest() {
               hilog.info(domain, tag, `ActsZlibInterfaceTest_static_01 getOriginalSize success. getOriginalSize: ${data}`);
               expect(data >= 0).assertEqual(true);
               done();
-            }, (errData: BusinessError<void>): void => {
-              hilog.error(domain, tag, `010 errData is errCode:${errData.code}  message:${errData.message}`);
-              expect(errData).assertFail();
+            }).catch((err: Error) => {
+              hilog.info(domain, tag, "compressFileTest write data to file failed with error:" + err);
+              expect(err).assertFail();
               done();
-            })
+            });
           } catch(errData: BusinessError) {
             hilog.error(domain, tag, `011 errData is errCode:${errData.code}  message:${errData.message}`);
             expect(errData).assertFail();
