@@ -20,7 +20,9 @@ import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
+import StartOptions from '@ohos.app.ability.StartOptions';
 import uiExtension from '@ohos.arkui.uiExtension';
+import Want from '@ohos.app.ability.Want';
 
 class Cleaner {
   static callback(cleaner: Cleaner): void {
@@ -62,6 +64,7 @@ export default class UIExtensionContentSession {
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
   native nativeSetWindowPrivacyMode(isPrivacyMode: boolean, callback:AsyncCallbackWrapper<void>): void;
+  native nativeStartAbilityAsCaller(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
 
   sendData(data: RecordData): void {
     this.nativeSendData(data as Record<string, Object>);
@@ -177,6 +180,41 @@ export default class UIExtensionContentSession {
     let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeSetWindowPrivacyMode(isPrivacyMode, asyncCall);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, callback: AsyncCallback<void>): void {
+    let asyncCallback = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityAsCaller(want, asyncCallback, undefined);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
+    let asyncCallback = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeStartAbilityAsCaller(want, asyncCallback, options);
+    }).catch((err: BusinessError): void => {
+      callback(err, undefined);
+    });
+  }
+
+  startAbilityAsCaller(want: Want, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCallback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartAbilityAsCaller(want, asyncCallback, options);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
     });
   }
 }

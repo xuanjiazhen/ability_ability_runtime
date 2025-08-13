@@ -88,6 +88,8 @@ public:
         ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback);
     static void NativeSetWindowPrivacyMode(
         ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj);
+    static void NativeStartAbilityAsCaller(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_object callbackObj, ani_object startOptionsObj);
 
     void SendData(ani_env *env, ani_object object, ani_object data);
     void LoadContent(ani_env *env, ani_object object, ani_string path, ani_object storage);
@@ -101,6 +103,8 @@ public:
         ani_env *env, ani_object obj, ani_boolean isPrivacyMode, ani_object callbackObj);
     static void CallReceiveDataCallbackForResult(
         ani_vm *vm, ani_ref callbackRef, const AAFwk::WantParams &wantParams, AAFwk::WantParams &retWantParams);
+    void OnStartAbilityAsCaller(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object callbackObj, ani_object startOptionsObj);
     std::shared_ptr<AbilityRuntime::Context> GetContext();
     sptr<Rosen::Window> GetUIWindow();
     static bool BindNativePtrCleaner(ani_env *env);
