@@ -36,7 +36,7 @@ struct getSurfaceId {
   urltrustListThree: string = '{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.163.com\", \"port\":443, \"path\":\"test\"}]}'
   urltrustListFour: string = '{\"UrlPermissionList\":[{\"scheme\":\"https\", \"host\":\"www.example.com\", \"port\":443, \"path\":\"test\"},{\"scheme\":\"http\", \"host\":\"www.example.com\", \"port\":80, \"path\":\"test\"}]}'
   urltrustListFive: string = '{\"UrlPermissionList\":[{\"scheme\":\"http\", \"port\":80, \"path\":\"test\"}]}'
-  urltrustListSix: string = '{\"UrlPermissionList\":[{\"host\":\"www.baidu.com\"},{\"host\":\"www.163.com\", \"port\":80, \"path\":\"test\"}]}'
+  urltrustListSix: string = '{\"UrlPermissionList\":[{\"host\":\"www.baidu.com\"},{\"host\":\"www.example.com\", \"port\":80, \"path\":\"test\"}]}'
 
   @State isReceive: number = -1
   @State isPageEnd: number = -1
