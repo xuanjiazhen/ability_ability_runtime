@@ -16,7 +16,13 @@
   "module": {
     "requestPermissions": [
       {
-        "name": "ohos.permission.MICROPHONE"
+        "name": "ohos.permission.MICROPHONE",
+        "reason": "$string:ceshi",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ]
+        }
       }
     ],
     "name": "entry_test",
