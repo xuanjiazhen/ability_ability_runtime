@@ -1463,20 +1463,20 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     RuntimeTask task = [etsVm, callbackRef] (int resultCode, const AAFwk::Want &want, bool isInner) {
     TAG_LOGD(AAFwkTag::CONTEXT, "start async callback");
     ani_status status = ANI_ERROR;
-    ani_env *env = nullptr;
-    if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+    ani_env *taskEnv = nullptr;
+    if ((status = etsVm->GetEnv(ANI_VERSION_1, &taskEnv)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
         return;
     }
-    ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+    ani_object abilityResult = AppExecFwk::WrapAbilityResult(taskEnv, resultCode, want);
     if (abilityResult == nullptr) {
         TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
         isInner = true;
         resultCode = ERR_INVALID_VALUE;
     }
     auto errCode = isInner ? resultCode : 0;
-    AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
+    AppExecFwk::AsyncCallback(taskEnv, reinterpret_cast<ani_object>(callbackRef),
+        EtsErrorUtil::CreateErrorByNativeErr(taskEnv, errCode), abilityResult);
     };
     requestCode = GenerateRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));

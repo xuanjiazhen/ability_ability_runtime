@@ -71,7 +71,7 @@ export default class UIExtensionContext extends ExtensionContext {
   private native nativeSetHostPageOverlayForbidden(isForbidden: boolean): void;
   native setColorMode(colorMode: ConfigurationConstant.ColorMode): void;
   native nativeReportDrawnCompleted(callback:AsyncCallbackWrapper<void>): void;
-  private native nativeOpenLinkSync(link: string, syncCallback:AsyncCallbackWrapper<void>,
+  private native nativeOpenLink(link: string, syncCallback:AsyncCallbackWrapper<void>,
     options?: OpenLinkOptions, callback?: AsyncCallbackWrapper<AbilityResult>): void;
   private native nativeOpenAtomicService(appId: string, syncCallback: AsyncCallbackWrapper<AbilityResult>,
     options?: AtomicServiceOptions): void;
@@ -305,7 +305,7 @@ export default class UIExtensionContext extends ExtensionContext {
         }
       });
       taskpool.execute(() => {
-        this.nativeOpenLinkSync(link, syncCall, finalOptions, callParam);
+        this.nativeOpenLink(link, syncCall, finalOptions, callParam);
       });
     });
   }

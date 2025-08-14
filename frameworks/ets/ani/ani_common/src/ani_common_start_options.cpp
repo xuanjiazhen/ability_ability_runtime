@@ -337,7 +337,6 @@ void UnWrapOpenLinkOptions(
     if ((status = env->Object_GetPropertyByName_Boolean(optionsObj, APP_LINKING_ONLY.c_str(),
         &aniAppLinkingOnly)) == ANI_OK) {
         bool appLinkingOnly = aniAppLinkingOnly;
-        AppExecFwk::GetFieldBoolByName(env, optionsObj, "appLinkingOnly", appLinkingOnly);
         openLinkOptions.SetAppLinkingOnly(appLinkingOnly);
         want.SetParam(APP_LINKING_ONLY, appLinkingOnly);
     }
