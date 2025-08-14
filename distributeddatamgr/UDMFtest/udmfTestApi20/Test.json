@@ -11,7 +11,7 @@
     "kits": [{
         "test-file-name": [
             "ActsUdmfApi20Test.hap",
-            "ActsUdmfApi20MainTest.hap"
+            "ActsUdmfMainApi20Test.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true
