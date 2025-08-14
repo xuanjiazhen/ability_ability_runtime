@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 import outlineColorTest from './bindmenutest/bindmenu.test';
+import selectModifier from './selecttest/selectModifier.test';
 import selectmenuOutline from './selecttest/select.test';
 
 export default function testsuite() {
     outlineColorTest();
+    selectModifier();
     selectmenuOutline();
 }
