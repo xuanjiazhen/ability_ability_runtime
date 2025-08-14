@@ -32,13 +32,13 @@ export default function ActsScanErrorTest() {
      */
     it('SUB_Oh_Scan_NoError_0100', Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
+        console.info("====>SUB_Oh_Scan_NoError_0100 start====");
         let result = printerror.OHScanNoError();
         expect(result).assertEqual(ERR_OK);
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
+        console.info("====>SUB_Oh_Scan_NoError_0100 result: " + result);
         done();
       } catch (err) {
-        console.error("====>SUB_Oh_Print_InvalidPrintJob_0400 catch err: " + err);
+        console.error("====>SUB_Oh_Scan_NoError_0100 catch err: " + err);
         done()
       }
     });
@@ -53,13 +53,13 @@ export default function ActsScanErrorTest() {
      */
     it('SUB_Oh_Scan_InvalidParameter_0200', Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
+        console.info("====>SUB_Oh_Scan_InvalidParameter_0200 start====");
         let result = printerror.OHScanInvalidParameter();
         expect(result).assertEqual(INVALID_PARAMETER);
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
+        console.info("====>SUB_Oh_Scan_InvalidParameter_0200 result: " + result);
         done();
       } catch (err) {
-        console.error("====>SUB_Oh_Print_InvalidPrintJob_0400 catch err: " + err);
+        console.error("====>SUB_Oh_Scan_InvalidParameter_0200 catch err: " + err);
         done()
       }
     });
@@ -74,13 +74,13 @@ export default function ActsScanErrorTest() {
      */
     it('SUB_Oh_Scan_UnSupported_0300', Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
+        console.info("====>SUB_Oh_Scan_UnSupported_0300 start====");
         let result = printerror.OHScanUnSupported();
         expect(result).assertEqual(UNSUPPORTED);
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
+        console.info("====>SUB_Oh_Scan_UnSupported_0300 result: " + result);
         done();
       } catch (err) {
-        console.error("====>SUB_Oh_Print_InvalidPrintJob_0400 catch err: " + err);
+        console.error("====>SUB_Oh_Scan_UnSupported_0300 catch err: " + err);
         done()
       }
     });
@@ -95,13 +95,13 @@ export default function ActsScanErrorTest() {
      */
     it('SUB_Oh_Scan_INVALID_0400', Level.LEVEL1, async (done: Function) => {
       try {
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 start====");
+        console.info("====>SUB_Oh_Scan_INVALID_0400 start====");
         let result = printerror.OHPrintINVALID();
         expect(result).assertEqual(INVALID);
-        console.info("====>SUB_Oh_Print_InvalidPrintJob_0400 result: " + result);
+        console.info("====>SUB_Oh_Scan_INVALID_0400 result: " + result);
         done();
       } catch (err) {
-        console.error("====>SUB_Oh_Print_InvalidPrintJob_0400 catch err: " + err);
+        console.error("====>SUB_Oh_Scan_INVALID_0400 catch err: " + err);
         done()
       }
     });

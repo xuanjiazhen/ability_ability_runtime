@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <unistd.h>
 #include "ActsPrintErrorCodeTest.h"
 #include "napi/native_api.h"
+#include <BasicServicesKit/ohprint.h>
+#include <ffrt/sleep.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-#include <BasicServicesKit/ohprint.h>
 #define TEST_PRINTER "testPrinter"
 namespace {
     static const uint32_t MAX_NAME_LENGTH = 1024;
