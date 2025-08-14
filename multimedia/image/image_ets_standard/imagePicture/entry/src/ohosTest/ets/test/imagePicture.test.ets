@@ -958,10 +958,14 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100");
-      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-        done();
-        return
-      };
+      try {
+        if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+          done();
+          return
+        };
+      } catch (error) {
+        console.info('file does not exist');
+      }
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         done();
@@ -4635,10 +4639,14 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100");
-      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-        done();
-        return
-      };
+      try {
+        if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+          done();
+          return
+        };
+      } catch (error) {
+        console.info('file does not exist');
+      }
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         done();
