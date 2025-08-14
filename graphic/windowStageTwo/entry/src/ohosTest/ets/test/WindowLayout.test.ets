@@ -3840,6 +3840,59 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       }
     })
 
+    /**
+     * @tc.number    : SUB_BASIC_WMS_OFF_RECT_CHANGE_IN_GLOBAL_DISPLAY_WITH_DESTROYED_SUBWINDOW
+     * @tc.name      : testOffRectChangeInGlobalDisplaywithDestroyedSubwindow
+     * @tc.desc      : 验证销毁后的子窗调用OffRectChangeInGlobalDisplay接口抛1300002错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('testOffRectChangeInGlobalDisplaywithDestroyedSubwindow', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      const caseName = 'testOffRectChangeInGlobalDisplaywithDestroyedSubwindow';
+      console.log(caseName + 'begin.');
+      let windowClass = await windowStage.createSubWindow('testOffRectChangeInGlobalDisplaywithDestroyedSubwindow')
+      await windowClass.destroyWindow()
+      try {
+        windowClass.off('rectChangeInGlobalDisplay')
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        expect(err.code).assertEqual(1300002)
+        done()
+      }
+    })
+
+    /**
+     * @tc.number    : SUB_BASIC_WMS_GLOBAL_DISPLAY_TO_CLIENT_WITH_INVAILD_PARAMETERS
+     * @tc.name      : testGlobalDisplayToClientwithOutofRange
+     * @tc.desc      : 验证子窗调用globalDisplayToClient入参超出int值抛1300016错误码
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level3
+     */
+    it('testGlobalDisplayToClientwithOutofRange', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      const caseName = 'testGlobalDisplayToClientwithOutofRange';
+      console.log(caseName + 'begin.');
+      let windowClass = await windowStage.createSubWindow('testGlobalDisplayToClientwithOutofRange')
+      try {
+        const maxInt = 2**31 -1;
+        windowClass.globalDisplayToClient(maxInt, maxInt);
+        await windowClass.destroyWindow()
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.error(`${caseName} failed, err: ${JSON.stringify(err)}`);
+        await windowClass.destroyWindow();
+        if (err.code == 801) {
+          done()
+        } else {
+          expect(err.code).assertEqual(1300016)
+          done()
+        }
+      }
+    })
 
   })
 }
