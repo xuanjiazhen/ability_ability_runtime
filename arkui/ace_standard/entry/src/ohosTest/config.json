@@ -57,8 +57,6 @@
         "js": [{
                 "pages": [
                     "pages/index/index",
-                    "pages/routerPush/index",
-                    "pages/routerReplace/index",
                     "pages/button/router/index",
                     "pages/chart/router/index",
                     "pages/chart/style/index",
