@@ -60,7 +60,7 @@ export default function LazyForEachAboutToReuseObject() {
 
     /**
      * @tc.number LazyForEachAboutToReuseObject_001
-     * @tc.name LazyForEachAboutToReuseObject
+     * @tc.name LazyForEachAboutToReuseObject_001
      * @tc.desc Test LazyForEachAboutToReuseObject
      */
     it('LazyForEachAboutToReuseObject_001', Level.LEVEL1, async (done: Function) => {
