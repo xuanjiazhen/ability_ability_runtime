@@ -355,8 +355,8 @@ export default function PowerManagerServiceTest() {
      * @tc.type: Function
      * @tc.size: MediumTest
      */
-    it('PowerManagerServiceTest_1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done) => {
-      let TAG = 'PowerManagerServiceTest_1600';
+    it('testPowerManagerServiceTest_1600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done) => {
+      let TAG = 'testPowerManagerServiceTest_1600';
       try {
         power.refreshActivity(TAG);
       } catch (error) {
