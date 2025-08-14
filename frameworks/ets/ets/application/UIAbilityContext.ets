@@ -29,6 +29,7 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import AbilityStartCallback from 'application.AbilityStartCallback';
 import AtomicServiceOptions from '@ohos.app.ability.AtomicServiceOptions';
 import image from '@ohos.multimedia.image';
+import { LocalStorage } from '@ohos.arkui.stateManagement';
 
 class Cleaner {
   public ptr: long = 0;
@@ -168,6 +169,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeStartAbilityWithAccountSync(want: Want, accountId: int, options: StartOptions,
     callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeRestoreWindowStage(localStorage: LocalStorage): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -801,5 +804,9 @@ hideAbility(): Promise<void> {
         reject(err as BusinessError);
       });
     });
+  }
+
+  restoreWindowStage(localStorage: LocalStorage): void {
+    this.nativeRestoreWindowStage(localStorage);
   }
 }
