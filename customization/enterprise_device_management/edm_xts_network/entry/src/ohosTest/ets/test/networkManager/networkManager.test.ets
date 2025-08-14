@@ -942,7 +942,7 @@ function testAddFirewallRule() {
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_ADD_FIREWALL_RULE_JS_0107
    * @tc.name      : test_add_firewall_rule_0107
-   * @tc.desc      : test networkManager addFirewallRule with invalid param
+   * @tc.desc      : test networkManager addFirewallRule
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
@@ -1089,7 +1089,7 @@ function testRemoveFirewallRule() {
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVE_FIREWALL_RULE_JS_0106
    * @tc.name      : test_remove_firewall_rule_0106
-   * @tc.desc      : test networkManager removeFirewallRule without admin
+   * @tc.desc      : test networkManager removeFirewallRule
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
@@ -1260,7 +1260,7 @@ function testAddDomainFilterRule() {
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_ADD_DOMAIN_FILTER_RULE_JS_0104
    * @tc.name      : test_add_domain_filter_rule_0104
-   * @tc.desc      : test networkManager addDomainFilterRule with invalid param
+   * @tc.desc      : test networkManager addDomainFilterRule
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
@@ -1404,10 +1404,11 @@ function testRemoveDomainFilterRule() {
     done();
   });
 
+
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_REMOVE_DOMAIN_FILTER_RULE_JS_0106
    * @tc.name      : test_remove_domain_filter_rule_0106
-   * @tc.desc      : test networkManager removeDomainFilterRule with super admin
+   * @tc.desc      : test networkManager removeDomainFilterRule
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest

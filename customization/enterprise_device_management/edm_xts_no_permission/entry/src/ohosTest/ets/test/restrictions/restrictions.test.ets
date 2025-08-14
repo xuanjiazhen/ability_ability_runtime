@@ -33,9 +33,9 @@ const LABEL_RESET_FACTORY = "resetFactory";
 const LABEL_TETHERING = "tethering";
 const LABEL_NEAR_LINK = "nearLink";
 const LABEL_DISTRIBUTED_TRANSMISSION = "distributedTransmissionOutgoing";
-const LABEL_RECOVERY_KEY = "diskRecoveryKey";
 const LABEL_MTP_CLIENT = "mtpClient";
 const LABEL_MTP_SERVER = "mtpServer";
+const LABEL_RECOVERY_KEY = "diskRecoveryKey";
 const LABEL_SET_APN = "setApn";
 const LABEL_SET_ETHERNET_IP = "setEthernetIp";
 const LABEL_USB_STORAGE_DEVICE_WRITE = "usbStorageDeviceWrite";
@@ -506,7 +506,7 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0300", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, false, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -527,10 +527,10 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0400", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, false, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201).assertTrue();
+      expect(error.code == 201 || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -548,10 +548,10 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0500", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201 || error.code == 801).assertTrue();
+      expect(error.code == 201).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -634,7 +634,7 @@ function testGetDisallowedForAccountPolicy() {
   it("test_get_disallowed_policy_for_account_0300", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 201 || error.code == 801).assertTrue();
@@ -655,10 +655,10 @@ function testGetDisallowedForAccountPolicy() {
   it("test_get_disallowed_policy_for_account_0400", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201).assertTrue();
+      expect(error.code == 201 || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
@@ -676,10 +676,10 @@ function testGetDisallowedForAccountPolicy() {
   it("test_get_disallowed_policy_for_account_0500", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 201 || error.code == 801).assertTrue();
+      expect(error.code == 201).assertTrue();
     } finally {
       await adminManager.disableAdmin(SELFWANT);
     }
