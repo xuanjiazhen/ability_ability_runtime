@@ -100,6 +100,12 @@ public:
         ani_object callbackObj);
     static void StartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object callbackObj);
+    static void StartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int etsAccountId, ani_object callback);
+    static void StartAbilityForResultWithAccountVoid(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int etsAccountId, ani_object startOptionsObj, ani_object callback);
+    static void StartAbilityForResultWithAccountResult(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int etsAccountId, ani_object startOptionsObj, ani_object callback);
 
     static void Clean(ani_env *env, ani_object object);
     static ani_object SetEtsAbilityContext(ani_env *env, std::shared_ptr<AbilityContext> context);
@@ -166,6 +172,10 @@ private:
         ani_object callbackObj);
     void OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object callbackObj);
+    void OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_int etsAccountId, ani_object startOptionsObj, ani_object callback);
+    void OnStartAbilityForResultWithAccountInner(ani_env *env, const AAFwk::StartOptions &startOptions,
+        AAFwk::Want &want, const int accountId, ani_object startOptionsObj, ani_object callback);
 
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<AbilityContext> context, AAFwk::Want &want, int &requestCode);
