@@ -1080,5 +1080,1168 @@ export default function ActsNeuralNetworkRuntimeTypeTest2() {
         console.error("====>NnrtOpTypeCos002 catch err: " + err);
       }
     })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOG_0100
+     * @tc.name    : NnrtOpTypeLog001
+     * @tc.desc    : test OH_NN_OPS_LOG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLog001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLog001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOG", true);
+        console.info("====>NnrtOpTypeLog001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLog001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOG_0200
+     * @tc.name    : NnrtOpTypeLog002
+     * @tc.desc    : test OH_NN_OPS_LOG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLog002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLog002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOG", false);
+        console.info("====>NnrtOpTypeLog002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLog002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALAND_0100
+     * @tc.name    : NnrtOpTypeLogicalAnd001
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_AND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalAnd001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalAnd001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_AND", true);
+        console.info("====>NnrtOpTypeLogicalAnd001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalAnd001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALAND_0200
+     * @tc.name    : NnrtOpTypeLogicalAnd002
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_AND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalAnd002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalAnd002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_AND", false);
+        console.info("====>NnrtOpTypeLogicalAnd002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalAnd002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALNOT_0100
+     * @tc.name    : NnrtOpTypeLogicalNot001
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_NOT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalNot001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalNot001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_NOT", true);
+        console.info("====>NnrtOpTypeLogicalNot001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalNot001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALNOT_0200
+     * @tc.name    : NnrtOpTypeLogicalNot002
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_NOT
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalNot002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalNot002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_NOT", false);
+        console.info("====>NnrtOpTypeLogicalNot002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalNot002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSMOD_0100
+     * @tc.name    : NnrtOpTypeMod001
+     * @tc.desc    : test OH_NN_OPS_MOD
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeMod001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeMod001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_MOD", true);
+        console.info("====>NnrtOpTypeMod001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeMod001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSMOD_0200
+     * @tc.name    : NnrtOpTypeMod002
+     * @tc.desc    : test OH_NN_OPS_MOD
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeMod002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeMod002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_MOD", false);
+        console.info("====>NnrtOpTypeMod002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeMod002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSNEG_0100
+     * @tc.name    : NnrtOpTypeNeg001
+     * @tc.desc    : test OH_NN_OPS_NEG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeNeg001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeNeg001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_NEG", true);
+        console.info("====>NnrtOpTypeNeg001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeNeg001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSNEG_0200
+     * @tc.name    : NnrtOpTypeNeg002
+     * @tc.desc    : test OH_NN_OPS_NEG
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeNeg002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeNeg002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_NEG", false);
+        console.info("====>NnrtOpTypeNeg002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeNeg002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSRECIPROCAL_0100
+     * @tc.name    : NnrtOpTypeReciprocal001
+     * @tc.desc    : test OH_NN_OPS_RECIPROCAL
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReciprocal001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReciprocal001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_RECIPROCAL", true);
+        console.info("====>NnrtOpTypeReciprocal001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReciprocal001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSRECIPROCAL_0200
+     * @tc.name    : NnrtOpTypeReciprocal002
+     * @tc.desc    : test OH_NN_OPS_RECIPROCAL
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReciprocal002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReciprocal002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_RECIPROCAL", false);
+        console.info("====>NnrtOpTypeReciprocal002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReciprocal002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSIN_0100
+     * @tc.name    : NnrtOpTypeSin001
+     * @tc.desc    : test OH_NN_OPS_SIN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSin001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSin001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SIN", true);
+        console.info("====>NnrtOpTypeSin001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSin001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSIN_0200
+     * @tc.name    : NnrtOpTypeSin002
+     * @tc.desc    : test OH_NN_OPS_SIN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSin002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSin002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SIN", false);
+        console.info("====>NnrtOpTypeSin002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSin002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSWHERE_0100
+     * @tc.name    : NnrtOpTypeWhere001
+     * @tc.desc    : test OH_NN_OPS_WHERE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeWhere001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeWhere001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_WHERE", true);
+        console.info("====>NnrtOpTypeWhere001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeWhere001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSWHERE_0200
+     * @tc.name    : NnrtOpTypeWhere002
+     * @tc.desc    : test OH_NN_OPS_WHERE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeWhere002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeWhere002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_WHERE", false);
+        console.info("====>NnrtOpTypeWhere002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeWhere002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSPARSETODENSE_0100
+     * @tc.name    : NnrtOpTypeSparseToDense001
+     * @tc.desc    : test OH_NN_OPS_SPARSE_TO_DENSE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSparseToDense001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSparseToDense001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SPARSE_TO_DENSE", true);
+        console.info("====>NnrtOpTypeSparseToDense001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSparseToDense001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSPARSETODENSE_0200
+     * @tc.name    : NnrtOpTypeSparseToDense002
+     * @tc.desc    : test OH_NN_OPS_SPARSE_TO_DENSE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSparseToDense002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSparseToDense002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SPARSE_TO_DENSE", false);
+        console.info("====>NnrtOpTypeSparseToDense002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSparseToDense002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALOR_0100
+     * @tc.name    : NnrtOpTypeLogicalOr001
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_OR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalOr001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalOr001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_OR", true);
+        console.info("====>NnrtOpTypeLogicalOr001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalOr001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGICALOR_0200
+     * @tc.name    : NnrtOpTypeLogicalOr002
+     * @tc.desc    : test OH_NN_OPS_LOGICAL_OR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogicalOr002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogicalOr002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOGICAL_OR", false);
+        console.info("====>NnrtOpTypeLogicalOr002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogicalOr002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSCEIL_0100
+     * @tc.name    : NnrtOpTypeCeil001
+     * @tc.desc    : test OH_NN_OPS_CEIL
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeCeil001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeCeil001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_CEIL", true);
+        console.info("====>NnrtOpTypeCeil001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeCeil001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSCEIL_0200
+     * @tc.name    : NnrtOpTypeCeil002
+     * @tc.desc    : test OH_NN_OPS_CEIL
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeCeil002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeCeil002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_CEIL", false);
+        console.info("====>NnrtOpTypeCeil002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeCeil002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSCROP_0100
+     * @tc.name    : NnrtOpTypeCrop001
+     * @tc.desc    : test OH_NN_OPS_CROP
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeCrop001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeCrop001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_CROP", true);
+        console.info("====>NnrtOpTypeCrop001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeCrop001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSCROP_0200
+     * @tc.name    : NnrtOpTypeCrop002
+     * @tc.desc    : test OH_NN_OPS_CROP
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeCrop002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeCrop002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_CROP", false);
+        console.info("====>NnrtOpTypeCrop002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeCrop002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSDETECTIONPOSTPROCESS_0100
+     * @tc.name    : NnrtOpTypeDetectionPostProcess001
+     * @tc.desc    : test OH_NN_OPS_DETECTION_POST_PROCESS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeDetectionPostProcess001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeDetectionPostProcess001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_DETECTION_POST_PROCESS", true);
+        console.info("====>NnrtOpTypeDetectionPostProcess001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeDetectionPostProcess001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSDETECTIONPOSTPROCESS_0200
+     * @tc.name    : NnrtOpTypeDetectionPostProcess002
+     * @tc.desc    : test OH_NN_OPS_DETECTION_POST_PROCESS
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeDetectionPostProcess002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1,
+      async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeDetectionPostProcess002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_DETECTION_POST_PROCESS",
+          false);
+        console.info("====>NnrtOpTypeDetectionPostProcess002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeDetectionPostProcess002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSFLOOR_0100
+     * @tc.name    : NnrtOpTypeFloor001
+     * @tc.desc    : test OH_NN_OPS_FLOOR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeFloor001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeFloor001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_FLOOR", true);
+        console.info("====>NnrtOpTypeFloor001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeFloor001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSFLOOR_0200
+     * @tc.name    : NnrtOpTypeFloor002
+     * @tc.desc    : test OH_NN_OPS_FLOOR
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeFloor002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeFloor002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_FLOOR", false);
+        console.info("====>NnrtOpTypeFloor002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeFloor002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSL2NORMALIZE_0100
+     * @tc.name    : NnrtOpTypeL2Normalize001
+     * @tc.desc    : test OH_NN_OPS_L2_NORMALIZE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeL2Normalize001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeL2Normalize001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_L2_NORMALIZE", true);
+        console.info("====>NnrtOpTypeL2Normalize001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeL2Normalize001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSL2NORMALIZE_0200
+     * @tc.name    : NnrtOpTypeL2Normalize002
+     * @tc.desc    : test OH_NN_OPS_L2_NORMALIZE
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeL2Normalize002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeL2Normalize002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_L2_NORMALIZE", false);
+        console.info("====>NnrtOpTypeL2Normalize002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeL2Normalize002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGSOFTMAX_0100
+     * @tc.name    : NnrtOpTypeLogSoftmax001
+     * @tc.desc    : test OH_NN_OPS_LOG_SOFTMAX
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogSoftmax001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogSoftmax001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOG_SOFTMAX", true);
+        console.info("====>NnrtOpTypeLogSoftmax001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogSoftmax001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLOGSOFTMAX_0200
+     * @tc.name    : NnrtOpTypeLogSoftmax002
+     * @tc.desc    : test OH_NN_OPS_LOG_SOFTMAX
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLogSoftmax002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLogSoftmax002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LOG_SOFTMAX", false);
+        console.info("====>NnrtOpTypeLogSoftmax002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLogSoftmax002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLRN_0100
+     * @tc.name    : NnrtOpTypeLrn001
+     * @tc.desc    : test OH_NN_OPS_LRN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLrn001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLrn001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LRN", true);
+        console.info("====>NnrtOpTypeLrn001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLrn001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSLRN_0200
+     * @tc.name    : NnrtOpTypeLrn002
+     * @tc.desc    : test OH_NN_OPS_LRN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeLrn002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeLrn002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_LRN", false);
+        console.info("====>NnrtOpTypeLrn002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeLrn002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSMINIMUM_0100
+     * @tc.name    : NnrtOpTypeMinimum001
+     * @tc.desc    : test OH_NN_OPS_MINIMUM
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeMinimum001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeMinimum001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_MINIMUM", true);
+        console.info("====>NnrtOpTypeMinimum001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeMinimum001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSMINIMUM_0200
+     * @tc.name    : NnrtOpTypeMinimum002
+     * @tc.desc    : test OH_NN_OPS_MINIMUM
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeMinimum002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeMinimum002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_MINIMUM", false);
+        console.info("====>NnrtOpTypeMinimum002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeMinimum002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSRANK_0100
+     * @tc.name    : NnrtOpTypeRank001
+     * @tc.desc    : test OH_NN_OPS_RANK
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeRank001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeRank001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_RANK", true);
+        console.info("====>NnrtOpTypeRank001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeRank001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSRANK_0200
+     * @tc.name    : NnrtOpTypeRank002
+     * @tc.desc    : test OH_NN_OPS_RANK
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeRank002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeRank002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_RANK", false);
+        console.info("====>NnrtOpTypeRank002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeRank002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEMAX_0100
+     * @tc.name    : NnrtOpTypeReduceMax001
+     * @tc.desc    : test OH_NN_OPS_REDUCE_MAX
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceMax001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceMax001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_MAX", true);
+        console.info("====>NnrtOpTypeReduceMax001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceMax001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEMAX_0200
+     * @tc.name    : NnrtOpTypeReduceMax002
+     * @tc.desc    : test OH_NN_OPS_REDUCE_MAX
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceMax002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceMax002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_MAX", false);
+        console.info("====>NnrtOpTypeReduceMax002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceMax002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEMIN_0100
+     * @tc.name    : NnrtOpTypeReduceMin001
+     * @tc.desc    : test OH_NN_OPS_REDUCE_MIN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceMin001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceMin001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_MIN", true);
+        console.info("====>NnrtOpTypeReduceMin001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceMin001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEMIN_0200
+     * @tc.name    : NnrtOpTypeReduceMin002
+     * @tc.desc    : test OH_NN_OPS_REDUCE_MIN
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceMin002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceMin002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_MIN", false);
+        console.info("====>NnrtOpTypeReduceMin002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceMin002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCESUM_0100
+     * @tc.name    : NnrtOpTypeReduceSum001
+     * @tc.desc    : test OH_NN_OPS_REDUCE_SUM
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceSum001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceSum001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_SUM", true);
+        console.info("====>NnrtOpTypeReduceSum001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceSum001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCESUM_0200
+     * @tc.name    : NnrtOpTypeReduceSum002
+     * @tc.desc    : test OH_NN_OPS_REDUCE_SUM
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceSum002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceSum002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_SUM", false);
+        console.info("====>NnrtOpTypeReduceSum002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceSum002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSROUND_0100
+     * @tc.name    : NnrtOpTypeRound001
+     * @tc.desc    : test OH_NN_OPS_ROUND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeRound001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeRound001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_ROUND", true);
+        console.info("====>NnrtOpTypeRound001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeRound001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSROUND_0200
+     * @tc.name    : NnrtOpTypeRound002
+     * @tc.desc    : test OH_NN_OPS_ROUND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeRound002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeRound002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_ROUND", false);
+        console.info("====>NnrtOpTypeRound002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeRound002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSCATTERND_0100
+     * @tc.name    : NnrtOpTypeScatterNd001
+     * @tc.desc    : test OH_NN_OPS_SCATTER_ND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeScatterNd001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeScatterNd001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SCATTER_ND", true);
+        console.info("====>NnrtOpTypeScatterNd001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeScatterNd001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSCATTERND_0200
+     * @tc.name    : NnrtOpTypeScatterNd002
+     * @tc.desc    : test OH_NN_OPS_SCATTER_ND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeScatterNd002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeScatterNd002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SCATTER_ND", false);
+        console.info("====>NnrtOpTypeScatterNd002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeScatterNd002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSPACETODEPTH_0100
+     * @tc.name    : NnrtOpTypeSpaceToDepth001
+     * @tc.desc    : test OH_NN_OPS_SPACE_TO_DEPTH
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSpaceToDepth001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSpaceToDepth001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SPACE_TO_DEPTH", true);
+        console.info("====>NnrtOpTypeSpaceToDepth001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSpaceToDepth001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSPACETODEPTH_0200
+     * @tc.name    : NnrtOpTypeSpaceToDepth002
+     * @tc.desc    : test OH_NN_OPS_SPACE_TO_DEPTH
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSpaceToDepth002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSpaceToDepth002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SPACE_TO_DEPTH", false);
+        console.info("====>NnrtOpTypeSpaceToDepth002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSpaceToDepth002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSWISH_0100
+     * @tc.name    : NnrtOpTypeSwish001
+     * @tc.desc    : test OH_NN_OPS_SWISH
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSwish001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSwish001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SWISH", true);
+        console.info("====>NnrtOpTypeSwish001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSwish001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSSWISH_0200
+     * @tc.name    : NnrtOpTypeSwish002
+     * @tc.desc    : test OH_NN_OPS_SWISH
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeSwish002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeSwish002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_SWISH", false);
+        console.info("====>NnrtOpTypeSwish002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeSwish002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEL2_0100
+     * @tc.name    : NnrtOpTypeReduceL2001
+     * @tc.desc    : test OH_NN_OPS_REDUCE_L2
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceL2001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceL2001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_L2", true);
+        console.info("====>NnrtOpTypeReduceL2001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceL2001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSREDUCEL2_0200
+     * @tc.name    : NnrtOpTypeReduceL2002
+     * @tc.desc    : test OH_NN_OPS_REDUCE_L2
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeReduceL2002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeReduceL2002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_REDUCE_L2", false);
+        console.info("====>NnrtOpTypeReduceL2002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeReduceL2002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSHARDSIGMOID_0100
+     * @tc.name    : NnrtOpTypeHardSigmoid001
+     * @tc.desc    : test OH_NN_OPS_HARD_SIGMOID
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeHardSigmoid001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeHardSigmoid001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_HARD_SIGMOID", true);
+        console.info("====>NnrtOpTypeHardSigmoid001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeHardSigmoid001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSHARDSIGMOID_0200
+     * @tc.name    : NnrtOpTypeHardSigmoid002
+     * @tc.desc    : test OH_NN_OPS_HARD_SIGMOID
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeHardSigmoid002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeHardSigmoid002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_HARD_SIGMOID", false);
+        console.info("====>NnrtOpTypeHardSigmoid002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeHardSigmoid002 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSGATHERND_0100
+     * @tc.name    : NnrtOpTypeGatherNd001
+     * @tc.desc    : test OH_NN_OPS_GATHER_ND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeGatherNd001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeGatherNd001 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_GATHER_ND", true);
+        console.info("====>NnrtOpTypeGatherNd001 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeGatherNd001 catch err: " + err);
+      }
+    })
+
+    /**
+     * @tc.number  : SUB_NEURALNETWORKRUNTIME_OPERATIONTYPEOPSGATHERND_0200
+     * @tc.name    : NnrtOpTypeGatherNd002
+     * @tc.desc    : test OH_NN_OPS_GATHER_ND
+     * @tc.level   : Level1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('NnrtOpTypeGatherNd002', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info("====>NnrtOpTypeGatherNd002 start====");
+        let result : number = neuralnetworkcoretest.NNOperationTypeCommonTest("OH_NN_OPS_GATHER_ND", false);
+        console.info("====>NnrtOpTypeGatherNd002 result: " + result);
+        expect(result).assertEqual(OH_NN_INVALID_PARAMETER);
+        done()
+      } catch (err) {
+        console.error("====>NnrtOpTypeGatherNd002 catch err: " + err);
+      }
+    })
   })
 }
