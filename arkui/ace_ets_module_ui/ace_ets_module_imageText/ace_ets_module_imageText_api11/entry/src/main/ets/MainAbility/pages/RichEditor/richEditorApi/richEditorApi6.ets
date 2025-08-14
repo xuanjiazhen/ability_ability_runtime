@@ -36,6 +36,9 @@ struct richEditorApi6 {
               {
                 onClick: () => {
                   this.text1 = "222"
+                },
+                onLongPress: () => {
+                  this.text1 = "222"
                 }
               },
               paragraphStyle: {
