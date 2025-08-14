@@ -213,14 +213,14 @@ export default function imagePixelMapErrorCodeTest() {
         editable: true, pixelFormat: 3, size: { height: 100, width: 100 } 
       }
       let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
-      if (pixelmap != undefined) {
+      if (pixelMap != undefined) {
         console.info('www data Succeeded in creating pixelMap object.');
         try {
-          let staticMetadata = pixelmap.getMetadata(image.HdrMetadataKey.HDR_STATIC_METADATA);
+          let staticMetadata = pixelMap.getMetadata(image.HdrMetadataKey.HDR_STATIC_METADATA);
           console.info('www data getMetadata 111');
           expect().assertFail();
         } catch(error) {
-          console.info('pixelmap create failed' + error);
+          console.info('pixelMap create failed' + error);
           expect(Number(error.code) == 62980173).assertTrue();
           done();
         }
