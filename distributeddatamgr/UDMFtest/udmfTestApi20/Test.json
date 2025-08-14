@@ -10,8 +10,8 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActsUdmfTest.hap",
-            "ActsUdmfMainTest.hap"
+            "ActsUdmfApi20Test.hap",
+            "ActsUdmfApi20MainTest.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true
