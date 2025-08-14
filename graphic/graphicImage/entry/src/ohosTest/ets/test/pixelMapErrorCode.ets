@@ -209,12 +209,10 @@ export default function imagePixelMapErrorCodeTest() {
      * @tc.size :
      */
     it("ImagePixelMapErrorCode_0700", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done:Function)=> {
-      let img = getContext().resourceManager.getMediaContentSync($r('app.media.app_icon'));
-      let imageSource = image.createImageSource(img.buffer.slice(0));
-      let decodingOptions: image.DecodingOptions = {
-        desiredDynamicRange: image.DecodingDynamicRange.AUTO
-      };
-      let pixelmap = imageSource.createPixelMapSync(decodingOptions);
+      const opts: image.InitializationOptions = { 
+        editable: true, pixelFormat: 3, size: { height: 100, width: 100 } 
+      }
+      let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
       if (pixelmap != undefined) {
         console.info('www data Succeeded in creating pixelMap object.');
         try {
