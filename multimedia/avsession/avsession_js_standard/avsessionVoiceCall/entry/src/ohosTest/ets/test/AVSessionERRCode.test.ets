@@ -1115,6 +1115,64 @@ export default function abilityTest() {
         done();
       })
 
+    /* *
+     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0100
+     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0100
+     * @tc.desc      : Testing DecoderType: video/avc enum
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0 , async (done: Function) => {
+        let decoderType = avSession.DecoderType.OH_AVCODEC_MIMETYPE_VIDEO_AVC;
+        if (decoderType == "video/avc") {
+          expect(true).assertTrue();
+        } else {
+          console.info(`DecoderType_video/avc enum :${decoderType}`);
+          expect(false).assertTrue();
+        }
+        done();
+      })
+
+    /* *
+     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0200
+     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0200
+     * @tc.desc      : Testing DecoderType: video/hevc enum
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0 , async (done: Function) => {
+        let decoderType = avSession.DecoderType.OH_AVCODEC_MIMETYPE_VIDEO_HEVC;
+        if (decoderType == "video/hevc") {
+          expect(true).assertTrue();
+        } else {
+          console.info(`DecoderType_video/hevc enum :${decoderType}`);
+          expect(false).assertTrue();
+        }
+        done();
+      })
+
+    /* *
+     * @tc.number    : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0300
+     * @tc.name      : SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0300
+     * @tc.desc      : Testing DecoderType: audio/av3a enum
+     * @tc.size      : MediumTest
+     * @tc.type      : Function
+     * @tc.level     : Level2
+     */
+    it('SUB_MULTIMEDIA_AVSESSION_DECODERTYPE_ENUM_0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0 , async (done: Function) => {
+        let decoderType = avSession.DecoderType.OH_AVCODEC_MIMETYPE_AUDIO_VIVID;
+        if (decoderType == "audio/av3a") {
+          expect(true).assertTrue();
+        } else {
+          console.info(`DecoderType_audio/av3a enum :${decoderType}`);
+          expect(false).assertTrue();
+        }
+        done();
+      })
+
+
   })
 }
 

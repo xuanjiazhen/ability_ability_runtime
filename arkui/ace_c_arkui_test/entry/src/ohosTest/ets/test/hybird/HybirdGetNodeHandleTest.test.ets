@@ -35,6 +35,7 @@ export default function hybirdGetNodeHandleTest() {
     * @tc.level      : Level 1
     */
     it('testHybirdGetNodeHandle001', Level.LEVEL1, async (done: Function) => {
+      expect(Utils.getComponentInfoByKey('row').$attrs.backgroundColor).assertEqual('#FF008000')
       done()
     })
 

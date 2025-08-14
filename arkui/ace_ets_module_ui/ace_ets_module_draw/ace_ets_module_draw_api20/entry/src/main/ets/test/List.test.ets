@@ -25,6 +25,9 @@ import PolylineResourceTest from './Polyline/PolylineResourceTest';
 import RectResourceTest from './Rect/RectResourceTest';
 import ShapeResourceTest from './Shape/ShapeResourceTest';
 
+import CanvasEllipseTest from './CanvasRenderingContext2D/CanvasEllipseTest';
+import Matrix2DMultiplyTest from './CanvasRenderingContext2D/Matrix2DMultiplyTest';
+
 export default function testsuite() {
   RoundRectTest(); 
   CanvasGradientTest();
@@ -38,5 +41,8 @@ export default function testsuite() {
   PolylineResourceTest();
   RectResourceTest();
   ShapeResourceTest();
+
+  CanvasEllipseTest();
+  Matrix2DMultiplyTest();
 
 }

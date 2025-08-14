@@ -44,3 +44,5 @@ export const XComponentGetUserData: () => string;
 export const XComponentInitialize: () => number;
 export const XComponentFinalize: () => number;
 export const XComponentRemoveSurfaceCallback: () => number;
+
+export const buttonFontScale: (a: string) => void;

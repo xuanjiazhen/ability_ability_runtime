@@ -4593,7 +4593,7 @@ export default function audioCapturer() {
         done();
       }
     })
-         /**
+    /**
      * @tc.number    : SUB_AUDIO_AUDIOCAPTURE_ON_MARKREACH_0100
      * @tc.name      : AudioCapturer ON MARKREACH
      * @tc.desc      : AudioCapturer ON MARKREACH
@@ -5037,7 +5037,6 @@ export default function audioCapturer() {
 
       try {
         let audioCapturer: audio.AudioCapturer = await audio.createAudioCapturer(AudioCapturerOptions);
-        expect(true).assertTrue();
         done();
       } catch(error){
         console.log(`error : ${error.message},Code:${error.code}`);
@@ -5240,7 +5239,6 @@ export default function audioCapturer() {
           } else {
             console.info('AudioCapturer Created : Success : SUCCESS');
             data.release();
-            expect(true).assertTrue();
             done();
           }
           done();

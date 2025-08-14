@@ -300,7 +300,7 @@ export default function ActsAccountAuthToken() {
                     expect(err).assertEqual(null);
                     appAccountManager.deleteAuthToken("account_callback_authType_limit",OWNERSELF,limitAuthType,"callback_authType_limit_token",(err)=>{
                         console.info("====>ActsAccountAuthToken_7400 getAuthToken err:" + JSON.stringify(err));
-                        expect(err.code!=0).assertEqual(true);
+                        expect(err.code).assertEqual(12300002);
                         appAccountManager.removeAccount("account_callback_authType_limit",(err)=>{
                             console.info("====>ActsAccountAuthToken_7400 removeAccount err:" + JSON.stringify(err));
                             expect(err).assertEqual(null);
@@ -328,7 +328,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>ActsAccountAuthToken_7500 getAuthToken err:" + JSON.stringify(err));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 console.info("====>ActsAccountAuthToken_7500 removeAccount start====");
                 await appAccountManager.removeAccount("account_promise_authType_limit");
                 console.info("====>ActsAccountAuthToken_7500 end====");
@@ -400,7 +400,7 @@ export default function ActsAccountAuthToken() {
                     expect(err).assertEqual(null);
                     appAccountManager.deleteAuthToken("account_callback_empty_authType",OWNERSELF,"","callback_empty_authType_token",(err)=>{
                         console.info("====>ActsAccountAuthToken_7800 deleteAuthToken err:" + JSON.stringify(err));
-                        expect(err.code).assertEqual(AccountErrCode.ERR_JS_AUTH_TYPE_NOT_FOUND);
+                        expect(err.code).assertEqual(12300107);
                         appAccountManager.getAuthToken("account_callback_empty_authType",OWNERSELF,"authType",(err,data)=>{
                             console.info("====>ActsAccountAuthToken_7800 getAuthToken err:" + JSON.stringify(err));
                             console.info("====>ActsAccountAuthToken_7800 getAuthToken data:" + data);
@@ -431,7 +431,7 @@ export default function ActsAccountAuthToken() {
                 await appAccountManager.deleteAuthToken("account_promise_empty_authType",OWNERSELF,"","promise_empty_authType_token");
             } catch(err) {
                 console.info("====>ActsAccountAuthToken_7900 deleteAuthToken err:" + JSON.stringify(err));
-                expect(err.code).assertEqual(AccountErrCode.ERR_JS_AUTH_TYPE_NOT_FOUND);
+                expect(err.code).assertEqual(12300107);
                 console.info("====>ActsAccountAuthToken_7900 getAuthToken start====");
                 var data = await appAccountManager.getAuthToken("account_promise_empty_authType",OWNERSELF,"authType");
                 expect(data).assertEqual("promise_empty_authType_token");
@@ -488,12 +488,12 @@ export default function ActsAccountAuthToken() {
             var appAccountManager = account.createAppAccountManager();
             console.info("====>ActsAccountAuthToken_8100 getAllAuthTokens start====");
             appAccountManager.getAllAuthTokens(limitName, OWNERSELF).then((ArrayData)=>{
-                console.info("====>ActsAccountAuthToken_8100 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));           
-                expect(ArrayData.length).assertEqual(0);
-                console.info("====>ActsAccountAuthToken_8100 ====");
+                console.info("====>run err");
+                expect().assertFail();
                 done();
             }).catch((err)=>{
-                expect(err.code!=0).assertEqual(true);
+                console.info("====>ActsAccountAuthToken_8100 getAllAuthTokens err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(12300002);
                 done();
             })
         });
@@ -505,7 +505,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAllAuthTokens("", OWNERSELF,(err,ArrayData)=>{
                 console.info("====>ActsAccountAuthToken_8200 getAllAuthTokens err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_8200 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 console.info("====>ActsAccountAuthToken_8200 ====");
                 done();
             });
@@ -518,7 +518,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAllAuthTokens("acount_no_setToken", OWNERSELF,(err,ArrayData)=>{
                 console.info("====>ActsAccountAuthToken_8300 getAllAuthTokens err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_8300 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 expect(ArrayData).assertEqual(null);
                 console.info("====>ActsAccountAuthToken_8300 end====");
                 done();
@@ -598,7 +598,7 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAllAuthTokens("account_callback_getAllAuthTokens_test",limitOwner,(err,ArrayData)=>{
                     console.info("====>ActsAccountAuthToken_8600 getAllAuthTokens err:" + JSON.stringify(err));
                     console.info("====>ActsAccountAuthToken_8600 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300002);
                     expect(ArrayData).assertEqual(null);
                     appAccountManager.removeAccount("account_callback_getAllAuthTokens_test",(err)=>{
                         console.info("====>ActsAccountAuthToken_8600 removeAccount err:" + JSON.stringify(err));
@@ -621,7 +621,7 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAllAuthTokens("account_callback_getAllAuthTokens_test","",(err,ArrayData)=>{
                     console.info("====>ActsAccountAuthToken_8700 getAllAuthTokens err:" + JSON.stringify(err));
                     console.info("====>ActsAccountAuthToken_8700 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300002);
                     expect(ArrayData).assertEqual(null);
                     appAccountManager.removeAccount("account_callback_getAllAuthTokens_test",(err)=>{
                         console.info("====>ActsAccountAuthToken_8700 removeAccount err:" + JSON.stringify(err));
@@ -644,12 +644,43 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAllAuthTokens("account_callback_getAllAuthTokens_test","invalid_owner",(err,ArrayData)=>{
                     console.info("====>ActsAccountAuthToken_8800 getAllAuthTokens err:" + JSON.stringify(err));
                     console.info("====>ActsAccountAuthToken_8800 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300003);
                     expect(ArrayData).assertEqual(null);
                     appAccountManager.removeAccount("account_callback_getAllAuthTokens_test",(err)=>{
                         console.info("====>ActsAccountAuthToken_8800 removeAccount err:" + JSON.stringify(err));
                         expect(err).assertEqual(null);
                         console.info("====>ActsAccountAuthToken_8800 end====");
+                        done();
+                    });
+                });
+            });
+        });
+
+        /*
+        * @tc.number    : ActsAccountAuthToken_8801
+        * @tc.name      : ActsAccountAuthToken_8801
+        * @tc.desc      : appAccount authToken scene testcases
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_8801', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_8801 start====");
+            var appAccountManager = account.createAppAccountManager();
+            console.info("====>ActsAccountAuthToken_8801 createAccount start====");
+            appAccountManager.createAccount("account_callback_getAllAuthTokens_test",(err)=>{
+                console.info("====>ActsAccountAuthToken_8801 createAccount err:" + JSON.stringify(err));
+                expect(err).assertEqual(null);
+                appAccountManager.getAllAuthTokens("account_callback_getAllAuthTokens_test","invalid_owner").then((ArrayData)=>{
+                    console.info("====>run err");
+                    expect().assertFail();
+                }).catch((err)=>{
+                    console.info("====>ActsAccountAuthToken_8801 getAllAuthTokens err:" + JSON.stringify(err));
+                    expect(err.code).assertEqual(12300003);
+                    appAccountManager.removeAccount("account_callback_getAllAuthTokens_test",(err)=>{
+                        console.info("====>ActsAccountAuthToken_8801 removeAccount err:" + JSON.stringify(err));
+                        expect(err).assertEqual(null);
+                        console.info("====>ActsAccountAuthToken_8801 end====");
                         done();
                     });
                 });
@@ -666,7 +697,7 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAllAuthTokens("account_callback_getAllAuthTokens_test"," ",(err,ArrayData)=>{
                     console.info("====>ActsAccountAuthToken_8900 getAllAuthTokens err:" + JSON.stringify(err));
                     console.info("====>ActsAccountAuthToken_8900 getAllAuthTokens ArrayData:" + JSON.stringify(ArrayData));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300003);
                     expect(ArrayData).assertEqual(null);
                     appAccountManager.removeAccount("account_callback_getAllAuthTokens_test",(err)=>{
                         console.info("====>ActsAccountAuthToken_8900 removeAccount err:" + JSON.stringify(err));
@@ -754,7 +785,7 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAuthToken("account_callback_noSetToken",OWNERSELF,"authType",(err,data)=>{
                     console.info("====>ActsAccountAuthToken_0300 getAuthToken err:" + JSON.stringify(err));
                     console.info("====>ActsAccountAuthToken_0300 getAuthToken data:" + data);
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300107);
                     expect(data).assertEqual(null);
                     appAccountManager.removeAccount("account_callback_noSetToken",(err)=>{
                         console.info("====>ActsAccountAuthToken_0300 removeAccount err:" + JSON.stringify(err));
@@ -777,7 +808,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>ActsAccountAuthToken_0400 getAuthToken err:" + JSON.stringify(err));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300107);
                 console.info("====>ActsAccountAuthToken_0400 removeAccount start====");
                 await appAccountManager.removeAccount("account_promise_noSetToken");
                 console.info("====>ActsAccountAuthToken_0400 end====");
@@ -793,7 +824,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAuthToken("noAdd_account_callback",OWNERSELF,"authType",(err,data)=>{
                 console.info("====>ActsAccountAuthToken_0500 getAuthToken err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_0500 getAuthToken data:" + data);
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 expect(data).assertEqual(null);
                 done();
             });
@@ -808,7 +839,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>ActsAccountAuthToken_0600 getAuthToken err:" + JSON.stringify(err));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 console.info("====>ActsAccountAuthToken_0600 end====");
                 done();
             }
@@ -1117,7 +1148,7 @@ export default function ActsAccountAuthToken() {
                         appAccountManager.getAuthToken("account_callback_setDeleteGet",OWNERSELF,"authType", (err, data)=>{
                             console.info("====>getAuthToken ActsAccountAuthToken_1300 err:" + JSON.stringify(err));
                             console.info("====>getAuthToken ActsAccountAuthToken_1300 data:" + data);
-                            expect(err.code != 0).assertEqual(true);
+                            expect(err.code).assertEqual(12300107);
                             expect(data).assertEqual(null);
                             appAccountManager.removeAccount("account_callback_setDeleteGet", (err)=>{
                                 console.info("====>removeAccount ActsAccountAuthToken_1300 err:" + JSON.stringify(err));
@@ -1147,7 +1178,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>getAuthToken ActsAccountAuthToken_1400 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300107);
                 console.info("====>getAuthToken ActsAccountAuthToken_1400 data:" + data);
                 console.info("====>ActsAccountAuthToken_1400 removeAccount start====");
                 await appAccountManager.removeAccount("account_promise_setDeleteGet");
@@ -1162,7 +1193,7 @@ export default function ActsAccountAuthToken() {
             var appAccountManager = account.createAppAccountManager();
             appAccountManager.setAuthToken("account_callback_accountNotExit","authType","account_callback_accountNotExit_token", (err)=>{
                 console.info("====>setAuthToken ActsAccountAuthToken_1500 err:" + JSON.stringify(err));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 console.info("====>ActsAccountAuthToken_1500 end====");
                 done();
             });
@@ -1177,7 +1208,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>setAuthToken ActsAccountAuthToken_1600 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 console.info("====>ActsAccountAuthToken_1600 end====");
                 done();
             }
@@ -1190,7 +1221,7 @@ export default function ActsAccountAuthToken() {
             var appAccountManager = account.createAppAccountManager();
             appAccountManager.deleteAuthToken("account_callback_accountNotExit",OWNERSELF,"authType","account_callback_accountNotExit_token", (err)=>{
                 console.info("====>deleteAuthToken ActsAccountAuthToken_1700 err:" + JSON.stringify(err));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 console.info("====>ActsAccountAuthToken_1700 end====");
                 done();
             });
@@ -1205,7 +1236,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>deleteAuthToken ActsAccountAuthToken_1800 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 console.info("====>ActsAccountAuthToken_1800 end====");
                 done();
             }
@@ -1224,7 +1255,7 @@ export default function ActsAccountAuthToken() {
                     appAccountManager.getAuthToken("account_callback_repeatDelete",OWNERSELF,"authType", (err, data)=>{
                         console.info("====>getAuthToken ActsAccountAuthToken_1900 err:" + JSON.stringify(err));
                         console.info("====>getAuthToken ActsAccountAuthToken_1900 data:" + data);
-                        expect(err.code != 0).assertEqual(true);
+                        expect(err.code).assertEqual(12300107);
                         expect(data).assertEqual(null);
                         appAccountManager.removeAccount("account_callback_repeatDelete", (err)=>{
                             console.info("====>removeAccount ActsAccountAuthToken_1900 err:" + JSON.stringify(err));
@@ -1253,7 +1284,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>getAuthToken ActsAccountAuthToken_2000 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300107);
                 console.info("====>ActsAccountAuthToken_2000 removeAccount start====");
                 await appAccountManager.removeAccount("account_promise_noExitToken");
                 console.info("====>ActsAccountAuthToken_2000 end====");
@@ -1276,14 +1307,14 @@ export default function ActsAccountAuthToken() {
                         appAccountManager.getAuthToken("account_callback_repeatDelete",OWNERSELF,"authType", (err, data)=>{
                             console.info("====>getAuthToken first ActsAccountAuthToken_2100 err:" + JSON.stringify(err));
                             console.info("====>getAuthToken first ActsAccountAuthToken_2100 data:" + data);
-                            expect(err.code != 0).assertEqual(true);
+                            expect(err.code).assertEqual(12300107);
                             expect(data).assertEqual(null);
                             appAccountManager.deleteAuthToken("account_callback_repeatDelete",OWNERSELF,"aythType","promise_repeatDelete_token",(err)=>{
                                 console.info("====>deleteAuthToken second ActsAccountAuthToken_2100 err:" + JSON.stringify(err));
                                 appAccountManager.getAuthToken("account_callback_repeatDelete",OWNERSELF,"authType", (err, data)=>{
                                     console.info("====>getAuthToken second ActsAccountAuthToken_2100 err:" + JSON.stringify(err));
                                     console.info("====>getAuthToken second ActsAccountAuthToken_2100 data:" + data);
-                                    expect(err.code != 0).assertEqual(true);
+                                    expect(err.code).assertEqual(12300107);
                                     expect(data).assertEqual(null);
                                     appAccountManager.removeAccount("account_callback_repeatDelete", (err)=>{
                                         console.info("====>removeAccount ActsAccountAuthToken_2100 err:" + JSON.stringify(err));
@@ -1324,7 +1355,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>getAuthToken ActsAccountAuthToken_2200 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300107);
                 console.info("====>ActsAccountAuthToken_2200 removeAccount start====");
                 await appAccountManager.removeAccount("account_promise_repeatDelete");
                 console.info("====>ActsAccountAuthToken_2200 end====");
@@ -1345,7 +1376,7 @@ export default function ActsAccountAuthToken() {
                     appAccountManager.getAuthToken("account_callback_setEmptyToken",OWNERSELF,"authType", (err, data)=>{
                         console.info("====>getAuthToken ActsAccountAuthToken_2300 err:" + JSON.stringify(err));
                         console.info("====>getAuthToken ActsAccountAuthToken_2300 data:" + data);
-                        expect(err.code != 0).assertEqual(true);
+                        expect(err.code).assertEqual(12300107);
                         expect(data).assertEqual(null);
                         appAccountManager.removeAccount("account_callback_setEmptyToken", (err)=>{
                             console.info("====>removeAccount ActsAccountAuthToken_2300 err:" + JSON.stringify(err));
@@ -1438,7 +1469,7 @@ export default function ActsAccountAuthToken() {
             expect(err).assertEqual(null);
                 appAccountManager.setAuthToken("account_callback_exceed_limitToken","authType",limitToken,(err)=>{
                     console.info("====>getAuthToken ActsAccountAuthToken_2700 err:" + JSON.stringify(err));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300002);
                     appAccountManager.removeAccount("account_callback_exceed_limitToken", (err)=>{
                         console.info("====>removeAccount ActsAccountAuthToken_2700 err:" + JSON.stringify(err));
                         expect(err).assertEqual(null);
@@ -1465,7 +1496,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>setAuthToken ActsAccountAuthToken_2800 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 console.info("====>ActsAccountAuthToken_2800 removeAccount start====");
                 appAccountManager.removeAccount("account_promise_exceed_limitToken");
                 console.info("====>ActsAccountAuthToken_2800 end====");
@@ -1537,7 +1568,7 @@ export default function ActsAccountAuthToken() {
             expect(err).assertEqual(null);
                 appAccountManager.setAuthToken("account_callback_limitAuthType",limitAuthType,"account_callback_limitAuthType_token",(err, data)=>{
                     console.info("====>getAuthToken ActsAccountAuthToken_3100 err:" + JSON.stringify(err));
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300002);
                     appAccountManager.removeAccount("account_callback_limitAuthType", (err)=>{
                         console.info("====>removeAccount ActsAccountAuthToken_3100 err:" + JSON.stringify(err));
                         expect(err).assertEqual(null);
@@ -1564,7 +1595,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>setAuthToken ActsAccountAuthToken_3400 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 console.info("====>ActsAccountAuthToken_3400 removeAccount start====");
                 appAccountManager.removeAccount("account_promise_exceed_limitAuthType");
                 console.info("====>ActsAccountAuthToken_3400 end====");
@@ -1587,7 +1618,7 @@ export default function ActsAccountAuthToken() {
                 appAccountManager.getAuthToken("account_callback_limitAuthType","com.example.actsaccounttest",limitAuthType, (err, data)=>{
                     console.info("====>getAuthToken ActsAccountAuthToken_3300 err:" + JSON.stringify(err));
                     console.info("====>getAuthToken ActsAccountAuthToken_3300 data:" + data);
-                    expect(err.code!=0).assertEqual(true);
+                    expect(err.code).assertEqual(12300002);
                     appAccountManager.removeAccount("account_callback_limitAuthType", (err)=>{
                         console.info("====>removeAccount ActsAccountAuthToken_3300 err:" + JSON.stringify(err));
                         expect(err).assertEqual(null);
@@ -1613,7 +1644,7 @@ export default function ActsAccountAuthToken() {
             }
             catch(err){
                 console.info("====>getAuthToken ActsAccountAuthToken_3400 err:" + JSON.stringify(err));
-                expect(err.code != 0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 console.info("====>ActsAccountAuthToken_3400 removeAccount start====");
                 appAccountManager.removeAccount("account_promise_limitAuthType");
                 console.info("====>ActsAccountAuthToken_3400 end====");
@@ -2534,7 +2565,7 @@ export default function ActsAccountAuthToken() {
                     done();
                 }).catch((err)=>{
                     console.info("====>ActsAccountAuthToken_9900 setAuthTokenVisibility err:" + JSON.stringify(err));
-                    expect(err.code).assertEqual(AccountErrCode.ERR_JS_AUTH_TYPE_NOT_FOUND); 
+                    expect(err.code).assertEqual(12300107); 
                     appAccountManager.getAuthToken("account_setAuthTokenVisibility_name",OWNERSELF,"authType",(err,data)=>{
                         console.info("====>ActsAccountAuthToken_9900 getAuthToken err:" + JSON.stringify(err));
                         console.info("====>ActsAccountAuthToken_9900 getAuthToken data:" + data);
@@ -2638,6 +2669,37 @@ export default function ActsAccountAuthToken() {
                         });
                     });
                 });
+            });
+        });
+    
+        /*
+        * @tc.number    : ActsAccountAuthToken_10201
+        * @tc.name      : ActsAccountAuthToken_10201
+        * @tc.desc      : appAccount authToken scene testcases
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_10201', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_10201 start====");
+            var appAccountManager = account.createAppAccountManager();
+            await appAccountManager.createAccount("account_setAuthTokenVisibility_name");
+            console.info("====>ActsAccountAuthToken_10201 start setAuthToken");
+            await appAccountManager.setAuthToken("account_setAuthTokenVisibility_name","authType","test_token");
+            console.info("====>ActsAccountAuthToken_10201 start setAuthTokenVisibility");
+            try {
+                await appAccountManager.setAuthTokenVisibility("account_setAuthTokenVisibility_name","authType","",true);
+                console.info("====>run err");
+                expect().assertFail();
+            } catch (err) {
+                console.info("====>ActsAccountAuthToken_10201 setAuthTokenVisibility err:" + JSON.stringify(err));
+                expect(err.code==12300002).assertEqual(true);
+            }
+            appAccountManager.removeAccount("account_setAuthTokenVisibility_name",(err)=>{
+                console.info("====>ActsAccountAuthToken_10201 removeAccount err:" + JSON.stringify(err));
+                expect(err).assertEqual(null);
+                console.info("====>ActsAccountAuthToken_10201 end====");
+                done();
             });
         });
     
@@ -2856,6 +2918,27 @@ export default function ActsAccountAuthToken() {
             });
         });
     
+        /*
+        * @tc.number    : ActsAccountAuthToken_11001
+        * @tc.name      : ActsAccountAuthToken_11001
+        * @tc.desc      : appAccount authToken scene testcases setAuthTokenVisibility promise
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_11001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_11001 start====");
+            var appAccountManager = account.createAppAccountManager();
+            try {
+                await appAccountManager.setAuthTokenVisibility(" ","authType",valid_owner_name,true);
+                expect().assertFail();
+            } catch (err) {
+                console.info("====>ActsAccountAuthToken_10201 setAuthTokenVisibility err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(12300003);
+            }
+            done();
+        });
+    
         it('ActsAccountAuthToken_11100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
             var limitName = '';
             for(var i = 0; i < LENGTHLIMIT + 1; i++){
@@ -2914,6 +2997,32 @@ export default function ActsAccountAuthToken() {
             });
         });
     
+        /*
+        * @tc.number    : ActsAccountAuthToken_11501
+        * @tc.name      : ActsAccountAuthToken_11501
+        * @tc.desc      : appAccount authToken scene testcases
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_11501', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            var limitName = '';
+            for(var i = 0; i < LENGTHLIMIT + 1; i++){
+                limitName += 't';
+            }
+            console.info("====>ActsAccountAuthToken_11501 start====");
+            var appAccountManager = account.createAppAccountManager();
+            try {
+                await appAccountManager.checkAuthTokenVisibility(limitName,"authType",valid_owner_name);
+                console.info("====>run err");
+                expect().assertFail();
+            } catch (err) {
+                console.info("====>ActsAccountAuthToken_11501 setAuthTokenVisibility err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(12300002);
+            }
+            done();
+        });
+    
         it('ActsAccountAuthToken_11600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
             console.info("====>ActsAccountAuthToken_11600 start====");
             var appAccountManager = account.createAppAccountManager();
@@ -2922,6 +3031,28 @@ export default function ActsAccountAuthToken() {
                 expect(err.code).assertEqual(12300003);
                 done();
             });
+        });
+    
+        /*
+        * @tc.number    : ActsAccountAuthToken_11601
+        * @tc.name      : ActsAccountAuthToken_11601
+        * @tc.desc      : appAccount authToken scene testcases
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_11601', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_11601 start====");
+            var appAccountManager = account.createAppAccountManager();
+            try {
+                await appAccountManager.checkAuthTokenVisibility("no_add_account","authType",valid_owner_name);
+                console.info("====>run err");
+                expect().assertFail();
+            } catch (err) {
+                console.info("====>ActsAccountAuthToken_11601 setAuthTokenVisibility err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(12300003);
+            }
+            done();
         });
     
         it('ActsAccountAuthToken_11700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
@@ -3001,10 +3132,10 @@ export default function ActsAccountAuthToken() {
                     expect(err).assertEqual(null);
                     appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name",limitAuthType,valid_owner_name,(err,stateBack)=>{
                         console.info("====>ActsAccountAuthToken_11900 checkAuthTokenVisibility err:" + JSON.stringify(err));
-                        expect(err.code!=0).assertEqual(true);
+                        expect(err.code).assertEqual(12300002);
                         appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name",limitAuthType,OWNERSELF,(err,stateBack)=>{
                             console.info("====>ActsAccountAuthToken_11900 checkAuthTokenVisibility err:" + JSON.stringify(err));
-                            expect(err.code!=0).assertEqual(true);
+                            expect(err.code).assertEqual(12300002);
                             appAccountManager.removeAccount("account_checkAuthTokenVisibility_name",(err)=>{
                                 console.info("====>ActsAccountAuthToken_11900 removeAccount err:" + JSON.stringify(err));
                                 expect(err).assertEqual(null);
@@ -3047,6 +3178,47 @@ export default function ActsAccountAuthToken() {
             });
         });
     
+        /*
+        * @tc.number    : ActsAccountAuthToken_12001
+        * @tc.name      : ActsAccountAuthToken_12001
+        * @tc.desc      : appAccount authToken scene testcases checkAuthTokenVisibility promise 12300107
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_12001', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_12001 start====");
+            var appAccountManager = account.createAppAccountManager();
+            appAccountManager.createAccount("account_checkAuthTokenVisibility_name",(err)=>{
+                console.info("====>ActsAccountAuthToken_12001 createAccount err:" + JSON.stringify(err));
+                expect(err).assertEqual(null);
+                appAccountManager.setAuthToken("account_checkAuthTokenVisibility_name","authType","test_token",(err)=>{
+                    console.info("====>ActsAccountAuthToken_12001 setAuthToken err:" + JSON.stringify(err));
+                    expect(err).assertEqual(null);
+                    appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name","invalid_authType",valid_owner_name).then((data) =>{
+                        console.info("====>ActsAccountCheckAccountLabels_0600 run err");
+                        expect().assertFail();
+                        done();
+                    }).catch((err) =>{
+                        console.info("====>ActsAccountAuthToken_12001 checkAuthTokenVisibility err:" + JSON.stringify(err));
+                        expect(err.code).assertEqual(12300107);
+                        appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name","invalid_authType",OWNERSELF,(err,stateBack)=>{
+                            console.info("====>ActsAccountAuthToken_12001 checkAuthTokenVisibility err:" + JSON.stringify(err));
+                            console.info("====>ActsAccountAuthToken_12001 checkAuthTokenVisibility stateBack:" + stateBack);
+                            expect(err).assertEqual(null);
+                            expect(stateBack).assertEqual(true);
+                            appAccountManager.removeAccount("account_checkAuthTokenVisibility_name",(err)=>{
+                                console.info("====>ActsAccountAuthToken_12001 removeAccount err:" + JSON.stringify(err));
+                                expect(err).assertEqual(null);
+                                console.info("====>ActsAccountAuthToken_12001 end====");
+                                done();
+                            });
+                        });  
+                    });  
+                });
+            });
+        });
+    
         it('ActsAccountAuthToken_12100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
             console.info("====>ActsAccountAuthToken_12100 start====");
             var appAccountManager = account.createAppAccountManager();
@@ -3059,7 +3231,7 @@ export default function ActsAccountAuthToken() {
                     appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name","authType","",(err,stateBack)=>{
                         console.info("====>ActsAccountAuthToken_12100 checkAuthTokenVisibility err:" + JSON.stringify(err));
                         console.info("====>ActsAccountAuthToken_12100 checkAuthTokenVisibility stateBack:" + stateBack);
-                        expect(err.code!=0).assertEqual(true);
+                        expect(err.code).assertEqual(12300002);
                         appAccountManager.removeAccount("account_checkAuthTokenVisibility_name",(err)=>{
                             console.info("====>ActsAccountAuthToken_12100 removeAccount err:" + JSON.stringify(err));
                             expect(err).assertEqual(null);
@@ -3112,7 +3284,7 @@ export default function ActsAccountAuthToken() {
                     appAccountManager.checkAuthTokenVisibility("account_checkAuthTokenVisibility_name","authType",limitBundleName,(err,stateBack)=>{
                         console.info("====>ActsAccountAuthToken_12300 checkAuthTokenVisibility err:" + JSON.stringify(err));
                         console.info("====>ActsAccountAuthToken_12300 checkAuthTokenVisibility stateBack:" + stateBack);
-                        expect(err.code!=0).assertEqual(true);
+                        expect(err.code).assertEqual(12300002);;
                         appAccountManager.removeAccount("account_checkAuthTokenVisibility_name",(err)=>{
                             console.info("====>ActsAccountAuthToken_12300 removeAccount err:" + JSON.stringify(err));
                             expect(err).assertEqual(null);
@@ -3165,11 +3337,50 @@ export default function ActsAccountAuthToken() {
                         expect(err).assertEqual(null);
                         appAccountManager.getAuthList("account_testgetAuthList_name"," ",(err,dataArray)=>{
                             console.info("====>ActsAccountAuthToken_12500 getAuthList err:" + JSON.stringify(err));
-                            expect(err.code).assertEqual(AccountErrCode.ERR_JS_AUTH_TYPE_NOT_FOUND);
+                            expect(err.code).assertEqual(12300107);
                             appAccountManager.removeAccount("account_testgetAuthList_name",(err)=>{
                                 console.info("====>ActsAccountAuthToken_12500 removeAccount err:" + JSON.stringify(err));
                                 expect(err).assertEqual(null);
                                 console.info("====>ActsAccountAuthToken_12500 end====");
+                                done();
+                            });
+                        });    
+                    });
+                });
+            });
+        });
+    
+        /*
+        * @tc.number    : ActsAccountAuthToken_12501
+        * @tc.name      : ActsAccountAuthToken_12501
+        * @tc.desc      : appAccount authToken scene testcases
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        * @tc.level     : Level 3
+        */
+        it('ActsAccountAuthToken_12501', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountAuthToken_12501 start====");
+            var appAccountManager = account.createAppAccountManager();
+            appAccountManager.createAccount("account_testgetAuthList_name",(err)=>{
+                console.info("====>ActsAccountAuthToken_12501 createAccount err:" + JSON.stringify(err));
+                expect(err).assertEqual(null);
+                appAccountManager.setAuthToken("account_testgetAuthList_name","authType","test_token",(err)=>{
+                    console.info("====>ActsAccountAuthToken_12501 setAuthToken err:" + JSON.stringify(err));
+                    expect(err).assertEqual(null);
+                    appAccountManager.setAuthTokenVisibility("account_testgetAuthList_name","authType",valid_owner_name,true,(err)=>{
+                        console.info("====>ActsAccountAuthToken_12501 setAuthTokenVisibility err:" + JSON.stringify(err));
+                        expect(err).assertEqual(null);
+                        appAccountManager.getAuthList("account_testgetAuthList_name"," ").then((dataArray)=>{
+                            console.info("====>ActsAccountAuthToken_12501 getAuthList run err");
+                            expect().assertEqual();
+                            done();
+                        }).catch((err)=>{
+                            console.info("====>ActsAccountAuthToken_12501 getAuthList err:" + JSON.stringify(err));
+                            expect(err.code).assertEqual(12300107);
+                            appAccountManager.removeAccount("account_testgetAuthList_name",(err)=>{
+                                console.info("====>ActsAccountAuthToken_12501 removeAccount err:" + JSON.stringify(err));
+                                expect(err).assertEqual(null);
+                                console.info("====>ActsAccountAuthToken_12501 end====");
                                 done();
                             });
                         });    
@@ -3196,7 +3407,7 @@ export default function ActsAccountAuthToken() {
                         expect(err).assertEqual(null);
                         appAccountManager.getAuthList("account_testgetAuthList_name",limitAuthType,(err,dataArray)=>{
                             console.info("====>ActsAccountAuthToken_12600 getAuthList err:" + JSON.stringify(err));
-                            expect(err.code!=0).assertEqual(true);
+                            expect(err.code).assertEqual(12300002);
                             console.info("====>ActsAccountAuthToken_12600 getAuthList dataArray:" + JSON.stringify(dataArray));
                             expect(dataArray).assertEqual(null);
                             appAccountManager.removeAccount("account_testgetAuthList_name",(err)=>{
@@ -3215,13 +3426,14 @@ export default function ActsAccountAuthToken() {
             console.info("====>ActsAccountAuthToken_12700 start====");
             var appAccountManager = account.createAppAccountManager();
             appAccountManager.getAuthList("","authType").then((dataArray)=>{
-                console.info("====>ActsAccountAuthToken_12700 getAuthList dataArray:" + JSON.stringify(dataArray));                
-                expect(dataArray.length).assertEqual(0);
+                console.info("====>ActsAccountAuthToken_12700 getAuthList run err");
+                expect().assertEqual();
                 done();
             }).catch((err)=>{
-                expect(err.code!=0).assertEqual(true);
+                console.info("====>ActsAccountAuthToken_12800 getAuthList err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(12300002);
                 done();
-            })
+            });
         });
     
         it('ActsAccountAuthToken_12800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
@@ -3230,7 +3442,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAuthList(" ","authType",(err,dataArray)=>{
                 console.info("====>ActsAccountAuthToken_12800 getAuthList err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_12800 getAuthList dataArray:" + JSON.stringify(dataArray));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 expect(dataArray).assertEqual(null);
                 done();
             });
@@ -3246,7 +3458,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAuthList(limitName,"authType",(err,dataArray)=>{
                 console.info("====>ActsAccountAuthToken_12900 getAuthList err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_12900 getAuthList dataArray:" + JSON.stringify(dataArray));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300002);
                 expect(dataArray).assertEqual(null);
                 done();
             });
@@ -3258,7 +3470,7 @@ export default function ActsAccountAuthToken() {
             appAccountManager.getAuthList("no_add_account","authType",(err,dataArray)=>{
                 console.info("====>ActsAccountAuthToken_13000 getAuthList err:" + JSON.stringify(err));
                 console.info("====>ActsAccountAuthToken_13000 getAuthList dataArray:" + JSON.stringify(dataArray));
-                expect(err.code!=0).assertEqual(true);
+                expect(err.code).assertEqual(12300003);
                 expect(dataArray).assertEqual(null);
                 done();
             });

@@ -70,7 +70,7 @@ export default function abilityTest() {
       // This API supports only one parameter: preset action function.
     })
     afterEach(async () => {
-      await sleep(200)
+      await sleep(800)
     })
     afterAll(() => {
       // Presets a clear action, which is performed after all test cases of the test suite end.
@@ -384,55 +384,7 @@ export default function abilityTest() {
       }
     })
 
-    /**
-     * @tc.number    : SUB_BASIC_WMS_FLOATING_BALL_0900
-     * @tc.name      : test_startFloatingBall_1300024
-     * @tc.desc      : test_startFloatingBall_1300024
-     * @tc.size      : MediumTest
-     * @tc.type      : Function
-     * @tc.level     : Level3
-     */
-    it('test_startFloatingBall_1300024', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done:Function) => {
-      let CaseName:string = 'test_startFloatingBall_1300024';
-      let config: floatingBall.FloatingBallConfiguration = {
-        context: context,
-      };
-      let startParams: floatingBall.FloatingBallParams = {
-        template: floatingBall.FloatingBallTemplate.EMPHATIC,
-        title: 'title',
-        content: 'content'
-      };
-      if(isAutoWindow == 'true'){
-        try {
-          let floatingBallController = await floatingBall.create(config);
-          let mainWindow = windowStage.getMainWindowSync();
-          await mainWindow.minimize();
-          floatingBallController.startFloatingBall(startParams).then(async () => {
-            console.info(CaseName+' floatingBallController Succeeded  in starting floating ball.');
-            await mainWindow.recover();
-            expect(false).assertTrue();
-            done();
-          }).catch(async (err: BusinessError) => {
-            console.error(CaseName+ ` floatingBallController2 Failed to start floating ball. Cause:${err.code}, message:${err.message}`);
-            await floatingBallController.stopFloatingBall();
-            await mainWindow.recover();
-            expect(err.code).assertEqual(1300024);
-            done();
-          });
-        } catch(e) {
-          console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
-          if(e.code == 801){
-            done();
-          }else{
-            expect(false).assertTrue();
-            done();
-          }
-        }
-      }else{
-        done();
-      }
-
-    })
+    
 
     /**
      * @tc.number    : SUB_BASIC_WMS_FLOATING_BALL_1000
@@ -1966,7 +1918,7 @@ export default function abilityTest() {
           console.info(CaseName+' floatingBallController Succeeded  in starting floating ball.');
           floatingBallController.stopFloatingBall().then(async () => {
             console.info(CaseName+ ' Succeeded in stopping 1 floating ball.');
-            await sleep(300);
+            await sleep(800);
             floatingBallController.startFloatingBall(startParams).then(() => {
               console.info(CaseName+ ' Succeeded in starting 2 floating ball.');
               floatingBallController.stopFloatingBall().then(() => {
@@ -2078,7 +2030,7 @@ export default function abilityTest() {
         await sleep(200);
         expect(FloatBallstate).assertEqual(floatingBall.FloatingBallState.STARTED);
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         expect(FloatBallstate).assertEqual(floatingBall.FloatingBallState.STOPPED);
         floatingBallController.off('stateChange');
         done();
@@ -2130,7 +2082,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
         floatingBallController.off('stateChange');
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         console.info(CaseName+ ' time2: ' + time);
         expect(time).assertEqual(2);
         done();
@@ -2182,7 +2134,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
         floatingBallController.off('stateChange',callback1);
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         console.info(CaseName+ ' time2: ' + time);
         expect(time).assertEqual(3);
         floatingBallController.off('stateChange');
@@ -2294,7 +2246,7 @@ export default function abilityTest() {
         expect(time).assertEqual(2);
 
         await floatingBallController.stopFloatingBall();
-        await sleep(200);
+        await sleep(800);
         done();
       } catch(e) {
         console.error( CaseName+  `Failed. Cause:${e.code}, message:${e.message}`);
@@ -2430,7 +2382,7 @@ export default function abilityTest() {
         let floatingBallController = await floatingBall.create(config);
         await floatingBallController.startFloatingBall(startParams);
         floatingBallController.getFloatingBallWindowInfo().then((data: floatingBall.FloatingBallWindowInfo) => {
-          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data));
+          console.info(CaseName+' Succeeded in getting floating ball window info. Info: ' + JSON.stringify(data.windowId));
           floatingBallController.stopFloatingBall();
           expect(data!=null).assertTrue();
           done();

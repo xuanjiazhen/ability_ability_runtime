@@ -73,7 +73,6 @@
     "pages/Player/Player_index",
     "pages/Experience/Experience_index",
     "pages/Experience/StartTaskManager",
-    "pages/Experience/StartNotification",
     "pages/Player/PlayAudio",
     "pages/Player/PlayVideo",
     "pages/Player/PlayAudioList",
@@ -135,6 +134,7 @@
     "pages/ArkUI/StylusPen",
     "pages/ArkUI/KeyEvent",
     "pages/ArkUI/CapiKeyEvent",
+    "pages/ArkUI/enableDropDisallowedBadge",
     "pages/ArkUI/AccessibilityFocusDrawLevel",
     "entryembeddeduiextability/pages/EntryEmbeddedUIExtAbilityPage",
     "pages/ArkUI/AccessibilityNextFocusIdPage",
@@ -153,6 +153,15 @@
     "pages/ArkUI/PinchGestureListener",
     "pages/ArkUI/RotationGestureListener",
     "pages/ArkUI/PanGestureListener",
-    "pages/ArkUI/AccessibilityShowStepOptions"
+    "pages/ArkUI/AccessibilityShowStepOptions",
+    "pages/ArkUI/cancelTouch",
+    "pages/ArkUI/fingerInfos",
+    "pages/ArkUI/bindPopupTest",
+    "pages/ArkUI/AccessibilityHoverEvent",
+    "pages/ArkUI/CapiDragAction",
+    "pages/ArkUI/CapiDragEvent",
+    "pages/ArkUI/SliderTest",
+    "pages/ArkUI/ModalTransition",
+    "pages/ArkUI/BindContentCoverOption"
   ]
 }

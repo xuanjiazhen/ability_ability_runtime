@@ -121,7 +121,6 @@ export default function graphicTextHadTest() {
           try {
             let ParagraphGraphBuilder = new text.ParagraphBuilder(myParagraphStyle, fontCollection);
             console.log(msg + ' Succeed in text.ParagraphBuilder')
-            expect(true).assertTrue()
             done()
           } catch (err) {
             console.info(msg + ' Failed in fontCollection.ParagraphBuilder.    Cause: ' + JSON.stringify(err));
@@ -174,7 +173,6 @@ export default function graphicTextHadTest() {
         let runs = lines[0].getGlyphRuns();
         let glyph = runs[0].getGlyphs();
         console.info(msg + ' glyph: ' + glyph);
-        expect(true).assertTrue()
         done()
       }catch(err){
         console.info(msg + ' getGlyphs error ' + JSON.stringify(err));
@@ -213,7 +211,6 @@ export default function graphicTextHadTest() {
         let runs = lines[0].getGlyphRuns();
         let positions = runs[0].getPositions();
         console.info(msg + ' positions: ' + positions);
-        expect(true).assertTrue()
         done()
       }catch(err){
         console.info(msg + ' getPositions error ' + JSON.stringify(err));

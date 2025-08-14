@@ -615,7 +615,6 @@ export default function imagePixelMapErrorCodeTest() {
             done();
           } else {
             console.info("www data Succeeded in setting opacity.");
-            expect(true).assertTrue();
             done();
           }
         })
@@ -640,7 +639,6 @@ export default function imagePixelMapErrorCodeTest() {
       if (pixelMap != undefined) {
         pixelMap.opacity(rate).then(() => {
           console.info('www data Succeeded in setting opacity.');
-          expect(true).assertTrue();
           done();
         }).catch((err: BusinessError) => {
           console.error(`www data Failed to set opacity. code is ${err.code}, message is ${err.message}`);
@@ -670,7 +668,6 @@ export default function imagePixelMapErrorCodeTest() {
         try {
           pixelMap.setColorSpace(csm);
           console.error('www data succeed in setColorSpace.');
-          expect(true).assertTrue();
           done();
         } catch(err){
           console.error(`www data Failed to. code is ${err.code}, message is ${err.message}`);
@@ -769,7 +766,6 @@ export default function imagePixelMapErrorCodeTest() {
             done();
           } else {
             console.info('Succeeded in applying color space for pixelmap object.');
-            expect(true).assertTrue();
             done();
           }
         })
@@ -795,7 +791,6 @@ export default function imagePixelMapErrorCodeTest() {
       if (pixelMap != undefined) {
         pixelMap.applyColorSpace(targetColorSpace).then(() => {
           console.info('Succeeded in applying color space for pixelmap object.');
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(`Failed to apply color space for pixelmap object, error code is ${error}`);

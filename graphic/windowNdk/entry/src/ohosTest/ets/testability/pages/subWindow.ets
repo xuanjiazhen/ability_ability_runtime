@@ -21,12 +21,39 @@ struct subWindow {
     console.info('TestAbility1 index aboutToAppear')
   }
   @State message: string = 'Hello World subWindow'
+  @State text: string = 'Button';
+  @State outSetValueOne: number = 40;
   build() {
     Row() {
       Column() {
         Text(this.message)
-          .fontSize(50)
+          .fontSize(20)
           .fontWeight(FontWeight.Bold)
+        Button(this.text)
+          .fontSize(20)
+          .id('buttonId')
+          .onClick(()=>{
+            this.text = 'TextChanged';
+          })
+        Row() {
+          Slider({
+            value: this.outSetValueOne,
+            min: 0,
+            max: 100,
+            style: SliderStyle.OutSet
+          })
+            .id('sliderId')
+            .showTips(true)
+            .onChange((value: number, mode: SliderChangeMode) => {
+              this.outSetValueOne = value;
+              console.info('value:' + value + 'mode:' + mode.toString());
+            })
+          // toFixed(0)将滑动条返回值处理为整数精度
+          Text(this.outSetValueOne.toFixed(0))
+            .fontSize(12)
+            .id('sliderTextId')
+        }
+        .width('80%')
       }
       .width('100%')
     }

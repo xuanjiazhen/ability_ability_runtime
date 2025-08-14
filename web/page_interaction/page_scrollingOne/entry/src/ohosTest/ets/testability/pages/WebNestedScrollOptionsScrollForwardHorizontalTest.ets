@@ -61,7 +61,6 @@ struct WebNestedScrollOptionsScrollForwardHorizontalTest {
           let X = Utils.getRectHorizontalCenterX(webRect)
           let Y = Utils.getRectVerticalCenterY(webRect)
           switch (this.str) {
-
             case "testNestedScrollOptionsScrollForwardHorizontal001": {
               try {
                 this.scrollForwardEnums = NestedScrollMode.SELF_ONLY
@@ -82,7 +81,6 @@ struct WebNestedScrollOptionsScrollForwardHorizontalTest {
               }
               break;
             }
-
             case "testNestedScrollOptionsScrollForwardHorizontal002": {
               try {
                 this.scrollForwardEnums = NestedScrollMode.SELF_FIRST

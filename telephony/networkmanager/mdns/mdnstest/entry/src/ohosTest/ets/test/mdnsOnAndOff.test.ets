@@ -420,10 +420,12 @@ export default function NetworkManagerMdnsTest() {
           } else {
             console.log(`${caseName} addLocalService success `);
             discoveryService.startSearchingMDNS();
-            removeTheService(localServiceInfo);
-            discoveryService.stopSearchingMDNS();
           }
         });
+        await sleep(3000);
+        removeTheService(localServiceInfo);
+        await sleep(200);
+        discoveryService.stopSearchingMDNS();
       }catch (err) {
         console.info(`${caseName} catch err is `+JSON.stringify(err));
         ExpectFail();

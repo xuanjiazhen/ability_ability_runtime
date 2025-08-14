@@ -23,15 +23,16 @@ import audioSessionManagerTest from  './AudioSessionManager.test'
 import audioSessionManagerErrorTest from  './AudioSessionManagerError.test'
 import audioLoudnessGainTest from  './AudioLoudnessGain.test'
 
+
 let voice = call.hasVoiceCapability()
 export default function testsuite() {
     if (voice){
         audioSessionManagerTest()
-        audioSessionManagerErrorTest()
         audioRendererTest()
         AudioRendererInterruptUnitTest()
         AudioEffectTest()
         maxAmplitudeFor()
+        audioSessionManagerErrorTest()
     }else{
         audioRendererTestPc();
     }

@@ -13,7 +13,7 @@
 import("//build/ohos_var.gni")
 import("//test/xts/tools/build/suite.gni")
 
-group("toolchain") {
+ohos_xts_group("toolchain") {
   testonly = true
   deps = [ "//third_party/musl:libctest" ]
   if (is_standard_system) {
@@ -21,7 +21,7 @@ group("toolchain") {
   }
 }
 
-action("tar_testcases") {
+ohos_xts_action("tar_testcases") {
   testonly = true
   deps = [
     "libc-test:ActsToolChainTest",
@@ -57,7 +57,7 @@ action("tar_testcases") {
   ]
 }
 
-action("tar_dllib") {
+ohos_xts_action("tar_dllib") {
   testonly = true
   deps = [ ":tar_testcases" ]
   project_dir = rebase_path(".")

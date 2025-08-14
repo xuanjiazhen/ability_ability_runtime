@@ -31,7 +31,7 @@
 #define FAIL (-1)
 #define SUCCESS 1
 #define MAGICNUM (-0.5385416161050316)
-#define MAGICYNFNUM (-0.5385416746139526)
+#define MAGICYNFNUM (-0.538542)
 #define PARAM_FAIL (-1)
 #define PARAM_0 0
 #define PARAM_1 1
@@ -39,6 +39,7 @@
 #define PARAM_3 3
 #define PARAM_30 3.0
 #define PARAM_UNNORMAL (-1)
+#define EPSILON_1 (1e-6)
 
 static napi_value LLround(napi_env env, napi_callback_info info)
 {
@@ -2893,11 +2894,17 @@ static napi_value Yn(napi_env env, napi_callback_info info)
     }
     return result;
 }
+
+static int FloatEqual(float a, float b, float epsilon)
+{
+    return fabs(a - b) < epsilon;
+}
+
 static napi_value Ynf(napi_env env, napi_callback_info info)
 {
-    double ret = ynf(PARAM_3, PARAM_30);
+    float ret = ynf(PARAM_3, PARAM_30);
     napi_value result = nullptr;
-    if (ret == MAGICYNFNUM) {
+    if (FloatEqual(ret, MAGICYNFNUM, EPSILON_1)) {
         napi_create_double(env, PARAM_0, &result);
     } else {
         napi_create_double(env, PARAM_UNNORMAL, &result);

@@ -270,32 +270,6 @@ import RichEditorCustomSpan016 from './RichEditorCustomSpanTest/RichEditorCustom
 import RichEditorCustomSpan017 from './RichEditorCustomSpanTest/RichEditorCustomSpan017.test'
 export default function testsuite() {
   textAreaInputTest();
-  RichEditorApi5();
-  searchTest();
-  styledStringChange();
-  onSelectionChange1();
-  onSelectionChange4();
-  onSelectionChange5();
-  onSelectionChange6();
-  onSelectionChange7();
-  onSelectionChange8();
-  onSelectionChange10();
-  onSelectionChange15();
-  onSelectionChange18();
-  onSelectionChange19();
-  RichEditorMenuPolicyJsunit();
-  RichEditor1();
-  RichEditor3();
-  RichEditor4();
-  RichEditor5();
-  RichEditor6();
-  RichEditor7();
-  RichEditor11();
-  onDidIMEInputTest();
-  editMeunOptionsTest();
-  RichEditorApi1();
-  setTextSelection();
-  TextDeleteDirectionTest();
 
   RichEditor001();
   RichEditor002();
@@ -490,4 +464,31 @@ export default function testsuite() {
 
   RichEditorCustomSpan016();
   RichEditorCustomSpan017();
+
+  RichEditorApi5();
+  searchTest();
+  styledStringChange();
+  onSelectionChange1();
+  onSelectionChange4();
+  onSelectionChange5();
+  onSelectionChange6();
+  onSelectionChange7();
+  onSelectionChange8();
+  onSelectionChange10();
+  onSelectionChange15();
+  onSelectionChange18();
+  onSelectionChange19();
+  RichEditorMenuPolicyJsunit();
+  RichEditor1();
+  RichEditor3();
+  RichEditor4();
+  RichEditor5();
+  RichEditor6();
+  RichEditor7();
+  RichEditor11();
+  onDidIMEInputTest();
+  editMeunOptionsTest();
+  RichEditorApi1();
+  setTextSelection();
+  TextDeleteDirectionTest();
 }

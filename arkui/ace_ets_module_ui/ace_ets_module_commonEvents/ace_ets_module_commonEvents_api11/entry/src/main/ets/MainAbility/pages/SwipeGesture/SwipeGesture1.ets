@@ -19,14 +19,15 @@ struct SwipeGesture1 {
   @State rotateAngle1: number = 0
   @State speed: number = 1
   build() {
+    Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
     Column() {
       Column() {
         Text('RotationGesture angle:' + this.angle).key('Swipe1')
         Text(String(Math.round(this.rotateAngle))).key('Swipe2')
       }
       .key('SwipeGesture1')
-      .height(150)
-      .width(200)
+      .height("90%")
+      .width("100%")
       .backgroundColor(0x008000)
       .rotate({ angle: this.angle })
       .gesture(
@@ -41,8 +42,8 @@ struct SwipeGesture1 {
         Text(String(Math.round(this.rotateAngle1))).key('Swipe7')
       }
       .key('SwipeGesture4')
-      .height(150)
-      .width(200)
+      .height("90%")
+      .width("100%")
       .backgroundColor(0x008000)
       .rotate({ angle: this.angle })
       .gesture(
@@ -54,8 +55,11 @@ struct SwipeGesture1 {
           })
       )
     }
-    .height(150)
-    .width(200)
+    .height("25%")
+    .width("50%")
     .backgroundColor(0xffa500)
+    }
+    .height('100%')
+    .width('100%')
   }
 }

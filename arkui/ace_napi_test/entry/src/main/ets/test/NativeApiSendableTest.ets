@@ -83,7 +83,6 @@ export default function nativeApiSendableJsunit() {
       let p0 = p.then(() => {
         expect(true).assertFalse();
       }, () => {
-        expect(true).assertTrue();
       })
       await Promise.all([p0])
       done();

@@ -54,7 +54,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.loadContent fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -80,7 +84,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.loadContentByName fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -112,7 +120,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.terminateSelfWithResult fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -144,7 +156,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.terminateSelfWithResult fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -176,7 +192,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.setWindowPrivacyMode fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -208,7 +228,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         console.error(`session.setWindowPrivacyMode fail, error: ${JSON.stringify(error)}`);
         if (error.code == 401) {
           globalThis.errCode = error.code
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+          commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':error?.code,
+            }
+          }, function () {
             console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
             setTimeout(() => {
               session?.terminateSelf((err: BusinessError) => {
@@ -244,7 +268,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
           console.error(`Failed to startAbilityByType, code: ${err.code}, msg: ${err.message}`);
           if (err.code == 16000050) {
             globalThis.errCode = err.code
-            commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+            commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':err?.code,
+            }
+          }, function () {
               console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
               setTimeout(() => {
                 session?.terminateSelf((err: BusinessError) => {
@@ -272,9 +300,6 @@ export default class UIExtensionProvider extends UIExtensionAbility {
         onResult: (result: common.AbilityResult) => {
           console.info(`onResult, result: ${JSON.stringify(result)}`);
           console.error(`Test case execution results do not match expected outcomes.`);
-          commonEventManager.publish('ACTS_TEST_DESTROY', function () {
-            console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
-          });
         }
       };
       session.startAbilityByType('xxxxxx', wantParams, abilityStartCallback)
@@ -285,7 +310,11 @@ export default class UIExtensionProvider extends UIExtensionAbility {
           console.error(`Failed to startAbilityByType, code: ${err.code}, msg: ${err.message}`);
           if (err.code == 16000050) {
             globalThis.errCode = err.code
-            commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+            commonEventManager.publish('ACTS_TEST_DESTROY', {
+            parameters: {
+              'result':err?.code,
+            }
+          }, function () {
               console.info(`${caseTag} publish ACTS_TEST_DESTROY`);
               setTimeout(() => {
                 session?.terminateSelf((err: BusinessError) => {

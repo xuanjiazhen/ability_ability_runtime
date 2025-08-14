@@ -58,7 +58,7 @@ private:
         reserveDown->SetWidth(SIZE_110);
         reserveDown->SetHeight(SIZE_60);
         list->SetWidth(SIZE_110);
-        list->SetHeight(SIZE_200);
+        list->SetHeight(SIZE_100);
         list->SetLazyAdapter(adapter);
         list->SetNestedScroll(forward, backward);
         auto item = list->getAttribute(NODE_SCROLL_NESTED_SCROLL);
@@ -73,12 +73,12 @@ private:
         column->AddChild(reserveTop);
         column->AddChild(list);
         column->AddChild(reserveDown);
-        scroll->SetHeight(SIZE_200);
+        scroll->SetHeight(SIZE_100);
         scroll->AddChild(column);
         scroll->SetScrollScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
         scroll->SetId(id);
         if (up) {
-            scroll->SetScrollTo(PARAM_0, SIZE_200, {});
+            scroll->SetScrollTo(PARAM_0, SIZE_100, {});
             list->SetListScrollToIndex(size - PARAM_1, PARAM_0, PARAM_0);
         }
         return scroll;
@@ -100,7 +100,7 @@ private:
         reserveDown->SetWidth(SIZE_110);
         reserveDown->SetHeight(SIZE_60);
         list->SetWidth(SIZE_110);
-        list->SetHeight(SIZE_200);
+        list->SetHeight(SIZE_100);
         list->SetLazyAdapter(adapter);
         list->SetBorderWidth(PARAM_1, PARAM_1, PARAM_1, PARAM_1);
         list->SetNestedScroll(forward, backward);
@@ -117,13 +117,13 @@ private:
         column->AddChild(reserveTop);
         column->AddChild(list);
         column->AddChild(reserveDown);
-        scroll->SetHeight(SIZE_200);
+        scroll->SetHeight(SIZE_100);
         scroll->AddChild(column);
         scroll->SetBorderWidth(PARAM_1, PARAM_1, PARAM_1, PARAM_1);
         scroll->SetScrollScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_OFF);
         scroll->SetId(id);
         if (up) {
-            scroll->SetScrollTo(PARAM_0, SIZE_200, {});
+            scroll->SetScrollTo(PARAM_0, SIZE_100, {});
             list->SetListScrollToIndex(size - PARAM_1, PARAM_0, PARAM_0);
         }
         return scroll;

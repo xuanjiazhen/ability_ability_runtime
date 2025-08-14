@@ -585,17 +585,17 @@ export default function intelligenceTest() {
       console.info(TAG + "intelligenceApiTest2600 start");
 
       if (currentDeviceIsPc) {
-        await intelligence.getImageEmbeddingModel(undefined)
-          .then((data) => {
-            console.info(TAG + "getImageEmbeddingModel success :" + data);
-            expect().assertFail();
-            done();
-          })
-          .catch((err: BusinessError) => {
-            console.info(TAG + "get promise result" + err.code);
-            expect(err.code).assertEqual(401);
-            done();
-          })
+        try {
+          await intelligence.getImageEmbeddingModel(undefined);
+          console.info(TAG + "getImageEmbeddingModel success :" );
+          expect().assertFail();
+          done();
+        }
+        catch (err) {
+          console.info(TAG + "get promise result" + err.code);
+          expect(err.code).assertEqual(401);
+          done();
+        }
       } else {
         intelligence.getImageEmbeddingModel(imageConfig)
           .then((data) => {
@@ -624,17 +624,16 @@ export default function intelligenceTest() {
     it("intelligenceApiTest2700", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
       console.info(TAG + "intelligenceApiTest2700 start");
       if (currentDeviceIsPc) {
-        await intelligence.getTextEmbeddingModel(undefined)
-          .then((data) => {
-            console.info(TAG + "getTextEmbeddingModel success :" + data);
-            expect().assertFail();
-            done();
-          })
-          .catch((err: BusinessError) => {
-            console.info(TAG + "getTextEmbeddingModel fail" + err.code);
-            expect(err.code).assertEqual(401);
-            done();
-          })
+        try {
+          await intelligence.getTextEmbeddingModel(undefined);
+          console.info(TAG + "getTextEmbeddingModel success :");
+          expect().assertFail();
+          done();
+        } catch(err) {
+              console.info(TAG + "getTextEmbeddingModel fail" + err.code);
+              expect(err.code).assertEqual(401);
+              done();
+            }
       } else {
         intelligence.getTextEmbeddingModel(textConfig)
           .then((data) => {
@@ -668,16 +667,24 @@ export default function intelligenceTest() {
         "日常生活中，我们对接触到的事物，会产生一个不假思索地看法，或者说直觉性的认知.百科全书里这样解释道“ 认知包括感觉、知觉、记忆、思维、想象和语言等。";
       let config: intelligence.SplitConfig = {
         size: 50,
-        overlapRatio: 0.5
+        overlapRatio: 2
       };
       if (currentDeviceIsPc) {
         try {
-          await intelligence.splitText(text, null);
-          expect().assertFail();
-          done();
+          await intelligence.splitText(text, config)
+            .then(() =>{
+              expect().assertFail();
+              done();
+            })
+            .catch((err:BusinessError) =>{
+              console.info(TAG + 'splitText is fail' +err.message + err.code);
+              expect(err.code).assertEqual(31300000);
+              done();
+            })
         } catch (err) {
           console.info(TAG + 'splitText is fail' +err.message + err.code);
           expect(err.code).assertEqual(401);
+          done();
         }
       } else {
         await intelligence.splitText(text, config)
@@ -711,17 +718,16 @@ export default function intelligenceTest() {
           .then(async (data) => {
             console.info(TAG + "get result :" + data);
             await data.loadModel();
-            data.getEmbedding(undefined)
-              .then((loadData) => {
-                console.info(TAG + "getEmbedding result 1200 :" + loadData);
-                expect().assertFail();
-                done();
-              })
-              .catch((err: BusinessError) => {
-                console.error("Failed to get Embedding and code is " + err.code);
-                expect(err.code).assertEqual(401);
-                done();
-              })
+            try {
+              data.getEmbedding(undefined)
+              console.info(TAG + "getEmbedding is success 2900 :");
+                  expect().assertFail();
+                  done();
+                } catch(err){
+                  console.error("Failed to get Embedding and code is " + err.code);
+                  expect(err.code).assertEqual(401);
+                  done();
+            }
           })
       } else {
         intelligence.getImageEmbeddingModel(imageConfig)
@@ -754,16 +760,24 @@ export default function intelligenceTest() {
         "日常生活中，我们对接触到的事物，会产生一个不假思索地看法，或者说直觉性的认知.百科全书里这样解释道“ 认知包括感觉、知觉、记忆、思维、想象和语言等。";
       let config: intelligence.SplitConfig = {
         size: 50,
-        overlapRatio: 10
+        overlapRatio: 50
       };
       if (currentDeviceIsPc) {
         try {
-          await intelligence.splitText(text, config);
-          expect().assertFail();
-          done();
+          await intelligence.splitText(text, config)
+            .then(() =>{
+              expect().assertFail();
+              done();
+            })
+            .catch((err:BusinessError) =>{
+              console.info(TAG + 'splitText is fail' +err.message + err.code);
+              expect(err.code).assertEqual(31300000);
+              done();
+            })
         } catch (err) {
           console.info(TAG + 'splitText is fail' +err.message + err.code);
-          expect(err.code).assertEqual(31300000);
+          expect(err.code).assertEqual(401);
+          done();
         }
       } else {
         await intelligence.splitText(text, config)
@@ -779,23 +793,236 @@ export default function intelligenceTest() {
           })
       }
     })
+	
+	
+	/**
+     * @tc.name intelligenceApiTest3100
+     * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_3100
+     * @tc.desc getTextEmbeddingModel loadModel interface test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+
+    it("intelligenceApiTest3100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      console.info(TAG + "intelligenceApiTest3100 start");
+      if (currentDeviceIsPc) {
+        try {
+          intelligence.getTextEmbeddingModel(textConfig)
+            .then((data) => {
+              console.info(TAG + "get result:" + data);
+              data.loadModel()
+                .then(() => {
+                  console.info(TAG + "loadModel success result 3100:" );
+                  data.releaseModel()
+                  done();
+                })
+            })
+
+        } catch(err){
+          console.info(TAG + "intelligenceApiTest3100 is fail:" );
+          expect().assertFail();
+          done();
+        }
+      } else {
+        intelligence.getTextEmbeddingModel(textConfig)
+          .then((data) => {
+            console.info(TAG + "get result:" + data);
+            data.loadModel()
+              .then(() =>{
+                console.info(TAG + "loadModel success");
+                done();
+              })
+              .catch((err:BusinessError) =>{
+                console.info(TAG + "loadModel" + err.code);
+                expect(err.code).assertEqual(801);
+              })
+            expect().assertFail();
+            done();
+          })
+          .catch((err: BusinessError) => {
+            console.info(TAG + "get result" + err.code);
+            expect(err.code).assertEqual(801);
+            done();
+          })
+      }
+    })
 
 
+    /**
+     * @tc.name intelligenceApiTest3200
+     * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_3200
+     * @tc.desc getTextEmbeddingModel releaseModel abnormal interface test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+
+    it("intelligenceApiTest3200", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
+      console.info(TAG + "intelligenceApiTest3200 start");
+      if (currentDeviceIsPc) {
+        try {
+          intelligence.getTextEmbeddingModel(textConfig)
+            .then((data) => {
+              console.info(TAG + "get result:" + data);
+              data.loadModel()
+                .then(() => {
+                  console.info(TAG + "loadModel success result 3200:" );
+                  data.releaseModel()
+                  done();
+                })
+            })
+
+        } catch(err){
+          console.info(TAG + "intelligenceApiTest3200 is fail:" );
+          expect().assertFail();
+          done();
+        }
+      } else {
+        intelligence.getTextEmbeddingModel(textConfig)
+          .then((data) => {
+            console.info(TAG + "get result:" + data);
+            data.loadModel()
+              .then(() =>{
+                console.info(TAG + "loadModel success");
+                data.releaseModel()
+                  .then(() =>{
+                    console.info(TAG + "releaseModel success");
+                    done();
+                  }).catch((err:BusinessError) =>{
+                  console.info(TAG + "releaseModel result" + err.code);
+                    expect(err.code).assertEqual(801);
+                    done();
+                })
+                done();
+              })
+            expect().assertFail();
+            done();
+          })
+          .catch((err: BusinessError) => {
+            console.info(TAG + "get result" + err.code);
+            expect(err.code).assertEqual(801);
+            done();
+          })
+      }
+    })
 
 
-    
+    /**
+     * @tc.name intelligenceApiTest3300
+     * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_3300
+     * @tc.desc getImageEmbeddingModel releaseModel abnormal interface test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
 
-    
+    it("intelligenceApiTest3300", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "intelligenceApiTest3300 start");
+
+      if (currentDeviceIsPc) {
+        try {
+          intelligence.getImageEmbeddingModel(imageConfig)
+            .then((data) => {
+              console.info(TAG + "get result :" + data);
+              data.loadModel()
+                .then(() => {
+                  console.info(TAG + "loadModel result 3300 :");
+                  data.releaseModel();
+                  done();
+                })
+            })
+        } catch(err){
+          console.info(TAG + "intelligenceApiTest3300 is fail:");
+          expect().assertFail();
+          done();
+        }
+      } else {
+        intelligence.getImageEmbeddingModel(imageConfig)
+          .then((data) => {
+            console.info(TAG + "get result :" + data);
+            data.loadModel()
+              .then(() => {
+                console.info(TAG + "loadModel result 3300 :");
+                data.releaseModel()
+                  .then(() =>{
+                    console.info(TAG + "releaseModel result success :");
+                    expect().assertFail();
+                    done();
+                  })
+                  .catch((err:BusinessError) =>{
+                    console.info(TAG + "get promise result" + err.code);
+                    expect(err.code).assertEqual(801);
+                    done();
+                  })
+                done();
+              })
+            expect().assertFail();
+            done();
+          })
+          .catch((err:BusinessError) => {
+            console.info(TAG + "get promise result" + err.code);
+            expect(err.code).assertEqual(801);
+            done();
+          })
+      }
+    })
 
 
+    /**
+     * @tc.name intelligenceApiTest3400
+     * @tc.number SUB_DistributedData_Intelligence_SDK_intelligenceApiTest_3400
+     * @tc.desc getImageEmbeddingModel releaseModel abnormal interface test
+     * @tc.size MediumTest
+     * @tc.type Function
+     * @tc.level Level 2
+     */
+    it("intelligenceApiTest3400", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done:Function) => {
+      console.info(TAG + "intelligenceApiTest3400 start");
 
-
-
-
-
-
-
-
+      if (currentDeviceIsPc) {
+        try {
+          intelligence.getImageEmbeddingModel(imageConfig)
+            .then((data) => {
+              console.info(TAG + "get result :" + data);
+              data.loadModel()
+                .then(() => {
+                  console.info(TAG + "loadModel result success :");
+                  data.releaseModel();
+                  done();
+                })
+            })
+        } catch(err){
+          console.info(TAG + "intelligenceApiTest3300 is fail:");
+          expect().assertFail();
+          done();
+        }
+      } else {
+        intelligence.getImageEmbeddingModel(imageConfig)
+          .then((data) => {
+            console.info(TAG + "get result :" + data);
+            data.loadModel()
+              .then(() => {
+                console.info(TAG + "loadModel result 3300 :");
+                expect().assertFail();
+                done();
+              })
+              .catch((err:BusinessError) =>{
+                console.info(TAG + "loadModel result" + err.code);
+                expect(err.code).assertEqual(801);
+                done();
+              })
+            expect().assertFail();
+            done();
+          })
+          .catch((err:BusinessError) => {
+            console.info(TAG + "get promise result" + err.code);
+            expect(err.code).assertEqual(801);
+            done();
+          })
+      }
+    })
+	
   })
 }
 

@@ -42,13 +42,14 @@ export default function basicabilityapi() {
                         uri: 'pages/index/index'
                     });
                     resolve();
-                }, 500);
+                }, 1500);
             });
             let clearPromise = new Promise((resolve, reject) => {
                 setTimeout(() => {
                     router.clear();
+                      console.info('backIndexSuccess');
                     resolve();
-                }, 500);
+                }, 1500);
             });
             await backToIndexPromise.then(() => {
                 return clearPromise;
@@ -150,6 +151,7 @@ export default function basicabilityapi() {
         it('testRouterPushNotExist', Level.LEVEL0, async function (done) {
             console.info('testRouterPushNotExist START');
             let promise1 = new Promise((resolve, reject) => {
+                console.info('testRouterPushNotExist clear');
                 router.push({
                     uri: 'pages/routerNotExist/index'
                 });
@@ -164,7 +166,7 @@ export default function basicabilityapi() {
                     expect("1").assertEqual(router.getLength());
                     console.info('testRouterPushNotExist success');
                     resolve();
-                }, 500);
+                }, 1500);
             });
             await promise1.then(() => {
                 return promise2;
@@ -194,7 +196,8 @@ export default function basicabilityapi() {
                 setTimeout(() => {
                     router.replace(repleasePage);
                     resolve();
-                }, 500);
+                }, 1500);
+
             });
             //替换堆栈数量不会变
             let promise3 = new Promise((resolve, reject) => {
@@ -206,7 +209,7 @@ export default function basicabilityapi() {
                     expect("2").assertEqual(router.getLength());
                     console.info('testRouterReplace SUCCESS');
                     resolve();
-                }, 1000);
+                }, 2000);
             });
             await promise1.then(() => {
                 return promise2;
@@ -229,7 +232,7 @@ export default function basicabilityapi() {
                 router.replace({
                     uri: 'pages/routerNotExist/index'
                 });
-            }, 500);
+            }, 2500);
             await setTimeout(() => {
                 let pages = router.getState();
                 console.info("testRouterReplaceNotExist getState" + JSON.stringify(pages));
@@ -238,7 +241,7 @@ export default function basicabilityapi() {
                 expect("1").assertEqual(router.getLength());
                 console.info('testRouterReplaceNotExist END');
                 done();
-            }, 1000);
+            }, 2000);
         });
 
         /**
@@ -260,7 +263,7 @@ export default function basicabilityapi() {
                         uri: 'pages/index/index'
                     });
                     resolve();
-                }, 500);
+                }, 2000);
             });
             let promise3 = new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -271,7 +274,7 @@ export default function basicabilityapi() {
                     expect("1").assertEqual(router.getLength());
                     console.info('testRouterBack SUCCESS');
                     resolve();
-                }, 1000);
+                }, 4000);
             });
             await promise1.then(() => {
                 return promise2;
@@ -345,7 +348,7 @@ export default function basicabilityapi() {
                 expect(page.path).assertEqual('pages/index/');
                 console.info('testRouterGetState END');
                 done();
-            }, 500);
+            }, 2000);
         });
 
         /**
@@ -526,3 +529,4 @@ export default function basicabilityapi() {
         });
     });
 }
+

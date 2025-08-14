@@ -27,6 +27,7 @@ add_library(nativerender SHARED
     gestureRecognizer/GestureInterrupterTest.cpp
     render/EGLRender.cpp
     XComponent/xcomponent_lifecycle_test.cpp
+    button/button_font_scale_Test.cpp
 )
 
 add_library(nativefunc SHARED

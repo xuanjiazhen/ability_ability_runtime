@@ -22,6 +22,7 @@ add_library(nativerender SHARED
     nodeUtils/NodeUniqueIdTest.cpp
     uiInput/UiInputErrorCodeTest.cpp
     scope/RunTaskInScopeTest.cpp
+    list/ListCrossLanguageTest.cpp
 )
 
 add_library(nativefunc SHARED

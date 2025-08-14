@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import HttpRequestDataCATest from './HttpRequestCAData.test';
 import HttpRequestMethodTest from './HttpRequestMethod.test';
 import HttpRequestAndDestroyTest from './HttpRequestAndDestory.test';
 import HttpRequestInStreamTest from './HttpRequestInStream.test';
@@ -23,6 +23,7 @@ import httpErrorCodeTest from './HttpErrorCodeTest.test'
 
 export default function testsuite() {
 if (sim.getMaxSimCount()>1){
+  HttpRequestDataCATest();
   HttpRequestMethodTest();
   HttpRequestAndDestroyTest();
   HttpRequestInStreamTest();

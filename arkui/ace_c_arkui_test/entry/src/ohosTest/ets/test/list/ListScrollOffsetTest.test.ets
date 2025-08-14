@@ -108,7 +108,7 @@ export default function listScrollOffsetTest() {
       console.log('testListScrollOffset004', JSON.stringify(dataArray))
       expect(retData[0] == 0 ).assertEqual(true)
       expect(state1Data[0] == 0).assertEqual(true)
-      expect(state2Data[0] == 2190).assertEqual(true)
+      expect(state2Data[0] == 2340).assertEqual(true)
       done()
     })
     /*

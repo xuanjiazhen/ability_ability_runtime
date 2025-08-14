@@ -63,13 +63,14 @@ struct setOnHoverTest {
             console.log(`isHover Text: ${JSON.stringify(event)}`);
           }))
       }
+      .align(Alignment.Center)
       .hoverEffect(HoverEffect.None)
-      .width('100%').height('40%').border({ width: 1 })
+      .width('50%').height('40%').border({ width: 1 })
 
       NodeContainer(this.NodeControllerOnHover)
         .borderWidth(1)
         .width(100)
-        .height(50)
+        .height('40%')
 
     }.width("100%")
     .height('100%')

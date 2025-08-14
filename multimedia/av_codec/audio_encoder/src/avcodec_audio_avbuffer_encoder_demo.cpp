@@ -762,3 +762,19 @@ OH_AVErrCode AudioBufferAacEncDemo::SetParameter(OH_AVCodec *codec, OH_AVFormat 
     OH_AVErrCode ret = OH_AudioCodec_SetParameter(codec, format);
     return ret;
 }
+
+OH_AVErrCode AudioBufferAacEncDemo::Configure(OH_AVCodec* codec, OH_AVFormat* format, int32_t channel,
+                                              int32_t sampleRate, int64_t bitRate, int32_t sampleFormat,
+                                              int32_t syncMode)
+{
+    if (codec == nullptr || format == nullptr) {
+        return AV_ERR_INVALID_VAL;
+    }
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_CHANNEL_COUNT, channel);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUD_SAMPLE_RATE, sampleRate);
+    OH_AVFormat_SetLongValue(format, OH_MD_KEY_BITRATE, bitRate);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_AUDIO_SAMPLE_FORMAT, sampleFormat);
+    OH_AVFormat_SetIntValue(format, OH_MD_KEY_ENABLE_SYNC_MODE, syncMode);
+    OH_AVErrCode ret = OH_AudioCodec_Configure(codec, format);
+    return ret;
+}

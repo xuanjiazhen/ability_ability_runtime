@@ -1553,7 +1553,7 @@ export default function AppAccountErrCodeCheck() {
     /*
     * @tc.number    : AppAccountErrCodeCheck_5100
     * @tc.name      : test interface getCredential promise
-    * @tc.desc      : 13200002 err code check
+    * @tc.desc      : 13200003 err code check
     * @tc.level     : Level3
     * @tc.size      : MediumTest
     * @tc.type      : Function
@@ -1602,6 +1602,65 @@ export default function AppAccountErrCodeCheck() {
         console.info(tag + "data: " + JSON.stringify(data));
         try {
           expect(err.code).assertEqual(12300002);
+        } catch (err) {
+          console.info("====>Assert Fail:" + JSON.stringify(err));
+        }
+        done();
+      });
+    });
+
+    /*
+    * @tc.number    : AppAccountErrCodeCheck_5201
+    * @tc.name      : test interface getCredential promise
+    * @tc.desc      : 13200002 err code check
+    * @tc.level     : Level3
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    */
+    it('AppAccountErrCodeCheck_5201', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let tag = "====>AppAccountErrCodeCheck_5201 "
+      console.info(tag + "start====");
+      let credentialType = '';
+      for (let i = 0; i < 1024 + 1; i++) {
+        credentialType += 'i';
+      }
+      try {
+        let appAccountManager = account.createAppAccountManager();
+        console.info(tag + "start getCredential");
+        let data = await appAccountManager.getCredential("accountName", credentialType);
+        console.info(tag + "data: " + JSON.stringify(data));
+        expect().assertFail();
+        done();
+      } catch (err) {
+        console.info(tag + "catch err: " + JSON.stringify(err));
+        console.info(tag + "end====");
+        expect(err.code).assertEqual(12300002);
+        done();
+      }
+    });
+
+    /*
+    * @tc.number    : AppAccountErrCodeCheck_5202
+    * @tc.name      : test interface getCredential callback
+    * @tc.desc      : 12300003 err code check
+    * @tc.level     : Level3
+    * @tc.size      : MediumTest
+    * @tc.type      : Function
+    */
+    it('AppAccountErrCodeCheck_5202', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async (done: Function) => {
+      let tag = "====>AppAccountErrCodeCheck_5202 "
+      console.info(tag + "start====");
+      let accountName = '';
+      for (let i = 0; i < nameLimit; i++) {
+        accountName += 'i';
+      }
+      let appAccountManager = account.createAppAccountManager();
+      console.info(tag + "start getCredential");
+      appAccountManager.getCredential(accountName, "credentialType", (err, data) => {
+        console.info(tag + "err: " + JSON.stringify(err));
+        console.info(tag + "data: " + JSON.stringify(data));
+        try {
+          expect(err.code).assertEqual(12300003);
         } catch (err) {
           console.info("====>Assert Fail:" + JSON.stringify(err));
         }
@@ -1888,7 +1947,7 @@ export default function AppAccountErrCodeCheck() {
       let tag = "====>AppAccountErrCodeCheck_6200 "
       console.info(tag + "start====");
       let getAuthList = '';
-      for (let i = 0; i < 1024; i++) {
+      for (let i = 0; i < 1024 + 1; i++) {
         getAuthList += 'i';
       }
       try {
@@ -1901,7 +1960,7 @@ export default function AppAccountErrCodeCheck() {
       } catch (err) {
         console.info(tag + "catch err: " + JSON.stringify(err));
         console.info(tag + "end====");
-        expect(err.code).assertEqual(12300003);
+        expect(err.code).assertEqual(12300002);
         done();
       }
     });
@@ -1918,7 +1977,7 @@ export default function AppAccountErrCodeCheck() {
       let tag = "====>AppAccountErrCodeCheck_6300 "
       console.info(tag + "start====");
       let accountName = '';
-      for (let i = 0; i < nameLimit + 1; i++) {
+      for (let i = 0; i < nameLimit; i++) {
         accountName += 'i';
       }
       let appAccountManager = account.createAppAccountManager();
@@ -1927,7 +1986,7 @@ export default function AppAccountErrCodeCheck() {
         console.info(tag + "err: " + JSON.stringify(err));
         console.info(tag + "data: " + JSON.stringify(data));
         try {
-          expect(err.code).assertEqual(12300002);
+          expect(err.code).assertEqual(12300003);
         } catch (err) {
           console.info("====>Assert Fail:" + JSON.stringify(err));
         }

@@ -15,7 +15,7 @@
 
 @Entry
 @Component
-struct TouchTestDoneExample {
+struct TouchTest {
   @State tagList: string[] = ['Null', 'Tap1', 'Tap2', 'Tap3', 'Tap4'];
   @State tagId: number = 0;
   @State textValue: string = '';
@@ -24,16 +24,16 @@ struct TouchTestDoneExample {
     Column() {
       Column() {
         Text('Tap1')
-          .margin(20)
+          .height('5%')
         Column() {
           Text('Tap2')
-            .margin(20)
+            .height('5%')
           Column() {
             Text('Tap3')
-              .margin(20)
+              .height('5%')
             Column() {
               Text('Tap4')
-                .margin(20)
+                .height('5%')
             }
             .id('tap4')
             .backgroundColor('#D5D5D5')
@@ -62,7 +62,7 @@ struct TouchTestDoneExample {
       .id('tap1')
       .backgroundColor('#D5D5D5')
       .width('80%')
-      .height('80%')
+      .height('70%')
       .gesture(TapGesture().tag('Tap1').onAction(() => {
         this.textValue = 'Tap1';
       }))
@@ -79,18 +79,19 @@ struct TouchTestDoneExample {
 
       Text('Current Gesture: ' + this.textValue)
         .id('text')
-        .margin(5)
+        .height('5%')
 
       Button('Click to change preventGesture')
         .id('button')
-        .margin(5)
+        .height('5%')
         .onClick(() => {
           this.tagId++;
           this.tagId %= 5;
         })
       Text('Current prevent gesture tag: ' + this.tagList[this.tagId])
         .id('currentTag')
-        .margin(5)
+        .width('70%')
+        .height('5%')
 
     }
     .width('100%')

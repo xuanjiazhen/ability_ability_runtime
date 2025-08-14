@@ -27,17 +27,17 @@ export default function menuitemOnChangeModifierTest() {
       try {
         router.clear();
         let pages = router.getState();
-        console.info('get menuitemOnChangeModifier state pages:' + JSON.stringify(pages));
-        if (!('menuitemOnChangeModifier' == pages.name)) {
-          console.info('get menuitemOnChangeModifier pages.name:' + JSON.stringify(pages.name));
+        console.info('get menuitemOnChangeModifierTest state pages:' + JSON.stringify(pages));
+        if (!('menuitemOnChangeModifierTest' == pages.name)) {
+          console.info('get menuitemOnChangeModifierTest pages.name:' + JSON.stringify(pages.name));
           let result = await router.pushUrl(options);
           await CommonFunc.sleep(2500);
-          console.info('push menuitemOnChangeModifier page result:' + JSON.stringify(result));
+          console.info('push menuitemOnChangeModifierTest page result:' + JSON.stringify(result));
         }
       } catch (err) {
-        console.error('push menuitemOnChangeModifier page error:' + err);
+        console.error('push menuitemOnChangeModifierTest page error:' + err);
       }
-      console.info('menuitemOnChangeModifier beforeEach end');
+      console.info('menuitemOnChangeModifierTest beforeEach end');
       done();
     });
     /**

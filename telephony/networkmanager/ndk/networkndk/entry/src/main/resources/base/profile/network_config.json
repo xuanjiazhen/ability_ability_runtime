@@ -103,6 +103,9 @@
               }
             ]
           }
-      ]
+      ],
+      "component-config":{
+          "Network Kit":true
+      }
     }
   }

@@ -17,6 +17,8 @@ import XComponentDrawingCanvasTest from './XComponent/XComponentDrawingCanvasTes
 import XComponentKeyMouseTest from './XComponent/XComponentKeyMouseTest.test'
 import XComponentNdkInterfaceTest from './XComponent/XComponentNdkInterfaceTest.test'
 import VideoOnErrorTest from './Video/VideoOnErrorTest.test'
+import XComponentTypeNodeTest from './XComponent/XComponentTypeNodeTest.test'
+import XComponentCNodeTest from './XComponent/XComponentCNodeTest.test'
 
 export default function testsuite() {
   XComponentHDRBrightnessTest()
@@ -24,5 +26,7 @@ export default function testsuite() {
   XComponentKeyMouseTest()
   XComponentNdkInterfaceTest()
   VideoOnErrorTest()
+  XComponentTypeNodeTest()
+  XComponentCNodeTest()
 }
 

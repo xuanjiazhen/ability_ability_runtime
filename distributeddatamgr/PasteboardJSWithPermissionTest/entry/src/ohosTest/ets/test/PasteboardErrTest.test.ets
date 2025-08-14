@@ -722,5 +722,97 @@ export default function PasteboardErrTest() {
       }
       console.info(TAG + '************ SUB_Pasteboard_getDataWithProgress_ErrTest_0200 end ************')
     })
+
+    /**
+     * @tc.number    : SUB_Pasteboard_createData_ErrTest_0100
+     * @tc.name      : SUB_Pasteboard_createData_ErrTest_0100
+     * @tc.desc      : Test pasteBoard createData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_Pasteboard_createData_ErrTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + '************ SUB_Pasteboard_createData_ErrTest_0100 start ************')
+      let record: Record<string, pasteboard.ValueType> = undefined;
+      try {
+        let pasteData: pasteboard.PasteData = pasteboard.createData(record);
+        expect().assertFail();
+      } catch (err) {
+        console.info(TAG + 'createData fail.err:' + err.code + ',message:' + err.message);
+        expect(err.code).assertEqual('401');
+      }
+      console.info(TAG + '************ SUB_Pasteboard_createData_ErrTest_0100 end ************')
+    })
+
+    /**
+     * @tc.number    : SUB_Pasteboard_setPasteData_ErrTest_0100
+     * @tc.name      : SUB_Pasteboard_setPasteData_ErrTest_0100
+     * @tc.desc      : Test pasteBoard setPasteData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_Pasteboard_setPasteData_ErrTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + '************ SUB_Pasteboard_setPasteData_ErrTest_0100 start ************')
+      let systemPasteBoard = pasteboard.getSystemPasteboard();
+      try {
+        await systemPasteBoard.setPasteData(null, async (err: BusinessError, data: ESObject) => {
+          if (err != null) {
+            console.info(TAG + 'setPasteData fail.err:' + err.code + ',message:' + err.message);
+            expect(err.code).assertEqual("401");
+          } else {
+            expect(false).assertTrue();
+          }
+        })
+      } catch (err) {
+        console.info(TAG + 'setPasteData catch fail.err:' + err.code + ',message:' + err.message);
+        expect(err.code).assertEqual("401");
+      }
+      await sleep(500);
+      console.info(TAG + '************ SUB_Pasteboard_setPasteData_ErrTest_0100 end ************')
+    })
+
+    /**
+     * @tc.number    : SUB_Pasteboard_setData_ErrTest_0100
+     * @tc.name      : SUB_Pasteboard_setData_ErrTest_0100
+     * @tc.desc      : Test pasteBoard setData
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_Pasteboard_setData_ErrTest_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + '************ SUB_Pasteboard_setData_ErrTest_0100 start ************')
+      let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
+      try {
+        systemPasteboard.setData(null);
+        expect().assertFail();
+      } catch (err) {
+        console.info(TAG + 'setData fail.err:' + err.code + ',message:' + err.message);
+        expect(err.code).assertEqual('401');
+      }
+      console.info(TAG + '************ SUB_Pasteboard_setData_ErrTest_0100 end ************')
+    })
+
+    /**
+     * @tc.number    : SUB_Pasteboard_PasteDataRecord_0100
+     * @tc.name      : SUB_Pasteboard_PasteDataRecord_0100
+     * @tc.desc      : Test pasteBoard PasteDataRecord data
+     * @tc.size      : MEDIUM
+     * @tc.type      : Function
+     * @tc.level     : Level 2
+     */
+    it('SUB_Pasteboard_PasteDataRecord_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async () => {
+      console.info(TAG + '************ SUB_Pasteboard_PasteDataRecord_0100 start ************')
+      const ARRAY_BUFFER = new ArrayBuffer(256);
+      try {
+        let pasteData = pasteboard.createRecord("arrayBuffer", ARRAY_BUFFER);
+        console.info(TAG + 'createRecord:' + JSON.stringify(pasteData.data));
+        expect(pasteData.data != null).assertTrue();
+      } catch (err) {
+        console.info(TAG + 'setData fail.err:' + err.code + ',message:' + err.message);
+        expect(err == null).assertTrue();
+      }
+      console.info(TAG + '************ SUB_Pasteboard_PasteDataRecord_0100 end ************')
+    })
   })
 }

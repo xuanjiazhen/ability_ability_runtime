@@ -78,8 +78,8 @@ export default function ActsNotificationManagerDistributedTest() {
     it('Sub_Notification_Ans_Is_Notification_Enable_0100', Level.LEVEL2, async (done: Function) => {
       console.info(`${TAG} Sub_Notification_Ans_Is_Notification_Enable_0100 START`);
 
-      notificationManager.isNotificationEnabledSync()
-      expect(true).assertTrue()
+      let notificationenable = notificationManager.isNotificationEnabledSync();
+      expect(notificationenable).assertFalse()
       done()
 
       console.info(`${TAG} Sub_Notification_Ans_Is_Notification_Enable_0100 END`);

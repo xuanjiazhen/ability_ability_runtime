@@ -14,24 +14,48 @@
  */
 
 export const webErrCodeSuccess: () => number;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const webInitError: () => number;
+export const webErrorUnknow: () => number;
+export const webErrorInvalidParam: () => number;
+export const webErrorSchemeRegitsterFailed: () => number;
+export const webErrorInvaledURL: () => number;
+export const webErrorInvaledCookieValue: () => number;
+export const webErrorLibraryOpenFailure: () => number;
+export const webErrorLibraySymbolNotFound: () => number;
+export const webErrorCookeManagerNotInitialized: () => number;
+export const webBlanklessSuccess: () => number;
+export const webBlanklessErrUnknown: () => number;
+export const webBlanklessErrInvalidArgs: () => number;
+export const webBlanklessErrControllerNotInited: () => number;
+export const webBlanklessErrKeyNotMatch: () => number;
+export const webBlanklessErrSignificantChange: () => number;
+export const webBlanklessDeviceNotSupport: () => number;
+export const webAnyNativeAPI: () => number;
+export const webNativeComponent: () => number;
+export const webNativeController: () => number;
+export const webNativeWebMessagePort: () => number;
+export const webNativeWebMessage: () => number;
+export const webNativeCookieManger: () => number;
+export const webNativeJavaScriptValue: () => number;
+export const webArkWebNetError: (errName: string) => number;
+export const webRegisterCustomSchemes: (errName: string) => number;
+export const NativeArkWebLoadDataInitError: () => number;
+export const loadData: (webName: string, caseNum: number) => number;
+export const GetBlanklessInfo: (webName: string, key: string) => number;
+export const SetBlanklessInfo: (webName: string, key: string) => number;
+export const JSBridgeData: (caseNum: number) => number;
+export const JSBridgeProxyData: (caseNum: number) => number;
+export const WebMsgType: (caseNum: number) => number;
+export const WebMsgAPI: (caseNum: number) => number;
+export const WebJSValueAPI: (caseNum: number) => number;
+export const WebJSValueType: (caseNum: number) => number;
+export const WebControllerAPI: (caseNum: number) => number;
+export const WebJSObject: (caseNum: number) => number;
+export const WebStructProxyMethod: (caseNum: number) => number;
+export const WebStructProxyMethodWithResult: (caseNum: number) => number;
+export const WebStructProxyObject: (caseNum: number) => number;
+export const WebStructProxyObjectWithResult: (caseNum: number) => number;
+export const WebStructComponentAPI: (caseNum: number) => number;
+export const WebStructMessagePortAPI: (caseNum: number) => number;
+export const WebStructCookieManagerAPI: (caseNum: number) => number;
+export const WebStructJavaScriptValueAPI: (caseNum: number) => number;

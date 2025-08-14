@@ -70,6 +70,9 @@ public:
 
     int32_t returnFrames(LppUserData *lppUserData);
 
+    int32_t SetCallbackCreateNull(LppUserData *lppUserData);
+    int32_t SetDataNeededListener(LppUserData *lppUserData);
+    int32_t SetStreamChangedListener(LppUserData *lppUserData);
     int32_t SetCallback(LppUserData *lppUserData);
     int32_t SetErrorCallback(LppUserData *lppUserData);
     int32_t SetRenderStartCallback(LppUserData *lppUserData);

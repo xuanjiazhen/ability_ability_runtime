@@ -64,12 +64,12 @@ export default function PanGestureExample01Test() {
       let areaHeight1 = areaObj1.bottom - areaObj1.top
       let areaWidth1 = areaObj1.right - areaObj1.left
       console.log('PanGestureExample01Test_0010 areaObj1',areaObj1.left,areaObj1.top,areaObj1.right,areaObj1.bottom)
-      console.log('PanGestureExample01Test_0010 areaObj1 clicked start',Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('PanGestureExample01Test_0010 areaObj1 clicked start',Math.round(areaObj1.left + areaWidth1 * 0.5),Math.round(areaObj1.top + areaHeight1/2))
       console.log('PanGestureExample01Test_0010 areaObj1 clicked end',Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
 
       let driver = Driver.create();
       await CommonFunc.sleep(1000);
-      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
+      await driver.swipe(Math.round(areaObj1.left + areaWidth1 * 0.5),Math.round(areaObj1.top + areaHeight1/2),Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
       await CommonFunc.sleep(3000);
       // 拖动之后重新获取当前区域的位置信息
       let FatherObj = CommonFunc.getComponentRectOnScreen('PanGestureExample01_Father');
@@ -82,7 +82,7 @@ export default function PanGestureExample01Test() {
       let areaWidth = areaObj.right - areaObj.left
 
       console.log('PanGestureExample01Test_0010 areaObj',areaObj.left,areaObj.top,areaObj.right,areaObj.bottom)
-      console.log('PanGestureExample01Test_0010 areaObj clicked start',Math.round(areaObj.left + areaWidth * 0.2),Math.round(areaObj.top + areaHeight/2))
+      console.log('PanGestureExample01Test_0010 areaObj clicked start',Math.round(areaObj.left + areaWidth * 0.5),Math.round(areaObj.top + areaHeight/2))
       console.log('PanGestureExample01Test_0010 areaObj clicked end',Math.round(areaObj.left + areaWidth * 0.8),Math.round(areaObj.top + areaHeight/2))
 
       let text1 = getInspectorByKey('PanGestureExample01_repeat');
@@ -93,9 +93,9 @@ export default function PanGestureExample01Test() {
       await CommonFunc.sleep(200);
       let text2 = getInspectorByKey('PanGestureExample01_offsetX');
       let obj2: ESObject = JSON.parse(text2);
-      console.log('PanGestureExample01Test_0010 obj2 $attrs content',vp2px(Number(obj2.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.2))
+      console.log('PanGestureExample01Test_0010 obj2 $attrs content',vp2px(Number(obj2.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.5))
       console.log('PanGestureExample01Test_0010 obj2 $attrs offsetX',obj2.$attrs.content, Number(obj2.$attrs.content), vp2px(Number(obj2.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj2.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.2)))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj2.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.5)))) <= 1).assertTrue();
 
       await CommonFunc.sleep(200);
       let text3 = getInspectorByKey('PanGestureExample01_offsetY');

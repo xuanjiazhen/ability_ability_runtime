@@ -5077,7 +5077,7 @@ export default function JsvmJsunit() {
         napitest.runJsVm(script);
         expect(true).assertEqual(false);
       } catch (e) {
-        expect(true).assertEqual(true);
+        expect(e.message).assertEqual('HasError');
       }
     });
 	/**
@@ -5092,8 +5092,8 @@ export default function JsvmJsunit() {
       try {
         napitest.runJsVm(script);
         expect(true).assertFalse();
-      } catch (error) {
-        expect(true).assertTrue();
+      } catch (e) {
+        expect(e.message).assertEqual('');
       }
     });
 	/**
@@ -5109,7 +5109,7 @@ export default function JsvmJsunit() {
         napitest.runJsVm(script);
         expect(true).assertFalse();
       } catch (e) {
-        expect(true).assertTrue();
+        expect(e.message).assertEqual('has Error');
       }
     });
 	/**

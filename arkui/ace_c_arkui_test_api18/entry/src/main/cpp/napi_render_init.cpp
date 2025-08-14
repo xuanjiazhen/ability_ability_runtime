@@ -23,6 +23,7 @@
 #include "visibleAreaEventOptions/visibleAreaEventOptions.h"
 #include "gestureRecognizer/GestureInterrupterTest.h"
 #include "XComponent/xcomponent_lifecycle_test.h"
+#include "button/button_font_scale_Test.h"
 
 namespace ArkUICapiTest {
 EXTERN_C_START
@@ -75,7 +76,9 @@ static napi_value Init(napi_env env, napi_value exports)
         {"XComponentFinalize", nullptr, XComponentLifeCycleTest::finalize, nullptr, nullptr,
          nullptr, napi_default, nullptr},
         {"XComponentRemoveSurfaceCallback", nullptr, XComponentLifeCycleTest::removeSurfaceCallback, nullptr, nullptr,
-         nullptr, napi_default, nullptr}
+         nullptr, napi_default, nullptr},
+        {"buttonFontScale", nullptr, ButtonFontScaleTest::ButtonFontScale,
+         nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok) {
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "napi_define_properties failed");

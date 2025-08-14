@@ -12,8 +12,16 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
  */
+import resourceManager from '@ohos.resourceManager';
+export const AudioLowLatencyOut: () => number;
+export const AudioWorkGroupSet: () => number;
+export const StopAndReleaseRenderer: () => number;
+export const GetRawFileContent: (resmgr: resourceManager.ResourceManager, path: string) => Uint8Array;
+export const StartAudioRenderer: () => number;
+export const getFileList: (resmgr: resourceManager.ResourceManager, path: string) => Array<String>;
 export const createAudioStreamBuilder: () => number;
 export const audioCaptureGenerate: () => number;
+export const audioWorkGroup: () => number;
 export const audioCaptureGenerateErr: () => number;
 export const audioCaptureStart: () => number;
 export const audioCaptureStartErr: () => number;
@@ -280,3 +288,13 @@ export const audioManagerGetDirectPlaybackSupportTest_002: () => number;
 export const audioManagerGetDirectPlaybackSupportTest_003: () => number;
 export const audioManagerGetDirectPlaybackSupportTest_004: () => number;
 export const audioManagerGetDirectPlaybackSupportTest_005: () => number;
+export const audioCaptureGetFastStatus_001: () => number;
+export const audioCaptureGetFastStatus_002: () => number;
+export const audioRendererGetFastStatus_001: () => number;
+export const audioRendererGetFastStatus_002: () => number;
+export const audioStreamManagerIsFastPlaybackSupported_001: () => number;
+export const audioStreamManagerIsFastRecordingSupported_001: () => number;
+export const audioStreamBuilderSetCapturerFastStatusChangeCallback_001: () => number;
+export const audioStreamBuilderSetCapturerFastStatusChangeCallback_002: () => number;
+export const audioStreamBuilderSetRendererFastStatusChangeCallback_001: () => number;
+export const audioStreamBuilderSetRendererFastStatusChangeCallback_002: () => number;

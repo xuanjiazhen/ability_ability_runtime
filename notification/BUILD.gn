@@ -19,6 +19,7 @@ group("notification") {
     deps = [
       "ans_standard:ans_standard",
       "ces_standard:ces_standard",
+      "commonevent_errorcode:ActsCommonEventErrorTest",
     ]
   }
 }

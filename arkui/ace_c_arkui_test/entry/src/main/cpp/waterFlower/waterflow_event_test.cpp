@@ -113,10 +113,10 @@ OnScrollStopCallBack scrollStop = [](std::shared_ptr<WaterFlowComponent> waterFl
     });
 };
 OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<WaterFlowComponent> waterFlow) {
-    waterFlow->SetWidth(SIZE_300);
+    waterFlow->SetWidth(SIZE_200);
     waterFlow->SetWaterFlowEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     waterFlow->SetWaterFlowScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    waterFlow->SetWaterFlowScrollBarWidth(SIZE_70);
+    waterFlow->SetWaterFlowScrollBarWidth(SIZE_50);
     waterFlow->SetOnWillScroll([waterFlow](float offset, int32_t state, int32_t source) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "WaterFlowEventTest",
             "OnWillScroll offset: %{public}f, state: %{public}d, source: %{public}d", offset, state, source);
@@ -134,8 +134,8 @@ OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<WaterFlowComponent> w
     });
 };
 OnScrollFrameBeginCallBack scrollFrameBegin = [](std::shared_ptr<WaterFlowComponent> waterFlow, int32_t distance) {
-    waterFlow->SetWidth(SIZE_300);
-    waterFlow->SetWaterFlowScrollBarWidth(SIZE_70);
+    waterFlow->SetWidth(SIZE_200);
+    waterFlow->SetWaterFlowScrollBarWidth(SIZE_50);
     waterFlow->SetWaterFlowEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     waterFlow->SetWaterFlowScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
     waterFlow->SetOnScrollFrameBegin([waterFlow, distance](float offset, int32_t state) {

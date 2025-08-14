@@ -134,10 +134,10 @@ static OnReachEndCallBack reachEnd = [](std::shared_ptr<ListComponent> list, boo
 };
 
 static OnScrollCallBack scroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    list->SetListScrollBarWidth(SIZE_70);
+    list->SetListScrollBarWidth(SIZE_50);
     list->SetOnScroll([list](float horizontal, float vertical) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "ListEventTest",
             "SetOnScroll horizontal: %{public}f, vertical: %{public}f", horizontal, vertical);
@@ -148,10 +148,10 @@ static OnScrollCallBack scroll = [](std::shared_ptr<ListComponent> list) {
 };
 
 static OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    list->SetListScrollBarWidth(SIZE_70);
+    list->SetListScrollBarWidth(SIZE_50);
     list->SetOnWillScroll([list](float offset, int32_t state, int32_t source) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "ListEventTest",
             "OnWillScroll offset: %{public}f, state: %{public}d, source: %{public}d", offset, state, source);
@@ -170,10 +170,10 @@ static OnWillDidScrollCallBack willDidScroll = [](std::shared_ptr<ListComponent>
 };
 
 static OnWillDidScrollCallBack willScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    list->SetListScrollBarWidth(SIZE_70);
+    list->SetListScrollBarWidth(SIZE_50);
     list->SetOnWillScroll([list](float offset, int32_t state, int32_t source) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "ListEventTest",
             "OnWillScroll offset: %{public}f, state: %{public}d, source: %{public}d", offset, state, source);
@@ -185,10 +185,10 @@ static OnWillDidScrollCallBack willScroll = [](std::shared_ptr<ListComponent> li
 };
 
 static OnWillDidScrollCallBack didScroll = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    list->SetListScrollBarWidth(SIZE_70);
+    list->SetListScrollBarWidth(SIZE_50);
     list->SetOnDidScroll([list](float offset, int32_t state) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "ListEventTest",
             "OnDidScroll offset: %{public}f, state: %{public}d", offset, state);
@@ -199,10 +199,10 @@ static OnWillDidScrollCallBack didScroll = [](std::shared_ptr<ListComponent> lis
 };
 
 static OnScrollFrameBeginCallBack scrollFrameBegin = [](std::shared_ptr<ListComponent> list) {
-    list->SetWidth(SIZE_300);
+    list->SetWidth(SIZE_150);
     list->SetListEdgeEffect(ARKUI_EDGE_EFFECT_SPRING, false);
     list->SetListScrollBar(ArkUI_ScrollBarDisplayMode::ARKUI_SCROLL_BAR_DISPLAY_MODE_ON);
-    list->SetListScrollBarWidth(SIZE_70);
+    list->SetListScrollBarWidth(SIZE_50);
     list->SetOnScrollFrameBegin([list](float offset, int32_t state) {
         OH_LOG_Print(LOG_APP, LOG_INFO, LOG_PRINT_DOMAIN, "ListEventTest",
             "OnScrollFrameBegin offset: %{public}f, state: %{public}d", offset, state);

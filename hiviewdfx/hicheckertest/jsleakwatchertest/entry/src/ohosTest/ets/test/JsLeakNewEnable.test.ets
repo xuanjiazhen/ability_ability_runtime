@@ -22,6 +22,8 @@ export function asyncSleep(time: number): Promise<Object> {
   return new Promise(resolve => setTimeout(resolve, time));
 };
 
+let obj : Object = new Object();
+
 export default function JsLeakWatcherNewTest() {
   describe('JsLeakWatcherNewTest', () => {
         /**
@@ -43,6 +45,8 @@ export default function JsLeakWatcherNewTest() {
           console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 heapDumpFileName: ' + filepath[1]);
           leakFilePath = filepath
         });
+        jsLeakWatcher.watch(obj, 'test_watch');
+        console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 test_' + obj.toString());
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 wait start')
         await asyncSleep(35000);
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 wait end')
@@ -51,7 +55,7 @@ export default function JsLeakWatcherNewTest() {
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 leakListFileName1 check: ' + leakFilePath[0]);
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 heapDumpFileName1 check: ' + leakFilePath[1]);
         expect(leakFilePath[0]).assertContain(".jsleaklist");
-        expect(leakFilePath[1]).assertContain(".heapsnapshot");
+        expect(leakFilePath[1]).assertContain(".rawheap");
         console.log('SUB_DFX_DFR_jsLeakWatcher_Interface_0700 enable success')
         done();
       } catch (err) {
@@ -99,7 +103,7 @@ export default function JsLeakWatcherNewTest() {
      * @tc.level Level2
      */
     it('testJsLeakWatcher09', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async (done: Function) => {
-      console.info("SUB_DFX_DFR_jsLeakWatcher_Interface_0800 start");
+      console.info("SUB_DFX_DFR_jsLeakWatcher_Interface_0900 start");
       try {
         let config : Array<string> = [];
         jsLeakWatcher.enableLeakWatcher(false, config, (filepath : Array<string>) => {

@@ -14,21 +14,22 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+
+const EVENT_ID_SET_EMIT_KEY = 112090;
+
 interface objectCss {
   code: number;
   message: string;
 }
+
 @Entry
 @Component
 struct webViewContStoreWebArchiveError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   controllerTwo: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitStoreWebArchiveCallBackInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -40,13 +41,19 @@ struct webViewContStoreWebArchiveError {
   @State errorCode: string = '0';
   @State errorTestCode: number = 0;
   @State errorMsg: string = 'failed';
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -55,6 +62,7 @@ struct webViewContStoreWebArchiveError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -62,8 +70,11 @@ struct webViewContStoreWebArchiveError {
   build() {
     Column() {
       Row() {
-        Button("storeWebArchiveErrorTest").key('webViewContStoreWebArchiveError').onClick(() => {
+        Button("storeWebArchiveErrorTest").key('webViewContStoreWebArchiveError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContStoreWebArchiveErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContStoreWebArchiveErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitStoreWebArchiveCallBackInitErr": {
               try {
@@ -81,8 +92,8 @@ struct webViewContStoreWebArchiveError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 700)
-              Utils.emitEvent(this.errorMsg, 701)
+              Utils.emitEvent(this.errorCode, 112100)
+              Utils.emitEvent(this.errorMsg, 112110)
               break;
             }
             case "emitStoreWebArchiveCallBackPathErr": {
@@ -95,8 +106,8 @@ struct webViewContStoreWebArchiveError {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitStoreWebArchiveCallBackPathErr storeWebArchive return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 702)
-                    Utils.emitEvent(this.errorMsg, 703)
+                    Utils.emitEvent(this.errorTestCode, 112120)
+                    Utils.emitEvent(this.errorMsg, 112130)
                     return;
                   }
                   if (filename != null) {
@@ -118,8 +129,8 @@ struct webViewContStoreWebArchiveError {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitStoreWebArchiveCallBackUnAccessErr storeWebArchive return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 704)
-                    Utils.emitEvent(this.errorMsg, 705)
+                    Utils.emitEvent(this.errorTestCode, 112140)
+                    Utils.emitEvent(this.errorMsg, 112150)
                     return;
                   }
                   if (filename != null) {
@@ -150,8 +161,8 @@ struct webViewContStoreWebArchiveError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 706)
-              Utils.emitEvent(this.errorMsg, 707)
+              Utils.emitEvent(this.errorCode, 112160)
+              Utils.emitEvent(this.errorMsg, 112170)
               break;
             }
             case "emitStoreWebArchivePromisePathErr": {
@@ -169,8 +180,8 @@ struct webViewContStoreWebArchiveError {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitStoreWebArchivePromisePathErr storeWebArchive return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 708)
-                    Utils.emitEvent(this.errorMsg, 709)
+                    Utils.emitEvent(this.errorTestCode, 112180)
+                    Utils.emitEvent(this.errorMsg, 112190)
                   })
               } catch (error) {
                 console.error(`emitStoreWebArchivePromisePathErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -192,8 +203,8 @@ struct webViewContStoreWebArchiveError {
                     this.errorTestCode = error.code;
                     this.errorMsg = error.message;
                     console.error("emitStoreWebArchivePromiseUnAccessErr storeWebArchive return result is :" + this.errorTestCode + this.errorMsg);
-                    Utils.emitEvent(this.errorTestCode, 710)
-                    Utils.emitEvent(this.errorMsg, 711)
+                    Utils.emitEvent(this.errorTestCode, 112200)
+                    Utils.emitEvent(this.errorMsg, 112210)
                   })
               } catch (error) {
                 console.error(`emitStoreWebArchivePromiseUnAccessErr ErrorCode: ${error.code},  Message: ${error.message}`);
@@ -212,6 +223,10 @@ struct webViewContStoreWebArchiveError {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

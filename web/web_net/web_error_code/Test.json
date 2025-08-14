@@ -10,7 +10,8 @@
     },
     "kits": [{
         "test-file-name": [
-            "ActsWebErrorCodeTest.hap"
+            "ActsWebErrorCodeTest.hap",
+            "ActsWebErrorCodeCppTest.hap"
         ],
         "type": "AppInstallKit",
         "cleanup-apps": true

@@ -1444,10 +1444,10 @@ export function avVideoRecorderTestOne() {
         }
       }
 
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0100 start')
@@ -1486,10 +1486,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0400 start')
@@ -1528,10 +1528,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0500 start')
@@ -1570,10 +1570,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0600 start')
@@ -1612,10 +1612,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0800 start')
@@ -1658,10 +1658,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0400 start')
@@ -1700,10 +1700,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0500 start')
@@ -1742,10 +1742,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0600 start')
@@ -1784,10 +1784,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0800 start')
@@ -1830,10 +1830,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0500 start')
@@ -1872,10 +1872,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0500 start')
@@ -1914,10 +1914,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0500 start')
@@ -1956,10 +1956,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0100 start')
@@ -1991,10 +1991,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0200 start')
@@ -2025,10 +2025,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0300 start')
@@ -2065,10 +2065,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_CALLBACK_0700 start')
@@ -2102,10 +2102,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0100 start')
@@ -2142,10 +2142,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0200 start')
@@ -2182,10 +2182,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0300 start')
@@ -2222,10 +2222,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESUME_PROMISE_0700 start')
@@ -2261,10 +2261,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0300 start')
@@ -2299,10 +2299,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0400 start')
@@ -2340,10 +2340,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0600 start')
@@ -2380,10 +2380,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_CALLBACK_0800 start')
@@ -2422,10 +2422,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0100 start')
@@ -2456,10 +2456,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0200 start')
@@ -2490,10 +2490,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0300 start')
@@ -2529,10 +2529,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0400 start')
@@ -2570,10 +2570,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0600 start')
@@ -2610,10 +2610,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0700 start')
@@ -2648,10 +2648,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_STOP_PROMISE_0800 start')
@@ -2692,10 +2692,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0100 start')
@@ -2727,10 +2727,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0200 start')
@@ -2761,10 +2761,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0300 start')
@@ -2801,10 +2801,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0400 start')
@@ -2841,10 +2841,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0500 start')
@@ -2881,10 +2881,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0600 start')
@@ -2921,10 +2921,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0700 start')
@@ -2957,10 +2957,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_CALLBACK_0800 start')
@@ -2999,10 +2999,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0100 start')
@@ -3033,10 +3033,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0200 start')
@@ -3067,10 +3067,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0300 start')
@@ -3105,10 +3105,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0400 start')
@@ -3146,10 +3146,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0600 start')
@@ -3186,10 +3186,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0700 start')
@@ -3222,10 +3222,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_RESET_PROMISE_0800 start')
@@ -3267,10 +3267,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0100 start')
@@ -3303,10 +3303,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0200 start')
@@ -3349,10 +3349,10 @@ export function avVideoRecorderTestOne() {
            * @tc.type      : Function
            * @tc.level     : Level 2
        */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0300 start')
@@ -3396,10 +3396,10 @@ export function avVideoRecorderTestOne() {
            * @tc.type      : Function
            * @tc.level     : Level 2
        */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0400 start')
@@ -3445,10 +3445,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0500 start')
@@ -3492,10 +3492,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0600 start')
@@ -3539,10 +3539,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0700 start')
@@ -3581,10 +3581,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0800 start')
@@ -3626,10 +3626,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_0900 start')
@@ -3685,10 +3685,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1000 start')
@@ -3744,10 +3744,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1100 start')
@@ -3803,10 +3803,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_PROMISE_1200 start')
@@ -3863,10 +3863,10 @@ export function avVideoRecorderTestOne() {
              * @tc.type      : Function
              * @tc.level     : Level 2
          */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0100 start')
@@ -3899,10 +3899,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0200 start')
@@ -3939,10 +3939,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0300 start')
@@ -3983,10 +3983,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0400 start')
@@ -4031,10 +4031,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0500 start')
@@ -4081,10 +4081,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0600 start')
@@ -4129,10 +4129,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0700 start')
@@ -4177,10 +4177,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_PROMISE_0800 start')
@@ -4224,10 +4224,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0100 start')
@@ -4260,10 +4260,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0200 start')
@@ -4298,10 +4298,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0300 start')
@@ -4346,10 +4346,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0400 start')
@@ -4396,10 +4396,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0500 start')
@@ -4444,10 +4444,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0600 start')
@@ -4492,10 +4492,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0700 start')
@@ -4534,10 +4534,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_PROMISE_0800 start')
@@ -4586,10 +4586,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0100 start')
@@ -4622,10 +4622,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0200 start')
@@ -4660,10 +4660,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0300 start')
@@ -4704,10 +4704,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0400 start')
@@ -4752,10 +4752,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0500 start')
@@ -4800,10 +4800,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0600 start')
@@ -4848,10 +4848,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0700 start')
@@ -4890,10 +4890,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_PROMISE_0800 start')
@@ -4943,10 +4943,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0100 start')
@@ -4985,10 +4985,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0200 start')
@@ -5029,10 +5029,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0300 start')
@@ -5077,10 +5077,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0400 start')
@@ -5121,10 +5121,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0500 start')
@@ -5165,10 +5165,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0600 start')
@@ -5211,10 +5211,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0700 start')
@@ -5257,10 +5257,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0800 start')
@@ -5305,10 +5305,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_0900 start')
@@ -5353,10 +5353,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1000 start')
@@ -5413,10 +5413,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1100 start')
@@ -5475,10 +5475,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1200 start')
@@ -5539,10 +5539,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1300 start')
@@ -5601,10 +5601,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_1400 start')
@@ -5664,10 +5664,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0100 start')
@@ -5702,10 +5702,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0200 start')
@@ -5740,10 +5740,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0300 start')
@@ -5782,10 +5782,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0400 start')
@@ -5820,10 +5820,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0500 start')
@@ -5858,10 +5858,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0600 start')
@@ -5898,10 +5898,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0700 start')
@@ -5938,10 +5938,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0800 start')
@@ -5980,10 +5980,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_0900 start')
@@ -6022,10 +6022,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1000 start')
@@ -6060,10 +6060,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1100 start')
@@ -6098,10 +6098,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1200 start')
@@ -6140,10 +6140,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1300 start')
@@ -6178,10 +6178,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_1400 start')
@@ -6217,10 +6217,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0100 start')
@@ -6249,10 +6249,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0200 start')
@@ -6287,10 +6287,10 @@ export function avVideoRecorderTestOne() {
            * @tc.type      : Function
            * @tc.level     : Level 2
        */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0300 start')
@@ -6327,10 +6327,10 @@ export function avVideoRecorderTestOne() {
            * @tc.type      : Function
            * @tc.level     : Level 2
        */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0400 start')
@@ -6371,10 +6371,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0500 start')
@@ -6413,10 +6413,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0600 start')
@@ -6455,10 +6455,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0700 start')
@@ -6491,10 +6491,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0800 start')
@@ -6527,10 +6527,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_0900 start')
@@ -6582,10 +6582,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1000 start')
@@ -6637,10 +6637,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1100 start')
@@ -6692,10 +6692,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PREPARE_CALLBACK_1200 start')
@@ -6748,10 +6748,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0100 start')
@@ -6782,10 +6782,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0200 start')
@@ -6816,10 +6816,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0300 start')
@@ -6854,10 +6854,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0400 start')
@@ -6896,10 +6896,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0500 start')
@@ -6940,10 +6940,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0600 start')
@@ -6982,10 +6982,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0700 start')
@@ -7024,10 +7024,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETSURFACE_CALLBACK_0800 start')
@@ -7063,10 +7063,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0100 start')
@@ -7097,10 +7097,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0200 start')
@@ -7131,10 +7131,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0300 start')
@@ -7173,10 +7173,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0400 start')
@@ -7217,10 +7217,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0500 start')
@@ -7259,10 +7259,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0600 start')
@@ -7301,10 +7301,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0700 start')
@@ -7337,10 +7337,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_START_CALLBACK_0800 start')
@@ -7378,10 +7378,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0100 start')
@@ -7412,10 +7412,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0200 start')
@@ -7446,10 +7446,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0300 start')
@@ -7484,10 +7484,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0400 start')
@@ -7526,10 +7526,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0500 start')
@@ -7568,10 +7568,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0600 start')
@@ -7608,10 +7608,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0700 start')
@@ -7648,10 +7648,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_PAUSE_CALLBACK_0800 start')
@@ -7692,10 +7692,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0200 start')
@@ -7739,10 +7739,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0300 start')
@@ -7786,10 +7786,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0400 start')
@@ -7833,10 +7833,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0500 start')
@@ -7880,10 +7880,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0600 start')
@@ -7925,10 +7925,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0700 start')
@@ -7970,10 +7970,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0800 start')
@@ -8015,10 +8015,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_0900 start')
@@ -8060,10 +8060,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1000 start')
@@ -8105,10 +8105,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_MPEG4_1200 start')
@@ -8148,10 +8148,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0100 start')
@@ -8192,10 +8192,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0200 start')
@@ -8241,10 +8241,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0300 start')
@@ -8290,10 +8290,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0400 start')
@@ -8339,10 +8339,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0500 start')
@@ -8388,10 +8388,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0600 start')
@@ -8435,10 +8435,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0700 start')
@@ -8482,10 +8482,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0800 start')
@@ -8529,10 +8529,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_0900 start')
@@ -8576,10 +8576,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1000 start')
@@ -8623,10 +8623,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_MPEG4_1200 start')
@@ -8668,10 +8668,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0100 start')
@@ -8710,10 +8710,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0200 start')
@@ -8757,10 +8757,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0300 start')
@@ -8804,10 +8804,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0400 start')
@@ -8851,10 +8851,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0500 start')
@@ -8898,10 +8898,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0600 start')
@@ -8943,10 +8943,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0700 start')
@@ -8988,10 +8988,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0800 start')
@@ -9033,10 +9033,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_0900 start')
@@ -9078,10 +9078,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1000 start')
@@ -9123,10 +9123,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H264_1200 start')
@@ -9166,10 +9166,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0100 start')
@@ -9210,10 +9210,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0200 start')
@@ -9259,10 +9259,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0300 start')
@@ -9308,10 +9308,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0400 start')
@@ -9357,10 +9357,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0500', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0500', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0500 start')
@@ -9406,10 +9406,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0600', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0600', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0600 start')
@@ -9453,10 +9453,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0700', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0700', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0700 start')
@@ -9500,10 +9500,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0800', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0800', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0800 start')
@@ -9547,10 +9547,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0900', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0900', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_0900 start')
@@ -9594,10 +9594,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1000', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1000', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1000 start')
@@ -9641,10 +9641,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H264_1200 start')
@@ -9686,10 +9686,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETAVRECORDERCONFIG_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETAVRECORDERCONFIG_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_GETAVRECORDERCONFIG_PROMISE_0100 start')
@@ -9723,10 +9723,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H265_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H265_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_PROMISE_H265_0100 start')
@@ -9768,10 +9768,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0100 start')
@@ -9815,10 +9815,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_FUNCTION_CALLBACK_H265_0200 start')
@@ -9863,10 +9863,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_CALLBACK_0100 start')
@@ -9908,10 +9908,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_CALLBACK_0100 start')
@@ -9953,10 +9953,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_CALLBACK_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_CALLBACK_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_CALLBACK_0100 start')
@@ -9998,10 +9998,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_CURRENT_CAPTURER_INFO_PROMISE_0100 start')
@@ -10043,10 +10043,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_AVAILABLE_ENCODER_PROMISE_0100 start')
@@ -10088,10 +10088,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
     */
-    it('SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_PROMISE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_PROMISE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_GET_MAX_AMPLITUDE_PROMISE_0100 start')
@@ -10133,10 +10133,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function test
         * @tc.level     : Level2
         */
-    it('SUM_MULTIMEDIA_MEDIA_ERRORCODE_ENUM_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_MEDIA_ERRORCODE_ENUM_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       let newErrorCode = media.AVErrorCode.AVERR_AUDIO_INTERRUPTED;
@@ -10152,10 +10152,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level3
         */
-    it('SUM_MULTIMEDIA_AVRECORDER_UPDATE_ROTATION_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_UPDATE_ROTATION_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_UPDATE_ROTATION__0100 start')
@@ -10191,10 +10191,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level3
         */
-    it('SUM_MULTIMEDIA_AVRECORDER_CREATE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_CREATE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_CREATE_0100 start')
@@ -10214,10 +10214,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function test
             * @tc.level     : Level3
         */
-    it('SUM_MULTIMEDIA_AVRECORDER_CREATE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUM_MULTIMEDIA_AVRECORDER_CREATE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUM_MULTIMEDIA_AVRECORDER_CREATE_0200 start')
@@ -10240,10 +10240,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0100 start')
@@ -10283,10 +10283,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function
         * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0200 start')
@@ -10324,10 +10324,10 @@ export function avVideoRecorderTestOne() {
         * @tc.type      : Function
         * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_02001', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_02001', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_METADATA_0200 start')
@@ -10362,10 +10362,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0100 start')
@@ -10407,10 +10407,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0200 start')
@@ -10452,10 +10452,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0300', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0300', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0300 start')
@@ -10497,10 +10497,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0400', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0400', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUDIO_SOURCE_TYPE_0400 start')
@@ -10542,10 +10542,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0100', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0100 start')
@@ -10586,10 +10586,10 @@ export function avVideoRecorderTestOne() {
             * @tc.type      : Function
             * @tc.level     : Level 2
         */
-    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0200', Level.LEVEL0,async (done: Function) => {
+    it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0200', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_AUTO_CREATE_FILE_0200 start')
@@ -10623,7 +10623,7 @@ export function avVideoRecorderTestOne() {
     it('SUB_MULTIMEDIA_AVRECORDER_VIDEO_OFF_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_VIDEO_OFF_0100 start')
@@ -10667,7 +10667,7 @@ export function avVideoRecorderTestOne() {
     it('SUB_MULTIMEDIA_AVRECORDER_SET_WILL_MUTE_WHEN_INTERRUPTED_0100', Level.LEVEL0, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_SET_WILL_MUTE_WHEN_INTERRUPTED_0100 start')
@@ -10704,7 +10704,7 @@ export function avVideoRecorderTestOne() {
     it('SUB_MULTIMEDIA_AVRECORDER_SET_WILL_MUTE_WHEN_INTERRUPTED_0200', Level.LEVEL2, async (done: Function) => {
       if (!isSupportCameraVideoProfiles) {
         console.info('Failed to obtain the default videoProfiles object.Not support usb camera');
-        expect(true).assertTrue();
+        expect(isSupportCameraVideoProfiles).assertFail();
         done();
       }
       console.info(TAG + 'SUB_MULTIMEDIA_AVRECORDER_SET_WILL_MUTE_WHEN_INTERRUPTED_0200 start')

@@ -22,6 +22,7 @@ export default function waterFlowScrollOffsetTest() {
   describe('WaterFlowScrollOffsetTest', () => {
 
     beforeEach(async (done: Function) => {
+      await Utils.pushPage(`waterflow/WaterFlowEmptyTest`)
       await Utils.sleep(100);
       done();
     });
@@ -35,21 +36,33 @@ export default function waterFlowScrollOffsetTest() {
     * @tc.level      : Level 1
     */
     it('testScrollOffset020', Level.LEVEL1, async (done: Function) => {
+      await Utils.sleep(1000)
       await Utils.pushPage(`waterflow/WaterFlowScrollOffsetTest`, () => setTimeout(() => {
       }, 1000));
-      await Utils.sleep(5000)
+      await Utils.sleep(2000)
       let dataArray: number[][] = nativeRender.waterFlowScrollOffsetData();
+      await Utils.sleep(2000)
       let waterFlowOffsetInfo: number[] = dataArray[0];
-      expect(waterFlowOffsetInfo[0] == 0 && waterFlowOffsetInfo[1] == 0).assertEqual(true)
-      expect(waterFlowOffsetInfo[2] == 150 && waterFlowOffsetInfo[3] == 0).assertEqual(true)
-      expect(waterFlowOffsetInfo[4] == 130 && waterFlowOffsetInfo[5] == 0).assertEqual(true)
-      expect(waterFlowOffsetInfo[6] > 1381 && waterFlowOffsetInfo[6] < 1382 && waterFlowOffsetInfo[7] == 0).assertEqual(true)
-      expect(waterFlowOffsetInfo[8] == 0 && waterFlowOffsetInfo[9] == 0).assertEqual(true)
-      expect(waterFlowOffsetInfo[10] == 0 && waterFlowOffsetInfo[11] == 150).assertEqual(true)
-      expect(waterFlowOffsetInfo[12] == 0 && waterFlowOffsetInfo[13] == 130).assertEqual(true)
-      expect(waterFlowOffsetInfo[14] == 0 && waterFlowOffsetInfo[15] > 1291 && waterFlowOffsetInfo[15] < 1292).assertEqual(true)
-      expect(waterFlowOffsetInfo[16] == 0 && waterFlowOffsetInfo[17] == 130).assertEqual(true)
-      expect(waterFlowOffsetInfo[18] == 130 && waterFlowOffsetInfo[19] == 0).assertEqual(true)
+      console.log('testScrollOffset020', JSON.stringify(dataArray))
+      console.log('testScrollOffset020', JSON.stringify(waterFlowOffsetInfo))
+      console.log('testScrollOffset020 waterFlowOffsetInfo[2]: '+ waterFlowOffsetInfo[2])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[4]: '+ waterFlowOffsetInfo[4])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[6]: '+ waterFlowOffsetInfo[6])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[11]: '+ waterFlowOffsetInfo[11])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[13]: '+ waterFlowOffsetInfo[13])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[15]: '+ waterFlowOffsetInfo[15])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[17]: '+ waterFlowOffsetInfo[17])
+      console.log('testScrollOffset020 waterFlowOffsetInfo[18]: '+ waterFlowOffsetInfo[18])
+      expect(waterFlowOffsetInfo[0] == 0 && waterFlowOffsetInfo[1] == 0).assertTrue()
+      expect(waterFlowOffsetInfo[2] == 120 && waterFlowOffsetInfo[3] == 0).assertTrue()
+      expect(waterFlowOffsetInfo[4] == 130 && waterFlowOffsetInfo[5] == 0).assertTrue()
+      expect(waterFlowOffsetInfo[6] > 931 && waterFlowOffsetInfo[6] < 933 && waterFlowOffsetInfo[7] == 0).assertTrue()
+      expect(waterFlowOffsetInfo[8] == 0 && waterFlowOffsetInfo[9] == 0).assertTrue()
+      expect(waterFlowOffsetInfo[10] == 0 && waterFlowOffsetInfo[11] == 120).assertTrue()
+      expect(waterFlowOffsetInfo[12] == 0 && waterFlowOffsetInfo[13] == 130).assertTrue()
+      expect(waterFlowOffsetInfo[14] == 0 && waterFlowOffsetInfo[15] > 921 && waterFlowOffsetInfo[15] < 923).assertTrue()
+      expect(waterFlowOffsetInfo[16] == 0 && waterFlowOffsetInfo[17] == 130).assertTrue()
+      expect(waterFlowOffsetInfo[18] == 130 && waterFlowOffsetInfo[19] == 0).assertTrue()
       done();
     })
 

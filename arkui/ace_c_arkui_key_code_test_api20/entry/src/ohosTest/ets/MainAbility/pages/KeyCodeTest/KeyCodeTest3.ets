@@ -25,10 +25,10 @@ struct KeyCodeTest3 {
       Column() {
         Button('keyCodeEvent')
           .defaultFocus(true)
-          .onKeyEvent((event: KeyEvent)=>{
+          .onKeyPreIme((event: KeyEvent)=>{
             keyCodeNdk.InitKeyMonitor3(event?.keyCode);
+            return true;
           })
-        TextInput()
       }
       .width('100%')
     }

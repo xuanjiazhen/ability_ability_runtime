@@ -44,7 +44,7 @@ struct RichEditorMaxLengthTest {
                 if(typeof(item as RichEditorTextSpanResult)['symbolSpanStyle'] != 'undefined') {
                 }else {
                   AppStorage.setOrCreate('RichEditorMaxLength',(item as RichEditorTextSpanResult).value)
-                  console.log('zww'+(item as RichEditorTextSpanResult).value)
+                  console.log(''+(item as RichEditorTextSpanResult).value)
                 }
               }
             })

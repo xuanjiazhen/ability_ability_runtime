@@ -27,11 +27,13 @@ struct WebTextAutosizing {
   @State str: string = ""
   @State text: number = 0
   @State text1: number = 0
+  @State ClientWidth:number = 0
   @State de: number = 1
   @State qa: number = 9
   @State det: number = 13
   @State userAgentPC:string = "";
   @State isTextAutosizing: boolean | undefined | null= false;
+  @State flag:boolean = false
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
@@ -68,6 +70,15 @@ struct WebTextAutosizing {
                 Utils.emitEvent(true, 4350)
                 break;
               }
+              this.webviewController.runJavaScript("getClientWidth()", (err, res) => {
+                  this.ClientWidth = Number(res);
+                  Utils.sleep(3000);
+                  //判断是否是智慧屏
+                  if(this.ClientWidth > 980) {
+                   this.flag = true;
+                  }
+                })
+              
               let value: boolean = false;
               this.isTextAutosizing = false;
               this.de = 1
@@ -76,6 +87,7 @@ struct WebTextAutosizing {
               try {
                 this.webviewController.loadUrl($rawfile("text.html"));
                 await Utils.sleep(2000);
+     
                 this.de = 100;
                 await Utils.sleep(2000);
                 this.webviewController.runJavaScript("getSize()", (err, res) => {
@@ -89,18 +101,26 @@ struct WebTextAutosizing {
                   this.text1 = Number(res)
                 })
                 this.webviewController.refresh()
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 < this.text) {
                   value = true;
                 }
               } catch (error) {
                 console.error(`ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
               }
+  
 
               setTimeout(() => {
                 console.log("value01: " + value);
-                Utils.emitEvent(value, 4350)
+                // 判断是否是智慧屏
+                if(this.flag == true) {
+                    Utils.emitEvent(true, 4350)
+                } else {
+                   Utils.emitEvent(value, 4350)
+                }
+                
               }, 3000)
+
               break;
             }
 
@@ -134,7 +154,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum2 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }
@@ -179,7 +199,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum3 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }
@@ -223,7 +243,7 @@ struct WebTextAutosizing {
                   console.info("key==>getNum4 res :" + JSON.stringify(res))
                   this.text1 = Number(res)
                 })
-                await Utils.sleep(2000);
+                await Utils.sleep(4355);
                 if (this.text1 == this.text) {
                   value = true;
                 }

@@ -18,7 +18,12 @@
         "type": "feature",
         "description": "$string:TestAbility_label",
         "mainElement": "TestAbility",
-        "deviceTypes": [],
+        "deviceTypes": [
+            "wearable",
+            "default",
+            "tablet",
+            "2in1"
+        ],
         "deliveryWithInstall": true,
         "installationFree": false,
         "pages": "$profile:test_pages",

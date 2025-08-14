@@ -146,18 +146,18 @@ struct WebComponent {
                     console.log('pbbbnetment333');
                     let driver: Driver = Driver.create();
                     let webRect = Utils.getComponentRect('webviewundoingredokey');
-                    let RedoButton = await driver.findComponent(ON.id("webviewundoingredokey"));
+                    let RedoButton = await driver.waitForComponent(ON.id("webviewundoingredokey"),10000);
                     await RedoButton.click();
                     await driver.triggerKey(2001);
                     await Utils.sleep(2000);
-                    let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+                    let softKeyBoard = await driver.waitForComponent(ON.type('Canvas'),10000);
                     if (softKeyBoard != null) {
                       await driver.pressBack()
                     }
                     let downX = Math.round(globalThis.winLeft + webRect.left + (webRect.right - webRect.left) / 2);
                     let downY = Math.round(globalThis.winTop + webRect.top + (webRect.bottom - webRect.top) / 2);
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
-                    let buttonThree = await driver.findComponent(ON.text('撤销'));
+                    let buttonThree = await driver.waitForComponent(ON.text('撤销'),10000);
                     await buttonThree.click();
                     this.controller.runJavaScript("getEditText()", (error, result) => {
                       if (error) {
@@ -184,22 +184,22 @@ struct WebComponent {
                     this.controller.loadUrl("resource://rawfile/index.html");
                     let driver: Driver = Driver.create();
                     let webRect = Utils.getComponentRect('webviewundoingredokey');
-                    let RedoButton = await driver.findComponent(ON.id("webviewundoingredokey"));
+                    let RedoButton = await driver.waitForComponent(ON.id("webviewundoingredokey"),10000);
                     await RedoButton.click();
                     await driver.triggerKey(2001);
                     await Utils.sleep(2000);
-                    let softKeyBoard = await driver.findComponent(ON.type('Canvas'));
+                    let softKeyBoard = await driver.waitForComponent(ON.type('Canvas'),10000);
                     if (softKeyBoard != null) {
                       await driver.pressBack()
                     }
                     let downX = Math.round(globalThis.winLeft + webRect.left + (webRect.right - webRect.left) / 2);
                     let downY = Math.round(globalThis.winTop + webRect.top + (webRect.bottom - webRect.top) / 2);
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
-                    let buttonThree = await driver.findComponent(ON.text('撤销'));
+                    let buttonThree = await driver.waitForComponent(ON.text('撤销'),10000);
                     await buttonThree.click();
                     await Utils.sleep(1000);
                     await driver.mouseClick({ x: downX, y: downY }, MouseButton.MOUSE_BUTTON_RIGHT);
-                    let buttonFour = await driver.findComponent(ON.text('重做'));
+                    let buttonFour = await driver.waitForComponent(ON.text('重做'),10000);
                     await buttonFour.click();
                     this.controller.runJavaScript("getEditText()", (error, result) => {
                       if (error) {

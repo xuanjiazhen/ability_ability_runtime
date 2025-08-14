@@ -963,11 +963,14 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_JPEG_0100");
-      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-        expect(true).assertTrue();
-        done();
-        return
-      };
+      try {
+        if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+          done();
+          return
+        };
+      } catch (error) {
+        console.info('file does not exist');
+      }
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         expect(true).assertTrue();
@@ -4736,11 +4739,14 @@ export default function imagePicture() {
      */
     it('SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100', Level.LEVEL0, async (done: Function) => {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_IMAGESOURCE_GET_HDR_PIXELMAP_HEIF_0100");
-      if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")){
-        expect(true).assertTrue();
-        done();
-        return
-      };
+      try {
+        if(!fs.accessSync("/sys_prod/etc/VideoProcessingEngine/Image_SR_Model_576x576_20240402.omc")) {
+          done();
+          return
+        };
+      } catch (error) {
+        console.info('file does not exist');
+      }
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
         expect(true).assertTrue();
@@ -8887,15 +8893,20 @@ export default function imagePicture() {
       let options: image.ImagePropertyOptions = { index: 0, defaultValue: '9999' }
       let fileName = 'FragmentMap.dat'
       let imageSourceApi = await getImageSource(fileName, "uri")
-      imageSourceApi.getImageProperty(null, options).then((data: string) => {
-        console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
-        expect().assertFail();
+      try {
+        imageSourceApi.getImageProperty(null, options).then((data: string) => {
+          console.info(tag + ' Succeeded in getting the value of the specified attribute key of the image.');
+          expect().assertFail();
+          done();
+        }).catch((error: BusinessError) => {
+          console.error(tag + ' Failed to get the value of the specified attribute key of the image.');
+          expect().assertFail();
+          done();
+        })
+      } catch (e) {
+        expect(e.message).assertContain("async context unwrap failed");
         done();
-      }).catch((error: BusinessError) => {
-        console.error(tag + ' Failed to get the value of the specified attribute key of the image.');
-        expect(error.code == 62980137).assertTrue();
-        done();
-      })
+      }
       done();
     })
 

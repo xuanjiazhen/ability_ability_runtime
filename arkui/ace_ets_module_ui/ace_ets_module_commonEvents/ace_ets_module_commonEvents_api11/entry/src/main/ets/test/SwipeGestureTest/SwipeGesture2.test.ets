@@ -86,7 +86,7 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       let top = colum.top
       let right = colum.right
       let left = colum.left
-      await driver.swipe(Math.round(left + (right-left)/6), Math.round(top + 50), Math.round(right - (right-left)/6), Math.round(top + 450))
+      await driver.swipe(Math.round(colum.left+(colum.right - colum.left)/2), Math.round(top), Math.round(colum.right), Math.round(colum.bottom))
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('Swipe4');
       let obj: ESObject = JSON.parse(strJson);
@@ -99,4 +99,3 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
 
   })
 }
-

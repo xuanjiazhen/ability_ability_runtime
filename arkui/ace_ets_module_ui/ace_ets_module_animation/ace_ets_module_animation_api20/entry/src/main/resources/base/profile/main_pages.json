@@ -2,6 +2,7 @@
     "src": [
         "MainAbility/pages/index/index",
         "MainAbility/pages/FrameNodeAnimation",
-        "MainAbility/pages/ParticleEmitter"
+        "MainAbility/pages/ParticleEmitter",
+        "MainAbility/pages/Vector2TTest"
     ]
 }

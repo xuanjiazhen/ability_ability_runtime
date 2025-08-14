@@ -56,6 +56,7 @@ struct WebViewControllerVideoMedia {
           switch (this.str) {
             case "rectEvent0100": {
               try {
+                await Utils.sleep(5000);
                 Utils.emitEvent(this.RectWidth > 0 && this.RectHeight > 0 , 202503222)
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);

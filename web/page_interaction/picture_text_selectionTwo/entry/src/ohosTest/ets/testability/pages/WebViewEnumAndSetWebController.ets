@@ -148,8 +148,9 @@ struct WebViewEnumAndSetWebController {
               await Utils.sleep(2000);
               this.controller.loadUrl("resource://rawfile/indexFile2.html")
               let driver = Driver.create();
-              let button = await driver.findComponent(ON.id('WebViewEnumAndSetWebControllerWebView'));
-              await button.click();
+              await Utils.sleep(2000);
+              let buttonOne = await driver.findComponent(ON.text('选择文件'));
+              await buttonOne.click()
               await Utils.sleep(2000);
               Utils.emitEvent(Number(this.FileSelectorMode), 863)
               break;

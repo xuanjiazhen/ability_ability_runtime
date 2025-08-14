@@ -7950,8 +7950,8 @@ static napi_value createSendableTypedArrayNotType(napi_env env, napi_callback_in
     napi_create_sendable_arraybuffer(env, length, &data, &arraybuffer);
 
     napi_value result = nullptr;
-    napi_status status = napi_create_sendable_typedarray(env, napi_float64_array, length,
-                                                         arraybuffer, offset, &result);
+    napi_status status = napi_create_sendable_typedarray(env,
+	    static_cast<napi_typedarray_type>(-1), length, arraybuffer, offset, &result);
     bool bRet = (status == napi_invalid_arg);
     napi_value retValue;
     napi_create_int32(env, bRet, &retValue);

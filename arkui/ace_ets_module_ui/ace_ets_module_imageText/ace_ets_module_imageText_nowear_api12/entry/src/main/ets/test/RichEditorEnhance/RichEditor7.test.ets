@@ -64,6 +64,7 @@ export default function RichEditor7() {
       await RichEditorGetAttribute.inputText('456')
       let GetStopEditing = await driver.findComponent(ON.id("StopEditing"));
       await GetStopEditing.click()
+      await driver.delayMs(1000)
       let OnEditingChange = await driver.findComponent(ON.id("OnEditingChange1"));
       let IsEditing = await driver.findComponent(ON.id("IsEditing1"));
       let OnEditingChangeText = await OnEditingChange.getText()

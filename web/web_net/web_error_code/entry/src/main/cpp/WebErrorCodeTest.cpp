@@ -14,51 +14,434 @@
  */
 
 #include "napi/native_api.h"
+#include "web/arkweb_interface.h"
+#include "web/arkweb_scheme_handler.h"
+#include "native_common.h"
 #include <cstdint>
-#include <web/native_interface_arkweb.h>
+#include <hilog/log.h>
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
-#include <hilog/log.h>
+#include <web/native_interface_arkweb.h>
+#include "WebErrorCodeList.h"
+#include "WebSchemeHandlerTest.h"
 
 static napi_value WebErrorCodeSuccess(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess start..");
     napi_value result;
-    const char* webTag = "web1211";
-    const char* data = "<html>\n"
-    "    <head>\n"
-    "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale="
-                                              "1.0, maximum-scale=1.0\">\n"
-    "    </head>\n"
-    "    <body>\n"
-    "        Source:<pre>source</pre>\n"
-    "        <div dir=\"auto\">\n"
-    "            <br />\n"
-    "            <img style=\"max-width:592px;height:auto\" src=\"image.jpg\" alt=\"图片\""
-                                                "width=\"592\" height=\"1052\" />\n"
-    "            <div>\n"
-    "                <br /><br /><br /><br /><br />\n"
-    "                <div>图片</div>\n"
-    "            </div>\n"
-    "        </div>\n"
-    "    </body>\n"
-    "</html>";
-    const char* mimeType = "text/html";
-    const char* encoding = "UTF-8";
-    const char* baseUrl = "resource://rawfile/";
-    const char* historyUrl = "www";
+    const char *webTag = "web1211";
+    const char *data = "<html>\n"
+                       "    <head>\n"
+                       "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, "
+                       "user-scalable=0, minimum-scale="
+                       "1.0, maximum-scale=1.0\">\n"
+                       "    </head>\n"
+                       "    <body>\n"
+                       "        Source:<pre>source</pre>\n"
+                       "        <div dir=\"auto\">\n"
+                       "            <br />\n"
+                       "            <img style=\"max-width:592px;height:auto\" src=\"image.jpg\" alt=\"图片\""
+                       "width=\"592\" height=\"1052\" />\n"
+                       "            <div>\n"
+                       "                <br /><br /><br /><br /><br />\n"
+                       "                <div>图片</div>\n"
+                       "            </div>\n"
+                       "        </div>\n"
+                       "    </body>\n"
+                       "</html>";
+    const char *mimeType = "text/html";
+    const char *encoding = "UTF-8";
+    const char *baseUrl = "resource://rawfile/";
+    const char *historyUrl = "www";
     int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
-    napi_create_int32(env, ret, &result);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_SUCCESS) {
+        napi_create_int32(env, ret, &result);
+    }
+
     OH_LOG_DEBUG(LOG_APP, "WebErrorCodeSuccess end..");
     return result;
 }
 
+static napi_value WebInitError(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebInitError start..");
+    napi_value result;
+    const char *webTag = "";
+    const char *data = "";
+    const char *mimeType = "";
+    const char *encoding = "";
+    const char *baseUrl = "";
+    const char *historyUrl = "";
+    int ret = OH_NativeArkWeb_LoadData(webTag, data, mimeType, encoding, baseUrl, historyUrl);
+    if (ret == ArkWeb_ErrorCode::ARKWEB_INIT_ERROR) {
+        napi_create_int32(env, ret, &result);
+    }
+    OH_LOG_DEBUG(LOG_APP, "WebInitError end..");
+    return result;
+}
+
+static napi_value WebErrorUnknow(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow start..");
+    ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
+    ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
+    int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
+    napi_value result;
+    if (ret == ArkWeb_ErrorCode::ARKWEB_ERROR_UNKNOWN) {
+        napi_create_int32(env, ret, &result);
+    }
+
+    OH_LOG_DEBUG(LOG_APP, "WebErrorUnknow end..");
+    return result;
+}
+
+static napi_value WebErrorInvalidParam(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorInvalidParam start..");
+    int32_t p = 6;
+    int *value = &p;
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
+    OH_ArkWebSchemeHandler_SetUserData(g_schemeHandler, &value);
+
+    ArkWeb_HttpBodyStream *httpBodyStream = nullptr;
+    ArkWeb_HttpBodyStreamAsyncReadCallback readCallback;
+    int ret = OH_ArkWebHttpBodyStream_SetAsyncReadCallback(httpBodyStream, readCallback);
+    napi_value result;
+    if (ret == ArkWeb_ErrorCode::ARKWEB_INVALID_PARAM) {
+        napi_create_int32(env, ret, &result);
+    }
+
+    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorInvalidParam en..");
+    return result;
+}
+
+static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorSchemeRegitsterFailed start..");
+    ArkWeb_ErrorCode ret = ARKWEB_SCHEME_REGISTER_FAILED;
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
+    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    napi_value result;
+    if (ret == ArkWeb_ErrorCode::ARKWEB_SCHEME_REGISTER_FAILED) {
+        napi_create_int32(env, ret, &result);
+    }
+    OH_LOG_DEBUG(LOG_APP, "WebErrorSchemeRegitsterFailed end..");
+    return result;
+}
+
+static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledURL start..");
+    static ArkWeb_CookieManagerAPI *cookieManager = nullptr;
+    cookieManager = reinterpret_cast<ArkWeb_CookieManagerAPI *>(OH_ArkWeb_GetNativeAPI(ARKWEB_NATIVE_COOKIE_MANAGER));
+    char *cookieValue;
+    ArkWeb_ErrorCode resultCode = cookieManager->fetchCookieSync("", true, true, &cookieValue);
+    napi_value result;
+    if (resultCode == ARKWEB_INVALID_URL) {
+        napi_create_int32(env, resultCode, &result);
+    } else {
+        napi_create_int32(env, -1, &result);
+    }
+    return result;
+}
+
+static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledCookieValue start..");
+    static ArkWeb_CookieManagerAPI *cookieManager = nullptr;
+    cookieManager = reinterpret_cast<ArkWeb_CookieManagerAPI *>(OH_ArkWeb_GetNativeAPI(ARKWEB_NATIVE_COOKIE_MANAGER));
+    char *cookieValue = "test=abc\nd123";
+    ArkWeb_ErrorCode ret = ARKWEB_INVALID_COOKIE_VALUE;
+    ArkWeb_ErrorCode resultCode = cookieManager->configCookieSync("https://example.com", cookieValue, false, false);
+
+    napi_value result;
+    if (resultCode != ARKWEB_INVALID_COOKIE_VALUE) {
+        napi_create_int32(env, ret, &result);
+    } else {
+        napi_create_int32(env, resultCode, &result);
+    }
+
+    OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledCookieValue end..");
+    return result;
+}
+
+static napi_value WebErrorLibraryOpenFailure(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorLibraryOpenFailure start..");
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
+    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    ArkWeb_ErrorCode ret = ARKWEB_LIBRARY_OPEN_FAILURE;
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorLibraryOpenFailure end..");
+    return result;
+}
+
+static napi_value WebErrorLibraySymbolNotFound(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorLibraySymbolNotFound start..");
+    ArkWeb_ErrorCode ret = ARKWEB_LIBRARY_SYMBOL_NOT_FOUND;
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
+    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorLibraySymbolNotFound end..");
+    return result;
+}
+
+static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_ErrorCode ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
+    ArkWeb_SchemeHandler *g_schemeHandler;
+    int saveRet = OH_ArkWebCookieManager_SaveCookieSync();
+    napi_value result;
+    if (saveRet != ARKWEB_SUCCESS) {
+        napi_create_int32(env, saveRet, &result);
+    } else {
+        napi_create_int32(env, ret, &result);
+    }
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
+static napi_value WebBlanklessSuccess(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_SUCCESS;
+    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "https://www.example.com", true);
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrUnknown(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_UNKNOWN;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "test");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrInvalidArgs(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrInvalidArgs start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_INVALID_ARGS;
+    OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrInvalidArgs end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrControllerNotInited(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrControllerNotInited start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_CONTROLLER_NOT_INITED;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrControllerNotInited end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrKeyNotMatch(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrKeyNotMatch start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_KEY_NOT_MATCH;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "testtest");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrKeyNotMatch end..");
+    return result;
+}
+
+static napi_value WebBlanklessErrSignificantChange(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrSignificantChange start..");
+    ArkWeb_BlanklessErrorCode ret = ARKWEB_BLANKLESS_ERR_SIGNIFICANT_CHANGE;
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("test", "test000");
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessErrSignificantChange end..");
+    return result;
+}
+
+static napi_value WebBlanklessDeviceNotSupport(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport start..");
+    napi_value result;
+    ArkWeb_BlanklessErrorCode retSet =
+        OH_NativeArkWeb_SetBlanklessLoadingWithKey("web1211", "web.blankless.enabled", false);
+    if (retSet == ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT) {
+        napi_create_int32(env, retSet, &result);
+        return result;
+    }
+
+    OH_NativeArkWeb_GetBlanklessInfoWithKey("web1211", "web.blankless.enabled");
+    napi_create_int32(env, ARKWEB_BLANKLESS_ERR_DEVICE_NOT_SUPPORT, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebBlanklessDeviceNotSupport end..");
+    return result;
+}
+
+static napi_value WebAnyNativeAPI(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebAnyNativeAPI start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COMPONENT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebAnyNativeAPI end..");
+    return result;
+}
+
+static napi_value WebNativeComponent(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeComponent start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COMPONENT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeComponent end..");
+    return result;
+}
+
+static napi_value WebNativeController(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeController start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_CONTROLLER;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeController end..");
+    return result;
+}
+
+static napi_value WebNativeWebMessagePort(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessagePort start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_WEB_MESSAGE_PORT;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessagePort end..");
+    return result;
+}
+
+static napi_value WebNativeWebMessage(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessage start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_WEB_MESSAGE;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeWebMessage end..");
+    return result;
+}
+
+static napi_value WebNativeCookieManger(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeCookieManger start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_COOKIE_MANAGER;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeCookieManger end..");
+    return result;
+}
+
+static napi_value WebNativeJavaScriptValue(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebNativeJavaScriptValue start..");
+    ArkWeb_NativeAPIVariantKind type = ARKWEB_NATIVE_JAVASCRIPT_VALUE;
+    ArkWeb_AnyNativeAPI* retInfo = OH_ArkWeb_GetNativeAPI(type);
+    int ret = 0;
+    if (retInfo != nullptr) {
+        ret  = retInfo->size > 0? 0: -1;
+    }
+
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebNativeJavaScriptValue end..");
+    return result;
+}
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        {"webErrCodeSuccess", nullptr, WebErrorCodeSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
+        DECLARE_NAPI_FUNCTION("webErrCodeSuccess", WebErrorCodeSuccess),
+        DECLARE_NAPI_FUNCTION("webInitError", WebInitError),
+        DECLARE_NAPI_FUNCTION("webErrorUnknow", WebErrorUnknow),
+        DECLARE_NAPI_FUNCTION("webErrorInvalidParam", WebErrorInvalidParam),
+        DECLARE_NAPI_FUNCTION("webErrorSchemeRegitsterFailed", WebErrorSchemeRegitsterFailed),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledURL", WebErrorInvaledURL),
+        DECLARE_NAPI_FUNCTION("webErrorInvaledCookieValue", WebErrorInvaledCookieValue),
+        DECLARE_NAPI_FUNCTION("webErrorLibraryOpenFailure", WebErrorLibraryOpenFailure),
+        DECLARE_NAPI_FUNCTION("webErrorLibraySymbolNotFound", WebErrorLibraySymbolNotFound),
+        DECLARE_NAPI_FUNCTION("webErrorCookeManagerNotInitialized", WebErrorCookeManagerNotInitialized),
+        DECLARE_NAPI_FUNCTION("webBlanklessSuccess", WebBlanklessSuccess),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrUnknown", WebBlanklessErrUnknown),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrInvalidArgs", WebBlanklessErrInvalidArgs),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrControllerNotInited", WebBlanklessErrControllerNotInited),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrKeyNotMatch", WebBlanklessErrKeyNotMatch),
+        DECLARE_NAPI_FUNCTION("webBlanklessErrSignificantChange", WebBlanklessErrSignificantChange),
+        DECLARE_NAPI_FUNCTION("webBlanklessDeviceNotSupport", WebBlanklessDeviceNotSupport),
+        DECLARE_NAPI_FUNCTION("webAnyNativeAPI", WebAnyNativeAPI),
+        DECLARE_NAPI_FUNCTION("webNativeComponent", WebNativeComponent),
+        DECLARE_NAPI_FUNCTION("webNativeController", WebNativeController),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessagePort", WebNativeWebMessagePort),
+        DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
+        DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
+        DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
+        DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
+        DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

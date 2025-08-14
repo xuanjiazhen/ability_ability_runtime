@@ -574,7 +574,8 @@ export const nodeTreeXComponentDetach401Test: (a: string) => void;
 export const gridAdapterTest : (a : string) =>void;
 export const refreshOffsetTest : (a : string) =>void;
 export const refreshOffsetLessThanOffsetTest : (a : string) =>void;
-export const hybirdGetNodeHandleTest : (a: string) => void;
+
+export const hybirdGetNodeHandleTest : (a: string, b: object, c: object) => void;
 
 export const requirementPanGestureTest: (a: string) => void;
 

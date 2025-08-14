@@ -16,6 +16,14 @@
 import power from '@ohos.power';
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect, TestType, Size, Level } from '@ohos/hypium';
 
+function isPowerMode(mode) {
+  if (typeof mode !== 'number') {
+    return false;
+  }
+  return (mode >= power.DevicePowerMode.MODE_NORMAL && mode <= power.DevicePowerMode.MODE_EXTREME_POWER_SAVE) ||
+    mode == power.DevicePowerMode.MODE_CUSTOM_POWER_SAVE;
+}
+
 export default function PowerTest() {
   describe('PowerTest', function () {
     // Defines a test suite. Two parameters are supported: test suite name and test suite function.
@@ -121,13 +129,12 @@ export default function PowerTest() {
      * @tc.type: Function
      * @tc.size: MediumTest
      */
-    it('Power_GetPowerMode_Test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
-      let TAG = 'Power_GetPowerMode_Test';
+    it('testPower_GetPowerMode_Test', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async function (done) {
+      let TAG = 'testPower_GetPowerMode_Test';
       try {
         let currentMode = power.getPowerMode();
         console.info(`${TAG} currentMode: ${currentMode}`);
-        expect(currentMode).assertLargerOrEqual(power.DevicePowerMode.MODE_NORMAL);
-        expect(currentMode).assertLessOrEqual(power.DevicePowerMode.MODE_EXTREME_POWER_SAVE);
+        expect(isPowerMode(currentMode)).assertTrue();
         done();
       } catch (error) {
         console.error(`${TAG} error: ${JSON.stringify(error)}`);
@@ -553,16 +560,35 @@ export default function PowerTest() {
 
     /**
      * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0170
-     * @tc.name testSystem_API_Test_Power_Manager_1000
+     * @tc.name testSystem_API_Test_Power_Manager_1100
      * @tc.desc Test the third-party application call setScreenOffTime will be blocked
      * @tc.level: Level 3
      * @tc.type: Function
      * @tc.size: MediumTest
      */
-    it('System_API_Test_Power_Manager_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
-      let TAG = 'System_API_Test_Power_Manager_1100';
+    it('testSystem_API_Test_Power_Manager_1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+      let TAG = 'testSystem_API_Test_Power_Manager_1100';
       try {
         power.hibernate(false);
+      } catch (error) {
+        console.error(`${TAG} error: ${JSON.stringify(error)}`);
+        expect(error.code).assertEqual(202);
+        done();
+      }
+    })
+
+    /**
+     * @tc.number SUB_PowerSystem_ErrorCodeTest_JSTest_0180
+     * @tc.name testSystem_API_Test_Power_Manager_1200
+     * @tc.desc Test the third-party application call refreshActivity will be blocked
+     * @tc.level: Level 3
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     */
+    it('testSystem_API_Test_Power_Manager_1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+      let TAG = 'testSystem_API_Test_Power_Manager_1200';
+      try {
+        power.refreshActivity(TAG);
       } catch (error) {
         console.error(`${TAG} error: ${JSON.stringify(error)}`);
         expect(error.code).assertEqual(202);

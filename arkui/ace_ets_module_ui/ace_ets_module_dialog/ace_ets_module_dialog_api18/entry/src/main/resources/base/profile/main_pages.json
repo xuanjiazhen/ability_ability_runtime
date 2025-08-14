@@ -18,6 +18,9 @@
     "MainAbility/pages/bindContextMenu/previewBorderRadius",
     "MainAbility/pages/popup/isVisible",
     "MainAbility/pages/dialog/getDialogControllerTest",
-    "MainAbility/pages/promptAction/DialogOptions"
+    "MainAbility/pages/promptAction/DialogOptions",
+    "MainAbility/pages/buttonType/minFontScale",
+    "MainAbility/pages/buttonType/maxFontScale",
+    "MainAbility/pages/promptAction/ToastExample"
   ]
 }

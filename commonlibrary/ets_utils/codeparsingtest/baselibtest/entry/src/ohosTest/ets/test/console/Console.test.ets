@@ -1142,7 +1142,7 @@ export default function ConsoleTest() {
       const TAG = 'testAssert0001';
       try {
         console.assert();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1160,7 +1160,7 @@ export default function ConsoleTest() {
       const TAG = 'testAssert0002';
       try {
         console.assert(true, 'does nothing');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1178,7 +1178,7 @@ export default function ConsoleTest() {
       const TAG = 'testAssert0003';
       try {
         console.assert(2 % 1 == 0, 'does nothing');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1217,7 +1217,7 @@ export default function ConsoleTest() {
         expect(false).assertFalse();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
-        expect(true).assertTrue();
+        
       }
     });
     /**
@@ -1235,7 +1235,7 @@ export default function ConsoleTest() {
         expect(false).assertFalse();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
-        expect(true).assertTrue();
+        
       }
     });
     /**
@@ -1254,7 +1254,7 @@ export default function ConsoleTest() {
         expect(false).assertFalse();
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
-        expect(true).assertTrue();
+        
       }
     });
     /**
@@ -1269,7 +1269,7 @@ export default function ConsoleTest() {
       const TAG = 'testAssert0008';
       try {
         console.assert(2 * 2 == 4, 3 + 3 == 6, 'console %s work', 'didn\'t');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect(false).assertFalse();
@@ -1287,7 +1287,7 @@ export default function ConsoleTest() {
       const TAG = 'testAssert0009'
       try {
         console.assert(false, 'a', 'b', 'c', 'd');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error:${err.message}`);
         expect().assertFail();
@@ -1305,7 +1305,7 @@ export default function ConsoleTest() {
       const TAG = 'testCount0001';
       try {
         console.count();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1323,7 +1323,7 @@ export default function ConsoleTest() {
       const TAG = 'testCount0002';
       try {
         console.count('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1344,7 +1344,7 @@ export default function ConsoleTest() {
         console.count('default');
         console.count('abc');
         console.count('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1364,7 +1364,7 @@ export default function ConsoleTest() {
         console.count();
         console.count('default')
         console.count('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1384,7 +1384,7 @@ export default function ConsoleTest() {
         console.count();
         console.countReset();
         console.count();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1404,7 +1404,7 @@ export default function ConsoleTest() {
         console.count('abc');
         console.countReset('abc');
         console.count('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1429,7 +1429,7 @@ export default function ConsoleTest() {
         console.countReset('abc');
         console.countReset('abc');
         console.countReset('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1452,7 +1452,7 @@ export default function ConsoleTest() {
 
         let a: bar = new bar();
         console.dir(a);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFalse();
@@ -1471,7 +1471,7 @@ export default function ConsoleTest() {
       try {
         const Buffer = buffer.from('Hello World')
         console.dir(Buffer);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1490,7 +1490,7 @@ export default function ConsoleTest() {
       try {
         let arrayList: Array<number> = [1, 2, 3];
         console.dir(arrayList);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1512,7 +1512,7 @@ export default function ConsoleTest() {
         list.add(2);
         list.add(3);
         console.dir(list);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1531,7 +1531,7 @@ export default function ConsoleTest() {
       try {
         const nun = new Number(1);
         console.dir(nun);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1550,7 +1550,7 @@ export default function ConsoleTest() {
       try {
         const str = new String('Hello World');
         console.dir(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1568,7 +1568,7 @@ export default function ConsoleTest() {
       const TAG = 'testTable0001';
       try {
         console.table([1, 2, 3]);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1590,7 +1590,7 @@ export default function ConsoleTest() {
             e: 5
           }
         });
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1614,7 +1614,7 @@ export default function ConsoleTest() {
             e: 5
           }
         });
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1638,7 +1638,7 @@ export default function ConsoleTest() {
             e: 5
           }
         });
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error:${err.message}`);
         expect().assertFail();
@@ -1656,7 +1656,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0001';
       try {
         console.time('testTime0001');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1674,7 +1674,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0002';
       try {
         console.time();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1692,7 +1692,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0003';
       try {
         console.time('default');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1710,7 +1710,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0004';
       try {
         console.time('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1728,7 +1728,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0005';
       try {
         console.time('NaN');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1746,7 +1746,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0006';
       try {
         console.time(null);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1764,7 +1764,7 @@ export default function ConsoleTest() {
       const TAG = 'testTime0007';
       try {
         console.time(undefined);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1783,7 +1783,7 @@ export default function ConsoleTest() {
       try {
         const str = '!!\\"\\"##$$%%&&\'\'(())**++,,--..//::;;<<==>>??@@[[\\\\\\\\]]^^__``{{||}}~~';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1802,7 +1802,7 @@ export default function ConsoleTest() {
       try {
         const str = '!!\\"\\"##$$%%&&\'\'(())**++,,--..//::;;<<==>>??@@[[\\\\\\\\]]^^__``{{||}}~~';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1821,7 +1821,7 @@ export default function ConsoleTest() {
       try {
         // const str = \a;
         console.time('\a');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1840,7 +1840,7 @@ export default function ConsoleTest() {
       try {
         const str = '\b';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1859,7 +1859,7 @@ export default function ConsoleTest() {
       try {
         const str = '\f';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1878,7 +1878,7 @@ export default function ConsoleTest() {
       try {
         const str = '\n';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1897,7 +1897,7 @@ export default function ConsoleTest() {
       try {
         const str = '\t';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1916,7 +1916,7 @@ export default function ConsoleTest() {
       try {
         const str = '\r';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1935,7 +1935,7 @@ export default function ConsoleTest() {
       try {
         const str = '\t';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1954,7 +1954,7 @@ export default function ConsoleTest() {
       try {
         const str = '\v';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1973,7 +1973,7 @@ export default function ConsoleTest() {
       try {
         const str = '\\';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -1992,7 +1992,7 @@ export default function ConsoleTest() {
       try {
         const str = '\'';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2011,7 +2011,7 @@ export default function ConsoleTest() {
       try {
         const str = '\"';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2030,7 +2030,7 @@ export default function ConsoleTest() {
       try {
         const str = '\?';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2069,7 +2069,7 @@ export default function ConsoleTest() {
       try {
         const str = '\d72';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2088,7 +2088,7 @@ export default function ConsoleTest() {
       try {
         const str = '\x85';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2107,7 +2107,7 @@ export default function ConsoleTest() {
       try {
         const str = '\ud83d';
         console.time(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2126,7 +2126,7 @@ export default function ConsoleTest() {
       try {
         console.time('testTimeEnd0001');
         console.timeEnd('testTimeEnd0001');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2145,7 +2145,7 @@ export default function ConsoleTest() {
       try {
         console.time();
         console.timeEnd();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2164,7 +2164,7 @@ export default function ConsoleTest() {
       try {
         console.time('default');
         console.timeEnd('default');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2183,7 +2183,7 @@ export default function ConsoleTest() {
       try {
         console.time('abc');
         console.timeEnd('abc');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2202,7 +2202,7 @@ export default function ConsoleTest() {
       try {
         console.time('NaN');
         console.timeEnd('NaN');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2221,7 +2221,7 @@ export default function ConsoleTest() {
       try {
         console.time(null);
         console.timeEnd(null);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2240,7 +2240,7 @@ export default function ConsoleTest() {
       try {
         console.time(undefined);
         console.timeEnd(undefined);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2260,7 +2260,7 @@ export default function ConsoleTest() {
         const str = '!!\\"\\"##$$%%&&\'\'(())**++,,--..//::;;<<==>>??@@[[\\\\\\\\]]^^__``{{||}}~~';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2280,7 +2280,7 @@ export default function ConsoleTest() {
         const str = '!!\\"\\"##$$%%&&\'\'(())**++,,--..//::;;<<==>>??@@[[\\\\\\\\]]^^__``{{||}}~~';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2300,7 +2300,7 @@ export default function ConsoleTest() {
         // const str = \a;
         console.time('\a');
         console.timeEnd('\a');
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2320,7 +2320,7 @@ export default function ConsoleTest() {
         const str = '\b';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2340,7 +2340,7 @@ export default function ConsoleTest() {
         const str = '\f';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2360,7 +2360,7 @@ export default function ConsoleTest() {
         const str = '\n';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2380,7 +2380,7 @@ export default function ConsoleTest() {
         const str = '\t';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2400,7 +2400,7 @@ export default function ConsoleTest() {
         const str = '\r';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2420,7 +2420,7 @@ export default function ConsoleTest() {
         const str = '\t';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2440,7 +2440,7 @@ export default function ConsoleTest() {
         const str = '\v';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2460,7 +2460,7 @@ export default function ConsoleTest() {
         const str = '\\';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2480,7 +2480,7 @@ export default function ConsoleTest() {
         const str = '\'';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2500,7 +2500,7 @@ export default function ConsoleTest() {
         const str = '\"';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2520,7 +2520,7 @@ export default function ConsoleTest() {
         const str = '\?';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2561,7 +2561,7 @@ export default function ConsoleTest() {
         const str = '\d72';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2581,7 +2581,7 @@ export default function ConsoleTest() {
         const str = '\x85';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2601,7 +2601,7 @@ export default function ConsoleTest() {
         const str = '\ud83d';
         console.time(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2622,7 +2622,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2642,7 +2642,7 @@ export default function ConsoleTest() {
         console.time();
         console.timeLog();
         console.timeEnd();
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2663,7 +2663,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2684,7 +2684,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2705,7 +2705,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2726,7 +2726,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2747,7 +2747,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2768,7 +2768,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2789,7 +2789,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2810,7 +2810,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2831,7 +2831,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2852,7 +2852,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2873,7 +2873,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2894,7 +2894,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2915,7 +2915,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2936,7 +2936,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2957,7 +2957,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2978,7 +2978,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -2999,7 +2999,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3020,7 +3020,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3041,7 +3041,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3084,7 +3084,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3105,7 +3105,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3126,7 +3126,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3153,7 +3153,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str, TestLog);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3175,7 +3175,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str, TestLog);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3198,7 +3198,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str, TestLog);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3220,7 +3220,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str, TestLog);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();
@@ -3242,7 +3242,7 @@ export default function ConsoleTest() {
         console.time(str);
         console.timeLog(str, TestLog);
         console.timeEnd(str);
-        expect(true).assertTrue();
+        
       } catch (err) {
         console.error(`${TAG} failed, error: ${err.message}`);
         expect().assertFail();

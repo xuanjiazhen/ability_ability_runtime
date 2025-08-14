@@ -43,6 +43,7 @@ export default function NodeUniqueIdTest(){
       expect(Utils.getComponentInfoByKey('text4_id').$attrs.backgroundColor).assertEqual('#FF00FF00')
       expect(Utils.getComponentInfoByKey('text5_id').$attrs.backgroundColor).assertEqual('#FF00FF00')
       expect(Utils.getComponentInfoByKey('text6_id').$attrs.backgroundColor).assertEqual('#FF00FF00')
+      expect(Utils.getComponentInfoByKey('text7_id').$attrs.backgroundColor).assertEqual('#FF00FF00')
       done();
     });
 

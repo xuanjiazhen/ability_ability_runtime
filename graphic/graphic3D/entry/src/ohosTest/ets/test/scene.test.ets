@@ -85,7 +85,6 @@ export default function sceneTest() {
         rf = scene.getResourceFactory();
         scene?.getResourceFactory();
         console.info(msg + " Succeed in scene.getResourceFactory() ");
-        expect(true).assertTrue();
         done();
       } catch (err) {
         console.info(msg + " Failed in scene.getResourceFactory() " + JSON.stringify(err));

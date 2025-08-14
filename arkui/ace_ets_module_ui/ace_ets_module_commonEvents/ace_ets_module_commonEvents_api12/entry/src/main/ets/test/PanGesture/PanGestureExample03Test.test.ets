@@ -64,17 +64,17 @@ export default function PanGestureExample03Test() {
       let areaHeight1 = areaObj1.bottom - areaObj1.top
       let areaWidth1 = areaObj1.right - areaObj1.left
       console.log('PanGestureExample03Test_0010 areaObj1 start',areaObj1.left,areaObj1.top,areaObj1.right,areaObj1.bottom)
-      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[0] start',Math.round(areaObj1.left + areaWidth1 * 0.2),Math.round(areaObj1.top + areaHeight1/2))
-      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[0] end',Math.round(areaObj1.left + areaWidth1 * 0.7),Math.round(areaObj1.top + areaHeight1/2))
-      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[1] start',Math.round(areaObj1.left + areaWidth1 * 0.3),Math.round(areaObj1.top + areaHeight1/2))
-      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[1] end',Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[0] start',Math.round(areaObj1.left + areaWidth1 * 0.5),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[0] end',Math.round(areaObj1.left + areaWidth1 * 0.8),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[1] start',Math.round(areaObj1.left + areaWidth1 * 0.5),Math.round(areaObj1.top + areaHeight1/2))
+      console.log('PanGestureExample03Test_0010 areaObj1 clicked finger[1] end',Math.round(areaObj1.left + areaWidth1 * 0.9),Math.round(areaObj1.top + areaHeight1/2))
       let driver: Driver = Driver.create();
       await CommonFunc.sleep(1000);
       let pointers: PointerMatrix = PointerMatrix.create(2,2);
-      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.2),y: Math.round(areaObj1.top + areaHeight1/2) });
-      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.7),y: Math.round(areaObj1.top + areaHeight1/2) });
-      pointers.setPoint(1,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.3),y: Math.round(areaObj1.top + areaHeight1/2) });
-      pointers.setPoint(1,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.8),y: Math.round(areaObj1.top + areaHeight1/2) });
+      pointers.setPoint(0,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1/2) });
+      pointers.setPoint(0,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.8),y: Math.round(areaObj1.top + areaHeight1/2) });
+      pointers.setPoint(1,0,{x: Math.round(areaObj1.left + areaWidth1 * 0.5),y: Math.round(areaObj1.top + areaHeight1/2) });
+      pointers.setPoint(1,1,{x: Math.round(areaObj1.left + areaWidth1 * 0.9),y: Math.round(areaObj1.top + areaHeight1/2) });
       await driver.injectMultiPointerAction(pointers);
       await CommonFunc.sleep(4000);
       // 拖动之后重新获取当前区域的位置信息
@@ -96,9 +96,9 @@ export default function PanGestureExample03Test() {
       await CommonFunc.sleep(200);
       let text2 = getInspectorByKey('PanGestureExample03_offsetX');
       let obj2: ESObject = JSON.parse(text2);
-      console.log('PanGestureExample03Test_0010 obj2 $attrs content',vp2px(Number(obj2.$attrs.content)),((Math.round(areaObj1.left + areaWidth1 * 0.7) - Math.round(areaObj1.left + areaWidth1 * 0.2)) + (Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.3)))/2)
+      console.log('PanGestureExample03Test_0010 obj2 $attrs content',vp2px(Number(obj2.$attrs.content)),((Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.5)) + (Math.round(areaObj1.left + areaWidth1 * 0.9) - Math.round(areaObj1.left + areaWidth1 * 0.5)))/2)
       console.log('PanGestureExample03Test_0010 obj2 $attrs offsetX',obj2.$attrs.content, Number(obj2.$attrs.content), vp2px(Number(obj2.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj2.$attrs.content)))- (((Math.round(areaObj1.left + areaWidth1 * 0.7) - Math.round(areaObj1.left + areaWidth1 * 0.2)) + (Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.3)))/2))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj2.$attrs.content)))- (((Math.round(areaObj1.left + areaWidth1 * 0.8) - Math.round(areaObj1.left + areaWidth1 * 0.5)) + (Math.round(areaObj1.left + areaWidth1 * 0.9) - Math.round(areaObj1.left + areaWidth1 * 0.5)))/2))) <= 1).assertTrue();
 
       await CommonFunc.sleep(200);
       let text3 = getInspectorByKey('PanGestureExample03_offsetY');
@@ -140,9 +140,9 @@ export default function PanGestureExample03Test() {
       await CommonFunc.sleep(200);
       let text10 = getInspectorByKey('PanGestureExample03_fingerList_globalX');
       let obj10: ESObject = JSON.parse(text10);
-      console.log('PanGestureExample03Test_0010 obj10 $attrs content',vp2px(Number(obj10.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.7) - windowOffsetX)
+      console.log('PanGestureExample03Test_0010 obj10 $attrs content',vp2px(Number(obj10.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - windowOffsetX)
       console.log('PanGestureExample03Test_0010 obj10 $attrs fingerList_globalX',obj10.$attrs.content, Number(obj10.$attrs.content), vp2px(Number(obj10.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj10.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.7) - windowOffsetX))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj10.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - windowOffsetX))) <= 1).assertTrue();
       // fingerList[0]
       await CommonFunc.sleep(200);
       let text11 = getInspectorByKey('PanGestureExample03_fingerList_globalY');
@@ -154,9 +154,9 @@ export default function PanGestureExample03Test() {
       await CommonFunc.sleep(200);
       let text12 = getInspectorByKey('PanGestureExample03_fingerList_localX');
       let obj12: ESObject = JSON.parse(text12);
-      console.log('PanGestureExample03Test_0010 obj12 $attrs content',vp2px(Number(obj12.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.7) - areaObj1.left)
+      console.log('PanGestureExample03Test_0010 obj12 $attrs content',vp2px(Number(obj12.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - areaObj1.left)
       console.log('PanGestureExample03Test_0010 obj12 $attrs localX',obj12.$attrs.content, Number(obj12.$attrs.content), vp2px(Number(obj12.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj12.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.7) - areaObj1.left))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj12.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - areaObj1.left))) <= 1).assertTrue();
       // fingerList[0]
       await CommonFunc.sleep(200);
       let text13 = getInspectorByKey('PanGestureExample03_fingerList_localY');
@@ -175,9 +175,9 @@ export default function PanGestureExample03Test() {
       await CommonFunc.sleep(200);
       let text10f = getInspectorByKey('PanGestureExample03_fingerList1_globalX');
       let obj10f: ESObject = JSON.parse(text10f);
-      console.log('PanGestureExample03Test_0010 obj10f $attrs content',vp2px(Number(obj10f.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - windowOffsetX)
+      console.log('PanGestureExample03Test_0010 obj10f $attrs content',vp2px(Number(obj10f.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.9) - windowOffsetX)
       console.log('PanGestureExample03Test_0010 obj10f $attrs fingerList1_globalX',obj10f.$attrs.content, Number(obj10f.$attrs.content), vp2px(Number(obj10f.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj10f.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - windowOffsetX))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj10f.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.9) - windowOffsetX))) <= 1).assertTrue();
       // fingerList[1]
       await CommonFunc.sleep(200);
       let text11f = getInspectorByKey('PanGestureExample03_fingerList1_globalY');
@@ -189,9 +189,9 @@ export default function PanGestureExample03Test() {
       await CommonFunc.sleep(200);
       let text12f = getInspectorByKey('PanGestureExample03_fingerList1_localX');
       let obj12f: ESObject = JSON.parse(text12f);
-      console.log('PanGestureExample03Test_0010 obj12f $attrs content',vp2px(Number(obj12f.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.8) - areaObj1.left)
+      console.log('PanGestureExample03Test_0010 obj12f $attrs content',vp2px(Number(obj12f.$attrs.content)),Math.round(areaObj1.left + areaWidth1 * 0.9) - areaObj1.left)
       console.log('PanGestureExample03Test_0010 obj12f $attrs localX',obj12f.$attrs.content, Number(obj12f.$attrs.content), vp2px(Number(obj12f.$attrs.content)))
-      expect(Math.abs(Math.round((vp2px(Number(obj12f.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.8) - areaObj1.left))) <= 1).assertTrue();
+      expect(Math.abs(Math.round((vp2px(Number(obj12f.$attrs.content)))- (Math.round(areaObj1.left + areaWidth1 * 0.9) - areaObj1.left))) <= 1).assertTrue();
       // fingerList[1]
       await CommonFunc.sleep(200);
       let text13f = getInspectorByKey('PanGestureExample03_fingerList1_localY');
@@ -204,7 +204,7 @@ export default function PanGestureExample03Test() {
       let text16 = getInspectorByKey('PanGestureExample03_target_area_width');
       let obj16: ESObject = JSON.parse(text16);
       console.log('PanGestureExample03Test_0010 obj16 $attrs content',obj16.$attrs.content, vp2px(Number(obj16.$attrs.content)), vp2px(240))
-      expect(Math.abs(vp2px(Number(obj16.$attrs.content)) - vp2px(160)) <= 1).assertTrue();
+      expect(Math.abs(vp2px(Number(obj16.$attrs.content)) - vp2px(320)) <= 1).assertTrue();
 
       await CommonFunc.sleep(200);
       let text17 = getInspectorByKey('PanGestureExample03_target_area_height');

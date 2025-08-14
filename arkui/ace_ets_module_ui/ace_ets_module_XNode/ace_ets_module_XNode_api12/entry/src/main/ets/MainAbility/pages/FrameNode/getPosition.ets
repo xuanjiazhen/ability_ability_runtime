@@ -14,7 +14,8 @@
  */
 import { FrameNode, NodeController } from "@ohos.arkui.node"
 import { BusinessError } from '@ohos.base';
-import {UIContext, window} from '@kit.ArkUI';
+import { UIContext } from '@ohos.arkui.UIContext';
+import window from '@ohos.window';
 
 const TEST_TAG : string = "FrameNode"
 class MyNodeController extends NodeController {

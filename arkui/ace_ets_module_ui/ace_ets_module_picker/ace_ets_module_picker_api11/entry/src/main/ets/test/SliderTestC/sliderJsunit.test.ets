@@ -468,7 +468,7 @@ export default function sliderJsunitSliderTest() {
                 let y = Math.round(top + (bottom - top) / 2)
 
                 await driver.delayMs(waitUiReadyMs)
-                await driver.swipe(left,y,x,y)
+                await driver.swipe(x,y,right,y)
 
                 await driver.delayMs(waitUiReadyMs)
                 let strJson = getInspectorByKey("tex")
@@ -477,7 +477,7 @@ export default function sliderJsunitSliderTest() {
                     "[sliderJsunitSliderTest_0800] obj: " + JSON.stringify(obj)
                 )
                 console.info("[sliderJsunitSliderTest_0800] obj.$attrs.content: " + JSON.stringify(obj.$attrs.content))
-                expect(Math.round(obj.$attrs.content)).assertEqual(50)
+                expect(Math.round(obj.$attrs.content)).assertEqual(80)
                 let strJson1 = getInspectorByKey("modeT")
                 let obj1: ESObject = JSON.parse(strJson1)
                 console.info(

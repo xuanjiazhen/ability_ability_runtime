@@ -83,18 +83,20 @@ config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
       let driver = Driver.create();
       await CommonFunc.sleep(1000);
       let colum = CommonFunc.getComponentRectOnScreen('PanGesture3');
+      console.info("[PanGesture3_0200] colum.left: " ,colum.left);
       let top = colum.top
-      await driver.swipe(Math.round(globalThis.winLeft + 100), Math.round(top + 100), Math.round(globalThis.winLeft + 500), Math.round(top + 500))
+      await driver.swipe(Math.round(colum.left+(colum.right - colum.left)/2), Math.round(colum.bottom), Math.round(colum.right), Math.round(top), 600)
       await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('PanGesture3_1');
       let obj: ESObject = JSON.parse(strJson);
       console.info("[PanGesture3_0200] component obj is: " + JSON.stringify(obj));
       console.info("[PanGesture3_0200] title: " + JSON.stringify(obj.$attrs.content));
-      expect((Math.abs(Number(obj.$attrs.content)) - 190) < 20).assertEqual(true);
+      let colum2 = CommonFunc.getComponentRectOnScreen('PanGesture3');
+      console.info("[PanGesture3_0200] colum2.left: " ,colum2.left);
+      expect((Math.abs(Number(obj.$attrs.content)) - px2vp((colum2.left-colum.left))) < 20).assertEqual(true);
       console.info('[PanGesture3_0200] END');
       done();
     });
 
   })
 }
-

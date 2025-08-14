@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import requestCacheDownloadJSTest from './requestCacheDownload.test';
+import requestCacheDownloadHttpJSTest from './RequestCacheDownloadHttp.test'
 
 export default function testsuite() {
   requestCacheDownloadJSTest();
+  requestCacheDownloadHttpJSTest();
 }

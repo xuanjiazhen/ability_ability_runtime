@@ -23,6 +23,7 @@ import visibleAreaEventOptions from './visibleAreaEventOptions/visibleAreaEventO
 import gestureInterrupterTest from './gestureRecognizer/GestureInterrupterTest.test'
 import swiperDigitIndicatorTest from "./swiper/SwiperDigitIndicatorTest.test"
 import swiperArrowStyleTest from "./swiper/SwiperArrowStyleTest.test"
+import buttonFontScaleTest from  "./button/buttonFontScale.test"
 
 export default function testsuite() {
   datePickerTest();
@@ -35,4 +36,5 @@ export default function testsuite() {
   gestureInterrupterTest();
   swiperDigitIndicatorTest();
   swiperArrowStyleTest();
+  buttonFontScaleTest();
 }

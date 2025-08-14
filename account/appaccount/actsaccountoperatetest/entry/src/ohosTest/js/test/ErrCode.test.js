@@ -1589,6 +1589,46 @@ export default function ActsAccountErrCode() {
             }  
         });
 
+        /*
+        * @tc.number    : ActsAccountErrCode_5140
+        * @tc.name      : ActsAccountErrCode_5140
+        * @tc.desc      : test the type of parameters does not match(callback不匹配) auth callback with option 401
+        * @tc.level     : Level3
+        * @tc.size      : MediumTest
+        * @tc.type      : Function
+        */
+        it('ActsAccountErrCode_5140', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3, async function (done) {
+            console.info("====>ActsAccountErrCode_5140 start====");
+            var appAccountManager = account.createAppAccountManager();
+            let option = {
+                "authType": "PIN", "requiredLabels": ['male', '30-40'], "parameters": ['sex', 'age']
+            };
+            console.info("====>ActsAccountErrCode_5140 creat finish====");
+            try {
+                appAccountManager.auth("test_name", "test_owner", 123456, option, {
+                    onResult: (resultCode, undefined) => {
+                        try {
+                            console.info("====>ActsAccountOptionalParameter_4000 authenticate resultCode:" + JSON.stringify(resultCode));
+                            done();
+                        } catch (err) {
+                            console.info("====>ActsAccountOptionalParameter_4000 err:" + JSON.stringify(err));
+                            console.info("====>ActsAccountOptionalParameter_4000 end====");
+                            done();
+                        }
+                    },
+                    onRequestRedirected: () => {
+                        console.info("====>onRequestRedirected")
+                    },
+                    onRequestContinued: undefined
+                });
+            } catch(err) {
+                console.info("====>ActsAccountErrCode_5140 auth catch err:" + JSON.stringify(err));
+                expect(err.code).assertEqual(401);
+                console.info("====>ActsAccountErrCode_5140 end====");
+                done();
+            }  
+        });
+
         //getAuthToken
         /*
         * @tc.number    : ActsAccountErrCode_5200

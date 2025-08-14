@@ -62,8 +62,7 @@ napi_value ImageDownProgressTest::CreateNativeNode(napi_env env, napi_callback_i
     image->SetWidth(SIZE_300);
     image->SetHeight(SIZE_300);
     image->SetObjectFit(ArkUI_ObjectFit::ARKUI_OBJECT_FIT_NONE);
-    image->SetImageSrc("https://gitee.com/openharmony/docs/raw/master/zh-cn/application-dev/reference/apis-arkui/"
-                       "arkui-ts/figures/edgewidths.png");
+    image->SetImageSrc("https://images.pexels.com/photos/1485894/pexels-photo-1485894.jpeg");
     nodeAPI->registerNodeEvent(image->GetComponent(), NODE_IMAGE_ON_DOWNLOAD_PROGRESS, 0, nullptr);
     nodeAPI->registerNodeEventReceiver(&OnEventReceive);
 

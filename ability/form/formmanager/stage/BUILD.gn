@@ -20,6 +20,7 @@ group("stage") {
       "actsformmenuprovidertest:ActsFormMenuProviderTest",
       "actsformprovidergetformsinfo:actsformprovidergetformsinfo",
       "actsliveformextensiontest:ActsLiveFormExtensionTest",
+      "formhost_ets/formsystemhost:StageFormSystemHost",
     ]
   }
 }

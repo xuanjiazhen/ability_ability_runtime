@@ -2760,7 +2760,7 @@ export default function ImageSourceNDKTest() {
          */
         it('SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_2900',
             TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
-            let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3000");
+            let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_2900");
             let checkProps = (result: number) => {
                 expect(result == colorSpaceManager.ColorSpace.P3_PQ).assertTrue();
                 log.log("checkProps success.");
@@ -2785,6 +2785,11 @@ export default function ImageSourceNDKTest() {
         it('SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3000',
             TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done :Function) => {
             let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3000");
+            if (!fs.accessSync("/sys_prod/lib64/VideoProcessingEngine/libaihdr_engine.so")) {
+              expect(true).assertTrue();
+              done();
+              return
+            }
             if (!isSupportHEIFDecode || !isSupportHdr) {
                 if (!isSupportHEIFDecode) {
                     log.log("device is not support heif decode");
@@ -2819,7 +2824,11 @@ export default function ImageSourceNDKTest() {
         it('SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3100',
             TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done :Function) => {
             let log: ESObject = logger("SUB_MULTIMEDIA_IMAGE_PIXEL_MAP_SET_COLOR_SPACE_3100");
-
+            if (!fs.accessSync("/sys_prod/lib64/VideoProcessingEngine/libaihdr_engine.so")) {
+              expect(true).assertTrue();
+              done();
+              return
+            }
             if (!isSupportHEIFDecode || !isSupportHdr) {
                 if (!isSupportHEIFDecode) {
                     log.log("device is not support heif decode");

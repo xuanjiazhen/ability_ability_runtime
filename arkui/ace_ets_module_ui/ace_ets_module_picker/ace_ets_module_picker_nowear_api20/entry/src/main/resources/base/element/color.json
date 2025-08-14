@@ -39,6 +39,10 @@
     {
       "name": "checkbox_Color",
       "value": "#FFFD0000"
+    },
+    {
+      "name": "blue",
+      "value": "#0000FF"
     }
   ]
 }

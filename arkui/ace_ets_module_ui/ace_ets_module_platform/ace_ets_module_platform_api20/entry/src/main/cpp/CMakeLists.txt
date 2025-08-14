@@ -15,6 +15,7 @@ add_library(nativerender SHARED
     render/EGLRender.cpp
     napi_render_init.cpp
     AccessibilityManagerTest.cpp
+    XComponent/XComponentCrossLanguageTest.cpp
 )
 
 # add_library(nativefunc SHARED

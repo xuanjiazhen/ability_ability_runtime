@@ -461,6 +461,10 @@ export const sessionEnableAutoDeviceSwitch: (enable:boolean) => number;
 export const sessionRegisterAutoDeviceSwitchStatusChange: (index:number) => number;
  
 export const sessionUnregisterAutoDeviceSwitchStatusChange: (index:number) => number;
+
+export const sessionRegisterSystemPressureLevel: (index:number) => number;
+ 
+export const sessionUnregisterSystemPressureLevel: (index:number) => number;
  
 export const cameraManagerRegisterFoldStatusChange: (index:number) => number;
  

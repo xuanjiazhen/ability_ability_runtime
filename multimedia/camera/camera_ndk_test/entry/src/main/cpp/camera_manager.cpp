@@ -2914,6 +2914,46 @@ Camera_ErrorCode NDKCamera::UnegisterAutoDeviceSwitchStatusCallback(int useCaseC
     return ret_;
 }
  
+void CameraSystemPressureLevelCallback(Camera_CaptureSession* session,
+    Camera_SystemPressureLevel systemPressureLevel)
+{
+    LOG("CameraSystemPressureLevelCallback is called.");
+}
+ 
+Camera_ErrorCode NDKCamera::RegisterSystemPressureLevel(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(captureSession_,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(nullptr,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_RegisterSystemPressureLevelChangeCallback(captureSession_, nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_RegisterSystemPressureLevelChangeCallback failed.");
+    }
+    return ret_;
+}
+ 
+Camera_ErrorCode NDKCamera::UnregisterSystemPressureLevel(int useCaseCode)
+{
+    if (useCaseCode == PARAMETER_OK) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(captureSession_,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER1_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(nullptr,
+            CameraSystemPressureLevelCallback);
+    } else if (useCaseCode == PARAMETER2_ERROR) {
+        ret_ = OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback(captureSession_, nullptr);
+    }
+    if (ret_ != CAMERA_OK) {
+        LOG("OH_CaptureSession_UnregisterSystemPressureLevelChangeCallback failed.");
+    }
+    return ret_;
+}
+
 void CameraFoldStatusInfoCallback(Camera_Manager *cameraManager, Camera_FoldStatusInfo *foldStatusInfo)
 {
     LOG("CameraFoldStatusInfoCallback is called.");
@@ -2946,12 +2986,18 @@ Camera_ErrorCode NDKCamera::CameraManagerUnregisterFoldStatusCallback(int useCas
 Camera_ErrorCode NDKCamera::GetCameraDevice(int useCaseCode)
 {
     if (useCaseCode == PARAMETER_OK) {
+        Camera_Device* cameraArray;
+        OH_CameraManager_GetSupportedCameras(cameraManager_, &cameraArray, &size_);
+        LOG("camera getSupportedCameras success : %d", size_);
+        if (size_ == 0) {
+            return CAMERA_OK;
+        }
         Camera_Device* cameranow = nullptr;
         if (cameraManager_ == nullptr) {
             return ret_;
         }
         ret_ = OH_CameraManager_GetCameraDevice(cameraManager_,
-            Camera_Position::CAMERA_POSITION_BACK, Camera_Type::CAMERA_TYPE_DEFAULT, cameranow);
+            cameraArray[0].cameraPosition, cameraArray[0].cameraType, cameranow);
     }
     return ret_;
 }

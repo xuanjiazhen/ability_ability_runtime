@@ -16,7 +16,7 @@
 {
   "app": {
     "bundleName": "com.example.clearUpApplicationDataHelp",
-    "vendor": "huawei",
+    "vendor": "clearUpApplicationDataHelp",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug": false,

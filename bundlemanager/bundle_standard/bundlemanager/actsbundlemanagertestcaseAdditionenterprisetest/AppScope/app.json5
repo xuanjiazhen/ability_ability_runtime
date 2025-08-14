@@ -15,7 +15,7 @@
 {
   "app": {
     "bundleName": "ohos.acts.bundlemanagererrcode.test.enterprise",
-    "vendor": "huawei",
+    "vendor": "example",
     "versionCode": 1000000,
     "versionName": "1.0.0",
     "debug":false,

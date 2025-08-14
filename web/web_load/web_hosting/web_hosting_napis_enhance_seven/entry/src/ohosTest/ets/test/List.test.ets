@@ -14,7 +14,9 @@
  */
 
 import webConfigCookieSync from './WebConfigCookieSync.test'
+import webArkWebCookieManagerSaveCookie from './WebArkWebCookieManagerSaveCookie.test'
 
 export default function testsuite() {
   webConfigCookieSync()
+  webArkWebCookieManagerSaveCookie()
 }

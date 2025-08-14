@@ -65,8 +65,6 @@ export default function RichEditorUxConFormance005() {
     it('SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0002 START');
       let driver = Driver.create();
-      let rich = await driver.findComponent(ON.id('RichEditorUxConFormance005'));
-      let pointCenter = await rich.getBoundsCenter();
 
       let get_spans = await driver.findComponent(ON.id('get_spans'));
       await get_spans.click();
@@ -90,8 +88,6 @@ export default function RichEditorUxConFormance005() {
     it('SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003',  Level.LEVEL0, async (done: Function) => {
       console.info('SUB_ACE_UI_COMPONENT_TEXT_RICHEDITOR_UXCONFORMANCE_0003 START');
       let driver = Driver.create();
-      let rich = await driver.findComponent(ON.id('RichEditorUxConFormance005'));
-      let pointCenter = await rich.getBoundsCenter();
 
       let updateSpanStyle = await driver.findComponent(ON.id('updateSpanStyle'));
       await updateSpanStyle.click();

@@ -92,7 +92,7 @@ export default function openDialogTransitionTest() {
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await maskTransitionButton.click();
       console.info('OpenDialogTransitionTest_100 end');
       done();
@@ -107,11 +107,10 @@ export default function openDialogTransitionTest() {
       await openDialogButton.click();
       await CommonFunc.sleep(3000);
       let textContent = getInspectorByKey('TextContent');
-      console.info('OpenDialogTransitionTest_200 ysq textContent is %s',JSON.parse(textContent).$attrs.content);
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await dialogTransitionButton.click();
       console.info('OpenDialogTransitionTest_200 end');
       done();
@@ -121,8 +120,8 @@ export default function openDialogTransitionTest() {
       console.info('OpenDialogTransitionTest_300 start');
       let driver: Driver = Driver.create();
       let dialogTransitionButton = await driver.findComponent(ON.id('EnableDialogTransition'));
-      dialogTransitionButton.click();
-      await CommonFunc.sleep(200);
+      await dialogTransitionButton.click();
+      await CommonFunc.sleep(500);
       let defaultTransitionButton = await driver.findComponent(ON.id('EnableTransition'));
       await defaultTransitionButton.click();
       let openDialogButton = await driver.findComponent(ON.id('OpenDialog'));
@@ -132,7 +131,7 @@ export default function openDialogTransitionTest() {
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await dialogTransitionButton.click();
       await CommonFunc.sleep(500);
       await defaultTransitionButton.click();
@@ -145,7 +144,7 @@ export default function openDialogTransitionTest() {
       let driver: Driver = Driver.create();
       let maskTransitionButton = await driver.findComponent(ON.id('EnableMaskTransition'));
       await maskTransitionButton.click();
-      await CommonFunc.sleep(200);
+      await CommonFunc.sleep(500);
       let defaultTransitionButton = await driver.findComponent(ON.id('EnableTransition'));
       await defaultTransitionButton.click();
       let openDialogButton = await driver.findComponent(ON.id('OpenDialog'));
@@ -155,7 +154,7 @@ export default function openDialogTransitionTest() {
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await maskTransitionButton.click();
       await CommonFunc.sleep(500);
       await defaultTransitionButton.click();
@@ -168,7 +167,7 @@ export default function openDialogTransitionTest() {
       let driver: Driver = Driver.create();
       let maskTransitionButton = await driver.findComponent(ON.id('EnableMaskTransition'));
       await maskTransitionButton.click();
-      await CommonFunc.sleep(200);
+      await CommonFunc.sleep(500);
       let dialogTransitionButton = await driver.findComponent(ON.id('EnableDialogTransition'));
       await dialogTransitionButton.click();
       let openDialogButton = await driver.findComponent(ON.id('OpenDialog'));
@@ -178,7 +177,7 @@ export default function openDialogTransitionTest() {
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await maskTransitionButton.click();
       await CommonFunc.sleep(500);
       await dialogTransitionButton.click();
@@ -205,7 +204,7 @@ export default function openDialogTransitionTest() {
       expect(JSON.parse(textContent).$attrs.content).assertEqual('弹窗');
       let confirmButton = await driver.findComponent(ON.id('Confirm'));
       await confirmButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       await maskTransitionButton.click();
       await CommonFunc.sleep(500);
       await dialogTransitionButton.click();

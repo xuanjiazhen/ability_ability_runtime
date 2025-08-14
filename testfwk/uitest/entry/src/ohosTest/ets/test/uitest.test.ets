@@ -875,12 +875,15 @@ export default function UiTest() {
             console.log(TestTag, 'testFlingWithId start');
             await startAbility('com.uitestScene.acts', 'com.uitestScene.acts.MainAbility')
             await driver.delayMs(waitUiReadyMs)
-            let disPlay = display.getDefaultDisplaySync();
-            console.log(`${TestTag}, testFlingWithId disPlay is: ${JSON.stringify(disPlay)}`);
-            if (disPlay.id == 999) {
+            let allDisplayIds = await display.getAllDisplay()
+            for (let d of allDisplayIds) {
+              if (d.id == 999) {
                 console.info('Can not create full screen application scene')
                 return
+              }
             }
+            let disPlay = display.getDefaultDisplaySync();
+            console.log(`${TestTag}, testFlingWithId disPlay is: ${JSON.stringify(disPlay)}`);
             let window = await driver.findWindow({bundleName: 'com.uitestScene.acts'})
             try {
                 await window.maximize()

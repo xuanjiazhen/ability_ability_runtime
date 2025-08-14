@@ -17,11 +17,11 @@ import { afterEach, beforeAll, beforeEach, describe, it, expect , TestType, Size
 import events_emitter from '@ohos.events.emitter';
 import Utils from './Utils';
 import router from '@ohos.router';
+import { Driver, ON } from '@kit.TestKit';
 import { accessibility, config } from '@kit.AccessibilityKit';
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-
-let emitKey = "emitSetUrlTrustList0100";
+let driver = Driver.create();
 
 export default function getSurfaceId() {
   describe('getSurfaceId', () => {
@@ -42,6 +42,8 @@ export default function getSurfaceId() {
       } catch (err) {
         console.error("push getSurfaceId page error: " + err);
       }
+      await driver.waitForComponent(ON.id("getSurfaceIdButton"),10000);
+      console.log("waitForComponent getSurfaceIdButton==>");
       done();
     });
     beforeEach(async (done: Function) => {
@@ -55,178 +57,232 @@ export default function getSurfaceId() {
       done();
     })
     afterEach(async (done: Function) => {
-      console.info("getSurfaceId afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
+      console.info("getSurfaceId afterEach start");
       await Utils.sleep(2000);
       done();
     })
 
-    /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0100
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
+     /*
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0100
+     * @tc.name       : emitSetUrlTrustList0100
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
      */
     it('emitSetUrlTrustList0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0200";
-      Utils.registerEvent("emitSetUrlTrustList0100", 1, 28931, done);
+      Utils.emitEvent("emitSetUrlTrustList0100", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0100", 1, 28931, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
-    /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0200
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
+     /*
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0200
+     * @tc.name       : emitSetUrlTrustList0200
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
      */
     it('emitSetUrlTrustList0200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0300";
-      Utils.registerEvent("emitSetUrlTrustList0200", 1, 28932, done);
+      Utils.emitEvent("emitSetUrlTrustList0200", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0200", 1, 28932, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0300
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0300
+    * @tc.name       : emitSetUrlTrustList0300
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList0300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0400";
-      Utils.registerEvent("emitSetUrlTrustList0300", 1, 28933, done);
+      Utils.emitEvent("emitSetUrlTrustList0300", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0300", 1, 28933, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
-    /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0400
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
+     /*
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0400
+     * @tc.name       : emitSetUrlTrustList0400
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
      */
     it('emitSetUrlTrustList0400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0500";
-      Utils.registerEvent("emitSetUrlTrustList0400", 1, 28934, done);
+      Utils.emitEvent("emitSetUrlTrustList0400", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0400", 1, 28934, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
-    /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0500
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
+     /*
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0500
+     * @tc.name       : emitSetUrlTrustList0500
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
      */
     it('emitSetUrlTrustList0500', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0600";
-      Utils.registerEvent("emitSetUrlTrustList0500", 1, 28935, done);
+      Utils.emitEvent("emitSetUrlTrustList0500", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0500", 1, 28935, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
-    /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0600
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
+     /*
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0600
+     * @tc.name       : emitSetUrlTrustList0600
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
      */
     it('emitSetUrlTrustList0600', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0700";
-      Utils.registerEvent("emitSetUrlTrustList0600", 1, 28936, done);
+      Utils.emitEvent("emitSetUrlTrustList0600", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0600", 1, 28936, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0700
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0700
+    * @tc.name       : emitSetUrlTrustList0700
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList0700', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0800";
-      Utils.registerEvent("emitSetUrlTrustList0700", 1, 28937, done);
+      Utils.emitEvent("emitSetUrlTrustList0700", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0700", 1, 28937, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
-
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0800
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0800
+    * @tc.name       : emitSetUrlTrustList0800
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList0800', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList0900";
-      Utils.registerEvent("emitSetUrlTrustList0800", "17100001", 28940, done);
+      Utils.emitEvent("emitSetUrlTrustList0800", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0800", "17100001", 28940, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0900
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_0900
+    * @tc.name       : emitSetUrlTrustList0900
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList0900', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1000";
-      Utils.registerEvent("emitSetUrlTrustList0900", "Init error. The WebviewController must be associated with a Web component", 28941, done);
+      Utils.emitEvent("emitSetUrlTrustList0900", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList0900", "Init error. The WebviewController must be associated with a Web component", 28941, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1000
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+     * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1000
+     * @tc.name       : emitSetUrlTrustList1000
+     * @tc.desc       : SetUrlTrustList
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList1000', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1100";
-      Utils.registerEvent("emitSetUrlTrustList1000", "401", 28942, done);
+      Utils.emitEvent("emitSetUrlTrustList1000", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList1000", "401", 28942, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1100
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1100
+    * @tc.name       : emitSetUrlTrustList1100
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList1100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1200";
-      Utils.registerEvent("emitSetUrlTrustList1100", 1, 28943, done);
+      Utils.emitEvent("emitSetUrlTrustList1100", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList1100", 1, 28943, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1200
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1200
+    * @tc.name       : emitSetUrlTrustList1200
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList1200', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1300";
-      Utils.registerEvent("emitSetUrlTrustList1200", 1, 28944, done);
+      Utils.emitEvent("emitSetUrlTrustList1200", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList1200", 1, 28944, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1300
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1300
+    * @tc.name       : emitSetUrlTrustList1300
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList1300', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1400";
-      Utils.registerEvent("emitSetUrlTrustList1300", 3, 28945, done);
+      Utils.emitEvent("emitSetUrlTrustList1300", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList1300", 3, 28945, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
 
     /*
-     *tc.number SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1400
-     *tc.name testSetUrlTrustList
-     *tc.desc SetUrlTrustList
-     */
+    * @tc.number     : SUB_ACE_BASIC_ETS_SETURLTRUSTLIST_API_1400
+    * @tc.name       : emitSetUrlTrustList1400
+    * @tc.desc       : SetUrlTrustList
+    * @tc.size       : MediumTest
+    * @tc.type       : Function
+    * @tc.level      : Level 0
+    */
     it('emitSetUrlTrustList1400', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSetUrlTrustList1400";
-      Utils.registerEvent("emitSetUrlTrustList1400", 3, 28946, done);
+      Utils.emitEvent("emitSetUrlTrustList1400", 728)
+      Utils.registerBaseEvent("emitSetUrlTrustList1400", 3, 28946, done, (backData: events_emitter.EventData, expected: Object) => {
+        expect(backData?.data?.ACTION).assertEqual(expected);
+      });
       sendEventByKey('getSurfaceIdButton', 10, '');
     })
   })

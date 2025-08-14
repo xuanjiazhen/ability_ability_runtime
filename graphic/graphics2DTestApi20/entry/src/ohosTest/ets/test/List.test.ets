@@ -13,8 +13,25 @@
  * limitations under the License.
  */
  
-import ActsGraphics2DApi20Test from './ActsGraphics2DApi20Test.test'
-
+import BrushPointRecordTest from './BrushPointRecordTest.test'
+import CanvasPenTest from './CanvasPenTest.test.ets'
+import RectFontTest from './RectFontTest.test.ets'
+import EffectTest from './EffectTest.test.ets'
+import BufferTextTest from './BufferTextTest.test.ets'
+import ColorSpaceNameTest from './ColorSpaceNameTest.test.ets'
+import NativeBufferColorSpaceTest from './NativeBufferTest.test'
+import ExternalWindowTest from './ExternalWindowTest.test'
+import ErrorCodeTest from './ErrorCodeTest.test.ets'
+import VSyncFenceTest from './VSyncFenceTest.test.ets'
 export default function testsuite() {
-  ActsGraphics2DApi20Test()
+  BrushPointRecordTest()
+  CanvasPenTest()
+  RectFontTest()
+  EffectTest()
+  BufferTextTest()
+  ColorSpaceNameTest()
+  NativeBufferColorSpaceTest()
+  ExternalWindowTest()
+  ErrorCodeTest()
+  VSyncFenceTest()
 }

@@ -20,6 +20,10 @@ import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry
 import fs from '@ohos.file.fs';
 import router from '@ohos.router';
 import RectValue from './Rect';
+import { expect, it } from '@ohos/hypium';
+
+const KEY_CODE_EVENT_OK = 1;
+const KEY_CODE_EVENT_ERROR = 0;
 
 export default class Utils {
   static rect_left: number;
@@ -27,6 +31,7 @@ export default class Utils {
   static rect_right: number;
   static rect_bottom: number;
   static rect_value: RectValue;
+  static driver: Driver = Driver.create();
   
   static sleep(time: number) {
     return new Promise<string>((resolve, reject) => {
@@ -231,6 +236,20 @@ export default class Utils {
     }
   }
 
+  static async pushPageNoClear(pageTag: string, done?: Function) {
+    let options: router.RouterOptions = {
+      url: `MainAbility/pages/${pageTag}`,
+    }
+    try {
+      router.pushUrl(options);
+    } catch (err) {
+      console.error(`push ${pageTag} page error: ` + err);
+    }
+    if (done) {
+      done();
+    }
+  }
+
   static getComponentRect(key: string): Rect {
     let strJson = getInspectorByKey(key);
     let obj: ComponentInfo = JSON.parse(strJson);
@@ -363,5 +382,45 @@ export default class Utils {
     console.info('up touch started: ' + JSON.stringify(upPoint))
     sendTouchEvent(upPoint)
     await Utils.sleep(500)
+  }
+
+  static async keydo(name: string, type: number, key: number, ndkfunction: Function) {
+    it(name,type,async (done: Function) => {
+      try {
+        console.info(`====>${name} start<====`);
+        await Utils.driver.triggerKey(key);
+        if (key == 16) {
+          let com = await Utils.driver.findComponent(ON.id("KeyCodeTest1"));
+          await com.click();
+          await com.click();
+        } else if (key == 2674) {
+          await Utils.driver.triggerKey(1);
+          await Utils.simulateByShell('aa start -a MainAbility -b com.acts.keycodeevent');
+        }
+        let KeyResult: number = ndkfunction();
+        expect(KEY_CODE_EVENT_OK).assertEqual(KeyResult);
+        done()
+      } catch (err) {
+        console.error(`====>${name} catch err: ` + err);
+        expect(false).assertEqual(KEY_CODE_EVENT_ERROR);
+        done()
+      }
+    })
+  }
+
+  static async simulateByShell(cmd: string) {
+    let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
+
+    return new Promise<string>((resolve, reject) => {
+      abilityDelegator.executeShellCommand(cmd, (err, data) => {
+        if (err) {
+          console.error(`command ${cmd} failed: ${JSON.stringify(err)}`);
+          reject("failed");
+        } else {
+          console.info(`command ${cmd} executed: ${data.stdResult}`);
+          resolve("executed");
+        }
+      });
+    })
   }
 }

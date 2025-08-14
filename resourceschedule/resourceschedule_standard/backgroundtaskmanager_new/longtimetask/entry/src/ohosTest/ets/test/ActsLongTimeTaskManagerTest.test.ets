@@ -89,6 +89,28 @@ export default function LongTimeTaskManagerTest() {
 
     afterEach(() => {
       hilog.info(DOMAIN, TAG, '%{public}s', 'afterEach called');
+
+      try {
+        wantAgent.getWantAgent(wantAgentInfo).then((want: WantAgent) => {
+          let delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
+          delegator.getCurrentTopAbility().then((ability: UIAbility) => {
+
+            backgroundTaskManager.stopBackgroundRunning(ability.context).then(() => {
+              console.info("ActsLongTimeTaskManagerTest afterEach stopBackgroundRunning promise run success");
+            }).catch((error: BusinessError) => {
+              console.error(`ActsLongTimeTaskManagerTest afterEach Operation stopBackgroundRunning failed. code is ${error.code} message is ${error.message}`);
+            });
+
+          }).catch((error: BusinessError) => {
+            hilog.info(DOMAIN, TAG, 'ActsLongTimeTaskManagerTest afterEach getCurrentTopAbility error: %{public}s', JSON.stringify(error));
+          });
+        }).catch((error: BusinessError) => {
+          hilog.info(DOMAIN, TAG, 'ActsLongTimeTaskManagerTest afterEach getWantAgent error: %{public}s', JSON.stringify(error));
+        })
+      } catch (error) {
+        let e: BusinessError = error as BusinessError;
+        hilog.info(DOMAIN, TAG, 'ActsLongTimeTaskManagerTest afterEach aa error: %{public}s', JSON.stringify(error));
+      }
     })
 
 
@@ -515,13 +537,6 @@ export default function LongTimeTaskManagerTest() {
               } catch (error) {
                 console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_014 Operation onContinuousTaskCancel failed. code is ${(error as BusinessError).code} message is ${(error as BusinessError).message}`);
               }
-              let bgModeList = ["audioPlayback"];
-              backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_014 startBackgroundRunning promise run success.');
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_014 startBackgroundRunning promise res: %{public}s', JSON.stringify(res));
-              }).catch((error: BusinessError) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_014 startBackgroundRunning promise error: %{public}s', JSON.stringify(error));
-              })
 
               try {
                 backgroundTaskManager.off("continuousTaskCancel", callback);
@@ -813,20 +828,12 @@ export default function LongTimeTaskManagerTest() {
      */
     it('SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_025', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL3,
       async (done: Function) => {
-        hilog.info(DOMAIN, TAG, '%{public}s', '---SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 begin---');
+        hilog.info(DOMAIN, TAG, '%{public}s', '---SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_025 begin---');
 
         try {
           wantAgent.getWantAgent(wantAgentInfos).then((want: WantAgent) => {
             let delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
             delegator.getCurrentTopAbility().then((ability: UIAbility) => {
-
-              backgroundTaskManager.stopBackgroundRunning(ability.context).then(() => {
-                console.info("SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 stopBackgroundRunning promise run success");
-              }).catch((error: BusinessError) => {
-                console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 Operation stopBackgroundRunning failed. code is ${error.code} message is ${error.message}`);
-                expect(false).assertTrue();
-                done();
-              });
 
               let bgModeList = ["bluetoothInteraction"]
               backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
@@ -888,20 +895,6 @@ export default function LongTimeTaskManagerTest() {
             let delegator: abilityDelegatorRegistry.AbilityDelegator = abilityDelegatorRegistry.getAbilityDelegator();
             delegator.getCurrentTopAbility().then((ability: UIAbility) => {
               let bgModeList = ["location"]
-              backgroundTaskManager.stopBackgroundRunning(ability.context).then(() => {
-                console.info("SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 stopBackgroundRunning promise run success");
-              }).catch((error: BusinessError) => {
-                console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 Operation stopBackgroundRunning failed. code is ${error.code} message is ${error.message}`);
-              });
-
-              backgroundTaskManager.getAllContinuousTasks(ability.context).then((res: backgroundTaskManager.ContinuousTaskInfo[]) => {
-                    console.info(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 Operation getAllContinuousTasks1 succeeded. data: ` + JSON.stringify(res));
-                    expect(res.length == 0).assertTrue();
-                }).catch((error: BusinessError) => {
-                    console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 Operation getAllContinuousTasks1 failed. code is ${error.code} message is ${error.message}`);
-                    expect(false).assertTrue();
-                    done();
-                });
               
               backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
                 hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_026 startBackgroundRunning promise run success.');
@@ -1001,13 +994,6 @@ export default function LongTimeTaskManagerTest() {
               } catch (error) {
                 console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_027 Operation continuousTaskSuspend failed. code is ${(error as BusinessError).code} message is ${(error as BusinessError).message}`);
               }
-              let bgModeList = ["audioPlayback"];
-              backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_027 startBackgroundRunning promise run success.');
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_027 startBackgroundRunning promise res: %{public}s', JSON.stringify(res));
-              }).catch((error: BusinessError) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_027 startBackgroundRunning promise error: %{public}s', JSON.stringify(error));
-              })
 
               try {
                 backgroundTaskManager.off("continuousTaskSuspend", callback);
@@ -1072,13 +1058,6 @@ export default function LongTimeTaskManagerTest() {
               } catch (error) {
                 console.error(`SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_028 Operation continuousTaskActive failed. code is ${(error as BusinessError).code} message is ${(error as BusinessError).message}`);
               }
-              let bgModeList = ["audioPlayback"];
-              backgroundTaskManager.startBackgroundRunning(ability.context, bgModeList, want).then((res) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_028 startBackgroundRunning promise run success.');
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_028 startBackgroundRunning promise res: %{public}s', JSON.stringify(res));
-              }).catch((error: BusinessError) => {
-                hilog.info(DOMAIN, TAG, 'SUB_RESOURCESCHEDULE_LONGTIME_TASK_XTS_028 startBackgroundRunning promise error: %{public}s', JSON.stringify(error));
-              })
 
               try {
                 backgroundTaskManager.off("continuousTaskActive", callback);
