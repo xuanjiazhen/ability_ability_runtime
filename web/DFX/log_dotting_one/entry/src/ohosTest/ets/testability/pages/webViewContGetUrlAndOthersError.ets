@@ -14,12 +14,11 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 import cert from '@ohos.security.cert';
+
+const EVENT_ID_SET_EMIT_KEY = 111120;
 
 function Uint8ArrayToString(dataArray: Uint8Array) {
   let dataString = ''
@@ -51,7 +50,7 @@ interface objectCss {
 struct webViewContGetUrlAndOthersError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   controllerTwo: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitGetUrlInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -64,13 +63,19 @@ struct webViewContGetUrlAndOthersError {
   @State errorMsg: string = 'failed';
   @State step: number = -2;
   @State outputStr: string = ''
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -79,6 +84,7 @@ struct webViewContGetUrlAndOthersError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1
       }
     }
   }
@@ -86,8 +92,11 @@ struct webViewContGetUrlAndOthersError {
   build() {
     Column() {
       Row() {
-        Button("getUrlAndOthersErrorTest").key('webViewContGetUrlAndOthersError').onClick(() => {
+        Button("getUrlAndOthersErrorTest").key('webViewContGetUrlAndOthersError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContCreatePdfAndOthersErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContCreatePdfAndOthersErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitGetUrlInitErr": {
               try {
@@ -97,8 +106,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 712)
-              Utils.emitEvent(this.errorMsg, 713)
+              Utils.emitEvent(this.errorCode, 111130)
+              Utils.emitEvent(this.errorMsg, 111140)
               break;
             }
             case "emitStopInitErr": {
@@ -111,8 +120,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 714)
-              Utils.emitEvent(this.errorMsg, 715)
+              Utils.emitEvent(this.errorCode, 111150)
+              Utils.emitEvent(this.errorMsg, 111160)
               break;
             }
             case "emitBackOrForwardInitErr": {
@@ -125,8 +134,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 716)
-              Utils.emitEvent(this.errorMsg, 717)
+              Utils.emitEvent(this.errorCode, 111170)
+              Utils.emitEvent(this.errorMsg, 111180)
               break;
             }
             case "emitScrollToInitErr": {
@@ -139,8 +148,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 718)
-              Utils.emitEvent(this.errorMsg, 719)
+              Utils.emitEvent(this.errorCode, 111190)
+              Utils.emitEvent(this.errorMsg, 111200)
               break;
             }
             case "emitScrollByInitErr": {
@@ -153,8 +162,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 720)
-              Utils.emitEvent(this.errorMsg, 721)
+              Utils.emitEvent(this.errorCode, 111210)
+              Utils.emitEvent(this.errorMsg, 111220)
               break;
             }
             case "emitSlideScrollInitErr": {
@@ -167,8 +176,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 722)
-              Utils.emitEvent(this.errorMsg, 723)
+              Utils.emitEvent(this.errorCode, 111230)
+              Utils.emitEvent(this.errorMsg, 111240)
               break;
             }
             case "emitGetOriginalUrlInitErr": {
@@ -181,8 +190,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 724)
-              Utils.emitEvent(this.errorMsg, 725)
+              Utils.emitEvent(this.errorCode, 111250)
+              Utils.emitEvent(this.errorMsg, 111260)
               break;
             }
             case "emitGetFaviconInitErr": {
@@ -195,8 +204,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 726)
-              Utils.emitEvent(this.errorMsg, 727)
+              Utils.emitEvent(this.errorCode, 111270)
+              Utils.emitEvent(this.errorMsg, 111280)
               break;
             }
             case "emitSetNetworkAvailableInitErr": {
@@ -209,8 +218,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 728)
-              Utils.emitEvent(this.errorMsg, 729)
+              Utils.emitEvent(this.errorCode, 111290)
+              Utils.emitEvent(this.errorMsg, 111300)
               break;
             }
             case "emitHasImageCallBackInitErr": {
@@ -229,8 +238,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 730)
-              Utils.emitEvent(this.errorMsg, 731)
+              Utils.emitEvent(this.errorCode, 111310)
+              Utils.emitEvent(this.errorMsg, 111320)
               break;
             }
             case "emitHasImagePromiseInitErr": {
@@ -249,8 +258,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 732)
-              Utils.emitEvent(this.errorMsg, 733)
+              Utils.emitEvent(this.errorCode, 111330)
+              Utils.emitEvent(this.errorMsg, 111340)
               break;
             }
             case "emitRemoveCacheInitErr": {
@@ -263,8 +272,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 734)
-              Utils.emitEvent(this.errorMsg, 735)
+              Utils.emitEvent(this.errorCode, 111350)
+              Utils.emitEvent(this.errorMsg, 111360)
               break;
             }
             case "emitPageUpInitErr": {
@@ -277,8 +286,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 736)
-              Utils.emitEvent(this.errorMsg, 737)
+              Utils.emitEvent(this.errorCode, 111370)
+              Utils.emitEvent(this.errorMsg, 111380)
               break;
             }
             case "emitPageDownInitErr": {
@@ -291,8 +300,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 738)
-              Utils.emitEvent(this.errorMsg, 739)
+              Utils.emitEvent(this.errorCode, 111390)
+              Utils.emitEvent(this.errorMsg, 111400)
               break;
             }
             case "emitGetBackForwardEntriesInitErr": {
@@ -305,8 +314,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 740)
-              Utils.emitEvent(this.errorMsg, 741)
+              Utils.emitEvent(this.errorCode, 111410)
+              Utils.emitEvent(this.errorMsg, 111420)
               break;
             }
             case "emitSerializeWebStateInitErr": {
@@ -319,8 +328,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 742)
-              Utils.emitEvent(this.errorMsg, 743)
+              Utils.emitEvent(this.errorCode, 111430)
+              Utils.emitEvent(this.errorMsg, 111440)
               break;
             }
             case "emitRestoreWebStateInitErr": {
@@ -335,8 +344,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 744)
-              Utils.emitEvent(this.errorMsg, 745)
+              Utils.emitEvent(this.errorCode, 111450)
+              Utils.emitEvent(this.errorMsg, 111460)
               break;
             }
             case "emitGetCertificatePromiseInitErr": {
@@ -351,8 +360,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 746)
-              Utils.emitEvent(this.errorMsg, 747)
+              Utils.emitEvent(this.errorCode, 111470)
+              Utils.emitEvent(this.errorMsg, 111480)
               break;
             }
             case "emitGetCertificateCallbackInitErr": {
@@ -371,8 +380,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 748)
-              Utils.emitEvent(this.errorMsg, 749)
+              Utils.emitEvent(this.errorCode, 111490)
+              Utils.emitEvent(this.errorMsg, 111500)
               break;
             }
             case "emitSetAudioMutedInitErr": {
@@ -385,8 +394,8 @@ struct webViewContGetUrlAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 750)
-              Utils.emitEvent(this.errorMsg, 751)
+              Utils.emitEvent(this.errorCode, 111510)
+              Utils.emitEvent(this.errorMsg, 111520)
               break;
             }
           }
@@ -401,6 +410,10 @@ struct webViewContGetUrlAndOthersError {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

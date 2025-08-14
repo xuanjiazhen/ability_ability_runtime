@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeEach, afterEach, it, expect, beforeAll , TestType, Size, Level } from "@ohos/hypium";
-import events_emitter from '@ohos.events.emitter';
+import { describe, beforeEach, it, beforeAll, TestType, Size, Level } from "@ohos/hypium";
 import Utils from './Utils';
-// import router from '@system.router';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
+const EVENT_ID_SET_EMIT_KEY = 112330;
+const driver = Driver.create();
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
-let emitKey = "emitZoomInitErr";
+let emitKey = "";
 
 export default function webViewContZoomAndOthersError() {
   describe('ActsAceWebDevWebViewContZoomAndOthersErrorTest', () => {
@@ -36,54 +38,37 @@ export default function webViewContZoomAndOthersError() {
         if (!("webViewContZoomAndOthersError" == pages.name)) {
           console.info("get webViewContZoomAndOthersError state success " + JSON.stringify(pages.name));
           let result = await router.push(options);
-          await Utils.sleep(2000);
           console.info("push webViewContZoomAndOthersError page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webViewContZoomAndOthersError page error: " + err);
       }
+      await driver.waitForComponent(ON.id("webViewContZoomAndOthersError"), 10000);
+      console.log("waitForComponent webViewContZoomAndOthersError");
       done()
     });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewContZoomAndOthersError beforeEach start");
       done();
     })
-    afterEach(async (done: Function) => {
-      console.info("webViewContZoomAndOthersError afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3300
      *tc.name testZoomInitErr
      *tc.desc test interface of zoom with not been associated with specific Web Components
      */
     it('testZoomInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitZoomEnableErr";
-      Utils.registerEvent("testZoomInitErr", "17100001", 664, done);
-      Utils.registerEvent("testZoomInitErr", "Init error. The WebviewController must be associated with a Web component", 665, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomInitErr", "17100001", 112340, null);
+      Utils.registerEvent("testZoomInitErr", "Init error. The WebviewController must be associated with a Web component", 112350, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3400
@@ -91,10 +76,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of zoom with not been enabled
      */
     it('testZoomEnableErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSearchAllAsyncInitErr";
-      Utils.registerEvent("testZoomEnableErr", "17100004", 666, done);
-      Utils.registerEvent("testZoomEnableErr", "Function not enabled.", 667, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomEnableErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomEnableErr", "17100004", 112360, null);
+      Utils.registerEvent("testZoomEnableErr", "Function not enabled.", 112370, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3500
@@ -102,10 +88,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of searchAllAsync with not been associated with specific Web Components
      */
     it('testSearchAllAsyncInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitClearMatchesInitErr";
-      Utils.registerEvent("testSearchAllAsyncInitErr", "17100001", 668, done);
-      Utils.registerEvent("testSearchAllAsyncInitErr", "Init error. The WebviewController must be associated with a Web component", 669, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitSearchAllAsyncInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testSearchAllAsyncInitErr", "17100001", 112380, null);
+      Utils.registerEvent("testSearchAllAsyncInitErr", "Init error. The WebviewController must be associated with a Web component", 112390, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3600
@@ -113,10 +100,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of clearMatches with not been associated with specific Web Components
      */
     it('testClearMatchesInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitSearchNextInitErr";
-      Utils.registerEvent("testClearMatchesInitErr", "17100001", 670, done);
-      Utils.registerEvent("testClearMatchesInitErr", "Init error. The WebviewController must be associated with a Web component", 671, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitClearMatchesInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testClearMatchesInitErr", "17100001", 112400, null);
+      Utils.registerEvent("testClearMatchesInitErr", "Init error. The WebviewController must be associated with a Web component", 112410, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3700
@@ -124,10 +112,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of searchNext with not been associated with specific Web Components
      */
     it('testSearchNextInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitClearSslCacheInitErr";
-      Utils.registerEvent("testSearchNextInitErr", "17100001", 672, done);
-      Utils.registerEvent("testSearchNextInitErr", "Init error. The WebviewController must be associated with a Web component", 673, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitSearchNextInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testSearchNextInitErr", "17100001", 112420, null);
+      Utils.registerEvent("testSearchNextInitErr", "Init error. The WebviewController must be associated with a Web component", 112430, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3800
@@ -135,10 +124,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of clearSslCache with not been associated with specific Web Components
      */
     it('testClearSslCacheInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitClearClientAuthenticationCacheInitErr";
-      Utils.registerEvent("testClearSslCacheInitErr", "17100001", 674, done);
-      Utils.registerEvent("testClearSslCacheInitErr", "Init error. The WebviewController must be associated with a Web component", 675, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitClearSslCacheInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testClearSslCacheInitErr", "17100001", 112440, null);
+      Utils.registerEvent("testClearSslCacheInitErr", "Init error. The WebviewController must be associated with a Web component", 112450, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_3900
@@ -146,10 +136,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of clearClientAuthenticationCache with not been associated with specific Web Components
      */
     it('testClearClientAuthenticationCacheInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitCreateWebMessagePortsInitErr";
-      Utils.registerEvent("testClearClientAuthenticationCacheInitErr", "17100001", 676, done);
-      Utils.registerEvent("testClearClientAuthenticationCacheInitErr", "Init error. The WebviewController must be associated with a Web component", 677, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitClearClientAuthenticationCacheInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testClearClientAuthenticationCacheInitErr", "17100001", 112460, null);
+      Utils.registerEvent("testClearClientAuthenticationCacheInitErr", "Init error. The WebviewController must be associated with a Web component", 112470, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4000
@@ -157,10 +148,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of createWebMessagePorts with not been associated with specific Web Components
      */
     it('testCreateWebMessagePortsInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitRequestFocusInitErr";
-      Utils.registerEvent("testCreateWebMessagePortsInitErr", "17100001", 678, done);
-      Utils.registerEvent("testCreateWebMessagePortsInitErr", "Init error. The WebviewController must be associated with a Web component", 679, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitCreateWebMessagePortsInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testCreateWebMessagePortsInitErr", "17100001", 112480, null);
+      Utils.registerEvent("testCreateWebMessagePortsInitErr", "Init error. The WebviewController must be associated with a Web component", 112490, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4100
@@ -168,10 +160,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of requestFocus with not been associated with specific Web Components
      */
     it('testRequestFocusInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitZoomInInitErr";
-      Utils.registerEvent("testRequestFocusInitErr", "17100001", 680, done);
-      Utils.registerEvent("testRequestFocusInitErr", "Init error. The WebviewController must be associated with a Web component", 681, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitRequestFocusInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testRequestFocusInitErr", "17100001", 112500, null);
+      Utils.registerEvent("testRequestFocusInitErr", "Init error. The WebviewController must be associated with a Web component", 112510, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4200
@@ -179,10 +172,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of zoomIn with not been associated with specific Web Components
      */
     it('testZoomInInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitZoomInEnableErr";
-      Utils.registerEvent("testZoomInInitErr", "17100001", 682, done);
-      Utils.registerEvent("testZoomInInitErr", "Init error. The WebviewController must be associated with a Web component", 683, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomInInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomInInitErr", "17100001", 112520, null);
+      Utils.registerEvent("testZoomInInitErr", "Init error. The WebviewController must be associated with a Web component", 112530, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4300
@@ -190,10 +184,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of zoomIn with not been enabled
      */
     it('testZoomInEnableErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitZoomOutInitErr";
-      Utils.registerEvent("testZoomInEnableErr", "17100004", 684, done);
-      Utils.registerEvent("testZoomInEnableErr", "Function not enabled.", 685, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomInEnableErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomInEnableErr", "17100004", 112540, null);
+      Utils.registerEvent("testZoomInEnableErr", "Function not enabled.", 112550, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4400
@@ -201,10 +196,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of zoomOut with not been associated with specific Web Components
      */
     it('testZoomOutInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitZoomOutEnableErr";
-      Utils.registerEvent("testZoomOutInitErr", "17100001", 686, done);
-      Utils.registerEvent("testZoomOutInitErr", "Init error. The WebviewController must be associated with a Web component", 687, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomOutInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomOutInitErr", "17100001", 112560, null);
+      Utils.registerEvent("testZoomOutInitErr", "Init error. The WebviewController must be associated with a Web component", 112570, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4500
@@ -212,10 +208,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of zoomOut with not been enabled
      */
     it('testZoomOutEnableErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitGetHitTestValueInitErr";
-      Utils.registerEvent("testZoomOutEnableErr", "17100004", 688, done);
-      Utils.registerEvent("testZoomOutEnableErr", "Function not enabled.", 689, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitZoomOutEnableErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testZoomOutEnableErr", "17100004", 112580, null);
+      Utils.registerEvent("testZoomOutEnableErr", "Function not enabled.", 112590, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4600
@@ -223,10 +220,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of getHitTestValue with not been associated with specific Web Components
      */
     it('testGetHitTestValueInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitGetWebIdInitErr";
-      Utils.registerEvent("testGetHitTestValueInitErr", "17100001", 690, done);
-      Utils.registerEvent("testGetHitTestValueInitErr", "Init error. The WebviewController must be associated with a Web component", 691, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitGetHitTestValueInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testGetHitTestValueInitErr", "17100001", 112600, null);
+      Utils.registerEvent("testGetHitTestValueInitErr", "Init error. The WebviewController must be associated with a Web component", 112610, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4700
@@ -234,10 +232,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of getWebId with not been associated with specific Web Components
      */
     it('testGetWebIdInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitGetUserAgentInitErr";
-      Utils.registerEvent("testGetWebIdInitErr", "17100001", 692, done);
-      Utils.registerEvent("testGetWebIdInitErr", "Init error. The WebviewController must be associated with a Web component", 639, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitGetWebIdInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testGetWebIdInitErr", "17100001", 112620, null);
+      Utils.registerEvent("testGetWebIdInitErr", "Init error. The WebviewController must be associated with a Web component", 112630, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4800
@@ -245,10 +244,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of getUserAgent with not been associated with specific Web Components
      */
     it('testGetUserAgentInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitGetTitleInitErr";
-      Utils.registerEvent("testGetUserAgentInitErr", "17100001", 694, done);
-      Utils.registerEvent("testGetUserAgentInitErr", "Init error. The WebviewController must be associated with a Web component", 695, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitGetUserAgentInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testGetUserAgentInitErr", "17100001", 112640, null);
+      Utils.registerEvent("testGetUserAgentInitErr", "Init error. The WebviewController must be associated with a Web component", 112650, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_4900
@@ -256,10 +256,11 @@ export default function webViewContZoomAndOthersError() {
      *tc.desc test interface of getTitle with not been associated with specific Web Components
      */
     it('testGetTitleInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitGetPageHeightInitErr";
-      Utils.registerEvent("testGetTitleInitErr", "17100001", 696, done);
-      Utils.registerEvent("testGetTitleInitErr", "Init error. The WebviewController must be associated with a Web component", 697, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      emitKey = "emitGetTitleInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testGetTitleInitErr", "17100001", 112660, null);
+      Utils.registerEvent("testGetTitleInitErr", "Init error. The WebviewController must be associated with a Web component", 112670, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5000
@@ -268,9 +269,10 @@ export default function webViewContZoomAndOthersError() {
      */
     it('testGetPageHeightInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitGetPageHeightInitErr";
-      Utils.registerEvent("testGetPageHeightInitErr", "17100001", 698, done);
-      Utils.registerEvent("testGetPageHeightInitErr", "Init error. The WebviewController must be associated with a Web component", 699, done);
-      sendEventByKey('webViewContZoomAndOthersError', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testGetPageHeightInitErr", "17100001", 112680, null);
+      Utils.registerEvent("testGetPageHeightInitErr", "Init error. The WebviewController must be associated with a Web component", 112690, done);
+      await Utils.waitAndClickComponent(driver, "webViewContZoomAndOthersError");
     })
   })
 }
