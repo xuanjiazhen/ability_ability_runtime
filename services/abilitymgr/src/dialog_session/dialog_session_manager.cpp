@@ -22,6 +22,10 @@
 #include "int_wrapper.h"
 #include "modal_system_ui_extension.h"
 #include "query_erms_manager.h"
+#ifdef SUPPORT_GRAPHICS
+#include "scene_board_judgement.h"
+#include "session_manager_lite.h"
+#endif
 #include "start_ability_utils.h"
 #include "string_wrapper.h"
 #include "want.h"
@@ -453,21 +457,28 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
         return ERR_INVALID_VALUE;
     }
 
-    sptr<IRemoteObject> token;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (!abilityMgr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr null");
-        return INNER_ERR;
+    bool isParent = false;
+    int32_t ret = ERR_INVALID_VALUE;
+#ifdef SUPPORT_SCREEN
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        if (sceneSessionManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null session manager");
+            return ERR_INVALID_VALUE;
+        }
+        auto ret = static_cast<int32_t>(sceneSessionManager->IsFocusWindowParent(callerToken, isParent));
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isParent=%{public}d", isParent);
     }
-    int ret = IN_PROCESS_CALL(abilityMgr->GetTopAbility(token));
-    if (ret != ERR_OK || token == nullptr) {
+#endif
+
+    if (ret != ERR_OK || !isParent) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
         (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
         (const_cast<Want &>(replaceWant)).SetParam(SUPPORT_CLOSE_ON_BLUR, true);
         return IN_PROCESS_CALL(connection->CreateModalUIExtension(replaceWant)) ? ERR_OK : INNER_ERR;
     }
 
-    if (callerRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE && token == callerToken) {
+    if (callerRecord->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE && isParent) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for application");
         return callerRecord->CreateModalUIExtension(replaceWant);
     }
