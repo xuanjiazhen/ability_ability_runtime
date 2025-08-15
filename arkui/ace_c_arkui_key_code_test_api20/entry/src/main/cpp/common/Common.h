@@ -31,8 +31,8 @@
 #include <random>
 #include <list>
 #include <cstddef>
-#include <stdint.h>
 #include <ace/xcomponent/native_xcomponent_key_event.h>
+#include <AbilityKit/ability_base/want.h>
 
 #define PARAM_0_POINT_5 0.5
 #define PARAM_1_POINT_5 1.5
