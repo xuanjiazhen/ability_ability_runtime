@@ -125,9 +125,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, StartSwitchUserDialog_001, TestSize.Le
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     abilityMs_->StartSwitchUserDialog();
-
-    abilityMs_->userController_ = nullptr;
-    abilityMs_->StartSwitchUserDialog();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StartSwitchUserDialog_001 end");
 }
 
@@ -158,9 +155,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, StopSwitchUserDialog_001, TestSize.Lev
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StopSwitchUserDialog_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
-    abilityMs_->StopSwitchUserDialog();
-
-    abilityMs_->userController_ = nullptr;
     abilityMs_->StopSwitchUserDialog();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest StopSwitchUserDialog_001 end");
 }
@@ -1674,20 +1668,6 @@ HWTEST_F(AbilityManagerServiceSecondTest, GetEventHandler_001, TestSize.Level1)
 
 /*
  * Feature: AbilityManagerService
- * Function: GetUserId
- * SubFunction: NA
- * FunctionPoints: AbilityManagerService GetUserId
- */
-HWTEST_F(AbilityManagerServiceSecondTest, GetUserId_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetUserId_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_->GetUserId(), 100);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetUserId_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Function: GenerateAbilityRequest
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GenerateAbilityRequest
@@ -1882,6 +1862,24 @@ HWTEST_F(AbilityManagerServiceSecondTest, UpdateKeepAliveEnableState_001, TestSi
     auto ret = abilityMs_->UpdateKeepAliveEnableState("bundle", "entry", "mainAbility", true, 0);
     EXPECT_NE(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest UpdateKeepAliveEnableState_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: GetCallerUserId_001
+ * Function: GetCallerUserId
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetCallerUserId
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, GetCallerUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetCallerUserId_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    auto userId = abilityMs_->GetCallerUserId();
+    int32_t invalidUseId = 1000;
+    EXPECT_NE(userId, invalidUseId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSecondTest GetCallerUserId_001 end");
 }
 
 #ifdef SUPPORT_AUTO_FILL

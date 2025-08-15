@@ -5666,7 +5666,8 @@ HWTEST_F(AppMgrServiceInnerTest, GetAllRunningInstanceKeysByBundleName_001, Test
 
     std::string bundleName = "testBundleName";
     std::vector<std::string> instanceKeys;
-    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys);
+    int32_t userId = 100;
+    int32_t ret = appMgrServiceInner->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, userId);
     EXPECT_NE(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "GetAllRunningInstanceKeysByBundleName_001 end");

@@ -26,6 +26,7 @@
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
 #include "datetime_ex.h"
+#include "display_util.h"
 #include "fd_guard.h"
 #include "freeze_util.h"
 #include "global_constant.h"
@@ -37,6 +38,7 @@
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
+#include "user_controller/user_manager.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
@@ -414,8 +416,8 @@ int32_t AppMgrService::GetRunningMultiAppInfoByBundleName(const std::string &bun
         return ERR_INVALID_OPERATION;
     }
 
-    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not SA");
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not system app");
         return ERR_INVALID_OPERATION;
     }
 
@@ -436,11 +438,19 @@ int32_t AppMgrService::GetAllRunningInstanceKeysBySelf(std::vector<std::string> 
 }
 
 int32_t AppMgrService::GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
-    std::vector<std::string> &instanceKeys, int32_t userId)
+    std::vector<std::string> &instanceKeys)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    int32_t userId = AbilityRuntime::UserManager::GetInstance().GetCurrentUserId(
+        AAFwk::DisplayUtil::ObtainDefaultDisplayId());
     return appMgrServiceInner_->GetAllRunningInstanceKeysByBundleName(bundleName, instanceKeys, userId);
 }
 
@@ -449,6 +459,10 @@ int32_t AppMgrService::GetRunningProcessesByBundleType(BundleType bundleType,
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not system app");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
     }
     return appMgrServiceInner_->GetRunningProcessesByBundleType(bundleType, info);
 }

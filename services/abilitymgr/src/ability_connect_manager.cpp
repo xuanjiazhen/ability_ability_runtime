@@ -652,7 +652,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #ifdef SUPPORT_UPMS
     // grant uri to service extension by connect, must call out of serialMutex_
     if (userId_ == U0_USER_ID ||
-        userId_ == DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId()) {
+        userId_ == DelayedSingleton<AbilityManagerService>::GetInstance()->GetCallerUserId()) {
         UriUtils::GetInstance().GrantUriPermissionForServiceExtension(abilityRequest);
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "cross user, without grantUriPermission");
@@ -1895,7 +1895,7 @@ void AbilityConnectManager::HandleStartTimeoutTask(const std::shared_ptr<Ability
     RemoveServiceAbility(abilityRecord);
     DelayedSingleton<AppScheduler>::GetInstance()->AttachTimeOut(abilityRecord->GetToken());
     if (abilityRecord->IsSceneBoard()) {
-        if (DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+        if (UserController::GetInstance().IsCurrentUser(userId_)) {
             RestartAbility(abilityRecord, userId_);
         }
         return;
@@ -2483,8 +2483,7 @@ void AbilityConnectManager::CleanActivatingTimeoutAbility(std::shared_ptr<Abilit
     if (!IsAbilityNeedKeepAlive(abilityRecord)) {
         return;
     }
-    if (!abilityRecord->IsSceneBoard() ||
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetUserId() == userId_) {
+    if (!abilityRecord->IsSceneBoard() || UserController::GetInstance().IsCurrentUser(userId_)) {
         RestartAbility(abilityRecord, userId_);
     }
 }
@@ -2802,6 +2801,10 @@ void AbilityConnectManager::RestartAbility(const std::shared_ptr<AbilityRecord> 
         }
         if (abilityRecord->IsSceneBoard()) {
             requestInfo.want.SetParam("ohos.app.recovery", true);
+            uint64_t displayId = 0;
+            if (UserController::GetInstance().GetDisplayIdByUserId(userId_, displayId)) {
+                requestInfo.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, static_cast<int32_t>(displayId));
+            }
             DelayedSingleton<AbilityManagerService>::GetInstance()->EnableListForSCBRecovery(userId_);
         }
         requestInfo.restartCount = abilityRecord->GetRestartCount();
