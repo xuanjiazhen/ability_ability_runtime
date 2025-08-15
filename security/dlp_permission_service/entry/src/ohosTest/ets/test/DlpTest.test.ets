@@ -210,7 +210,6 @@ async function genTestDlpFile(): Promise<TestDlpFileInfo> {
 
   try {
     let dlpFile: dlpPermission.DLPFile = await dlpPermission.generateDLPFile(dlpInfo.plaintextFd, dlpInfo.ciphertextFd, property);
-    expect(true).assertTrue()
     dlpInfo.dlpFile = dlpFile;
     return dlpInfo;
   } catch (err) {
@@ -535,7 +534,6 @@ export default function dlpTest() {
       try {
         let uriArray = ['uri'];
         await dlpPermission.cancelRetentionState(uriArray);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(curTag, "cancelRetentionState failed", err.code, err.message);
         expect(false).assertTrue();
@@ -652,7 +650,6 @@ export default function dlpTest() {
 
       try {
         await dlpPermission.cancelRetentionState([uri, "uri2"]);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(curTag, "cancelRetentionState failed", err.code, err.message);
         expect(false).assertTrue();
@@ -706,7 +703,6 @@ export default function dlpTest() {
         expect(err).assertEqual(null);
         try {
           await dlpPermission.cancelRetentionState([uri, "uri2"]);
-          expect(true).assertTrue();
         } catch (err) {
           console.error(curTag, "cancelRetentionState failed", err.code, err.message);
           expect(false).assertTrue();
@@ -762,7 +758,6 @@ export default function dlpTest() {
       }
       try {
         await dlpPermission.cancelRetentionState([uri]);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(curTag, "cancelRetentionState failed", err.code, err.message);
         expect(false).assertTrue();
@@ -817,7 +812,6 @@ export default function dlpTest() {
       });
       try {
         await dlpPermission.cancelRetentionState([uri]);
-        expect(true).assertTrue();
       } catch (err) {
         console.error(curTag, "cancelRetentionState failed", err.code, err.message);
         expect(false).assertTrue();
@@ -1124,7 +1118,6 @@ export default function dlpTest() {
       }else{
         try {
           await dlpPermission.isDLPFile(dlpInfo.ciphertextFd);
-          expect(true).assertTrue();
           console.info(curTag, "end");
           return;
         } catch (err) {
@@ -1179,7 +1172,6 @@ export default function dlpTest() {
         expect(false).assertTrue();
       } catch (err) {
         expect(err.code).assertEqual(DLPErrCode.ERR_JS_INVALID_PARAMETER);
-        expect(true).assertTrue();
       }
 
       console.info(curTag, "end");
@@ -1607,7 +1599,6 @@ export default function dlpTest() {
         expect(false).assertTrue();
       } catch (err) {
         expect(err.code).assertEqual(DLPErrCode.ERR_JS_INVALID_PARAMETER);
-        expect(true).assertTrue();
       }
 
       console.info(curTag, "end");
@@ -1915,7 +1906,6 @@ export default function dlpTest() {
       } catch (err) {
         expect(false).assertTrue();
       }
-      expect(true).assertTrue();
       console.info(curTag, "end");
     })
 
@@ -1993,7 +1983,6 @@ export default function dlpTest() {
       } catch (err) {
         expect(false).assertTrue();
       }
-      expect(true).assertTrue();
       console.info(curTag, "end");
     })
 
@@ -2015,7 +2004,6 @@ export default function dlpTest() {
         expect(false).assertTrue();
         return;
       }
-      expect(true).assertTrue();
       console.info(curTag, "end");
     })
 
@@ -2073,7 +2061,6 @@ export default function dlpTest() {
         expect(false).assertTrue();
         return;
       });
-      expect(true).assertTrue();
       console.info(curTag, "end");
       return;
     })
