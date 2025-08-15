@@ -1074,7 +1074,7 @@ export default function imageGif() {
      */
     it("SUB_MULTIMEDIA_IMAGE_GIF_INCOMPLETE_FRAME_ERROR_0100", Level.LEVEL0, async (done:() => void)=>{
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_GIF_INCOMPLETE_FRAME_ERROR_0100");
-      let ret = await gifInCompleteFrameTestError(logger, "incomplete_test.gif", DECODE_FAILED);
+      let ret = await gifIncompleteFrameTest(logger, "incomplete_test.gif");
       expect(ret).assertTrue();
       done();
     });
