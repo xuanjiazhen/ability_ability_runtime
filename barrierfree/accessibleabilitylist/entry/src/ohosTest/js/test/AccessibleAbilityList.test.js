@@ -731,11 +731,12 @@ export default function AccessibleAbilityList() {
                 let abilityType = '';
                 let list = accessibility.getAccessibilityExtensionListSync(abilityType, abilityState);
                 console.info(`AccessibilityExtensionListSync: SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3100 result: ${list}`);
-                expect(Array.isArray(list)).assertEqual(false);
+                expect(Array.isArray(list)).assertEqual(true);
+                expect(list.length === 0).assertEqual(true);
                 done();
             } catch (exception) {
                 console.error('SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3100 failed to AccessibilityExtensionListSync because ' + JSON.stringify(exception));
-                expect(exception.code).assertEqual(401);
+                expect(exception === null || undefined ).assertEqual(true);
                 done();
             }
         })
@@ -755,11 +756,12 @@ export default function AccessibleAbilityList() {
                 let abilityType = null;
                 let list = accessibility.getAccessibilityExtensionListSync(abilityType, abilityState);
                 console.info(`AccessibilityExtensionListSync: SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3200 result: ${list}`);
-                expect(Array.isArray(list)).assertEqual(false);
+                expect(Array.isArray(list)).assertEqual(true);
+                expect(list.length === 0).assertEqual(true);
                 done();
             } catch (exception) {
                 console.error('SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3200 failed to AccessibilityExtensionListSync because ' + JSON.stringify(exception));
-                expect(exception.code).assertEqual(401);
+                expect(exception === null || undefined ).assertEqual(true);
                 done();
             }
         })
@@ -851,11 +853,12 @@ export default function AccessibleAbilityList() {
                 let abilityState = '';
                 let list = accessibility.getAccessibilityExtensionListSync(abilityType, abilityState);
                 console.info(`AccessibilityExtensionListSync: SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3600 result: ${list}`);
-                expect(Array.isArray(list)).assertEqual(false);
+                expect(Array.isArray(list)).assertEqual(true);
+                expect(list.length === 0).assertEqual(true);
                 done();
             } catch (exception) {
                 console.error('SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3600 failed to AccessibilityExtensionListSync because ' + JSON.stringify(exception));
-                expect(exception.code).assertEqual(401);
+                expect(exception === null || undefined ).assertEqual(true);
                 done();
             }
         })
@@ -875,11 +878,12 @@ export default function AccessibleAbilityList() {
                 let abilityState = null;
                 let list = accessibility.getAccessibilityExtensionListSync(abilityType, abilityState);
                 console.info(`AccessibilityExtensionListSync: SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3700 result: ${list}`);
-                expect(Array.isArray(list)).assertEqual(false);
+                expect(Array.isArray(list)).assertEqual(true);
+                expect(list.length === 0).assertEqual(true);
                 done();
             } catch (exception) {
                 console.error('SUB_BASIC_BARRIERFREE_API_AccessibleAbilityList_3700 failed to AccessibilityExtensionListSync because ' + JSON.stringify(exception));
-                expect(exception.code).assertEqual(401);
+                expect(exception === null || undefined ).assertEqual(true);
                 done();
             }
         })
