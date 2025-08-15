@@ -51,7 +51,7 @@ int32_t AbilityManagerCollaboratorProxy::NotifyStartAbility(
         return ERR_INVALID_OPERATION;
     }
     if (!data.WriteInt32(windowMode)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "windowMode write fail");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "windowMode write fail.");
         return ERR_INVALID_OPERATION;
     }
     int32_t ret = SendTransactCmd(IAbilityManagerCollaborator::NOTIFY_START_ABILITY, data, reply, option);
