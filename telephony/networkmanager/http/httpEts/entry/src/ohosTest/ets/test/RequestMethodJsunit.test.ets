@@ -365,7 +365,7 @@ export default function requestMethodJsunit() {
           connectTimeout: 60000
         };
         let httpRequest = http.createHttp();
-        httpRequest.request('https://www.baidu.com/', httpRequestOptions, (err, data) => {
+        httpRequest.request('https://httpbin.org/anything', httpRequestOptions, (err, data) => {
           console.log(caseName + JSON.stringify(err) + ' data: ' + JSON.stringify(data));
           expectTrue(data.responseCode == 200);
           httpRequest.destroy();
@@ -399,7 +399,7 @@ export default function requestMethodJsunit() {
           connectTimeout: 60000
         };
         let httpRequest = http.createHttp();
-        httpRequest.request('https://www.baidu.com/', httpRequestOptions).then(data => {
+        httpRequest.request('https://httpbin.org/anything', httpRequestOptions).then(data => {
           console.log(caseName + JSON.stringify(data));
           expectTrue(data.responseCode == 200);
           httpRequest.destroy();
