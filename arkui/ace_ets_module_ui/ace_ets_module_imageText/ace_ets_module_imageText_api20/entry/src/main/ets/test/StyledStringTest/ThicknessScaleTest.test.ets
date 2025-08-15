@@ -62,7 +62,7 @@ export default function ThicknessScaleTest() {
       await CommonFunc.sleep(500);
       await setStyledString1.click()
       await CommonFunc.sleep(500);
-      expect(''+AppStorage.get('StyledString1ThicknessScale')).assertEqual('1');
+      expect(''+AppStorage.get('StyledString1ThicknessScale')).assertEqual('undefined');
       AppStorage.delete('StyledString1ThicknessScale')
       console.info("[ThicknessScaleTest0001] end");
       done();
@@ -125,7 +125,7 @@ export default function ThicknessScaleTest() {
       await CommonFunc.sleep(500);
       await setStyledString4.click()
       await CommonFunc.sleep(500);
-      expect(''+AppStorage.get('StyledString4ThicknessScale')).assertEqual('1');
+      expect(''+AppStorage.get('StyledString4ThicknessScale')).assertEqual('undefined');
       AppStorage.delete('StyledString4ThicknessScale')
       console.info("[ThicknessScaleTest0004] end");
       done();

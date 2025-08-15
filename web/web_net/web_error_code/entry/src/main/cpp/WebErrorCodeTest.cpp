@@ -135,27 +135,35 @@ static napi_value WebErrorSchemeRegitsterFailed(napi_env env, napi_callback_info
 static napi_value WebErrorInvaledURL(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledURL start..");
-    ArkWeb_ErrorCode ret = ARKWEB_INVALID_URL;
-    ArkWeb_SchemeHandler *g_schemeHandler;
-    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
-    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    static ArkWeb_CookieManagerAPI *cookieManager = nullptr;
+    cookieManager = reinterpret_cast<ArkWeb_CookieManagerAPI *>(OH_ArkWeb_GetNativeAPI(ARKWEB_NATIVE_COOKIE_MANAGER));
+    char *cookieValue;
+    ArkWeb_ErrorCode resultCode = cookieManager->fetchCookieSync("", true, true, &cookieValue);
     napi_value result;
-    if (ret == ArkWeb_ErrorCode::ARKWEB_INVALID_URL) {
-        napi_create_int32(env, ret, &result);
+    if (resultCode == ARKWEB_INVALID_URL) {
+        napi_create_int32(env, resultCode, &result);
+    } else {
+        napi_create_int32(env, -1, &result);
     }
-    OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledURL end..");
     return result;
 }
 
 static napi_value WebErrorInvaledCookieValue(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledCookieValue start..");
-    ArkWeb_SchemeHandler *g_schemeHandler;
-    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
-    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    static ArkWeb_CookieManagerAPI *cookieManager = nullptr;
+    cookieManager = reinterpret_cast<ArkWeb_CookieManagerAPI *>(OH_ArkWeb_GetNativeAPI(ARKWEB_NATIVE_COOKIE_MANAGER));
+    char *cookieValue = "test=abc\nd123";
     ArkWeb_ErrorCode ret = ARKWEB_INVALID_COOKIE_VALUE;
+    ArkWeb_ErrorCode resultCode = cookieManager->configCookieSync("https://example.com", cookieValue, false, false);
+
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (resultCode != ARKWEB_INVALID_COOKIE_VALUE) {
+        napi_create_int32(env, ret, &result);
+    } else {
+        napi_create_int32(env, resultCode, &result);
+    }
+
     OH_LOG_DEBUG(LOG_APP, "WebErrorInvaledCookieValue end..");
     return result;
 }
@@ -191,10 +199,13 @@ static napi_value WebErrorCookeManagerNotInitialized(napi_env env, napi_callback
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized start..");
     ArkWeb_ErrorCode ret = ARKWEB_COOKIE_MANAGER_NOT_INITIALIZED;
     ArkWeb_SchemeHandler *g_schemeHandler;
-    OH_ArkWeb_CreateSchemeHandler(&g_schemeHandler);
-    OH_ArkWeb_DestroySchemeHandler(g_schemeHandler);
+    int saveRet = OH_ArkWebCookieManager_SaveCookieSync();
     napi_value result;
-    napi_create_int32(env, ret, &result);
+    if (saveRet != ARKWEB_SUCCESS) {
+        napi_create_int32(env, saveRet, &result);
+    } else {
+        napi_create_int32(env, ret, &result);
+    }
     OH_LOG_DEBUG(LOG_APP, "WebErrorCookeManagerNotInitialized end..");
     return result;
 }
@@ -429,10 +440,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("webNativeWebMessage", WebNativeWebMessage),
         DECLARE_NAPI_FUNCTION("webNativeCookieManger", WebNativeCookieManger),
         DECLARE_NAPI_FUNCTION("webNativeJavaScriptValue", WebNativeJavaScriptValue),
-        DECLARE_NAPI_FUNCTION("webNetErrorResponeseSetError", WebNetErrorResponeseSetError),
-        DECLARE_NAPI_FUNCTION("webArkWebResponseGetError", WebArkWebResponseGetError),
-        DECLARE_NAPI_FUNCTION("webArkWebConnectError", WebArkWebConnectError),
-        DECLARE_NAPI_FUNCTION("webArkWebSSLError", WebArkWebSSLError),
+        DECLARE_NAPI_FUNCTION("webArkWebNetError", WebArkWebNetError),
         DECLARE_NAPI_FUNCTION("webRegisterCustomSchemes", WebRegisterCustomSchemes),
     };
 

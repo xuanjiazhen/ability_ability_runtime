@@ -16,7 +16,9 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/libinputndk.so": "file:./src/main/cpp/types/libinputndk"
+    "@types/libinputndk.so": "file:./src/main/cpp/types/libinputndk",
+    "@types/libmousendk.so": "file:./src/main/cpp/types/libmousendk",
+    "@types/libtouchndk.so": "file:./src/main/cpp/types/libtouchndk",
   },
   "author": "",
   "name": "entry",

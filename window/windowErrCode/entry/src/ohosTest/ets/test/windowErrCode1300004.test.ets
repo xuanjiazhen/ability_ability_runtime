@@ -514,5 +514,80 @@ export default function windowErrCode1300004() {
         done()
       }
     })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_SET_ASPECT_RATIO_WITH_SUBWINDOW
+     * @tc.name       : testSetAspectRatiowithUnsupportedSubwindow
+     * @tc.desc       : 验证setAspectRatio抛1300004错误码
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 2
+     */
+    it('testSetAspectRatiowithUnsupportedSubwindow', Level.LEVEL2, async (done: Function) => {
+      let caseName = "testSetAspectRatiowithUnsupportedSubwindow";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      let subWin: ohosWindow.Window | undefined = undefined;
+      subWin = await windowStage.createSubWindow('testSetAspectRatiowithUnsupportedSubwindow')
+      try {
+        await (subWin! as ohosWindow.Window).setAspectRatio(0).then(async () => {
+          console.info(msgStr + 'Succeeded in calling setAspectRatio.');
+          expect().assertFail();
+          await (subWin! as ohosWindow.Window).destroyWindow();
+          done()
+        }).catch(async (err: BusinessError) => {
+          console.error(msgStr + 'Failed to call setAspectRatio. Cause: ' + JSON.stringify(err));
+          await (subWin! as ohosWindow.Window).destroyWindow();
+          if (err.code == 801) {
+            console.info(msgStr + '此设备不支持 setAspectRatio 能力.');
+          } else {
+            expect().assertFail();
+          }
+          done()
+        });
+      } catch (exception) {
+        console.error(msgStr + 'Failed to set the call setAspectRatio. Cause:' +
+        JSON.stringify(exception));
+        await (subWin! as ohosWindow.Window).destroyWindow();
+        expect(exception.code).assertEqual(1300004);
+        done()
+      }
+    })
+
+    /**
+     * @tc.number     : SUB_BASIC_WMS_RESET_ASPECT_RATIO_WITH_SUBWINDOW
+     * @tc.name       : testResetAspectRatiowithUnsupportedSubwindow
+     * @tc.desc       : 验证resetAspectRatio抛1300004错误码
+     * @tc.size       : MediumTest
+     * @tc.type       : Function
+     * @tc.level      : Level 2
+     */
+    it('testResetAspectRatiowithUnsupportedSubwindow', Level.LEVEL2, async (done: Function) => {
+      let caseName = "testResetAspectRatiowithUnsupportedSubwindow";
+      let msgStr = 'jsunittest ' + caseName + ' ';
+      console.log(msgStr + 'begin.');
+      let subWin: ohosWindow.Window | undefined = undefined;
+      subWin = await windowStage.createSubWindow('testResetAspectRatiowithUnsupportedSubwindow')
+      try {
+        await (subWin! as ohosWindow.Window).resetAspectRatio().then(async () => {
+          console.info(msgStr + 'Succeeded in calling resetAspectRatio.');
+          expect().assertFail();
+          await (subWin! as ohosWindow.Window).destroyWindow();
+          done()
+        }).catch(async (err: BusinessError) => {
+          console.error(msgStr + 'Failed to call resetAspectRatio. Cause: ' + JSON.stringify(err));
+          await (subWin! as ohosWindow.Window).destroyWindow();
+          expect().assertFail();
+          done()
+        });
+      } catch (exception) {
+        console.error(msgStr + 'Failed to set the call resetAspectRatio. Cause:' +
+        JSON.stringify(exception));
+        await (subWin! as ohosWindow.Window).destroyWindow();
+        expect(exception.code).assertEqual(1300004);
+        done()
+      }
+    })
+
   })
 }

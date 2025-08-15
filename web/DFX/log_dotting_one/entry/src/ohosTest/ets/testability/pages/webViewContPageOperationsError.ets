@@ -14,19 +14,17 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 
+const EVENT_ID_SET_EMIT_KEY = 111890;
 
 @Entry
 @Component
 struct webViewContPageOperationsError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   controllerTwo: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitAccessForwardInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -38,13 +36,19 @@ struct webViewContPageOperationsError {
   @State errorCode: string = '0';
   @State errorMsg: string = 'failed';
   @State steps: number = 2;
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -53,6 +57,7 @@ struct webViewContPageOperationsError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -60,8 +65,11 @@ struct webViewContPageOperationsError {
   build() {
     Column() {
       Row() {
-        Button("pageOperationsErrorTest").key('webViewContPageOperationsError').onClick(() => {
+        Button("pageOperationsErrorTest").key('webViewContPageOperationsError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContPageOperationsErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContPageOperationsErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitAccessForwardInitErr": {
               try {
@@ -71,8 +79,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 630)
-              Utils.emitEvent(this.errorMsg, 631)
+              Utils.emitEvent(this.errorCode, 111900)
+              Utils.emitEvent(this.errorMsg, 111910)
               break;
             }
             case "emitForwardInitErr": {
@@ -85,8 +93,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 632)
-              Utils.emitEvent(this.errorMsg, 633)
+              Utils.emitEvent(this.errorCode, 111920)
+              Utils.emitEvent(this.errorMsg, 111930)
               break;
             }
             case "emitAccessBackwardInitErr": {
@@ -99,8 +107,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 634)
-              Utils.emitEvent(this.errorMsg, 635)
+              Utils.emitEvent(this.errorCode, 111940)
+              Utils.emitEvent(this.errorMsg, 111950)
               break;
             }
             case "emitBackwardInitErr": {
@@ -113,8 +121,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 636)
-              Utils.emitEvent(this.errorMsg, 637)
+              Utils.emitEvent(this.errorCode, 111960)
+              Utils.emitEvent(this.errorMsg, 111970)
               break;
             }
             case "emitOnActiveInitErr": {
@@ -127,8 +135,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 638)
-              Utils.emitEvent(this.errorMsg, 639)
+              Utils.emitEvent(this.errorCode, 111980)
+              Utils.emitEvent(this.errorMsg, 111990)
               break;
             }
             case "emitOnInactiveInitErr": {
@@ -141,8 +149,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 640)
-              Utils.emitEvent(this.errorMsg, 641)
+              Utils.emitEvent(this.errorCode, 112000)
+              Utils.emitEvent(this.errorMsg, 112010)
               break;
             }
             case "emitRefreshInitErr": {
@@ -155,8 +163,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 642)
-              Utils.emitEvent(this.errorMsg, 643)
+              Utils.emitEvent(this.errorCode, 112020)
+              Utils.emitEvent(this.errorMsg, 112030)
               break;
             }
             case "emitAccessStepInitErr": {
@@ -169,8 +177,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 644)
-              Utils.emitEvent(this.errorMsg, 645)
+              Utils.emitEvent(this.errorCode, 112040)
+              Utils.emitEvent(this.errorMsg, 112050)
               break;
             }
             case "emitClearHistoryInitErr": {
@@ -183,8 +191,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 646)
-              Utils.emitEvent(this.errorMsg, 647)
+              Utils.emitEvent(this.errorCode, 112060)
+              Utils.emitEvent(this.errorMsg, 112070)
               break;
             }
             case "emitGetHitTestInitErr": {
@@ -197,8 +205,8 @@ struct webViewContPageOperationsError {
                 this.errorCode = error.code
                 this.errorMsg = error.message
               }
-              Utils.emitEvent(this.errorCode, 648)
-              Utils.emitEvent(this.errorMsg, 649)
+              Utils.emitEvent(this.errorCode, 112080)
+              Utils.emitEvent(this.errorMsg, 112090)
               break;
             }
           }
@@ -213,6 +221,10 @@ struct webViewContPageOperationsError {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

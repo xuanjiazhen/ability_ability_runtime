@@ -186,7 +186,6 @@ export default function hardwareTest() {
       if (isCameraSupported) {
         let getResult: [boolean, camera.PhotoSession] = await getPhotoSession(abilityContext, applicationContext)
         if(!getResult[0]) {
-          expect(true).assertTrue()
           done()
           return
         }
@@ -228,7 +227,6 @@ export default function hardwareTest() {
       if (isCameraSupported) {
         let getResult: [boolean, camera.PhotoSession] = await getPhotoSession(abilityContext, applicationContext)
         if(!getResult[0]) {
-          expect(true).assertTrue()
           done()
           return
         }
@@ -276,7 +274,6 @@ export default function hardwareTest() {
         let supportedCameras = cameraManager.getSupportedCameras()
         if(supportedCameras.length == 0) {
           console.log(`No Supported usb camera`)
-          expect(true).assertTrue()
           done()
           return
         }
@@ -324,7 +321,6 @@ export default function hardwareTest() {
         let supportedCameras = cameraManager.getSupportedCameras()
         if(supportedCameras.length == 0) {
           console.log(`No Supported usb camera`)
-          expect(true).assertTrue()
           done()
           return
         }

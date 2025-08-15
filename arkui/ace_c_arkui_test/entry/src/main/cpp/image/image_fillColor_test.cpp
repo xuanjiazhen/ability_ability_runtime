@@ -15,7 +15,6 @@
 
 #include "common/common.h"
 
-#define COLOR_RESET 0xFF182431
 namespace ArkUICapiTest {
 
 static napi_value TestImageFillColor001(napi_env env, napi_callback_info info)
@@ -53,14 +52,17 @@ static napi_value TestImageFillColor003(napi_env env, napi_callback_info info)
 static napi_value TestImageFillColor004(napi_env env, napi_callback_info info)
 {
     NAPI_START(image, ARKUI_NODE_IMAGE);
+    auto ret = nodeAPI->resetAttribute(image, NODE_IMAGE_FILL_COLOR);
+    ASSERT_EQ(ret, SUCCESS);
+    auto retColor = nodeAPI->getAttribute(image, NODE_IMAGE_FILL_COLOR)->value[PARAM_0].u32;
     ArkUI_NumberValue value[] = {{.u32 = COLOR_RED}};
     ArkUI_AttributeItem valueItem = {value, sizeof(value) / sizeof(ArkUI_NumberValue)};
-    auto ret = nodeAPI->setAttribute(image, NODE_IMAGE_FILL_COLOR, &valueItem);
-    ASSERT_EQ(ret, SUCCESS);
-    auto ret1 = nodeAPI->resetAttribute(image, NODE_IMAGE_FILL_COLOR);
+    auto ret1 = nodeAPI->setAttribute(image, NODE_IMAGE_FILL_COLOR, &valueItem);
     ASSERT_EQ(ret1, SUCCESS);
+    auto ret2 = nodeAPI->resetAttribute(image, NODE_IMAGE_FILL_COLOR);
+    ASSERT_EQ(ret2, SUCCESS);
 
-    ASSERT_EQ(nodeAPI->getAttribute(image, NODE_IMAGE_FILL_COLOR)->value[PARAM_0].u32, COLOR_RESET);
+    ASSERT_EQ(nodeAPI->getAttribute(image, NODE_IMAGE_FILL_COLOR)->value[PARAM_0].u32, retColor);
     NAPI_END;
 }
 } // namespace ArkUICapiTest

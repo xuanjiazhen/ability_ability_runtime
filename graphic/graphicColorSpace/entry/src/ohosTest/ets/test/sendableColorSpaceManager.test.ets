@@ -39,7 +39,6 @@ export default function sendableColorSpaceManagerTest() {
         let colorSpace: sendableColorSpaceManager.ColorSpaceManager;
         colorSpace = sendableColorSpaceManager.create(colorSpaceManager.ColorSpace.SRGB);
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -75,7 +74,6 @@ export default function sendableColorSpaceManagerTest() {
         let gamma: number = 2.2;
         colorSpace = sendableColorSpaceManager.create(primaries, gamma);
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -103,7 +101,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. spaceName: ' + spaceName );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. spaceName: ' + JSON.stringify(spaceName) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -130,7 +127,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. point: ' + point );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. point: ' + JSON.stringify(point) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -157,7 +153,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. gamma: ' + gamma );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. gamma: ' + JSON.stringify(gamma) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -196,7 +191,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. spaceName: ' + spaceName );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. spaceName: ' + JSON.stringify(spaceName) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -234,7 +228,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. point: ' + point );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. point: ' + JSON.stringify(point) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -272,7 +265,6 @@ export default function sendableColorSpaceManagerTest() {
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create.');
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. gamma: ' + gamma_get );
         console.info(msg + 'Succeeded in sendableColorSpaceManager.create. gamma: ' + JSON.stringify(gamma_get) );
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to sendableColorSpaceManager.create. Cause:' + JSON.stringify(exception));
@@ -303,7 +295,6 @@ export default function sendableColorSpaceManagerTest() {
           if(error.code == 401){
             console.log(msg + ' Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;2. Incorrect parameter types. ')
             console.log(msg + ' Case End Successfully')
-            expect(true).assertTrue()
             done()
           }else{
             console.error(`Failed to do layout, error: ${JSON.stringify(error)} message: ${error.message}`);

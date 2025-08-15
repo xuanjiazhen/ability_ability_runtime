@@ -13,20 +13,20 @@
 
 import("//test/xts/tools/build/suite.gni")
 
-ohos_app_assist_suite("ActsUdmfMainTest") {
+ohos_app_assist_suite("ActsUdmfMainApi20Test") {
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsUdmfMainTest"
+  hap_name = "ActsUdmfMainApi20Test"
   subsystem_name = "distributeddatamgr"
   part_name = "udmf"
 }
 
-ohos_js_app_suite("ActsUdmfTest") {
+ohos_js_app_suite("ActsUdmfApi20Test") {
   test_hap = true
   testonly = true
   certificate_profile = "./signature/openharmony_sx.p7b"
-  hap_name = "ActsUdmfTest"
+  hap_name = "ActsUdmfApi20Test"
   subsystem_name = "distributeddatamgr"
   part_name = "udmf"
-  deps = [ ":ActsUdmfMainTest" ]
+  deps = [ ":ActsUdmfMainApi20Test" ]
 }

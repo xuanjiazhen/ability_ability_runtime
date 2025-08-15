@@ -83,7 +83,6 @@ export default function LineMetricsTwoTest() {
       console.log(msg + " obj5.$attrs.content: " + obj5.$attrs.content)
       console.log(msg + " obj6.$attrs.content: " + obj6.$attrs.content)
       console.info('[LineMetricsTest_0200] END');
-      expect(true).assertTrue()
       done();
     });
 
@@ -121,7 +120,6 @@ export default function LineMetricsTwoTest() {
         expect(3).assertEqual(textStyle?.fontWeight);
         let fontMetrics: drawing.FontMetrics | undefined = arrRunMetrics.get(arr[arr.length -1])?.fontMetrics;
         let maxNum = fontMetrics?.maxCharWidth;
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);
@@ -143,7 +141,6 @@ export default function LineMetricsTwoTest() {
       try {
         let metrics = font.getMetrics();
         let max = metrics.maxCharWidth;
-        expect(true).assertTrue();
         done();
       } catch(err){
         console.info(msg + 'test error' + err);

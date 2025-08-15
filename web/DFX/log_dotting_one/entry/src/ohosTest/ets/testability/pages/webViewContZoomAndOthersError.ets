@@ -14,18 +14,17 @@
  */
 
 import events_emitter from '@ohos.events.emitter';
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry';
-import { Hypium } from '@ohos/hypium';
-import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
+
+const EVENT_ID_SET_EMIT_KEY = 112330;
 
 @Entry
 @Component
 struct webViewContZoomAndOthersError {
   controller: web_webview.WebviewController = new web_webview.WebviewController();
   controllerTwo: web_webview.WebviewController = new web_webview.WebviewController();
-  @State str: string = "emitZoomInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -39,13 +38,19 @@ struct webViewContZoomAndOthersError {
   @State errorMsg: string = 'failed';
   @State factor: number = 1;
   @State searchString: string = "test";
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -54,6 +59,7 @@ struct webViewContZoomAndOthersError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
     }
   }
@@ -61,8 +67,11 @@ struct webViewContZoomAndOthersError {
   build() {
     Column() {
       Row() {
-        Button("zoomAndOthersErrorTest").key('webViewContZoomAndOthersError').onClick(() => {
+        Button("zoomAndOthersErrorTest").key('webViewContZoomAndOthersError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContZoomAndOthersErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContZoomAndOthersErrorIsReceive', 1, 1000);
           console.info("key==>" + this.str)
+          this.isReceive = -1;
           switch (this.str) {
             case "emitZoomInitErr": {
               try {
@@ -72,8 +81,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 664)
-              Utils.emitEvent(this.errorMsg, 665)
+              Utils.emitEvent(this.errorCode, 112340)
+              Utils.emitEvent(this.errorMsg, 112350)
               break;
             }
             case "emitZoomEnableErr": {
@@ -86,8 +95,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 666)
-              Utils.emitEvent(this.errorMsg, 667)
+              Utils.emitEvent(this.errorCode, 112360)
+              Utils.emitEvent(this.errorMsg, 112370)
               break;
             }
             case "emitSearchAllAsyncInitErr": {
@@ -100,8 +109,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 668)
-              Utils.emitEvent(this.errorMsg, 669)
+              Utils.emitEvent(this.errorCode, 112380)
+              Utils.emitEvent(this.errorMsg, 112390)
               break;
             }
             case "emitClearMatchesInitErr": {
@@ -114,8 +123,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 670)
-              Utils.emitEvent(this.errorMsg, 671)
+              Utils.emitEvent(this.errorCode, 112400)
+              Utils.emitEvent(this.errorMsg, 112410)
               break;
             }
             case "emitSearchNextInitErr": {
@@ -128,8 +137,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 672)
-              Utils.emitEvent(this.errorMsg, 673)
+              Utils.emitEvent(this.errorCode, 112420)
+              Utils.emitEvent(this.errorMsg, 112430)
               break;
             }
             case "emitClearSslCacheInitErr": {
@@ -142,8 +151,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 674)
-              Utils.emitEvent(this.errorMsg, 675)
+              Utils.emitEvent(this.errorCode, 112440)
+              Utils.emitEvent(this.errorMsg, 112450)
               break;
             }
             case "emitClearClientAuthenticationCacheInitErr": {
@@ -156,8 +165,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 676)
-              Utils.emitEvent(this.errorMsg, 677)
+              Utils.emitEvent(this.errorCode, 112460)
+              Utils.emitEvent(this.errorMsg, 112470)
               break;
             }
             case "emitCreateWebMessagePortsInitErr": {
@@ -170,8 +179,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 678)
-              Utils.emitEvent(this.errorMsg, 679)
+              Utils.emitEvent(this.errorCode, 112480)
+              Utils.emitEvent(this.errorMsg, 112490)
               break;
             }
             case "emitRequestFocusInitErr": {
@@ -184,8 +193,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 680)
-              Utils.emitEvent(this.errorMsg, 681)
+              Utils.emitEvent(this.errorCode, 112500)
+              Utils.emitEvent(this.errorMsg, 112510)
               break;
             }
             case "emitZoomInInitErr": {
@@ -198,8 +207,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 682)
-              Utils.emitEvent(this.errorMsg, 683)
+              Utils.emitEvent(this.errorCode, 112520)
+              Utils.emitEvent(this.errorMsg, 112530)
               break;
             }
             case "emitZoomInEnableErr": {
@@ -212,8 +221,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 684)
-              Utils.emitEvent(this.errorMsg, 685)
+              Utils.emitEvent(this.errorCode, 112540)
+              Utils.emitEvent(this.errorMsg, 112550)
               break;
             }
             case "emitZoomOutInitErr": {
@@ -226,8 +235,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 686)
-              Utils.emitEvent(this.errorMsg, 687)
+              Utils.emitEvent(this.errorCode, 112560)
+              Utils.emitEvent(this.errorMsg, 112570)
               break;
             }
             case "emitZoomOutEnableErr": {
@@ -240,8 +249,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 688)
-              Utils.emitEvent(this.errorMsg, 689)
+              Utils.emitEvent(this.errorCode, 112580)
+              Utils.emitEvent(this.errorMsg, 112590)
               break;
             }
             case "emitGetHitTestValueInitErr": {
@@ -254,8 +263,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 690)
-              Utils.emitEvent(this.errorMsg, 691)
+              Utils.emitEvent(this.errorCode, 112600)
+              Utils.emitEvent(this.errorMsg, 112610)
               break;
             }
             case "emitGetWebIdInitErr": {
@@ -268,8 +277,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 692)
-              Utils.emitEvent(this.errorMsg, 693)
+              Utils.emitEvent(this.errorCode, 112620)
+              Utils.emitEvent(this.errorMsg, 112630)
               break;
             }
             case "emitGetUserAgentInitErr": {
@@ -282,8 +291,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 694)
-              Utils.emitEvent(this.errorMsg, 695)
+              Utils.emitEvent(this.errorCode, 112640)
+              Utils.emitEvent(this.errorMsg, 112650)
               break;
             }
             case "emitGetTitleInitErr": {
@@ -296,8 +305,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 696)
-              Utils.emitEvent(this.errorMsg, 697)
+              Utils.emitEvent(this.errorCode, 112660)
+              Utils.emitEvent(this.errorMsg, 112670)
               break;
             }
             case "emitGetPageHeightInitErr": {
@@ -310,8 +319,8 @@ struct webViewContZoomAndOthersError {
                 this.errorCode = error.code;
                 this.errorMsg = error.message;
               }
-              Utils.emitEvent(this.errorCode, 698)
-              Utils.emitEvent(this.errorMsg, 699)
+              Utils.emitEvent(this.errorCode, 112680)
+              Utils.emitEvent(this.errorMsg, 112690)
               break;
             }
           }
@@ -327,6 +336,10 @@ struct webViewContZoomAndOthersError {
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
         .zoomAccess(this.zoomAccess)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

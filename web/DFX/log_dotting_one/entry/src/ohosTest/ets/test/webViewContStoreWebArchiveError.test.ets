@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeEach, afterEach, it, expect, beforeAll , TestType, Size, Level } from "@ohos/hypium";
-import events_emitter from '@ohos.events.emitter';
+import { describe, beforeEach, it, beforeAll, TestType, Size, Level } from "@ohos/hypium";
 import Utils from './Utils';
-// import router from '@system.router';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
+const EVENT_ID_SET_EMIT_KEY = 112090;
+const driver = Driver.create();
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
 
-let emitKey = "emitStoreWebArchiveCallBackInitErr";
+let emitKey = "";
 
 export default function webViewContStoreWebArchiveError() {
   describe('ActsAceWebDevWebViewContStoreWebArchiveErrorTest', () => {
@@ -36,54 +38,37 @@ export default function webViewContStoreWebArchiveError() {
         if (!("webViewContStoreWebArchiveError" == pages.name)) {
           console.info("get webViewContStoreWebArchiveError state success " + JSON.stringify(pages.name));
           let result = await router.push(options);
-          await Utils.sleep(2000);
           console.info("push webViewContStoreWebArchiveError page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webViewContStoreWebArchiveError page error: " + err);
       }
+      await driver.waitForComponent(ON.id("webViewContStoreWebArchiveError"), 10000);
+      console.log("waitForComponent webViewContStoreWebArchiveError");
       done()
     });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewContStoreWebArchiveError beforeEach start");
       done();
     })
-    afterEach(async (done: Function) => {
-      console.info("webViewContStoreWebArchiveError afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5100
      *tc.name testStoreWebArchiveInitErr
      *tc.desc test interface of storeWebArchive with not been associated with specific Web Components
      */
     it('teststoreWebArchiveInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitStoreWebArchiveCallBackPathErr";
-      Utils.registerEvent("teststoreWebArchiveInitErr", "17100001", 700, done);
-      Utils.registerEvent("teststoreWebArchiveInitErr", "Init error. The WebviewController must be associated with a Web component", 701, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      emitKey = "emitStoreWebArchiveCallBackInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("teststoreWebArchiveInitErr", "17100001", 112100, null);
+      Utils.registerEvent("teststoreWebArchiveInitErr", "Init error. The WebviewController must be associated with a Web component", 112110, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5200
@@ -91,10 +76,11 @@ export default function webViewContStoreWebArchiveError() {
      *tc.desc test interface of storeWebArchive with wrong resource path
      */
     it('testStoreWebArchiveCallBackPathErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitStoreWebArchiveCallBackUnAccessErr";
-      Utils.registerEvent("testStoreWebArchiveCallBackPathErr", 17100003, 702, done);
-      Utils.registerEvent("testStoreWebArchiveCallBackPathErr", "Invalid resource path or file type", 703, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      emitKey = "emitStoreWebArchiveCallBackPathErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testStoreWebArchiveCallBackPathErr", 17100003, 112120, null);
+      Utils.registerEvent("testStoreWebArchiveCallBackPathErr", "Invalid resource path or file type", 112130, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5300
@@ -102,10 +88,11 @@ export default function webViewContStoreWebArchiveError() {
      *tc.desc test interface of storeWebArchive with resource path cannot access
      */
     it('testStoreWebArchiveCallBackUnAccessErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitStoreWebArchivePromiseInitErr";
-      Utils.registerEvent("testStoreWebArchiveCallBackUnAccessErr", 17100003, 704, done);
-      Utils.registerEvent("testStoreWebArchiveCallBackUnAccessErr", "Invalid resource path or file type", 705, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      emitKey = "emitStoreWebArchiveCallBackUnAccessErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testStoreWebArchiveCallBackUnAccessErr", 17100003, 112140, null);
+      Utils.registerEvent("testStoreWebArchiveCallBackUnAccessErr", "Invalid resource path or file type", 112150, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5400
@@ -113,10 +100,11 @@ export default function webViewContStoreWebArchiveError() {
      *tc.desc test interface of storeWebArchive promise with not been associated with specific Web Components
      */
     it('testStoreWebArchivePromiseInitErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitStoreWebArchivePromisePathErr";
-      Utils.registerEvent("testStoreWebArchivePromiseInitErr", "17100001", 706, done);
-      Utils.registerEvent("testStoreWebArchivePromiseInitErr", "Init error. The WebviewController must be associated with a Web component", 707, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      emitKey = "emitStoreWebArchivePromiseInitErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testStoreWebArchivePromiseInitErr", "17100001", 112160, null);
+      Utils.registerEvent("testStoreWebArchivePromiseInitErr", "Init error. The WebviewController must be associated with a Web component", 112170, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5500
@@ -124,10 +112,11 @@ export default function webViewContStoreWebArchiveError() {
      *tc.desc test interface of storeWebArchive promise with wrong resource path
      */
     it('testStoreWebArchivePromisePathErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitStoreWebArchivePromiseUnAccessErr";
-      Utils.registerEvent("testStoreWebArchivePromisePathErr", 17100003, 708, done);
-      Utils.registerEvent("testStoreWebArchivePromisePathErr", "Invalid resource path or file type", 709, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      emitKey = "emitStoreWebArchivePromisePathErr";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testStoreWebArchivePromisePathErr", 17100003, 112180, null);
+      Utils.registerEvent("testStoreWebArchivePromisePathErr", "Invalid resource path or file type", 112190, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERROR_5600
@@ -136,9 +125,10 @@ export default function webViewContStoreWebArchiveError() {
      */
     it('testStoreWebArchivePromiseUnAccessErr', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitStoreWebArchivePromiseUnAccessErr";
-      Utils.registerEvent("testStoreWebArchivePromiseUnAccessErr", 17100003, 710, done);
-      Utils.registerEvent("testStoreWebArchivePromiseUnAccessErr", "Invalid resource path or file type", 711, done);
-      sendEventByKey('webViewContStoreWebArchiveError', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testStoreWebArchivePromiseUnAccessErr", 17100003, 112200, null);
+      Utils.registerEvent("testStoreWebArchivePromiseUnAccessErr", "Invalid resource path or file type", 112210, done);
+      await Utils.waitAndClickComponent(driver, "webViewContStoreWebArchiveError");
     })
   })
 }

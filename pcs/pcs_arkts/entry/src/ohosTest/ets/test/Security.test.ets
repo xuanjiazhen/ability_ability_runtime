@@ -77,7 +77,6 @@ export default function securityTest() {
      */
     it('testPermissionUserGrant0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       if(!canIUse("SystemCapability.Multimedia.Camera.Core")) {
-        expect(true).assertTrue()
         done()
         return
       }
@@ -105,14 +104,12 @@ export default function securityTest() {
      */
     it('testBackgroundCameraBanned0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       if(!canIUse("SystemCapability.Multimedia.Camera.Core")) {
-        expect(true).assertTrue()
         done()
         return
       }
       expect(await AbilityUtils.startAbility('com.acts.pcs.arktstest', 'TestAbility', abilityContext)).assertTrue()
       if(camera.getCameraManager(applicationContext).getSupportedCameras().length == 0) {
         console.log(`No Supported usb camera`)
-        expect(true).assertTrue()
         done()
         return
       }
