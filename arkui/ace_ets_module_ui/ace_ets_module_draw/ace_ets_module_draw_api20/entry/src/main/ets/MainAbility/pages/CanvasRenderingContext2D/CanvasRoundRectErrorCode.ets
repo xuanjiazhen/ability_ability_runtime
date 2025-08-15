@@ -17,14 +17,14 @@ import { BusinessError } from '@kit.BasicServicesKit';
 @Entry
 @Component
 struct CanvasRoundRectErrorCode {
-  @State ErrorCodeStr : string = '0'
+  @State str : string = '0'
   private settings: RenderingContextSettings = new RenderingContextSettings(true)
   private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings)
 
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {
       Column({ space: 10 }) {
-        Text(this.ErrorCodeStr).height(30).width(70).id('CanvasRoundRectErrorCode')
+        Text(this.str).height(30).width(70).id('CanvasRoundRectErrorCode')
         Canvas(this.context)
           .width('100%')
           .height('100%')
@@ -43,7 +43,7 @@ struct CanvasRoundRectErrorCode {
             } catch(e) {
               let error = e as BusinessError;
               console.info(`Failed message: ${error.message}, code: ${error.code}`);
-              this.ErrorCodeStr = error.code.toString()
+              this.str = error.code.toString()
             }
           })
       }
