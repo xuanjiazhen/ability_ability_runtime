@@ -31,7 +31,7 @@ struct BindController {
         pageTag: this.PAGE_TAG,
       }).onAppear(() => {
         render.testBindController001(this.PAGE_TAG);
-      })
+      }).height('50%')
       Button('Text-TS2C').onClick(()=> {
           const uiContext: UIContext = this.getUIContext()
           if (uiContext) {
