@@ -111,7 +111,7 @@ export default class EventHub {
   }
   
   emit(event: string, ...args: (Object|null|undefined)[]): void {
-    let fixedArgs: FixedArray<(Object|null|undefined)> = new FixedArgs[args.length];
+    let fixedArgs: FixedArray<(Object|null|undefined)> = new FixedArray<FixedArgs>(args.length)
     for (let i = 0; i < args.length; i++) {
       fixedArgs[i] = args[i];
     }
@@ -121,7 +121,7 @@ export default class EventHub {
     }
     const eventHub = this.dynamicContextEventHub?.getProperty("eventHub");
     if (eventHub) {
-      let params: FixedArray<ESValueArgs> = new ESValueArgs[args.length + 1];
+      let params: FixedArray<ESValueArgs> = new FixedArray<ESValueArgs>(args.length + 1)
       params[0] = ESValue.wrap(event);
       for (let i = 0; i < args.length; i++) {
         params[i + 1] = ESValue.wrap(args[i]);
