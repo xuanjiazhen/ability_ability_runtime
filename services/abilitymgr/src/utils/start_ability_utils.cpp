@@ -310,6 +310,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
         static_cast<uint32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL);
     auto abilityInfo = std::make_shared<StartAbilityInfo>();
     if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "wxg CreateStartExtensionInfo");
         FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, abilityInfo);
         return abilityInfo;
     }
@@ -357,11 +358,13 @@ void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_
         return;
     }
     abilityInfo->customProcess = extensionInfo.customProcess;
+    extensionInfo.type = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
     if (AbilityRuntime::StartupUtil::IsSupportAppClone(extensionInfo.type)) {
         abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
         // For compatibility translates to AbilityInfo
         AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfo, abilityInfo->abilityInfo);
     } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OSCAR: IsSupportAppClone false");
         abilityInfo->status = ERR_APP_CLONE_INDEX_INVALID;
     }
 }
