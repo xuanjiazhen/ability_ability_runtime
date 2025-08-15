@@ -400,5 +400,954 @@ export default function NodeAttribute() {
         done()
       }
     })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BORDER_WIDTH_PERCENT_0100
+     * @tc.name    : testCheckNodeBorderWidthPercent
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeBorderWidthPercent', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BORDER_WIDTH_PERCENT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeBorderWidthPercent();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BORDER_WIDTH_PERCENT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_UNIQUE_ID_0100
+     * @tc.name    : testCheckNodeUniqueId
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeUniqueId', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_UNIQUE_ID_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeUniqueId();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_UNIQUE_ID_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_FOCUS_BOX_0100
+     * @tc.name    : testCheckNodeFocusBox
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeFocusBox', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_FOCUS_BOX_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeFocusBox();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_FOCUS_BOX_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CLICK_DISTANCE_0100
+     * @tc.name    : testCheckNodeClickDistance
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeClickDistance', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CLICK_DISTANCE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeClickDistance();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CLICK_DISTANCE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TAB_STOP_0100
+     * @tc.name    : testCheckNodeTabStop
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeTabStop', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TAB_STOP_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeTabStop();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TAB_STOP_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BACKGROUND_IMAGE_RESIZABLE_WITH_SLICE_0100
+     * @tc.name    : testCheckNodeBackgroundImageResizableWithSlice
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeBackgroundImageResizableWithSlice', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BACKGROUND_IMAGE_RESIZABLE_WITH_SLICE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeBackgroundImageResizableWithSlice();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BACKGROUND_IMAGE_RESIZABLE_WITH_SLICE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_NEXT_FOCUS_0100
+     * @tc.name    : testCheckNodeNextFocus
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeNextFocus', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_NEXT_FOCUS_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeNextFocus();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_NEXT_FOCUS_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_VISIBLE_AREA_APPROXIMATE_CHANGE_RATIO_0100
+     * @tc.name    : testCheckNodeVisibleAreaApproximateChangeRatio
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeVisibleAreaApproximateChangeRatio', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_` +
+                     `NODE_VISIBLE_AREA_APPROXIMATE_CHANGE_RATIO_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeVisibleAreaApproximateChangeRatio();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_` +
+                      `NODE_VISIBLE_AREA_APPROXIMATE_CHANGE_RATIO_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TRANSLATE_WITH_PERCENT_0100
+     * @tc.name    : testCheckNodeTranslateWidthPercent
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeTranslateWidthPercent', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_` +
+                     `NODE_TRANSLATE_WITH_PERCENT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeTranslateWidthPercent();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_` +
+                      `NODE_TRANSLATE_WITH_PERCENT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_ROTATE_ANGLE_0100
+     * @tc.name    : testCheckNodeRotateAngle
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeRotateAngle', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_ROTATE_ANGLE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeRotateAngle();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_ROTATE_ANGLE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMMUTABLE_FONT_WEIGHT_0100
+     * @tc.name    : testCheckNodeImmutableFontWeight
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeImmutableFontWeight', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMMUTABLE_FONT_WEIGHT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeImmutableFontWeight();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMMUTABLE_FONT_WEIGHT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SPAN_BASELINE_OFFSET_0100
+     * @tc.name    : testCheckNodeImageSpanBaselineOffset
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeImageSpanBaselineOffset', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SPAN_BASELINE_OFFSET_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeImageSpanBaselineOffset();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SPAN_BASELINE_OFFSET_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100
+     * @tc.name    : testCheckNodeImageSyncLoad
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeImageSyncLoad', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeImageSyncLoad();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_IMAGE_SYNC_LOAD_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MIN_FONT_SCALE_0100
+     * @tc.name    : testCheckNodeButtonMinFontScale
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeButtonMinFontScale', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MIN_FONT_SCALE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeButtonMinFontScale();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MIN_FONT_SCALE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MAX_FONT_SCALE_0100
+     * @tc.name    : testCheckNodeButtonMaxFontScale
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeButtonMaxFontScale', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MAX_FONT_SCALE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeButtonMaxFontScale();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_BUTTON_MAX_FONT_SCALE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_SIZE_0100
+     * @tc.name    : testCheckNodeXComponentSurfaceSize
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeXComponentSurfaceSize', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_SIZE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeXComponentSurfaceSize();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_SIZE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_RECT_0100
+     * @tc.name    : testCheckNodeXComponentSurfaceRect
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeXComponentSurfaceRect', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_RECT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeXComponentSurfaceRect();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_XCOMPONENT_SURFACE_RECT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_DATE_PICKER_CAN_LOOP_0100
+     * @tc.name    : testCheckNodeDatePickerCanLoop
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeDatePickerCanLoop', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_DATE_PICKER_CAN_LOOP_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeDatePickerCanLoop();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_DATE_PICKER_CAN_LOOP_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100
+     * @tc.name    : testCheckNodeTimePickerStart
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeTimePickerStart', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeTimePickerStart();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_START_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100
+     * @tc.name    : testCheckNodeTimePickerEnd
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeTimePickerEnd', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeTimePickerEnd();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_TIME_PICKER_END_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_PREFIX_0100
+     * @tc.name    : testCheckNodeSliderPrefix
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSliderPrefix', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_PREFIX_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSliderPrefix();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_PREFIX_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_SUFFIX_0100
+     * @tc.name    : testCheckNodeSliderSuffix
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSliderSuffix', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_SUFFIX_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSliderSuffix();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SLIDER_SUFFIX_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SELECTED_COLOR_0100
+     * @tc.name    : testCheckNodeCheckboxGroupSelectedColor
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeCheckboxGroupSelectedColor', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SELECTED_COLOR_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeCheckboxGroupSelectedColor();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SELECTED_COLOR_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_UNSELECTED_COLOR_0100
+     * @tc.name    : testCheckNodeCheckboxGroupUnselectedColor
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeCheckboxGroupUnselectedColor', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_UNSELECTED_COLOR_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeCheckboxGroupUnselectedColor();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_UNSELECTED_COLOR_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_MARK_0100
+     * @tc.name    : testCheckNodeCheckboxGroupMark
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeCheckboxGroupMark', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_MARK_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeCheckboxGroupMark();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_MARK_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SHAPE_0100
+     * @tc.name    : testCheckNodeCheckboxGroupShape
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeCheckboxGroupShape', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SHAPE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeCheckboxGroupShape();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_CHECKBOX_GROUP_SHAPE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_0100
+     * @tc.name    : testCheckNodeScrollFling
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeScrollFling', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeScrollFling();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FADING_EDGE_0100
+     * @tc.name    : testCheckNodeScrollFadingEdge
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeScrollFadingEdge', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FADING_EDGE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeScrollFadingEdge();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FADING_EDGE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_SPEED_LIMIT_0100
+     * @tc.name    : testCheckNodeScrollFlingSpeedLimit
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeScrollFlingSpeedLimit', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_SPEED_LIMIT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeScrollFlingSpeedLimit();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_FLING_SPEED_LIMIT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_CLIP_CONTENT_0100
+     * @tc.name    : testCheckNodeScrollClipContent
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeScrollClipContent', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_CLIP_CONTENT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeScrollClipContent();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_CLIP_CONTENT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_BAR_MARGIN_0100
+     * @tc.name    : testCheckNodeScrollBarMargin
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeScrollBarMargin', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_BAR_MARGIN_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeScrollBarMargin();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SCROLL_BAR_MARGIN_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_STACK_FROM_END_0100
+     * @tc.name    : testCheckNodeListStackFromEnd
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeListStackFromEnd', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_STACK_FROM_END_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeListStackFromEnd();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_STACK_FROM_END_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_FOCUS_WRAP_MODE_0100
+     * @tc.name    : testCheckNodeListFocusWrapMode
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeListFocusWrapMode', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_FOCUS_WRAP_MODE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeListFocusWrapMode();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_FOCUS_WRAP_MODE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100
+     * @tc.name    : testCheckNodeListSyncLoad
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeListSyncLoad', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeListSyncLoad();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_LIST_SYNC_LOAD_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_INDICATOR_INTERACTIVE_0100
+     * @tc.name    : testCheckNodeSwiperIndicatorInteractive
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSwiperIndicatorInteractive', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_INDICATOR_INTERACTIVE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSwiperIndicatorInteractive();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_INDICATOR_INTERACTIVE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_PAGE_FLIP_MODE_0100
+     * @tc.name    : testCheckNodeSwiperPageFlipMode
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSwiperPageFlipMode', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_PAGE_FLIP_MODE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSwiperPageFlipMode();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_PAGE_FLIP_MODE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_AUTO_FILL_0100
+     * @tc.name    : testCheckNodeSwiperAutoFill
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSwiperAutoFill', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_AUTO_FILL_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSwiperAutoFill();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_AUTO_FILL_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION_0100
+     * @tc.name    : testCheckNodeSwiperMaintainVisibleContentPosition
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeSwiperMaintainVisibleContentPosition', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeSwiperMaintainVisibleContentPosition();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_SWIPER_MAINTAIN_VISIBLE_CONTENT_POSITION_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_REFRESH_MAX_PULL_DOWN_DISTANCE_0100
+     * @tc.name    : testCheckNodeRefreshMaxPullDownDistance
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeRefreshMaxPullDownDistance', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_REFRESH_MAX_PULL_DOWN_DISTANCE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeRefreshMaxPullDownDistance();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_REFRESH_MAX_PULL_DOWN_DISTANCE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_LAYOUT_MODE_0100
+     * @tc.name    : testCheckNodeWaterFlowLayoutMode
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeWaterFlowLayoutMode', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_LAYOUT_MODE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeWaterFlowLayoutMode();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_LAYOUT_MODE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100
+     * @tc.name    : testCheckNodeWaterFlowSyncLoad
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeWaterFlowSyncLoad', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeWaterFlowSyncLoad();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_WATER_FLOW_SYNC_LOAD_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_GUIDE_LINE_0100
+     * @tc.name    : testCheckNodeRelativeContainerGuideLine
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeRelativeContainerGuideLine', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_GUIDE_LINE_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeRelativeContainerGuideLine();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_GUIDE_LINE_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_BARRIER_0100
+     * @tc.name    : testCheckNodeRelativeContainerBarrier
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeRelativeContainerBarrier', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_BARRIER_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeRelativeContainerBarrier();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_RELATIVE_CONTAINER_BARRIER_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100
+     * @tc.name    : testCheckNodeGridSyncLoad
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeGridSyncLoad', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeGridSyncLoad();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_GRID_SYNC_LOAD_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
+    /**
+     * @tc.number  : SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_EMBEDDED_COMPONENT_WANT_0100
+     * @tc.name    : testCheckNodeEmbeddedComponentWant
+     * @tc.desc    : Test get native xcomopnent key event action works.
+     * @tc.level   : LEVEL1
+     * @tc.size    : MediumTest
+     * @tc.type    : Function
+     */
+    it('testCheckNodeEmbeddedComponentWant', TestType.FUNCTION |
+    Size.MEDIUMTEST | Level.LEVEL1, async (done: Function) => {
+      try {
+        console.info(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_EMBEDDED_COMPONENT_WANT_0100 start<====`);
+        let Result: number = nativexcomponent.CheckNodeEmbeddedComponentWant();
+        expect(1).assertEqual(Result);
+        done()
+      } catch (err) {
+        console.error(`====>SUB_ARKUI_ACE_ENGINE_ARKUI_NODEATTRIBUTETYPE_NODE_EMBEDDED_COMPONENT_WANT_0100 catch err: ` + err);
+        expect(false).assertEqual(err);
+        done()
+      }
+    })
   })
 }

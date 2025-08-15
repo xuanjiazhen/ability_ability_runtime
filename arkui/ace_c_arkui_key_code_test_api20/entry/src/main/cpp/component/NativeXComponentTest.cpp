@@ -166,6 +166,51 @@ static void InitPushNodeAttribute(napi_property_descriptor* desc)
         XL("CheckNodeTextAreaMaxLinesWithScroll", NodeAttribute::CheckNodeTextAreaMaxLinesWithScroll),
         XL("CheckNodeTextAreaLineHeight", NodeAttribute::CheckNodeTextAreaLineHeight),
         XL("CheckNodeTextPickSelectedBackgroundStyle", NodeAttribute::CheckNodeTextPickSelectedBackgroundStyle),
+        XL("CheckNodeBorderWidthPercent", NodeAttribute::CheckNodeBorderWidthPercent),
+        XL("CheckNodeUniqueId", NodeAttribute::CheckNodeUniqueId),
+        XL("CheckNodeFocusBox", NodeAttribute::CheckNodeFocusBox),
+        XL("CheckNodeClickDistance", NodeAttribute::CheckNodeClickDistance),
+        XL("CheckNodeTabStop", NodeAttribute::CheckNodeTabStop),
+        XL("CheckNodeBackgroundImageResizableWithSlice", NodeAttribute::CheckNodeBackgroundImageResizableWithSlice),
+        XL("CheckNodeNextFocus", NodeAttribute::CheckNodeNextFocus),
+        XL("CheckNodeVisibleAreaApproximateChangeRatio", NodeAttribute::CheckNodeVisibleAreaApproximateChangeRatio),
+        XL("CheckNodeTranslateWidthPercent", NodeAttribute::CheckNodeTranslateWidthPercent),
+        XL("CheckNodeRotateAngle", NodeAttribute::CheckNodeRotateAngle),
+        XL("CheckNodeImmutableFontWeight", NodeAttribute::CheckNodeImmutableFontWeight),
+        XL("CheckNodeImageSpanBaselineOffset", NodeAttribute::CheckNodeImageSpanBaselineOffset),
+        XL("CheckNodeImageSyncLoad", NodeAttribute::CheckNodeImageSyncLoad),
+        XL("CheckNodeButtonMinFontScale", NodeAttribute::CheckNodeButtonMinFontScale),
+        XL("CheckNodeButtonMaxFontScale", NodeAttribute::CheckNodeButtonMaxFontScale),
+        XL("CheckNodeXComponentSurfaceSize", NodeAttribute::CheckNodeXComponentSurfaceSize),
+        XL("CheckNodeXComponentSurfaceRect", NodeAttribute::CheckNodeXComponentSurfaceRect),
+        XL("CheckNodeDatePickerCanLoop", NodeAttribute::CheckNodeDatePickerCanLoop),
+        XL("CheckNodeTimePickerStart", NodeAttribute::CheckNodeTimePickerStart),
+        XL("CheckNodeTimePickerEnd", NodeAttribute::CheckNodeTimePickerEnd),
+        XL("CheckNodeSliderPrefix", NodeAttribute::CheckNodeSliderPrefix),
+        XL("CheckNodeSliderSuffix", NodeAttribute::CheckNodeSliderSuffix),
+        XL("CheckNodeCheckboxGroupSelectedColor", NodeAttribute::CheckNodeCheckboxGroupSelectedColor),
+        XL("CheckNodeCheckboxGroupUnselectedColor", NodeAttribute::CheckNodeCheckboxGroupUnselectedColor),
+        XL("CheckNodeCheckboxGroupMark", NodeAttribute::CheckNodeCheckboxGroupMark),
+        XL("CheckNodeCheckboxGroupShape", NodeAttribute::CheckNodeCheckboxGroupShape),
+        XL("CheckNodeScrollFling", NodeAttribute::CheckNodeScrollFling),
+        XL("CheckNodeScrollFadingEdge", NodeAttribute::CheckNodeScrollFadingEdge),
+        XL("CheckNodeScrollFlingSpeedLimit", NodeAttribute::CheckNodeScrollFlingSpeedLimit),
+        XL("CheckNodeScrollClipContent", NodeAttribute::CheckNodeScrollClipContent),
+        XL("CheckNodeScrollBarMargin", NodeAttribute::CheckNodeScrollBarMargin),
+        XL("CheckNodeListStackFromEnd", NodeAttribute::CheckNodeListStackFromEnd),
+        XL("CheckNodeListFocusWrapMode", NodeAttribute::CheckNodeListFocusWrapMode),
+        XL("CheckNodeListSyncLoad", NodeAttribute::CheckNodeListSyncLoad),
+        XL("CheckNodeSwiperIndicatorInteractive", NodeAttribute::CheckNodeSwiperIndicatorInteractive),
+        XL("CheckNodeSwiperPageFlipMode", NodeAttribute::CheckNodeSwiperPageFlipMode),
+        XL("CheckNodeSwiperAutoFill", NodeAttribute::CheckNodeSwiperAutoFill),
+        XL("CheckNodeSwiperMaintainVisibleContentPosition", NodeAttribute::CheckNodeSwiperMaintainVisibleContentPosition),
+        XL("CheckNodeRefreshMaxPullDownDistance", NodeAttribute::CheckNodeRefreshMaxPullDownDistance),
+        XL("CheckNodeWaterFlowLayoutMode", NodeAttribute::CheckNodeWaterFlowLayoutMode),
+        XL("CheckNodeWaterFlowSyncLoad", NodeAttribute::CheckNodeWaterFlowSyncLoad),
+        XL("CheckNodeRelativeContainerGuideLine", NodeAttribute::CheckNodeRelativeContainerGuideLine),
+        XL("CheckNodeRelativeContainerBarrier", NodeAttribute::CheckNodeRelativeContainerBarrier),
+        XL("CheckNodeGridSyncLoad", NodeAttribute::CheckNodeGridSyncLoad),
+        XL("CheckNodeEmbeddedComponentWant", NodeAttribute::CheckNodeEmbeddedComponentWant),
     };
     for (size_t index = 0; index < sizeof(descTemp) / sizeof(descTemp[0]); index++) {
         desc[index + offset] = descTemp[index];
@@ -179,7 +224,7 @@ static napi_value Init(napi_env env, napi_value exports)
         OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_PRINT_DOMAIN, "Init", "env or exports is null");
         return nullptr;
     }
-    napi_property_descriptor desc[103] = {};
+    napi_property_descriptor desc[148] = {};
     InitPushXComponent1(desc);
     InitPushXComponent2(desc);
     InitPushTouchPoint(desc);

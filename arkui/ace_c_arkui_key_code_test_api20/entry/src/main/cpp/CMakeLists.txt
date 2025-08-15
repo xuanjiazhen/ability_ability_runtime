@@ -55,7 +55,7 @@ find_library(
 )
 
 target_link_libraries(nativexcomponent PUBLIC
-    ${hilog-lib} ${libace-lib} ${libnapi-lib} ${libuv-lib} libudmf.so libace_napi.z.so)
+    ${hilog-lib} ${libace-lib} ${libnapi-lib} ${libuv-lib} libudmf.so libace_napi.z.so libability_base_want.so)
 
 target_link_libraries(keycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libohinput.so)
 

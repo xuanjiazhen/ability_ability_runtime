@@ -12,24 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Utils from '../../../ohosTest/ets/test/common/Utils'
+import { NodeContent } from '@kit.ArkUI';
+import nativexcomponent from 'libnativexcomponent.so';
 
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World'
+  @State currentStatus: string = 'init';
+  @State currentWindowX: number = 0;
+  private nodeContent: NodeContent = new NodeContent();
+  aboutToAppear():void{
+    // 通过C-API创建节点，并添加到管理器nodeContent上
+    nativexcomponent.CreateAttributeNativeNode(this.nodeContent);
+  }
 
   build() {
-    Row() {
-      Column() {
-        Button('keyCodeEvent')
-          .defaultFocus(true)
-          .onClick(()=>{
-            Utils.simulateByShell('uinput -K -d 1 -u 1');
-          })
-      }
-      .width('100%')
+    Column() {
+      ContentSlot(this.nodeContent);
     }
+    .width('100%')
     .height('100%')
+    .onClick(() => {
+      nativexcomponent.CheckNodeFocusBox()
+    })
   }
 }
