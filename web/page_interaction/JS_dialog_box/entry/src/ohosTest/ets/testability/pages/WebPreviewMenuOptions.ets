@@ -98,7 +98,8 @@ struct WebComponent {
 
   build() {
     Column() {
-      Button("web click")
+      Row() {
+        Button("web click")
         .key('WebHapticFeedbackButton')
         .onClick(async () => {
           console.info("key==>" + this.str)
@@ -179,10 +180,12 @@ struct WebComponent {
             }
           }
         })
+      }.height('5%')
+
 
       Row () {
         Text("MenuHapticFeedbackMode:"+this.menuHapticMode)
-      }
+      }.height('10%')
       Row () {
         Button('DISABLED')
           .margin({
@@ -226,9 +229,10 @@ struct WebComponent {
             })
             this.controller.refresh();
           })
-      }
+      }.height('10%')
 
       Web({ src: $rawfile("selectionMenu.html"), controller: this.controller })
+        .height('75%')
         .key('selectionMenuKey')
         .scale({x:this.scaleValue, y:this.scaleValue, z:1})
         .enableHapticFeedback(true)
