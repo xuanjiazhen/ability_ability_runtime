@@ -20,7 +20,7 @@ struct Index {
   aboutToAppear() {
     console.info('TestAbility index aboutToAppear')
   }
-  @State message: string = 'Hello World'
+  @State message: string = '当文本溢出其尺寸时，文本将滚动显示。When the text overflows its dimensions, the text will scroll for displaying.'
   private surfaceId: string = ''
   private xComponentContext: Record<string, () => void> = {}
   xComponentController: XComponentController = new XComponentController()
@@ -28,7 +28,7 @@ struct Index {
   private xComponentContext2: Record<string, () => void> = {}
   xComponentController2: XComponentController = new XComponentController()
   build() {
-    Row() {
+    Column() {
       XComponent({
         id: 'xcomponent',
         type: XComponentType.SURFACE,
@@ -58,6 +58,31 @@ struct Index {
         .width('640px')
         .height('480px')
         .backgroundColor(Color.Yellow)
+
+      Text(this.message)
+        .width(250)
+        .textOverflow({ overflow: TextOverflow.MARQUEE })
+        .maxLines(1)
+        .fontSize(12)
+        .border({ width: 1 })
+        .padding(10)
+        .backgroundColor(Color.White)
+      Text(this.message)
+        .width(250)
+        .textOverflow({ overflow: TextOverflow.MARQUEE })
+        .maxLines(1)
+        .fontSize(12)
+        .border({ width: 1 })
+        .padding(10)
+        .backgroundColor(Color.White)
+      Text(this.message)
+        .width(250)
+        .textOverflow({ overflow: TextOverflow.MARQUEE })
+        .maxLines(1)
+        .fontSize(12)
+        .border({ width: 1 })
+        .padding(10)
+        .backgroundColor(Color.White)
     }
     .backgroundColor(Color.Black)
     .position({ x: 0, y: 48 })

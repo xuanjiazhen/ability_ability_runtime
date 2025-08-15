@@ -305,8 +305,8 @@ int32_t LppVideoStreamer::SetPlaybackSpeed(const float speed)
 
 int32_t LppVideoStreamer::Release()
 {
-    CallbackDestroy();
     Destroy();
+    CallbackDestroy();
     return AVCODEC_SAMPLE_ERR_OK;
 }
 
