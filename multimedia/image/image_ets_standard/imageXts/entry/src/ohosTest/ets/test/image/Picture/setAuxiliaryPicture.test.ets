@@ -38,7 +38,6 @@ async function setAuxiliaryPicturePromiseTest(done: Function, testName: string, 
       if (auxPictureObj != null) {
         await PictureObj.setAuxiliaryPicture(AuxiliaryPictureType, auxPictureObj);
         PictureObj.release();
-        expect(true).assertTrue();
         done();
       }
     }
@@ -64,7 +63,6 @@ async function setAuxiliaryPictureAbnormalPromiseTest(done: Function, testName: 
     if (PictureObj != null) {
       await PictureObj.setAuxiliaryPicture(AuxiliaryPictureType, auxPictureObj);
       PictureObj.release();
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

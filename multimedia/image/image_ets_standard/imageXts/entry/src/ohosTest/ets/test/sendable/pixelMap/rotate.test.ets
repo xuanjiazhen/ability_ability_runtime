@@ -29,7 +29,6 @@ async function rotatePromiseTest(done: Function, testName: string, opts: image.I
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.rotate(angle);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -48,7 +47,6 @@ async function rotateAbnormalPromiseTest(done: Function, testName: string, opts:
 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.rotate(angle);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

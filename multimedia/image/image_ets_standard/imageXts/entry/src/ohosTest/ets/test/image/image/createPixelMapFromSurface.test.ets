@@ -24,7 +24,6 @@ async function createPixelMapFromSurfaceRegionAbnormalPromiseTest(done: Function
   try {
     let region: image.Region = { x: 0, y: 0, size: { height: 100, width: 100 } };
     await image.createPixelMapFromSurface(surfaceId, region);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -42,7 +41,6 @@ async function createPixelMapFromSurfaceSyncRegionAbnormalPromiseTest(done: Func
   try {
     let region: image.Region = { x: 0, y: 0, size: { height: 100, width: 100 } };
     image.createPixelMapFromSurfaceSync(surfaceId, region);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -58,7 +56,6 @@ async function createPixelMapFromSurfaceSyncRegionAbnormalPromiseTest(done: Func
 async function createPixelMapFromSurfaceAbnormalPromiseTest(done: Function, testName: string, surfaceId: string) {
   try {
     await image.createPixelMapFromSurface(surfaceId);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -74,7 +71,6 @@ async function createPixelMapFromSurfaceAbnormalPromiseTest(done: Function, test
 async function createPixelMapFromSurfaceSyncAbnormalPromiseTest(done: Function, testName: string, surfaceId: string) {
   try {
     await image.createPixelMapFromSurface(surfaceId);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

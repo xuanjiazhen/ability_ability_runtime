@@ -678,7 +678,6 @@ const newCreatePictureByPixelMap = (caseName: string, fileName: string) => {
     expect(result).assertEqual(ErrorCode.IMAGE_SUCCESS);
     return true
   }else{
-    expect(true).assertTrue()
     return false
   }
 }
@@ -2243,7 +2242,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_AUXILIARYPICTURE_SETINFO_0100`;
@@ -2287,7 +2285,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_AUXILIARYPICTURE_SETINFO_0200`;
@@ -2331,7 +2328,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_AUXILIARYPICTURE_SETINFO_0300`;
@@ -2374,7 +2370,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NDK_AUXILIARYPICTURE_SETINFO_0400`;
@@ -3824,7 +3819,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         testPixelMapFormatInPicture(done, testFileHeic, image.PixelMapFormat.NV21,
@@ -3858,7 +3852,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         testPixelMapFormatInPicture(done, testFileHeic, image.PixelMapFormat.RGB_565,
@@ -3892,7 +3885,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         testPixelMapFormatInPicture(done, testFileHeic, image.PixelMapFormat.RGBA_8888,
@@ -3926,7 +3918,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         testPixelMapFormatInPicture(done, testFileHeic, image.PixelMapFormat.BGRA_8888,
@@ -3960,7 +3951,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         testPixelMapFormatInPicture(done, testFileHeic, image.PixelMapFormat.NV12,
@@ -4057,7 +4047,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0100`;
@@ -4091,7 +4080,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0200`;
@@ -4125,7 +4113,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0300`;
@@ -4159,7 +4146,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0400`;
@@ -4193,7 +4179,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0500`;
@@ -4224,7 +4209,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0600`;
@@ -4261,7 +4245,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0700`;
@@ -4300,7 +4283,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0800`;
@@ -4337,7 +4319,6 @@ export default function pictureNdkTest() {
       await sleep(1000);
       if (!isSupportHdr) {
         hilog.info(domain, testTag, 'device is not support hdr');
-        expect(true).assertTrue();
         done();
       } else {
         let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_JPG_0900`;
@@ -4423,7 +4404,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0100`;
@@ -4458,7 +4438,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0200`;
@@ -4493,7 +4472,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0300`;
@@ -4528,7 +4506,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0400`;
@@ -4563,7 +4540,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0500`;
@@ -4598,7 +4574,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0600`;
@@ -4635,7 +4610,6 @@ export default function pictureNdkTest() {
           await sleep(1000);
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             let caseName: string = `SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_0700`;
@@ -4673,7 +4647,6 @@ export default function pictureNdkTest() {
         it('SUB_MULTIMEDIA_PICTURE_NATIVE_PICTURE_DECODE_HEIF_ERROR_0800', Level.LEVEL0, async (done: Function) => {
           if (!isSupportHdr) {
             hilog.info(domain, testTag, 'device is not support hdr');
-            expect(true).assertTrue();
             done();
           } else {
             await sleep(1000);
@@ -4718,7 +4691,6 @@ export default function pictureNdkTest() {
                   return
               }
           }
-          expect(true).assertTrue();
           done();
         } catch (err) {
           hilog.error(domain, testTag, caseName + `: Test exception ` + err);
@@ -4755,7 +4727,6 @@ export default function pictureNdkTest() {
                   return
               }
           }
-          expect(true).assertTrue();
           done();
         } catch (err) {
           hilog.error(domain, testTag, caseName + `: Test exception ` + err);
@@ -4792,7 +4763,6 @@ export default function pictureNdkTest() {
                   return
               }
           }
-          expect(true).assertTrue();
           done();
         } catch (err) {
           hilog.error(domain, testTag, caseName + `: Test exception ` + err);
@@ -4829,7 +4799,6 @@ export default function pictureNdkTest() {
                   return
               }
           }
-          expect(true).assertTrue();
           done();
         } catch (err) {
           hilog.error(domain, testTag, caseName + `: Test exception ` + err);
@@ -4865,7 +4834,6 @@ export default function pictureNdkTest() {
                 return
             }
         }
-        expect(true).assertTrue();
         done();
       } catch (err) {
         hilog.error(domain, testTag, caseName + `: Test exception ` + err);
@@ -4896,7 +4864,6 @@ export default function pictureNdkTest() {
             }
           }
         }
-        expect(true).assertTrue();
         done();
       } catch (err) {
         hilog.error(domain, testTag, caseName + `: Test exception ` + err);

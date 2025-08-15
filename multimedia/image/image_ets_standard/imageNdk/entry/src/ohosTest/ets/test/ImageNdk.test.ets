@@ -607,7 +607,6 @@ export default function imageNdkTest() {
       const imageSourceApi: image.ImageSource = ndkTest.CreateFromUri(filePath)
       if (typeof imageSourceApi === "object") {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
-        expect(true).assertTrue();
         ndkTest.SourceRelease(imageSourceApi);
         done();
       } else {
@@ -623,7 +622,6 @@ export default function imageNdkTest() {
       const imageSourceApi: image.ImageSource = ndkTest.CreateFromFd(fileFd);
       if (typeof imageSourceApi === "object") {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
-        expect(true).assertTrue();
         ndkTest.SourceRelease(imageSourceApi);
         done();
       } else {
@@ -639,7 +637,6 @@ export default function imageNdkTest() {
       const imageSourceApi: image.ImageSource = ndkTest.CreateFromData(buffer);
       if (typeof imageSourceApi === "object") {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
-        expect(true).assertTrue();
         ndkTest.SourceRelease(imageSourceApi);
         done();
       } else {
@@ -655,7 +652,6 @@ export default function imageNdkTest() {
       const imageSourceApi: image.ImageSource = ndkTest.CreateFromDataWithUserBuffer(buffer);
       if (typeof imageSourceApi === "object") {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
-        expect(true).assertTrue();
         ndkTest.SourceRelease(imageSourceApi);
         done();
       } else {
@@ -685,7 +681,6 @@ export default function imageNdkTest() {
           let result = ndkTest.AssertImageSize(width, height);
           expect(result == 0).assertTrue();
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMap Size is equal to DesiredSize success :${pixelMap}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           ndkTest.PixelMapRelease(pixelMap);
           done()
@@ -721,7 +716,6 @@ export default function imageNdkTest() {
           let result = ndkTest.AssertImageSize(width, height);
           expect(result == 0).assertTrue();
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMap Size is equal to DesiredSize success :${pixelMap}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi)
           ndkTest.PixelMapRelease(pixelMap);
           done()
@@ -757,7 +751,6 @@ export default function imageNdkTest() {
           let result = ndkTest.AssertImageSize(width, height);
           expect(result == 0).assertTrue();
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMap Size is equal to DesiredSize success :${pixelMap}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           ndkTest.PixelMapRelease(pixelMap);
           done()
@@ -791,7 +784,6 @@ export default function imageNdkTest() {
         const pixelMapList: Array<image.PixelMap> | number = ndkTest.CreatePixelMapList(imageSourceApi, options)
         if (Array.isArray(pixelMapList)) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMapList success :${pixelMapList}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           pixelMapList.forEach(pixelMap => {
             ndkTest.PixelMapRelease(pixelMap);
@@ -826,7 +818,6 @@ export default function imageNdkTest() {
         const pixelMapList: Array<image.PixelMap> | number = ndkTest.CreatePixelMapList(imageSourceApi, options)
         if (Array.isArray(pixelMapList)) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMapList success :${pixelMapList}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           pixelMapList.forEach(pixelMap => {
             ndkTest.PixelMapRelease(pixelMap);
@@ -861,7 +852,6 @@ export default function imageNdkTest() {
         const pixelMapList: Array<image.PixelMap> | number = ndkTest.CreatePixelMapList(imageSourceApi, options)
         if (Array.isArray(pixelMapList)) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMapList success :${pixelMapList}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           pixelMapList.forEach(pixelMap => {
             ndkTest.PixelMapRelease(pixelMap);
@@ -898,7 +888,6 @@ export default function imageNdkTest() {
         if (Array.isArray(delayTime)) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `delayTime success:${delayTime}`)
           ndkTest.SourceRelease(imageSourceApi);
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `delayTime failed: ${delayTime}`)
@@ -922,7 +911,6 @@ export default function imageNdkTest() {
         if (typeof imageInfo === "object") {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo success: ${imageInfo}`)
           ndkTest.SourceRelease(imageSourceApi);
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo failed: ${imageInfo}`)
@@ -946,7 +934,6 @@ export default function imageNdkTest() {
         if (typeof imageInfo === "object") {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo success: ${imageInfo}`)
           ndkTest.SourceRelease(imageSourceApi);
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo failed: ${imageInfo}`)
@@ -970,7 +957,6 @@ export default function imageNdkTest() {
         if (typeof imageInfo === "object") {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo success: ${imageInfo}`)
           ndkTest.SourceRelease(imageSourceApi);
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo failed: ${imageInfo}`)
@@ -996,7 +982,6 @@ export default function imageNdkTest() {
       if (typeof imagePropertyRes === "string") {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo success: ${imagePropertyRes}`)
         ndkTest.SourceRelease(imageSourceApi);
-        expect(true).assertTrue();
         done()
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imageInfo failed: ${imagePropertyRes}`)
@@ -1014,7 +999,6 @@ export default function imageNdkTest() {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imagePropertyRes success:` +
         JSON.stringify(propertyModifyRes))
         ndkTest.SourceRelease(imageSourceApi);
-        expect(true).assertTrue();
         done();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imagePropertyRes failed:` +
@@ -1033,7 +1017,6 @@ export default function imageNdkTest() {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imagePropertyRes success:` +
         JSON.stringify(propertyModifyRes))
         ndkTest.SourceRelease(imageSourceApi);
-        expect(true).assertTrue();
         done();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `imagePropertyRes failed:` +
@@ -1061,7 +1044,6 @@ export default function imageNdkTest() {
         ndkTest.SourceRelease(imageSourceApi);
         if (Object.values(frameCount)[1] === 0) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `frameCount success: ${Object.values(frameCount)[1]}`)
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `frameCount failed: ${Object.values(frameCount)[1]}`)
@@ -1090,7 +1072,6 @@ export default function imageNdkTest() {
         const release = ndkTest.SourceRelease(imageSourceApi)
         if (release === 0) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `release success ${release}`)
-          expect(true).assertTrue();
           done()
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `release failed: ${release}`)
@@ -1117,7 +1098,6 @@ export default function imageNdkTest() {
       const targetFromat: Number = ndkTest.DecodingOptionsGetPixelFormat(options);
       if (targetFromat === desiredPixelFormat) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsFormat success:${targetFromat}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsFormat failed:${targetFromat}`)
         expect(false).assertTrue();
@@ -1126,7 +1106,6 @@ export default function imageNdkTest() {
       const targetIndex: number = ndkTest.DecodingOptionsGetIndex(options);
       if (targetIndex === index) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsIndex success:${targetIndex}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsIndex failed:${targetIndex}`)
         expect(false).assertTrue();
@@ -1135,7 +1114,6 @@ export default function imageNdkTest() {
       const targetRotate: number = ndkTest.DecodingOptionsGetRotate(options);
       if (targetRotate === rotate) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRotate success:${targetRotate}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRotate failed:${targetRotate}`)
         expect(false).assertTrue();
@@ -1144,14 +1122,12 @@ export default function imageNdkTest() {
       const targetSize: image.Size = ndkTest.DecodingOptionsGetDesiredSize(options);
       if (Object.values(targetSize)[0] === width) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsWidth success`);
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsWidth failed`)
         expect(false).assertTrue();
       }
       if (Object.values(targetSize)[1] === height) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsHeight success`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsHeight failed`)
         expect(false).assertTrue();
@@ -1160,28 +1136,24 @@ export default function imageNdkTest() {
       const targetRegion: image.Region = ndkTest.DecodingOptionsGetDesiredRegion(options);
       if (Object.values(targetRegion)[0] === x) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsX success`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsX failed`)
         expect(false).assertTrue();
       }
       if (Object.values(targetRegion)[1] === y) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsY success`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsY failed`)
         expect(false).assertTrue();
       }
       if (Object.values(targetRegion)[2] === Regionwidth) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRegionwidth success`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRegionwidth failed`)
         expect(false).assertTrue();
       }
       if (Object.values(targetRegion)[3] === RegionHeight) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRegionHeight success`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get DecodingOptionsRegionHeight failed`)
         expect(false).assertTrue();
@@ -1196,7 +1168,6 @@ export default function imageNdkTest() {
           rawFileDescriptor.offset, rawFileDescriptor.length);
         if (typeof imageSourceApi === "object") {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
-          expect(true).assertTrue();
           done();
         } else {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source failed:${imageSourceApi}`)
@@ -1228,7 +1199,6 @@ export default function imageNdkTest() {
         const pixelMap = ndkTest.CreatePixelMap(imageSourceApi, options)
         if (typeof pixelMap === "object") {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMap success :${pixelMap}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           ndkTest.PixelMapRelease(pixelMap);
           done()
@@ -1263,7 +1233,6 @@ export default function imageNdkTest() {
         const pixelMapList = ndkTest.CreatePixelMapList(imageSourceApi, options)
         if (Array.isArray(pixelMapList)) {
           hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `pixelMapList success :${pixelMapList}`)
-          expect(true).assertTrue();
           ndkTest.SourceRelease(imageSourceApi);
           pixelMapList.forEach((pixelMap) => {
             ndkTest.PixelMapRelease(pixelMap);
@@ -1287,7 +1256,6 @@ export default function imageNdkTest() {
         expect(false).assertTrue();
         done()
       } else {
-        expect(true).assertTrue();
         done()
       }
     }
@@ -1295,7 +1263,6 @@ export default function imageNdkTest() {
     const compResultC = (res: Number, done: Function) => {
 
       if (res !== 0) {
-        expect(true).assertTrue();
         done()
       } else {
         expect(false).assertTrue();
@@ -1401,7 +1368,6 @@ export default function imageNdkTest() {
             done();
           } else {
             hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `CreatePixelMapByHdr pixelmapDynamic is zero`)
-            expect(true).assertTrue();
             ndkTest.SourceRelease(imageSourceApi);
             ndkTest.PixelMapRelease(pixelMap);
             done()
@@ -1436,7 +1402,6 @@ export default function imageNdkTest() {
             done();
           } else {
             hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `PixelMapToSdr pixelmapDynamic is zero`)
-            expect(true).assertTrue();
             let res:number = ndkTest.PixelMapToSdr(pixelMap);
             expect(res == 0).assertTrue();
             ndkTest.SourceRelease(imageSourceApi);
@@ -1463,7 +1428,6 @@ export default function imageNdkTest() {
       const targetDynamic: number = ndkTest.DecodingOptionsGetDesiredDynamicRange(options);
       if (targetDynamic === desiredDynamicRange) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get desiredDynamicRange success:${targetDynamic}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get desiredDynamicRange failed:${targetDynamic}`)
         expect(false).assertTrue();
@@ -1478,7 +1442,6 @@ export default function imageNdkTest() {
       const targetDynamic: number = ndkTest.PackingOptionsGetDesiredDynamicRange(options);
       if (targetDynamic === desiredDynamicRange) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get desiredDynamicRange success:${targetDynamic}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get desiredDynamicRange failed:${targetDynamic}`)
         expect(false).assertTrue();
@@ -1493,7 +1456,6 @@ export default function imageNdkTest() {
       const target: number = ndkTest.PackingOptionsGetNeedsPackProperties(options);
       if (needsPackProperties === target) {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get needsPackProperties success:${target}`)
-        expect(true).assertTrue();
       } else {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `Get needsPackProperties failed:${target}`)
         expect(false).assertTrue();
@@ -1508,7 +1470,6 @@ export default function imageNdkTest() {
         hilog.info(0x0000, 'scaleTest', '%{public}s', TAG + `create image source success:${imageSourceApi}`)
         let sourceDynamic:number = ndkTest.GetImageSourceDynamicRange(imageSourceApi);
         if (sourceDynamic != 0) {
-          expect(true).assertTrue();
           done();
         } else {
           expect(false).assertTrue();
@@ -1539,7 +1500,6 @@ export default function imageNdkTest() {
         }
       const pixelMap: image.PixelMap | number = ndkTest.CreatePixelMap(imageSourceApi, options)
       if (typeof pixelMap === "object") {
-        expect(true).assertTrue();
         ndkTest.SourceRelease(imageSourceApi)
         ndkTest.PixelMapRelease(pixelMap);
         done()
@@ -1643,7 +1603,6 @@ export default function imageNdkTest() {
           done();
           return
         }
-        expect(true).assertTrue();
         done();
       } else{
           hilog.info(domain, testTag, `NewPackingOptionsGetMimeType fail`);
@@ -3995,7 +3954,6 @@ export default function imageNdkTest() {
       try {
         const parker: image.ImagePacker = ndkTest.PackerCreate()
         if (parker) {
-          expect(true).assertTrue();
           done()
         } else {
           expect(false).assertTrue();
@@ -4024,7 +3982,6 @@ export default function imageNdkTest() {
           const release: number = ndkTest.PackerRelease(parker)
           if (release != undefined) {
             hilog.info(0x0000, 'scaleTest', '%{public}s', `SUB_MULTIMEDIA_IMAGE_NDK_PACKING_RELEASE_0100 success`)
-            expect(true).assertTrue();
             done()
           } else {
             hilog.info(0x0000, 'scaleTest', '%{public}s', `SUB_MULTIMEDIA_IMAGE_NDK_PACKING_RELEASE_0100 failed: `)
@@ -5143,7 +5100,6 @@ export default function imageNdkTest() {
           if (typeof pixelMap === "object") {
             ndkTest.SourceRelease(imageSourceApi)
             ndkTest.PixelMapRelease(pixelMap);
-            expect(true).assertTrue();
             done()
           } else {
             ndkTest.SourceRelease(imageSourceApi);
@@ -5343,7 +5299,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5376,7 +5331,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5409,7 +5363,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5442,7 +5395,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5475,7 +5427,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5508,7 +5459,6 @@ export default function imageNdkTest() {
           expect(false).assertTrue();
           done();
         }
-        expect(true).assertTrue();
         done();
       } catch (error) {
         hilog.info(domain, testTag, `Test exception ` + error);
@@ -5544,7 +5494,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5579,7 +5528,6 @@ export default function imageNdkTest() {
           }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -5628,7 +5576,6 @@ export default function imageNdkTest() {
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
         ndkTest.SourceRelease(imageSourceApi1)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5676,7 +5623,6 @@ export default function imageNdkTest() {
         }
         ndkTest.SourceRelease(imageSourceApi)
         ndkTest.SourceRelease(imageSourceApi1)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -5712,7 +5658,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5747,7 +5692,6 @@ export default function imageNdkTest() {
             }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -5783,7 +5727,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5818,7 +5761,6 @@ export default function imageNdkTest() {
             }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -5854,7 +5796,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5889,7 +5830,6 @@ export default function imageNdkTest() {
             }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -5925,7 +5865,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5962,7 +5901,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -5999,7 +5937,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -6036,7 +5973,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -6073,7 +6009,6 @@ export default function imageNdkTest() {
         }
         closeFile(fileFd)
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         closeFile(fileFd)
@@ -6108,7 +6043,6 @@ export default function imageNdkTest() {
             }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -6147,7 +6081,6 @@ export default function imageNdkTest() {
           }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -6183,7 +6116,6 @@ export default function imageNdkTest() {
           }
         }
         ndkTest.SourceRelease(imageSourceApi)
-        expect(true).assertTrue()
         done()
       } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource error ` + e);
@@ -6279,7 +6211,6 @@ export default function imageNdkTest() {
           done();
           return
         }
-        expect(true).assertTrue();
         done();
       } catch(e){
         hilog.info(domain, testTag, `Test exception: ` + e);

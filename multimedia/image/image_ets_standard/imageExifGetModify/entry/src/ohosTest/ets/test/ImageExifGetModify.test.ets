@@ -19572,7 +19572,6 @@ export default function imageExifGetModifyTest() {
               await imageSourceApi.modifyImageProperty(key, 'abc').then(() => {
               hilog.info(0x0000, testTag, `modifyImageProperty promise success %{public}s %{public}s %{public}s`, key,testType);
               checkResult = true
-              expect(true).assertTrue();
               done();
             }).catch(async (err: BusinessError) => {
               hilog.info(0x0000, testTag, `modifyImageProperty promise failed %{public}s %{public}s %{public}s`, key, err.code, '62980146',testType);
@@ -20437,7 +20436,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20477,7 +20475,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20517,7 +20514,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20557,7 +20553,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20597,7 +20592,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20636,7 +20630,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20676,7 +20669,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20716,7 +20708,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20756,7 +20747,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20796,7 +20786,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteIsXmageSupported ` + e);
@@ -20835,7 +20824,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -20875,7 +20863,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -20915,7 +20902,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -20955,7 +20941,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -20995,7 +20980,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21034,7 +21018,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21074,7 +21057,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21114,7 +21096,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21154,7 +21135,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21194,7 +21174,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageMode ` + e);
@@ -21233,7 +21212,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21273,7 +21251,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21313,7 +21290,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21353,7 +21329,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21393,7 +21368,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21432,7 +21406,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21472,7 +21445,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21512,7 +21484,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21552,7 +21523,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21592,7 +21562,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageLeft ` + e);
@@ -21631,7 +21600,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21671,7 +21639,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21711,7 +21678,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21751,7 +21717,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21791,7 +21756,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21830,7 +21794,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21870,7 +21833,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21910,7 +21872,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21950,7 +21911,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -21990,7 +21950,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageTop ` + e);
@@ -22029,7 +21988,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22069,7 +22027,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22109,7 +22066,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22149,7 +22105,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22189,7 +22144,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22228,7 +22182,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22268,7 +22221,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22308,7 +22260,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22348,7 +22299,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22388,7 +22338,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageRight ` + e);
@@ -22427,7 +22376,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22467,7 +22415,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22507,7 +22454,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22547,7 +22493,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22587,7 +22532,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22626,7 +22570,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22666,7 +22609,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22706,7 +22648,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22746,7 +22687,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22786,7 +22726,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteXmageBottom ` + e);
@@ -22825,7 +22764,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -22865,7 +22803,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -22905,7 +22842,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -22945,7 +22881,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -22985,7 +22920,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -23024,7 +22958,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -23064,7 +22997,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -23104,7 +23036,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -23144,7 +23075,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);
@@ -23184,7 +23114,6 @@ export default function imageExifGetModifyTest() {
             }
             }
         }
-        expect(true).assertTrue()
         done()
     } catch (e) {
         hilog.info(0x0000, testTag, `createImageSource promise error HwMnoteCloudEnhancementMode ` + e);

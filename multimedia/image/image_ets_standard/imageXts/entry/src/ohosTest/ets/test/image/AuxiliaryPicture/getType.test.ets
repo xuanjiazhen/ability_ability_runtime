@@ -39,7 +39,6 @@ async function getTypePromiseTest(done: Function, testName: string, pathUri: str
     if (auxPictureObj != null) {
       let type: image.AuxiliaryPictureType = auxPictureObj.getType();
       auxPictureObj.release();
-      expect(true).assertTrue();
       done();
     } else {
       console.error('AuxPictureObj is null.');

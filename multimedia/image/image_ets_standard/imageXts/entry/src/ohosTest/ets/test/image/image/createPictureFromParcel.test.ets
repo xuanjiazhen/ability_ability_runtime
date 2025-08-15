@@ -73,7 +73,6 @@ async function createPictureFromParcelPromiseTest(done: Function, testName: stri
       data.writeParcelable(parcelable);
       let ret: MySequence = new MySequence(pictureObj);
       data.readParcelable(ret);
-      expect(true).assertTrue();
       done();
     } else {
       console.info(TAG, 'PictureObj is null');
@@ -137,7 +136,6 @@ async function createPictureFromParcelAbnormalPromiseTest(done: Function, testNa
       data.writeParcelable(parcelable);
       let ret: MySequenceAbnormal = new MySequenceAbnormal(pictureObj);
       data.readParcelable(ret);
-      expect(true).assertTrue();
       done();
     } else {
       console.info(TAG, 'PictureObj is null');

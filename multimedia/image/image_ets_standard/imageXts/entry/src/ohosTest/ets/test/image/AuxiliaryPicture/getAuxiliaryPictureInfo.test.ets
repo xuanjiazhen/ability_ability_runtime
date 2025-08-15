@@ -41,7 +41,6 @@ async function getAuxiliaryPictureInfoPromiseTest(done: Function, testName: stri
         ' rowStride: ' + auxinfo.rowStride + ' pixelFormat: ' + auxinfo.pixelFormat +
         ' colorSpace: ' + auxinfo.colorSpace);
       console.info(TAG, 'Write pixels from buffer success.');
-      expect(true).assertTrue();
       done();
     } else {
       console.error(TAG, 'AuxPictureObj is null.');

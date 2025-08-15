@@ -27,7 +27,6 @@ async function getComponentPromiseTest(done: Function, testName: string, size: i
     img.getComponent(4).then((component: image.Component) => {
       console.info('getComponent succeeded.');
       receiver.release();
-      expect(true).assertTrue();
       done();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getComponent failed code ${error.code}, message is ${error.message}`);

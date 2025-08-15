@@ -32,7 +32,6 @@ async function packToDataFromPixelmapSequencePromiseTest(done: Function, testNam
     let pixelMapList = await imageSource.createPixelMapList();
     let Packer = image.createImagePacker();
     let data = await Packer.packToDataFromPixelmapSequence(pixelMapList, ops);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -52,7 +51,6 @@ async function packToDataFromPixelmapSequence_abnormalPromiseTest(done: Function
     let pixelMapList = await imageSource.createPixelMapList();
     let Packer = image.createImagePacker();
     let data = await Packer.packToDataFromPixelmapSequence(pixelMapList, ops);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
