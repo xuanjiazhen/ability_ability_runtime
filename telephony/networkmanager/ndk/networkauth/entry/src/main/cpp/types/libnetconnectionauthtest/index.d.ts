@@ -14,3 +14,4 @@
  */
 
 export const Http_RequestRequest: (a: number, b: string) => number;
+export const Web_Socket: (a: number, b: string) => number;
