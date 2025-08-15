@@ -84,7 +84,7 @@ struct bindSheetKeyboardAvoidMode {
         .fontSize(20)
         .margin(10)
         .bindSheet($$this.isShow, this.myBuilder(),{
-          detents:[SheetSize.MEDIUM,SheetSize.LARGE,200],
+          detents:['80%',SheetSize.LARGE,200],
           backgroundColor:Color.Pink,
           preferType:SheetType.BOTTOM,
           showClose:true,
@@ -117,7 +117,7 @@ struct bindSheetKeyboardAvoidMode {
         .fontSize(20)
         .margin(10)
         .bindSheet($$this.isShow1, this.myBuilder1(),{
-          detents:[SheetSize.MEDIUM,SheetSize.LARGE,200],
+          detents:['80%',SheetSize.LARGE,200],
           backgroundColor:Color.Pink,
           preferType:SheetType.BOTTOM,
           showClose:true,
