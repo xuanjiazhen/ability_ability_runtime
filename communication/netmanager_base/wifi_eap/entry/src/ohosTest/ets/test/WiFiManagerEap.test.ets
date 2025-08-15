@@ -355,5 +355,128 @@ export default function wifiEapTest(){
           }
           done();
         });
+        /**
+         * @tc.number SUB_Communication_Netmanager_Eap_js_0500
+         * @tc.name SUB_Communication_Netmanager_Eap_js_0500
+         * @tc.desc Test eap startEthEap api functionality.
+         * @tc.size MediumTest
+         * @tc.type Function
+         * @tc.level Level 0
+         */
+        it('SUB_Communication_Netmanager_Eap_js_0500',TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0, async (done:Function) => {
+            let isAccessToken = canIUse("SystemCapability.Communication.NetManager.Eap");
+            console.info("testSysCaps01 test.syscap.param.001 : " + isAccessToken);
+            if (!isAccessToken) {
+                console.info("The device does not support eap api.");
+                expect(isAccessToken).assertFalse();
+                done();
+                return;
+            }
+            let netId = 100;
+            let profile: eap.EthEapProfile = {
+              eapMethod: eap.EapMethod.EAP_TTLS,
+              phase2Method: eap.Phase2Method.PHASE2_AKA_PRIME,
+              identity: "identity",
+              anonymousIdentity: "anonymousIdentity",
+              password: "password",
+              caCertAliases: "caCertAliases",
+              caPath: "caPath",
+              clientCertAliases: "clientCertAliases",
+              certEntry: new Uint8Array([5,6,7,8,9,10]),
+              certPassword: "certPassword",
+              altSubjectMatch: "altSubjectMatch",
+              domainSuffixMatch: "domainSuffixMatch",
+              realm: "realm",
+              plmn: "plmn",
+              eapSubId: 1
+            };
+            try{                            
+                console.info("SUB_Communication_Netmanager_Eap_js_0500 startEthEap start");
+                eap.startEthEap(netId, profile);
+                console.info("SUB_Communication_Netmanager_Eap_js_0500 startEthEap success");
+                expect(true).assertTrue();
+            }catch(error){
+                console.error(`SUB_Communication_Netmanager_Eap_js_0500 startEthEap failed,code is ${error.code}, message is ${error.message}`);
+                if(error.code==801){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap is not support`);
+                    expect(true).assertTrue();
+                }else if(error.code==201){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap permission denied`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200001){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap invalid netId`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200003){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap invalid profile`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200009){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap netmanager stop`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200010){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap invalid eth state.`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200099){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap internal error`);
+                    expect(true).assertTrue();
+                }else {
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0500 eap startEthEap undefined errorcode`);
+                    expect(true).assertTrue();
+                }
+            }
+            done();
+        })
+        /**
+         * @tc.number SUB_Communication_Netmanager_Eap_js_0600
+         * @tc.name SUB_Communication_Netmanager_Eap_js_0600
+         * @tc.desc Test eap logOffEthEap api functionality.
+         * @tc.size MediumTest
+         * @tc.type Function
+         * @tc.level Level 0
+         */
+        it('SUB_Communication_Netmanager_Eap_js_0600',TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0, async (done:Function) => {
+            let isAccessToken = canIUse("SystemCapability.Communication.NetManager.Eap");
+            console.info("testSysCaps01 test.syscap.param.001 : " + isAccessToken);
+            if (!isAccessToken) {
+                console.info("The device does not support eap api.");
+                expect(isAccessToken).assertFalse();
+                done();
+                return;
+            }
+            let netId = 100;            
+            try{                            
+                console.info("SUB_Communication_Netmanager_Eap_js_0600 logOffEthEap start");
+                eap.logOffEthEap(netId);
+                console.info("SUB_Communication_Netmanager_Eap_js_0600 logOffEthEap success");
+                expect(true).assertTrue();
+            }catch(error){
+                console.error(`SUB_Communication_Netmanager_Eap_js_0600 logOffEthEap failed,code is ${error.code}, message is ${error.message}`);
+                if(error.code==801){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap is not support`);
+                    expect(true).assertTrue();
+                }else if(error.code==201){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap permission denied`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200001){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap invalid netId`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200002){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap Log off fail`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200009){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap netmanager stop`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200010){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap invalid eth state.`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200099){
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap internal error`);
+                    expect(true).assertTrue();
+                }else {
+                    console.error(`SUB_Communication_Netmanager_Eap_js_0600 eap logOffEthEap undefined errorcode`);
+                    expect(true).assertTrue();
+                }
+            }
+            done();
+        })
     })
 }

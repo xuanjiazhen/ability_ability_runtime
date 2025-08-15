@@ -20,5 +20,5 @@ ohos_js_app_suite("ActsWifiEapTest") {
   hap_name = "ActsWifiEapTest"
 
   subsystem_name = "communication"
-  part_name = "netmanager_base"
+  part_name = "netmanager_ext"
 }
