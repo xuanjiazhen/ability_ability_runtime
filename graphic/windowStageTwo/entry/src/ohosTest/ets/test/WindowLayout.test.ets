@@ -3876,6 +3876,9 @@ it('testSetResizeByDragEnabledTrue_0100', TestType.FUNCTION | Size.MEDIUMTEST | 
       const caseName = 'testGlobalDisplayToClientwithOutofRange';
       console.log(caseName + 'begin.');
       let windowClass = await windowStage.createSubWindow('testGlobalDisplayToClientwithOutofRange')
+      await sleep(200);
+      await windowClass.moveWindowTo(-50, -50);
+      await sleep(200);
       try {
         const maxInt = 2**31 -1;
         windowClass.globalDisplayToClient(maxInt, maxInt);
