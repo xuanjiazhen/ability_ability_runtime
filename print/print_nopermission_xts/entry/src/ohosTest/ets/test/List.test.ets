@@ -14,7 +14,9 @@
  */
 
 import printTest from './print.test'
+import scanTest from './Scan.test'
 
 export default function testsuite() {
   printTest();
+  scanTest();
 }

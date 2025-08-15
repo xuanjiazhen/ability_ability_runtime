@@ -516,5 +516,173 @@ export default function scanTest() {
         done();
       }
     });
+
+    /**
+     * @tc.number scan_function_2000
+     * @tc.name scan_function_2000
+     * @tc.desc Test ScannerParameter
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2000', Level.LEVEL1, async (done: Function) => {
+
+      await scan.getScannerParameter(scannerId).then((params: scan.ScannerParameter[]) => {
+        hilog.info(DOMAIN, TAG, 'getScannerParameter success, count: ' + params.length);
+        params.forEach((param: scan.ScannerParameter) => {
+          hilog.info(DOMAIN, TAG, 'optionName: ' + param.optionName);
+          hilog.info(DOMAIN, TAG, 'optionIndex: ' + param.optionIndex);
+          hilog.info(DOMAIN, TAG, 'optionTitle: ' + param.optionTitle);
+          hilog.info(DOMAIN, TAG, 'optionDesc: ' + param.optionDesc);
+          hilog.info(DOMAIN, TAG, 'optionType: ' + param.optionType);
+          hilog.info(DOMAIN, TAG, 'optionUnit: ' + param.optionUnit);
+          hilog.info(DOMAIN, TAG, 'optionConstraintType: ' + param.optionConstraintType);
+          let optionConstraintString : string[] | undefined = param.optionConstraintString;
+          if (optionConstraintString != undefined) {
+            hilog.info(DOMAIN, TAG, 'range.optionConstraintString: ' + JSON.stringify(optionConstraintString));
+          }
+          let optionConstraintInt : number[] | undefined = param.optionConstraintInt;
+          if (optionConstraintInt != undefined) {
+            hilog.info(DOMAIN, TAG, 'range.optionConstraintInt: ' + JSON.stringify(optionConstraintInt));
+          }
+          let range : scan.Range | undefined = param.optionConstraintRange;
+          if (range != undefined) {
+            hilog.info(DOMAIN, TAG, 'range.minValue: ' + range.minValue);
+            hilog.info(DOMAIN, TAG, 'range.maxValue: ' + range.maxValue);
+            hilog.info(DOMAIN, TAG, 'range.quantValue: ' + range.quantValue);
+          }
+        });
+        done();
+      }).catch((err: BusinessError) => {
+        hilog.error(DOMAIN, TAG, 'getScannerParameter failed, code = ' + err.code);
+        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_INVALID_PARAMETER);
+        done();
+      });
+    });
+
+    /**
+     * @tc.number scan_function_2100
+     * @tc.name scan_function_2100
+     * @tc.desc Test ScannerOptionValue
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2100', Level.LEVEL1, async (done: Function) => {
+
+      await scan.getScannerCurrentSetting(scannerId, optionIndex).then((setting: scan.ScannerOptionValue) => {
+        let valueType : scan.OptionValueType = setting.valueType;
+        hilog.info(DOMAIN, TAG, 'valueType: ' + valueType);
+        let numValue : number | undefined = setting.numValue;
+        if (numValue != undefined) {
+          hilog.info(DOMAIN, TAG, 'numValue: ' + numValue);
+        }
+        let strValue : string | undefined = setting.strValue;
+        if (strValue != undefined) {
+          hilog.info(DOMAIN, TAG, 'strValue: ' + strValue);
+        }
+        let boolValue : boolean | undefined = setting.boolValue;
+        if (boolValue != undefined) {
+          hilog.info(DOMAIN, TAG, 'boolValue: ' + boolValue);
+        }
+        done();
+      }).catch((err: BusinessError) => {
+        hilog.error(DOMAIN, TAG, 'getScannerCurrentSetting failed, code = ' + err.code);
+        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_INVALID_PARAMETER);
+        done();
+      });
+    });
+
+    /**
+     * @tc.number scan_function_2200
+     * @tc.name scan_function_2200
+     * @tc.desc Test ScannerOptionValue
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2200', Level.LEVEL1, async (done: Function) => {
+      await scan.getPictureScanProgress(scannerId).then((progress: scan.PictureScanProgress) => {
+        let progressNumber : number = progress.progress;
+        hilog.info(DOMAIN, TAG, 'progressNumber: ' + progressNumber);
+        let pictureFd : number = progress.pictureFd;
+        hilog.info(DOMAIN, TAG, 'pictureFd: ' + pictureFd);
+        let isFinal : boolean = progress.isFinal;
+        hilog.info(DOMAIN, TAG, 'isFinal: ' + isFinal);
+        expect(progress).not().assertUndefined();
+        done();
+      }).catch((err: BusinessError) => {
+        hilog.error(DOMAIN, TAG, 'getPictureScanProgress failed, code = ' + err.code);
+        expect(err.code).assertEqual(scan.ScanErrorCode.SCAN_ERROR_INVALID_PARAMETER);
+        done();
+      });
+    });
+
+    /**
+     * @tc.number scan_function_2300
+     * @tc.name scan_function_2300
+     * @tc.desc Test ScannerDevice
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2300', Level.LEVEL1, async (done: Function) => {
+      try {
+        scan.on('scanDeviceFound', (device: scan.ScannerDevice) => {
+          hilog.info(DOMAIN, TAG, 'Found device: ' + JSON.stringify(device));
+          scannerId = device.scannerId;
+          uniqueId = device.uniqueId;
+          hilog.info(DOMAIN, TAG, 'discoveryMode: ' + device.discoveryMode);
+          hilog.info(DOMAIN, TAG, 'manufacturer: ' + device.manufacturer);
+          hilog.info(DOMAIN, TAG, 'model: ' + device.model);
+          hilog.info(DOMAIN, TAG, 'deviceName: ' + device.deviceName);
+        });
+      } catch (e) {
+        hilog.error(DOMAIN, TAG, 'on scanDeviceFound failed');
+        expect().assertFail();
+      }
+      try {
+        setTimeout(() => {
+          scan.off('scanDeviceFound');
+          done();
+        }, 500);
+      } catch (e) {
+        expect().assertFail();
+        done();
+      }
+    });
+
+    /**
+     * @tc.number scan_function_2400
+     * @tc.name scan_function_2400
+     * @tc.desc Test ScannerDevice
+     * @tc.size MEDIUM
+     * @tc.type Function
+     * @tc.level Level 1
+     */
+    it('scan_function_2400', Level.LEVEL1, async (done: Function) => {
+      try {
+        scan.on('scanDeviceSync', (device: scan.ScannerSyncDevice) => {
+          hilog.info(DOMAIN, TAG, 'scannerId: ' + device.scannerId);
+          hilog.info(DOMAIN, TAG, 'discoveryMode: ' + device.discoveryMode);
+          let oldScannerId : string | undefined = device.oldScannerId;
+          if (oldScannerId != undefined) {
+            hilog.info(DOMAIN, TAG, 'oldScannerId: ' + device.oldScannerId);
+          }
+        });
+      } catch (e) {
+        hilog.error(DOMAIN, TAG, 'on scanDeviceFound failed');
+        expect().assertFail();
+      }
+      try {
+        setTimeout(() => {
+          scan.off('scanDeviceSync');
+          done();
+        }, 500);
+      } catch (e) {
+        expect().assertFail();
+        done();
+      }
+    });
   });
 }
