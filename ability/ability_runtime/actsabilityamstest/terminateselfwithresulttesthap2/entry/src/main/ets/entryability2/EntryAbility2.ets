@@ -39,7 +39,7 @@ export default class EntryAbility2 extends UIAbility {
     let onForeground = AppStorage.get<boolean>('onForeground');
     let onDestroy = true;
     let events = param.getTextNme();
-
+    hilog.info(0x0000, 'testTag', `Ability onDestroy ${JSON.stringify(events)}`);
     if (events) {
       let commonEventData: commonEventManger.CommonEventPublishData = {
         parameters: {

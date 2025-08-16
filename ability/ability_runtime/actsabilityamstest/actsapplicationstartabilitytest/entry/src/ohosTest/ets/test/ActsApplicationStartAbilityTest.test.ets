@@ -19,13 +19,14 @@ import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 import { common, wantConstant } from '@kit.AbilityKit';
 import { Driver, MatchPattern, ON } from '@kit.TestKit';
+import systemParameterEnhance from '@ohos.systemParameterEnhance';
 
 let bundleName = 'com.example.actsapplicationstartabilityauxiliary'
 let abilityName = 'EntryAbility1'
 let startAbilityNoModuleNameCmd = `aa start -a ${abilityName} -b ${bundleName} `;
 let abilityDelegator: AbilityDelegatorRegistry.AbilityDelegator;
 abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
-
+let deviceType:string;
 export default function actsApplicationStartAbilityTest() {
 
   describe('actsApplicationStartAbilityTest', () => {
@@ -34,6 +35,9 @@ export default function actsApplicationStartAbilityTest() {
     let context: common.UIAbilityContext;
     let driver = Driver.create();
     beforeAll(async (done: Function) => {
+      deviceType = systemParameterEnhance.getSync('persist.sys.abilityms.move_ui_ability_to_background_api_enable');
+      hilog.info(0x0000, 'testTag', '%{public}s',
+          `current device is ` + deviceType);
       setTimeout(() => {
         context = getContext() as common.UIAbilityContext;
         hilog.info(0x0000, 'testTag', '%{public}s',
@@ -961,6 +965,9 @@ export default function actsApplicationStartAbilityTest() {
      */
     it('SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0500', Level.LEVEL0, async (done: Function) => {
       let TEST_CASE_NAME = 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbility_0500';
+      if(deviceType == 'false'){
+        done();
+      }
       let onForegroundFlagNumber = 0
       let subscriberInfo_startdebugapp: commonEventManager.CommonEventSubscribeInfo = {
         events: [TEST_CASE_NAME, 'singleentryability2', 'entryability1', 'SingleEntryAbility3_0500'],

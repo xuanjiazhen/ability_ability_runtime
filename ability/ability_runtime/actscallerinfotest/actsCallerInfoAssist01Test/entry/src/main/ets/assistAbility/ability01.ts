@@ -25,7 +25,7 @@ export default class AssistAbility01 extends UIAbility {
     hilog.info(0x0000, 'testTag', '%{public}s', `AssistAbility01 JSON.stringify(want) is: ${JSON.stringify(want)}`);
     let optionsWant = {
       parameters: {
-        result: JSON.stringify(want.parameters)
+        result: want.parameters
       }
     };
     commonEventManager.publish('ACTS_TEST_ON_CREATE_WANT_ASSIST', optionsWant, function () {
@@ -55,20 +55,22 @@ export default class AssistAbility01 extends UIAbility {
 
   onForeground():void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'AssistAbility01 onForeground');
-    try {
-      globalThis.AssistAbility01.startAbility(
-        {
-          bundleName: 'com.acts.actsCallerInfoTest',
-          abilityName: 'callerInfo02'
-        }).then(() => {
-        hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo01 startAbility end====>`);
-      });
-    } catch (err) {
-      // 处理入参错误异常
-      let code = (err as BusinessError).code;
-      let message = (err as BusinessError).message;
-      hilog.info(0x0000, 'testTag', '%{public}s', `startAbilityForResult failed, error.code: ${code}, error.message: ${message}`);
-    }
+    setTimeout(()=>{
+      try {
+        globalThis.AssistAbility01.startAbility(
+          {
+            bundleName: 'com.acts.actsCallerInfoTest',
+            abilityName: 'callerInfo02'
+          }).then(() => {
+          hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo01 startAbility end====>`);
+        });
+      } catch (err) {
+        // 处理入参错误异常
+        let code = (err as BusinessError).code;
+        let message = (err as BusinessError).message;
+        hilog.info(0x0000, 'testTag', '%{public}s', `startAbilityForResult failed, error.code: ${code}, error.message: ${message}`);
+      }
+    }, 2000)
   }
 
   onBackground():void {
