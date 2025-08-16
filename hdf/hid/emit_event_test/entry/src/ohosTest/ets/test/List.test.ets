@@ -14,7 +14,12 @@
  */
 
 import HidEmitEventTest from './HidEmitEventNdk.test'
+import HidCanIUseTest from './HidCanIUse.test'
 
 export default function testsuite() {
-  HidEmitEventTest()
+  if (canIUse("SystemCapability.Driver.HID.Extension")){
+  HidEmitEventTest();
+  }else{
+    HidCanIUseTest()
+  }
 }
