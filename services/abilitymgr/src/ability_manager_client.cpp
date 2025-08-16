@@ -2017,6 +2017,15 @@ int32_t AbilityManagerClient::RestartApp(const AAFwk::Want &want)
     return abms->RestartApp(want);
 }
 
+int32_t AbilityManagerClient::RestartAppWithWindow(const AAFwk::Want &want, sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RestartAppWithWindow");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->RestartAppWithWindow(want, callerToken);
+}
+
 int32_t AbilityManagerClient::OpenAtomicService(Want& want, const StartOptions &options,
     sptr<IRemoteObject> callerToken, int32_t requestCode, int32_t userId)
 {

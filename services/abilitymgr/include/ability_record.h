@@ -1139,6 +1139,14 @@ public:
 
     void SetRestartAppFlag(bool isRestartApp);
     bool GetRestartAppFlag() const;
+    void SetRestartMode(RestartMode restartMode)
+    {
+        restartMode_ = restartMode;
+    }
+    RestartMode GetRestartMode() const
+    {
+        return restartMode_;
+    }
 
     void SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate);
     bool GetKillForPermissionUpdateFlag() const;
@@ -1423,12 +1431,12 @@ private:
     bool isAssertDebug_ = false;
     bool isAppAutoStartup_ = false;
     bool isConnected = false;
-    bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
     bool isHook_ = false;
     bool hookOff_ = false;
     bool isPluginAbility_ = false;
+    RestartMode restartMode_ = RestartMode::RESTART_NONE;
     std::atomic_bool isCallerSetProcess_ = false;       // new version
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 

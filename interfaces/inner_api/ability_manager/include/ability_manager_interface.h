@@ -2327,6 +2327,17 @@ public:
     {
         return 0;
     }
+
+    /**
+     * Restart app with window.
+     * @param want The want of the ability to start in new process.
+     * @param callerToken The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RestartAppWithWindow(const AAFwk::Want &want, sptr<IRemoteObject> callerToken)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

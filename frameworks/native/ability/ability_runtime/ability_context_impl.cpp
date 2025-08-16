@@ -1450,6 +1450,12 @@ ErrCode AbilityContextImpl::SetOnNewWantSkipScenarios(int32_t scenarios)
     return AAFwk::AbilityManagerClient::GetInstance()->SetOnNewWantSkipScenarios(token_, scenarios);
 }
 
+ErrCode AbilityContextImpl::RestartAppWithWindow(const Want &want)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return AAFwk::AbilityManagerClient::GetInstance()->RestartAppWithWindow(want, token_);
+}
+
 ErrCode AbilityContextImpl::AddCompletionHandlerForAtomicService(const std::string &requestId,
     OnAtomicRequestSuccess onRequestSucc, OnAtomicRequestFailure onRequestFail, const std::string &appId)
 {

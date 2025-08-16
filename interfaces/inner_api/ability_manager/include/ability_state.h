@@ -16,9 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_STATE_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_STATE_H
 
-#include <string>
-
-#include "parcel.h"
+#include <cinttypes>
 
 namespace OHOS {
 namespace AAFwk {
@@ -68,6 +66,13 @@ enum UserStatus {
     ASSERT_TERMINATE = 0,
     ASSERT_CONTINUE,
     ASSERT_RETRY,
+};
+
+enum class RestartMode: uint8_t {
+    RESTART_NONE,
+    RESTART_APP,
+    RESTART_OTHER_ABILITY,
+    RESTART_SAME_ABILITY,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

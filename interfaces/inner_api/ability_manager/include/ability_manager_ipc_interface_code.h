@@ -670,6 +670,9 @@ enum class AbilityManagerInterfaceCode {
 
     // preload application
     PRELOAD_APPLICATION = 6151,
+
+    // restart app with window
+    RESTART_APP_WITH_WINDOW = 6152,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

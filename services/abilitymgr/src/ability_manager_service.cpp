@@ -13099,6 +13099,12 @@ int32_t AbilityManagerService::GetUIExtensionSessionInfo(const sptr<IRemoteObjec
 
 int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery)
 {
+    return RestartAppInner(want, isAppRecovery, nullptr);
+}
+
+int32_t AbilityManagerService::RestartAppInner(const AAFwk::Want &want, bool isAppRecovery,
+    sptr<IRemoteObject> callerToken)
+{
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "RestartApp, isAppRecovery: %{public}d", isAppRecovery);
     auto callerPid = IPCSkeleton::GetCallingPid();
@@ -13133,7 +13139,7 @@ int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRec
     (const_cast<Want &>(want)).SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
     (const_cast<Want &>(want)).SetParam(AAFwk::Want::APP_INSTANCE_KEY, processInfo.instanceKey);
     (const_cast<Want &>(want)).RemoveParam(Want::CREATE_APP_INSTANCE_KEY);
-    result = StartAbilityWrap(want, nullptr, DEFAULT_INVAL_VALUE, false, DEFAULT_INVAL_VALUE, false, 0, true);
+    result = StartAbilityWrap(want, callerToken, DEFAULT_INVAL_VALUE, false, DEFAULT_INVAL_VALUE, false, 0, true);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startAbility error");
         return result;
@@ -13156,7 +13162,7 @@ int32_t AbilityManagerService::CheckRestartAppWant(const AAFwk::Want &want, int3
     CHECK_POINTER_AND_RETURN(bms, GET_ABILITY_SERVICE_FAILED);
     auto abilityInfoFlag = AbilityRuntime::StartupUtil::BuildAbilityInfoFlag();
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
         "bundleName: %{public}s, abilityName: %{public}s, appIndex: %{public}d, userId: %{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), appIndex, userId);
     AppExecFwk::AbilityInfo abilityInfo;
@@ -15158,6 +15164,42 @@ int32_t AbilityManagerService::NotifyStartupExceptionBySCB(int32_t requestId)
 int32_t AbilityManagerService::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
     return PreloadManagerService::GetInstance().PreloadApplication(bundleName, userId, appIndex);
+}
+
+int32_t AbilityManagerService::RestartAppWithWindow(const AAFwk::Want &want, sptr<IRemoteObject> callerToken)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "RestartAppWithWindow");
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() ||
+        !AppUtils::GetInstance().IsSupportRestartAppWithWindow()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT; // for js 801
+    }
+
+    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+    CHECK_POINTER_AND_RETURN_LOG(callerRecord, ERR_NULL_OBJECT, "callerRecord null");
+    if (!IsAppSelfCalled(callerRecord)) {
+        return ERR_INVALID_CALLER;
+    }
+
+    if (callerRecord->GetAbilityInfo().type != AbilityType::PAGE) {
+        return ERR_INVALID_CALLER;
+    }
+
+    if (!callerRecord->IsForeground()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ability not foregorund state");
+        return ERR_ABILITY_NOT_FOREGROUND;
+    }
+
+    // to be simple, want has abilityName, and moduleName ignored
+    // no implicit supported
+    auto element = want.GetElement();
+    if (element.GetAbilityName() == callerRecord->GetAbilityInfo().name) {
+        callerRecord->SetRestartMode(RestartMode::RESTART_SAME_ABILITY);
+    } else {
+        callerRecord->SetRestartMode(RestartMode::RESTART_OTHER_ABILITY);
+    }
+
+    return RestartAppInner(want, false, callerToken);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

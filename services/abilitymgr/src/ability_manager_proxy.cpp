@@ -7179,5 +7179,31 @@ int32_t AbilityManagerProxy::PreloadApplication(const std::string &bundleName, i
 
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::RestartAppWithWindow(const AAFwk::Want &want, sptr<IRemoteObject> callerToken)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return IPC_PROXY_ERR;
+    }
+    if (callerToken == nullptr || !data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken error");
+        return IPC_PROXY_ERR;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::RESTART_APP_WITH_WINDOW, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
