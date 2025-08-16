@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 import ActsAceWebSetResponse from './webSetResponse.test'
+import webPrivateNetworkAccess from './WebPrivateNetworkAccess.test'
 
 export default function testsuite() {
   ActsAceWebSetResponse()
+  webPrivateNetworkAccess()
 }
