@@ -34,11 +34,11 @@ export default function CounterEnableTest() {
         console.info("get CounterEnableTest state pages: " + JSON.stringify(pages));
         if (pages == null || !("CounterEnable" == pages.name)) {
           await router.pushUrl(options).then(() => {
-            await CommonFunc.sleep(1000);
             console.info(`${SUITE} router.pushUrl success`);
           }).catch((err: BusinessError) => {
             console.error(`${SUITE} router.pushUrl failed, code is ${err.code}, message is ${err.message}`);
           })
+          await CommonFunc.sleep(1000);
         }
       } catch (err) {
         console.error(`${SUITE} beforeEach error:` + JSON.stringify(err));
