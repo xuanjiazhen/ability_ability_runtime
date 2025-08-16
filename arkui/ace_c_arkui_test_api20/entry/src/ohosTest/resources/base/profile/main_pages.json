@@ -12,6 +12,7 @@
     "MainAbility/pages/uiInput/UiInputErrorCodeTest",
     "MainAbility/pages/scope/TestRunTaskInScope",
     "MainAbility/pages/list/ListTypeNodePage",
-    "MainAbility/pages/list/ListCNodePage"
+    "MainAbility/pages/list/ListCNodePage",
+    "MainAbility/pages/BindController/BindController"
   ]
 }
