@@ -190,7 +190,7 @@ export default function geolocationTest_GeoErr() {
 
         /**
          * @tc.number SUB_HSS_Addbeaconfence_0100
-         * @tc.name testaddBeaconFence
+         * @tc.name testAddBeaconFence
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
          * @tc.size MEDIUM
          * @tc.type Function
@@ -199,9 +199,10 @@ export default function geolocationTest_GeoErr() {
         it('SUB_HSS_Addbeaconfence_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
             (async () => {
                 try {
-                    let manufactureDataBuffer: Uint8Array = new Uint8Array([0X02, 0X15, 0X00, 0X00, 0X18, 0X12, 0X00, 0X00,
+                    let manufactureDataBuffer:Uint8Array = new Uint8Array([0X02, 0X15, 0X00, 0X00, 0X18, 0X12, 0X00, 0X00,
                         0X10, 0X00, 0X80, 0X00, 0X00, 0X80, 0X5F, 0X9B, 0X34, 0XFB]);
-                    let manufactureDataMaskBuffer: Uint8Array = new Uint8Array([0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
+
+                    let manufactureDataMaskBuffer:Uint8Array = new Uint8Array([0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
                         0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF]);
 
                     let manufactureData: geoLocationManager.BeaconManufactureData = {
@@ -228,12 +229,13 @@ export default function geolocationTest_GeoErr() {
                     geoLocationManager.disableLocation();
                     geoLocationManager.addBeaconFence(fenceRequest).then((id) => {
                         console.info("addBeaconFence success, fence id:" + id);
-                    })
+                    }).catch((error : BusinessError) => {
+                       console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
+                       expect(error.code).assertEqual("3501100");
+                    });
                 } catch (error) {
                     console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
-                    expect(error.code).assertEqual("3501100");
-
-                }
+                };
             })();
             await sleep(1000);
             geoLocationManager.enablelocation();
