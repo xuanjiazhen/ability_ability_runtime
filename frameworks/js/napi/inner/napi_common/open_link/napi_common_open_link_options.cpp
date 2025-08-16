@@ -49,6 +49,11 @@ bool UnwrapOpenLinkOptions(napi_env env, napi_value param, AAFwk::OpenLinkOption
         want.SetParam(APP_LINKING_ONLY, false);
     }
 
+    bool withoutDialog = false;
+    if (UnwrapBooleanByPropertyName(env, param, WITHOUT_DIALOG.c_str(), withoutDialog)) {
+        openLinkOptions.SetWithoutDialog(withoutDialog);
+    }
+
     return true;
 }
 }  // namespace AppExecFwk

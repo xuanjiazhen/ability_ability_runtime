@@ -21,6 +21,7 @@
 #include "ability_connect_callback.h"
 #include "extension_context.h"
 #include "free_install_observer_interface.h"
+#include "open_link_options.h"
 #include "start_options.h"
 #include "ui_holder_extension_context.h"
 #include "want.h"
@@ -176,7 +177,7 @@ public:
     Ace::UIContent* GetUIContent() override;
 #endif // SUPPORT_SCREEN
 
-    ErrCode OpenLink(const AAFwk::Want& want, int reuqestCode);
+    ErrCode OpenLink(const AAFwk::Want& want, int reuqestCode, const AAFwk::OpenLinkOptions &opt = {});
 
     ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
         RuntimeTask &&task);
