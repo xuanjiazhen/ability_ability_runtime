@@ -190,7 +190,7 @@ export default function geolocationTest_GeoErr() {
 
         /**
          * @tc.number SUB_HSS_Addbeaconfence_0100
-         * @tc.name Addbeaconfence
+         * @tc.name Addbeaconfence_0100
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
          * @tc.size MEDIUM
          * @tc.type Function
@@ -242,7 +242,7 @@ export default function geolocationTest_GeoErr() {
 
         /**
          * @tc.number isBeaconFenceSupported_0100
-         * @tc.name isBeaconFenceSupported
+         * @tc.name isBeaconFenceSupported_0100
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
          * @tc.size MEDIUM
          * @tc.type Function
