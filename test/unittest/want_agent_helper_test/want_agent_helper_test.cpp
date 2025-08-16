@@ -1014,8 +1014,8 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_4900, Function | MediumTest | Leve
     std::shared_ptr<CompletedCallback> callback;
     TriggerInfo paramsInfo;
     sptr<CompletedDispatcher> completedData;
-    WantAgentHelper::TriggerWantAgent(nullptr, callback, paramsInfo, completedData, nullptr);
-
+    int32_t result = WantAgentHelper::TriggerWantAgent(nullptr, callback, paramsInfo, completedData, nullptr);
+    EXPECT_EQ(result, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
     GTEST_LOG_(INFO) << "WantAgentHelper::TriggerWantAgent end";
 }
 

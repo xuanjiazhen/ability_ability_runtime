@@ -224,7 +224,7 @@ WantAgentConstant::OperationType WantAgentHelper::GetType(std::shared_ptr<WantAg
 }
 
 ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
-    const std::shared_ptr<CompletedCallback> &callback, const TriggerInfo &paramsInfo,
+    const std::shared_ptr<CompletedCallback> &callback, TriggerInfo &paramsInfo,
     sptr<CompletedDispatcher> &data, sptr<IRemoteObject> callerToken)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "call");
@@ -243,6 +243,7 @@ ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
                 dispatcher = new (std::nothrow) CompletedDispatcher(localPendingWant, callback, nullptr);
             }
         }
+        paramsInfo.dispatcher = dispatcher;
         int32_t res = Send(localPendingWant, dispatcher, paramsInfo, callerToken);
         data = std::move(dispatcher);
         return res;
@@ -257,6 +258,7 @@ ErrCode WantAgentHelper::TriggerWantAgent(std::shared_ptr<WantAgent> agent,
             dispatcher = new (std::nothrow) CompletedDispatcher(pendingWant, callback, nullptr);
         }
     }
+    paramsInfo.dispatcher = dispatcher;
     int32_t res = Send(pendingWant, type, dispatcher, paramsInfo, callerToken);
     data = std::move(dispatcher);
     return res;

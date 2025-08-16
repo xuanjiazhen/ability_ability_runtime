@@ -739,7 +739,7 @@ napi_value JsWantAgent::OnTrigger(napi_env env, napi_callback_info info)
         return CreateJsUndefined(env);
     }
 
-    auto execute = [wantAgent, triggerObj, triggerInfo] () {
+    auto execute = [wantAgent, triggerObj, &triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
         sptr<CompletedDispatcher> completedData;
         WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
@@ -1193,7 +1193,7 @@ napi_value JsWantAgent::OnNapiTrigger(napi_env env, napi_callback_info info)
         return CreateJsUndefined(env);
     }
 
-    auto execute = [wantAgent, triggerObj, triggerInfo] () {
+    auto execute = [wantAgent, triggerObj, &triggerInfo] () {
         TAG_LOGD(AAFwkTag::WANTAGENT, "called");
         sptr<CompletedDispatcher> completedData;
         WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
@@ -1249,7 +1249,7 @@ napi_value JsWantAgent::OnNapiTriggerAsync(napi_env env, napi_callback_info info
         return CreateJsUndefined(env);
     }
     std::shared_ptr<CompletedDispatcher> data = std::make_shared<CompletedDispatcher>();
-    auto execute = [wantAgent, triggerObj, triggerInfo, inputContextPtr, data, retCode] () {
+    auto execute = [wantAgent, triggerObj, &triggerInfo, inputContextPtr, data, retCode] () {
         sptr<CompletedDispatcher> completedData;
         *retCode = WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData,
             inputContextPtr->GetToken());
