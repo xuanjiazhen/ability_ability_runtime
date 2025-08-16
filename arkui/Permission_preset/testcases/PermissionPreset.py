@@ -1,54 +1,25 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Copyright (c) 2020-2021 Huawei Device Co., Ltd.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
-from hypium import BY, Launcher
-from hypium.advance.perf.action import UiExplorerPerf
-from hypium.advance.perf.model_base import ModelBase
+from devicetest.base.test_sub_case import TestCase
+from hypium import UiDriver, BY
 from hypium.model import UiParam
+from xdevice import platform_logger
 
+log = platform_logger("Preload")
 
-'''
-@原子用例
-@预置条件
-无
-@用例步骤
-1、回到桌面首页
-2、左滑进入负一屏
-3、检测小艺弹窗
+class PermissionPreset(TestCase):
 
-'''
-
-
-class PermissionPreset(ModelBase):
-
-    def __init__(self, uidriver: UiExplorerPerf, case_id):
-        ModelBase.__init__(self, uidriver, case_id)
-        self.scene_no = "CameraVideoView"
-        self.scene_name = "负一屏小艺预置"
-        self.driver = uidriver
+    def __init__(self, controllers):
+        self.TAG = self.__class__.__name__
+        self.tests = ["test_step"]
+        TestCase.__init__(self, self.TAG, controllers)
+        self.driver = UiDriver(self.device1)
 
     def setup(self):
-        Launcher.go_home(self.driver)
+        self.driver.wake_up_display()
+        self.driver.swipe_to_home()
+        self.driver.go_home()
 
-    @ModelBase.scene_recover
-    def execute(self):
+    def test_step(self):
         driver = self.driver
-        # 1、回到桌面首页
-        driver.go_home()
         driver.wait(2)
         # 2、左滑进入负一屏
         driver.swipe(UiParam.RIGHT, distance=60, start_point=(0.8, 0.5))
@@ -89,5 +60,6 @@ class PermissionPreset(ModelBase):
             driver.touch(search_field)
             driver.wait(1)
 
-        # 回到桌面
-        driver.go_home()
+    def teardown(self):
+        self.driver.go_home()
+        self.driver.shell("kill -9 $(pidof uitest)")
