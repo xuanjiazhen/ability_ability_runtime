@@ -24,6 +24,7 @@
 #include "ets_application_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_native_reference.h"
+#include "event_hub.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 #include "resourceManager.h"
@@ -140,7 +141,7 @@ void Clean(ani_env *env, ani_object object)
         return;
     }
     if (ptr != 0) {
-        delete reinterpret_cast<Context *>(ptr);
+        delete reinterpret_cast<std::weak_ptr<Context> *>(ptr);
     }
 }
 
@@ -232,6 +233,20 @@ void BindParentProperty(ani_env *aniEnv, ani_class contextClass, ani_object cont
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
     BindContextDir(aniEnv, contextObj, context);
+    ani_status status = ANI_ERROR;
+    ani_field processNameField;
+    if ((status = aniEnv->Class_FindField(contextClass, "processName", &processNameField)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find processName failed status: %{public}d", status);
+        return;
+    }
+    auto processName = context->GetProcessName();
+    ani_string processNameString = nullptr;
+    aniEnv->String_NewUTF8(processName.c_str(), processName.size(), &processNameString);
+    if ((status = aniEnv->Object_SetField_Ref(contextObj, processNameField,
+        reinterpret_cast<ani_ref>(processNameString))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_SetField_Ref failed, status: %{public}d", status);
+        return;
+    }
 }
 
 void BindNativeFunction(ani_env *aniEnv)
@@ -259,7 +274,7 @@ void BindNativeFunction(ani_env *aniEnv)
                 reinterpret_cast<void *>(ContextUtil::CreateModuleResourceManagerSync)},
             ani_native_function {"nativeGetGroupDir", nullptr,
                 reinterpret_cast<void *>(ContextUtil::NativeGetGroupDir)},
-            ani_native_function {"nativeCreateDisplayContext", "D:Lapplication/Context/Context;",
+            ani_native_function {"nativeCreateDisplayContext", "J:Lapplication/Context/Context;",
                 reinterpret_cast<void *>(ContextUtil::NativeCreateDisplayContext)},
             ani_native_function {"nativeCreateAreaModeContext",
                 "L@ohos/app/ability/contextConstant/contextConstant/AreaMode;:Lapplication/Context/Context;",
@@ -328,6 +343,21 @@ void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object co
     }
     BindParentProperty(aniEnv, contextClass, contextObj, context);
     BindNativeFunction(aniEnv);
+    // set eventHub context
+    ani_ref eventHubRef = nullptr;
+    ani_status status = ANI_OK;
+    if ((status = aniEnv->Object_GetFieldByName_Ref(contextObj, "eventHub", &eventHubRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Object_GetFieldByName_Ref failed status: %{public}d", status);
+        return;
+    }
+
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::Context>(context);
+    if (workContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "workContext null");
+        return;
+    }
+    ani_long nativeContextLong = (ani_long)workContext;
+    AbilityRuntime::EventHub::SetEventHubContext(aniEnv, eventHubRef, nativeContextLong);
 }
 
 std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
@@ -356,12 +386,6 @@ std::shared_ptr<Context> GetBaseContext(ani_env *env, ani_object aniObj)
     return weakContext != nullptr ? weakContext->lock() : nullptr;
 }
 
-bool CheckCallerIsSystemApp()
-{
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken);
-}
-
 ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
     ani_string bundleName, ani_string moduleName)
 {
@@ -379,7 +403,7 @@ ani_object CreateModuleResourceManagerSync(ani_env *env, ani_object aniObj,
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return nullptr;
     }
-    if (!CheckCallerIsSystemApp()) {
+    if (!AppExecFwk::CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
         return nullptr;
@@ -424,7 +448,7 @@ void NativeGetGroupDir([[maybe_unused]]ani_env *env, [[maybe_unused]]ani_object 
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, aniPath);
 }
 
-ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_double displayId)
+ani_object NativeCreateDisplayContext(ani_env *env, ani_object aniObj, ani_long displayId)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "NativeCreateDisplayContext");
     if (env == nullptr) {
@@ -632,9 +656,9 @@ ani_object GetApplicationContextSync(ani_env *env, ani_object aniObj)
     }
     if (!applicationContext->GetApplicationInfoUpdateFlag()) {
         auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
-        if (appContextObj != nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "appContextObj is not nullptr");
-            return appContextObj->aniObj;
+        if (appContextObj != nullptr && appContextObj->aniRef != nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "appContextObj is not nullptr");
+            return reinterpret_cast<ani_object>(appContextObj->aniRef);
         }
     }
     return GetApplicationContext(env, applicationContext);

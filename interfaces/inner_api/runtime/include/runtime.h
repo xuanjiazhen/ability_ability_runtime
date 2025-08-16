@@ -27,10 +27,17 @@ namespace AppExecFwk {
 class EventRunner;
 } // namespace AppExecFwk
 namespace AbilityRuntime {
+struct CommonHspBundleInfo {
+    std::string bundleName;
+    std::string moduleName;
+    std::string hapPath;
+    std::string moduleArkTSMode;
+};
 namespace {
-const std::string CODE_LANGUAGE_ARKTS_1_0 = "1.1";
-const std::string CODE_LANGUAGE_ARKTS_1_2 = "1.2";
+const std::string CODE_LANGUAGE_ARKTS_1_0 = "dynamic";
+const std::string CODE_LANGUAGE_ARKTS_1_2 = "static";
 const std::string CODE_LANGUAGE_ARKTS_HYBRID = "hybrid";
+const std::string DEBUGGER = "@Debugger";
 } // namespace
 
 class Runtime {
@@ -54,6 +61,8 @@ public:
         std::vector<std::string> assetBasePathStr;
         std::shared_ptr<AppExecFwk::EventRunner> eventRunner = nullptr;
         std::map<std::string, std::string> hapModulePath;
+        std::vector<std::string> appInnerHspPathList;
+        std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos;
         bool loadAce = true;
         bool preload = false;
         bool isBundle = true;
@@ -74,6 +83,7 @@ public:
         std::map<std::string, std::string> pkgContextInfoJsonStringMap;
         std::map<std::string, std::string> packageNameList;
         std::map<std::string, int32_t> aotCompileStatusMap;
+        bool isStartWithDebug = false;
         uint32_t versionCode = 0;
         bool enableWarmStartupSmartGC = false;
     };
@@ -88,11 +98,12 @@ public:
         bool isStartWithNative = false;
         bool isDebugFromLocal = false;
         bool isDeveloperMode;
+        std::string arkTSMode = CODE_LANGUAGE_ARKTS_1_2;
     };
 
     static std::unique_ptr<Runtime> Create(Options &options);
-    static void SavePreloaded(std::unique_ptr<Runtime>&& instance);
-    static std::unique_ptr<Runtime> GetPreloaded();
+    static void SavePreloaded(std::unique_ptr<Runtime> &&instance);
+    static std::unique_ptr<Runtime> GetPreloaded(Language key);
 
     Runtime() = default;
     virtual ~Runtime() = default;
@@ -130,6 +141,7 @@ public:
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
     virtual void SetStopPreloadSoCallback(const std::function<void()> &callback) {}
+    virtual void PreloadSystemClass(const char *className) {}
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;
     Runtime& operator=(const Runtime&) = delete;

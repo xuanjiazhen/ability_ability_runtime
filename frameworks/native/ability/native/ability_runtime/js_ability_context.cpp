@@ -226,7 +226,7 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
         TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
         return;
     }
-    auto releaseCallAbilityFunc = [abilityContext] (const std::shared_ptr<CallerCallBack> &callback) -> ErrCode {
+    auto releaseCallAbilityFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
         auto contextForRelease = abilityContext.lock();
         if (contextForRelease == nullptr) {
             TAG_LOGE(AAFwkTag::CONTEXT, "null releaseCallAbilityFunction");
@@ -2167,6 +2167,9 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
     if (configuration != nullptr) {
         napi_set_named_property(env, object, "config", CreateJsConfiguration(env, *configuration));
     }
+
+    std::string type = "UIAbilityContext";
+    napi_set_named_property(env, object, "contextType", CreateJsValue(env, type));
 
     const char *moduleName = "JsAbilityContext";
     BindNativeFunction(env, object, "startAbility", moduleName, JsAbilityContext::StartAbility);

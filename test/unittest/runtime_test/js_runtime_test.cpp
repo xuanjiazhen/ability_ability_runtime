@@ -420,7 +420,7 @@ HWTEST_F(JsRuntimeTest, RuntimeSavePreloadedTest_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "SavePreloaded start");
 
     Runtime::SavePreloaded(nullptr);
-    auto result = Runtime::GetPreloaded();
+    auto result = Runtime::GetPreloaded(Runtime::Language::JS);
     EXPECT_EQ(result, nullptr);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -555,6 +555,7 @@ HWTEST_F(JsRuntimeTest, JsRuntimeStartDebugModeTest_0100, TestSize.Level2)
     debugOption.isDebugApp = true;
     debugOption.isStartWithNative = false;
     debugOption.isDeveloperMode = true;
+    debugOption.arkTSMode = "static";
     jsRuntime->StartDebugMode(debugOption);
     EXPECT_TRUE(jsRuntime != nullptr);
 

@@ -16,6 +16,7 @@
 #include <regex>
 
 #include "ability_delegator_registry.h"
+#include "ani_common_util.h"
 #include "hilog_tag_wrapper.h"
 #include "runner_runtime/ets_test_runner.h"
 
@@ -28,9 +29,8 @@
 namespace OHOS {
 namespace RunnerRuntime {
 namespace {
-const std::string CAPITALTESTRUNNER = "/ets/TestRunner/";
-const std::string LOWERCASETESTRUNNER = "/ets/testrunner/";
-} // namespace
+    constexpr int32_t ARGC_ZERO = 0;
+}
 
 TestRunner *ETSTestRunner::Create(const std::unique_ptr<Runtime> &runtime,
     const std::shared_ptr<AbilityDelegatorArgs> &args, const AppExecFwk::BundleInfo &bundleInfo)
@@ -64,18 +64,15 @@ ETSTestRunner::ETSTestRunner(
     if (args) {
         std::string srcPath;
         if (bundleInfo.hapModuleInfos.back().isModuleJson) {
-            srcPath.append(args->GetTestModuleName());
-            if (args->GetTestRunnerClassName().find("/") == std::string::npos) {
-                srcPath.append(LOWERCASETESTRUNNER);
-            }
             moduleName = args->GetTestModuleName();
+            srcPath.append(GetTestRunnerPath(args));
         } else {
             srcPath.append(args->GetTestPackageName());
             srcPath.append("/assets/sts/TestRunner/");
             moduleName = args->GetTestPackageName();
+            srcPath.append(args->GetTestRunnerClassName());
+            srcPath.append(".abc");
         }
-        srcPath.append(args->GetTestRunnerClassName());
-        srcPath.append(".abc");
         srcPath_ = srcPath;
     }
     TAG_LOGI(AAFwkTag::DELEGATOR, "srcPath: %{public}s", srcPath_.c_str());
@@ -105,15 +102,25 @@ ETSTestRunner::ETSTestRunner(
     etsTestRunnerObj_ = etsRuntime_.LoadModule(moduleName, srcPath_, hapPath_,
         bundleInfo.hapModuleInfos.back().compileMode == AppExecFwk::CompileMode::ES_MODULE,
         false, srcPath_);
-    if (!etsTestRunnerObj_ && srcPath_.find(LOWERCASETESTRUNNER) != std::string::npos) {
-        TAG_LOGI(AAFwkTag::DELEGATOR, "not found %{public}s , retry load capital address", srcPath_.c_str());
-        std::regex src_pattern(LOWERCASETESTRUNNER);
-        srcPath_ = std::regex_replace(srcPath_, src_pattern, CAPITALTESTRUNNER);
-        TAG_LOGI(AAFwkTag::DELEGATOR, "capital address is %{public}s", srcPath_.c_str());
-        etsTestRunnerObj_ = etsRuntime_.LoadModule(moduleName, srcPath_, hapPath_,
-            bundleInfo.hapModuleInfos.back().compileMode == AppExecFwk::CompileMode::ES_MODULE,
-            false, srcPath_);
+    if (!etsTestRunnerObj_) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "load testrunner failed");
     }
+}
+
+std::string ETSTestRunner::GetTestRunnerPath(const std::shared_ptr<AbilityDelegatorArgs> &args)
+{
+    std::string result;
+    if (!args->GetTestRunnerPath().empty()) {
+        result.append(args->GetTestRunnerPath());
+    } else {
+        result.append(args->GetTestModuleName());
+        if (args->GetTestRunnerClassName().find("/") == std::string::npos) {
+            result.append(LOWERCASETESTRUNNER);
+        }
+        result.append(args->GetTestRunnerClassName());
+        result.append(".abc");
+    }
+    return result;
 }
 
 ETSTestRunner::~ETSTestRunner() = default;
@@ -131,17 +138,21 @@ void ETSTestRunner::Prepare()
         if (env->ResetError() != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "ResetError failed");
         }
-        ani_method method;
+        ani_ref funRef;
         ani_status status = ANI_ERROR;
-        status = env->Class_FindMethod(etsTestRunnerObj_->aniCls, "onPrepare", ":V", &method);
+        status = env->Object_GetPropertyByName_Ref(etsTestRunnerObj_->aniObj, "onPrepare", &funRef);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "get onPrepare failed status : %{public}d", status);
             return;
         }
         TAG_LOGI(AAFwkTag::DELEGATOR, "get onPrepare success");
+        if (!IsValidProperty(env, funRef)) {
+            TAG_LOGI(AAFwkTag::DELEGATOR, "invalid onPrepare property");
+            return;
+        }
 
-        ani_int result;
-        status = env->Object_CallMethod_Void(etsTestRunnerObj_->aniObj, method, &result);
+        ani_ref result;
+        status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ZERO, nullptr, &result);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void onPrepare failed status : %{public}d", status);
         } else {
@@ -163,17 +174,21 @@ void ETSTestRunner::Run()
         if (env->ResetError() != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "ResetError failed");
         }
-        ani_method method;
+        ani_ref funRef;
         ani_status status = ANI_ERROR;
-        status = env->Class_FindMethod(etsTestRunnerObj_->aniCls, "onRun", ":V", &method);
+        status = env->Object_GetPropertyByName_Ref(etsTestRunnerObj_->aniObj, "onRun", &funRef);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "get onRun failed status : %{public}d", status);
             return;
         }
         TAG_LOGI(AAFwkTag::DELEGATOR, "get onRun success");
+        if (!IsValidProperty(env, funRef)) {
+            TAG_LOGI(AAFwkTag::DELEGATOR, "invalid onRun property");
+            return;
+        }
 
-        ani_int result;
-        status = env->Object_CallMethod_Void(etsTestRunnerObj_->aniObj, method, &result);
+        ani_ref result;
+        status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ZERO, nullptr, &result);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "Object_CallMethod_Void onRun failed status : %{public}d", status);
         } else {

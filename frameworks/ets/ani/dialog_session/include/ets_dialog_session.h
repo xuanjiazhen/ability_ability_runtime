@@ -13,23 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_STS_FORM_EXTENSION_CONTEXT_H
-#define OHOS_ABILITY_RUNTIME_STS_FORM_EXTENSION_CONTEXT_H
+#ifndef OHOS_ABILITY_RUNTIME_ETS_DIALOG_SESSION_H
+#define OHOS_ABILITY_RUNTIME_ETS_DIALOG_SESSION_H
 
 #include "ani.h"
-#include "form_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-ani_ref CreateStsFormExtensionContext(ani_env *env, std::shared_ptr<FormExtensionContext> &context);
-
-class STSFormExtensionContext {
-public:
-    static ani_ref CreateStsExtensionContext(ani_env *env, const std::shared_ptr<FormExtensionContext> &context,
-        std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> &abilityInfo);
-
-    static ani_object SetFormExtensionContext(ani_env *env, const std::shared_ptr<FormExtensionContext> &context);
-};
+void EtsDialogSessionInit(ani_env *env);
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // OHOS_ABILITY_RUNTIME_STS_FORM_EXTENSION_CONTEXT_H
+#endif // OHOS_ABILITY_RUNTIME_ETS_DIALOG_SESSION_H

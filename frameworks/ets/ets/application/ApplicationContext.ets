@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import AbilityLifecycleCallback from '../@ohos.app.ability.AbilityLifecycleCallback';
+import InteropAbilityLifecycleCallback from '../@ohos.app.ability.InteropAbilityLifecycleCallback';
 import Context from 'application.Context'
 import { BusinessError, AsyncCallback } from '@ohos.base'
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
@@ -40,6 +42,10 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
 export default class ApplicationContext extends Context {
+  static {
+    loadLibrary("application_context_ani_kit.z");
+  }
+
   etsApplicationContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
 
@@ -58,23 +64,30 @@ export default class ApplicationContext extends Context {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
+  public native nativeOnLifecycleCallbackSync(type: string, callback: AbilityLifecycleCallback): int;
+  public native nativeOffLifecycleCallbackSync(type: string, callbackId: int,
+    callback: AsyncCallbackWrapper<void>): void;
   public native nativekillAllProcessesSync(clearPageStack: boolean, callback: AsyncCallbackWrapper<void>): void;
   public native nativepreloadUIExtensionAbilitySync(want: Want, callback: AsyncCallbackWrapper<void>): void;
   public native setSupportedProcessCacheSync(isSupported : boolean):void;
   public native nativegetRunningProcessInformation(callback: AsyncCallbackWrapper<Array<ProcessInformation>>): void;
   public native nativeclearUpApplicationData(callback: AsyncCallbackWrapper<void>): void;
   public native nativesetLanguage(language: string): void;
-  public native nativesetFontSizeScale(fontSizeScale: number): void;
+  public native nativesetFontSizeScale(fontSizeScale: double): void;
   public native nativesetColorMode(colorMode: ConfigurationConstant.ColorMode): void;
-  public native nativesetFont(font: string): void; 
+  public native nativesetFont(font: string): void;
   public native nativerestartApp(want: Want): void;
   public native nativeGetAllRunningInstanceKeys(callback: AsyncCallbackWrapper<Array<string>>): void;
-  public native nativeOnEnvironmentSync(callback: EnvironmentCallback): number;
-  public native nativeOffEnvironmentSync(callbackId: number, callback: AsyncCallbackWrapper<void>): void;
+  public native nativeOnEnvironmentSync(callback: EnvironmentCallback): int;
+  public native nativeOffEnvironmentSync(callbackId: int, callback: AsyncCallbackWrapper<void>): void;
   public native nativeOnApplicationStateChangeSync(callback: ApplicationStateChangeCallback): void;
   public native nativeOffApplicationStateChangeSync(callback?: ApplicationStateChangeCallback): void;
-  public native nativegetCurrentAppCloneIndex(): number;
+  public native nativegetCurrentAppCloneIndex(): int;
   public native nativegetCurrentInstanceKey(): string;
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'ApplicationContext';
 
   setSupportedProcessCache(isSupported : boolean):void {
     this.setSupportedProcessCacheSync(isSupported);
@@ -190,7 +203,7 @@ export default class ApplicationContext extends Context {
     this.nativesetLanguage(language);
   }
 
-  setFontSizeScale(fontSizeScale: number): void {
+  setFontSizeScale(fontSizeScale: double): void {
     this.nativesetFontSizeScale(fontSizeScale);
   }
 
@@ -224,18 +237,22 @@ export default class ApplicationContext extends Context {
     return p;
   }
 
-  on(type: 'environment', callback: EnvironmentCallback): number {
+  on(type: 'environment', callback: EnvironmentCallback): int {
     return this.nativeOnEnvironmentSync(callback);
   }
 
-  off(type: 'environment', callbackId: number, callback: AsyncCallback<void>): void {
+  off(type: string, callbackId: int, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
-      this.nativeOffEnvironmentSync(callbackId, myCall);
+      if (type == 'environment') {
+        this.nativeOffEnvironmentSync(callbackId, myCall);
+      } else if (type == 'abilityLifecycle') {
+        this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+      }
     });
   }
 
-  off(type: 'environment', callbackId: number): Promise<void> {
+  off(type: string, callbackId: int): Promise<void> {
     let p =
       new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -246,7 +263,11 @@ export default class ApplicationContext extends Context {
           }
         });
         taskpool.execute((): void => {
-          this.nativeOffEnvironmentSync(callbackId, myCall);
+          if (type == 'environment') {
+            this.nativeOffEnvironmentSync(callbackId, myCall);
+          } else if (type == 'abilityLifecycle') {
+            this.nativeOffLifecycleCallbackSync(type, callbackId, myCall);
+          }
         });
       });
     return p;
@@ -264,7 +285,35 @@ export default class ApplicationContext extends Context {
     return this.nativegetCurrentInstanceKey();
   }
 
-  getCurrentAppCloneIndex(): number {
+  getCurrentAppCloneIndex(): int {
     return this.nativegetCurrentAppCloneIndex();
+  }
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic contextType: ' + type);
+    return ApplicationContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return ApplicationContext.nativeTransferDynamic(input).unwrap();
+  }
+
+  on(type: 'abilityLifecycle', callback: AbilityLifecycleCallback): int {
+    return this.nativeOnLifecycleCallbackSync(type, callback);
+  }
+
+  public native nativeOnInteropLifecycleCallbackSync(type: string, callback: InteropAbilityLifecycleCallback): void;
+  public native nativeOffInteropLifecycleCallbackSync(type: string, callback?: InteropAbilityLifecycleCallback): void;
+  on(type: 'interopAbilityLifecycle', callback: InteropAbilityLifecycleCallback): void {
+    this.nativeOnInteropLifecycleCallbackSync(type, callback);
+  }
+  off(type: 'interopAbilityLifecycle', callback?: InteropAbilityLifecycleCallback): void {
+    this.nativeOffInteropLifecycleCallbackSync(type, callback);
   }
 }

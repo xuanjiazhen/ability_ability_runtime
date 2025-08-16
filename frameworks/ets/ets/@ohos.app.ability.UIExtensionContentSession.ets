@@ -20,6 +20,7 @@ import uiExtensionHost from '@ohos.uiExtensionHost';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import AbilityStartCallback from 'application.AbilityStartCallback';
+import uiExtension from '@ohos.arkui.uiExtension';
 
 class Cleaner {
   static callback(cleaner: Cleaner): void {
@@ -54,11 +55,13 @@ export default class UIExtensionContentSession {
   native loadContent(path: string, storage?: LocalStorage): void;
   native setWindowBackgroundColor(color: string): void;
   native getUIExtensionHostWindowProxy(): uiExtensionHost.UIExtensionHostWindowProxy;
+  native getUIExtensionWindowProxy(): uiExtension.WindowProxy;
   native nativeSetReceiveDataCallback(callback: (data: Record<string, Object>) => void): void;
   native nativeSetReceiveDataForResultCallback(callback: (data: Record<string, Object>) => Record<string, Object>): void;
   native terminateSelfSync(callback:AsyncCallbackWrapper<void>): void;
   native terminateSelfWithResultSync(parameter: AbilityResult, callback:AsyncCallbackWrapper<void>): void;
   private native nativeStartAbilityByTypeSync(type: string, wantParam: Record<string, Object>, startCallback: AbilityStartCallback): BusinessError<void>;
+  native nativeSetWindowPrivacyMode(isPrivacyMode: boolean, callback:AsyncCallbackWrapper<void>): void;
 
   sendData(data: Record<string, Object>): void {
     this.nativeSendData(data);
@@ -125,7 +128,11 @@ export default class UIExtensionContentSession {
     });
     p1.then((e: NullishType) => {
       let retError = e as BusinessError<void>;
-      callback(retError, undefined);
+      if (retError.code === 0) {
+        callback(null, undefined);
+      } else {
+        callback(retError, undefined);
+      }      
     }, (err: Error): void => {
       callback(err as BusinessError, undefined);
     });
@@ -149,5 +156,27 @@ export default class UIExtensionContentSession {
       });
     });
     return p;
+  }
+
+  setWindowPrivacyMode(isPrivacyMode: boolean): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject:(err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetWindowPrivacyMode(isPrivacyMode, asyncCall);
+      });
+    });
+  }
+
+  setWindowPrivacyMode(isPrivacyMode: boolean, callback: AsyncCallback<void>): void {
+    let asyncCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute((): void => {
+      this.nativeSetWindowPrivacyMode(isPrivacyMode, asyncCall);
+    });
   }
 }

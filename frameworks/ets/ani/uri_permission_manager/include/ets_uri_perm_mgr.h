@@ -22,15 +22,10 @@
 namespace OHOS {
 namespace AbilityRuntime {
 static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
-    ani_string uri, ani_enum_item flagEnum, ani_string targetName, ani_double appCloneIndex, ani_object callback);
+    ani_string uri, ani_enum_item flagEnum, ani_string targetName, ani_int appCloneIndex, ani_object callback);
 static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
-    ani_string uri, ani_string targetName, ani_double appCloneIndex, ani_object callback);
+    ani_string uri, ani_string targetName, ani_int appCloneIndex, ani_object callback);
 void CreateJsUriPermMgr(ani_env *env);
-bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object result);
-ani_object WrapBusinessError(ani_env *env, ani_int code);
-ani_object WrapError(ani_env *env, const std::string &msg);
-ani_string GetAniString(ani_env *env, const std::string &str);
-std::string GetErrMsg(int32_t err, const std::string &permission = "");
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_URI_PERM_MGR_H

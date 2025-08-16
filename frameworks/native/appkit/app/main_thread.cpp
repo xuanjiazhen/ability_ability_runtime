@@ -205,9 +205,11 @@ constexpr int32_t PRELOAD_TASK_DELAY_TIME = 2000;  //millisecond
 extern "C" int DFX_SetAppRunningUniqueId(const char* appRunningId, size_t len) __attribute__((weak));
 } // namespace
 
-void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths)
+void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &hspList, AppLibPathMap &appLibPaths,
+    std::map<std::string, std::string> &abcPathsToBundleModuleNameMap)
 {
     std::string patchNativeLibraryPath = bundleInfo.applicationInfo.appQuickFix.deployedAppqfInfo.nativeLibraryPath;
+    abcPathsToBundleModuleNameMap["default"] = "default";
     if (!patchNativeLibraryPath.empty()) {
         // libraries in patch lib path has a higher priority when loading.
         std::string patchLibPath = LOCAL_CODE_PATH;
@@ -233,14 +235,15 @@ void MainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspList &h
         TAG_LOGD(AAFwkTag::APPKIT,
             "moduleName: %{public}s, isLibIsolated: %{public}d, compressNativeLibs: %{public}d.",
             hapInfo.moduleName.c_str(), hapInfo.isLibIsolated, hapInfo.compressNativeLibs);
-        GetPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths);
-        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH));
+        GetPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths, abcPathsToBundleModuleNameMap);
+        GetHapSoPath(hapInfo, appLibPaths, hapInfo.hapPath.find(ABS_CODE_PATH), abcPathsToBundleModuleNameMap);
     }
 
     for (auto &hspInfo : hspList) {
         TAG_LOGD(AAFwkTag::APPKIT, "bundle:%s, module:%s, nativeLibraryPath:%s", hspInfo.bundleName.c_str(),
             hspInfo.moduleName.c_str(), hspInfo.nativeLibraryPath.c_str());
-        GetHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(ABS_CODE_PATH) != 0u);
+        GetHspNativeLibPath(hspInfo, appLibPaths, hspInfo.hapPath.find(ABS_CODE_PATH) != 0u,
+            bundleInfo.applicationInfo.bundleName, abcPathsToBundleModuleNameMap);
     }
 }
 
@@ -1624,7 +1627,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         pkgContextInfoJsonStringMap[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
     }
 
-    GetNativeLibPath(bundleInfo, hspList, appLibPaths);
+    std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
+    GetNativeLibPath(bundleInfo, hspList, appLibPaths, abcPathsToBundleModuleNameMap);
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);
 #ifdef CJ_FRONTEND
@@ -1640,11 +1644,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
     } else {
 #endif
-        if (IsEtsAPP(appInfo)) {
-            AbilityRuntime::ETSRuntime::SetAppLibPath(appLibPaths);
-        } else {
-            AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
-        }
+    if (IsEtsAPP(appInfo)) {
+        AbilityRuntime::ETSRuntime::SetAppLibPath(appLibPaths, abcPathsToBundleModuleNameMap, isSystemApp);
+    } else {
+        AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+    }
 #ifdef CJ_FRONTEND
     }
 #endif
@@ -1669,6 +1673,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.uid = bundleInfo.applicationInfo.uid;
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
+        options.isStartWithDebug = appLaunchData.GetDebugApp();
         options.allowArkTsLargeHeap = appInfo.allowArkTsLargeHeap;
         options.versionCode = appInfo.versionCode;
 #ifdef CJ_FRONTEND
@@ -1708,9 +1713,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
+                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
+                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                    TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
+                    options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
+                }
                 options.aotCompileStatusMap[hapModuleInfo.moduleName] =
                     static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
             }
+        }
+        for (const auto &hsp : hspList) {
+            options.commonHspBundleInfos.push_back({hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
         }
         options.enableWarmStartupSmartGC =
             (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRE_MAKE ||
@@ -1750,6 +1763,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 ResHelper::ReportLoadAbcCompletedInfoToRss(uid, currentPid, bundleName);
             });
         AbilityRuntime::Runtime::DebugOption debugOption;
+        debugOption.arkTSMode = appInfo.arkTSMode;
         debugOption.isStartWithDebug = appLaunchData.GetDebugApp();
         debugOption.processName = processName;
         debugOption.isDebugApp = appInfo.debug;
@@ -1758,6 +1772,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.isDebugFromLocal = appLaunchData.GetDebugFromLocal();
         debugOption.perfCmd = perfCmd;
         debugOption.isDeveloperMode = isDeveloperMode_;
+        debugOption.bundleName = appInfo.bundleName;
         runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
             perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
@@ -1832,7 +1847,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         if (!isCJApp) {
 #endif
             if (application_ != nullptr) {
-                TAG_LOGD(AAFwkTag::APPKIT, "LoadAllExtensions lan:%{public}s", appInfo.codeLanguage.c_str());
+                TAG_LOGD(AAFwkTag::APPKIT, "LoadAllExtensions lan:%{public}s", appInfo.arkTSMode.c_str());
                 LoadAllExtensions();
             }
             if (!IsEtsAPP(appInfo)) {
@@ -1852,8 +1867,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 
     auto usertestInfo = appLaunchData.GetUserTestInfo();
     if (usertestInfo) {
-        if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo, bundleInfo.targetVersion,
-            appInfo.codeLanguage)) {
+        if (!PrepareAbilityDelegator(usertestInfo, isStageBased, entryHapModuleInfo, bundleInfo.targetVersion)) {
             TAG_LOGE(AAFwkTag::APPKIT, "PrepareAbilityDelegator failed");
             return;
         }
@@ -1944,7 +1958,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         HandleNWebPreload();
     }
 #endif
-    if (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
+    if (!IsEtsAPP(appInfo) &&
+        appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
         PreloadModule(entryHapModuleInfo, application_->GetRuntime());
     }
 }
@@ -2425,8 +2440,7 @@ void MainThread::LoadAllExtensions()
 }
 
 bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
-    const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion,
-    const std::string &applicationCodeLanguage)
+    const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "enter, isStageBased = %{public}d", isStageBased);
     if (!record) {
@@ -2436,6 +2450,15 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
     auto args = std::make_shared<AbilityDelegatorArgs>(record->want);
     if (isStageBased) { // Stage model
         TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
+        if (args == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "test args is null");
+            return false;
+        }
+        AppExecFwk::ModuleTestRunner tsTestRunner;
+        if (!GetTestRunnerTypeAndPath(args->GetTestBundleName(), args->GetTestModuleName(), tsTestRunner)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "query testrunner failed");
+        }
+        args->SetTestRunnerModeAndPath(tsTestRunner.arkTSMode, tsTestRunner.srcPath);
         auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
         auto delegator = IAbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
             std::move(testRunner), record->observer);
@@ -4034,8 +4057,8 @@ void MainThread::HandleCacheProcess()
 
 void MainThread::SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options)
 {
-    if (appInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
-        appInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID) {
+    if (appInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
+        appInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID) {
         options.lang = AbilityRuntime::Runtime::Language::ETS;
     } else {
         options.lang = AbilityRuntime::Runtime::Language::JS;
@@ -4044,8 +4067,8 @@ void MainThread::SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtim
 
 bool MainThread::IsEtsAPP(const ApplicationInfo &appInfo)
 {
-    return appInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
-        appInfo.codeLanguage == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+    return appInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
+        appInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
 }
 
 void MainThread::HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo)
@@ -4097,6 +4120,23 @@ void MainThread::SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpAppli
 
     auto helper = std::make_shared<DumpRuntimeHelper>(application_);
     helper->SetAppFreezeFilterCallback();
+}
+
+bool MainThread::GetTestRunnerTypeAndPath(const std::string bundleName, const std::string moduleName,
+    AppExecFwk::ModuleTestRunner &tsTestRunner)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null bundleMgrHelper");
+        return false;
+    }
+    ErrCode ret = bundleMgrHelper->GetTestRunnerTypeAndPath(bundleName, moduleName,
+        tsTestRunner);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "get testrunner failed: %{public}d", ret);
+        return false;
+    }
+    return true;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

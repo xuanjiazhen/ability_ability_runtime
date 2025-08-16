@@ -46,26 +46,27 @@ namespace AbilityRuntime {
 class ETSRuntime : public Runtime {
 public:
     static std::unique_ptr<ETSRuntime> Create(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
-    static void SetAppLibPath(const AppLibPathMap &appLibPaths);
+    static void SetAppLibPath(const AppLibPathMap& appLibPaths,
+        const std::map<std::string, std::string>& abcPathsToBundleModuleNameMap, bool isSystemApp);
     ~ETSRuntime() override;
     Language GetLanguage() const override
     {
         return Language::ETS;
     }
 
-    void StartDebugMode(const DebugOption debugOption) override {}
+    void StartDebugMode(const DebugOption debugOption) override;
     void DumpHeapSnapshot(bool isPrivate) override {}
     void NotifyApplicationState(bool isBackground) override {}
     bool SuspendVM(uint32_t tid) override { return false; }
     void ResumeVM(uint32_t tid) override {}
-    void PreloadSystemModule(const std::string &moduleName) override {}
+    void PreloadSystemModule(const std::string &moduleName) override;
     void PreloadMainAbility(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
         bool isEsMode, const std::string &srcEntrance) override {}
     void PreloadModule(const std::string &moduleName, const std::string &srcPath, const std::string &hapPath,
         bool isEsMode, bool useCommonTrunk) override {}
     void PreloadModule(
         const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
-    void FinishPreload() override {}
+    void FinishPreload() override;
     bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override { return false; }
     bool NotifyHotReloadPage() override { return false; }
     bool UnLoadRepairPatch(const std::string &patchFile) override { return false; }
@@ -87,17 +88,27 @@ public:
         bool useCommonChunk, const std::string &srcEntrance);
     bool HandleUncaughtError();
     const std::unique_ptr<AbilityRuntime::Runtime> &GetJsRuntime() const;
+    std::unique_ptr<AbilityRuntime::Runtime> MoveJsRuntime();
+    static std::unique_ptr<ETSRuntime> PreFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    void PreloadSystemClass(const char *className) override;
+    void DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug);
+    void StopDebugMode();
+    uint32_t instanceId_ = 0;
 
 private:
     bool Initialize(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
     void Deinitialize();
-    bool CreateEtsEnv(const Options &options, Runtime *jsRuntime);
+    bool CreateEtsEnv(const Options &options);
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsModule(const std::string &moduleName,
         const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance);
+    void PostFork(const Options &options, std::unique_ptr<JsRuntime> &jsRuntime);
+    std::string HandleOhmUrlSrcEntry(const std::string &srcEntry);
+    void HandleOhmUrlFileName(std::string &fileName);
     int32_t apiTargetVersion_ = 0;
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
+    bool debugMode_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

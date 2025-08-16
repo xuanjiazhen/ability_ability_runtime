@@ -43,6 +43,9 @@ void SetBasicConfiguration(ani_env *env, ani_object object, const AppExecFwk::Co
     std::string str = configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
     env->Object_SetPropertyByName_Ref(object, "language", GetAniString(env, str));
 
+    ani_object localeObj = WrapLocale(env, configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
+    env->Object_SetPropertyByName_Ref(object, "locale", localeObj);
+
     ani_enum_item colorModeItem = nullptr;
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env,
         COLOR_MODE_ENUM_NAME,
@@ -50,7 +53,7 @@ void SetBasicConfiguration(ani_env *env, ani_object object, const AppExecFwk::Co
     env->Object_SetPropertyByName_Ref(object, "colorMode", colorModeItem);
 
     int32_t displayId = ConvertDisplayId(configuration.GetItem(ConfigurationInner::APPLICATION_DISPLAYID));
-    env->Object_SetPropertyByName_Ref(object, "displayId", CreateDouble(env, static_cast<ani_double>(displayId)));
+    env->Object_SetPropertyByName_Ref(object, "displayId", CreateLong(env, static_cast<int64_t>(displayId)));
 
     std::string direction = configuration.GetItem(displayId, ConfigurationInner::APPLICATION_DIRECTION);
     ani_enum_item directionItem = nullptr;
@@ -137,6 +140,14 @@ bool UnwrapConfiguration(ani_env *env, ani_object param, Configuration &config)
         TAG_LOGD(AAFwkTag::ANI, "The parsed language part %{public}s", language.c_str());
         if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language)) {
             TAG_LOGE(AAFwkTag::ANI, "language Parsing failed");
+            return false;
+        }
+    }
+    std::string locale { "" };
+    if (GetFieldStringByName(env, param, "locale", locale)) {
+        TAG_LOGD(AAFwkTag::ANI, "The parsed locale part %{public}s", locale.c_str());
+        if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE, locale)) {
+            TAG_LOGE(AAFwkTag::ANI, "locale parsing failed");
             return false;
         }
     }

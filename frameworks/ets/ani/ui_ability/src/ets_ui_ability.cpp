@@ -21,11 +21,13 @@
 #include "ani_common_configuration.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
+#include "ani_remote_object.h"
 #ifdef SUPPORT_SCREEN
 #include "ani_window_stage.h"
 #endif
 #include "app_recovery.h"
 #include "connection_manager.h"
+#include "context/application_context.h"
 #include "display_util.h"
 #include "ets_ability_context.h"
 #include "ets_data_struct_converter.h"
@@ -34,6 +36,7 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
+#include "ohos_application.h"
 #include "string_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -57,6 +60,17 @@ constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 constexpr const char *UI_ABILITY_CLASS_NAME = "L@ohos/app/ability/UIAbility/UIAbility;";
 constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":V";
 constexpr const char *MEMORY_LEVEL_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/MemoryLevel;";
+constexpr const char *ON_SAVE_RESULT_ENUM_NAME = "L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
+constexpr const char *CALL_ON_SAVE_STATE =
+    "L@ohos/app/ability/AbilityConstant/AbilityConstant/StateType;Lescompat/Record;I:Z";
+constexpr const char *ON_SAVE_STATE_CALLBACK =
+    "Lescompat/Record;L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;I:V";
+constexpr const char *ON_SAVE_STATE =
+    "L@ohos/app/ability/AbilityConstant/AbilityConstant/StateType;Lescompat/Record;"
+    ":L@ohos/app/ability/AbilityConstant/AbilityConstant/OnSaveResult;";
+constexpr const int32_t CALL_BACK_ERROR = -1;
+constexpr size_t INDEX_ONE = 1;
+constexpr const char *ON_SHARE_SIGNATURE = "Lescompat/Record;:V";
 
 void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
 {
@@ -82,6 +96,80 @@ void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
     }
     callbackInfo->Call();
     AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+    if ((status = env->Object_SetFieldByName_Long(aniObj, "destroyCallbackPoint", 0)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
+        return;
+    }
+}
+
+void OnPrepareTerminatePromiseCallback(ani_env *env, ani_object aniObj, ani_boolean aniPrepareTermination)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnPrepareTerminatePromiseCallback begin");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    ani_long prepareToTerminateCallbackPointer = 0;
+    ani_status status = env->Object_GetFieldByName_Long(
+        aniObj, "prepareToTerminateCallbackPointer", &prepareToTerminateCallbackPointer);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "prepareToTerminateCallbackPointer GetField status: %{public}d", status);
+        return;
+    }
+    auto *callbackInfo =
+        reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<bool> *>(prepareToTerminateCallbackPointer);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo");
+        return;
+    }
+    bool prepareTermination = aniPrepareTermination;
+    callbackInfo->Call(prepareTermination);
+    AppExecFwk::AbilityTransactionCallbackInfo<bool>::Destroy(callbackInfo);
+    if ((status = env->Object_SetFieldByName_Long(aniObj, "prepareToTerminateCallbackPointer", 0)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "prepareToTerminateCallbackPointer SetField status: %{public}d", status);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnPrepareTerminatePromiseCallback end");
+}
+
+void OnSaveStateCallback(
+    ani_env *env, ani_object aniObj, ani_object aniWantParam, ani_object aniSaveResult, ani_int aniStateReason)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnSaveStateCallback begin");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+    ani_long saveStateCallbackPoint = 0;
+    ani_status status = env->Object_GetFieldByName_Long(aniObj, "saveStateCallbackPoint", &saveStateCallbackPoint);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "saveStateCallbackPoint GetField status: %{public}d", status);
+        return;
+    }
+    auto *callbackInfo = reinterpret_cast<AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *>(
+        saveStateCallbackPoint);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null callbackInfo");
+        return;
+    }
+    WantParams wantParams;
+    AppExecFwk::UnwrapWantParams(env, aniWantParam, wantParams);
+    int32_t saveResult = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+        env, reinterpret_cast<ani_enum_item>(aniSaveResult), saveResult)) {
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
+        TAG_LOGE(AAFwkTag::UIABILITY, "no result return from onSaveState");
+        return;
+    }
+    AppExecFwk::OnSaveStateResult saveStateResult = { saveResult, wantParams,
+        static_cast<AppExecFwk::StateReason>(aniStateReason) };
+    callbackInfo->Call(saveStateResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
+    if ((status = env->Object_SetFieldByName_Long(aniObj, "saveStateCallbackPoint", 0)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "saveStateCallbackPoint SetField status: %{public}d", status);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnSaveStateCallback end");
 }
 } // namespace
 
@@ -98,6 +186,9 @@ EtsUIAbility::EtsUIAbility(ETSRuntime &etsRuntime) : etsRuntime_(etsRuntime)
 EtsUIAbility::~EtsUIAbility()
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "~EtsUIAbility called");
+    if (abilityContext_ != nullptr) {
+        abilityContext_->Unbind<ani_ref>();
+    }
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
@@ -126,6 +217,12 @@ void EtsUIAbility::Init(std::shared_ptr<AppExecFwk::AbilityLocalRecord> record,
         return;
     }
     UIAbility::Init(record, application, handler, token);
+#ifdef SUPPORT_GRAPHICS
+    if (abilityContext_ != nullptr) {
+        AppExecFwk::AppRecovery::GetInstance().AddAbility(
+            shared_from_this(), abilityContext_->GetAbilityInfo(), abilityContext_->GetToken());
+    }
+#endif
     std::string srcPath(abilityInfo->package);
     if (!abilityInfo->isModuleJson) {
         srcPath.append("/assets/js/");
@@ -169,6 +266,10 @@ bool EtsUIAbility::BindNativeMethods()
     std::call_once(singletonFlag_, [&status, env, cls]() {
         std::array functions = {
             ani_native_function { "nativeOnDestroyCallback", ":V", reinterpret_cast<void *>(OnDestroyPromiseCallback) },
+            ani_native_function { "nativeOnSaveStateCallback", ON_SAVE_STATE_CALLBACK,
+                reinterpret_cast<void *>(OnSaveStateCallback) },
+            ani_native_function { "nativeOnPrepareToTerminateCallback", "Z:V",
+                reinterpret_cast<void *>(OnPrepareTerminatePromiseCallback) },
         };
         status = env->Class_BindNativeMethods(cls, functions.data(), functions.size());
     });
@@ -192,6 +293,43 @@ void EtsUIAbility::UpdateAbilityObj(
     }
 }
 
+void EtsUIAbility::CreateAndBindContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext,
+    const std::unique_ptr<Runtime>& runtime)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return;
+    }
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null runtime");
+        return;
+    }
+    if (runtime->GetLanguage() != Runtime::Language::ETS) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "wrong runtime language");
+        return;
+    }
+    auto& etsRuntime = static_cast<ETSRuntime&>(*runtime);
+    auto env = etsRuntime.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+
+    int32_t screenMode = abilityContext->GetScreenMode();
+    if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
+        ani_ref contextObj = CreateEtsAbilityContext(env, abilityContext);
+        ani_ref* contextGlobalRef = new ani_ref;
+        ani_status status = ANI_ERROR;
+        if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "status : %{public}d", status);
+            return;
+        }
+        abilityContext->Bind(etsRuntime, contextGlobalRef);
+    }
+    // no CreateAniEmbeddableUIAbilityContext
+}
+
 void EtsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<Want> want,
     const std::string &moduleName, const std::string &srcPath)
 {
@@ -202,6 +340,7 @@ void EtsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     int32_t screenMode = want->GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::ScreenMode::IDLE_SCREEN_MODE);
+    abilityContext_->SetScreenMode(screenMode);
     CreateEtsContext(screenMode);
 }
 
@@ -228,6 +367,7 @@ void EtsUIAbility::CreateEtsContext(int32_t screenMode)
         shellContextRef_ = std::make_shared<AppExecFwk::ETSNativeReference>();
         shellContextRef_->aniObj = contextObj;
         shellContextRef_->aniRef = contextGlobalRef;
+        abilityContext_->Bind(etsRuntime_, &(shellContextRef_->aniRef));
     }
     // to be done: CreateAniEmbeddableUIAbilityContext
 }
@@ -277,7 +417,33 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         delegator->PostPerformStart(CreateADelegatorAbilityProperty());
     }
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityCreate");
+        applicationContext->DispatchOnAbilityCreate(etsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
+            etsAbilityObj_->aniRef);
+        applicationContext->DispatchOnAbilityCreate(interopObject);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
+}
+
+int32_t EtsUIAbility::OnShare(WantParams &wantParam)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnShare called");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return ERR_INVALID_VALUE;
+    }
+    ani_ref wantParamRef = AppExecFwk::WrapWantParams(env, wantParam);
+    if (wantParamRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamRef");
+        return ERR_INVALID_VALUE;
+    }
+    CallObjectMethod(false, "onShare", ON_SHARE_SIGNATURE, wantParamRef);
+    AppExecFwk::UnwrapWantParams(env, wantParamRef, wantParam);
+    return ERR_OK;
 }
 
 void EtsUIAbility::OnStop()
@@ -357,6 +523,15 @@ void EtsUIAbility::OnStopCallback()
         ConnectionManager::GetInstance().ReportConnectionLeakEvent(getpid(), gettid());
         TAG_LOGD(AAFwkTag::UIABILITY, "the service connection is not disconnected");
     }
+
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityDestroy");
+        applicationContext->DispatchOnAbilityDestroy(etsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(
+            etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
+        applicationContext->DispatchOnAbilityDestroy(interopObject);
+    }
 }
 
 #ifdef SUPPORT_SCREEN
@@ -387,6 +562,17 @@ void EtsUIAbility::OnSceneCreated()
     if (delegator) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
         delegator->PostPerformScenceCreated(CreateADelegatorAbilityProperty());
+    }
+
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnWindowStageCreate");
+        applicationContext->DispatchOnWindowStageCreate(etsAbilityObj_, etsWindowStageObj_);
+        std::shared_ptr<InteropObject> interopAbility = std::make_shared<InteropObject>(
+            etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
+        std::shared_ptr<InteropObject> interopWindowStage = std::make_shared<InteropObject>(
+            etsRuntime_.GetAniEnv(), etsWindowStageObj_->aniRef);
+        applicationContext->DispatchOnWindowStageCreate(interopAbility, interopWindowStage);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnSceneCreated end");
 }
@@ -448,6 +634,21 @@ void EtsUIAbility::onSceneDestroyed()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceDestroyed");
         delegator->PostPerformScenceDestroyed(CreateADelegatorAbilityProperty());
     }
+
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnWindowStageDestroy");
+        if (etsAbilityObj_ == nullptr || etsWindowStageObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null ability or window stage");
+            return;
+        }
+        applicationContext->DispatchOnWindowStageDestroy(etsAbilityObj_, etsWindowStageObj_);
+        std::shared_ptr<InteropObject> interopAbility = std::make_shared<InteropObject>(
+            etsRuntime_.GetAniEnv(), etsAbilityObj_->aniRef);
+        std::shared_ptr<InteropObject> interopWindowStage = std::make_shared<InteropObject>(
+            etsRuntime_.GetAniEnv(), etsWindowStageObj_->aniRef);
+        applicationContext->DispatchOnWindowStageDestroy(interopAbility, interopWindowStage);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "onSceneDestroyed end");
 }
 
@@ -491,6 +692,15 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformForeground");
         delegator->PostPerformForeground(CreateADelegatorAbilityProperty());
     }
+
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityForeground");
+        applicationContext->DispatchOnAbilityForeground(etsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
+            etsAbilityObj_->aniRef);
+        applicationContext->DispatchOnAbilityForeground(interopObject);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "CallOnForegroundFunc end");
 }
 
@@ -506,6 +716,20 @@ void EtsUIAbility::OnBackground()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformBackground");
         delegator->PostPerformBackground(CreateADelegatorAbilityProperty());
     }
+
+    auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
+    if (applicationContext != nullptr) {
+        auto env = etsRuntime_.GetAniEnv();
+        if (env == nullptr || etsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null env or ability");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::UIABILITY, "call DispatchOnAbilityBackground");
+        applicationContext->DispatchOnAbilityBackground(etsAbilityObj_);
+        std::shared_ptr<InteropObject> interopObject = std::make_shared<InteropObject>(env,
+            etsAbilityObj_->aniRef);
+        applicationContext->DispatchOnAbilityBackground(interopObject);
+    }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnBackground end");
 }
 
@@ -517,6 +741,52 @@ bool EtsUIAbility::OnBackPress()
     bool ret = CallObjectMethod(true, "onBackPressed", nullptr);
     TAG_LOGD(AAFwkTag::UIABILITY, "ret: %{public}d", ret);
     return ret;
+}
+
+void EtsUIAbility::OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bool> *callbackInfo, bool &isAsync)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnPrepareTerminate ability: %{public}s", GetAbilityName().c_str());
+    UIAbility::OnPrepareTerminate(callbackInfo, isAsync);
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr || etsAbilityObj_ == nullptr || callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env or etsAbilityObj_ or callbackInfo");
+        return;
+    }
+    ani_long prepareToTerminateCallbackPointer = (ani_long)callbackInfo;
+    ani_status status = env->Object_SetFieldByName_Long(
+        etsAbilityObj_->aniObj, "prepareToTerminateCallbackPointer", prepareToTerminateCallbackPointer);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "prepareToTerminateCallbackPointer SetField status: %{public}d", status);
+        return;
+    }
+    if (CallObjectMethod(true, "callOnPrepareToTerminateAsync", nullptr)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "async call");
+        isAsync = true;
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "onPrepareToTerminateAsync not implemented, call onPrepareToTerminate");
+    ani_method method = nullptr;
+    if (etsAbilityObj_->aniCls == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiability ani class");
+        return;
+    }
+    if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onPrepareToTerminate", nullptr, &method)) != ANI_OK ||
+        method == nullptr) {
+        if (status != ANI_PENDING_ERROR) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "onPrepareToTerminate FindMethod status: %{public}d, or null method", status);
+        }
+        TAG_LOGW(AAFwkTag::UIABILITY, "neither is implemented");
+        env->ResetError();
+        return;
+    }
+    ani_boolean isTerminateAni = false;
+    if ((status = env->Object_CallMethod_Boolean(etsAbilityObj_->aniObj, method, &isTerminateAni)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "onPrepareToTerminate CallMethod status: %{public}d", status);
+        return;
+    }
+    bool isTerminate = isTerminateAni;
+    callbackInfo->Call(isTerminate);
 }
 
 ani_object EtsUIAbility::CreateAppWindowStage()
@@ -890,6 +1160,79 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
 }
 #endif
 
+int32_t EtsUIAbility::OnSaveState(int32_t reason, WantParams &wantParams,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo, bool &isAsync,
+    AppExecFwk::StateReason stateReason)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnSaveState called");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr || etsAbilityObj_ == nullptr || callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env or etsAbilityObj_ or callbackInfo");
+        return CALL_BACK_ERROR;
+    }
+    ani_long saveStateCallbackPoint = reinterpret_cast<ani_long>(callbackInfo);
+    ani_status status =
+        env->Object_SetFieldByName_Long(etsAbilityObj_->aniObj, "saveStateCallbackPoint", saveStateCallbackPoint);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "SetField saveStateCallbackPoint failed, status: %{public}d", status);
+        return CALL_BACK_ERROR;
+    }
+    ani_enum_item reasonEnum = nullptr;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env, ON_SAVE_RESULT_ENUM_NAME, reason, reasonEnum) ||
+        reasonEnum == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_NativeToEts failed, or null reasonEnum");
+        return CALL_BACK_ERROR;
+    }
+    ani_ref wantParamsRef = AppExecFwk::WrapWantParams(env, wantParams);
+    if (wantParamsRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "WrapWantParams failed, null wantParamsRef");
+        return CALL_BACK_ERROR;
+    }
+    if (CallObjectMethod(true, "callOnSaveState", CALL_ON_SAVE_STATE, reasonEnum, wantParamsRef,
+        static_cast<ani_int>(stateReason))) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "async call");
+        isAsync = true;
+        return ERR_OK;
+    }
+    ani_value args[] = { { .r = reasonEnum }, { .r = wantParamsRef } };
+    return CallSaveState(args, wantParams, stateReason, callbackInfo);
+}
+
+int32_t EtsUIAbility::CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "CallSaveState called");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr || etsAbilityObj_ == nullptr || callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env or etsAbilityObj_ or callbackInfo");
+        return CALL_BACK_ERROR;
+    }
+    ani_method method = nullptr;
+    ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onSaveState", ON_SAVE_STATE, &method);
+    if (status != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "FindMethod onSaveState failed, status: %{public}d", status);
+        return CALL_BACK_ERROR;
+    }
+    ani_ref result = nullptr;
+    status = env->Object_CallMethod_Ref_A(etsAbilityObj_->aniObj, method, &result, args);
+    if (status != ANI_OK || result == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "onSaveState CallMethod failed, status: %{public}d", status);
+        return CALL_BACK_ERROR;
+    }
+    ani_ref wantParamsRef = args[INDEX_ONE].r;
+    AppExecFwk::UnwrapWantParams(env, wantParamsRef, wantParams);
+    int32_t numberResult = 0;
+    if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+        env, reinterpret_cast<ani_enum_item>(result), numberResult)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "EnumConvert_EtsToNative failed, no result from onSaveState");
+        return CALL_BACK_ERROR;
+    }
+    AppExecFwk::OnSaveStateResult saveStateResult = { numberResult, wantParams, stateReason };
+    callbackInfo->Call(saveStateResult);
+    AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
+    return numberResult;
+}
+
 void EtsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1064,6 +1407,39 @@ void EtsUIAbility::Dump(const std::vector<std::string> &params, std::vector<std:
     TAG_LOGD(AAFwkTag::UIABILITY, "dump info size: %{public}zu", info.size());
 }
 
+sptr<IRemoteObject> EtsUIAbility::CallRequest()
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "CallRequest");
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext_");
+        return nullptr;
+    }
+
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return nullptr;
+    }
+    auto obj = etsAbilityObj_->aniObj;
+    ani_status status = ANI_ERROR;
+    ani_ref calleeRef = nullptr;
+    status = env->Object_GetFieldByName_Ref(obj, "callee", &calleeRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "get callee: %{public}d", status);
+        return nullptr;
+    }
+    env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(calleeRef), "setNewRuleFlag",
+        "z:", ani_boolean(IsUseNewStartUpRule()));
+    ani_long nativePtr = 0;
+    env->Object_CallMethodByName_Long(reinterpret_cast<ani_object>(calleeRef), "getNativePtr",
+        ":l", &nativePtr);
+    sptr<IRemoteObject> remoteObj(reinterpret_cast<IRemoteObject*>(nativePtr));
+    if (remoteObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "AniGetNativeRemoteObject null");
+    }
+    return remoteObj;
+}
+
 bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const char *signature, ...)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, std::string("CallObjectMethod:") + name);
@@ -1142,4 +1518,11 @@ ETS_EXPORT extern "C" OHOS::AbilityRuntime::UIAbility *OHOS_ETS_Ability_Create(
     const std::unique_ptr<OHOS::AbilityRuntime::Runtime> &runtime)
 {
     return OHOS::AbilityRuntime::EtsUIAbility::Create(runtime);
+}
+
+ETS_EXPORT extern "C" void OHOS_CreateAndBindETSUIAbilityContext(
+    const std::shared_ptr<OHOS::AbilityRuntime::AbilityContext> &abilityContext,
+    const std::unique_ptr<OHOS::AbilityRuntime::Runtime> &runtime)
+{
+    OHOS::AbilityRuntime::EtsUIAbility::CreateAndBindContext(abilityContext, runtime);
 }

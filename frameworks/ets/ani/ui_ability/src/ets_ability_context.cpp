@@ -20,17 +20,27 @@
 #include "ani_common_ability_result.h"
 #include "ani_common_configuration.h"
 #include "ani_common_start_options.h"
+#include "ani_common_remote.h"
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
 #include "ani_remote_object.h"
 #include "app_utils.h"
 #include "common_fun_ani.h"
-#include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "ets_caller_complex.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_ui_extension_callback.h"
+#include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 #include "want.h"
+#ifdef SUPPORT_GRAPHICS
+#include "pixel_map_taihe_ani.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -50,11 +60,22 @@ constexpr const char* CLEANER_CLASS = "Lapplication/UIAbilityContext/Cleaner;";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SIGNATURE_OPEN_LINK = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
     "L@ohos/app/ability/OpenLinkOptions/OpenLinkOptions;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *SIGNATURE_ONCONNECT = "LbundleManager/ElementName/ElementName;L@ohos/rpc/rpc/IRemoteObject;:V";
-constexpr const char *SIGNATURE_ONDISCONNECT = "LbundleManager/ElementName/ElementName;:V";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:D";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "DLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    "L@ohos/app/ability/Want/Want;Lability/connectOptions/ConnectOptions;:J";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "JLutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;"
+    "L@ohos/app/ability/AtomicServiceOptions/AtomicServiceOptions;:V";
+const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
+constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
+    "Lstd/core/String;Lescompat/Record;Lapplication/AbilityStartCallback/AbilityStartCallback;:L@ohos/base/"
+    "BusinessError;";
+constexpr const char *SIGNATURE_START_ABILITY_WITH_ACCOUNT =
+    "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr const char *SIGNATURE_START_ABILITY_WITH_ACCOUNT_OPTIONS =
+    "L@ohos/app/ability/Want/Want;IL@ohos/app/ability/StartOptions/StartOptions;"
+    "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+constexpr int32_t ARGC_ONE = 1;
+constexpr int32_t ARGC_TWO = 2;
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
@@ -188,15 +209,21 @@ EtsAbilityContext* EtsAbilityContext::GetEtsAbilityContext(ani_env *env, ani_obj
 {
     if (env == nullptr || aniObj == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null env or aniObj");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
     ani_long etsAbilityContextPtr = 0;
     ani_status status = env->Object_GetFieldByName_Long(aniObj, "etsAbilityContextPtr", &etsAbilityContextPtr);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "etsAbilityContextPtr GetField status: %{public}d", status);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return nullptr;
     }
     auto etsContext = reinterpret_cast<EtsAbilityContext *>(etsAbilityContextPtr);
+    if (etsContext == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        TAG_LOGE(AAFwkTag::CONTEXT, "etsAbilityContext null");
+    }
     return etsContext;
 }
 
@@ -294,7 +321,8 @@ void EtsAbilityContext::StartServiceExtensionAbility(ani_env *env, ani_object an
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
         return;
     }
-    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj);
+    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
 }
 
 void EtsAbilityContext::OpenLink(ani_env *env, ani_object aniObj, ani_string aniLink,
@@ -315,8 +343,8 @@ void EtsAbilityContext::OpenLink(ani_env *env, ani_object aniObj, ani_string ani
     if ((status = env->Reference_IsUndefined(callbackobj, &isCallbackUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
     }
-    etsContext->OnOpenLink(env, aniObj, aniLink, myCallbackobj, optionsObj, callbackobj, isOptionsUndefined,
-        isCallbackUndefined);
+    etsContext->OnOpenLink(env, aniObj, aniLink, myCallbackobj, optionsObj, callbackobj, !isOptionsUndefined,
+        !isCallbackUndefined);
 }
 
 bool EtsAbilityContext::IsTerminating(ani_env *env, ani_object aniObj)
@@ -377,20 +405,20 @@ void EtsAbilityContext::SetMissionLabel(ani_env *env, ani_object aniObj, ani_str
     etsContext->OnSetMissionLabel(env, aniObj, labelObj, callbackObj);
 }
 
-ani_int EtsAbilityContext::ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+ani_long EtsAbilityContext::ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
     ani_object connectOptionsObj)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "ConnectServiceExtensionAbility called");
     auto etsContext = GetEtsAbilityContext(env, aniObj);
     if (etsContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return FAILED_CODE;
     }
-    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj);
+    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
 }
 
-void EtsAbilityContext::DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
+void EtsAbilityContext::DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
     ani_object callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "DisconnectServiceExtensionAbility called");
@@ -425,6 +453,170 @@ ani_object EtsAbilityContext::StartAbilityByType(
     return etsContext->OnStartAbilityByType(env, aniObj, aniType, aniWantParam, startCallback);
 }
 
+void EtsAbilityContext::OpenAtomicService(
+    ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OpenAtomicService called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnOpenAtomicService(env, aniObj, aniAppId, callbackObj, optionsObj);
+}
+
+ani_long EtsAbilityContext::ConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_int aniAccountId, ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectServiceExtensionAbilityWithAccount called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return FAILED_CODE;
+    }
+    return etsContext->OnConnectServiceExtensionAbilityWithAccount(env, aniObj, wantObj,
+        aniAccountId, connectOptionsObj);
+}
+
+void EtsAbilityContext::StopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int aniAccountId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopServiceExtensionAbilityWithAccount called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStopServiceExtensionAbilityWithAccount(env, aniObj, wantObj, aniAccountId, callbackObj);
+}
+
+void EtsAbilityContext::StopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStopServiceExtensionAbility(env, aniObj, wantObj, callbackObj,
+        AppExecFwk::ExtensionAbilityType::SERVICE);
+}
+
+void EtsAbilityContext::StartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int aniAccountId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartServiceExtensionAbilityWithAccount called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartServiceExtensionAbilityWithAccount(env, aniObj, wantObj, aniAccountId, callbackObj);
+}
+
+ani_long EtsAbilityContext::ConnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ConnectAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return FAILED_CODE;
+    }
+    return etsContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+void EtsAbilityContext::DisconnectAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "DisconnectAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnDisconnectServiceExtensionAbility(env, aniObj, connectId, callback);
+}
+
+void EtsAbilityContext::StartAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+void EtsAbilityContext::StopAppServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StopAppServiceExtensionAbility called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStopServiceExtensionAbility(env, aniObj, wantObj, callbackobj,
+        AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+}
+
+void EtsAbilityContext::StartAbilityWithAccount(
+    ani_env *env, ani_object aniObj, ani_object aniWant, ani_int aniAccountId, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityWithAccount called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityWithAccount(env, aniObj, aniWant, aniAccountId, nullptr, call);
+}
+
+void EtsAbilityContext::StartAbilityWithAccountAndOptions(
+    ani_env *env, ani_object aniObj, ani_object aniWant, ani_int aniAccountId, ani_object aniOpt, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityWithAccountAndOptions called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityWithAccount(env, aniObj, aniWant, aniAccountId, aniOpt, call);
+}
+#ifdef SUPPORT_SCREEN
+void EtsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
+    ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetAbilityInstanceInfo called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetAbilityInstanceInfo(env, aniObj, labelObj, iconObj, callback);
+}
+
+void EtsAbilityContext::SetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj,
+    ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "SetMissionIcon called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnSetMissionIcon(env, aniObj, pixelMapObj, callbackObj);
+}
+#endif
+
 int32_t EtsAbilityContext::GenerateRequestCode()
 {
     static int32_t curRequestCode_ = 0;
@@ -433,7 +625,7 @@ int32_t EtsAbilityContext::GenerateRequestCode()
     return curRequestCode_;
 }
 
-void EtsAbilityContext::InheritWindowMode(ani_env *env, ani_object aniObj, AAFwk::Want &want)
+void EtsAbilityContext::InheritWindowMode(AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "InheritWindowMode");
 #ifdef SUPPORT_SCREEN
@@ -462,7 +654,7 @@ void EtsAbilityContext::OnStartAbility(
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
         return;
     }
-    InheritWindowMode(env, aniObj, want);
+    InheritWindowMode(want);
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
@@ -474,7 +666,7 @@ void EtsAbilityContext::OnStartAbility(
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
                 .count());
         want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
-        AddFreeInstallObserver(env, want, call, context);
+        AddFreeInstallObserver(env, want, call);
     }
     ErrCode innerErrCode = ERR_OK;
     if (opt != nullptr) {
@@ -521,6 +713,57 @@ void EtsAbilityContext::OnStartAbilityForResult(
     StartAbilityForResultInner(env, startOptions, want, context, startOptionsObj, callback);
 }
 
+ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj, ani_object wantObj)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "StartAbilityByCall");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+    }
+    auto context = etsContext ? etsContext->context_.lock() : nullptr;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "GetAbilityContext is nullptr");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return nullptr;
+    }
+
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "parse want failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return nullptr;
+    }
+    auto callData = std::make_shared<StartAbilityByCallData>();
+    auto callerCallBack = std::make_shared<CallerCallBack>();
+    CallUtil::GenerateCallerCallBack(callData, callerCallBack);
+    auto ret = context->StartAbilityByCall(want, callerCallBack, -1);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "startAbility failed");
+        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
+        return nullptr;
+    }
+    CallUtil::WaitForCalleeObj(callData);
+
+    if (callData->remoteCallee == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+
+    std::weak_ptr<AbilityContext> abilityContext(context);
+    auto releaseCallFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
+        auto contextForRelease = abilityContext.lock();
+        if (contextForRelease == nullptr) {
+            return -1;
+        }
+        return contextForRelease->ReleaseCall(callback);
+    };
+    auto caller = EtsCallerComplex::CreateEtsCaller(env, releaseCallFunc, callData->remoteCallee, callerCallBack);
+    if (caller == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    return caller;
+}
+
 void EtsAbilityContext::StartAbilityForResultInner(ani_env *env, const AAFwk::StartOptions &startOptions,
     AAFwk::Want &want, std::shared_ptr<AbilityContext> context, ani_object startOptionsObj, ani_object callback)
 {
@@ -537,7 +780,7 @@ void EtsAbilityContext::StartAbilityForResultInner(ani_env *env, const AAFwk::St
     }
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
-        AddFreeInstallObserver(env, want, callback, context, true);
+        AddFreeInstallObserver(env, want, callback, true);
     }
     RuntimeTask task = [etsVm, callbackRef, element = want.GetElement(), flags = want.GetFlags(), startTime,
         observer = freeInstallObserver_](int resultCode, const AAFwk::Want &want, bool isInner) {
@@ -653,7 +896,7 @@ void EtsAbilityContext::OnReportDrawnCompleted(ani_env *env, ani_object aniObj, 
 }
 
 void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
-    ani_object callbackobj)
+    ani_object callbackobj, AppExecFwk::ExtensionAbilityType extensionType)
 {
     ani_object errorObject = nullptr;
     ErrCode ret = ERR_OK;
@@ -671,13 +914,59 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
         errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant filed");
         AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
     }
-    ret = context->StartServiceExtensionAbility(want);
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        ret = context->StartServiceExtensionAbility(want);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        ret = context->StartAppServiceExtensionAbility(want);
+    }
     if (ret == ERR_OK) {
         errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
         errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     }
     AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
+}
+
+void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object callbackobj, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStopServiceExtensionAbility");
+    ani_object aniObject = nullptr;
+    ErrCode ret = ERR_OK;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        ret = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "UnwrapWant failed");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapWant failed");
+        AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+        return;
+    }
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        ret = context->StopServiceExtensionAbility(want);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        ret = context->StopAppServiceExtensionAbility(want);
+    }
+    aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
+}
+
+static bool CheckUrl(std::string &urlValue)
+{
+    if (urlValue.empty()) {
+        return false;
+    }
+    Uri uri = Uri(urlValue);
+    if (uri.GetScheme().empty() || uri.GetHost().empty()) {
+        return false;
+    }
+    return true;
 }
 
 void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
@@ -688,7 +977,7 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
     AAFwk::OpenLinkOptions openLinkOptions;
     AAFwk::Want want;
     want.SetParam(APP_LINKING_ONLY, false);
-    if (!AppExecFwk::GetStdString(env, aniLink, link)) {
+    if (!AppExecFwk::GetStdString(env, aniLink, link) || !CheckUrl(link)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "parse link failed");
         aniObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param link failed, link must be string.");
         AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
@@ -696,7 +985,7 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
     }
     if (haveOptionsParm) {
         TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have option");
-        EtsAbilityContext::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
+        AppExecFwk::UnWrapOpenLinkOptions(env, optionsObj, openLinkOptions, want);
     }
     want.SetUri(link);
     std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
@@ -712,7 +1001,7 @@ void EtsAbilityContext::OnOpenLink(ani_env *env, ani_object aniObj, ani_string a
         AppExecFwk::AsyncCallback(env, myCallbackobj, aniObject, nullptr);
         return;
     }
-    AddFreeInstallObserver(env, want, myCallbackobj, context, false, true);
+    AddFreeInstallObserver(env, want, myCallbackobj, false, true);
     if (haveCallBackParm) {
         TAG_LOGD(AAFwkTag::CONTEXT, "OpenLink Have Callback");
         CreateOpenLinkTask(env, callbackobj, context, want, requestCode);
@@ -849,8 +1138,8 @@ void EtsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
-ani_int EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
-    ani_object connectOptionsObj)
+ani_long EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object connectOptionsObj, AppExecFwk::ExtensionAbilityType extensionType)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OnConnectServiceExtensionAbility call");
     if (env == nullptr) {
@@ -880,17 +1169,22 @@ ani_int EtsAbilityContext::OnConnectServiceExtensionAbility(ani_env *env, ani_ob
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
         return FAILED_CODE;
     }
-    auto innerErrCode = context->ConnectAbility(want, connection);
+    int32_t innerErrCode = 0;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
+        innerErrCode = context->ConnectAbility(want, connection);
+    } else if (extensionType == AppExecFwk::ExtensionAbilityType::APP_SERVICE) {
+        innerErrCode = context->ConnectAppServiceExtensionAbility(want, connection);
+    }
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
     if (errcode) {
         connection->CallEtsFailed(errcode);
         RemoveConnection(connectId);
         return FAILED_CODE;
     }
-    return connectId;
+    return static_cast<ani_long>(connectId);
 }
 
-void EtsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_double connectId,
+void EtsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
     ani_object callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OnDisconnectServiceExtensionAbility call");
@@ -990,21 +1284,249 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
 #ifdef SUPPORT_SCREEN
     innerErrCode = context->StartAbilityByType(type, wantParam, callback);
 #endif
-    if (innerErrCode != ERR_OK) {
+    if (innerErrCode == ERR_OK) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    } else if (innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+    } else {
         return EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
     }
-    return aniObject;
 }
 
-void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &want, ani_object callback,
-    const std::shared_ptr<AbilityContext> &context, bool isAbilityResult, bool isOpenLink)
+void EtsAbilityContext::OnOpenAtomicService(
+    ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnOpenAtomicService");
+    ani_status status = ANI_ERROR;
+    ani_boolean isOptionsUndefined = true;
+    ani_object errorObject = nullptr;
+    if ((status = env->Reference_IsUndefined(optionsObj, &isOptionsUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    std::string appId;
+    if (!AppExecFwk::GetStdString(env, aniAppId, appId)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse appId failed");
+        errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Parse param appId failed, appId must be string.");
+        AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    AAFwk::StartOptions startOptions;
+    if (!isOptionsUndefined) {
+        if (!AppExecFwk::UnwrapAtomicServiceOptions(env, optionsObj, want, startOptions)) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "UnwrapAtomicServiceOptions failed");
+            errorObject = EtsErrorUtil::CreateInvalidParamError(env, "UnwrapAtomicServiceOptions failed.");
+            AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
+            return;
+        }
+    }
+    OpenAtomicServiceInner(env, aniObj, want, startOptions, appId, callbackObj);
+}
+
+ani_long EtsAbilityContext::OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_int aniAccountId, ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnConnectServiceExtensionAbilityWithAccount call");
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "non system app forbidden to call");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return FAILED_CODE;
+    }
+    AAFwk::Want want;
+    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to UnwrapWant");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to UnwrapWant");
+        return FAILED_CODE;
+    }
+    ani_vm *etsVm = nullptr;
+    if (env->GetVM(&etsVm) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to getVM");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    sptr<ETSAbilityConnection> connection = sptr<ETSAbilityConnection>::MakeSptr(etsVm);
+    connection->SetConnectionRef(connectOptionsObj);
+    int32_t connectId = InsertConnection(connection, want, aniAccountId);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        RemoveConnection(connectId);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return FAILED_CODE;
+    }
+    auto innerErrCode = context->ConnectAbilityWithAccount(want, aniAccountId, connection);
+    int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
+    if (errcode) {
+        connection->CallEtsFailed(errcode);
+        RemoveConnection(connectId);
+        return FAILED_CODE;
+    }
+    return static_cast<ani_long>(connectId);
+}
+
+void EtsAbilityContext::OnStopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int aniAccountId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStopServiceExtensionAbilityWithAccount call");
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to UnwrapWant");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"), nullptr);
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto innerErrCode = context->StopServiceExtensionAbility(want, aniAccountId);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+}
+
+void EtsAbilityContext::OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int aniAccountId, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStartServiceExtensionAbilityWithAccount call");
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to UnwrapWant");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateInvalidParamError(env, "Failed to UnwrapWant"), nullptr);
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto innerErrCode = context->StartServiceExtensionAbility(want, aniAccountId);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+}
+
+void EtsAbilityContext::OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnRevokeDelegator called");
+    ani_object aniObject = nullptr;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context null");
+        aniObject = EtsErrorUtil::CreateInvalidParamError(env, "context null");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    ErrCode innerErrCode = ERR_OK;
+    innerErrCode = context->RevokeDelegator();
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "RevokeDelegator failed, innerErrCode: %{public}d", innerErrCode);
+    }
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+}
+
+ 
+void EtsAbilityContext::OnStartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int etsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "non system app forbidden to call");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return;
+    }
+    InheritWindowMode(want);
+    int32_t accountId = static_cast<int32_t>(etsAccountId);
+    AAFwk::StartOptions startOptions;
+    if (startOptionsObj) {
+        AppExecFwk::UnwrapStartOptions(env, startOptionsObj, startOptions);
+    }
+    OnStartAbilityForResultWithAccountInner(env, startOptions, want, accountId, startOptionsObj, callback);
+}
+
+void EtsAbilityContext::OnStartAbilityForResultWithAccountInner(ani_env *env, const AAFwk::StartOptions &startOptions,
+    AAFwk::Want &want, const int accountId, ani_object startOptionsObj, ani_object callback)
+{
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+        system_clock::now().time_since_epoch()).count());
+    ani_ref callbackRef = nullptr;
+    env->GlobalReference_Create(callback, &callbackRef);
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+        AddFreeInstallObserver(env, want, callback, true);
+    }
+    RuntimeTask task = [etsVm, callbackRef, element = want.GetElement(), flags = want.GetFlags(), startTime,
+        observer = freeInstallObserver_](int resultCode, const AAFwk::Want &want, bool isInner) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "start async callback");
+        ani_status status = ANI_ERROR;
+        ani_env *env = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+            return;
+        }
+        std::string bundleName = element.GetBundleName();
+        std::string abilityName = element.GetAbilityName();
+        ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+        if (abilityResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
+            isInner = true;
+            resultCode = ERR_INVALID_VALUE;
+        }
+        if ((flags & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND
+            && observer != nullptr) {
+            isInner ? observer->OnInstallFinished(bundleName, abilityName, startTime, resultCode)
+                    : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
+            return;
+        }
+        auto errCode = isInner ? resultCode : 0;
+        AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
+            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
+    };
+    auto requestCode = GenerateRequestCode();
+    (startOptionsObj == nullptr) ? context->StartAbilityForResultWithAccount(want, accountId, requestCode,
+        std::move(task)) : context->StartAbilityForResultWithAccount(want, accountId, startOptions, requestCode,
+            std::move(task));
+}
+
+void EtsAbilityContext::AddFreeInstallObserver(
+    ani_env *env, const AAFwk::Want &want, ani_object callback, bool isAbilityResult, bool isOpenLink)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "AddFreeInstallObserver");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null env");
         return;
     }
-    if (context == nullptr) {
+    auto context = context_.lock();
+    if (!context) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         return;
     }
@@ -1037,31 +1559,6 @@ void EtsAbilityContext::AddFreeInstallObserver(ani_env *env, const AAFwk::Want &
     std::string bundleName = want.GetElement().GetBundleName();
     std::string abilityName = want.GetElement().GetAbilityName();
     freeInstallObserver_->AddEtsObserverObject(env, bundleName, abilityName, startTime, callback, isAbilityResult);
-}
-
-void EtsAbilityContext::UnWrapOpenLinkOptions(ani_env *env, ani_object optionsObj,
-    AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "UnWrapOpenLinkOptions");
-    ani_status status = ANI_ERROR;
-    ani_ref ParamRef = nullptr;
-    if ((status = env->Object_GetPropertyByName_Ref(optionsObj, "parameters", &ParamRef)) == ANI_OK) {
-        AAFwk::WantParams wantParam;
-        if (AppExecFwk::UnwrapWantParams(env, ParamRef, wantParam)) {
-            want.SetParams(wantParam);
-        } else {
-            TAG_LOGE(AAFwkTag::CONTEXT, "UnwrapWantParams failed");
-        }
-    }
-    if ((status = env->Object_GetPropertyByName_Ref(optionsObj, APP_LINKING_ONLY.c_str(), &ParamRef)) == ANI_OK) {
-        bool appLinkingOnly = false;
-        AppExecFwk::GetFieldBoolByName(env, optionsObj, "appLinkingOnly", appLinkingOnly);
-        openLinkOptions.SetAppLinkingOnly(appLinkingOnly);
-        want.SetParam(APP_LINKING_ONLY, appLinkingOnly);
-    }
-    if (!want.HasParameter(APP_LINKING_ONLY)) {
-        want.SetParam(APP_LINKING_ONLY, false);
-    }
 }
 
 void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
@@ -1117,6 +1614,287 @@ void EtsAbilityContext::ConfigurationUpdated(ani_env *env, std::shared_ptr<AppEx
     }
 }
 
+bool EtsAbilityContext::IsInstanceOf(ani_env *env, ani_object aniObj)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return false;
+    }
+    if ((status = env->FindClass(UI_ABILITY_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    ani_boolean isInstanceOf = false;
+    if ((status = env->Object_InstanceOf(aniObj, cls, &isInstanceOf)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "status: %{public}d", status);
+        return false;
+    }
+    return isInstanceOf;
+}
+
+void EtsAbilityContext::NativeOnSetRestoreEnabled(ani_env *env, ani_object aniObj, ani_boolean aniEnabled)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "NativeOnSetRestoreEnabled");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return;
+    }
+
+    auto abilityContext = GetEtsAbilityContext(env, aniObj);
+    if (abilityContext == nullptr) {
+        TAG_LOGW(AAFwkTag::CONTEXT, "null abilityContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    bool enabled = static_cast<bool>(aniEnabled);
+    auto context = abilityContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    context->SetRestoreEnabled(enabled);
+}
+
+void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object aniObj,
+    ani_boolean isShow, ani_object callbackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ChangeAbilityVisibility");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    auto etsContext = EtsAbilityContext::GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    bool showFlag = static_cast<bool>(isShow);
+    ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed, errCode: %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
+}
+
+void EtsAbilityContext::OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want,
+    AAFwk::StartOptions &options, std::string appId, ani_object callbackObj)
+{
+    std::string bundleName = ATOMIC_SERVICE_PREFIX + appId;
+    TAG_LOGD(AAFwkTag::CONTEXT, "bundleName: %{public}s", bundleName.c_str());
+    want.SetBundle(bundleName);
+    want.AddFlags(AAFwk::Want::FLAG_INSTALL_ON_DEMAND);
+    std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch()).count());
+    want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    AddFreeInstallObserver(env, want, callbackObj, true);
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return;
+    }
+    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, observer = freeInstallObserver_](
+        int resultCode, const AAFwk::Want &want, bool isInner) {
+        ani_env *env = nullptr;
+        if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+            return;
+        }
+        if (observer == nullptr) {
+            TAG_LOGE(AAFwkTag::CONTEXT, "null observer");
+            return;
+        }
+        std::string bundleName = element.GetBundleName();
+        std::string abilityName = element.GetAbilityName();
+        ani_object abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
+        if (abilityResult == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
+            isInner = true;
+            resultCode = ERR_INVALID_VALUE;
+        }
+        isInner ? observer->OnInstallFinished(bundleName, abilityName, startTime, resultCode)
+                : observer->OnInstallFinished(bundleName, abilityName, startTime, abilityResult);
+    };
+    want.SetParam(AAFwk::Want::PARAM_RESV_FOR_RESULT, true);
+    auto requestCode = GenerateRequestCode();
+    ErrCode ErrCode = context->OpenAtomicService(want, options, requestCode, std::move(task));
+    if (ErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "OpenAtomicService failed, ErrCode: %{public}d", ErrCode);
+    }
+}
+
+#ifdef SUPPORT_SCREEN
+void EtsAbilityContext::OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj,
+    ani_object iconObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnSetAbilityInstanceInfo called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        return;
+    }
+
+    std::string label;
+    if (!AppExecFwk::GetStdString(env, labelObj, label)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse label");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param label failed");
+        return;
+    }
+
+    auto icon = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, iconObj);
+    if (icon == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to unwrap PixelMap");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param icon failed");
+        return;
+    }
+
+    ErrCode ret = context->SetAbilityInstanceInfo(label, icon);
+    ani_object errorObj = nullptr;
+    if (ret == ERR_OK) {
+        errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    } else {
+        errorObj = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    }
+    AppExecFwk::AsyncCallback(env, callback, errorObj, nullptr);
+}
+
+void EtsAbilityContext::OnSetMissionIcon(ani_env *env, ani_object aniObj, ani_object pixelMapObj,
+    ani_object callbackObj)
+{
+    auto pixelMap = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, pixelMapObj);
+    if (pixelMap == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Unwrap pixelMap failed");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "context is nullptr");
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto innerErrCode = context->SetMissionIcon(pixelMap);
+    AppExecFwk::AsyncCallback(env, callbackObj,
+        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+}
+#endif
+
+void EtsAbilityContext::RevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "RevokeDelegator called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnRevokeDelegator(env, aniObj, callback);
+}
+
+void EtsAbilityContext::StartAbilityForResultWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int etsAccountId, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityForResultWithAccount called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityForResultWithAccount(env, aniObj, wantObj, etsAccountId, nullptr, callback);
+}
+
+void EtsAbilityContext::StartAbilityForResultWithAccountVoid(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int etsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityForResultWithAccountVoid called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityForResultWithAccount(env, aniObj, wantObj, etsAccountId, startOptionsObj, callback);
+}
+
+void EtsAbilityContext::StartAbilityForResultWithAccountResult(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_int etsAccountId, ani_object startOptionsObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityForResultWithAccountResult called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityForResultWithAccount(env, aniObj, wantObj, etsAccountId, startOptionsObj, callback);
+}
+
+void EtsAbilityContext::OnStartAbilityWithAccount(
+    ani_env *env, ani_object aniObj, ani_object aniWant, ani_int aniAccountId, ani_object aniOpt, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    AAFwk::Want want;
+    AppExecFwk::UnwrapWant(env, aniWant, want);
+    InheritWindowMode(want);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ability:%{public}s", want.GetElement().GetAbilityName().c_str());
+    ErrCode innerErrCode = ERR_OK;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "context null");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
+    }
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        std::string startTime = std::to_string(
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count());
+        want.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
+        AddFreeInstallObserver(env, want, call);
+    }
+    if (aniOpt != nullptr) {
+        AAFwk::StartOptions startOptions;
+        TAG_LOGD(AAFwkTag::CONTEXT, "start options is used");
+        AppExecFwk::UnwrapStartOptions(env, aniOpt, startOptions);
+        innerErrCode = context->StartAbilityWithAccount(want, aniAccountId, startOptions, -1);
+    } else {
+        innerErrCode = context->StartAbilityWithAccount(want, aniAccountId, -1);
+    }
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
+        if (innerErrCode != ERR_OK && freeInstallObserver_ != nullptr) {
+            std::string bundleName = want.GetElement().GetBundleName();
+            std::string abilityName = want.GetElement().GetAbilityName();
+            std::string startTime = want.GetStringParam(AAFwk::Want::PARAM_RESV_START_TIME);
+            freeInstallObserver_->OnInstallFinished(bundleName, abilityName, startTime, innerErrCode);
+        }
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -1146,6 +1924,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeTerminateSelfWithResult",
                 "Lability/abilityResult/AbilityResult;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<void *>(EtsAbilityContext::TerminateSelfWithResult) },
+            ani_native_function { "nativeStartAbilityByCallSync",
+                "L@ohos/app/ability/Want/Want;:L@ohos/app/ability/UIAbility/Caller;",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByCall) },
             ani_native_function { "nativeReportDrawnCompletedSync", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
                 reinterpret_cast<ani_int *>(EtsAbilityContext::ReportDrawnCompleted) },
             ani_native_function { "nativeStartServiceExtensionAbility",
@@ -1173,8 +1954,61 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function {"nativeSetColorMode",
                 "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
-            ani_native_function { "nativeStartAbilityByTypeSync", nullptr,
+            ani_native_function { "nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByType) },
+            ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
+                reinterpret_cast<void *>(EtsAbilityContext::OpenAtomicService) },
+            ani_native_function { "nativeOnSetRestoreEnabled", "Z:V",
+                reinterpret_cast<void*>(EtsAbilityContext::NativeOnSetRestoreEnabled) },
+            ani_native_function { "nativeConnectServiceExtensionAbilityWithAccount",
+                "L@ohos/app/ability/Want/Want;ILability/connectOptions/ConnectOptions;:J",
+                reinterpret_cast<void*>(EtsAbilityContext::ConnectServiceExtensionAbilityWithAccount) },
+            ani_native_function { "nativeStopServiceExtensionAbilityWithAccount",
+                "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StopServiceExtensionAbilityWithAccount) },
+            ani_native_function { "nativeStopServiceExtensionAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StopServiceExtensionAbility) },
+            ani_native_function { "nativeStartServiceExtensionAbilityWithAccount",
+                "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbilityWithAccount) },
+            ani_native_function { "nativeChangeAbilityVisibility", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
+            ani_native_function { "nativeConnectAppServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(EtsAbilityContext::ConnectAppServiceExtensionAbility) },
+            ani_native_function { "nativeDisconnectAppServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
+                reinterpret_cast<void *>(EtsAbilityContext::DisconnectAppServiceExtensionAbility) },
+            ani_native_function { "nativeStartAppServiceExtensionAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::StartAppServiceExtensionAbility) },
+            ani_native_function { "nativeStopAppServiceExtensionAbility",
+                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::StopAppServiceExtensionAbility) },
+            ani_native_function { "nativeStartAbilityWithAccountSync", SIGNATURE_START_ABILITY_WITH_ACCOUNT,
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityWithAccount) },
+            ani_native_function { "nativeStartAbilityWithAccountSync", SIGNATURE_START_ABILITY_WITH_ACCOUNT_OPTIONS,
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityWithAccountAndOptions) },
+#ifdef SUPPORT_GRAPHICS
+            ani_native_function { "nativeSetAbilityInstanceInfo",
+                "Lstd/core/String;L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
+            ani_native_function { "nativeSetMissionIcon",
+                "L@ohos/multimedia/image/image/PixelMap;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::SetMissionIcon) },
+#endif
+            ani_native_function { "nativeRevokeDelegator", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
+            ani_native_function { "nativeStartAbilityForResultWithAccount",
+                "L@ohos/app/ability/Want/Want;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccount) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountVoid",
+                "L@ohos/app/ability/Want/Want;IL@ohos/app/ability/StartOptions/StartOptions;"
+                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountVoid) },
+            ani_native_function { "nativeStartAbilityForResultWithAccountResult",
+                "L@ohos/app/ability/Want/Want;IL@ohos/app/ability/StartOptions/StartOptions;"
+                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountResult) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
@@ -1286,9 +2120,25 @@ void ETSAbilityConnection::CallEtsFailed(int32_t errorCode)
         TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get env, status: %{public}d", status);
         return;
     }
-    status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(stsConnectionRef_), "onFailed", "D:V",
-        static_cast<double>(errorCode));
-    if (status != ANI_OK) {
+    ani_ref funRef;
+    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onFailed", &funRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get onFailed failed status : %{public}d", status);
+        return;
+    }
+    if (!AppExecFwk::IsValidProperty(env, funRef)) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "invalid onFailed property");
+        return;
+    }
+    ani_object errorCodeObj = AppExecFwk::CreateInt(env, errorCode);
+    if (errorCodeObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null errorCodeObj");
+        return;
+    }
+    ani_ref result;
+    std::vector<ani_ref> argv = { errorCodeObj };
+    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
+        &result)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "Failed to call onFailed, status: %{public}d", status);
     }
 }
@@ -1313,63 +2163,116 @@ void ETSAbilityConnection::SetConnectionRef(ani_object connectOptionsObj)
 void ETSAbilityConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnAbilityConnectDone");
     if (etsVm_ == nullptr || stsConnectionRef_ == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef or etsVm");
         return;
     }
-    ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    ani_options aniArgs {0, nullptr};
-    if ((status = (etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK || env == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get env, status: %{public}d", status);
+    ani_env *env = AttachCurrentThread();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetEnv failed");
         return;
     }
     ani_ref refElement = AppExecFwk::WrapElementName(env, element);
     if (refElement == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null refElement");
-        etsVm_->DetachCurrentThread();
+        DetachCurrentThread();
         return;
     }
-    ani_object refRemoteObject = ANI_ohos_rpc_CreateJsRemoteObject(env, remoteObject);
+    if (remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null remoteObject");
+        DetachCurrentThread();
+        return;
+    }
+    ani_object refRemoteObject = AniRemote::CreateAniRemoteObject(env, remoteObject);
     if (refRemoteObject == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null refRemoteObject");
-        etsVm_->DetachCurrentThread();
+        DetachCurrentThread();
         return;
     }
-    if ((status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(stsConnectionRef_), "onConnect",
-        SIGNATURE_ONCONNECT, refElement, refRemoteObject)) != ANI_OK) {
+    ani_status status = ANI_ERROR;
+    ani_ref funRef;
+    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onConnect", &funRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get onConnect failed status : %{public}d", status);
+        return;
+    }
+    if (!AppExecFwk::IsValidProperty(env, funRef)) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "invalid onConnect property");
+        return;
+    }
+    ani_ref result;
+    std::vector<ani_ref> argv = { refElement, refRemoteObject};
+    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
+        &result)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "Failed to call onConnect, status: %{public}d", status);
     }
-    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
-    }
+    DetachCurrentThread();
 }
-
 void ETSAbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode)
 {
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnAbilityDisconnectDone");
     if (etsVm_ == nullptr || stsConnectionRef_ == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null stsConnectionRef or etsVm");
         return;
     }
-    ani_env *env = nullptr;
-    ani_status status = ANI_ERROR;
-    ani_options aniArgs {0, nullptr};
-    if ((status = (etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env))) != ANI_OK || env == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get env, status: %{public}d", status);
+    ani_env *env = AttachCurrentThread();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetEnv failed");
         return;
     }
     ani_ref refElement = AppExecFwk::WrapElementName(env, element);
     if (refElement == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null refElement");
-        etsVm_->DetachCurrentThread();
+        DetachCurrentThread();
         return;
     }
-    if ((status = env->Object_CallMethodByName_Void(reinterpret_cast<ani_object>(stsConnectionRef_), "onDisconnect",
-        SIGNATURE_ONDISCONNECT, refElement)) != ANI_OK) {
+    ani_status status = ANI_ERROR;
+    ani_ref funRef;
+    if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(stsConnectionRef_),
+        "onDisconnect", &funRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get onDisconnect failed status : %{public}d", status);
+        return;
+    }
+    if (!AppExecFwk::IsValidProperty(env, funRef)) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "invalid onDisconnect property");
+        return;
+    }
+    ani_ref result;
+    std::vector<ani_ref> argv = { refElement };
+    if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
+        &result)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "Failed to call onDisconnect, status: %{public}d", status);
     }
-    if ((status = etsVm_->DetachCurrentThread()) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+    DetachCurrentThread();
+}
+
+ani_env *ETSAbilityConnection::AttachCurrentThread()
+{
+    ani_env *env = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = etsVm_->GetEnv(ANI_VERSION_1, &env)) == ANI_OK) {
+        return env;
+    }
+    ani_option interopEnabled { "--interop=disable", nullptr };
+    ani_options aniArgs { 1, &interopEnabled };
+    if ((status = etsVm_->AttachCurrentThread(&aniArgs, ANI_VERSION_1, &env)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "status: %{public}d", status);
+        return nullptr;
+    }
+    isAttachThread_ = true;
+    return env;
+}
+
+void ETSAbilityConnection::DetachCurrentThread()
+{
+    if (etsVm_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsVm");
+        return;
+    }
+    if (isAttachThread_) {
+        etsVm_->DetachCurrentThread();
+        isAttachThread_ = false;
     }
 }
 } // namespace AbilityRuntime

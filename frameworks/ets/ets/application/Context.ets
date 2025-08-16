@@ -14,6 +14,7 @@
  */
 
 import BaseContext from 'application.BaseContext'
+import EventHub from 'application.EventHub';
 import ApplicationContext from 'application.ApplicationContext'
 import AsyncCallbackWrapper from '../utils/AbilityUtils';
 import { AsyncCallback } from '@ohos.base';
@@ -37,8 +38,9 @@ let unregisterToken = new object();
 
 export class Context extends BaseContext {
   static {
-    loadLibrary("context_ani");
+    loadLibrary("context_ani_kit.z");
   }
+
   etsContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   filesDir: string = "";
@@ -50,15 +52,16 @@ export class Context extends BaseContext {
   distributedFilesDir: string = "";
   bundleCodeDir: string = "";
   resourceDir: string = "";
-  applicationInfo: ApplicationInfo;
-  resourceManager: resmgr.ResourceManager;
   processName: string = "";
-  native constructor();
-  constructor(applicationInfo: ApplicationInfo, resourceManager: resmgr.ResourceManager) {
-      super();
-      this.applicationInfo = applicationInfo;
-      this.resourceManager = resourceManager;
+  applicationInfo!: ApplicationInfo;
+  resourceManager!: resmgr.ResourceManager;
+  eventHub: EventHub = new EventHub();
+  constructor() {
+    if (this.eventHub == null) {
+      this.eventHub = new EventHub();
+    }
   }
+
   private setEtsContextPtr(ptr: long) {
     if (this.etsContextPtr == 0) {
       this.etsContextPtr = ptr;
@@ -72,14 +75,18 @@ export class Context extends BaseContext {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
   public native getApplicationContextSync(): ApplicationContext;
   public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;
   private native switchArea(mode: contextConstant.AreaMode): void;
   private native getArea(): contextConstant.AreaMode;
   public native nativeGetGroupDir(dataGroupID: string, callback: AsyncCallbackWrapper<string>): void;
-  public native nativeCreateDisplayContext(displayId: number): Context;
+  public native nativeCreateDisplayContext(displayId: long): Context;
   public native nativeCreateAreaModeContext(areaMode: contextConstant.AreaMode): Context;
   public native nativeCreateSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'Context';
 
   getApplicationContext(): ApplicationContext {
     return this.getApplicationContextSync();
@@ -119,7 +126,22 @@ export class Context extends BaseContext {
     });
   }
 
-  createDisplayContext(displayId: number): Context {
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return Context.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return Context.nativeTransferDynamic(input).unwrap();
+  }
+
+  createDisplayContext(displayId: long): Context {
     return this.nativeCreateDisplayContext(displayId);
   }
 

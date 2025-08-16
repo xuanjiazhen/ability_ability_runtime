@@ -16,17 +16,28 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_INTERFACE_H
 #define OHOS_ABILITY_RUNTIME_ETS_INTERFACE_H
 
+#include <functional>
+#include <map>
 #include <string>
 #include "ets_exception_callback.h"
 #include "ets_native_reference.h"
 #include "napi/native_api.h"
+
+namespace OHOS {
+namespace AppExecFwk {
+    class EventRunner;
+}
+namespace AbilityRuntime {
+    struct CommonHspBundleInfo;
+}
+}
 
 extern "C" {
 struct ETSEnvFuncs {
     void (*InitETSSDKNS)(const std::string &path) = nullptr;
     void (*InitETSSysNS)(const std::string &path) = nullptr;
 
-    bool (*Initialize)(void *napiEnv, const std::string &aotPath) = nullptr;
+    bool (*Initialize)(const std::shared_ptr<OHOS::AppExecFwk::EventRunner> eventRunner, bool isDebug) = nullptr;
     void (*RegisterUncaughtExceptionHandler)(
         const OHOS::EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo) = nullptr;
     ani_env *(*GetAniEnv)() = nullptr;
@@ -34,6 +45,19 @@ struct ETSEnvFuncs {
     bool (*PreloadModule)(const std::string &modulePath) = nullptr;
     bool (*LoadModule)(const std::string &modulePath, const std::string &srcEntrance, void *&cls,
         void *&obj, void *&ref) = nullptr;
+    void (*SetAppLibPath)(const std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
+        std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) = nullptr;
+    void (*FinishPreload)() = nullptr;
+    void (*PostFork)(void *napiEnv, const std::string &aotPath,
+        const std::vector<std::string> &appInnerHspPathList,
+        const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos) = nullptr;
+    void (*PreloadSystemClass)(const char *className) = nullptr;
+    void (*RemoveInstance)(uint32_t instanceId) = nullptr;
+    void (*StopDebugMode)(void *jsVm) = nullptr;
+    void (*StartDebuggerForSocketPair)(std::string &option, int32_t socketFd) = nullptr;
+    void (*NotifyDebugMode)(uint32_t tid, uint32_t instanceId, bool isStartWithDebug,
+        void *jsVm) = nullptr;
+    void (*BroadcastAndConnect)(const std::string& bundleName, int socketFd) = nullptr;
 };
 }
 #endif // OHOS_ABILITY_RUNTIME_ETS_INTERFACE_H
