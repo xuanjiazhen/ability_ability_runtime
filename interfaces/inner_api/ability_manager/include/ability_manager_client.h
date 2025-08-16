@@ -25,6 +25,7 @@
 #include "auto_startup_info.h"
 #include "iremote_object.h"
 #include "mission_info.h"
+#include "open_link_options.h"
 #include "system_memory_attr.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
@@ -1678,7 +1679,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
     */
-    int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode);
+    int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
+        const AAFwk::OpenLinkOptions &opt = {});
 
     /**
      * Terminate process by bundleName.

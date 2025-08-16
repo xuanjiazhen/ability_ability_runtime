@@ -20,6 +20,7 @@ namespace AAFwk {
 OpenLinkOptions::OpenLinkOptions(const OpenLinkOptions &other)
 {
     appLinkingOnly_ = other.appLinkingOnly_;
+    withoutDialog_ = other.withoutDialog_;
     parameters_ = other.parameters_;
 }
 
@@ -27,6 +28,7 @@ OpenLinkOptions &OpenLinkOptions::operator=(const OpenLinkOptions &other)
 {
     if (this != &other) {
         appLinkingOnly_ = other.appLinkingOnly_;
+        withoutDialog_ = other.withoutDialog_;
         parameters_ = other.parameters_;
     }
     return *this;
@@ -59,7 +61,12 @@ bool OpenLinkOptions::ReadFromParcel(Parcel &parcel)
     if (!parcel.ReadBool(appLinkingOnly)) {
         return false;
     }
+    bool withoutDialog;
+    if (!parcel.ReadBool(withoutDialog)) {
+        return false;
+    }
     SetAppLinkingOnly(appLinkingOnly);
+    SetWithoutDialog(withoutDialog);
 
     if (!ReadParameters(parcel)) {
         return false;
@@ -107,6 +114,10 @@ bool OpenLinkOptions::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(GetAppLinkingOnly())) {
         return false;
     }
+    // write GetWithoutDialog
+    if (!parcel.WriteBool(GetWithoutDialog())) {
+        return false;
+    }
     // write parameters
     if (!WriteParameters(GetParameters(), parcel)) {
         return false;
@@ -123,6 +134,16 @@ void OpenLinkOptions::SetAppLinkingOnly(bool appLinkingOnly)
 bool OpenLinkOptions::GetAppLinkingOnly() const
 {
     return appLinkingOnly_;
+}
+
+void OpenLinkOptions::SetWithoutDialog(bool withoutDialog)
+{
+    withoutDialog_ = withoutDialog;
+}
+
+bool OpenLinkOptions::GetWithoutDialog() const
+{
+    return withoutDialog_;
 }
 
 void OpenLinkOptions::SetParameters(WantParams parameters)

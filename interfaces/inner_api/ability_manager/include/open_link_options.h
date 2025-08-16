@@ -35,12 +35,15 @@ public:
 
     void SetAppLinkingOnly(bool appLinkingOnly);
     bool GetAppLinkingOnly() const;
+    void SetWithoutDialog(bool withoutDialog);
+    bool GetWithoutDialog() const;
     void SetParameters(WantParams parameters);
     WantParams GetParameters() const;
     bool WriteParameters(const WantParams &parameters, Parcel &parcel) const;
 
 private:
     bool appLinkingOnly_ = false;
+    bool withoutDialog_ = false;
     WantParams parameters_;
     // no object in parcel
     static constexpr int VALUE_NULL = -1;

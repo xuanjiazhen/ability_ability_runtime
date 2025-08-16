@@ -1235,10 +1235,10 @@ bool AbilityContextImpl::GetRestoreEnabled()
     return restoreEnabled_.load();
 }
 
-ErrCode AbilityContextImpl::OpenLink(const AAFwk::Want& want, int requestCode)
+ErrCode AbilityContextImpl::OpenLink(const AAFwk::Want& want, int requestCode, const AAFwk::OpenLinkOptions &opt)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode);
+    return AAFwk::AbilityManagerClient::GetInstance()->OpenLink(want, token_, -1, requestCode, opt);
 }
 
 std::shared_ptr<AAFwk::Want> AbilityContextImpl::GetWant()

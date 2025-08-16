@@ -203,8 +203,12 @@ int ImplicitStartProcessor::ImplicitStartAbility(AbilityRequest &request, int32_
         }
         if (want.GetBoolParam("isCreateAppGallerySelector", false)) {
             want.RemoveParam("isCreateAppGallerySelector");
-            DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
-                dialogAppInfos);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "openLinkOptions withoutDialog: %{public}d",
+                request.openLinkOptions.GetWithoutDialog());
+            if (!request.openLinkOptions.GetWithoutDialog()) {
+                DialogSessionManager::GetInstance().CreateImplicitSelectorModalDialog(request, want, userId,
+                    dialogAppInfos);
+            }
             return ERR_IMPLICIT_START_ABILITY_FAIL;
         }
         std::vector<DialogAppInfo> dialogAllAppInfos;
