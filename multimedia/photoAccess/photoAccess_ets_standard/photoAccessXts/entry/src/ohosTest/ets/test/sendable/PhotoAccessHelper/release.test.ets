@@ -25,7 +25,6 @@ async function releaseSendablePromiseTest(done: Function) {
   const sendablePhAccessHelper = sendablePhotoAccessHelper.getPhotoAccessHelper(testContext);
   try {
     await sendablePhAccessHelper.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `release failed; error: ${error?.code}, ${error?.message}`);

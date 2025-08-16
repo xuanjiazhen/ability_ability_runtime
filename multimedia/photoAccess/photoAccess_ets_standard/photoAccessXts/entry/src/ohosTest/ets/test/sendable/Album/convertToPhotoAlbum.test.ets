@@ -40,7 +40,6 @@ async function convertToPhotoAlbum(done: Function, testName: string, AlbumType: 
       expect(commonAlbum.imageCount !== undefined && commonAlbum.imageCount >= 0).assertTrue();
       done();
     }
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `${testName} :: convertToSendableAlbum failed, err is ${error}`);

@@ -40,7 +40,6 @@ async function getSupportedPhotoFormatsPromiseTest(done: Function, testName: str
     }
     outputText += result;
     console.info('getSupportedPhotoFormats success, data is ' + outputText);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

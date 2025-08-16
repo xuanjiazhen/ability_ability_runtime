@@ -37,7 +37,6 @@ async function getAlbumsCallbackWithOptionsTest(done: Function, type: photoAcces
           const count = fetchResult.getCount();
           let album = await fetchResult.getFirstObject();
           console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-          expect(true).assertTrue();
           fetchResult.close();
         }
         done();
@@ -69,7 +68,6 @@ async function getAlbumsCallbackWithOptionsAbnormalTest(done: Function, type: ph
             const count = fetchResult.getCount();
             let album = await fetchResult.getFirstObject();
             console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-            expect(true).assertTrue();
             fetchResult.close();
           }
           done();
@@ -100,7 +98,6 @@ async function getAlbumsCallbackTest(done: Function, type: photoAccessHelper.Alb
           const count = fetchResult.getCount();
           let album = await fetchResult.getFirstObject();
           console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-          expect(true).assertTrue();
           fetchResult.close();
         }
         done();
@@ -132,7 +129,6 @@ async function getAlbumsCallbackAbnormalTest(done: Function, type: photoAccessHe
             const count = fetchResult.getCount();
             let album = await fetchResult.getFirstObject();
             console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-            expect(true).assertTrue();
             fetchResult.close();
           }
           done();
@@ -159,7 +155,6 @@ async function getAlbumsPromiseWithOptionsTest(done: Function, type: photoAccess
       const count = fetchResult.getCount();
       let album = await fetchResult.getFirstObject();
       console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-      expect(true).assertTrue();
       fetchResult.close();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -183,7 +178,6 @@ async function getAlbumsPromiseWithOptionsAbnormalTest(done: Function, type: pho
       const count = fetchResult.getCount();
       let album = await fetchResult.getFirstObject();
       console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-      expect(true).assertTrue();
       fetchResult.close();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -206,7 +200,6 @@ async function getAlbumsPromiseTest(done: Function, type: photoAccessHelper.Albu
       const count = fetchResult.getCount();
       let album = await fetchResult.getFirstObject();
       console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-      expect(true).assertTrue();
       fetchResult.close();
     }).catch((error: BusinessError) => {
       console.error(TAG, `getAlbums result failed; code: ${error?.code}, msg: ${error?.message}`);
@@ -230,7 +223,6 @@ async function getAlbumsPromiseAbnormalTest(done: Function, type: photoAccessHel
         const count = fetchResult.getCount();
         let album = await fetchResult.getFirstObject();
         console.info(TAG, `getAlbums success, count: ${count}, uri: ${album.albumUri}, name: ${album.albumName}`);
-        expect(true).assertTrue();
         fetchResult.close();
       })
       .catch((error: BusinessError) => {

@@ -35,7 +35,6 @@ async function getAssetsPromiseTest(done: Function, testName: string, AlbumType:
       let sendableAlbum: sendablePhotoAccessHelper.Album = await albumList.getFirstObject();
       sendableAlbum.getAssets(fetchOps).then((albumFetchResult) => {
         console.info(TAG, 'album getAssets successfully, getCount: ' + testName + albumFetchResult.getCount());
-        expect(true).assertTrue();
       }).catch((err: BusinessError) => {
         console.error(TAG, `commitModify failed with error: ${err.code}, ${err.message}`);
         expect().assertFail();

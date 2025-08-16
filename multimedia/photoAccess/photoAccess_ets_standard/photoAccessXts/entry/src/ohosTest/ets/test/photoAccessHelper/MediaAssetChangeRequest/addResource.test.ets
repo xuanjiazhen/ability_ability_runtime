@@ -38,7 +38,6 @@ async function addResourcePromiseTest(done: Function, testName: string, pathUri:
     await assetChangeRequest.addResource(photoAccessHelper.ResourceType.IMAGE_RESOURCE, uri);
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('addResourceByFileUri successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);
@@ -60,7 +59,6 @@ async function addResourceBufferPromiseTest(done: Function, testName: string, im
     await assetChangeRequest.addResource(photoAccessHelper.ResourceType.IMAGE_RESOURCE, buffer);
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('addResourceByArrayBuffer successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

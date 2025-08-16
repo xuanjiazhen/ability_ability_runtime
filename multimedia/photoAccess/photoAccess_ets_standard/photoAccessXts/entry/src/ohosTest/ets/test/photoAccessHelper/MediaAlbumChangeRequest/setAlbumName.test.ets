@@ -43,7 +43,6 @@ async function setAlbumNamePromiseTest(done: Function, testName: string, newAlbu
       await albumChangeRequest.setAlbumName(newAlbumName);
       await phAccessHelper.applyChanges(albumChangeRequest);
       console.info(TAG, 'setAlbumName successfully');
-      expect(true).assertTrue();
       done();
     } else {
       expect().assertFail();
@@ -74,7 +73,6 @@ async function setAlbumNameAbnormalPromiseTest(done: Function, testName: string,
     await albumChangeRequest.setAlbumName(newAlbumName);
     await phAccessHelper.applyChanges(albumChangeRequest);
     console.info('setAlbumName successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

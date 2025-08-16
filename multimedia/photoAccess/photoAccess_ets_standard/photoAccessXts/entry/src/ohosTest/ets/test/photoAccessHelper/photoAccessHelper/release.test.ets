@@ -30,7 +30,6 @@ async function releaseCallbackTest(done: Function) {
         console.info(TAG, `release failed; err: ${err.code}, ${err.message}`);
         expect().assertFail();
       }
-      expect(true).assertTrue();
       done();
     })
   } catch (error) {
@@ -45,7 +44,6 @@ async function releasePromiseTest(done: Function) {
   const helper = photoAccessHelper.getPhotoAccessHelper(testContext);
   try {
     await helper.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `release failed; error: ${error?.code}, ${error?.message}`);

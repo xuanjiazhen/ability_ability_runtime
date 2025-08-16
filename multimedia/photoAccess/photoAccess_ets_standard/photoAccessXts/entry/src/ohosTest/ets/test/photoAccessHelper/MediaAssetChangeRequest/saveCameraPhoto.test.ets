@@ -37,7 +37,6 @@ async function saveCameraPhotoPromiseTest(done: Function, testName: string,
     }
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('apply saveCameraPhoto successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

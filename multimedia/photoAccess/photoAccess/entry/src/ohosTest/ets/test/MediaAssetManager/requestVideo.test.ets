@@ -2064,7 +2064,6 @@ export default function requestVideoTest() {
         done();
       } catch (error) {
         console.error(`${testNum} failed; error: ${error.code}  ${error.message}`);
-        expect(true).assertTrue();
         done();
       }
     });
@@ -2127,7 +2126,6 @@ export default function requestVideoTest() {
         done();
       } catch (error) {
         console.error(`${testNum} failed; error: ${error.code}  ${error.message}`);
-        expect(true).assertTrue();
         done();
       }
     });

@@ -40,7 +40,6 @@ async function requestVideoFilePromiseTest(done: Function, testName: string,
       await photoAccessHelper.MediaAssetManager.requestVideoFile(testContext, photoAsset, requestOptions, fileUri,
         handler);
       console.info('requestVideoFile successfully');
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {

@@ -48,7 +48,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -82,7 +81,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -116,7 +114,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -150,7 +147,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -184,7 +180,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -218,7 +213,6 @@ export default function requestImageDataTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<ArrayBuffer> {
           onDataPrepared(data  : ArrayBuffer) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }

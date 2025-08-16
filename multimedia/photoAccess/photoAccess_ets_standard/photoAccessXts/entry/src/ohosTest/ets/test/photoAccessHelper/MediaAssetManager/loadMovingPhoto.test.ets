@@ -30,7 +30,6 @@ async function loadMovingPhotoPromiseTest(done: Function, testName: string, vide
     let movingPhoto: photoAccessHelper.MovingPhoto =
       await photoAccessHelper.MediaAssetManager.loadMovingPhoto(testContext, imageFileUri, videoFileUri);
     console.info(TAG, testName, 'movingPhoto:' + JSON.stringify(movingPhoto));
-    expect(true).assertTrue();
     done();
   } catch (err) {
     console.error(`loadMovingPhoto failed with error: ${err.code}, ${err.message}`);

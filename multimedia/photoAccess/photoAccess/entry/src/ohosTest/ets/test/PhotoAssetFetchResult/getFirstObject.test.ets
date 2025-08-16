@@ -30,7 +30,7 @@ export default function assetGetFirstObjectTest() {
       try {
         let fetchResult = await helper.getAssets(fetchOps);
         console.info(`${testNum} fetchResult: ${fetchResult.getCount()}`);
-        expect(fetchResult.getCount() > 0).assertTrue();
+        expect(fetchResult.getCount()).assertEqual(1);
         fetchResult.getFirstObject((err, asset) => {
           try {
             if (err !== undefined) {
@@ -56,7 +56,7 @@ export default function assetGetFirstObjectTest() {
     let getFirstObjectPromiseTest = async (done: Function, testNum: string, fetchOps: ESObject) => {
       try {
         let fetchResult = await helper.getAssets(fetchOps);
-        expect(fetchResult.getCount() > 0).assertTrue();
+        expect(fetchResult.getCount()).assertEqual(1);
         const asset = await fetchResult.getFirstObject();
         fetchResult.close();
         console.info(`${testNum} asset: ${asset.displayName}`);
