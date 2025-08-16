@@ -45,7 +45,7 @@ export default function usbNoPerCanIUseTest() {
     })
 
     /**
-     * @tc.number     : SUB_Driver_Ext_DDKNoPer_0100
+     * @tc.number     : SUB_Driver_Ext_DDKNoPerCanIUse_0100
      * @tc.name       : testUsbNoPerCanIUse001
      * @tc.desc       : OH_Usb_NoPerCanIUse face testing
      * @tc.size       : MediumTest
