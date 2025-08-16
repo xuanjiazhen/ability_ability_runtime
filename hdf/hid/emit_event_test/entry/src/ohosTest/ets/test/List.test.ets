@@ -18,8 +18,8 @@ import HidCanIUseTest from './HidCanIUse.test'
 
 export default function testsuite() {
   if (canIUse("SystemCapability.Driver.HID.Extension")){
-  HidEmitEventTest();
-  }else{
-    HidCanIUseTest()
-  }
+    HidEmitEventTest();
+    } else {
+        HidCanIUseTest()
+        }
 }
