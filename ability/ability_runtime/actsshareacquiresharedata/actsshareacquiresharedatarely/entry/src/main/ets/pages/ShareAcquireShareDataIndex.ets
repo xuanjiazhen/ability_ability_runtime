@@ -30,12 +30,10 @@ struct ShareAcquireShareDataIndex {
     Row() {
       Column() {
         Text('ShareAcquireShareDataIndex')
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
+          .fontSize(5)
 
         Button('停止自己')
           .size({ width: '1%', height: '1%' })
-          .margin({top: 10})
           .id('SUB_Ability_AbilityRuntime_AppManager_ShareAcquireShareData_2200')
           .onClick(() => {
             let bundleName = 'com.test.actsshareacquiresharedatarely';
@@ -79,7 +77,6 @@ struct ShareAcquireShareDataIndex {
 
         Button('清理自己')
           .size({ width: '1%', height: '1%' })
-          .margin({top: 10})
           .id('SUB_Ability_AbilityRuntime_AppManager_ShareAcquireShareData_2300')
           .onClick(() => {
             let bundleName = 'com.test.actsshareacquiresharedatarely';
@@ -123,7 +120,6 @@ struct ShareAcquireShareDataIndex {
 
         Button('acquireShare')
           .size({ width: '1%', height: '1%' })
-          .margin({top: 10})
           .id('SUB_Ability_AbilityRuntime_AppManager_ShareAcquireShareData_3100')
           .onClick(() => {
             let bundleName = 'com.test.actsshareacquiresharedatarely';

@@ -80,6 +80,7 @@ let ACTS_EVENT: commonEventManager.CommonEventSubscribeInfo = {
     'AbilityTest01_onWindowStageCreate',
     'AbilityTest01_onForeground',
     'AbilityTest01_onBackground',
+    'UiAbility08_onNewWant',
 
     'UiAbility09_onCreate_01',
     'UiAbility09_onCreate_02',
@@ -289,7 +290,7 @@ export default function startAndTerminateTest() {
             }, 1000);
           }
           let subscribeCallBack = (err: BusinessError, data: commonEventManager.CommonEventData) => {
-            hilog.info(0x0000, 'testTag', '%{public}s', `subscribeCallBack success`)
+            hilog.info(0x0000, 'testTag', '%{public}s', `subscribeCallBack success ` + JSON.stringify(data.event))
             if (data.event === 'UiAbility05_onCreate') {
               uiAbility05OnCreate = 'uiAbility05OnCreateSuccess';
             };
@@ -358,6 +359,25 @@ export default function startAndTerminateTest() {
                     }).then(() => {
                     hilog.info(0x0000, 'testTag', '%{public}s', `${tag} startAbility end====>`);
                   })
+                  setTimeout(()=>{
+                    try{
+                      globalThis.uiAbilityContext5.moveAbilityToBackground().then(()=>{
+                        hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 moveAbilityToBackground success');
+                      }).catch((err)=>{
+                        hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 moveAbilityToBackground fail ' + err?.code);
+                        if(err?.code == 16000061){
+                          commonEventManager.publish('UiAbility05_onBackground', function () {
+                            hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 publish UiAbility05_onBackground');
+                            setTimeout(()=>{
+                              globalThis.uiAbilityContext5.terminateSelf();
+                            },500)
+                          });
+                        }
+                      });
+                    }catch(e){
+                      hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 moveAbilityToBackground catch fail ' + e?.code + ' ' + e.message);
+                    }
+                  }, 1000)
                 } catch (err) {
                   hilog.info(0x0000, 'testTag', '%{public}s', `${tag} startAbility fail : ${err}`);
                 }
@@ -373,6 +393,25 @@ export default function startAndTerminateTest() {
                     }).then(() => {
                     hilog.info(0x0000, 'testTag', '%{public}s', `${tag} startAbility end====>`);
                   })
+                  setTimeout(()=>{
+                    try{
+                      globalThis.uiAbilityContext6.moveAbilityToBackground().then(()=>{
+                        hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 moveAbilityToBackground success');
+                      }).catch((err)=>{
+                        hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 moveAbilityToBackground fail ' + err?.code);
+                        if(err?.code == 16000061){
+                          commonEventManager.publish('UiAbility05_onBackground', function () {
+                            hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 publish UiAbility05_onBackground');
+                            setTimeout(()=>{
+                              globalThis.uiAbilityContext6.terminateSelf();
+                            },500)
+                          });
+                        }
+                      });
+                    }catch(e){
+                      hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 moveAbilityToBackground catch fail ' + e?.code + ' ' + e.message);
+                    }
+                  }, 1000)
                 } catch (err) {
                   hilog.info(0x0000, 'testTag', '%{public}s', `${tag} startAbility fail : ${err}`);
                 }
@@ -425,7 +464,7 @@ export default function startAndTerminateTest() {
               expect(uiAbility08OnCreate).assertEqual('uiAbility08OnCreateSuccess');
               expect(uiAbility08OnWindowStageCreate).assertEqual('uiAbility08OnWindowStageCreateSuccess');
               expect(uiAbility08OnForeground01).assertEqual('uiAbility08OnForeground01Success');
-              expect(uiAbility08OnForeground02).assertEqual('uiAbility08OnForeground02Success');
+              expect(uiAbility08OnForeground02).assertEqual('uiAbility08_onNewWant');
               expect(uiAbility08OnBackground).assertEqual('uiAbility08OnBackgroundSuccess');
               expect(abilityTest01OnCreate).assertEqual('abilityTest01OnCreateSuccess');
               expect(abilityTest01OnWindowStageCreate).assertEqual('abilityTest01OnWindowStageCreateSuccess');
@@ -449,8 +488,8 @@ export default function startAndTerminateTest() {
               uiAbility08OnForeground01 = 'uiAbility08OnForeground01Success';
             };
 
-            if (data.event === 'UiAbility08_onForeground_02') {
-              uiAbility08OnForeground02 = 'uiAbility08OnForeground02Success';
+            if (data.event === 'uiAbility08_onNewWant') {
+              uiAbility08OnForeground02 = 'uiAbility08_onNewWant';
             };
 
             if (data.event === 'UiAbility08_onBackground') {

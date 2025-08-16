@@ -32,7 +32,8 @@ export default function abilityTest() {
     })
     beforeEach(() => {
     })
-    afterEach(() => {
+    afterEach(async () => {
+      await sleep(3000)
     })
     afterAll(() => {
     })
@@ -73,6 +74,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context1.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -138,6 +140,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('0');
+                globalThis.context2.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -205,6 +208,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('2');
+                globalThis.context3.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -273,6 +277,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('9999999');
+                globalThis.context4.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -342,6 +347,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context5.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -406,6 +412,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context6.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -471,6 +478,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context7.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -537,6 +545,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('0');
+                globalThis.context8.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -604,6 +613,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('2');
+                globalThis.context9.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -671,6 +681,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('9999999');
+                globalThis.context10.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -738,6 +749,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context11.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
@@ -802,6 +814,7 @@ export default function abilityTest() {
               } else {
                 console.info(`${caseName} CommenEventData.data is ${data.data}`);
                 expect(data.data).assertEqual('401');
+                globalThis.context12.terminateSelf();
                 commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {
                   if (err) {
                     console.error(`${caseName} Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);

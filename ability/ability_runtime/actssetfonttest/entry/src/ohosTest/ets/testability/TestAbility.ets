@@ -69,6 +69,7 @@ export default class TestAbility extends UIAbility {
 
   onConfigurationUpdate(config: Configuration) {
     hilog.info(0x0000, TAG, '%{public}s', 'UpdateConfiguration: TestAbility onConfigurationUpdate');
+    AppStorage.setOrCreate<string>('onConfigurationUpdate', 'onConfigurationUpdate');
   }
 
   onWindowStageDestroy() {

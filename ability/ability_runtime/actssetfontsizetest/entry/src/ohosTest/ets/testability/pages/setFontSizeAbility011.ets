@@ -32,13 +32,13 @@ struct setFontSizeAbility011 {
       Column() {
         Button() {
           Text('set font null')
-            .fontSize(20)
+            .fontSize('1%')
             .fontWeight(FontWeight.Bold)
         }
         .id('set and show')
         .type(ButtonType.Capsule)
         .margin({
-          top: 20
+          top: '2%'
         })
         .backgroundColor('#0D9FFB')
         .width('1%')
@@ -66,7 +66,7 @@ struct setFontSizeAbility011 {
           }
         })
         Text(this.message)
-          .fontSize(50)
+          .fontSize('2%')
           .fontWeight(FontWeight.Bold)
       }
       .width('100%')

@@ -28,6 +28,15 @@ export default class UiAbility02 extends UIAbility {
     globalThis.uiAbilityContext2 = this.context
     hilog.info(0x0000, 'testTag', '%{public}s', `UiAbility02 JSON.stringify(want) is: ${JSON.stringify(want)}`);
   }
+  onNewWant(want, launchParam):void {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility02 onCreate');
+    commonEventManager.publish('ability02_onNewWant', function () {
+      hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish ability02_onForeground');
+    });
+    commonEventManager.publish('ACTS_TEST_DESTROY', function () {
+      hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager UiAbility02 publish ACTS_TEST_DESTROY');
+    });
+  }
 
   onDestroy():void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'UiAbility02 onDestroy');
@@ -76,12 +85,8 @@ export default class UiAbility02 extends UIAbility {
         let message = (err as BusinessError).message;
         hilog.info(0x0000, 'testTag', '%{public}s', `startAbilityForResult failed, error.code: ${code}, error.message: ${message}`);
       }
-    } else if (backSet === 1) {
       commonEventManager.publish('ability02_onForeground', function () {
         hilog.info(0x0000, 'testTag', '%{public}s', 'SUB_Ability_AbilityRuntime_StartAndTerminate_StartAbilityForResult_5000 publish ability02_onForeground');
-      });
-      commonEventManager.publish('ACTS_TEST_DESTROY', function () {
-        hilog.info(0x0000, 'testTag', '%{public}s', 'commonEventManager UiAbility02 publish ACTS_TEST_DESTROY');
       });
     }
   }
