@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace AppExecFwk {
     const std::string APP_LINKING_ONLY = "appLinkingOnly";
+    const std::string WITHOUT_DIALOG = "withoutDialog";
 
     bool UnwrapOpenLinkOptions(napi_env env, napi_value param, AAFwk::OpenLinkOptions &openLinkOptions,
         AAFwk::Want &want);
