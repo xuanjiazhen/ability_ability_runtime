@@ -17,15 +17,13 @@ import router from '@ohos.router';
 import { UiDriver, UiComponent, BY, Driver, Component, ON } from '@ohos.UiTest';
 import events_emitter from '@ohos.events.emitter';
 import { BusinessError } from '@ohos.base';
+import CommonFunc from '../../MainAbility/common/Common';
 
 export default function CounterEnableTest() {
 
   const SUITE: string = 'CounterEnable'
   const waitUiReadyMs: number = 500;
-
-
   describe('CounterEnableTest', () => {
-
     beforeEach(async (done: Function) => {
       let options: router.RouterOptions = {
         url: "MainAbility/pages/Counter/CounterEnable",
@@ -33,8 +31,10 @@ export default function CounterEnableTest() {
       try {
         router.clear();
         let pages: router.RouterState = router.getState();
+        console.info("get CounterEnableTest state pages: " + JSON.stringify(pages));
         if (pages == null || !("CounterEnable" == pages.name)) {
           await router.pushUrl(options).then(() => {
+            await CommonFunc.sleep(1000);
             console.info(`${SUITE} router.pushUrl success`);
           }).catch((err: BusinessError) => {
             console.error(`${SUITE} router.pushUrl failed, code is ${err.code}, message is ${err.message}`);
@@ -54,11 +54,12 @@ export default function CounterEnableTest() {
     it('ArkUI_Counter_0100', Level.LEVEL0, async (done: Function) => {
       let CASE: string = 'ArkUI_Counter_0100'
       console.info(`${SUITE} ${CASE} START`);
-
-      sendEventByKey('CounterEnable_Button_1', 10, "")
+      const driver = Driver.create();
+      const button = await driver.findComponent(ON.id('CounterEnable_Button_1'));
+      await button.click();
+      await CommonFunc.sleep(1000);
       let strJson: string = getInspectorByKey('CounterEnable_Counter_1');
       expect(JSON.parse(strJson).$type).assertEqual("Counter");
-
       console.info(`${SUITE} ${CASE} END`);
       done()
     });
@@ -71,13 +72,14 @@ export default function CounterEnableTest() {
     it('ArkUI_Counter_0200', Level.LEVEL0, async (done: Function) => {
       let CASE: string = 'ArkUI_Counter_0200'
       console.info(`${SUITE} ${CASE} START`);
-      sendEventByKey('CounterEnable_Button_2', 10, "")
+      const driver = Driver.create();
+      const button = await driver.findComponent(ON.id('CounterEnable_Button_2'));
+      await button.click();
+      await CommonFunc.sleep(1000);
       let strJson = getInspectorByKey('CounterEnable_Counter_1');
       expect(JSON.parse(strJson).$type).assertEqual("Counter");
-
       console.info(`${SUITE} ${CASE} END`);
       done()
     });
-
   })
 }
