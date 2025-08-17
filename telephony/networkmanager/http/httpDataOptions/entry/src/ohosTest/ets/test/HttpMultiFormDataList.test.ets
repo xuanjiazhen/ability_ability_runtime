@@ -18,7 +18,7 @@ import http from '@ohos.net.http';
 import { BusinessError } from '@ohos.base';
 import connection from '@ohos.net.connection';
 
-export const ADDR_TEST_DOMAIN_HTTPS: string = "https://httpbin.org/anything";
+export const ADDR_TEST_DOMAIN_HTTPS: string = "https://www.baidu.com/";
 let httpRequestOptions_string: http.HttpRequestOptions = {
   method: http.RequestMethod.POST,
   header: { "Content-type": "multipart/form-data" },
