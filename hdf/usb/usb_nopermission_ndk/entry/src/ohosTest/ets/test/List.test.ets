@@ -14,7 +14,7 @@
  */
 
 import usbNoPerDdkTest from './UsbNoPerDdk.test';
-import usbNoPerCanIUseTest from './usbNoPerCanIUse.test';
+import usbNoPerCanIUseTest from './UsbNoPerCanIUse.test';
 
 export default function testsuite() {
   if (canIUse("SystemCapability.Driver.DDK.Extension") && canIUse("SystemCapability.Driver.SCSI.Extension") && canIUse("SystemCapability.Driver.UsbSerial.Extension")) {
