@@ -363,10 +363,10 @@ export default function startAndTerminateTest() {
                     try{
                       globalThis.uiAbilityContext5.moveAbilityToBackground().then(()=>{
                         hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 moveAbilityToBackground success');
-                      }).catch((err)=>{
+                      }).catch((err: BusinessError)=>{
                         hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 moveAbilityToBackground fail ' + err?.code);
                         if(err?.code == 16000061){
-                          commonEventManager.publish('UiAbility05_onBackground', function () {
+                          commonEventManager.publish('UiAbility05_onBackground', () => {
                             hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext5 publish UiAbility05_onBackground');
                             setTimeout(()=>{
                               globalThis.uiAbilityContext5.terminateSelf();
@@ -397,10 +397,10 @@ export default function startAndTerminateTest() {
                     try{
                       globalThis.uiAbilityContext6.moveAbilityToBackground().then(()=>{
                         hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 moveAbilityToBackground success');
-                      }).catch((err)=>{
+                      }).catch((err: BusinessError)=>{
                         hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 moveAbilityToBackground fail ' + err?.code);
                         if(err?.code == 16000061){
-                          commonEventManager.publish('UiAbility05_onBackground', function () {
+                          commonEventManager.publish('UiAbility05_onBackground', () => {
                             hilog.info(0x0000, 'testTag', '%{public}s', 'uiAbilityContext6 publish UiAbility05_onBackground');
                             setTimeout(()=>{
                               globalThis.uiAbilityContext6.terminateSelf();
