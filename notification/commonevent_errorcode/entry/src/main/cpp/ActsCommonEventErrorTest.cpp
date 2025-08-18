@@ -23,7 +23,7 @@ static CommonEvent_Subscriber *g_subscriber = nullptr;
 static bool g_isOrdered = false;
 static bool g_isFinished = false;
 static CommonEvent_SubscribeInfo *g_subscribeInfo = nullptr;
-constexpr int32_t MAX_SUBSCRIBER_LIMIT = 200; 
+constexpr int32_t MAX_SUBSCRIBER_LIMIT = 200;
 static void IsOrderedCallback001(const CommonEvent_RcvData *data)
 {
     if (g_subscriber != nullptr) {
@@ -210,6 +210,29 @@ static napi_value SetIntToParameterError(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value SetIntArrayToParameterSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    auto parameters = OH_CommonEvent_CreateParameters();
+    const char *key = "intArray";
+    int value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(int);
+    int32_t ret = OH_CommonEvent_SetIntArrayToParameters(parameters, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value SetIntArrayToParameterError(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char *key = "intArray";
+    int value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(int);
+    int32_t ret = OH_CommonEvent_SetIntArrayToParameters(nullptr, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
 static napi_value SetLongToParameterSuccess(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -231,6 +254,28 @@ static napi_value SetLongToParameterError(napi_env env, napi_callback_info info)
     return result;
 }
 
+static napi_value SetLongArrayToParameterSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    auto parameters = OH_CommonEvent_CreateParameters();
+    const char *key = "longArray";
+    long value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(long);
+    int32_t ret = OH_CommonEvent_SetLongArrayToParameters(parameters, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value SetLongArrayToParameterError(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char *key = "longArray";
+    long value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(long);
+    int32_t ret = OH_CommonEvent_SetLongArrayToParameters(nullptr, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
 
 static napi_value SetBoolToParameterSuccess(napi_env env, napi_callback_info info)
 {
@@ -249,6 +294,29 @@ static napi_value SetBoolToParameterError(napi_env env, napi_callback_info info)
     const char *key = "bool";
     bool value = true;
     int32_t ret = OH_CommonEvent_SetBoolToParameters(nullptr, key, value);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value SetBoolArrayToParameterSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    auto parameters = OH_CommonEvent_CreateParameters();
+    const char *key = "boolArray";
+    bool value[] = {true, false, true};
+    size_t num = sizeof(value) / sizeof(bool);
+    int32_t ret = OH_CommonEvent_SetBoolArrayToParameters(parameters, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value SetBoolArrayToParameterError(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char *key = "boolArray";
+    bool value[] = {true, false, true};
+    size_t num = sizeof(value) / sizeof(bool);
+    int32_t ret = OH_CommonEvent_SetBoolArrayToParameters(nullptr, key, value, num);
     napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
@@ -319,6 +387,65 @@ static napi_value SetDoubleToParameterError(napi_env env, napi_callback_info inf
     return result;
 }
 
+static napi_value SetDoubleArrayToParameterSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    auto parameters = OH_CommonEvent_CreateParameters();
+    const char *key = "doubleArray";
+    double value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(double);
+    int32_t ret = OH_CommonEvent_SetDoubleArrayToParameters(parameters, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value SetDoubleArrayToParameterError(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char *key = "doubleArray";
+    double value[] = {PARAM_1, PARAM_4, PARAM_6};
+    size_t num = sizeof(value) / sizeof(double);
+    int32_t ret = OH_CommonEvent_SetDoubleArrayToParameters(nullptr, key, value, num);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value PublishSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char* event = CesCapiTest::COMMON_EVENT_TEST;
+    int32_t ret = OH_CommonEvent_Publish(event);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value PublishInvalidParameter(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char* event = nullptr;
+    int32_t ret = OH_CommonEvent_Publish(event);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value PublishWithInfoSuccess(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    const char* event = CesCapiTest::COMMON_EVENT_TEST;
+    bool ordered = false;
+    auto publishInfo = OH_CommonEvent_CreatePublishInfo(ordered);
+    int32_t ret = OH_CommonEvent_PublishWithInfo(event, publishInfo);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_OK ? 0 : -1, &result);
+    return result;
+}
+
+static napi_value PublishWithInfoInvalidParameter(napi_env env, napi_callback_info info)
+{
+    napi_value result;
+    int32_t ret = OH_CommonEvent_PublishWithInfo(nullptr, nullptr);
+    napi_create_int32(env, ret == COMMONEVENT_ERR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
 napi_value SubscriberNumExceeded(napi_env env, napi_callback_info info)
 {
     napi_value result;
@@ -366,13 +493,25 @@ napi_property_descriptor desc[] = {
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetIntToParameterError", nullptr, SetIntToParameterError,
         nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetIntArrayToParameterSuccess", nullptr, SetIntArrayToParameterSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetIntArrayToParameterError", nullptr, SetIntArrayToParameterError,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetLongToParameterSuccess", nullptr, SetLongToParameterSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetLongToParameterError", nullptr, SetLongToParameterError,
         nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetLongArrayToParameterSuccess", nullptr, SetLongArrayToParameterSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetLongArrayToParameterError", nullptr, SetLongArrayToParameterError,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetBoolToParameterSuccess", nullptr, SetBoolToParameterSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetBoolToParameterError", nullptr, SetBoolToParameterError,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetBoolArrayToParameterSuccess", nullptr, SetBoolArrayToParameterSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetBoolArrayToParameterError", nullptr, SetBoolArrayToParameterError,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetCharToParameterSuccess", nullptr, SetCharToParameterSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr},
@@ -385,6 +524,17 @@ napi_property_descriptor desc[] = {
     {"SetDoubleToParameterSuccess", nullptr, SetDoubleToParameterSuccess,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SetDoubleToParameterError", nullptr, SetDoubleToParameterError,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetDoubleArrayToParameterSuccess", nullptr, SetDoubleArrayToParameterSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"SetDoubleArrayToParameterError", nullptr, SetDoubleArrayToParameterError,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"PublishSuccess", nullptr, PublishSuccess, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"PublishInvalidParameter", nullptr, PublishInvalidParameter,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"PublishWithInfoSuccess", nullptr, PublishWithInfoSuccess,
+        nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"PublishWithInfoInvalidParameter", nullptr, PublishWithInfoInvalidParameter,
         nullptr, nullptr, nullptr, napi_default, nullptr},
     {"SubscriberNumExceeded", nullptr, SubscriberNumExceeded,
         nullptr, nullptr, nullptr, napi_default, nullptr},
