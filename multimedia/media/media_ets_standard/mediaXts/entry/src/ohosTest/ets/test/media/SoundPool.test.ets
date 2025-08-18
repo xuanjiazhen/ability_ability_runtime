@@ -17,7 +17,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, Level
 import { media } from '@kit.MediaKit';
 import { audio } from '@kit.AudioKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { LOG_TAG, MediaErrorCode, SLEEP_TIME_500, SLEEP_TIME_3000, SLEEP_TIME_200, TEST_MP3_FILE } from '../Constants';
+import { LOG_TAG, MediaErrorCode, SLEEP_TIME_500, SLEEP_TIME_2000, TEST_MP3_FILE } from '../Constants';
 import { common, Permissions } from '@kit.AbilityKit';
 import AVRecorderCommon from './AVRecorderCommon';
 import { sleep } from '../common';
@@ -241,690 +241,769 @@ async function loadSoundPoolWithFdPromise(usage: audio.StreamUsage, maxStreams: 
   });
 }
 
-async function playSoundPoolWithParamsPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+async function playSoundPoolWithParamsPromise(usage: audio.StreamUsage, maxStreams: number,
+  done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      await sleep(SLEEP_TIME_500);
-      await soundPool?.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        expect(true).assertTrue();
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}'`);
-        expect().assertFail();
-      });
-      done();
-    } else {
-      console.error(TAG, `playSoundPoolWithParamsPromise create soundPool error.`);
-      expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `playSoundPoolWithParamsPromise error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function playSoundPoolWithParamsCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      console.info(TAG, 'start to play.');
-      soundPool.play(soundId, playParameters, (error: BusinessError, streamId: number) => {
-        if (error) {
-          console.error(TAG, `Failed to play soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in playing soundPool, streamId:' + streamId);
-          expect(true).assertTrue();
-        }
-        done();
-      });
-    } else {
-      console.error(TAG, `playSoundPoolWithParamsCallback create soundPool error.`);
-      expect().assertFail();
-    }
-    done();
-  } catch (error) {
-    console.error(TAG, `playSoundPoolWithParamsCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function playSoundPoolWithoutParamsCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      console.info(TAG, 'start to play.');
-      soundPool.play(soundId, (error: BusinessError, streamId: number) => {
-        if (error) {
-          console.error(TAG, `Failed to play soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in playing soundPool, streamId:' + streamId);
-          expect(true).assertTrue();
-        }
-        done();
-      });
-    } else {
-      console.error(TAG, `playSoundPoolWithoutParamsCallback create soundPool error.`);
-      expect().assertFail();
-    }
-    done();
-  } catch (error) {
-    console.error(TAG, `playSoundPoolWithoutParamsCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function stopSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      await sleep(SLEEP_TIME_500);
-      let streamId = await soundPool.play(soundId);
-      console.info(TAG, 'start to stop, streamId is ' + streamId);
-      await sleep(SLEEP_TIME_3000);
-      soundPool?.stop(streamId, (error: BusinessError) => {
-        if (error) {
-          console.error(TAG,
-            `Failed to stop soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in stopping soundPool');
-          expect(true).assertTrue();
-        }
-        done();
-      })
-    } else {
-      console.error(TAG, `stopSoundPoolCallback create soundPool error.`);
-      expect().assertFail();
-    }
-    done();
-  } catch (error) {
-    console.error(TAG, `stopSoundPoolCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function stopSoundPoolPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      await sleep(SLEEP_TIME_500);
-      let streamId = await soundPool.play(soundId);
-      console.info(TAG, 'start to stop, streamId is ' + streamId);
-      await sleep(SLEEP_TIME_3000);
-      await soundPool.stop(streamId).then(() => {
-        console.info(TAG, 'Succeeded in stopping soundPool');
-        expect(true).assertTrue();
-      }, (err: BusinessError) => {
-        console.error(TAG, 'Failed to stop soundPool and catch error is ' + err.message);
-        expect().assertFail();
-      });
-      done();
-    } else {
-      console.error(TAG, `stopSoundPoolPromise create soundPool error.`);
-      expect().assertFail();
-    }
-    done();
-  } catch (error) {
-    console.error(TAG, `stopSoundPoolPromise error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function setLoopNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        soundPool?.setLoop(streamId, 2, (error: BusinessError) => {
-          if (error) {
-            console.error(TAG, `Failed to setLoop soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          await soundPool?.play(soundId, playParameters).then((streamId: number) => {
+            console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
+            expect(true).assertTrue();
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }, (err: BusinessError) => {
+            console.error(TAG,
+              `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}'`);
             expect().assertFail();
-          } else {
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `playSoundPoolWithParamsPromise create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `playSoundPoolWithParamsPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function playSoundPoolWithParamsCallback(usage: audio.StreamUsage, maxStreams: number,
+  done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          soundPool?.play(soundId, playParameters, (error: BusinessError, streamId: number) => {
+            if (error) {
+              console.error(TAG, `Failed to play soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in playing soundPool, streamId:' + streamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `playSoundPoolWithParamsCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `playSoundPoolWithParamsCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function playSoundPoolWithoutParamsCallback(usage: audio.StreamUsage, maxStreams: number,
+  done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          soundPool?.play(soundId, (error: BusinessError, streamId: number) => {
+            if (error) {
+              console.error(TAG, `Failed to play soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in playing soundPool, streamId:' + streamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `playSoundPoolWithoutParamsCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `playSoundPoolWithoutParamsCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function stopSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId);
+          console.info(TAG, 'play, streamId：' + streamId);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.stop(streamId, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to stop soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in stopping soundPool');
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          })
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'load finish soundId: ' + soundId);
+      } else {
+        console.error(TAG, `stopSoundPoolCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `stopSoundPoolCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function stopSoundPoolPromise(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId);
+          console.info(TAG, 'play, streamId：' + streamId);
+          await sleep(SLEEP_TIME_2000);
+          await soundPool!.stop(streamId).then(() => {
+            console.info(TAG, 'Succeeded in stopping soundPool');
+            expect(true).assertTrue();
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }, (err: BusinessError) => {
+            console.error(TAG, 'Failed to stop soundPool and catch error is ' + err.message);
+            expect().assertFail();
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'load finish soundId: ' + soundId);
+      } else {
+        console.error(TAG, `stopSoundPoolPromise create soundPool error.`);
+        expect().assertFail();
+      }
+    } catch (error) {
+      console.error(TAG, `stopSoundPoolPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function setLoopNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.setLoop(streamId, 1, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to setLoop soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in setLooping soundPool, streamID:' + streamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setLoopNormalCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setLoopNormalCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function setLoopNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          await soundPool!.setLoop(streamId, 1).then(() => {
             console.info(TAG, 'Succeeded in setLooping soundPool, streamID:' + streamId);
             expect(true).assertTrue();
-          }
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
-        expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setLoopNormalCallback create soundPool error.`);
-      expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `setLoopNormalCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function setLoopNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        await soundPool?.setLoop(streamId, 1).then(() => {
-          console.info(TAG, 'Succeeded in setLooping soundPool, streamID:' + streamId);
-          expect(true).assertTrue();
-          done();
-        }).catch((err: BusinessError) => {
-          console.error(TAG, 'Failed to setLoop soundPool and catch error is ' + err.message);
-          expect().assertFail();
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
-        expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setLoopNormalPromise create soundPool error.`);
-      expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `setPriorityNormalCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function setPriorityNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        soundPool?.setPriority(streamId, 2, (error: BusinessError) => {
-          if (error) {
-            console.error(TAG,
-              `Failed to setPriority soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }).catch((err: BusinessError) => {
+            console.error(TAG, 'Failed to setLoop soundPool and catch error is ' + err.message);
             expect().assertFail();
-          } else {
-            console.info(TAG, 'Succeeded in setPriority soundPool, streamID:' + streamId);
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setLoopNormalPromise create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setLoopNormalPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function setPriorityNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let playStreamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.setPriority(playStreamId, 2, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to setPriority soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in setPriority soundPool, streamID:' + playStreamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setPriorityNormalCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setPriorityNormalCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function setPriorityNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let playStreamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          await soundPool!.setPriority(playStreamId, 1).then(() => {
+            console.info(TAG, 'Succeeded in setPriority  soundPool, streamID:' + playStreamId);
             expect(true).assertTrue();
-          }
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
-        expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setPriorityNormalCallback create soundPool error.`);
-      expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `setPriorityNormalCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function setPriorityNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        await soundPool?.setPriority(streamId, 1).then(() => {
-          console.info(TAG, 'Succeeded in setPriority  soundPool, streamID:' + streamId);
-          expect(true).assertTrue();
-          done();
-        }).catch((err: BusinessError) => {
-          console.error(TAG, 'Failed to setPriority  soundPool and catch error is ' + err.message);
-          expect().assertFail();
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
-        expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setPriorityNormalPromise create soundPool error.`);
-      expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `setPriorityNormalPromise error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-async function setRateNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        let selectedAudioRendererRate: audio.AudioRendererRate = audio.AudioRendererRate.RENDER_RATE_NORMAL;
-        soundPool?.setRate(streamId, selectedAudioRendererRate, (error: BusinessError) => {
-          if (error) {
-            console.error(TAG,
-              `Failed to setRate soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }).catch((err: BusinessError) => {
+            console.error(TAG, 'Failed to setPriority  soundPool and catch error is ' + err.message);
             expect().assertFail();
-          } else {
-            console.info(TAG, 'Succeeded in setRate soundPool, streamID:' + streamId);
-            expect(true).assertTrue();
-          }
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setPriorityNormalPromise create soundPool error.`);
         expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setRateNormalCallback create soundPool error.`);
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setPriorityNormalPromise error,  ${error}`);
       expect().assertFail();
-      done();
+      reject();
     }
-  } catch (error) {
-    console.error(TAG, `setRateNormalCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
+  });
 }
 
-async function setRateNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+async function setRateNormalCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      let selectedAudioRendererRate: audio.AudioRendererRate = audio.AudioRendererRate.RENDER_RATE_NORMAL;
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        await soundPool?.setRate(streamId, selectedAudioRendererRate).then(() => {
-          console.info(TAG, 'Succeeded in setPriority  soundPool, streamID:' + streamId);
-          expect(true).assertTrue();
-          done();
-        }).catch((err: BusinessError) => {
-          console.error(TAG, 'Failed to setPriority  soundPool and catch error is ' + err.message);
-          expect().assertFail();
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let playStreamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          let selectedAudioRendererRate: audio.AudioRendererRate = audio.AudioRendererRate.RENDER_RATE_NORMAL;
+          soundPool?.setRate(playStreamId, selectedAudioRendererRate, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to setRate soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in setRate soundPool, streamID:' + playStreamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setRateNormalCallback create soundPool error.`);
         expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setRateNormalPromise create soundPool error.`);
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setRateNormalCallback error,  ${error}`);
       expect().assertFail();
-      done();
+      reject();
     }
-  } catch (error) {
-    console.error(TAG, `setRateNormalPromise error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
+  });
+}
+
+async function setRateNormalPromise(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let playStreamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          let selectedAudioRendererRate: audio.AudioRendererRate = audio.AudioRendererRate.RENDER_RATE_NORMAL;
+          await soundPool!.setRate(playStreamId, selectedAudioRendererRate).then(() => {
+            console.info(TAG, 'Succeeded in setRate soundPool, streamID:' + playStreamId);
+            expect(true).assertTrue();
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }).catch((err: BusinessError) => {
+            console.error(TAG, 'Failed to setPriority  soundPool and catch error is ' + err.message);
+            expect().assertFail();
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setRateNormalPromise create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setRateNormalPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
 }
 
 async function setVolumeNormalCallback(usage: audio.StreamUsage, maxStreams: number, leftVolume: number,
-  rightVolume: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+  rightVolume: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        soundPool?.setVolume(streamId, leftVolume, rightVolume, (error: BusinessError) => {
-          if (error) {
-            console.error(TAG,
-              `Failed to setVolume soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-            expect().assertFail();
-          } else {
-            console.info(TAG, 'Succeeded in setVolume soundPool, streamID:' + streamId);
-            expect(true).assertTrue();
-          }
-          done();
-        });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.setVolume(streamId, leftVolume, rightVolume, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to setVolume soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in setVolume soundPool, streamID:' + streamId);
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setVolumeNormalCallback create soundPool error.`);
         expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setVolumeNormalCallback create soundPool error.`);
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setVolumeNormalCallback error,  ${error}`);
       expect().assertFail();
-      done();
+      reject();
     }
-  } catch (error) {
-    console.error(TAG, `setVolumeNormalCallback error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
+  });
 }
 
 async function setVolumeNormalPromise(usage: audio.StreamUsage, maxStreams: number, leftVolume: number,
-  rightVolume: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  try {
-    soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
-    if (soundPool) {
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+  rightVolume: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
-      console.info(TAG, 'file soundId: ' + soundId);
-      await sleep(SLEEP_TIME_500);
-      await soundPool.play(soundId, playParameters).then(async (streamId: number) => {
-        console.info(TAG, 'Succeeded in playing soundPool ,streamId =' + streamId);
-        await sleep(SLEEP_TIME_3000);
-        await soundPool?.setVolume(streamId, leftVolume, rightVolume).then(() => {
-          console.info(TAG, 'Succeeded in setVolume soundPool, streamID:' + streamId);
-          expect(true).assertTrue();
-          done();
-        }).catch((err: BusinessError) => {
-          console.error(TAG, 'Failed to setVolume soundPool and catch error is ' + err.message);
-          expect().assertFail();
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          let streamId = await soundPool?.play(soundId, playParameters);
+          await sleep(SLEEP_TIME_2000);
+          await soundPool!.setVolume(streamId, leftVolume, rightVolume).then(() => {
+            console.info(TAG, 'Succeeded in setVolume soundPool, streamID:' + streamId);
+            expect(true).assertTrue();
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }).catch((err: BusinessError) => {
+            console.error(TAG, 'Failed to setVolume soundPool and catch error is ' + err.message);
+            expect().assertFail();
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `setVolumeNormalPromise create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `setVolumeNormalPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+function unloadSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.unload(soundId, (error: BusinessError) => {
+            if (error) {
+              console.error(TAG,
+                `Failed to unload soundPool: errCode is ${error?.code}, errMessage is ${error?.message}`);
+              expect().assertFail();
+              reject();
+            } else {
+              console.info(TAG, 'Succeeded in unload soundPool');
+              expect(true).assertTrue();
+              resolve();
+            }
+            soundPool?.off('loadComplete');
+            done();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `unloadSoundPoolCallback create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `unloadSoundPoolCallback error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function unloadSoundPoolPromise(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          await sleep(SLEEP_TIME_2000);
+          await soundPool!.unload(soundId).then(() => {
+            console.info(TAG, 'Succeeded in unload soundPool');
+            expect(true).assertTrue();
+            soundPool?.off('loadComplete');
+            resolve();
+            done();
+          }, (err: BusinessError) => {
+            console.error(TAG, `Failed to unload soundPool errCode is ${err?.code}, errMessage is ${err?.message}`);
+            expect().assertFail();
+            reject();
+          });
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `unloadSoundPoolPromise create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `unloadSoundPoolPromise error,  ${error}`);
+      expect().assertFail();
+      reject();
+    }
+  });
+}
+
+async function unloadSoundPoolWithFdCallback(usage: audio.StreamUsage, maxStreams: number,
+  done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
+      if (soundPool_ != null) {
+        soundPool = soundPool_;
+        console.info(TAG, 'Succeeded in creating SoundPool promise');
+
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.load(rawFileDescriptor.fd, 0, rawFileDescriptor.length, (error: BusinessError, soundId_: number) => {
+          if (error) {
+            console.error(TAG, `Failed to load soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+            expect().assertFail();
+            reject();
+          } else {
+            console.info(TAG, 'Succeeded in loading soundId:' + soundId_);
+            expect(true).assertTrue();
+            resolve();
+          }
           done();
         });
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to play soundPool and catch errorCode is: ${err?.code}, errMsg is ${err?.message}`);
+      } else {
+        console.error(TAG, 'Failed to create SoundPool promise');
         expect().assertFail();
-        done();
-      });
-    } else {
-      console.error(TAG, `setVolumeNormalPromise create soundPool error.`);
+        reject();
+      }
+    }, (error: BusinessError) => {
+      console.error(TAG, `soundpool catchCallback, error message:${error.message}`);
       expect().assertFail();
-      done();
-    }
-  } catch (error) {
-    console.error(TAG, `setVolumeNormalPromise error,  ${error}`);
-    expect().assertFail();
-    done();
-  }
-}
-
-function unloadSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  media.createSoundPool(maxStreams, audioRendererInfo, async (error: BusinessError, soundPool_: media.SoundPool) => {
-    if (error) {
-      console.error(TAG, `Failed to createSoundPool callback.`);
-      return;
-    } else {
-      soundPool = soundPool_;
-      console.info(TAG, `Succeeded in createSoundPool callback.`);
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let uri = 'fd://' + (rawFileDescriptor.fd).toString();
-      let soundId: number = await soundPool?.load(uri);
-      soundPool?.unload(soundId, (error: BusinessError) => {
-        if (error) {
-          console.error(TAG,
-            `Failed to unload soundPool: errCode is ${error?.code}, errMessage is ${error?.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in unload soundPool');
-          expect(true).assertTrue();
-        }
-      });
-      done();
-    }
+      reject();
+    });
   });
 }
 
-async function unloadSoundPoolPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
-    if (soundPool_ != null) {
-      soundPool = soundPool_;
-      console.info(TAG, 'Succeeded in creating SoundPool promise');
+async function unloadSoundPoolWithFdPromise(usage: audio.StreamUsage, maxStreams: number,
+  done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
+      if (soundPool_ != null) {
+        soundPool = soundPool_;
+        console.info(TAG, 'Succeeded in creating SoundPool promise');
 
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      let uri = 'fd://' + (rawFileDescriptor.fd).toString();
-      let soundId: number = await soundPool?.load(uri);
-      await soundPool.unload(soundId).then(() => {
-        console.info(TAG, 'Succeeded in unload soundPool');
-        expect(true).assertTrue();
-      }, (err: BusinessError) => {
-        console.error(TAG, `Failed to unload soundPool errCode is ${err?.code}, errMessage is ${err?.message}`);
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        await soundPool.load(rawFileDescriptor.fd, 0, rawFileDescriptor.length).then(async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loading soundPool, soundId is ' + soundId);
+          expect(true).assertTrue();
+          resolve();
+          done();
+        }, (err: BusinessError) => {
+          console.error(TAG, 'Failed to load soundPool and catch error is ' + err.message);
+          expect().assertFail();
+          reject();
+        });
+      } else {
+        console.error(TAG, 'Failed to create SoundPool promise');
         expect().assertFail();
-      });
-      done();
-    } else {
-      console.error(TAG, 'Failed to create SoundPool promise');
+        reject();
+      }
+    }, (error: BusinessError) => {
+      console.error(TAG, `unloadSoundPoolWithFdPromise catchCallback, error message:${error.message}`);
       expect().assertFail();
-      done();
-    }
-  }, (error: BusinessError) => {
-    console.error(TAG, ` soundpool catchPromise, error message:${error.message}`);
-    expect().assertFail();
-    done();
+      reject();
+    });
   });
 }
 
-async function unloadSoundPoolWithFdCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
-    if (soundPool_ != null) {
-      soundPool = soundPool_;
-      console.info(TAG, 'Succeeded in creating SoundPool promise');
+async function releaseSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
+      if (soundPool_ != null) {
+        soundPool = soundPool_;
+        console.info(TAG, 'Succeeded in creating SoundPool promise');
 
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      soundPool.load(rawFileDescriptor.fd, 0, rawFileDescriptor.length, (error: BusinessError, soundId_: number) => {
-        if (error) {
-          console.error(TAG, `Failed to load soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in loading soundId:' + soundId_);
-          expect(true).assertTrue();
-        }
-        done();
-      });
-    } else {
-      console.error(TAG, 'Failed to create SoundPool promise');
-      expect().assertFail();
-      done();
-    }
-  }, (error: BusinessError) => {
-    console.error(TAG, `soundpool catchCallback, error message:${error.message}`);
-    expect().assertFail();
-    done();
-  });
-}
-
-async function unloadSoundPoolWithFdPromise(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
-    if (soundPool_ != null) {
-      soundPool = soundPool_;
-      console.info(TAG, 'Succeeded in creating SoundPool promise');
-
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      await soundPool.load(rawFileDescriptor.fd, 0, rawFileDescriptor.length).then(async (soundId: number) => {
-        console.info(TAG, 'Succeeded in loading soundPool, soundId is ' + soundId);
-        expect(true).assertTrue();
-      }, (err: BusinessError) => {
-        console.error(TAG, 'Failed to load soundPool and catch error is ' + err.message);
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.release((error: BusinessError) => {
+          if (error) {
+            console.error(TAG, `Failed to release soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
+            expect().assertFail();
+            reject();
+          } else {
+            console.info(TAG, 'Succeeded in releasing soundPool');
+            expect(true).assertTrue();
+            resolve();
+          }
+          done();
+        });
+      } else {
+        console.error(TAG, 'Failed to create SoundPool promise');
         expect().assertFail();
-      });
-      done();
-    } else {
-      console.error(TAG, 'Failed to create SoundPool promise');
+        reject();
+      }
+    }, (error: BusinessError) => {
+      console.error(TAG, `soundpool catchCallback, error message:${error.message}`);
       expect().assertFail();
-      done();
-    }
-  }, (error: BusinessError) => {
-    console.error(TAG, `soundpool catchPromise, error message:${error.message}`);
-    expect().assertFail();
-    done();
-  });
-}
-
-async function releaseSoundPoolCallback(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
-    if (soundPool_ != null) {
-      soundPool = soundPool_;
-      console.info(TAG, 'Succeeded in creating SoundPool promise');
-
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      soundPool.release((error: BusinessError) => {
-        if (error) {
-          console.error(TAG, `Failed to release soundPool: errCode is ${error.code}, errMessage is ${error.message}`);
-          expect().assertFail();
-        } else {
-          console.info(TAG, 'Succeeded in releasing soundPool');
-          expect(true).assertTrue();
-        }
-        done();
-      });
-    } else {
-      console.error(TAG, 'Failed to create SoundPool promise');
-      expect().assertFail();
-      done();
-    }
-  }, (error: BusinessError) => {
-    console.error(TAG, `soundpool catchCallback, error message:${error.message}`);
-    expect().assertFail();
-    done();
+      reject();
+    });
   });
 }
 
@@ -960,35 +1039,36 @@ async function releaseSoundPoolPromise(usage: audio.StreamUsage, maxStreams: num
   });
 }
 
-async function loadCompleteListen(usage: audio.StreamUsage, maxStreams: number, done: Function) {
-  audioRendererInfo.usage = usage;
-  let lodeSoundId: number = -1;
-  await media.createSoundPool(maxStreams, audioRendererInfo).then(async (soundPool_: media.SoundPool) => {
-    if (soundPool_ != null) {
-      soundPool = soundPool_;
-      console.info(TAG, 'Succeeded in creating SoundPool promise');
+async function loadCompleteListen(usage: audio.StreamUsage, maxStreams: number, done: Function): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    audioRendererInfo.usage = usage;
+    try {
+      soundPool = await media.createSoundPool(maxStreams, audioRendererInfo);
+      if (soundPool) {
+        let testContext: common.UIAbilityContext =
+          AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
 
-      let testContext: common.UIAbilityContext =
-        AppStorage.get<common.UIAbilityContext>("testContext") as common.UIAbilityContext;
-
-      let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
-      console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
-      soundPool.on('loadComplete', (soundId: number) => {
-        console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
-        expect(soundId).assertEqual(lodeSoundId);
-      });
-      lodeSoundId = await soundPool.load(rawFileDescriptor.fd, 0, rawFileDescriptor.length);
-      soundPool.off('loadComplete');
-      done();
-    } else {
-      console.error(TAG, 'Failed to create SoundPool promise');
+        let rawFileDescriptor = testContext.resourceManager.getRawFdSync(TEST_MP3_FILE);
+        console.info(TAG, 'file fd: ' + rawFileDescriptor.fd);
+        soundPool.on('loadComplete', async (soundId: number) => {
+          console.info(TAG, 'Succeeded in loadComplete, soundId：' + soundId);
+          await sleep(SLEEP_TIME_2000);
+          soundPool?.off('loadComplete');
+          resolve();
+          done();
+        })
+        let soundId = await soundPool.load(rawFileDescriptor.fd, rawFileDescriptor.offset, rawFileDescriptor.length);
+        console.info(TAG, 'file soundId: ' + soundId);
+      } else {
+        console.error(TAG, `loadCompleteListen create soundPool error.`);
+        expect().assertFail();
+        reject();
+      }
+    } catch (error) {
+      console.error(TAG, `loadCompleteListen error,  ${error}`);
       expect().assertFail();
-      done();
+      reject();
     }
-  }, (error: BusinessError) => {
-    console.error(TAG, `soundpool catchCallback, error message:${error.message}`);
-    expect().assertFail();
-    done();
   });
 }
 
@@ -1116,7 +1196,7 @@ export default function SoundPoolTest() {
 
     afterEach(async () => {
       console.info(TAG, 'afterEach case');
-      await sleep(SLEEP_TIME_200);
+      await sleep(SLEEP_TIME_500);
       if (soundPool) {
         console.info(TAG, 'afterEach case， soundPool is not null.');
         await soundPool.release().then(() => {
@@ -2392,7 +2472,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_001', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
     })
 
     /**
@@ -2404,7 +2484,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_002', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
     })
 
     /**
@@ -2416,7 +2496,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_003', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
     })
 
     /**
@@ -2428,7 +2508,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_004', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
     })
 
     /**
@@ -2440,7 +2520,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_005', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
     })
 
     /**
@@ -2452,7 +2532,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_006', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
     })
 
     /**
@@ -2464,7 +2544,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_007', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
     })
 
     /**
@@ -2476,7 +2556,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_008', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
     })
 
     /**
@@ -2488,7 +2568,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_009', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
     })
 
     /**
@@ -2500,7 +2580,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_010', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
     })
 
     /**
@@ -2512,7 +2592,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_011', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
     })
 
     /**
@@ -2524,7 +2604,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_012', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
     })
 
     /**
@@ -2536,7 +2616,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_013', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
     })
 
     /**
@@ -2548,7 +2628,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_014', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
     })
 
     /**
@@ -2560,7 +2640,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_with_params_normal_callback_015', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 32, done);
+      await playSoundPoolWithParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 32, done);
     })
 
     /**
@@ -2572,7 +2652,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_001', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
     })
 
     /**
@@ -2584,7 +2664,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_002', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
     })
 
     /**
@@ -2596,7 +2676,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_003', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
     })
 
     /**
@@ -2608,7 +2688,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_004', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
     })
 
     /**
@@ -2620,7 +2700,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_005', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
     })
 
     /**
@@ -2632,7 +2712,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_006', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
     })
 
     /**
@@ -2644,7 +2724,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_007', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
     })
 
     /**
@@ -2656,7 +2736,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_008', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
     })
 
     /**
@@ -2668,7 +2748,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_009', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
     })
 
     /**
@@ -2680,7 +2760,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_010', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
     })
 
     /**
@@ -2692,7 +2772,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_011', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
     })
 
     /**
@@ -2704,7 +2784,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_012', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
     })
 
     /**
@@ -2716,7 +2796,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_013', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
     })
 
     /**
@@ -2728,7 +2808,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('play_without_params_normal_callback_014', Level.LEVEL0, async (done: Function) => {
-      playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
+      await playSoundPoolWithoutParamsCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
     })
 
     /**
@@ -2740,7 +2820,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_001', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
     })
 
     /**
@@ -2752,7 +2832,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_002', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
     })
 
     /**
@@ -2764,7 +2844,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_003', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
     })
 
     /**
@@ -2776,7 +2856,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_004', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
     })
 
     /**
@@ -2788,7 +2868,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_005', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
     })
 
     /**
@@ -2800,7 +2880,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_006', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done);
     })
 
     /**
@@ -2812,7 +2892,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_007', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
     })
 
     /**
@@ -2824,7 +2904,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_008', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
     })
 
     /**
@@ -2836,7 +2916,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_009', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
     })
 
     /**
@@ -2848,7 +2928,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_010', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
     })
 
     /**
@@ -2860,7 +2940,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_011', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
     })
 
     /**
@@ -2872,7 +2952,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_012', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
     })
 
     /**
@@ -2884,7 +2964,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_013', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
     })
 
     /**
@@ -2896,7 +2976,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('stopSoundPool_normal_callback_014', Level.LEVEL0, async (done: Function) => {
-      stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
+      await stopSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
     })
 
     /**
@@ -4420,7 +4500,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_001', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
     })
 
     /**
@@ -4432,7 +4512,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_002', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MUSIC, 1, done);
     })
 
     /**
@@ -4444,7 +4524,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_003', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_COMMUNICATION, 1, done);
     })
 
     /**
@@ -4456,7 +4536,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_004', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_ASSISTANT, 1, done);
     })
 
     /**
@@ -4468,7 +4548,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_005', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ALARM, 1, done);
     })
 
     /**
@@ -4480,7 +4560,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_006', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done)
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VOICE_MESSAGE, 1, done)
     })
 
     /**
@@ -4492,7 +4572,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_007', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_RINGTONE, 1, done);
     })
 
     /**
@@ -4504,7 +4584,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_008', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NOTIFICATION, 1, done);
     })
 
     /**
@@ -4516,7 +4596,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_009', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_ACCESSIBILITY, 1, done);
     })
 
     /**
@@ -4528,7 +4608,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_010', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_MOVIE, 1, done);
     })
 
     /**
@@ -4540,7 +4620,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_011', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_GAME, 1, done);
     })
 
     /**
@@ -4552,7 +4632,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_012', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_AUDIOBOOK, 1, done);
     })
 
     /**
@@ -4564,7 +4644,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_013', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_NAVIGATION, 1, done);
     })
 
     /**
@@ -4576,7 +4656,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('unload_normal_callback_014', Level.LEVEL0, async (done: Function) => {
-      unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
+      await unloadSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_VIDEO_COMMUNICATION, 1, done);
     })
 
     /**
@@ -4804,7 +4884,7 @@ export default function SoundPoolTest() {
      * @tc.level     : Level0
      */
     it('release_normal_callback_001', Level.LEVEL0, async (done: Function) => {
-      releaseSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
+      await releaseSoundPoolCallback(audio.StreamUsage.STREAM_USAGE_UNKNOWN, 1, done);
     })
 
     /**

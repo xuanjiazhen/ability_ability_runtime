@@ -120,7 +120,7 @@ export default function AVPlayerStabilityTest() {
         fileDescriptor = res;
         fdNumbers.push(fileDescriptor.fd);
       });
-      avPlayerPlay(fileDescriptor, avPlayer, done, testName);
+      await avPlayerPlay(fileDescriptor, avPlayer, done, testName);
       console.info(TAG, testName + ' end');
     })
 

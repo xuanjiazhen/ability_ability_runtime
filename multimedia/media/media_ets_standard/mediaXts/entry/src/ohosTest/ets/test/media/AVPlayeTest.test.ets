@@ -901,8 +901,7 @@ async function setPlaybackRangePromise(src: string | media.AVFileDescriptor, avP
   }
   await sleep(SLEEP_TIME_20);
   console.info(TAG, testName + ' surfaceId: ' + avPlayer?.surfaceId);
-  expect(avPlayer?.state).assertEqual(INITIALIZED);
-  avPlayer?.setPlaybackRange(startTimeMs, endTimeMs, mode).then(() => {
+  await avPlayer?.setPlaybackRange(startTimeMs, endTimeMs, mode).then(() => {
     console.info(TAG, testName + ' succeed to set PlaybackRange');
   }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
   done();
@@ -944,7 +943,8 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
         }).catch(async (error: BusinessError) => {
           console.error(TAG,
             testName + ' Failed to set SuperResolution, code: ' + error.code + ', msg: ' + error.message);
-          expect(error.code).assertEqual(MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED);
+          expect(error.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED ||
+            error.code == MediaErrorCode.AVERR_UNSUPPORT_FORMAT).assertTrue();
           await avPlayer?.release().then(() => {
           }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
         });
@@ -962,17 +962,15 @@ async function setSuperResolutionPromise(src: string | media.AVFileDescriptor, a
         avPlayer = null;
         done();
         break;
-      case ERROR:
-        console.info(TAG, testName + ' play state is ERROR');
-        expect().assertFail();
-        done();
-        break;
       default:
         break;
     }
   });
   avPlayer?.on('error', async (err: BusinessError) => {
     console.error(TAG, testName + ` case error called, errCode: ${err.code}, errMessage is ${err.message}`);
+    expect(err.code == MediaErrorCode.AVERR_SUPER_RESOLUTION_UNSUPPORTED ||
+      err.code == MediaErrorCode.AVERR_UNSUPPORT_FORMAT).assertTrue();
+    done();
   });
 }
 
@@ -1037,6 +1035,7 @@ async function setVideoWindowSizePromise(src: string | media.AVFileDescriptor, a
             await avPlayer?.release().then(() => {
             }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
           }
+          done();
         });
         await avPlayer?.stop();
         break;

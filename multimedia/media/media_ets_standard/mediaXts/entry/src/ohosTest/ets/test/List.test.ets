@@ -26,6 +26,7 @@ import MediaSourceLoadingRequestTest from './media/MediaSourceLoadingRequestTest
 import AVPlayerDrmTest from './media/AVPlayerDrmTest.test';
 
 export default function testsuite() {
+  AVPlayerStabilityTest();
   AVImageGeneratorTest();
   AVPlayerTest();
   AVPlayerDrmTest();
@@ -36,5 +37,4 @@ export default function testsuite() {
   MediaSourceTest();
   MediaSourceLoadingRequestTest();
   SoundPoolTest();
-  AVPlayerStabilityTest();
 }
