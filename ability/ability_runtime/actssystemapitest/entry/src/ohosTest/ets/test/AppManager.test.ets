@@ -195,7 +195,7 @@ export default function appManagerTest() {
       let bundleName = "com.ohos.application";
       appManager.killProcessesByBundleName(bundleName, (err) => {
         console.log(TAG + "  err.code: " + err.code);
-        expect(err.code).assertEqual(ERROR_INNER_ERROR);
+        expect(err.code).assertEqual(ERROR_PERMISSION_CODE);
         done();
       });
     })
@@ -217,7 +217,7 @@ export default function appManagerTest() {
         })
         .catch((err: BusinessError) => {
           console.log(TAG + "  err.code: " + err.code);
-          expect(err.code).assertEqual(ERROR_INNER_ERROR);
+          expect(err.code).assertEqual(ERROR_PERMISSION_CODE);
           done();
         })
     })
@@ -630,14 +630,14 @@ export default function appManagerTest() {
           done();
         }).catch((err: BusinessError) => {
           console.error(`System_API_Test_App_Manager_1700 killProcessesByBundleName fail, err: ${JSON.stringify(err)}`);
-          expect(err.code).assertEqual(16000050);
+          expect(err.code).assertEqual(ERROR_PERMISSION_CODE);
           done();
         });
       } catch (paramError) {
         let code = (paramError as BusinessError).code;
         let message = (paramError as BusinessError).message;
         console.error(`System_API_Test_App_Manager_1700 [appManager] error: ${code}, ${message}`);
-        expect(paramError.code).assertEqual(16000050);
+        expect(paramError.code).assertEqual(ERROR_PERMISSION_CODE);
         done();
       }
     });
