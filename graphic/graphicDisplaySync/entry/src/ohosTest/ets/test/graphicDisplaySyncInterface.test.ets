@@ -45,7 +45,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         }
         backDisplaySync?.setExpectedFrameRateRange(range)
         console.info(msg + 'Succeeded in setExpectedFrameRateRange.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to setExpectedFrameRateRange. Cause:' + JSON.stringify(exception));
@@ -73,7 +72,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         }
         backDisplaySync?.on("frame", callback)
         console.info(msg + 'Succeeded in on.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to on. Cause:' + JSON.stringify(exception));
@@ -101,7 +99,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         }
         backDisplaySync?.off("frame", callback)
         console.info(msg + 'Succeeded in off.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to off. Cause:' + JSON.stringify(exception));
@@ -130,7 +127,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         backDisplaySync?.on("frame", callback)
         backDisplaySync?.off("frame", callback)
         console.info(msg + 'Succeeded in onoff.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to onoff. Cause:' + JSON.stringify(exception));
@@ -170,7 +166,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         // 开始每帧回调
         backDisplaySync?.start()
         console.info(msg + 'Succeeded in onoff.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to onoff. Cause:' + JSON.stringify(exception));
@@ -210,7 +205,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         // 停止每帧回调
         backDisplaySync?.stop()
         console.info(msg + 'Succeeded in onoff.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to onoff. Cause:' + JSON.stringify(exception));
@@ -252,7 +246,6 @@ export default function graphicDisplaySyncInterfaceTest() {
         // 停止每帧回调
         backDisplaySync?.stop()
         console.info(msg + 'Succeeded in onoff.');
-        expect(true).assertTrue()
         done()        
       } catch (exception) {
         console.error(msg + 'Failed to onoff. Cause:' + JSON.stringify(exception));

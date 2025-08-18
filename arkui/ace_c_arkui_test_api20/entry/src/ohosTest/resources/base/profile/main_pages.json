@@ -10,6 +10,9 @@
     "MainAbility/pages/touchTestDone/OntouchTestDoneTest",
     "MainAbility/pages/nodeUtils/TestNodeUniqueId",
     "MainAbility/pages/uiInput/UiInputErrorCodeTest",
-    "MainAbility/pages/scope/TestRunTaskInScope"
+    "MainAbility/pages/scope/TestRunTaskInScope",
+    "MainAbility/pages/list/ListTypeNodePage",
+    "MainAbility/pages/list/ListCNodePage",
+    "MainAbility/pages/BindController/BindController"
   ]
 }

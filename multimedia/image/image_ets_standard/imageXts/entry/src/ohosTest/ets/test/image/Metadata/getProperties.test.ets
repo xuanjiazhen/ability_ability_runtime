@@ -37,7 +37,6 @@ async function getPropertiesPromiseTest(done: Function, testName: string, path: 
     let metaData: image.Metadata | null = await pictureObj.getMetadata(metadataType);
     if (metaData != null) {
       await metaData.getProperties(attributeKey);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -64,7 +63,6 @@ async function getPropertiesAbnormalPromiseTest(done: Function, testName: string
     if (metaData != null) {
       let data = await metaData.getProperties(attributeKey);
       console.log(TAG, JSON.stringify(data));
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

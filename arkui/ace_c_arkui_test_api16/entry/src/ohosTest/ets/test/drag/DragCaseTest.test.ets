@@ -23,22 +23,25 @@ async function panAndPinchGesture(id: string) {
   let driver = Driver.create();
   let refresh = await driver.findComponent(ON.id(id));
   let rect = await refresh.getBounds();
+  let refresh2 = await driver.findComponent(ON.id('dragArea'));
+  let rect2 = await refresh2.getBounds();
   let point: PointerMatrix = PointerMatrix.create(1, 999);
   let centerX = Math.round((rect.left + rect.right) / 2);
   let centerY = Math.round((rect.top + rect.bottom) / 2);
+  let gap = Math.round((rect2.top + rect2.bottom) / 2) - centerY;
   let dragStartPoint1: Point = { x: centerX, y: centerY };
   for (let i = 0; i < 990; i++) {
     point.setPoint(0, i, dragStartPoint1);
   }
-  point.setPoint(0, 990, { x: centerX, y: Math.round(centerY + vp2px(20))});
-  point.setPoint(0, 991, { x: centerX, y: Math.round(centerY + vp2px(40))});
-  point.setPoint(0, 992, { x: centerX, y: Math.round(centerY + vp2px(60))});
-  point.setPoint(0, 993, { x: centerX, y: Math.round(centerY + vp2px(80))});
-  point.setPoint(0, 994, { x: centerX, y: Math.round(centerY + vp2px(100))});
-  point.setPoint(0, 995, { x: centerX, y: Math.round(centerY + vp2px(120))});
-  point.setPoint(0, 996, { x: centerX, y: Math.round(centerY + vp2px(140))});
-  point.setPoint(0, 997, { x: centerX, y: Math.round(centerY + vp2px(160))});
-  point.setPoint(0, 998, { x: centerX, y: Math.round(centerY + vp2px(200))});
+  point.setPoint(0, 990, { x: centerX, y: Math.round(centerY + 0.1*gap)});
+  point.setPoint(0, 991, { x: centerX, y: Math.round(centerY + 0.2*gap)});
+  point.setPoint(0, 992, { x: centerX, y: Math.round(centerY + 0.3*gap)});
+  point.setPoint(0, 993, { x: centerX, y: Math.round(centerY + 0.4*gap)});
+  point.setPoint(0, 994, { x: centerX, y: Math.round(centerY + 0.5*gap)});
+  point.setPoint(0, 995, { x: centerX, y: Math.round(centerY + 0.6*gap)});
+  point.setPoint(0, 996, { x: centerX, y: Math.round(centerY + 0.7*gap)});
+  point.setPoint(0, 997, { x: centerX, y: Math.round(centerY + 0.8*gap)});
+  point.setPoint(0, 998, { x: centerX, y: Math.round(centerY + 0.9*gap)});
   await driver.injectMultiPointerAction(point);
 }
 

@@ -71,7 +71,6 @@ async function createPixelMapFromParcelPromiseTest(done: Function, testName: str
       // 获取到pixelmap。
       let unmarshPixelmap = ret.pixel_map;
       console.log(JSON.stringify(unmarshPixelmap));
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

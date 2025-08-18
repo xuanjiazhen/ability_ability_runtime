@@ -20,6 +20,8 @@ import testsuite from '../../test/List.test';
 import Utils from '../../test/Utils';
 import web_webview from '@ohos.web.webview';
 
+const EVENT_ID_SET_EMIT_KEY = 111780;
+
 @Entry
 @Component
 struct webViewContMessageError {
@@ -29,7 +31,7 @@ struct webViewContMessageError {
   msgPort: web_webview.WebMessagePort[] | null= null;
   @State sendFromEts: string = 'Send this message from ets to HTML';
   @State receivedFromHtml: string = 'Display received message send from HTML';
-  @State str: string = "emitPostMessageInitErr";
+  @State str: string = "";
   @State userAgent: string = "Mozilla/5.0 (Window NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" +
     " CHrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.27";
   @State javaScriptAccess: boolean = true;
@@ -40,13 +42,19 @@ struct webViewContMessageError {
   @State databaseAccess: boolean = true;
   @State errorCode: string = '0';
   @State errorMsg: string = 'failed';
+  @State isPageEnd: number = -1;
+  @State isReceive: number = -1;
 
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: EVENT_ID_SET_EMIT_KEY,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
+  }
+
+  onPageHide() {
+    events_emitter.off(EVENT_ID_SET_EMIT_KEY)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -55,37 +63,12 @@ struct webViewContMessageError {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data?.ACTION != null) {
         this.str = eventData.data?.ACTION;
+        this.isReceive = 1;
       }
-    }
-  }
-  // private jsObj = {
-  //   test: (res) => {
-  //     Utils.emitEvent(res, 102);
-  //   },
-  //   toString: (str) => {
-  //     console.info("ets toString:" + String(str));
-  //   },
-  //   register: (res) => {
-  //     Utils.emitEvent(res, 86);
-  //     return "web222"
-  //   }
-  // }
-
-  private jsObj: ESObject = {
-    test: (res: ESObject) => {
-      Utils.emitEvent(res, 102);
-    },
-    toString: (str: ESObject) => {
-      console.info("ets toString:" + String(str));
-    },
-    register: (res: ESObject) => {
-      Utils.emitEvent(res, 86);
-      return "web222";
     }
   }
 
   aboutToAppear() {
-
     let abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator()
     let abilityDelegatorArguments =  AbilityDelegatorRegistry.getArguments()
     console.info('start run testcase!!!')
@@ -95,8 +78,11 @@ struct webViewContMessageError {
   build() {
     Column() {
       Row() {
-        Button("messageEventErrorTest").key('webViewContMessageError').onClick(() => {
-          console.info("key==>" + this.str)
+        Button("messageEventErrorTest").key('webViewContMessageError').onClick(async () => {
+          await Utils.waitForExist(()=>this.isPageEnd, 'webViewContMessageErrorIsPageEnd', 1, 1000);
+          await Utils.waitForExist(()=>this.isReceive, 'webViewContMessageErrorIsReceive', 1, 1000);
+          console.info("key==>" + this.str);
+          this.isReceive = -1;
           switch (this.str) {
             case "emitPostMessageInitErr": {
               try {
@@ -108,8 +94,8 @@ struct webViewContMessageError {
                 this.errorMsg = error.message
               }
               this.controller.runJavaScript("test()", (res) => {
-                Utils.emitEvent(this.errorCode, 600)
-                Utils.emitEvent(this.errorMsg, 601)
+                Utils.emitEvent(this.errorCode, 111790)
+                Utils.emitEvent(this.errorMsg, 111800)
               })
               break;
             }
@@ -131,8 +117,8 @@ struct webViewContMessageError {
                 this.errorMsg = error.message
               }
               this.controller.runJavaScript("test()", (res) => {
-                Utils.emitEvent(this.errorCode, 602)
-                Utils.emitEvent(this.errorMsg, 603)
+                Utils.emitEvent(this.errorCode, 111810)
+                Utils.emitEvent(this.errorMsg, 111820)
               })
               break;
             }
@@ -149,6 +135,10 @@ struct webViewContMessageError {
         .onlineImageAccess(this.onlineImageAccess)
         .databaseAccess(this.databaseAccess)
         .userAgent(this.userAgent)
+        .onPageEnd((event) => {
+          console.log('onPageEnd url:' + event.url);
+          this.isPageEnd = 1;
+        })
     }
   }
 }

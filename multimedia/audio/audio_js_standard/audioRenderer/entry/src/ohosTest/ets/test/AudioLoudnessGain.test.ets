@@ -80,7 +80,7 @@ export default function audioLoudnessGainTest() {
             await audioRenderer.setLoudnessGain(loudnessGainFloatTen);
             let loudnessGain = audioRenderer.getLoudnessGain();
             console.info(TAG,`setLoudnessGain and getLoudnessGain Success!, loudness is ${loudnessGain}`);
-            expect(Math.abs(loudnessGain - (-90)) < 0.1).assertTrue();
+            expect(loudnessGain).assertEqual(-90.0);
           }catch(error){
             console.error('createAudioRenderer Fail!');
           }
@@ -91,7 +91,7 @@ export default function audioLoudnessGainTest() {
     /**
      * @tc.number    : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_002
      * @tc.name      : SUB_MULTIMEDIA_AUDIO_SET_LOUDNESS_GAIN_INTERFACE_TEST_002
-     * @tc.desc      : right test, set number is -89.9, streamtype is music,expect -89.9 < loudnessGain < -90.0
+     * @tc.desc      : right test, set number is -89.9, streamtype is music,expect -89.8 < loudnessGain < -90.0
      * @tc.size      : MediumTest
      * @tc.type      : Function
      * @tc.level     : Level 0

@@ -419,7 +419,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_SCALE_PIXELMAP_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -456,7 +455,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_SCALE_PIXELMAP_SYNC_0200 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -491,7 +489,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_PIXELMAPFRAMEWORK_OPACITY_SYNC_ALPHA_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -686,7 +683,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_TRANSLATE_PIXELMAP_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -725,7 +721,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_TRANSLATE_PIXELMAP_SYNC_0200 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -762,7 +757,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_PIXELMAPFRAMEWORK_PIXELMAP_ROTATE_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -799,7 +793,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_PIXELMAPFRAMEWORK_PIXELMAP_FLIP_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });
@@ -842,7 +835,6 @@ export default function addImage() {
                 done();
             } else {
                 console.info('SUB_MULTIMEDIA_IMAGE_PIXELMAPFRAMEWORK_CROP_SYNC_0100 success ');
-                expect(true).assertTrue();
                 done();
             }
         });

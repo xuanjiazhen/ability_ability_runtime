@@ -362,7 +362,6 @@ export default function ImageCreator() {
                 globalCreator = creator;
                 creator.release().then(() => {
                     console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_RELEASE_PROMISE_0100 release ');
-                    expect(true).assertTrue();
                     done();
                 }).catch(error => {
                     expect(false).assertTrue();
@@ -397,7 +396,6 @@ export default function ImageCreator() {
                         return;
                     }
                     console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_RELEASE_CALLBACK_0100 release call back');
-                    expect(true).assertTrue();
                     done();
                 });
             } else {
@@ -514,7 +512,6 @@ export default function ImageCreator() {
                         creator.queueImage(img).then(() => {
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_QUEUEIMAGE_PROMISE_0200 queueImage Success');
                             creator.test;
-                            expect(true).assertTrue();
                             done();
                         }).catch(error => {
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_QUEUEIMAGE_PROMISE_0200 queueImage error: ' + error);
@@ -631,7 +628,6 @@ export default function ImageCreator() {
                             }
                             console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_QUEUEIMAGE_CALLBACK_0200 queueImage Success');
                             creator.test;
-                            expect(true).assertTrue();
                             done();
                         })
                     })
@@ -729,7 +725,6 @@ export default function ImageCreator() {
                     return;
                 }
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_ON_0100 on call back IN');
-                expect(true).assertTrue();
                 done();
             })
             creator.dequeueImage((err, img) => {
@@ -764,7 +759,6 @@ export default function ImageCreator() {
                             return;
                         }
                         console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_ON_0100 queueImage Success');
-                        expect(true).assertTrue();
                         creator.test;
                     })
                 })
@@ -852,7 +846,6 @@ export default function ImageCreator() {
                 done();
                 return;
             } else {
-                expect(true).assertTrue();
                 console.info('SUB_MULTIMEDIA_IMAGE_CREATOR_OFF_SUCCESS_0100 off success');
                 done();
                 return;

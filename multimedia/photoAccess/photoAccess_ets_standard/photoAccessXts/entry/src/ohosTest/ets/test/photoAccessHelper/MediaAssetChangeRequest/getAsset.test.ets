@@ -30,7 +30,6 @@ async function getAssetPromiseTest(done: Function, testName: string, pathUri: st
       await photoAccessHelper.MediaAssetChangeRequest.createImageAssetRequest(testContext, uri);
     let asset: photoAccessHelper.PhotoAsset = assetChangeRequest.getAsset();
     console.info('create asset successfully with uri = ' + asset.uri);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

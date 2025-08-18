@@ -24,6 +24,8 @@
 #include "nodeUtils/NodeUniqueIdTest.h"
 #include "uiInput/UiInputErrorCodeTest.h"
 #include "scope/RunTaskInScopeTest.h"
+#include "list/ListCrossLanguageTest.h"
+#include "BindController/BindControllerTest.h"
 
 namespace ArkUICapiTest
 {
@@ -55,6 +57,10 @@ namespace ArkUICapiTest
             {"uiInputErrorCodeTest", nullptr, ButtonErrorCodeTest::CreateNativeNode, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
             {"testRunTaskInScope", nullptr, RunTaskInScopeTest::testRunTaskInScope, nullptr, nullptr, nullptr,
+                napi_default, nullptr},
+            {"createCrossLanguageListNode", nullptr, ListCrossLanguageTest::createCrossLanguageListNode,
+             nullptr, nullptr, nullptr, napi_default, nullptr},
+            {"testBindController001", nullptr, NodeBindControllerTest::testBindController001, nullptr, nullptr, nullptr,
                 napi_default, nullptr},
         };
         if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok)

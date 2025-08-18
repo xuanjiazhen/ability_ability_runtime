@@ -26,7 +26,7 @@ export default class CallerInfo10 extends UIAbility {
     hilog.info(0x0000, 'testTag', '%{public}s', `CallerInfo10 JSON.stringify(want) is: ${JSON.stringify(want)}`);
     let options = {
       parameters: {
-        result: JSON.stringify(want.parameters)
+        result: want.parameters
       }
     };
     commonEventManager.publish('ACTS_TEST_ON_CREATE_WANT', options, function () {

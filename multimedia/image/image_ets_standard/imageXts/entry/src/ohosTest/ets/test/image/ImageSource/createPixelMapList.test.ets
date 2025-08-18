@@ -51,7 +51,6 @@ async function createPixelMapListCallbackTest(done: Function, testName: string, 
         done();
       } else {
         console.info(TAG, 'Succeeded in creating pixelMapList object.');
-        expect(true).assertTrue();
         done();
       }
     })
@@ -76,7 +75,6 @@ async function createPixelMapListCallbackOptionsTest(done: Function, testName: s
         done();
       } else {
         console.info(TAG, 'Succeeded in creating pixelMapList object.');
-        expect(true).assertTrue();
         done();
       }
     })

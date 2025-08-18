@@ -29,7 +29,6 @@ async function flipPromiseTest(done: Function, testName: string, opts: image.Ini
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.flip(horizontal, vertical);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -47,7 +46,6 @@ async function flipAbnormalPromiseTest(done: Function, testName: string, opts: i
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.flip(horizontal, vertical);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

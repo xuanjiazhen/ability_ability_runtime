@@ -35,9 +35,9 @@ const LABEL_RESET_FACTORY = "resetFactory";
 const LABEL_TETHERING = "tethering";
 const LABEL_NEAR_LINK = "nearLink";
 const LABEL_DISTRIBUTED_TRANSMISSION = "distributedTransmissionOutgoing";
-const LABEL_RECOVERY_KEY = "diskRecoveryKey";
 const LABEL_MTP_CLIENT = "mtpClient";
 const LABEL_MTP_SERVER = "mtpServer";
+const LABEL_RECOVERY_KEY = "diskRecoveryKey";
 const LABEL_SAMBA_CLIENT = "sambaClient";
 const LABEL_SAMBA_SERVER = "sambaServer";
 const LABEL_REMOTE_DESK = "remoteDesk";
@@ -52,10 +52,10 @@ const LABEL_SMS = "sms";
 const LABEL_MMS = "mms";
 const LABEL_AIRPLANE_MODE = "airplaneMode";
 const LABEL_NOTIFICATION = "notification";
+const LABEL_NFC = "nfc";
 const LABEL_SET_BIOMETRICS_AND_SCREENLOCK = "setBiometricsAndScreenLock";
 const LABEL_SET_DEVICE_NAME = "setDeviceName";
 const LABEL_SUDO = "sudo";
-const LABEL_NFC = "nfc";
 const LABEL_TELEPHONY_CALL = "telephoneCall";
 const LABEL_BACKUP_AND_RESTORE = "backupAndRestore";
 const LABEL_PRIVATE_SPACE = "privateSpace";
@@ -585,7 +585,7 @@ function testSetDisallowedPolicy() {
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_0123", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_0124", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicy(SELFWANT, LABEL_MTP_SERVER, false);
@@ -827,7 +827,6 @@ function testSetDisallowedPolicy() {
     }
     done();
   });
-
 
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_JS_0136
@@ -1839,11 +1838,11 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0909", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, false, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
       expect(res).assertFalse();
     } catch (error) {
-      expect(error.code == 801).assertTrue();
+      expect(false || error.code == 801).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
@@ -1861,8 +1860,9 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0910", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
       expect(res).assertTrue();
     } catch (error) {
       expect(error.code == 801).assertTrue();
@@ -1882,7 +1882,7 @@ function testSetDisallowedForAccountPolicy() {
    */
   it("test_set_disallowed_policy_for_account_0911", Level.LEVEL2, async (done: Function) => {
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 9200001 || error.code == 801).assertTrue();
@@ -1901,7 +1901,7 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0912", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 9200002 || error.code == 801).assertTrue();
@@ -1922,7 +1922,7 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0913", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
-      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 401).assertTrue();
@@ -1942,6 +1942,132 @@ function testSetDisallowedForAccountPolicy() {
    */
   it("test_set_disallowed_policy_for_account_0914", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    const userId = 999;
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, userId);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401 || error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0915
+   * @tc.name      : test_set_disallowed_policy_for_account_0915
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy false
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0915", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, false, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      expect(res).assertFalse();
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0916
+   * @tc.name      : test_set_disallowed_policy_for_account_0916
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy true
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0916", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      expect(res).assertTrue();
+    } catch (error) {
+      expect(error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0917
+   * @tc.name      : test_set_disallowed_policy_for_account_0917
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount without admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0917", Level.LEVEL2, async (done: Function) => {
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001 || error.code == 801).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0918
+   * @tc.name      : test_set_disallowed_policy_for_account_0918
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0918", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002 || error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0919
+   * @tc.name      : test_set_disallowed_policy_for_account_0919
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with invalid admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0919", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0920
+   * @tc.name      : test_set_disallowed_policy_for_account_0920
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with user 0
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0920", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     const userId = 0;
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, userId);
@@ -1955,14 +2081,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0915
-   * @tc.name      : test_set_disallowed_policy_for_account_0915
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0921
+   * @tc.name      : test_set_disallowed_policy_for_account_0921
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with conflict policy
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0915", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0921", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
@@ -1978,14 +2104,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0916
-   * @tc.name      : test_set_disallowed_policy_for_account_0916
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0922
+   * @tc.name      : test_set_disallowed_policy_for_account_0922
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with conflict policy
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0916", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0922", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
@@ -1994,21 +2120,21 @@ function testSetDisallowedForAccountPolicy() {
       usbManager.setUsbStorageDeviceAccessPolicy(SELFWANT, usbManager.UsbPolicy.READ_ONLY);
     } catch (error) {
       expect(error.code == 9200010 || error.code == 801).assertTrue();
-    } finally {
+    }finally{
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0917
-   * @tc.name      : test_set_disallowed_policy_for_account_0917
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0923
+   * @tc.name      : test_set_disallowed_policy_for_account_0923
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with conflict policy
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0917", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0923", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
@@ -2024,14 +2150,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0918
-   * @tc.name      : test_set_disallowed_policy_for_account_0918
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0924
+   * @tc.name      : test_set_disallowed_policy_for_account_0924
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with conflict policy
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0918", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0924", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
@@ -2047,14 +2173,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0919
-   * @tc.name      : test_set_disallowed_policy_for_account_0919
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0925
+   * @tc.name      : test_set_disallowed_policy_for_account_0925
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with conflict policy
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0919", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0925", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, true, DEFAULT_USER_ID);
@@ -2072,222 +2198,10 @@ function testSetDisallowedForAccountPolicy() {
     done();
   });
 
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0920
-   * @tc.name      : test_set_disallowed_policy_for_account_0920
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy false
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0920", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
-      expect(res).assertFalse();
-    } catch (error) {
-      expect(false).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0921
-   * @tc.name      : test_set_disallowed_policy_for_account_0921
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy true
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0921", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
-      expect(res).assertTrue();
-    } catch (error) {
-      expect(false).assertTrue();
-    } finally {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0922
-   * @tc.name      : test_set_disallowed_policy_for_account_0922
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount without admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0922", Level.LEVEL2, async (done: Function) => {
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200001).assertTrue();
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0923
-   * @tc.name      : test_set_disallowed_policy_for_account_0923
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with normal admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0923", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200002).assertTrue();
-    } finally {
-      await adminManager.disableAdmin(SELFWANT);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0924
-   * @tc.name      : test_set_disallowed_policy_for_account_0924
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with invalid admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0924", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 401).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0925
-   * @tc.name      : test_set_disallowed_policy_for_account_0925
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with user 0
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0925", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    const userId = 0;
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, userId);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200007).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0926
-   * @tc.name      : test_set_disallowed_policy_for_account_0926
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy false
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0926", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
-      expect(res).assertFalse();
-    } catch (error) {
-      expect(false || error.code == 801).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0927
-   * @tc.name      : test_set_disallowed_policy_for_account_0927
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy true
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0927", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
-      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, false, DEFAULT_USER_ID);
-      expect(res).assertTrue();
-    } catch (error) {
-      expect(false || error.code == 801).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0928
-   * @tc.name      : test_set_disallowed_policy_for_account_0928
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount without admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0928", Level.LEVEL2, async (done: Function) => {
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200001 || error.code == 801).assertTrue();
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0929
-   * @tc.name      : test_set_disallowed_policy_for_account_0929
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with normal admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_set_disallowed_policy_for_account_0929", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-    try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200002 || error.code == 801).assertTrue();
-    } finally {
-      await adminManager.disableAdmin(SELFWANT);
-    }
-    done();
-  });
-
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0930
    * @tc.name      : test_set_disallowed_policy_for_account_0930
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with invalid admin
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy false
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
@@ -2295,10 +2209,11 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0930", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
-      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_RECOVERY_KEY, true, DEFAULT_USER_ID);
-      expect(false).assertTrue();
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
+      expect(res).assertFalse();
     } catch (error) {
-      expect(error.code == 401).assertTrue();
+      expect(false).assertTrue();
     } finally {
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
@@ -2308,20 +2223,21 @@ function testSetDisallowedForAccountPolicy() {
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0931
    * @tc.name      : test_set_disallowed_policy_for_account_0931
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with user 0
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with policy true
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
   it("test_set_disallowed_policy_for_account_0931", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    const userId = 999;
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, true, userId);
-      expect(false).assertTrue();
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
+      let res = restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
+      expect(res).assertTrue();
     } catch (error) {
-      expect(error.code == 401 || error.code == 801).assertTrue();
+      expect(false).assertTrue();
     } finally {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, false, DEFAULT_USER_ID);
       await adminManager.disableSuperAdmin(SELFHAPNAME);
     }
     done();
@@ -2330,17 +2246,17 @@ function testSetDisallowedForAccountPolicy() {
   /**
    * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0932
    * @tc.name      : test_set_disallowed_policy_for_account_0932
-   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with unActiveadmin
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount without admin
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
   it("test_set_disallowed_policy_for_account_0932", Level.LEVEL2, async (done: Function) => {
     try {
-      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
-      expect(error.code == 9200001 || error.code == 801).assertTrue();
+      expect(error.code == 9200001).assertTrue();
     }
     done();
   });
@@ -2356,6 +2272,88 @@ function testSetDisallowedForAccountPolicy() {
   it("test_set_disallowed_policy_for_account_0933", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0934
+   * @tc.name      : test_set_disallowed_policy_for_account_0934
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with invalid admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0934", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_DISTRIBUTED_TRANSMISSION, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0935
+   * @tc.name      : test_set_disallowed_policy_for_account_0935
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with user 0
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0935", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    const userId = 0;
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_DISTRIBUTED_TRANSMISSION, true, userId);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200007).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0940
+   * @tc.name      : test_set_disallowed_policy_for_account_0940
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with unActiveadmin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0940", Level.LEVEL2, async (done: Function) => {
+    try {
+      restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001 || error.code == 801).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0941
+   * @tc.name      : test_set_disallowed_policy_for_account_0941
+   * @tc.desc      : test restrictions setDisallowedPolicyForAccount with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_set_disallowed_policy_for_account_0941", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
@@ -2367,14 +2365,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0934
-   * @tc.name      : test_set_disallowed_policy_for_account_0934
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0942
+   * @tc.name      : test_set_disallowed_policy_for_account_0942
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with empty admin
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0934", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0942", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(INVALID_WANT, LABEL_SUDO, true, DEFAULT_USER_ID);
@@ -2388,14 +2386,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0935
-   * @tc.name      : test_set_disallowed_policy_for_account_0935
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0943
+   * @tc.name      : test_set_disallowed_policy_for_account_0943
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with empty feature
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0935", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0943", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, '', true, DEFAULT_USER_ID);
@@ -2409,14 +2407,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0936
-   * @tc.name      : test_set_disallowed_policy_for_account_0936
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0944
+   * @tc.name      : test_set_disallowed_policy_for_account_0944
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with empty disallow
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0936", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0944", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, null, DEFAULT_USER_ID);
@@ -2430,14 +2428,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0937
-   * @tc.name      : test_set_disallowed_policy_for_account_0937
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0945
+   * @tc.name      : test_set_disallowed_policy_for_account_0945
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with empty accountId
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0937", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0945", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, null);
@@ -2451,14 +2449,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
   /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0938
-   * @tc.name      : test_set_disallowed_policy_for_account_0938
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0946
+   * @tc.name      : test_set_disallowed_policy_for_account_0946
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with default accountId
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0938", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0946", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.setDisallowedPolicyForAccount(SELFWANT, LABEL_SUDO, true, DEFAULT_USER_ID);
@@ -2474,14 +2472,14 @@ function testSetDisallowedForAccountPolicy() {
   });
 
 /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0939
-   * @tc.name      : test_set_disallowed_policy_for_account_0939
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_SET_DISALLOWED_POLICY_FOR_ACCOUNT_JS_0947
+   * @tc.name      : test_set_disallowed_policy_for_account_0947
    * @tc.desc      : test restrictions setDisallowedPolicyForAccount with not be created user
    * @tc.level     : Level 2
    * @tc.type      : Function
    * @tc.size      : MediumTest
    */
-  it("test_set_disallowed_policy_for_account_0939", Level.LEVEL2, async (done: Function) => {
+  it("test_set_disallowed_policy_for_account_0947", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     const userId = 0;
     try {
@@ -2669,7 +2667,7 @@ function testGetDisallowedForAccountPolicy() {
    */
   it("test_get_disallowed_policy_for_account_0701", Level.LEVEL2, async (done: Function) => {
     try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 9200001).assertTrue();
@@ -2688,7 +2686,7 @@ function testGetDisallowedForAccountPolicy() {
   it("test_get_disallowed_policy_for_account_0702", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
     try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 9200002 || error.code == 801).assertTrue();
@@ -2707,6 +2705,66 @@ function testGetDisallowedForAccountPolicy() {
    * @tc.size      : MediumTest
    */
   it("test_get_disallowed_policy_for_account_0703", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
+    try {
+      restrictions.getDisallowedPolicyForAccount(INVALID_WANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 401).assertTrue();
+    } finally {
+      await adminManager.disableSuperAdmin(SELFHAPNAME);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0704
+   * @tc.name      : test_get_disallowed_policy_for_account_0704
+   * @tc.desc      : test restrictions getDisallowedPolicyForAccount without admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_disallowed_policy_for_account_0704", Level.LEVEL2, async (done: Function) => {
+    try {
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200001).assertTrue();
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0705
+   * @tc.name      : test_get_disallowed_policy_for_account_0705
+   * @tc.desc      : test restrictions getDisallowedPolicyForAccount with normal admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_disallowed_policy_for_account_0705", Level.LEVEL2, async (done: Function) => {
+    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
+    try {
+      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
+      expect(false).assertTrue();
+    } catch (error) {
+      expect(error.code == 9200002 || error.code == 801).assertTrue();
+    } finally {
+      await adminManager.disableAdmin(SELFWANT);
+    }
+    done();
+  });
+
+  /**
+   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0706
+   * @tc.name      : test_get_disallowed_policy_for_account_0706
+   * @tc.desc      : test restrictions getDisallowedPolicyForAccount with invalid admin
+   * @tc.level     : Level 2
+   * @tc.type      : Function
+   * @tc.size      : MediumTest
+   */
+  it("test_get_disallowed_policy_for_account_0706", Level.LEVEL2, async (done: Function) => {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.getDisallowedPolicyForAccount(INVALID_WANT, LABEL_USB_STORAGE_DEVICE_WRITE, DEFAULT_USER_ID);
@@ -2771,66 +2829,6 @@ function testGetDisallowedForAccountPolicy() {
     await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
     try {
       restrictions.getDisallowedPolicyForAccount(INVALID_WANT, LABEL_DISTRIBUTED_TRANSMISSION, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 401).assertTrue();
-    } finally {
-      await adminManager.disableSuperAdmin(SELFHAPNAME);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0901
-   * @tc.name      : test_get_disallowed_policy_for_account_0901
-   * @tc.desc      : test restrictions getDisallowedPolicyForAccount without admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_get_disallowed_policy_for_account_0901", Level.LEVEL2, async (done: Function) => {
-    try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200001).assertTrue();
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0902
-   * @tc.name      : test_get_disallowed_policy_for_account_0902
-   * @tc.desc      : test restrictions getDisallowedPolicyForAccount with normal admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_get_disallowed_policy_for_account_0902", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_NORMAL);
-    try {
-      restrictions.getDisallowedPolicyForAccount(SELFWANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
-      expect(false).assertTrue();
-    } catch (error) {
-      expect(error.code == 9200002 || error.code == 801).assertTrue();
-    } finally {
-      await adminManager.disableAdmin(SELFWANT);
-    }
-    done();
-  });
-
-  /**
-   * @tc.number    : SUB_CUSTOMIZATION_EDM_GET_DISALLOWED_FOR_ACCOUNT_POLICY_JS_0903
-   * @tc.name      : test_get_disallowed_policy_for_account_0903
-   * @tc.desc      : test restrictions getDisallowedPolicyForAccount with invalid admin
-   * @tc.level     : Level 2
-   * @tc.type      : Function
-   * @tc.size      : MediumTest
-   */
-  it("test_get_disallowed_policy_for_account_0903", Level.LEVEL2, async (done: Function) => {
-    await adminManager.enableAdmin(SELFWANT, ENTINFO1, adminManager.AdminType.ADMIN_TYPE_SUPER);
-    try {
-      restrictions.getDisallowedPolicyForAccount(INVALID_WANT, LABEL_RECOVERY_KEY, DEFAULT_USER_ID);
       expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 401).assertTrue();

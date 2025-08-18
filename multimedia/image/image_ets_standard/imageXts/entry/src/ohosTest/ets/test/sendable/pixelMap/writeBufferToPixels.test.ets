@@ -34,7 +34,6 @@ async function writeBufferToPixelsPromiseTest(done: Function, testName: string, 
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.writeBufferToPixels(color).then(() => {
         console.info(TAG, "Succeeded in writing data from a buffer to a PixelMap.");
-        expect(true).assertTrue();
         done();
       }).catch((error: BusinessError) => {
         console.error(TAG,
@@ -63,7 +62,6 @@ async function writeBufferToPixelsSyncPromiseTest(done: Function, testName: stri
     }
     if (sendablePixelMap != undefined) {
       sendablePixelMap.writeBufferToPixelsSync(color)
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

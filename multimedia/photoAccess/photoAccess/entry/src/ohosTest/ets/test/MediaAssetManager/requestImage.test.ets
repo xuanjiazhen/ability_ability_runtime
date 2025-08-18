@@ -49,7 +49,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data : image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -83,7 +82,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data : image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -117,7 +115,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data : image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -151,7 +148,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data : image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -185,7 +181,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data : image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }
@@ -219,7 +214,6 @@ export default function requestImageTest() {
         class MediaHandler implements photoAccessHelper.MediaAssetDataHandler<image.ImageSource> {
           onDataPrepared(data: image.ImageSource) {
             console.info(`${testNum} succeed`);
-            expect(true).assertTrue();
             done();
           }
         }

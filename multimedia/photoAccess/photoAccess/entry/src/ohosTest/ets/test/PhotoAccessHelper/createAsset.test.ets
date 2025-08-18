@@ -83,7 +83,6 @@ export default function createAssetTest () {
           try {
             if (err !== undefined) {
               console.info(`${testNum} err: ${err}`);
-              expect(true).assertTrue();
             } else {
               expect(false).assertTrue();
             }
@@ -94,7 +93,6 @@ export default function createAssetTest () {
         });
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }
@@ -132,7 +130,6 @@ export default function createAssetTest () {
         done();
       } catch (error) {
         console.info(`${testNum} failed; error: ${error}`);
-        expect(true).assertTrue();
         done();
       }
     }

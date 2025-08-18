@@ -50,7 +50,7 @@ export default function SymbolEffectTest() {
     /*
     * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0001
     * @tc.name         SymbolEffectTest0001
-    * @tc.desc         test symbolEffect DisableSymbolEffect trigger 0
+    * @tc.desc         test symbolEffect ReplaceSymbolEffect SEQUENTIAL  0
     * @tc.size         MediumTest
     * @tc.type         Function
     * @tc.level        3
@@ -62,7 +62,7 @@ export default function SymbolEffectTest() {
       let symbolGlyph1Effect: ESObject = JSON.parse(JSON.parse(symbolGlyph1).$attrs.symbolEffect);
       console.log('symbolGlyph1Obj---effectType:'+symbolGlyph1Effect.effectType)
       console.log('symbolGlyph1Obj---triggerNum:'+symbolGlyph1Effect.triggerNum)
-      expect(''+symbolGlyph1Effect.effectType).assertEqual('8')
+      expect(''+symbolGlyph1Effect.effectType).assertEqual('7')
       expect(''+symbolGlyph1Effect.triggerNum).assertEqual('0')
       console.info("[SymbolEffectTest0001] end");
       done();
@@ -71,7 +71,7 @@ export default function SymbolEffectTest() {
     /*
    * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0002
    * @tc.name         SymbolEffectTest0002
-   * @tc.desc         test symbolEffect QuickReplaceSymbolEffect trigger 0
+   * @tc.desc         test symbolEffect ReplaceSymbolEffect CROSS_FADE 0
    * @tc.size         MediumTest
    * @tc.type         Function
    * @tc.level        3
@@ -92,7 +92,7 @@ export default function SymbolEffectTest() {
     /*
    * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0003
    * @tc.name         SymbolEffectTest0003
-   * @tc.desc         test symbolEffect DisableSymbolEffect trigger 1
+   * @tc.desc         test symbolEffect ReplaceSymbolEffect SLASH_OVERLAY  0
    * @tc.size         MediumTest
    * @tc.type         Function
    * @tc.level        3
@@ -100,6 +100,27 @@ export default function SymbolEffectTest() {
     it('SymbolEffectTest0003', Level.LEVEL3, async (done: Function) => {
       let driver = Driver.create();
       console.info('SymbolEffectTest0003 START');
+      let symbolGlyph3 = getInspectorByKey('SymbolGlyph3');
+      let symbolGlyph3Effect: ESObject = JSON.parse(JSON.parse(symbolGlyph3).$attrs.symbolEffect);
+      console.log('symbolGlyph1Obj---effectType:'+symbolGlyph3Effect.effectType)
+      console.log('symbolGlyph1Obj---triggerNum:'+symbolGlyph3Effect.triggerNum)
+      expect(''+symbolGlyph3Effect.effectType).assertEqual('8')
+      expect(''+symbolGlyph3Effect.triggerNum).assertEqual('0')
+      console.info("[SymbolEffectTest0003] end");
+      done();
+    });
+
+    /*
+   * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0004
+   * @tc.name         SymbolEffectTest0004
+   * @tc.desc         test symbolEffect ReplaceSymbolEffect SEQUENTIAL  1
+   * @tc.size         MediumTest
+   * @tc.type         Function
+   * @tc.level        3
+    */
+    it('SymbolEffectTest0004', Level.LEVEL3, async (done: Function) => {
+      let driver = Driver.create();
+      console.info('SymbolEffectTest0004 START');
       let trigger_1 = await driver.findComponent(ON.id('trigger_1'))
       await CommonFunc.sleep(500);
       await trigger_1.click()
@@ -108,23 +129,23 @@ export default function SymbolEffectTest() {
       let symbolGlyph1Effect: ESObject = JSON.parse(JSON.parse(symbolGlyph1).$attrs.symbolEffect);
       console.log('symbolGlyph1Obj---effectType:'+symbolGlyph1Effect.effectType)
       console.log('symbolGlyph1Obj---triggerNum:'+symbolGlyph1Effect.triggerNum)
-      expect(''+symbolGlyph1Effect.effectType).assertEqual('8')
+      expect(''+symbolGlyph1Effect.effectType).assertEqual('7')
       expect(''+symbolGlyph1Effect.triggerNum).assertEqual('1')
-      console.info("[SymbolEffectTest0003] end");
+      console.info("[SymbolEffectTest0004] end");
       done();
     });
 
     /*
-   * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0004
-   * @tc.name         SymbolEffectTest0004
-   * @tc.desc         test symbolEffect QuickReplaceSymbolEffect trigger 1
+   * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0005
+   * @tc.name         SymbolEffectTest0005
+   * @tc.desc         test symbolEffect ReplaceSymbolEffect CROSS_FADE 1
    * @tc.size         MediumTest
    * @tc.type         Function
    * @tc.level        3
     */
-    it('SymbolEffectTest0004', Level.LEVEL3, async (done: Function) => {
+    it('SymbolEffectTest0005', Level.LEVEL3, async (done: Function) => {
       let driver = Driver.create();
-      console.info('SymbolEffectTest0004 START');
+      console.info('SymbolEffectTest0005 START');
       let trigger_2 = await driver.findComponent(ON.id('trigger_2'))
       await CommonFunc.sleep(500);
       await trigger_2.click()
@@ -135,7 +156,32 @@ export default function SymbolEffectTest() {
       console.log('symbolGlyph1Obj---triggerNum:'+symbolGlyph2Effect.triggerNum)
       expect(''+symbolGlyph2Effect.effectType).assertEqual('9')
       expect(''+symbolGlyph2Effect.triggerNum).assertEqual('1')
-      console.info("[SymbolEffectTest0004] end");
+      console.info("[SymbolEffectTest0005] end");
+      done();
+    });
+
+    /*
+  * @tc.number       SUB_ACE_BASIC_ETS_SYMBOL_GLYPH_EFFECT_API_0006
+  * @tc.name         SymbolEffectTest0006
+  * @tc.desc         test symbolEffect ReplaceSymbolEffect SLASH_OVERLAY  1
+  * @tc.size         MediumTest
+  * @tc.type         Function
+  * @tc.level        3
+   */
+    it('SymbolEffectTest0006', Level.LEVEL3, async (done: Function) => {
+      let driver = Driver.create();
+      console.info('SymbolEffectTest0006 START');
+      let trigger_3 = await driver.findComponent(ON.id('trigger_3'))
+      await CommonFunc.sleep(500);
+      await trigger_3.click()
+      await CommonFunc.sleep(500);
+      let SymbolGlyph3 = getInspectorByKey('SymbolGlyph3');
+      let symbolGlyph3Effect: ESObject = JSON.parse(JSON.parse(SymbolGlyph3).$attrs.symbolEffect);
+      console.log('symbolGlyph1Obj---effectType:'+symbolGlyph3Effect.effectType)
+      console.log('symbolGlyph1Obj---triggerNum:'+symbolGlyph3Effect.triggerNum)
+      expect(''+symbolGlyph3Effect.effectType).assertEqual('8')
+      expect(''+symbolGlyph3Effect.triggerNum).assertEqual('1')
+      console.info("[SymbolEffectTest0006] end");
       done();
     });
   })

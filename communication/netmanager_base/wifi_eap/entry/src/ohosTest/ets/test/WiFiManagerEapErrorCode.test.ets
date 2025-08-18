@@ -522,7 +522,76 @@ export default function wifiEapErrorTest(){
                 done();
             }
         })
-        
+        /**
+         * @tc.number SUB_Communication_Netmanager_Eap_ErrorCode_0800
+         * @tc.name SUB_Communication_Netmanager_Eap_ErrorCode_0800
+         * @tc.desc Test eap reply api functionality.
+         * @tc.size MediumTest
+         * @tc.type Function
+         * @tc.level Level 1
+         */
+        it('SUB_Communication_Netmanager_Eap_ErrorCode_0800',TestType.FUNCTION|Size.MEDIUMTEST|Level.LEVEL0, async (done:Function) => {
+            let isAccessToken = canIUse("SystemCapability.Communication.NetManager.Eap");
+            console.info("testSysCaps01 test.syscap.param.001 : " + isAccessToken);
+            if (!isAccessToken) {
+                console.info("The device does not support eap api.");
+                expect(isAccessToken).assertFalse();
+                done();
+                return;
+            }
+            let netId = 100;
+            let profile: eap.EthEapProfile = {
+              eapMethod: 10,
+              phase2Method: 10,
+              identity: "identity",
+              anonymousIdentity: "anonymousIdentity",
+              password: "password",
+              caCertAliases: "caCertAliases",
+              caPath: "caPath",
+              clientCertAliases: "clientCertAliases",
+              certEntry: new Uint8Array([5,6,7,8,9,10]),
+              certPassword: "certPassword",
+              altSubjectMatch: "altSubjectMatch",
+              domainSuffixMatch: "domainSuffixMatch",
+              realm: "realm",
+              plmn: "plmn",
+              eapSubId: 1
+            };
+            try{                            
+                console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0800 startEthEap start");
+                eap.startEthEap(netId, profile);
+                console.info("SUB_Communication_Netmanager_Eap_ErrorCode_0800 startEthEap success");
+                expect().assertFail();
+            }catch(error){
+                console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 startEthEap failed,code is ${error.code}, message is ${error.message}`);
+                if(error.code==801){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap is not support`);
+                    expect(true).assertTrue();
+                }else if(error.code==201){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap permission denied`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200001){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap invalid netId`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200003){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap invalid profile`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200009){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap netmanager stop`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200010){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap invalid eth state.`);
+                    expect(true).assertTrue();
+                }else if(error.code==33200099){
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap internal error`);
+                    expect(true).assertTrue();
+                }else {
+                    console.error(`SUB_Communication_Netmanager_Eap_ErrorCode_0800 eap startEthEap undefined errorcode`);
+                    expect(true).assertTrue();
+                }
+            }
+            done();
+        })
 
     })
 }

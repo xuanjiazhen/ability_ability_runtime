@@ -69,7 +69,8 @@ export default function ReminderAgentManagerTest() {
             if(button != null){
                 await button.click();
                 console.info(`ReminderAgentManagerTest button is click`);
-                await sleep(1000);
+                await sleep(3000);
+                done();
             }else{
                 console.info(`ReminderAgentManagerTest button is null`);
                 await sleep(1000);

@@ -1473,7 +1473,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1509,7 +1508,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1545,7 +1543,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1581,7 +1578,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4600");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1617,7 +1613,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4700");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1653,7 +1648,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4800");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1686,7 +1680,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4900");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_55_77);
@@ -1714,7 +1707,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_4901");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1745,7 +1737,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5000");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1781,7 +1772,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1817,7 +1807,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1853,7 +1842,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1889,7 +1877,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1925,7 +1912,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -1958,7 +1944,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5600");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_55_77);
@@ -1986,7 +1971,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_SYNC_JPEG_5700");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer(test_DMA_3071_4095);
@@ -2353,7 +2337,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -2387,7 +2370,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -2421,7 +2403,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -2539,7 +2520,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_0100");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -2573,7 +2553,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_0200");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -2607,7 +2586,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_0300");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -3061,7 +3039,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_SYNC_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -3095,7 +3072,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_SYNC_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -3129,7 +3105,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_DNG_SYNC_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("test_dng.dng");
@@ -3163,7 +3138,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_SYNC_0100");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -3197,7 +3171,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_SYNC_0200");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -3231,7 +3204,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_HEIF_SYNC_0300");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let buffer: ESObject = await getBuffer("0801_sdr2.heic");
@@ -3446,7 +3418,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_ERROR_0700");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         try {
@@ -3490,7 +3461,6 @@ export default function imagePixelmap() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_CREATE_PIXELMAP_JPEG_ERROR_0800");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         try {

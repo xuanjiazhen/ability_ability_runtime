@@ -23,6 +23,9 @@ import uiInputErrorCodeTest from './uiInput/UiInputErrorCodeTest.test'
 import SetForceDarkConfigTest from "./darkConfig/TestSetForceDarkConfig.test"
 import TestInitModuleForArkTSEnv from "./arkTSEnv/TestInitModuleForArkTSEnv.test"
 import RunTaskInScopeTest from "./scope/RunTaskInScopeTest.test"
+import ListTypeNodeTest from './list/ListTypeNodeTest.test'
+import ListCNodeTest from './list/ListCNodeTest.test'
+import BindControllerTest from './BindController/BindController.test'
 
 export default function testsuite() {
   PostOnIdleTest();
@@ -36,4 +39,7 @@ export default function testsuite() {
   SetForceDarkConfigTest();
   TestInitModuleForArkTSEnv();
   RunTaskInScopeTest();
+  ListTypeNodeTest();
+  ListCNodeTest();
+  BindControllerTest();
 }

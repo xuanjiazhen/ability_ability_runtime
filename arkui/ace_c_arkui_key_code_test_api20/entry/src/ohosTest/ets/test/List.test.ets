@@ -18,6 +18,19 @@ import KeyCodeNdkTest1 from './nativekeycode/KeyCodeTest1.test'
 import KeyCodeNdkTest2 from './nativekeycode/KeyCodeTest2.test'
 import KeyCodeNdkTest3 from './nativekeycode/KeyCodeTest3.test'
 import KeyCodeNdkTest4 from './nativekeycode/KeyCodeTest4.test'
+import NativeXComponent from './nativexcomponent/NativeXComponent.test'
+import NodeAttribute from './nativexcomponent/NodeAttribute.test'
+import TouchPointTest from './nativexcomponent/TouchPoint.test'
+import XComponentMouseTest from './nativexcomponent/XComponentMouse.test'
+import AccessibilityNdkTest1 from './accessibilitytest/AccessibilityTest1.test'
+import AccessibilityNdkTest2 from './accessibilitytest/AccessibilityTest2.test'
+import AccessibilityNdkTest3 from './accessibilitytest/AccessibilityTest3.test'
+import AccessibilityNdkTest4 from './accessibilitytest/AccessibilityTest4.test'
+import AccessibilityNdkTest5 from './accessibilitytest/AccessibilityTest5.test'
+import AccessibilityNdkTest6 from './accessibilitytest/AccessibilityTest6.test'
+import KeyframeAnimateTest from './animatetest/KeyframeAnimateTest.test'
+import AnimatorOptionTest1 from './animatetest/AnimatorOptionTest1.test'
+import AnimatorOptionTest2 from './animatetest/AnimatorOptionTest2.test'
 
 export default function testsuite() {
   KeyCodeNdkTest()
@@ -25,4 +38,17 @@ export default function testsuite() {
   KeyCodeNdkTest2()
   KeyCodeNdkTest3()
   KeyCodeNdkTest4()
+  NativeXComponent()
+  TouchPointTest()
+  XComponentMouseTest()
+  NodeAttribute()
+  AccessibilityNdkTest1()
+  AccessibilityNdkTest2()
+  AccessibilityNdkTest3()
+  AccessibilityNdkTest4()
+  AccessibilityNdkTest5()
+  AccessibilityNdkTest6()
+  KeyframeAnimateTest()
+  AnimatorOptionTest1()
+  AnimatorOptionTest2()
 }

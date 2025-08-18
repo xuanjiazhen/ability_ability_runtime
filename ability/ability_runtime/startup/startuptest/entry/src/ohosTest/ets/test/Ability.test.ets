@@ -66,7 +66,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -100,7 +100,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -137,7 +137,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -171,7 +171,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -205,7 +205,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -239,7 +239,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -275,7 +275,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -314,7 +314,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -346,7 +346,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -378,7 +378,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -413,7 +413,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -450,7 +450,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -490,7 +490,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -527,7 +527,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -564,7 +564,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -601,7 +601,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -640,7 +640,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -681,7 +681,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -716,7 +716,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -751,7 +751,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -786,7 +786,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -821,7 +821,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -856,7 +856,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -891,7 +891,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -926,7 +926,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -961,7 +961,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }
@@ -1004,7 +1004,7 @@ export default function abilityTest() {
       let allowed = await driver.waitForComponent(ON.text('想要打开', MatchPattern.CONTAINS), DELY_TIME);
       console.log(TAG + " is need to click " + JSON.stringify(allowed));
       if(allowed){
-        let buttons = await driver.findComponents(ON.text('允许', MatchPattern.CONTAINS));
+        let buttons = await driver.findComponents(ON.text('本次允许'));
         if(buttons && buttons.length > 0){
           await buttons[buttons.length - 1].click();
         }

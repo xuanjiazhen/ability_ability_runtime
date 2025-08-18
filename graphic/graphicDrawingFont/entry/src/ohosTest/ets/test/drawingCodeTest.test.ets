@@ -49,7 +49,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PathMoveTo Manager error ' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -73,7 +72,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PathLineTo Manager error ' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -97,7 +95,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PathArcTo Manager error ' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -121,7 +118,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PathQuadTo Manager error ' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -145,7 +141,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PathCubicTo Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           expect().assertFail();
@@ -153,39 +148,6 @@ export default function drawingCodeTest() {
         }
       }
     })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_CanvasConstruct
-     * @tc.name Test CanvasConstruct
-     * @tc.desc test the drawing of create
-     */
-//    it('CanvasConstruct', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-//      try {
-//        const color = new ArrayBuffer(96);
-//        let opts: image.InitializationOptions = {
-//          editable: true,
-//          pixelFormat: 3,
-//          size: {
-//            height: 4,
-//            width: 6
-//          }
-//        }
-//        console.log('test enum value of CanvasConstruct Manager success1');
-//        const canvas = new drawing.Canvas(null);
-//        console.log('test enum value of CanvasConstruct Manager success');
-//        expect().assertFail();
-//        done();
-//      } catch (err) {
-//        if (err.code == 401) {
-//          console.log('test enum value of CanvasConstruct Manager error' + err.code);
-//          expect(true).assertTrue();
-//          done();
-//        } else {
-//          console.log('test enum value of CanvasConstruct Manager error1' + JSON.stringify(err))
-//          expect().assertFail();
-//          done();
-//        }
-//      }
-//    })
     /**
      * @tc.number SUB_GRAPHIC_DrawingCode_FontEnableSubpixel
      * @tc.name Test FontEnableSubpixel
@@ -201,7 +163,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of FontEnableSubpixel Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of FontEnableSubpixel Manager error1' + JSON.stringify(err))
@@ -225,7 +186,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of FontEnableEmbolden Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of FontEnableEmbolden Manager error1' + JSON.stringify(err))
@@ -249,7 +209,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of FontEnableLinearMetrics Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of FontEnableLinearMetrics Manager error1' + JSON.stringify(err))
@@ -273,7 +232,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of FontSetSize Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of FontSetSize Manager error1' + JSON.stringify(err))
@@ -297,7 +255,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of FontSetTypeface Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of FontSetTypeface Manager error1' + JSON.stringify(err))
@@ -306,30 +263,6 @@ export default function drawingCodeTest() {
         }
       }
     })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_FontMeasureText
-     * @tc.name Test FontMeasureText
-     * @tc.desc test the drawing of create
-     */
-    // it('FontMeasureText', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     let font = new drawing.Font();
-    //     font.measureText();
-    //     console.log('test enum value of FontMeasureText Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of FontMeasureText Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of FontMeasureText Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
     /**
      * @tc.number SUB_GRAPHIC_DrawingCode_ColorFilterCreateBlendModeColorFilter
      * @tc.name Test ColorFilterCreateBlendModeColorFilter
@@ -346,7 +279,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of ColorFilterCreateBlendModeColorFilter Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of ColorFilterCreateBlendModeColorFilter Manager error1' + JSON.stringify(err))
@@ -373,7 +305,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of ColorFilterCreateComposeColorFilter Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of ColorFilterCreateComposeColorFilter Manager error1' + JSON.stringify(err))
@@ -397,7 +328,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetColor Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetColor Manager error1' + JSON.stringify(err))
@@ -421,7 +351,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetStrokeWidth Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetStrokeWidth Manager error1' + JSON.stringify(err))
@@ -445,7 +374,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetStrokeWidth Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetStrokeWidth Manager error1' + JSON.stringify(err))
@@ -469,7 +397,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetAntiAlias Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetAntiAlias Manager error1' + JSON.stringify(err))
@@ -478,135 +405,6 @@ export default function drawingCodeTest() {
         }
       }
     })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_PenSetAlpha
-     * @tc.name Test PenSetAlpha
-     * @tc.desc test the drawing of create
-     */
-    // it('PenSetAlpha', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     const pen = new drawing.Pen();
-    //     pen.setAlpha();
-    //     console.log('test enum value of PenSetAlpha Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of PenSetAlpha Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of PenSetAlpha Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_PenSetColorFilter
-     * @tc.name Test PenSetColorFilter
-     * @tc.desc test the drawing of create
-     */
-    // it('PenSetColorFilter', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     const pen = new drawing.Pen();
-    //     let colorFilter = drawing.ColorFilter.createLinearToSRGBGamma();
-    //     pen.setColorFilter(null,null);
-    //     console.log('test enum value of PenSetColorFilter Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of PenSetColorFilter Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of PenSetColorFilter Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_PenSetMaskFilter
-     * @tc.name Test PenSetMaskFilter
-     * @tc.desc test the drawing of create
-     */
-    // it('PenSetMaskFilter', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     const pen = new drawing.Pen();
-    //     pen.setStrokeWidth(5);
-    //     pen.setColor({alpha: 255, red: 255, green: 0, blue: 0});
-    //     let maskFilter = drawing.MaskFilter.createBlurMaskFilter(drawing.BlurType.OUTER, 10);
-    //     pen.setMaskFilter();
-    //     console.log('test enum value of PenSetMaskFilter Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of PenSetMaskFilter Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of PenSetMaskFilter Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_PenSetPathEffect
-     * @tc.name Test PenSetPathEffect
-     * @tc.desc test the drawing of create
-     */
-    // it('PenSetPathEffect', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     const pen = new drawing.Pen();
-    //     pen.setStrokeWidth(5);
-    //     pen.setColor({alpha: 255, red: 255, green: 0, blue: 0});
-    //     let pathEffect = drawing.PathEffect.createDashPathEffect([30, 10], 0);
-    //     pen.setPathEffect();
-    //     console.log('test enum value of PenSetPathEffect Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of PenSetPathEffect Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of PenSetPathEffect Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
-    /**
-     * @tc.number SUB_GRAPHIC_DrawingCode_PenSetShadowLayer
-     * @tc.name Test PenSetShadowLayer
-     * @tc.desc test the drawing of create
-     */
-    // it('PenSetShadowLayer', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-    //   try {
-    //     const pen = new drawing.Pen();
-    //     let color : common2D.Color = {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0x00};
-    //     let shadowLayer = drawing.ShadowLayer.create(3, -3, 3, color);
-    //     pen.setShadowLayer();
-    //     console.log('test enum value of PenSetShadowLayer Manager success');
-    //     expect().assertFail();
-    //     done();
-    //   } catch (err) {
-    //     if (err.code == 401) {
-    //       console.log('test enum value of PenSetShadowLayer Manager error' + err.code);
-    //       expect(true).assertTrue();
-    //       done();
-    //     } else {
-    //       console.log('test enum value of PenSetShadowLayer Manager error1' + JSON.stringify(err))
-    //       expect().assertFail();
-    //       done();
-    //     }
-    //   }
-    // })
     /**
      * @tc.number SUB_GRAPHIC_DrawingCode_PenSetBlendMode
      * @tc.name Test PenSetBlendMode
@@ -622,7 +420,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetBlendMode Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetBlendMode Manager error1' + JSON.stringify(err))
@@ -648,7 +445,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetJoinStyle Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetJoinStyle Manager error1' + JSON.stringify(err))
@@ -672,7 +468,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetCapStyle Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetCapStyle Manager error1' + JSON.stringify(err))
@@ -694,7 +489,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of PenSetDither Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of PenSetDither Manager error1' + JSON.stringify(err))
@@ -716,7 +510,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetColor Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetColor Manager error1' + JSON.stringify(err))
@@ -738,7 +531,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetAntiAlias Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetAntiAlias Manager error1' + JSON.stringify(err))
@@ -760,7 +552,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetAlpha Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetAlpha Manager error1' + JSON.stringify(err))
@@ -783,7 +574,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetColorFilter Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetColorFilter Manager error1' + JSON.stringify(err))
@@ -806,7 +596,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetMaskFilter Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetMaskFilter Manager error1' + JSON.stringify(err))
@@ -828,7 +617,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetShadowLayer Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetShadowLayer Manager error1' + JSON.stringify(err))
@@ -850,7 +638,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetShadowLayer Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetShadowLayer Manager error1' + JSON.stringify(err))
@@ -872,7 +659,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of BrushSetBlendMode Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of BrushSetBlendMode Manager error1' + JSON.stringify(err))
@@ -896,7 +682,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionIsPointContained Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionIsPointContained Manager error1' + JSON.stringify(err))
@@ -920,7 +705,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionIsRegionContained Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionIsRegionContained Manager error1' + JSON.stringify(err))
@@ -946,7 +730,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionOp Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionOp Manager error1' + JSON.stringify(err))
@@ -970,7 +753,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionQuickReject Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionQuickReject Manager error1' + JSON.stringify(err))
@@ -996,7 +778,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionSetPath Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionSetPath Manager error1' + JSON.stringify(err))
@@ -1022,7 +803,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('RegionSetPathTwo test enum value of RegionSetPath Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('RegionSetPathTwo test enum value of RegionSetPath Manager error1' + JSON.stringify(err))
@@ -1045,7 +825,6 @@ export default function drawingCodeTest() {
       } catch (err) {
         if (err.code == 401) {
           console.log('test enum value of RegionSetRect Manager error' + err.code);
-          expect(true).assertTrue();
           done();
         } else {
           console.log('test enum value of RegionSetRect Manager error1' + JSON.stringify(err))

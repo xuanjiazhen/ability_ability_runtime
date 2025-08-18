@@ -28,7 +28,6 @@ async function getFrameCountPromiseTest(done: Function, testName: string, pathUr
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let frameCount: number = await imageSourceApi.getFrameCount();
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -49,7 +48,6 @@ async function getFrameCountCallbackTest(done: Function, testName: string, pathU
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in getting frame count.');
-        expect(true).assertTrue();
       }
     })
     done();

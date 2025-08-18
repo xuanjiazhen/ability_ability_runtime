@@ -66,7 +66,6 @@ async function getAssetsAbnormalCallbackTest(done: Function,
         } else {
           console.info(TAG, `getAssets succeed; photo count: ${fetchResult.getCount()}`);
           fetchResult.close();
-          expect(true).assertTrue();
         }
         done();
       } catch (error) {

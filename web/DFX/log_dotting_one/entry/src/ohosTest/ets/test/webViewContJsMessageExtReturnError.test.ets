@@ -12,16 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, beforeEach, afterEach, it, expect, beforeAll , TestType, Size, Level } from "@ohos/hypium";
-import events_emitter from '@ohos.events.emitter';
+import { describe, beforeEach, it, beforeAll, TestType, Size, Level } from "@ohos/hypium";
 import Utils from './Utils';
-// import router from '@system.router';
 import router from '@ohos.router';
 import { accessibility, config } from '@kit.AccessibilityKit';
+import { Driver, ON } from '@kit.TestKit';
+
+const EVENT_ID_SET_EMIT_KEY = 111670;
+const driver = Driver.create();
 const CAPACITY: accessibility.Capability[] = ['retrieve', 'gesture'];
 const BUNDLE_NAME = 'com.example.myaccessibilityapp/AccessibilityExtAbility';
-
-let emitKey = "emitJsMessageExtGetStringError";
+let emitKey = "";
 
 export default function webViewContJsMessageExtReturnError() {
   describe('ActsAceWebDevWebViewContJsMessageExtReturnErrorTest', () => {
@@ -36,54 +37,37 @@ export default function webViewContJsMessageExtReturnError() {
         if (!("webViewContJsMessageExtReturnError" == pages.name)) {
           console.info("get webViewContJsMessageExtReturnError state success " + JSON.stringify(pages.name));
           let result = await router.push(options);
-          await Utils.sleep(2000);
           console.info("push webViewContJsMessageExtReturnError page success " + JSON.stringify(result));
         }
       } catch (err) {
         console.error("push webViewContJsMessageExtReturnError page error: " + err);
       }
+      await driver.waitForComponent(ON.id("webViewContJsMessageExtReturnError"), 10000);
+      console.log("waitForComponent webViewContJsMessageExtReturnError");
       done()
     });
+
     beforeEach(async (done: Function) => {
       config.enableAbility(BUNDLE_NAME, CAPACITY).then(() => {
         console.info(`enable success`);
         }).catch((err: object) => {
         console.error(`failed to enable, ${err}`);
       })
-      await Utils.sleep(2000);
       console.info("webViewContJsMessageExtReturnError beforeEach start");
       done();
     })
-    afterEach(async (done: Function) => {
-      console.info("webViewContJsMessageExtReturnError afterEach start:" + emitKey);
-      try {
-        let backData: events_emitter.EventData = {
-          data: {
-            "ACTION": emitKey
-          }
-        }
-        let backEvent: events_emitter.InnerEvent = {
-          eventId: 10,
-          priority: events_emitter.EventPriority.LOW
-        }
-        console.info("start send emitKey");
-        events_emitter.emit(backEvent, backData);
-      } catch (err) {
-        console.info("emit emitKey  err: " + JSON.stringify(err));
-      }
-      await Utils.sleep(2000);
-      done();
-    })
+
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERRORHUNDRED_1000
      *tc.name testJsMessageExtGetStringError
      *tc.desc test interface of JsMessageExt getString with unmatched type
      */
     it('testJsMessageExtGetStringError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitJsMessageExtGetNumberError";
-      Utils.registerEvent("testJsMessageExtGetStringError", "17100014", 816, done);
-      Utils.registerEvent("testJsMessageExtGetStringError", "The type and value of the message do not match.", 817, done);
-      sendEventByKey('webViewContJsMessageExtReturnError', 10, '');
+      emitKey = "emitJsMessageExtGetStringError";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testJsMessageExtGetStringError", "17100014", 111680, null);
+      Utils.registerEvent("testJsMessageExtGetStringError", "The type and value of the message do not match.", 111690, done);
+      await Utils.waitAndClickComponent(driver, "webViewContJsMessageExtReturnError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERRORHUNDRED_1100
@@ -91,10 +75,11 @@ export default function webViewContJsMessageExtReturnError() {
      *tc.desc test interface of JsMessageExt getNumber with unmatched type
      */
     it('testJsMessageExtGetNumberError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitJsMessageExtGetBooleanError";
-      Utils.registerEvent("testJsMessageExtGetNumberError", "17100014", 818, done);
-      Utils.registerEvent("testJsMessageExtGetNumberError", "The type and value of the message do not match.", 819, done);
-      sendEventByKey('webViewContJsMessageExtReturnError', 10, '');
+      emitKey = "emitJsMessageExtGetNumberError";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testJsMessageExtGetNumberError", "17100014", 111700, null);
+      Utils.registerEvent("testJsMessageExtGetNumberError", "The type and value of the message do not match.", 111710, done);
+      await Utils.waitAndClickComponent(driver, "webViewContJsMessageExtReturnError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERRORHUNDRED_1200
@@ -102,10 +87,11 @@ export default function webViewContJsMessageExtReturnError() {
      *tc.desc test interface of JsMessageExt getBoolean with unmatched type
      */
     it('testJsMessageExtGetBooleanError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitJsMessageExtGetArrayBufferError";
-      Utils.registerEvent("testJsMessageExtGetBooleanError", "17100014", 820, done);
-      Utils.registerEvent("testJsMessageExtGetBooleanError", "The type and value of the message do not match.", 821, done);
-      sendEventByKey('webViewContJsMessageExtReturnError', 10, '');
+      emitKey = "emitJsMessageExtGetBooleanError";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testJsMessageExtGetBooleanError", "17100014", 111720, null);
+      Utils.registerEvent("testJsMessageExtGetBooleanError", "The type and value of the message do not match.", 111730, done);
+      await Utils.waitAndClickComponent(driver, "webViewContJsMessageExtReturnError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERRORHUNDRED_1300
@@ -113,10 +99,11 @@ export default function webViewContJsMessageExtReturnError() {
      *tc.desc test interface of JsMessageExt getArrayBuffer with unmatched type
      */
     it('testJsMessageExtGetArrayBufferError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
-      emitKey = "emitJsMessageExtGetArrayError";
-      Utils.registerEvent("testJsMessageExtGetArrayBufferError", "17100014", 822, done);
-      Utils.registerEvent("testJsMessageExtGetArrayBufferError", "The type and value of the message do not match.", 823, done);
-      sendEventByKey('webViewContJsMessageExtReturnError', 10, '');
+      emitKey = "emitJsMessageExtGetArrayBufferError";
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testJsMessageExtGetArrayBufferError", "17100014", 111740, null);
+      Utils.registerEvent("testJsMessageExtGetArrayBufferError", "The type and value of the message do not match.", 111750, done);
+      await Utils.waitAndClickComponent(driver, "webViewContJsMessageExtReturnError");
     })
     /*
      *tc.number SUB_ACE_BASIC_ETS_WEBVIEWERRORHUNDRED_1400
@@ -125,9 +112,10 @@ export default function webViewContJsMessageExtReturnError() {
      */
     it('testJsMessageExtGetArrayError', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       emitKey = "emitJsMessageExtGetArrayError";
-      Utils.registerEvent("testJsMessageExtGetArrayError", "17100014", 824, done);
-      Utils.registerEvent("testJsMessageExtGetArrayError", "The type and value of the message do not match.", 825, done);
-      sendEventByKey('webViewContJsMessageExtReturnError', 10, '');
+      Utils.emitEvent(emitKey, EVENT_ID_SET_EMIT_KEY);
+      Utils.registerEvent("testJsMessageExtGetArrayError", "17100014", 111760, null);
+      Utils.registerEvent("testJsMessageExtGetArrayError", "The type and value of the message do not match.", 111770, done);
+      await Utils.waitAndClickComponent(driver, "webViewContJsMessageExtReturnError");
     })
   })
 }

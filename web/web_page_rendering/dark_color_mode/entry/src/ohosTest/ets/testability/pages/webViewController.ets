@@ -20,6 +20,7 @@ import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry
 import { Hypium } from '@ohos/hypium';
 import testsuite from '../../test/List.test';
 import { AbilityConstant, Configuration, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { waitForExist } from '../../test/WaitTest.test';
 
 @Entry
 @Component
@@ -31,17 +32,18 @@ struct webViewController {
   @State forceDarkAccess: boolean = false
   @StorageProp('currentColorMode') currentColorMode: ConfigurationConstant.ColorMode =
     ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
-
+  @State isPageEnd: number = -1
+  @State isReceive: number = -1;
   onPageShow() {
     let valueChangeEvent: events_emitter.InnerEvent = {
-      eventId: 10,
+      eventId: 152250,
       priority: events_emitter.EventPriority.LOW
     }
     events_emitter.on(valueChangeEvent, this.valueChangeCallBack)
   }
 
   onPageHide() {
-    events_emitter.off(10)
+    events_emitter.off(152250)
   }
 
   private valueChangeCallBack = (eventData: events_emitter.EventData) => {
@@ -50,6 +52,7 @@ struct webViewController {
       console.info("valueChangeCallBack:" + JSON.stringify(eventData));
       if (eventData.data != null && eventData.data.ACTION != null) {
         this.str = eventData.data.ACTION;
+        this.isReceive = 0;
       }
     }
   }
@@ -66,28 +69,32 @@ struct webViewController {
       Row() {
         Button("WebViewController click").key('WebViewControllerButton').onClick(async () => {
           console.info("key==>" + this.str)
+          await waitForExist(()=>this.isPageEnd, this.str, 0);
+          await waitForExist(()=>this.isReceive, this.str, 0);
+          this.isReceive = -1;
           switch (this.str) {
             case "testDarkMode001": {
               try {
                 this.darkMode = WebDarkMode.On
                 this.forceDarkAccess = true
-                this.controller.loadUrl("resource://rawfile/darkModle.html");
-                await Utils.sleep(2000);
+                this.isPageEnd = -1
+                this.controller.loadUrl("resource://rawfile/darkModle.html")
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript(
                   'isDarkModel()',
                   (error, result) => {
                     if (error) {
                       console.info(`run runJavaScriptExt error: ` + JSON.stringify(error))
-                      Utils.emitEvent(error.code, 31039)
+                      Utils.emitEvent(error.code, 152260)
                       return;
                     }
                     if (result) {
-                      Utils.emitEvent(result, 31039)
+                      Utils.emitEvent(result, 152260)
                     }
                   });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31039)
+                Utils.emitEvent(error.code, 152260)
               }
               break;
             }
@@ -96,24 +103,25 @@ struct webViewController {
               try {
                 this.darkMode = WebDarkMode.Auto
                 this.forceDarkAccess = true
-                this.controller.loadUrl("resource://rawfile/darkModle.html");
-                await Utils.sleep(2000);
+                this.isPageEnd = -1
+                this.controller.loadUrl("resource://rawfile/darkModle.html")
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript(
                   'isDarkModel()',
                   (error, result) => {
                     if (error) {
                       console.info(`run runJavaScriptExt error: ` + JSON.stringify(error))
-                      Utils.emitEvent(error.code, 31040)
+                      Utils.emitEvent(error.code, 152270)
                       return;
                     }
                     if (JSON.parse(result) == (this.currentColorMode == ConfigurationConstant.ColorMode.COLOR_MODE_DARK)){
                       // 如果系统颜色和获取的颜色是一样的 就返回true
-                      Utils.emitEvent(true, 31040)
+                      Utils.emitEvent(true, 152270)
                     }
                   });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31040)
+                Utils.emitEvent(error.code, 152270)
               }
               break;
             }
@@ -122,23 +130,24 @@ struct webViewController {
               try {
                 this.darkMode = WebDarkMode.Off
                 this.forceDarkAccess = true
-                this.controller.loadUrl("resource://rawfile/darkModle.html");
-                await Utils.sleep(2000);
+                this.isPageEnd = -1
+                this.controller.loadUrl("resource://rawfile/darkModle.html")
+                await waitForExist(()=>this.isPageEnd, this.str, 0);
                 this.controller.runJavaScript(
                   'isDarkModel()',
                   (error, result) => {
                     if (error) {
                       console.info(`run runJavaScriptExt error: ` + JSON.stringify(error))
-                      Utils.emitEvent(error.code, 31041)
+                      Utils.emitEvent(error.code, 152280)
                       return;
                     }
                     if (result) {
-                      Utils.emitEvent(result, 31041)
+                      Utils.emitEvent(result, 152280)
                     }
                   });
               } catch (error) {
                 console.error(`ErrorCode: ${error.code},  Message: ${error.message}`);
-                Utils.emitEvent(error.code, 31041)
+                Utils.emitEvent(error.code, 152280)
               }
               break;
             }
@@ -147,12 +156,16 @@ struct webViewController {
       }
 
       Web({ src: $rawfile('index.html'), controller: this.controller })
+        .onPageEnd((event) => {
+          console.log('web pageEnd==>' + event.url);
+          this.isPageEnd = 0;
+        })
         .javaScriptAccess(this.javaScriptAccess)
         .key("onShowFileSelectorKey")
         .fileAccess(true)
         .darkMode(this.darkMode)
         .forceDarkAccess(this.forceDarkAccess)
-    }
+      }
     .key('RowSize')
   }
 }

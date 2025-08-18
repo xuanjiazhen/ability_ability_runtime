@@ -364,7 +364,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithGainMapAuxPic("testExif.jpg", "fd");
@@ -396,7 +395,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JPEGISOSingle.jpg", "fd", GAINMAP);
@@ -428,7 +426,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JPEGISOSingle.jpg", "fd", GAINMAP);
@@ -457,7 +454,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JPEGISOSingle.jpg", "fd", GAINMAP);
@@ -489,7 +485,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_02.jpg");
@@ -522,7 +517,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_03.jpg");
@@ -555,7 +549,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_05.jpg");
@@ -585,7 +578,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_03.jpg");
@@ -618,7 +610,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKING_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithDepthMapAuxPic("testExif.jpg", "fd");
@@ -650,7 +641,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKING_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithDepthMapAuxPic("testExif.jpg", "fd");
@@ -682,7 +672,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKING_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", DEPTH_MAP);
@@ -714,7 +703,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKING_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", DEPTH_MAP);
@@ -743,7 +731,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKING_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", DEPTH_MAP);
@@ -775,7 +762,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKTOFILE_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_01.jpg");
@@ -808,7 +794,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKTOFILE_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_02.jpg");
@@ -841,7 +826,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKTOFILE_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_03.jpg");
@@ -874,7 +858,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKTOFILE_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_05.jpg");
@@ -904,7 +887,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_DEPTHMAP_PACKTOFILE_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_03.jpg");
@@ -937,7 +919,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKING_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithUnReFocusMapAuxPic("testExif.jpg", "fd");
@@ -969,7 +950,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKING_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithUnReFocusMapAuxPic("testExif.jpg", "fd");
@@ -1001,7 +981,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKING_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", UNREFOCUS_MAP);
@@ -1033,7 +1012,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKING_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", UNREFOCUS_MAP);
@@ -1062,7 +1040,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKING_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", UNREFOCUS_MAP);
@@ -1094,7 +1071,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKTOFILE_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_01.jpg");
@@ -1127,7 +1103,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKTOFILE_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_02.jpg");
@@ -1160,7 +1135,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKTOFILE_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_03.jpg");
@@ -1193,7 +1167,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKTOFILE_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_05.jpg");
@@ -1223,7 +1196,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_UNREFOCUSMAP_PACKTOFILE_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_03.jpg");
@@ -1256,7 +1228,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKING_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithLinearMapAuxPic("testExif.jpg", "fd");
@@ -1288,7 +1259,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKING_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithLinearMapAuxPic("testExif.jpg", "fd");
@@ -1320,7 +1290,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKING_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", LINEAR_MAP);
@@ -1352,7 +1321,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKING_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", LINEAR_MAP);
@@ -1381,7 +1349,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKING_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures_exclude_fragment.jpg", "fd", LINEAR_MAP);
@@ -1413,7 +1380,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKTOFILE_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_01.jpg");
@@ -1446,7 +1412,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKTOFILE_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_02.jpg");
@@ -1479,7 +1444,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKTOFILE_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_03.jpg");
@@ -1512,7 +1476,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKTOFILE_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_05.jpg");
@@ -1542,7 +1505,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_LINEARMAP_PACKTOFILE_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_03.jpg");
@@ -1575,7 +1537,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKING_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithFragmentMapAuxPic("testExif.jpg", "fd");
@@ -1607,7 +1568,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKING_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithFragmentMapAuxPic("testExif.jpg", "fd");
@@ -1639,7 +1599,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKING_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JpegFragmentMap.jpg", "fd", FRAGMENT_MAP);
@@ -1671,7 +1630,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKING_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JpegFragmentMap.jpg", "fd", FRAGMENT_MAP);
@@ -1700,7 +1658,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKING_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("JpegFragmentMap.jpg", "fd", FRAGMENT_MAP);
@@ -1732,7 +1689,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKTOFILE_JPEG_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_01.jpg");
@@ -1765,7 +1721,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKTOFILE_JPEG_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_02.jpg");
@@ -1798,7 +1753,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKTOFILE_JPEG_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_03.jpg");
@@ -1831,7 +1785,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKTOFILE_JPEG_0400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_05.jpg");
@@ -1861,7 +1814,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_FRAGMENTMAP_PACKTOFILE_JPEG_0500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_03.jpg");
@@ -1898,7 +1850,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithGainMapAuxPic("0801_sdr2.heic", "fd");
@@ -1932,7 +1883,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("HEIFISOMultiChannelBaseColor0512V12.heic", "fd", GAINMAP);
@@ -1962,7 +1912,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_HEIF_0300");
       if (!isSupportHEICEncode) {
         logger.log("device is not support heif encode");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures.jpg", "fd", GAINMAP);
@@ -1992,7 +1941,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKING_HEIF_0400");
       if (!isSupportHEICEncode) {
         logger.log("device is not support heif encode");
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("AllAuxiliaryPictures.jpg", "fd", GAINMAP);
@@ -2024,7 +1972,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_01.heic");
@@ -2059,7 +2006,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_02.heic");
@@ -2090,7 +2036,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_HEIF_0300");
       if (!isSupportHEICEncode) {
         logger.log("device is not support heif encode");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_03.heic");
@@ -2121,7 +2066,6 @@ export default function imagePicturePack() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PICTURE_GAINMAP_PACKTOFILE_HEIF_0400");
       if (!isSupportHEICEncode) {
         logger.log("device is not support heif encode");
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_gainmap_04.heic");
@@ -2154,7 +2098,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithDepthMapAuxPic("0801_sdr2.heic", "fd");
@@ -2188,7 +2131,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithDepthMapAuxPic("0801_sdr2.heic", "fd");
@@ -2222,7 +2164,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", DEPTH_MAP);
@@ -2256,7 +2197,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", DEPTH_MAP);
@@ -2290,7 +2230,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", DEPTH_MAP);
@@ -2322,7 +2261,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_01.heic");
@@ -2357,7 +2295,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_02.heic");
@@ -2392,7 +2329,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_03.heic");
@@ -2427,7 +2363,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_04.heic");
@@ -2462,7 +2397,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_depthMap_05.heic");
@@ -2495,7 +2429,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", UNREFOCUS_MAP);
@@ -2529,7 +2462,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", UNREFOCUS_MAP);
@@ -2563,7 +2495,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", UNREFOCUS_MAP);
@@ -2595,7 +2526,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_01.heic");
@@ -2630,7 +2560,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_02.heic");
@@ -2665,7 +2594,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_unRefocusMap_03.heic");
@@ -2698,7 +2626,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithLinearMapAuxPic("0801_sdr2.heic", "fd");
@@ -2732,7 +2659,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithLinearMapAuxPic("0801_sdr2.heic", "fd");
@@ -2766,7 +2692,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", LINEAR_MAP);
@@ -2800,7 +2725,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", LINEAR_MAP);
@@ -2834,7 +2758,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", LINEAR_MAP);
@@ -2866,7 +2789,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_01.heic");
@@ -2901,7 +2823,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_02.heic");
@@ -2936,7 +2857,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_03.heic");
@@ -2971,7 +2891,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_04.heic");
@@ -3006,7 +2925,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_linearMap_05.heic");
@@ -3039,7 +2957,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithFragmentMapAuxPicHeif("0801_sdr2.heic", "fd");
@@ -3073,7 +2990,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureWithFragmentMapAuxPicHeif("0801_sdr2.heic", "fd");
@@ -3107,7 +3023,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", FRAGMENT_MAP);
@@ -3141,7 +3056,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", FRAGMENT_MAP);
@@ -3175,7 +3089,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let picture = await createPictureImageSourcePic("all_auxtype.heic", "fd", FRAGMENT_MAP);
@@ -3207,7 +3120,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_01.heic");
@@ -3242,7 +3154,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_02.heic");
@@ -3277,7 +3188,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_03.heic");
@@ -3312,7 +3222,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_04.heic");
@@ -3347,7 +3256,6 @@ export default function imagePicturePack() {
         } else {
           logger.log("device is not support heif encode");
         }
-        expect(true).assertTrue();
         done();
       } else {
         let writeFd = await getFdCacheDir("pack_fragmentMap_05.heic");

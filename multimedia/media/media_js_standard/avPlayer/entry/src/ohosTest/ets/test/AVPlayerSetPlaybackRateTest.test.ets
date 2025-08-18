@@ -60,17 +60,15 @@ async function handleState(state: string, operationRecord: Record<string, Functi
             avPlayer.surfaceId = surfaceID;
             console.info(`case avPlayer.surfaceId is ${avPlayer.surfaceId}`);
             await operationRecord[INITIALIZED]?.()
-            await avPlayer.prepare().then(() => {
-                console.info('case prepare called');
-            }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+            await avPlayer.prepare()
+            console.info('case into prepare');
             break;
         case PREPARED:
             expect(avPlayer.currentTime).assertEqual(0);
             await operationRecord[PREPARED]?.()
             console.info('case to play AVPlayer');
-            await avPlayer.play().then(() => {
-                console.info('case play AVPlayer success');
-            }, mediaTestBase.failureCallback).catch(mediaTestBase.catchCallback);
+            await avPlayer.play()
+            console.info('case into playing');
             break;
         case PLAYING:
             await operationRecord[PLAYING]?.()

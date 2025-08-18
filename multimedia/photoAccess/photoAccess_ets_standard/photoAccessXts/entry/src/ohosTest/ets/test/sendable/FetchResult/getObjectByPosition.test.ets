@@ -37,7 +37,6 @@ async function getObjectByPositionPromiseTest(done: Function, testName: string,
     fetchResult.getObjectByPosition(index).then(() => {
       console.info('photoAsset displayName: ', photoAsset.displayName);
       fetchResult.close();
-      expect(true).assertTrue();
       done();
     }).catch((err: BusinessError) => {
       console.error(`commitModify failed with error: ${err.code}, ${err.message}`);

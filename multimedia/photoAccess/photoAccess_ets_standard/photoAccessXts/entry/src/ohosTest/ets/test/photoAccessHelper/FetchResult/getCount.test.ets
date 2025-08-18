@@ -36,7 +36,6 @@ async function getCountPromiseTest(done: Function, fetchOps: photoAccessHelper.F
       done();
     }
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

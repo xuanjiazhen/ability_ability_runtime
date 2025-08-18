@@ -30,7 +30,7 @@ async function requestPhotoUrisReadPermissionPromiseTest(done: Function, testNam
     phAccessHelper.requestPhotoUrisReadPermission(srcFileUris).then((result: Array<string>) => {
       console.info("requestPhotoUrisReadPermission, result = " + JSON.stringify(result));
       if (result) {
-        expect(true).assertTrue();
+        console.info('success')
       } else {
         expect(false).assertFail();
       }

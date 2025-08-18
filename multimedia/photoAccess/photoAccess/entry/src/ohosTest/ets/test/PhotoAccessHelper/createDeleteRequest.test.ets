@@ -118,7 +118,6 @@ export default function createDeleteRequestTest() {
           })
           .catch((error:BusinessError ) => {
             console.info(`${testNum} error ${JSON.stringify(error)}`);
-            expect(true).assertTrue();
           });
         done();
       } catch (error) {

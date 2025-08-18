@@ -1446,6 +1446,23 @@ static napi_value testGetDoublePluralStringByName142(napi_env env, napi_callback
     return value;
 }
 
+
+static napi_value GetResourceConfiguration(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    ResourceManager_Configuration config;
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    NativeResourceManager *mNativeResMgr = OH_ResourceManager_InitNativeResourceManager(env, argv[0]);
+    ResourceManager_ErrorCode code = OH_ResourceManager_GetResourceConfiguration(mNativeResMgr, &config);
+    ResourceManager_ErrorCode codeTwo = OH_ResourceManager_ReleaseConfiguration(&config);
+
+    bool flag = (code == 0 && codeTwo == 0);
+    napi_value value = nullptr;
+    napi_get_boolean(env, flag, &value);
+    return value;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -1533,6 +1550,8 @@ static napi_value Init(napi_env env, napi_value exports)
         {"testGetIntPluralStringByName141", nullptr, testGetIntPluralStringByName141, nullptr, nullptr,
             nullptr, napi_default, nullptr},
         {"testGetDoublePluralStringByName142", nullptr, testGetDoublePluralStringByName142, nullptr,
+            nullptr, nullptr, napi_default, nullptr},
+        {"getResourceConfiguration", nullptr, GetResourceConfiguration, nullptr,
             nullptr, nullptr, napi_default, nullptr},
     };
 

@@ -29,7 +29,6 @@ async function readPixelsSyncPromiseTest(done: Function, testName: string, area:
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.readPixelsSync(area);
-      expect(true).assertTrue();
       done();
     }
     done();

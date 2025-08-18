@@ -38,7 +38,7 @@ export default function imagePixelMapTest() {
     it("ImagePixelMapTest_0100", TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL1, async (done:Function)=> {
       let curSceneMode: camera.SceneMode = camera?.SceneMode?.NORMAL_PHOTO
       if(curSceneMode == undefined) {
-        expect(true).assertTrue();
+        console.info('The product does not support this feature');
         done();
       } else {
         let atManager = abilityAccessCtrl.createAtManager();

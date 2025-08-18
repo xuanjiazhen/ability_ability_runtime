@@ -33,7 +33,6 @@ async function getWriteCacheHandlerPromiseTest(done: Function, testName: string,
     console.info('getWriteCacheHandler successfully');
     await fileIo.close(fd);
     await phAccessHelper.applyChanges(assetChangeRequest)
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

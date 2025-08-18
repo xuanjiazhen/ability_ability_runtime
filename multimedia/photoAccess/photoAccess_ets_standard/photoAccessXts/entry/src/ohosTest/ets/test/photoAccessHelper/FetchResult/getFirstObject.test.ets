@@ -38,7 +38,6 @@ async function getFirstObjectPromiseTest(done: Function, fetchOps: photoAccessHe
     let photoAsset: photoAccessHelper.PhotoAsset = await fetchResult.getFirstObject();
     console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName);
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testNum);
@@ -66,7 +65,6 @@ async function getFirstObjectCallbackTest(done: Function, fetchOps: photoAccessH
       fetchResult.close();
       if (photoAsset !== undefined) {
         console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName);
-        expect(true).assertTrue();
       } else {
         console.error(TAG, `photoAsset failed with err: ${err.code}, ${err.message}`);
         expect().assertFail();

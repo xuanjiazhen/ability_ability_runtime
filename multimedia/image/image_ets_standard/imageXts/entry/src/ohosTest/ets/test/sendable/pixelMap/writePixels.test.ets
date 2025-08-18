@@ -35,7 +35,6 @@ async function writePixelsPromiseTest(done: Function, testName: string, area: im
     }
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.writePixels(area);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {
@@ -59,7 +58,6 @@ async function writePixelsAbnormalPromiseTest(done: Function, testName: string, 
     }
     if (sendablePixelMap != undefined) {
       await sendablePixelMap.writePixels(area);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

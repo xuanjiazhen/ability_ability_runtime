@@ -29,7 +29,6 @@ async function updateDataPromiseTest(done: Function, testName: string, pathUri: 
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     await imageSourceApi.updateData(array, isFinished, offset, length);
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -46,7 +45,6 @@ async function updateDataAbnormalPromiseTest(done: Function, testName: string, p
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     await imageSourceApi.updateData(array, isFinished, offset, length);
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -66,7 +64,7 @@ async function updateDataCallbackTest(done: Function, testName: string, pathUri:
       if (error) {
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
+        console.info(`release success`);
       }
       done();
     })
@@ -88,7 +86,7 @@ async function updateDataCallbackAbnormalTest(done: Function, testName: string, 
       if (error) {
         expect().assertFail();
       } else {
-        expect(true).assertTrue();
+        console.info(`release success`);
       }
       done();
     })

@@ -2122,7 +2122,7 @@ export default function bundleManagerTest() {
             DEFAULT_USER_ID);
         expect(bundleInfos).not().assertUndefined();
         let edmBundleInfo = bundleInfos.find((bundleInfo) => {
-          return bundleInfo.name === 'com.example.myapplication';
+          return bundleInfo.name === 'com.edm.acts.normal';
         })
         expect(edmBundleInfo).not().assertUndefined();
         let bundleManagerHelper: BundleManagerHelper = new BundleManagerHelper();

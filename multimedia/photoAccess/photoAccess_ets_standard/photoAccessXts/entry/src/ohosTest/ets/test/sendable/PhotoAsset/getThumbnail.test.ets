@@ -81,7 +81,6 @@ export default function sendableGetThumbnailTest() {
         done();
       } catch (error) {
         console.error(TAG, `${testName} failed; error: ${error?.code}, ${error?.message}`);
-        expect(true).assertTrue();
         done();
       }
     }
@@ -92,7 +91,6 @@ export default function sendableGetThumbnailTest() {
         console.info(TAG, `${testName} start.`);
         let asset: sendablePhotoAccessHelper.PhotoAsset = await getSendableFileAsset(testContext, testName, fetchOps);
         await asset.getThumbnail(size);
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(`${testName} failed; error: ${error?.code}, ${error?.message}`);

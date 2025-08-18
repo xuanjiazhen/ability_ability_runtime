@@ -28,7 +28,6 @@ async function getDisposalTypeListPromiseTest(done: Function, testName: string, 
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -44,7 +43,6 @@ async function getDisposalTypeListPromiseAbnormalTest(done: Function, testName: 
     const imageSourceApi: image.ImageSource = await image.createImageSource(path);
     let disposalTypes: Array<number> = await imageSourceApi.getDisposalTypeList();
     imageSourceApi.release();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

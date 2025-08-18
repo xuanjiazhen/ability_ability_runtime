@@ -29,7 +29,6 @@ async function readLatestImagePromiseTest(done: Function, testName: string, size
     })
     receiver.readLatestImage().then((img: image.Image) => {
       console.info('Succeeded in reading the latest Image.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(`Failed to read the latest Image.code ${error.code},message is ${error.message}`);
       expect().assertFail();
@@ -52,7 +51,6 @@ async function readNextImagePromiseTest(done: Function, testName: string, size: 
     });
     receiver.readNextImage().then((img: image.Image) => {
       console.info('Succeeded in reading the next Image.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(`Failed to read the next Image.code ${error.code},message is ${error.message}`);
       expect().assertFail();

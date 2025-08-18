@@ -15,12 +15,20 @@
 {
   "license": "",
   "devDependencies": {
-    "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk"
+    "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
+    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libaccessibilityndk.so": "file:./src/main/cpp/types/libaccessibilityndk",
+    "@types/libanimatendk.so": "file:./src/main/cpp/types/libanimatendk"
   },
   "author": "",
   "name": "entry",
   "description": "Please describe the basic information.",
   "main": "",
   "version": "1.0.0",
-  "dependencies": {}
+  "dependencies": {
+    "@types/libkeycodendk.so": "file:./src/main/cpp/types/libkeycodendk",
+    "@types/libnativexcomponent.so": "file:./src/main/cpp/types/libnativexcomponent",
+    "@types/libaccessibilityndk.so": "file:./src/main/cpp/types/libaccessibilityndk",
+    "@types/libanimatendk.so": "file:./src/main/cpp/types/libanimatendk"
+  }
 }

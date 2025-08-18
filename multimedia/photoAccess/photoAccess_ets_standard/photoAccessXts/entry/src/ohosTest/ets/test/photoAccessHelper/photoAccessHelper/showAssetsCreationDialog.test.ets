@@ -31,7 +31,6 @@ async function showAssetsCreationDialogPromiseTest(done: Function, testName: str
     phAccessHelper.showAssetsCreationDialog(srcFileUris, photoCreationConfigs);
     await driveFn();
     console.info('showAssetsCreationDialog success');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);

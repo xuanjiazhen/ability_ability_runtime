@@ -84,7 +84,7 @@ export default function openDialogTransitionTest() {
       let driver: Driver = Driver.create();
       let maskTransitionButton = await driver.findComponent(ON.id('EnableMaskTransition'));
       await maskTransitionButton.click();
-      await CommonFunc.sleep(500);
+      await CommonFunc.sleep(3000);
       let openDialogButton = await driver.findComponent(ON.id('OpenDialog'));
       await openDialogButton.click();
       await CommonFunc.sleep(3000);

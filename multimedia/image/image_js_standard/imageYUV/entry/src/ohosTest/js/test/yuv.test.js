@@ -148,7 +148,6 @@ export default function imageYuv() {
                         })
                         .catch((error) => {
                             console.info(`${testNum} error:` + error);
-                            expect(true).assertTrue();
                             done();
                         });
                 }
@@ -211,7 +210,6 @@ export default function imageYuv() {
                     imageSource.createPixelMap((err, pixelmap) => {
                         if (err != undefined || pixelmap == undefined) {
                             console.info(`${testNum} err: ` + err);
-                            expect(true).assertTrue();
                             done();
                             return;
                         }
@@ -290,7 +288,6 @@ export default function imageYuv() {
                         })
                         .catch((error) => {
                             console.log(`${testNum} error: ` + error);
-                            expect(true).assertTrue();
                             done();
                         });
                 }

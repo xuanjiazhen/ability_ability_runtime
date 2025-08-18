@@ -511,7 +511,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_1200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;
@@ -542,7 +541,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_1300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;
@@ -573,7 +571,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_1400");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;
@@ -604,7 +601,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_1500");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;
@@ -995,7 +991,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_DNG_NATIVE_0100");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/test_dng.dng";
@@ -1025,7 +1020,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_DNG_NATIVE_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/test_dng.dng";
@@ -1055,7 +1049,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_DNG_NATIVE_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/test_dng.dng";
@@ -1085,7 +1078,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_HEIF_NATIVE_0100");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/0801_sdr2.heic";
@@ -1115,7 +1107,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_HEIF_NATIVE_0200");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/0801_sdr2.heic";
@@ -1145,7 +1136,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_HEIF_NATIVE_0300");
       if (!isSupportHEIFDecode) {
         logger.log("device is not support heif decode");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/0801_sdr2.heic";
@@ -1194,7 +1184,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_ERROR_0200");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;
@@ -1223,7 +1212,6 @@ export default function pixelmapNdkForDMATest() {
       let logger = new Logger("SUB_MULTIMEDIA_IMAGE_PIXELMAP_JPEG_NATIVE_ERROR_0300");
       if (!isSupportHdr) {
         logger.log("device is not support hdr");
-        expect(true).assertTrue();
         done();
       } else {
         let path = filesDir + "/" + test_DMA_3071_4095;

@@ -26,7 +26,6 @@ async function readPixelsToBufferSyncPromiseTest(done: Function, testName: strin
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(readBuffer, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.readPixelsToBufferSync(readBuffer);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

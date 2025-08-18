@@ -32,7 +32,6 @@ async function createImageSourcePromiseTest(done: Function, testName: string, pa
     console.log(JSON.stringify(imageSourceApi))
     let imageInfo = await imageSourceApi.createPixelMap();
     console.log(TAG, JSON.stringify(imageInfo), JSON.stringify(imageInfo.getImageInfoSync().size.height));
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);
@@ -51,7 +50,6 @@ async function createImageSourceFdPromiseTest(done: Function, testName: string, 
       SourceOptions ? image.createImageSource(file.fd, SourceOptions) : image.createImageSource(file.fd);
     let imageInfo = await imageSourceApi.createPixelMap();
     console.log(TAG, JSON.stringify(imageInfo), JSON.stringify(imageInfo.getImageInfoSync().size.height))
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code}`, testName);

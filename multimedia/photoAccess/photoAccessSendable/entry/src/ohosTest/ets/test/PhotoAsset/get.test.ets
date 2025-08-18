@@ -210,7 +210,6 @@ export default function getTest () {
         let newTitle: string = 'newTitle';
         photoAssetSet.set(titleKey, newTitle);
         console.info('sendable_set_assets_000: suc');
-        expect(true).assertTrue();
         done();
       } catch (error) {
         console.error(`sendable_set_assets_000 failed, error: ${error}, ${error.code}`);

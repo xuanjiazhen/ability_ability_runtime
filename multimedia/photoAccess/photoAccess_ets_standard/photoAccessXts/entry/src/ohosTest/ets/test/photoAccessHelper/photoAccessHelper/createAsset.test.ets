@@ -33,7 +33,6 @@ async function createAssetCallbackWithOptionsTest(done: Function, type: photoAcc
         expect().assertFail();
       } else {
         console.info(TAG, `createAsset success, uri: ${uri}`);
-        expect(true).assertTrue();
       }
       done();
     })
@@ -55,7 +54,6 @@ async function createAssetCallbackWithOptionsAbnormalTest(done: Function, type: 
         expect().assertFail();
       } else {
         console.info(TAG, `createAsset success, uri: ${uri}`);
-        expect(true).assertTrue();
       }
       done();
     })
@@ -76,7 +74,6 @@ async function createAssetCallbackTest(done: Function, type: photoAccessHelper.P
         expect().assertFail();
       } else {
         console.info(TAG, `createAsset success; uri: ${uri}`);
-        expect(true).assertTrue();
       }
       done();
     })
@@ -98,7 +95,6 @@ async function createAssetCallbackAbnormalTest(done: Function, type: photoAccess
         expect().assertFail();
       } else {
         console.info(TAG, `createAsset success; uri: ${uri}`);
-        expect(true).assertTrue();
       }
       done();
     })
@@ -116,7 +112,6 @@ async function createAssetPromiseWithOptionsTest(done: Function, type: photoAcce
   try {
     const uri = await helper.createAsset(type, extension, options);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `createAsset failed; error: ${error?.code}, ${error?.message}`);
@@ -132,7 +127,6 @@ async function createAssetPromiseWithOptionsAbnormalTest(done: Function, type: p
   try {
     const uri = await helper.createAsset(type as photoAccessHelper.PhotoType, extension as string, options);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `createAsset failed; error: ${error?.code}, ${error?.message}`);
@@ -147,7 +141,6 @@ async function createAssetPromiseTest(done: Function, type: photoAccessHelper.Ph
   try {
     const uri = await helper.createAsset(type, extension);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `createAsset failed; error: ${error?.code}, ${error?.message}`);
@@ -163,7 +156,6 @@ async function createAssetPromiseAbnormalTest(done: Function, type: photoAccessH
   try {
     const uri = await helper.createAsset(type, extension);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `createAsset failed; error: ${error?.code}, ${error?.message}`);

@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-Copyright (c) 2020-2021 Huawei Device Co., Ltd.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
 # 1.本地查看采集的性能指标，需要在main.py的pass_dict['user_define']中将whether_upload设置为False:
 # "whether_upload": "False" # 上传关了，本地生成报告
 # "whether_upload": "True" # 上传开了，本地没报告
@@ -32,21 +16,7 @@ import time
 from xdevice.__main__ import main_process
 
 try:
-    pass_dict = dict()
-    pass_dict['task_id'] = time.strftime('%Y%m%d%H%M%S', time.localtime())
-    pass_dict['user_define'] = {"action_mode": "quickly",
-                                "device_check_enable": "False",
-                                "hardinput_enable": "True",  # 硬件注入开关
-                                "whether_upload": "False",
-                                "minicap_enable": "False",
-                                "systrace_on": "False",  # 关闭生成sys二进制trace文件，生成默认.ftrace文件
-                                "taskEnv": "oh_phone",  # 设备类型
-                                "testModel": "scene",  # 测试模型
-                                }
-
-    # task_id, 滑动速度等工厂中由agent下发时指定，通过pass_through参数透传给执行器
-    # cmd = 'run -l action_testsuite -ta pass_through:' + str(pass_dict)
-    cmd = 'run -l Permission_Preset -ta pass_through:' + str(pass_dict)
+    cmd = 'run -l PermissionPreset'
     main_process(cmd)
     time.sleep(30)
 except Exception as e:

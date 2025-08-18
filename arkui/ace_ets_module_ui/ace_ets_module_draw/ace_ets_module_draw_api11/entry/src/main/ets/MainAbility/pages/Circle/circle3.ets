@@ -45,7 +45,7 @@ struct CircleExample {
 
   build() {
     Flex({ justifyContent: FlexAlign.SpaceAround }) {
-      Circle({ width: 150, height: 150 })
+      Circle().size({ width: 150, height: 150 }).position({ x: 10, y: 10 })
       Circle()
         .width(`${this.theWidth}`)
         .height(`${this.theHeight}`)

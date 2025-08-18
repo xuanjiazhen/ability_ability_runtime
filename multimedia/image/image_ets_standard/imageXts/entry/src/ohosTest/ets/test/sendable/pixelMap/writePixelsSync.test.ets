@@ -32,7 +32,6 @@ async function writePixelsSyncPromiseTest(done: Function, testName: string, area
     let sendablePixelMap: sendableImage.PixelMap = sendableImage.createPixelMapSync(color, opts);
     if (sendablePixelMap != undefined) {
       sendablePixelMap.writePixelsSync(area);
-      expect(true).assertTrue();
       done();
     }
   } catch (error) {

@@ -150,11 +150,11 @@ export default function GridItemJsunit() {
     it('GridItemJsunit_0400',  Level.LEVEL0, async (done: Function) => {
       // Verify the function of onSelect of GridItem component 
       console.info('[GridItemJsunit_0400] START');
-      let grid1 = CommonFunc.getComponentRect('grid1');
+      let grid1 = CommonFunc.getComponentRectOnScreen('grid1');
       let left_x = Math.round(grid1.left)
-      let bottom_y = Math.round(grid1.bottom / 2)
+      let bottom_y = Math.round(grid1.top + (grid1.bottom - grid1.top) / 2)
       let driver = await UiDriver.create()
-      await driver.swipe(Math.round(globalThis.winLeft + left_x + vp2px(100)), bottom_y, Math.round(globalThis.winLeft + left_x + vp2px(120)), bottom_y);
+      await driver.swipe(Math.round(left_x + vp2px(100)), bottom_y, Math.round(left_x + vp2px(120)), bottom_y);
       await CommonFunc.sleep(500);
       let textComponent = await driver.findComponent(BY.key('onSelect'));
       let text = await textComponent.getText();

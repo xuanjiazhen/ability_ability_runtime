@@ -613,6 +613,7 @@ function testAddOutgoingCallPolicyNumbers() {
       telephonyManager.addOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, maxList);
       let numbers: Array<string> = ["13112345678","13687654321"];
       telephonyManager.addOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
+      expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 801 || error.code == 9200012).assertTrue();
     } finally {
@@ -875,6 +876,7 @@ function testRemoveOutgoingCallPolicyNumbers() {
     try {
       let numbers: Array<string> = ["13687654321"];
       telephonyManager.removeOutgoingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
+      expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 801 || error.code == 9200012).assertTrue();
     } finally {
@@ -1077,6 +1079,7 @@ function testAddIncomingCallPolicyNumbers() {
       telephonyManager.addIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, maxList);
       let numbers: Array<string> = ["13112345678","13687654321"];
       telephonyManager.addIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
+      expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 801 || error.code == 9200012).assertTrue();
     } finally {
@@ -1339,6 +1342,7 @@ function testRemoveIncomingCallPolicyNumbers() {
     try {
       let numbers: Array<string> = ["13687654321"];
       telephonyManager.removeIncomingCallPolicyNumbers(SELFWANT, adminManager.Policy.BLOCK_LIST, numbers);
+      expect(false).assertTrue();
     } catch (error) {
       expect(error.code == 801 || error.code == 9200012).assertTrue();
     } finally {

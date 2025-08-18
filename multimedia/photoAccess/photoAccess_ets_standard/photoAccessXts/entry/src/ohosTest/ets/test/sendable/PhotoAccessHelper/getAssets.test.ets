@@ -49,7 +49,6 @@ async function getAssetsSendableAbnormalPromiseTest(done: Function,
   const sendablePhAccessHelper = sendablePhotoAccessHelper.getPhotoAccessHelper(testContext);
   try {
     await sendablePhAccessHelper.getAssets(fetchOps as photoAccessHelper.FetchOptions);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `failed; error: ${error?.code}, ${error?.message}`);

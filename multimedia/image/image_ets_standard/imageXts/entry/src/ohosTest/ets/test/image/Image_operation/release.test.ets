@@ -35,7 +35,6 @@ async function releasePromiseTest(done: Function, testName: string) {
       } else {
         img.release().then(() => {
           console.info(TAG, 'Succeeded in releasing the image instance.');
-          expect(true).assertTrue();
           done();
         }).catch((error: BusinessError) => {
           console.error(TAG, `Failed to release the image instance.code ${error.code},message is ${error.message}`);
@@ -70,7 +69,6 @@ async function releaseCallbackTest(done: Function, testName: string) {
             expect().assertFail();
           } else {
             console.info(TAG, 'Succeeded in releasing the image instance.');
-            expect(true).assertTrue();
           }
           done();
         })

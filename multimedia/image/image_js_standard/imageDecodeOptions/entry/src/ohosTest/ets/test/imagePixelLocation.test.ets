@@ -101,7 +101,6 @@ async function checkHeicDecode(done: Function, testNum: string, picture: string,
         if (!isSupportHEIFDecode) {
             console.info('device does not support heic');
             globalimageSource = imageSourceApi;
-            expect(true).assertTrue();
             done();
             return
         } else {
@@ -145,7 +144,6 @@ async function checkDecodeErr(done: Function, testNum: string, picture: string, 
             imageSourceApi.createPixelMap(decodingOptions, (err, pixelmap) => {
                 if (err) {
                     console.info(testNum + " Successed in expecting createPixelMap fail " + JSON.stringify(err));
-                    expect(true).assertTrue();
                     done();
                 } else {
                     console.info(testNum + " Failed to expect createPixelMap fail" + JSON.stringify(err));
@@ -170,7 +168,6 @@ async function checkHeicDecodeErr(done: Function, testNum: string, picture: stri
         if (!isSupportHEIFDecode) {
             console.info('device does not support heic');
             globalimageSource = imageSourceApi;
-            expect(true).assertTrue();
             done();
             return
         } else {
@@ -178,7 +175,6 @@ async function checkHeicDecodeErr(done: Function, testNum: string, picture: stri
             imageSourceApi.createPixelMap(decodingOptions, (err, pixelmap) => {
                 if (err) {
                     console.info(testNum + " Successed in expecting createPixelMap fail " + JSON.stringify(err));
-                    expect(true).assertTrue();
                     done();
                 } else {
                     console.info(testNum + " Failed to expect createPixelMap fail" + JSON.stringify(err));
@@ -202,7 +198,6 @@ async function checkPixelValues(done: Function , testNum: string, x: number, y: 
     console.info('index + 3 is ' + bufferArr[index + 3]);
      if (bufferArr[index] == Red && bufferArr[index + 1] == Green && bufferArr[index + 2] == Blue && bufferArr[index + 3] == Alpha) {
         console.info(testNum + ' Successed in checking pixel values');
-        expect(true).assertTrue();
         done();
     } else {
         console.info(testNum + ' Failed to check pixel values');

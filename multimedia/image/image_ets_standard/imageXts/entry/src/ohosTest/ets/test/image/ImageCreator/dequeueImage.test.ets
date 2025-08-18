@@ -26,7 +26,6 @@ async function dequeueImagePromiseTest(done: Function, testName: string, size: i
     await creator.dequeueImage().then((img: image.Image) => {
       creator.release();
       console.info(TAG, 'Succeeded in dequeuing the Image.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(TAG, `Failed to dequeue the Image.code ${error.code},message is ${error.message}`);
       expect().assertFail();
@@ -48,7 +47,6 @@ async function dequeueImageCallbackTest(done: Function, testName: string, size: 
         expect().assertFail();
       } else {
         console.info(TAG, 'Succeeded in dequeuing the Image.')
-        expect(true).assertTrue();
       }
       creator.release((err: BusinessError) => {
         if (err) {
@@ -56,7 +54,6 @@ async function dequeueImageCallbackTest(done: Function, testName: string, size: 
           expect().assertFail();
         } else {
           console.info('Succeeded in releasing creator.');
-          expect(true).assertTrue();
         }
       });
       done();

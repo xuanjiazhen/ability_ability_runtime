@@ -30,7 +30,6 @@ async function readLatestImagePromiseTest(done: Function, testName: string, size
     receiver.off('imageArrival', callbackFunc);
     await receiver.getReceivingSurfaceId().then((id: string) => {
       console.info(TAG, 'Succeeded in getting the readLatestImage.');
-      expect(true).assertTrue();
     }).catch((error: BusinessError) => {
       console.error(TAG, `Failed to get the readLatestImage.code ${error.code},message is ${error.message}`);
       expect().assertFail();
@@ -52,7 +51,6 @@ async function readLatestImageCallbackTest(done: Function, testName: string, siz
         expect().assertFail();
       } else {
         console.info('Succeeded in reading the latest Image.');
-        expect(true).assertTrue();
       }
       done();
     });

@@ -33,7 +33,6 @@ async function discardCameraPhotoPromiseTest(done: Function, testName: string) {
     assetChangeRequest.discardCameraPhoto();
     await phAccessHelper.applyChanges(assetChangeRequest);
     console.info('apply discardCameraPhoto successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

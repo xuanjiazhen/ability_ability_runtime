@@ -388,7 +388,6 @@ export default function ImagePixelMapNDKTest() {
                     return;
                 }
                 globalpixelmap = pixelmap;
-                expect(true).assertTrue();
                 done();
             } catch (error) {
                 console.error("Test exception " + error);

@@ -14,9 +14,8 @@
  */
 #ifndef FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION3_H
 #define FOUNDATION_ACE_NAPI_INTERFACES_KITS_NAPI_KEYCODEFUNCTION3_H
-#include "native_common.h"
-#include <js_native_api_types.h>
-#include <napi/native_api.h>
+#include "common/Common.h"
+#include "nativekeycode/KeyCodeGlobal.h"
 
 DECLARE_KEYCODE_EVENT(Apostrophe)
     return retValue;

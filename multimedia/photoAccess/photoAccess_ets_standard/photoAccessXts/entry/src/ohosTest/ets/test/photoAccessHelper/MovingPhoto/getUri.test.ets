@@ -47,7 +47,6 @@ async function getUriPromiseTest(done: Function, testName: string, fetchOptions:
     let requestId: string =
       await photoAccessHelper.MediaAssetManager.requestMovingPhoto(testContext, asset, requestOptions, handler);
     console.info("moving photo requested successfully, requestId: " + requestId);
-    expect(true).assertTrue();
     done();
   } catch (err) {
     console.error(TAG, testName,

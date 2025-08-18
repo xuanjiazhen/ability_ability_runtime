@@ -44,6 +44,8 @@ export default function() {
         afterEach(async function() {
             console.info('[aceJsTest] after each called')
             await backToIndex();
+            console.info('[aceJsTest] 11')
+            await sleep(5000)
         });
 
         /**

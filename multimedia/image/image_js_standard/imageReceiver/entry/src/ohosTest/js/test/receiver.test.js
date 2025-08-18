@@ -128,7 +128,6 @@ export default function ImageReceiver() {
                             }
                         }
                     });
-                    expect(true).assertTrue();
                 });
                 receiver.test;
             }
@@ -182,7 +181,6 @@ export default function ImageReceiver() {
                             }
                         }
                     });
-                    expect(true).assertTrue();
                 });
                 receiver.test;
             }
@@ -242,7 +240,6 @@ export default function ImageReceiver() {
                             });
                     }
                 });
-                expect(true).assertTrue();
             });
             receiver.test;
         }
@@ -297,7 +294,6 @@ export default function ImageReceiver() {
                         });
                     }
                 });
-                expect(true).assertTrue();
             });
             receiver.test;
         }
@@ -689,7 +685,6 @@ export default function ImageReceiver() {
                     .release()
                     .then(() => {
                         console.info("SUB_MULTIMEDIA_IMAGE_RECEIVER_RELEASE_PROMISE_0100 release ");
-                        expect(true).assertTrue();
                         done();
                         return;
                     })
@@ -727,7 +722,6 @@ export default function ImageReceiver() {
                         return;
                     } else {
                         console.info("SUB_MULTIMEDIA_IMAGE_RECEIVER_RELEASE_CALLBACK_0100 release call back");
-                        expect(true).assertTrue();
                         done();
                         return;
                     }
@@ -1040,7 +1034,7 @@ export default function ImageReceiver() {
                 return;
             }
             receiver.on("imageArrival", () => {
-                expect(true).assertTrue();
+                console.log("receiver on");
             });
 
             receiver.test;
@@ -1064,7 +1058,6 @@ export default function ImageReceiver() {
 
                         img.release()
                             .then(() => {
-                                expect(true).assertTrue();
                                 done();
                                 return;
                             })
@@ -1111,7 +1104,7 @@ export default function ImageReceiver() {
                 return;
             }
             receiver.on("imageArrival", () => {
-                expect(true).assertTrue();
+                console.log("receiver on");
             });
             receiver.test;
             receiver.readLatestImage((err, img) => {
@@ -1135,7 +1128,6 @@ export default function ImageReceiver() {
                         done();
                         return;
                     } else {
-                        expect(true).assertTrue();
                         done();
                         return;
                     }
@@ -1350,7 +1342,6 @@ export default function ImageReceiver() {
                     done();
                     return;
                 } else {
-                    expect(true).assertTrue();
                     console.info('SUB_MULTIMEDIA_IMAGE_RECEIVER_OFF_SUCCESS_0100 off success');
                     done();
                     return;
