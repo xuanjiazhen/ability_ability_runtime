@@ -144,11 +144,12 @@ export default function windowImmersiveTest() {
     it('test_LANSCAPE_SHOW_STATUS_BAR_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL0, async (done: Function) => {
       let caseName = 'test_LANSCAPE_SHOW_STATUS_BAR_0100';
       let windowClass = windowStage.getMainWindowSync();
-      if(isSupportRotate == true && isPCStatus == ''&&isAutoWindow == ''){
+      if(isSupportRotate == true && isPCStatus == ''&&isAutoWindow != 'true'){
         try {
           await windowClass.setPreferredOrientation(window.Orientation.LANDSCAPE);
           await sleep(1000);
           console.info(`${caseName} Succeeded in setPreferredOrientation LANDSCAPE.`);
+          await windowClass.setSpecificSystemBarEnabled('status', false);
           await sleep(3000);
           windowClass.on('avoidAreaChange', async (data) => {
             console.info(`${caseName} Succeeded in enabling the listener for avoid area changes. type:

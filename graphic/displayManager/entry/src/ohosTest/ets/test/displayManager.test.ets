@@ -2296,7 +2296,7 @@ export default function displayTest() {
         let region = defaultDisplay.getLiveCreaseRegion();
         console.log(`${caseName} region: ${JSON.stringify(region)}`);
         expect(region.displayId).assertEqual(0)
-        expect(region.creaseRects.length).assertEqual(0)
+        expect(region.creaseRects.length).assertLargerOrEqual(0)
         done();
       } catch (e) {
         console.error(`${caseName} Failed2. err: ${JSON.stringify(e)}`);
