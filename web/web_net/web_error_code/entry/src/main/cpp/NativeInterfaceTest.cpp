@@ -24,6 +24,11 @@
 #include <web/arkweb_type.h>
 #include <web/native_interface_arkweb.h>
 
+#undef LOG_DOMAIN
+#undef LOG_TAG
+#define LOG_DOMAIN 0x0000
+#define LOG_TAG "web_net"
+
 static napi_value NativeArkWebLoadDataInitError(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "NativeArkWebLoadDataInitError start..");
@@ -739,7 +744,6 @@ static napi_value WebStructCookieManagerAPI(napi_env env, napi_callback_info inf
     return result;
 }
 
-
 static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info info)
 {
     OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI start..");
@@ -760,6 +764,189 @@ static napi_value WebStructJavaScriptValueAPI(napi_env env, napi_callback_info i
     napi_value result;
     napi_create_int32(env, 0, &result);
     OH_LOG_DEBUG(LOG_APP, "WebStructCookieManagerAPI end..");
+    return result;
+}
+
+const int32_t MAX_WEB_NAME_SIZE = 32;
+static void GetTestCase(napi_env &env, napi_callback_info &info, char* webName, int32_t &caseNum)
+{
+    size_t argc = 2;
+    napi_value args[ARGS_INDEX_TWO] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    // 获取第一个参数 webName
+    size_t webNameSize = 0;
+    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], nullptr, 0, &webNameSize);
+    if (webNameSize > MAX_WEB_NAME_SIZE) {
+        napi_throw_type_error(env, nullptr, "webName must less than 32");
+        return;
+    }
+    napi_get_value_string_utf8(env, args[ARGS_INDEX_ZERO], webName, webNameSize + 1, &webNameSize);
+    // 获取第二个参数 caseNum
+    napi_valuetype valuetype;
+    napi_typeof(env, args[ARGS_INDEX_ONE], &valuetype);
+    if (valuetype != napi_number) {
+        napi_throw_type_error(env, nullptr, "Argument must be a number");
+        return;
+    }
+    napi_get_value_int32(env, args[ARGS_INDEX_ONE], &caseNum);
+    return;
+}
+
+static napi_value WebRegisterJSProxy(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebRegJSProxy start..");
+    char webName[MAX_WEB_NAME_SIZE] = {0};
+    int32_t caseNum = -1;
+    GetTestCase(env, info, webName, caseNum);
+
+    ArkWeb_ProxyObjectWithResult proxyObject = {0};
+    proxyObject.objName = "registerForTest";
+    ArkWeb_ProxyMethodWithResult method = {"test", nullptr, nullptr};
+    proxyObject.size = 1;
+    proxyObject.methodList = &method;
+    const char* permission = "all";
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, permission);
+            break;
+        case CASE_NUM_1:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, nullptr);
+            break;
+        case CASE_NUM_2:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, nullptr, permission);
+            break;
+        case CASE_NUM_3:
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy("newTest", &proxyObject, permission);
+            break;
+        case CASE_NUM_4:
+            proxyObject.size = 0;
+            proxyObject.methodList = nullptr;
+            OH_NativeArkWeb_RegisterAsyncThreadJavaScriptProxy(webName, &proxyObject, permission);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebRegJSProxy end..");
+    return result;
+}
+
+static napi_value WebClearBlankCache(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebClearBlankCache start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    const uint32_t keyArrayLen = 100;
+    const char* key[] = {"web0731", "new", "xxxxx"};
+    const char* tempKey[keyArrayLen + 1] = {nullptr};
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(nullptr, 0);
+            break;
+        case CASE_NUM_1:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(key, sizeof(key) / sizeof(key[0]));
+            break;
+        case CASE_NUM_2:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(tempKey, keyArrayLen);
+            break;
+        case CASE_NUM_3:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(tempKey, keyArrayLen + 1);
+            break;
+        case CASE_NUM_4:
+            OH_NativeArkWeb_ClearBlanklessLoadingCache(nullptr, sizeof(key) / sizeof(key[0]));
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebClearBlankCache end..");
+    return result;
+}
+
+static napi_value WebSetBlankCacheCap(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSetBlankCacheCap start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    uint32_t capacity = 30;
+    const uint32_t maxCap = 100;
+    const uint32_t defaultCap = 30;
+    const uint32_t minCap = 0;
+    // set default
+    capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(defaultCap);
+    switch (caseNum) {
+        case CASE_NUM_0:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(minCap);
+            break;
+        case CASE_NUM_1:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(maxCap);
+            break;
+        case CASE_NUM_2:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(maxCap + 1);
+            break;
+        case CASE_NUM_3:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(-1);
+            break;
+        case CASE_NUM_4:
+            capacity = OH_NativeArkWeb_SetBlanklessLoadingCacheCapacity(defaultCap);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, capacity, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSetBlankCacheCap end..");
+    return result;
+}
+
+static napi_value WebSaveCookieSync(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    ArkWeb_ErrorCode ret = ARKWEB_SUCCESS;
+    switch (caseNum) {
+        case CASE_NUM_0:
+            ret = OH_ArkWebCookieManager_SaveCookieSync();
+            break;
+        case CASE_NUM_1:
+            // uninit cookie manager
+            ret = OH_ArkWebCookieManager_SaveCookieSync();
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, ret, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync end..");
+    return result;
+}
+
+static napi_value WebSaveCookieAsync(napi_env env, napi_callback_info info)
+{
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync start..");
+    int32_t caseNum = GetCaseNum(env, info);
+
+    OH_ArkWeb_OnCookieSaveCallback callback = [](ArkWeb_ErrorCode errorCode) {
+        OH_LOG_DEBUG(LOG_APP, "async save cookie result = %d", errorCode);
+        return;
+        };
+    switch (caseNum) {
+        case CASE_NUM_0:
+            OH_ArkWebCookieManager_SaveCookieAsync(callback);
+            break;
+        case CASE_NUM_1:
+            OH_ArkWebCookieManager_SaveCookieAsync(nullptr);
+            break;
+        default:
+            break;
+    }
+    napi_value result;
+    napi_create_int32(env, 0, &result);
+    OH_LOG_DEBUG(LOG_APP, "WebSaveCookieAsync end..");
     return result;
 }
 
@@ -792,6 +979,11 @@ static napi_value Init(napi_env env, napi_value exports)
          nullptr},
         {"WebStructJavaScriptValueAPI", nullptr, WebStructJavaScriptValueAPI, nullptr, nullptr, nullptr, napi_default,
          nullptr},
+        {"WebRegisterJSProxy", nullptr, WebRegisterJSProxy, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebClearBlankCache", nullptr, WebClearBlankCache, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSetBlankCacheCap", nullptr, WebSetBlankCacheCap, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSaveCookieSync", nullptr, WebSaveCookieSync, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"WebSaveCookieAsync", nullptr, WebSaveCookieAsync, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
 
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
