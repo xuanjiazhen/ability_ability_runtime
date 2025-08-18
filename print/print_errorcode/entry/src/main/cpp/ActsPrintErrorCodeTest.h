@@ -25,4 +25,17 @@ napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info);
 napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info);
 napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info);
 napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info);
+napi_value OH_Print_Init1(napi_env env, napi_callback_info info);
+napi_value OH_Print_StartPrinterDiscovery1(napi_env env, napi_callback_info info);
+napi_value OH_Print_StopPrinterDiscovery1(napi_env env, napi_callback_info info);
+napi_value OH_Print_ConnectPrinter1(napi_env env, napi_callback_info info);
+napi_value OH_Print_StartPrintJob1(napi_env env, napi_callback_info info);
+napi_value OH_Print_RegisterPrinterChangeListener1(napi_env env, napi_callback_info info);
+napi_value OH_Print_QueryPrinterList1(napi_env env, napi_callback_info info);
+napi_value OH_Print_QueryPrinterList2(napi_env env, napi_callback_info info);
+napi_value OH_Print_QueryPrinterInfo1(napi_env env, napi_callback_info info);
+napi_value OH_Print_QueryPrinterInfo2(napi_env env, napi_callback_info info);
+napi_value OH_Print_LaunchPrinterManager1(napi_env env, napi_callback_info info);
+napi_value OH_Print_QueryPrinterProperties1(napi_env env, napi_callback_info info);
+napi_value OH_Print_RestorePrinterProperties1(napi_env env, napi_callback_info info);
 #endif //PRINT_ERRORCODE_ACTSPRINTERRORCODETEST_H

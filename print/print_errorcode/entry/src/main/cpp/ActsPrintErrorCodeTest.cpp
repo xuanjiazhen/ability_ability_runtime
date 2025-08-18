@@ -41,13 +41,39 @@ void addPrintErrorCodeTest(std::vector<napi_property_descriptor>& descData)
             nullptr, nullptr, nullptr, napi_default, nullptr});
     descData.push_back({"OHPrintInvalidPrinter", nullptr, OHPrintInvalidPrinter,
             nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_Init1", nullptr, OH_Print_Init1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_StartPrinterDiscovery1", nullptr, OH_Print_StartPrinterDiscovery1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_StopPrinterDiscovery1", nullptr, OH_Print_StopPrinterDiscovery1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_ConnectPrinter1", nullptr, OH_Print_ConnectPrinter1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_StartPrintJob1", nullptr, OH_Print_StartPrintJob1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_RegisterPrinterChangeListener1", nullptr, OH_Print_RegisterPrinterChangeListener1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_QueryPrinterList1", nullptr, OH_Print_QueryPrinterList1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_QueryPrinterList2", nullptr, OH_Print_QueryPrinterList2,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_QueryPrinterInfo1", nullptr, OH_Print_QueryPrinterInfo1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_QueryPrinterInfo2", nullptr, OH_Print_QueryPrinterInfo2,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_LaunchPrinterManager1", nullptr, OH_Print_LaunchPrinterManager1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_QueryPrinterProperties1", nullptr, OH_Print_QueryPrinterProperties1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
+    descData.push_back({"OH_Print_RestorePrinterProperties1", nullptr, OH_Print_RestorePrinterProperties1,
+            nullptr, nullptr, nullptr, napi_default, nullptr});
 }
 
 napi_value OHPrintNoError(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_Init();
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
     return result;
 }
 
@@ -57,7 +83,7 @@ napi_value OHPrintInvalidParameter(napi_env env, napi_callback_info info)
     Print_ErrorCode errorCode = OH_Print_Init();
     Print_StringList* list = nullptr;
     errorCode = OH_Print_QueryPrinterList(list);
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
 
@@ -68,7 +94,7 @@ napi_value OHPrintGenericFailure(napi_env env, napi_callback_info info)
     Print_StringList list = {0};
     errorCode = OH_Print_QueryPrinterList(&list);
     errorCode = OH_Print_LaunchPrinterManager();
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
+    napi_create_int32(env, errorCode == PRINT_ERROR_GENERIC_FAILURE ? 0 : -1, &result);
     return result;
 }
 
@@ -76,7 +102,7 @@ napi_value OHPrintInvalidPrintJob(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     Print_ErrorCode errorCode = OH_Print_StartPrintJob(nullptr);
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINT_JOB ? 0 : -1, &result);
     return result;
 }
 
@@ -86,6 +112,141 @@ napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
     OH_Print_RegisterPrinterChangeListener(PrinterChangeCallback);
     Print_ErrorCode errorCode = OH_Print_ConnectPrinter(TEST_PRINTER);
     OH_Print_UnregisterPrinterChangeListener();
-    napi_create_int32(env, static_cast<int32_t>(errorCode), &result);
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINTER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_Init1(napi_env env, napi_callback_info info) {
+    Print_ErrorCode errorCode = OH_Print_Init();
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_StartPrinterDiscovery1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterDiscoveryCallback callback;
+    Print_ErrorCode errorCode = OH_Print_StartPrinterDiscovery(callback);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_StopPrinterDiscovery1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterDiscoveryCallback callback;
+    OH_Print_StartPrinterDiscovery(callback);
+    Print_ErrorCode errorCode = OH_Print_StopPrinterDiscovery();
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_ConnectPrinter1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterInfo virtualPrinter = {
+        .printerId = "VIRTUAL_001",
+        .printerName = "HarmonyOS Virtual Printer",
+        .printerState = PRINTER_IDLE,
+    };
+    Print_ErrorCode errorCode = OH_Print_ConnectPrinter(virtualPrinter.printerId);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINTER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_StartPrintJob1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterInfo virtualPrinter = {
+        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+    Print_PrintJob printJob = {.jobName = strdup("Document1"),
+                               .printerId = strdup(virtualPrinter.printerId),
+                               .fdList = NULL,
+                               .fdListCount = 0,
+                               .copyNumber = 1,
+                               .colorMode = COLOR_MODE_COLOR,
+                               .paperSource = strdup("Auto"),
+                               .pageSizeId = strdup("A4")};
+    OH_Print_ConnectPrinter(virtualPrinter.printerId);
+    Print_ErrorCode errorCode = OH_Print_StartPrintJob(&printJob);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINT_JOB ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_RegisterPrinterChangeListener1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterChangeCallback callback;
+    Print_ErrorCode errorCode = OH_Print_RegisterPrinterChangeListener(callback);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_QueryPrinterList1(napi_env env, napi_callback_info info)
+{
+    Print_StringList *printerIdList;
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterList(printerIdList);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_QueryPrinterList2(napi_env env, napi_callback_info info)
+{
+    Print_StringList *printerIdList = (Print_StringList *)malloc(sizeof(Print_StringList));
+    if (printerIdList != NULL) {
+        printerIdList->count = 0;
+        printerIdList->list = NULL;
+    };
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterList(printerIdList);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINTER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_QueryPrinterInfo1(napi_env env, napi_callback_info info)
+{
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterInfo(nullptr, nullptr);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PARAMETER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_QueryPrinterInfo2(napi_env env, napi_callback_info info)
+{
+    Print_PrinterInfo virtualPrinter = {
+        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+    Print_PrinterInfo *printerPtr = &virtualPrinter;
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterInfo(virtualPrinter.printerId, &printerPtr);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINTER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_LaunchPrinterManager1(napi_env env, napi_callback_info info)
+{
+    Print_ErrorCode errorCode = OH_Print_LaunchPrinterManager();
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_GENERIC_FAILURE ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_QueryPrinterProperties1(napi_env env, napi_callback_info info)
+{
+    Print_ErrorCode errorCode = OH_Print_QueryPrinterProperties(nullptr, nullptr, nullptr);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_INVALID_PRINTER ? 0 : -1, &result);
+    return result;
+}
+
+napi_value OH_Print_RestorePrinterProperties1(napi_env env, napi_callback_info info)
+{
+    Print_PrinterInfo virtualPrinter = {
+        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+    Print_StringList *propertyKeyList;
+    Print_ErrorCode errorCode = OH_Print_RestorePrinterProperties(virtualPrinter.printerId, propertyKeyList);
+    napi_value result = nullptr;
+    napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
     return result;
 }
