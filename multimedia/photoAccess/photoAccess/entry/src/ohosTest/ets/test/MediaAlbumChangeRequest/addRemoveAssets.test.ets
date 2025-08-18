@@ -115,7 +115,6 @@ export default function addRemoveAssetsChangeRequestTest() {
       } catch (error) {
         if(error.code === `14000016`){
           console.log(`${testNum} success; error: ${error}`);
-          expect(true).assertTrue();
         } else {
           console.log(`${testNum} success; error: ${error.code}`);
           expect(error.code === '13900020' || error.code === '401').assertTrue();

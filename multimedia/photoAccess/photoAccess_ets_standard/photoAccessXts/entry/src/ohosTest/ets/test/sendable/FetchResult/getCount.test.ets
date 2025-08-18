@@ -38,7 +38,6 @@ async function getCountPromiseTest(done: Function, testName: string, fetchOps: p
       done();
     }
     fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}, ${error.code}`, testName);

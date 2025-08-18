@@ -67,7 +67,6 @@ async function commitModifyAbnormalPromise(done: Function, testName: string, fet
     done();
   } catch (error) {
     console.error(TAG, `commitModifyAbnormalPromise ${testName} failed; error: ${error?.code}, ${error?.message}`);
-    expect(true).assertTrue();
     done();
   }
 }

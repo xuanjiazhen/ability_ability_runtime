@@ -41,7 +41,6 @@ async function getNextObjectPromiseTest(done: Function, fetchOps: photoAccessHel
       console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName);
     }
     await fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error}`, testName);
@@ -70,7 +69,6 @@ async function getNextObjectCallbackTest(done: Function, fetchOps: photoAccessHe
       fetchResult.getNextObject((err, photoAsset) => {
         if (photoAsset !== undefined) {
           console.info(TAG, 'photoAsset displayName: ', photoAsset.displayName);
-          expect(true).assertTrue();
         } else {
           console.error(TAG, `photoAsset failed with err: ${err.code}, ${err.message}`);
           expect().assertFail();

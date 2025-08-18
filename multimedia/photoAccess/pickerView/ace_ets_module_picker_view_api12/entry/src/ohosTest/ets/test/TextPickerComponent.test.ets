@@ -147,7 +147,6 @@ async function testCompleteButton(driver: Driver, options: router.RouterOptions,
   if (button !== undefined && chooostModeButton !== undefined) {
     await chooostModeButton.click();
     await button.click();
-    expect(true).assertTrue();
   } else {
     console.error("can not find button");
     expect(false).assertTrue();
@@ -1283,7 +1282,7 @@ export default function TextPicker() {
         phAccessHelper.requestPhotoUrisReadPermission(uris).then((result: Array<string>) => {
           console.info("requestPhotoUrisReadPermission, result = " + JSON.stringify(result));
           if (result) {
-            expect(true).assertTrue();
+            console.info('success');
           } else {
             console.error("testPicker23 empty result");
             expect(false).assertTrue();
@@ -1346,7 +1345,7 @@ export default function TextPicker() {
         phAccessHelper.createAssetWithShortTermPermission(photoCreationConfig).then((result) => {
           console.info("createAssetWithShortTermPermission, result=" + JSON.stringify(result));
           if (result) {
-            expect(true).assertTrue();
+            console.info('success');
           } else {
             console.error("testPicker25 empty result");
             expect(false).assertTrue();
@@ -1414,10 +1413,8 @@ export default function TextPicker() {
         console.info('testPicker27 state =:' + JSON.stringify(result));
         let vedioCallBackState: number = event?.data?.vedioCallBackState;
         if (vedioCallBackState === SEEK_START) {
-            expect(true).assertTrue();
             console.log('state is SEEK_START:' + vedioCallBackState);
         } else if (vedioCallBackState === SEEK_FINISH) {
-            expect(true).assertTrue();
             console.log('state is SEEK_FINISH:' + vedioCallBackState);
         } else {
             expect(true).assertFalse();
@@ -1485,7 +1482,6 @@ export default function TextPicker() {
                 expect(false).assertTrue();
               } else {
                 console.log("testPicker28 saveTrustedPhotoAssets success, save uris:" + arr);
-                expect(true).assertTrue();
               }
             }, undefined, SaveMode.SAVE_AS);
           }
@@ -1539,7 +1535,6 @@ export default function TextPicker() {
                 expect(false).assertTrue();
               } else {
                 console.log("testPicker29 saveTrustedPhotoAssets success, save uris:" + arr);
-                expect(true).assertTrue();
               }
             }, undefined, SaveMode.OVERWRITE);
           }
@@ -1606,7 +1601,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((photoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker31 PhotoViewPicker.select success, PhotoPickerResult uri: ' +
                 JSON.stringify(photoSelectResult));
-          expect(true).assertTrue();
         });
       } catch(error) {
         console.error("testPicker31 error: " + JSON.stringify(error) + error.code);
@@ -1647,7 +1641,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker32, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1685,7 +1678,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker33, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1722,7 +1714,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker34, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1758,7 +1749,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker35, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1794,7 +1784,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker36, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1831,7 +1820,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker37, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -1868,7 +1856,6 @@ export default function TextPicker() {
         photoPicker.select(pickerOptions).then((PhotoSelectResult: photoAccessHelper.PhotoSelectResult) => {
           console.info('testPicker38, PhotoViewPicker.select successfully, PhotoSelectResult uri: ' +
           JSON.stringify(PhotoSelectResult));
-          expect(true).assertTrue();
         })
       } catch(err) {
         expect(false).assertTrue();
@@ -2170,7 +2157,6 @@ export default function TextPicker() {
         phAccessHelper.getRecentPhotoInfo(options).then((result : RecentPhotoInfo) => {
           console.info('testPicker40, photoAccessHelper.getRecentPhotoInfo successfully, PhotoSelectResult uri: ' +
           JSON.stringify(result));
-          expect(true).assertTrue();
         })
       } catch(err) {
         console.error(`testPicker40, photoAccessHelper.getRecentPhotoInfo failed with err: ${err.code}, ${err.message}`);

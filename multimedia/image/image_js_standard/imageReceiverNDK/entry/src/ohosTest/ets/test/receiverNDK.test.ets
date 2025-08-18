@@ -54,7 +54,8 @@ export default function ImageReceiverNDKTest() {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        beforeAll(() => {
+        beforeAll(async() => {
+            await sleep(5000);
             console.info('beforeAll case');
         });
         beforeEach(() => {
@@ -63,7 +64,8 @@ export default function ImageReceiverNDKTest() {
         afterEach(() => {
             console.info('afterEach case');
         });
-        afterAll(() => {
+        afterAll(async() => {
+            await sleep(5000);
             console.info('afterAll case');
         });
 

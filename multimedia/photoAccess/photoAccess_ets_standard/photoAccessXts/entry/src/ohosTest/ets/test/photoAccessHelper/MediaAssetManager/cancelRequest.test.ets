@@ -44,7 +44,6 @@ async function cancelRequestPromiseTest(done: Function, testName: string, fetchO
         await photoAccessHelper.MediaAssetManager.requestImage(testContext, photoAsset, requestOptions, handler);
       console.info(TAG, 'requestImage successfully', requestId);
       await photoAccessHelper.MediaAssetManager.cancelRequest(testContext, requestId);
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {
@@ -63,7 +62,6 @@ async function cancelRequestAbnormalPromiseTest(done: Function, testName: string
       console.info(TAG, 'fetchResult success');
       console.info(TAG, 'requestImage successfully', requestId);
       await photoAccessHelper.MediaAssetManager.cancelRequest(testContext, requestId);
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {

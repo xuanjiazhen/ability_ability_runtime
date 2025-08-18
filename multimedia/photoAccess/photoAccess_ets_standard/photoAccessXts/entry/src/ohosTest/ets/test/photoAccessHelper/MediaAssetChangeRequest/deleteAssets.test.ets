@@ -42,7 +42,6 @@ async function deleteAssetsPromiseTest(done: Function, testName: string, type: s
       await photoAccessHelper.MediaAssetChangeRequest.deleteAssets(testContext, [asset.uri]);
     }
     console.info('deleteAssets successfully');
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `failed; error: ${error},${error.code},${error.message}`, testName);

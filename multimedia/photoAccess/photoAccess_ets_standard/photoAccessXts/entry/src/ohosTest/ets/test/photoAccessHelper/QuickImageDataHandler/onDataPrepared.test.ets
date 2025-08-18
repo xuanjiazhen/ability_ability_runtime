@@ -44,7 +44,6 @@ async function onDataPreparedPromiseTest(done: Function, testName: string, fetch
         await photoAccessHelper.MediaAssetManager.requestImage(testContext, photoAsset, requestOptions, handler);
       console.info(TAG, 'requestImage successfully', requestId);
       await photoAccessHelper.MediaAssetManager.cancelRequest(testContext, requestId);
-      expect(true).assertTrue();
       done();
     });
   } catch (error) {

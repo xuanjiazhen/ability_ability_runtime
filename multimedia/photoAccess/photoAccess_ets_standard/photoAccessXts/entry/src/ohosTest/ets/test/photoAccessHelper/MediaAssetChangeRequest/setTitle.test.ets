@@ -42,7 +42,6 @@ async function setTitlePromiseTest(done: Function, testName: string, title: stri
     await assetChangeRequest.setTitle(newTitle);
     await phAccessHelper.applyChanges(assetChangeRequest).then(() => {
       console.info('apply setTitle successfully');
-      expect(true).assertTrue();
     }).catch((err: BusinessError) => {
       console.error(`apply setTitle failed with error: ${err.code}, ${err.message}`);
       expect().assertFail();
@@ -74,7 +73,6 @@ async function setTitleAbnormalPromiseTest(done: Function, testName: string, tit
     await assetChangeRequest.setTitle(newTitle);
     await phAccessHelper.applyChanges(assetChangeRequest).then(() => {
       console.info('apply setTitle successfully');
-      expect(true).assertTrue();
     }).catch((err: BusinessError) => {
       console.error(`apply setTitle failed with error: ${err.code}, ${err.message}`);
       expect().assertFail();

@@ -29,7 +29,6 @@ async function createAssetPromiseWithOptionsTest(done: Function, type: sendableP
   try {
     const uri = await sendablePhAccessHelper.createAsset(type, extension, options);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `failed; error: ${error?.code}, ${error?.message}`);
@@ -48,7 +47,6 @@ async function createAssetPromiseWithOptionsAbnormalTest(done: Function,
       await sendablePhAccessHelper.createAsset(type as sendablePhotoAccessHelper.PhotoType, extension as string,
         options);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `failed; error: ${error?.code}, ${error?.message}`);
@@ -64,7 +62,6 @@ async function createAssetPromiseTest(done: Function, type: sendablePhotoAccessH
   try {
     const uri = await sendablePhAccessHelper.createAsset(type, extension);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `failed; error: ${error?.code}, ${error?.message}`);
@@ -81,7 +78,6 @@ async function createAssetPromiseAbnormalTest(done: Function, type: sendablePhot
     const uri =
       await sendablePhAccessHelper.createAsset(type as sendablePhotoAccessHelper.PhotoType, extension as string);
     console.info(TAG, `createAsset success; uri: ${uri}`);
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `failed; error: ${error?.code}, ${error?.message}`);

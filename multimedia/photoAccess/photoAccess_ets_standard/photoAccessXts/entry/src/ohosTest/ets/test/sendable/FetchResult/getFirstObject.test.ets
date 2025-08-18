@@ -37,7 +37,6 @@ async function getFirstObjectPromiseTest(done: Function, testName: string, fetch
       done();
     }
     fetchResult.close();
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.info(TAG, `${testName} failed; error: ${error}`);

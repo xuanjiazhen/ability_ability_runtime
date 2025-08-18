@@ -37,7 +37,6 @@ async function commitModifyPromiseTest(done: Function, testName: string, AlbumTy
       sendableAlbum.albumName = genRandomStr(10) + new Date().getTime();
       sendableAlbum.commitModify().then(() => {
         console.info(TAG, 'commitModify successfully', testName);
-        expect(true).assertTrue();
         done();
       }).catch((err: BusinessError) => {
         console.error(TAG, `commitModify failed with error: ${err.code}, ${err.message}`);
@@ -45,7 +44,6 @@ async function commitModifyPromiseTest(done: Function, testName: string, AlbumTy
         done();
       });
     }
-    expect(true).assertTrue();
     done();
   } catch (error) {
     console.error(TAG, `${testName} :: convertToSendableAlbum failed, err is  ${error}, ${error.code}`);
