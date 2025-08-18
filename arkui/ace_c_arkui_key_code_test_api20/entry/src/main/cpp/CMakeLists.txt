@@ -11,7 +11,9 @@ endif()
 include_directories(${NATIVERENDER_ROOT_PATH}
                         ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(keycodendk SHARED nativekeycode/KeyCodeTest.cpp)
+add_library(keycodendk SHARED
+    nativekeycode/KeyCodeTest.cpp
+    common/CommonTest.cpp)
 
 add_library(nativexcomponent SHARED
     component/NativeXComponentTest.cpp
@@ -20,6 +22,7 @@ add_library(nativexcomponent SHARED
     touch/TouchPointTest.cpp
     mouse/XComponentMouseTest.cpp
     node/NodeAttributeTest.cpp
+    common/CommonTest.cpp
 )
 
 find_library(
@@ -66,6 +69,7 @@ add_library(accessibilityndk SHARED accessibilitytest/AccessibilityTest.cpp
                                     accessibilitytest/Accessibility4Test.cpp
                                     accessibilitytest/Accessibility5Test.cpp
                                     accessibilitytest/Accessibility6Test.cpp
+                                    common/CommonTest.cpp
 )
 target_link_libraries(accessibilityndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
                             libace_ndk.z.so)
@@ -73,6 +77,37 @@ target_link_libraries(accessibilityndk PUBLIC libace_napi.z.so libhilog_ndk.z.so
 add_library(animatendk SHARED animateoptiontest/AnimatorOptionTest.cpp
                               animateoptiontest/KeyframeAnimateOptionTest.cpp
                               animateoptiontest/AnimatorOption1Test.cpp
-                              animateoptiontest/AnimatorOption2Test.cpp)
+                              animateoptiontest/AnimatorOption2Test.cpp
+                              common/CommonTest.cpp)
 target_link_libraries(animatendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
                             libace_ndk.z.so)
+
+add_library(arkuikeycodendk SHARED arkuikeycode/ArkUIKeyCodeTest.cpp
+common/CommonTest.cpp)
+target_link_libraries(arkuikeycodendk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so)
+
+add_library(noderenderndk SHARED NapiRenderInitTest.cpp
+    focuscontrol/FocusControlTest.cpp
+    nodeevent/NodeEventTest.cpp
+    manager/PluginManagerTest.cpp
+    keyevent/KeyEventTest.cpp
+    nodeadapter/NodeAdapterTest.cpp
+    nodecontent/NodeContentTest.cpp
+    snapshot/SnapShotTest.cpp
+    scope/RunTaskInScopeTest.cpp
+    nodenapi/NodeNapiTest.cpp
+    nodenapi/NodeNapi1Test.cpp
+    nodenapi/NodeNapi2Test.cpp
+    nodenapi/NodeNapi3Test.cpp
+    nodenapi/NodeNapi4Test.cpp
+    nodenapi/NavigationTest.cpp
+    nodenapi/NavDestinationTest.cpp
+    nodenapi/GetRouterTest.cpp
+    nodeutilstest/NodeUtils1Test.cpp
+    nodeutilstest/NodeUtilsTest.cpp
+    nodeutilstest/NodeUtils2Test.cpp
+    common/CommonTest.cpp
+)
+
+target_link_libraries(noderenderndk PUBLIC libace_napi.z.so libhilog_ndk.z.so libos_account_ndk.so libohinput.so
+libace_ndk.z.so libpixelmap.so)

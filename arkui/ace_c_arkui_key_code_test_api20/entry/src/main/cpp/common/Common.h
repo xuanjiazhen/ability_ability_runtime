@@ -31,7 +31,6 @@
 #include <random>
 #include <list>
 #include <cstddef>
-#include <stdint.h>
 #include <ace/xcomponent/native_xcomponent_key_event.h>
 
 #define PARAM_0_POINT_5 0.5
@@ -66,8 +65,10 @@
 #define PARAM_80_POINT_5 80.5
 #define PARAM_101_POINT_5 101.5
 #define PARAM_90 90
+#define PARAM_96 96
 #define PARAM_100 100
 #define PARAM_200 200
+#define PARAM_255 255
 #define PARAM_10000 10000
 #define PARAM_NEGATIVE_1 (-1)
 #define PARAM_NEGATIVE_2 (-2)
@@ -162,9 +163,5 @@ static napi_value GetKeyCodeEvent##name(napi_env env, napi_callback_info info)  
  */
 const unsigned int LOG_PRINT_DOMAIN = 0xFF00;
 
-static napi_property_descriptor XL(char* functionName, napi_callback func)
-{
-    return { functionName, nullptr, func, nullptr, nullptr, nullptr, napi_default, nullptr };
-}
-
+napi_property_descriptor XL(char* functionName, napi_callback func);
 #endif // NATIVE_XCOMPONENT_COMMON_H
