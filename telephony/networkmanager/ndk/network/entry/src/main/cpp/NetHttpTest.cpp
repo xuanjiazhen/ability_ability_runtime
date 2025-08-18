@@ -472,21 +472,23 @@ napi_value Http_Custom_Proxy(napi_env env, napi_callback_info info)
 
 napi_value Http_ProxyProxy(napi_env env, napi_callback_info info)
 {
-    std::string url = GetString(env, info, 0);
-    Http_Request *request = OH_Http_CreateRequest(url.c_str());
-    Http_ResponseCallback callback = ResponseCallback;
-    Http_EventsHandler handler;
-    request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
-    
-    Http_Proxy httpProxy;
-    httpProxy.proxyType = Http_ProxyType::HTTP_PROXY_CUSTOM;
-    request->options->httpProxy = &httpProxy;
-    httpProxy.customProxy.host = "host test";
-    napi_value result = nullptr;
-    int32_t returnValue = OH_Http_Request(request, callback, handler);
-    NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
-    free(request->options);
-    return result;
+std::string url = GetString(env, info, 0);
+Http_Request *request = OH_Http_CreateRequest(url.c_str());
+Http_ResponseCallback callback = ResponseCallback;
+Http_EventsHandler handler;
+(void)memset(&handler, 0, sizeof(Http_EventsHandler));
+request->options = (Http_RequestOptions *)calloc(1, sizeof(Http_RequestOptions));
+Http_Proxy httpProxy;
+(void)memset(&httpProxy, 0, sizeof(Http_Proxy));
+httpProxy.proxyType = Http_ProxyType::HTTP_PROXY_CUSTOM;
+(void)memset(&httpProxy.customProxy, 0, sizeof(Http_CustomProxy));
+httpProxy.customProxy.host = "host test";
+request->options->httpProxy = &httpProxy;
+napi_value result = nullptr;
+int32_t returnValue = OH_Http_Request(request, callback, handler);
+NAPI_CALL(env, napi_create_int32(env, returnValue, &result));
+free(request->options);
+return result;
 }
 
 napi_value Http_Performance_Timing(napi_env env, napi_callback_info info)
