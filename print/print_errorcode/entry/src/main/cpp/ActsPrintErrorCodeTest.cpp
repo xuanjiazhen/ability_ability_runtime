@@ -116,7 +116,8 @@ napi_value OHPrintInvalidPrinter(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value OH_Print_Init1(napi_env env, napi_callback_info info) {
+napi_value OH_Print_Init1(napi_env env, napi_callback_info info)
+{
     Print_ErrorCode errorCode = OH_Print_Init();
     napi_value result = nullptr;
     napi_create_int32(env, errorCode == PRINT_ERROR_NONE ? 0 : -1, &result);
@@ -146,7 +147,7 @@ napi_value OH_Print_ConnectPrinter1(napi_env env, napi_callback_info info)
 {
     Print_PrinterInfo virtualPrinter = {
         .printerId = "VIRTUAL_001",
-        .printerName = "HarmonyOS Virtual Printer",
+        .printerName = "虚拟打印机",
         .printerState = PRINTER_IDLE,
     };
     Print_ErrorCode errorCode = OH_Print_ConnectPrinter(virtualPrinter.printerId);
@@ -158,7 +159,7 @@ napi_value OH_Print_ConnectPrinter1(napi_env env, napi_callback_info info)
 napi_value OH_Print_StartPrintJob1(napi_env env, napi_callback_info info)
 {
     Print_PrinterInfo virtualPrinter = {
-        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+        .printerId = "VIRTUAL_001", .printerName = "虚拟打印机", .printerState = PRINTER_IDLE};
     Print_PrintJob printJob = {.jobName = strdup("Document1"),
                                .printerId = strdup(virtualPrinter.printerId),
                                .fdList = NULL,
@@ -216,7 +217,7 @@ napi_value OH_Print_QueryPrinterInfo1(napi_env env, napi_callback_info info)
 napi_value OH_Print_QueryPrinterInfo2(napi_env env, napi_callback_info info)
 {
     Print_PrinterInfo virtualPrinter = {
-        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+        .printerId = "VIRTUAL_001", .printerName = "虚拟打印机", .printerState = PRINTER_IDLE};
     Print_PrinterInfo *printerPtr = &virtualPrinter;
     Print_ErrorCode errorCode = OH_Print_QueryPrinterInfo(virtualPrinter.printerId, &printerPtr);
     napi_value result = nullptr;
@@ -243,7 +244,7 @@ napi_value OH_Print_QueryPrinterProperties1(napi_env env, napi_callback_info inf
 napi_value OH_Print_RestorePrinterProperties1(napi_env env, napi_callback_info info)
 {
     Print_PrinterInfo virtualPrinter = {
-        .printerId = "VIRTUAL_001", .printerName = "HarmonyOS Virtual Printer", .printerState = PRINTER_IDLE};
+        .printerId = "VIRTUAL_001", .printerName = "虚拟打印机", .printerState = PRINTER_IDLE};
     Print_StringList *propertyKeyList;
     Print_ErrorCode errorCode = OH_Print_RestorePrinterProperties(virtualPrinter.printerId, propertyKeyList);
     napi_value result = nullptr;
