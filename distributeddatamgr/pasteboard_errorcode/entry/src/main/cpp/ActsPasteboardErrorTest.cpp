@@ -17,6 +17,7 @@
 #include <js_native_api_types.h>
 #include <napi/native_api.h>
 #include "database/pasteboard/oh_pasteboard.h"
+#include "database/pasteboard/oh_pasteboard_err_code.h"
 
 static int g_callbackValue;
 static constexpr int UPDATE_VALUE = 1;
@@ -32,7 +33,7 @@ static napi_value PasteboardRemoteDC(napi_env env, napi_callback_info info)
     OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
     OH_PasteboardObserver_SetData(observer, nullptr, CallbackFunc, ContextFinalizeFunc);
     int resRepeat = OH_Pasteboard_Subscribe(pasteboard, NOTIFY_REMOTE_DATA_CHANGE, observer);
-    napi_create_int32(env, resRepeat, &result);
+    napi_create_int32(env, resRepeat == ERR_OK ? 0 : -1, &result);
     OH_Pasteboard_Destroy(pasteboard);
     OH_PasteboardObserver_Destroy(observer);
     return result;
@@ -43,7 +44,7 @@ static napi_value PasteboardDestroySuccess(napi_env env, napi_callback_info info
     napi_value result;
     OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
     int32_t ret = OH_PasteboardObserver_Destroy(observer);
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == ERR_OK ? 0 : -1, &result);
     return result;
 }
 
@@ -51,7 +52,7 @@ static napi_value PasteboardDestroyError(napi_env env, napi_callback_info info)
 {
     napi_value result;
     int32_t ret = OH_PasteboardObserver_Destroy(nullptr);
-    napi_create_int32(env, ret, &result);
+    napi_create_int32(env, ret == ERR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
 
@@ -61,7 +62,7 @@ static napi_value PasteboardGetDataSourceInvalidParameter(napi_env env, napi_cal
     int len = 100;
     char source[100];
     int res = OH_Pasteboard_GetDataSource(nullptr, source, len);
-    napi_create_int32(env, res, &result);
+    napi_create_int32(env, res == ERR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
 
@@ -69,7 +70,7 @@ static napi_value PasteboardSetDataInvalidParameter(napi_env env, napi_callback_
 {
     napi_value result;
     int res = OH_Pasteboard_SetData(nullptr, nullptr);
-    napi_create_int32(env, res, &result);
+    napi_create_int32(env, res == ERR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
 
@@ -77,7 +78,7 @@ static napi_value PasteboardClearDataInvalidParameter(napi_env env, napi_callbac
 {
     napi_value result;
     int res = OH_Pasteboard_ClearData(nullptr);
-    napi_create_int32(env, res, &result);
+    napi_create_int32(env, res == ERR_INVALID_PARAMETER ? 0 : -1, &result);
     return result;
 }
 

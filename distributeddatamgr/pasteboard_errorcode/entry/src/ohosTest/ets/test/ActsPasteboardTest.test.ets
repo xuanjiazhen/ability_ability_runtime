@@ -16,7 +16,6 @@
 import { describe, it, expect, Level } from '@ohos/hypium'
 import pasteboarderror from 'libpasteboarderrorcode.so'
 const Success = 0;
-const InvalidParameter = 401
 
 export default function ActsPasteboardErrorTest() {
   describe('ActsPasteboardErrorTest', () => {
@@ -74,7 +73,7 @@ export default function ActsPasteboardErrorTest() {
       try {
         console.info("====>Sub_PasteboardSubscriber_PasteboardDestroyError_0300 start====");
         let result: number = pasteboarderror.PasteboardDestroyError();
-        expect(result).assertEqual(InvalidParameter);
+        expect(result).assertEqual(Success);
         console.info("====>Sub_PasteboardSubscriber_PasteboardDestroyError_0300 result: " + result);
         done()
       } catch (err) {
@@ -95,7 +94,7 @@ export default function ActsPasteboardErrorTest() {
       try {
         console.info("====>Sub_PasteboardGetDataSourceInvalidParameter_0400 start====");
         let result: number = pasteboarderror.PasteboardGetDataSourceInvalidParameter();
-        expect(result).assertEqual(InvalidParameter);
+        expect(result).assertEqual(Success);
         console.info("====>Sub_PasteboardGetDataSourceInvalidParameter_0400 result: " + result);
         done()
       } catch (err) {
@@ -117,7 +116,7 @@ export default function ActsPasteboardErrorTest() {
         console.info("====>Sub_PasteboardSetDataInvalidParameter_0500 start====");
         let result: number = pasteboarderror.PasteboardSetDataInvalidParameter();
         console.info("====>Sub_PasteboardSetDataInvalidParameter_0500 result: " + result);
-        expect(result).assertEqual(InvalidParameter);
+        expect(result).assertEqual(Success);
         done()
       } catch (err) {
         console.error("====>Sub_PasteboardSetDataInvalidParameter_0500 catch err: " + err);
@@ -137,7 +136,7 @@ export default function ActsPasteboardErrorTest() {
       try {
         console.info("====>Sub_PasteboardClearDataInvalidParameter_0600 start====");
         let result: number = pasteboarderror.PasteboardClearDataInvalidParameter();
-        expect(result).assertEqual(InvalidParameter);
+        expect(result).assertEqual(Success);
         console.info("====>Sub_PasteboardClearDataInvalidParameter_0600 result: " + result);
         done()
       } catch (err) {
