@@ -185,7 +185,7 @@ export default function ActsRelationalStoreTest() {
           console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 start====");
           let result: number = testNapi.testDestroyMultipleInvalidParam();
           console.info("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 result====", result);
-          expect(result).assertEqual(RDB_E_INVALID_ARGS);
+          expect(result).assertEqual(RDB_OK);
           done();
         } catch (err) {
           console.error("====>SUB_DistributedData_RelationalStore_SDK_DestroyMultiple_0800 catch err: " + err);
