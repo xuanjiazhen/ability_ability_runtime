@@ -25,7 +25,7 @@
 
 int g_invalidParamCode1 = 20400001;
 
-void addUdsTest(std::vector<napi_property_descriptor> &descData)
+void AddUdsTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testSetPixelMapInvalidParam", nullptr, TestSetPixelMapInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});

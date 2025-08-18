@@ -26,7 +26,7 @@
 int g_invalidParamCode = 20400001;
 int g_err = 20400000;
 
-void addUdmfTest(std::vector<napi_property_descriptor> &descData)
+void AddUdmfTest(std::vector<napi_property_descriptor> &descData)
 {
     descData.push_back({"testDestroyInvalidParam", nullptr, TestDestroyInvalidParam, nullptr, nullptr, nullptr,
                         napi_default, nullptr});
