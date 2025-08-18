@@ -408,8 +408,8 @@ public:
      * @param requestCode Ability request code.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE, int32_t requestCode = DEFAULT_INVAL_VALUE) override;
+    virtual int32_t OpenLink(const Want& want, sptr<IRemoteObject> callerToken, int32_t userId = DEFAULT_INVAL_VALUE,
+        int32_t requestCode = DEFAULT_INVAL_VALUE, const AAFwk::OpenLinkOptions &opt = {}) override;
 
     /**
      * Pop-up launch of full-screen atomic service.
@@ -1066,7 +1066,7 @@ public:
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam);
 
     int32_t StartAbilityByFreeInstall(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId,
-        int32_t requestCode);
+        int32_t requestCode, const AAFwk::OpenLinkOptions &opt = {});
 
     int StartAbilityWrap(
         const Want &want,
@@ -1078,7 +1078,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        const AAFwk::OpenLinkOptions &opt = {});
 
     int StartAbilityInner(
         const Want &want,
@@ -1090,7 +1091,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isForegroundToRestartApp = false,
         bool isImplicit = false,
-        bool isUIAbilityOnly = false);
+        bool isUIAbilityOnly = false,
+        const AAFwk::OpenLinkOptions &opt = {});
 
     int32_t StartExtensionAbilityInner(
         const Want &want,
@@ -1202,7 +1204,8 @@ public:
         int requestCode,
         AbilityRequest &request,
         const sptr<IRemoteObject> &callerToken,
-        int32_t userId);
+        int32_t userId,
+        const AAFwk::OpenLinkOptions &opt = {});
 
     /**
      * Get mission id by target ability token.
@@ -2783,7 +2786,8 @@ private:
     void CloseAssertDialog(const std::string &assertSessionId);
 
     int32_t OpenLinkFreeInstallAtomicService(Want &convertedWant, const Want &originalWant,
-        sptr<IRemoteObject> callerToken, int32_t userId, int32_t requestCode, bool removeInsightIntentFlag);
+        sptr<IRemoteObject> callerToken, int32_t userId, int32_t requestCode, bool removeInsightIntentFlag,
+        const AAFwk::OpenLinkOptions &opt = {});
 
     void ReportPreventStartAbilityResult(const AppExecFwk::AbilityInfo &callerAbilityInfo,
         const AppExecFwk::AbilityInfo &abilityInfo);
@@ -2803,10 +2807,10 @@ private:
         const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);
 
     int StartAbilityWithRemoveIntentFlag(const Want &want, const sptr<IRemoteObject> &callerToken,
-        int32_t userId, int requestCode, bool removeInsightIntentFlag);
+        int32_t userId, int requestCode, bool removeInsightIntentFlag, const AAFwk::OpenLinkOptions &opt = {});
 
     int32_t OpenLinkInner(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode,
-        bool removeInsightIntentFlag);
+        bool removeInsightIntentFlag, const AAFwk::OpenLinkOptions &opt = {});
     int32_t KillProcessWithReasonInner(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;

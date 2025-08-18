@@ -2100,11 +2100,11 @@ ErrCode AbilityManagerClient::PreStartMission(const std::string& bundleName, con
 }
 
 ErrCode AbilityManagerClient::OpenLink(const Want& want, sptr<IRemoteObject> callerToken,
-    int32_t userId, int requestCode)
+    int32_t userId, int requestCode, const AAFwk::OpenLinkOptions &opt)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_INVALID_VALUE(abms);
-    return abms->OpenLink(want, callerToken, userId, requestCode);
+    return abms->OpenLink(want, callerToken, userId, requestCode, opt);
 }
 
 ErrCode AbilityManagerClient::TerminateMission(int32_t missionId)

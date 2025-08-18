@@ -365,21 +365,21 @@ napi_value JsUIExtensionContext::OnOpenLink(napi_env env, NapiCallbackInfo& info
 #ifdef SUPPORT_SCREEN
     InitDisplayId(want);
 #endif
-    return OnOpenLinkInner(env, want, requestCode, startTime, linkValue);
+    return OnOpenLinkInner(env, want, requestCode, startTime, linkValue, openLinkOptions);
 }
 
 napi_value JsUIExtensionContext::OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
-    int requestCode, const std::string& startTime, const std::string& url)
+    int requestCode, const std::string& startTime, const std::string& url, const AAFwk::OpenLinkOptions &opt)
 {
     auto innerErrorCode = std::make_shared<int>(ERR_OK);
-    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrorCode, requestCode]() {
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, innerErrorCode, requestCode, opt]() {
         auto context = weak.lock();
         if (!context) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null context");
             *innerErrorCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
             return;
         }
-        *innerErrorCode = context->OpenLink(want, requestCode);
+        *innerErrorCode = context->OpenLink(want, requestCode, opt);
     };
 
     napi_value result = nullptr;
