@@ -190,81 +190,75 @@ export default function geolocationTest_GeoErr() {
 
         /**
          * @tc.number SUB_HSS_Addbeaconfence_0100
-         * @tc.name testAddBeaconFence
+         * @tc.name SUB_HSS_Addbeaconfence_0100
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
          * @tc.size MEDIUM
          * @tc.type Function
          * @tc.level Level 2
          */
         it('SUB_HSS_Addbeaconfence_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            (async () => {
-                try {
-                    let manufactureDataBuffer:Uint8Array = new Uint8Array([0X02, 0X15, 0X00, 0X00, 0X18, 0X12, 0X00, 0X00,
-                        0X10, 0X00, 0X80, 0X00, 0X00, 0X80, 0X5F, 0X9B, 0X34, 0XFB]);
+            try {
+                let manufactureDataBuffer = new Uint8Array([0X02, 0X15, 0X00, 0X00, 0X18, 0X12, 0X00, 0X00,
+                    0X10, 0X00, 0X80, 0X00, 0X00, 0X80, 0X5F, 0X9B, 0X34, 0XFB]);
 
-                    let manufactureDataMaskBuffer:Uint8Array = new Uint8Array([0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
-                        0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF]);
+                let manufactureDataMaskBuffer = new Uint8Array([0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
+                    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF]);
 
-                    let manufactureData: geoLocationManager.BeaconManufactureData = {
-                        manufactureId: 0X004C,
-                        manufactureData: manufactureDataBuffer.buffer,
-                        manufactureDataMask: manufactureDataMaskBuffer.buffer
-                    };
-
-                    let beacon: geoLocationManager.BeaconFence = {
-                        identifier: "11",
-                        beaconFenceInfoType: geoLocationManager.BeaconFenceInfoType.BEACON_MANUFACTURE_DATA,
-                        manufactureData: manufactureData
-                    };
-
-                    let fenceRequest: geoLocationManager.BeaconFenceRequest = {
-                        beacon: beacon,
-                        transitionCallback: (transition: geoLocationManager.GeofenceTransition) => {
-                            if (transition) {
-                                console.info("GeofenceTransition: err" + JSON.stringify(transition));
-                            }
-                        },
-                        fenceExtensionAbilityName: "MyFenceExtensionAbility",
-                    };
-                    geoLocationManager.disableLocation();
-                    geoLocationManager.addBeaconFence(fenceRequest).then((id) => {
-                        console.info("addBeaconFence success, fence id:" + id);
-                    }).catch((error : BusinessError) => {
-                       console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
-                       expect(error.code).assertEqual("3501100");
-                    });
-                } catch (error) {
-                    console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
+                let manufactureData = {
+                    manufactureId: 0X004C,
+                    manufactureData: manufactureDataBuffer.buffer,
+                    manufactureDataMask: manufactureDataMaskBuffer.buffer
                 };
-            })();
-            await sleep(1000);
-            geoLocationManager.enablelocation();
-            done();
+
+                let beacon = {
+                    identifier: "11",
+                    beaconFenceInfoType: geolocationm.BeaconFenceInfoType.BEACON_MANUFACTURE_DATA,
+                    manufactureData: manufactureData
+                };
+
+                let fenceRequest = {
+                    beacon: beacon,
+                    transitionCallback: (transition) => {
+                        if (transition) {
+                            console.info("GeofenceTransition: err" + JSON.stringify(transition));
+                        }
+                    },
+                    fenceExtensionAbilityName: "MyFenceExtensionAbility",
+                };
+                geolocationm.disableLocation();
+                geolocationm.addBeaconFence(fenceRequest).then((id) => {
+                    console.info("addBeaconFence success, fence id:" + id);
+                }).catch((error) => {
+                    console.error('promise, addBeaconFence: error=' + JSON.stringify(error));
+                    expect(error.code).assertEqual("3501100");
+                });
+            } catch (error) {
+                console.error("addBeaconFence: errCode" + error.code + ", errMessage" + error.message);
+            };
+        await sleep(1000);
+        geolocationm.enablelocation();
+        done();
         })
 
         /**
-         * @tc.number isBeaconFenceSupported_0100
-         * @tc.name testisBeaconFenceSupported
+         * @tc.number SUB_HSS_isBeaconFenceSupported_0100
+         * @tc.name SUB_HSS_isBeaconFenceSupported_0100
          * @tc.desc Invoke the geocoding service with incorrect input parameters.
          * @tc.size MEDIUM
          * @tc.type Function
          * @tc.level Level 2
          */
         it('SUB_HSS_isBeaconFenceSupported_0100', TestType.FUNCTION | Size.MEDIUMTEST | Level.LEVEL2, async function (done) {
-            (async () => {
-                try {
-                    let isBeaconFenceSupported = geoLocationManager.isBeaconFenceSupported();
-                    expect(true).assertEqual(isBeaconFenceSupported != null);
-                } catch (err) {
-                    console.error("errCode:" + err.code + ", message:" + err.message);
-
-                }
-                await sleep(1000);
-                done();
-            });
-        })
-
-
+            try {
+                let isBeaconFenceSupported = geolocationm.isBeaconFenceSupported();
+                expect(true).assertEqual(isBeaconFenceSupported != null);
+            } catch (err) {
+                console.error("errCode:" + err.code + ", message:" + err.message);
+                expect().assertFail();
+            }
+            await sleep(1000);
+            done();
+        });
     })
 }
 
