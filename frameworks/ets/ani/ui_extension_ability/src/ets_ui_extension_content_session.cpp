@@ -728,6 +728,7 @@ void EtsUIExtensionContentSession::SetWindowPrivacyMode(
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
         AppExecFwk::AsyncCallback(env, callbackObj, errorObj, nullptr);
+        env->GlobalReference_Delete(callbackRef);
         return;
     }
     SetWindowPrivacyModeInner(env, isPrivacyMode, callbackObj, etsVm, callbackRef);
@@ -739,28 +740,28 @@ void EtsUIExtensionContentSession::SetWindowPrivacyModeInner(ani_env *env, ani_b
     ani_object errorObj = nullptr;
     auto task = [uiWindow = uiWindow_, isPrivacyMode, etsVm, callbackRef]() {
         ani_status status = ANI_ERROR;
-        ani_env *env = nullptr;
-        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+        ani_env *taskEnv = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &taskEnv)) != ANI_OK || taskEnv == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
             return;
         }
         ani_object errorObj = nullptr;
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
-            env->GlobalReference_Delete(callbackRef);
+            errorObj = EtsErrorUtil::CreateError(taskEnv, AbilityErrorCode::ERROR_CODE_INNER);
+            AppExecFwk::AsyncCallback(taskEnv, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            taskEnv->GlobalReference_Delete(callbackRef);
             return;
         }
         auto ret = uiWindow->SetPrivacyMode(isPrivacyMode);
         if (ret == Rosen::WMError::WM_OK) {
-            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
-            env->GlobalReference_Delete(callbackRef);
+            errorObj = EtsErrorUtil::CreateError(taskEnv, AbilityErrorCode::ERROR_OK);
+            AppExecFwk::AsyncCallback(taskEnv, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            taskEnv->GlobalReference_Delete(callbackRef);
         } else {
-            errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
-            env->GlobalReference_Delete(callbackRef);
+            errorObj = EtsErrorUtil::CreateError(taskEnv, AbilityErrorCode::ERROR_CODE_INNER);
+            AppExecFwk::AsyncCallback(taskEnv, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
+            taskEnv->GlobalReference_Delete(callbackRef);
         }
     };
     if (AniTask::AniSendEvent(task) != ANI_OK) {

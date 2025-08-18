@@ -903,7 +903,7 @@ void EtsUIExtensionContext::OpenAtomicServiceInner(ani_env *env, ani_object aniO
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return;
     }
-    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, &observer = freeInstallObserver_](
+    RuntimeTask task = [etsVm, element = want.GetElement(), startTime, observer = freeInstallObserver_](
         int resultCode, const AAFwk::Want &want, bool isInner) {
         ani_env *env = nullptr;
         if (etsVm->GetEnv(ANI_VERSION_1, &env) != ANI_OK || env == nullptr) {
@@ -1141,7 +1141,7 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
             reinterpret_cast<void*>(EtsUIExtensionContext::ReportDrawnCompleted)},
         ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
             reinterpret_cast<void *>(EtsUIExtensionContext::OpenAtomicService) },
-        ani_native_function { "nativeOpenLinkSync", SIGNATURE_OPEN_LINK,
+        ani_native_function { "nativeOpenLink", SIGNATURE_OPEN_LINK,
             reinterpret_cast<void *>(EtsUIExtensionContext::OpenLink) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
